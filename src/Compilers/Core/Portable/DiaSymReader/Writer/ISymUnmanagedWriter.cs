@@ -12,9 +12,14 @@ using System.Security;
 
 namespace Microsoft.DiaSymReader
 {
+#if !NET
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("98ECEE1E-752D-11d3-8D56-00C04F680B2B"), SuppressUnmanagedCodeSecurity]
+#endif
     internal interface IPdbWriter
     {
+#if NET
+        public static readonly Guid IID = new Guid("98ECEE1E-752D-11d3-8D56-00C04F680B2B");
+#endif
         int __SetPath(/*[in] const WCHAR* szFullPathName, [in] IStream* pIStream, [in] BOOL fFullBuild*/);
         int __OpenMod(/*[in] const WCHAR* szModuleName, [in] const WCHAR* szFileName*/);
         int __CloseMod();
@@ -26,9 +31,14 @@ namespace Microsoft.DiaSymReader
     /// <summary>
     /// The highest version of the interface available on Desktop FX 4.0+.
     /// </summary>
+#if !NET
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("DCF7780D-BDE9-45DF-ACFE-21731A32000C"), SuppressUnmanagedCodeSecurity]
+#endif
     internal unsafe interface ISymUnmanagedWriter5
     {
+#if NET
+        public static readonly Guid IID = new Guid("DCF7780D-BDE9-45DF-ACFE-21731A32000C");
+#endif
         #region ISymUnmanagedWriter
 
         ISymUnmanagedDocumentWriter DefineDocument(string url, ref Guid language, ref Guid languageVendor, ref Guid documentType);
@@ -117,14 +127,23 @@ namespace Microsoft.DiaSymReader
     /// <summary>
     /// The highest version of the interface available in Microsoft.DiaSymReader.Native.
     /// </summary>
+#if !NET
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("5ba52f3b-6bf8-40fc-b476-d39c529b331e"), SuppressUnmanagedCodeSecurity]
+#endif
     internal interface ISymUnmanagedWriter8 : ISymUnmanagedWriter5
     {
+#if NET
+        public static new readonly Guid IID = new Guid("5ba52f3b-6bf8-40fc-b476-d39c529b331e");
+#endif
         //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4, ISymUnmanagedWriter5
         void _VtblGap1_33();
 
         // ISymUnmanagedWriter6
+#if NET
+        void InitializeDeterministic(object emitter, object stream);
+#else
         void InitializeDeterministic([MarshalAs(UnmanagedType.IUnknown)] object emitter, [MarshalAs(UnmanagedType.IUnknown)] object stream);
+#endif
 
         // ISymUnmanagedWriter7
         unsafe void UpdateSignatureByHashingContent([In] byte* buffer, int size);

@@ -267,5 +267,199 @@ namespace Microsoft.DiaSymReader
             throw new NotSupportedException();
         }
     }
+
+#if NET
+    internal unsafe sealed class ComMemoryStreamWrapperCache : ComWrappers
+    {
+        public static readonly ComMemoryStreamWrapperCache Instance = new ComMemoryStreamWrapperCache();
+        private ComMemoryStreamWrapperCache() { }
+
+        private static readonly IntPtr s_vtable;
+        private static readonly (IntPtr Entries, int Count) s_definition;
+
+        static ComMemoryStreamWrapperCache()
+        {
+            GetIUnknownImpl(out IntPtr queryIfacePtr, out IntPtr addRefPtr, out IntPtr releasePtr);
+
+            int tableCount = 14;
+            int i = 0;
+            var vtable = (IntPtr*)System.Runtime.CompilerServices.RuntimeHelpers.AllocateTypeAssociatedMemory(
+                typeof(ComMemoryStream),
+                IntPtr.Size * tableCount);
+            vtable[i++] = queryIfacePtr;
+            vtable[i++] = addRefPtr;
+            vtable[i++] = releasePtr;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, byte*, int, int*, int>)&Ccw.Read;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, byte*, int, int*, int>)&Ccw.Write;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, long, int, long*, int>)&Ccw.Seek;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, long, int>)&Ccw.SetSize;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, IntPtr, long, int*, int*, int>)&Ccw.CopyTo;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, int, int>)&Ccw.Commit;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, int>)&Ccw.Revert;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, long, long, int, int>)&Ccw.LockRegion;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, long, long, int, int>)&Ccw.UnlockRegion;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, Ccw.STATSTG*, int, int>)&Ccw.Stat;
+            vtable[i++] = (IntPtr)(delegate* unmanaged<IntPtr, IntPtr*, int>)&Ccw.Clone;
+            System.Diagnostics.Debug.Assert(tableCount == i);
+            s_vtable = (IntPtr)vtable;
+
+            int definitionLen = 1;
+            i = 0;
+            var entries = (ComInterfaceEntry*)System.Runtime.CompilerServices.RuntimeHelpers.AllocateTypeAssociatedMemory(
+                typeof(ComMemoryStream),
+                sizeof(ComInterfaceEntry) * definitionLen);
+            entries[i++] = new ComInterfaceEntry() { IID = IUnsafeComStream.IID, Vtable = s_vtable };
+            System.Diagnostics.Debug.Assert(i == definitionLen);
+            s_definition = ((IntPtr)entries, definitionLen);
+        }
+
+        protected override unsafe ComInterfaceEntry* ComputeVtables(object obj, CreateComInterfaceFlags flags, out int count)
+        {
+            System.Diagnostics.Debug.Assert(flags == CreateComInterfaceFlags.None);
+
+            if (obj is not ComMemoryStream)
+                throw new NotSupportedException();
+
+            count = s_definition.Count;
+            return (ComInterfaceEntry*)s_definition.Entries;
+        }
+
+        protected override object CreateObject(IntPtr externalComObject, CreateObjectFlags flags)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void ReleaseObjects(System.Collections.IEnumerable objects)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static unsafe class Ccw
+        {
+            [UnmanagedCallersOnly]
+            public static int Read(IntPtr @this, byte* pv, int cb, int* pcbRead)
+            {
+                try
+                {
+                    ComInterfaceDispatch.GetInstance<IUnsafeComStream>((ComInterfaceDispatch*)@this).Read(pv, cb, pcbRead);
+                }
+                catch (Exception e)
+                {
+                    return e.HResult;
+                }
+                return HResult.S_OK;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int Write(IntPtr @this, byte* pv, int cb, int* pcbWritten)
+            {
+                try
+                {
+                    ComInterfaceDispatch.GetInstance<IUnsafeComStream>((ComInterfaceDispatch*)@this).Write(pv, cb, pcbWritten);
+                }
+                catch (Exception e)
+                {
+                    return e.HResult;
+                }
+                return HResult.S_OK;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int Seek(IntPtr @this, long dlibMove, int dwOrigin, long* plibNewPosition)
+            {
+                try
+                {
+                    ComInterfaceDispatch.GetInstance<IUnsafeComStream>((ComInterfaceDispatch*)@this).Seek(dlibMove, dwOrigin, plibNewPosition);
+                }
+                catch (Exception e)
+                {
+                    return e.HResult;
+                }
+                return HResult.S_OK;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int SetSize(IntPtr @this, long libNewSize)
+            {
+                try
+                {
+                    ComInterfaceDispatch.GetInstance<IUnsafeComStream>((ComInterfaceDispatch*)@this).SetSize(libNewSize);
+                }
+                catch (Exception e)
+                {
+                    return e.HResult;
+                }
+                return HResult.S_OK;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int CopyTo(IntPtr @this, IntPtr pstm, long cb, int* pcbRead, int* pcbWritten)
+            {
+                // CopyTo is not used by the sym writer
+                return HResult.E_NOTIMPL;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int Commit(IntPtr @this, int grfCommitFlags)
+            {
+                try
+                {
+                    ComInterfaceDispatch.GetInstance<IUnsafeComStream>((ComInterfaceDispatch*)@this).Commit(grfCommitFlags);
+                }
+                catch (Exception e)
+                {
+                    return e.HResult;
+                }
+                return HResult.S_OK;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int Revert(IntPtr @this)
+            {
+                return HResult.E_NOTIMPL;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int LockRegion(IntPtr @this, long libOffset, long cb, int dwLockType)
+            {
+                return HResult.E_NOTIMPL;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int UnlockRegion(IntPtr @this, long libOffset, long cb, int dwLockType)
+            {
+                return HResult.E_NOTIMPL;
+            }
+
+            [StructLayout(LayoutKind.Sequential)]
+            public readonly unsafe struct STATSTG
+            {
+                public readonly char* pwcsName;
+                public readonly int type;
+                public readonly long cbSize;
+                public readonly System.Runtime.InteropServices.ComTypes.FILETIME mtime;
+                public readonly System.Runtime.InteropServices.ComTypes.FILETIME ctime;
+                public readonly System.Runtime.InteropServices.ComTypes.FILETIME atime;
+                public readonly int grfMode;
+                public readonly int grfLocksSupported;
+                public readonly Guid clsid;
+                public readonly int grfStateBits;
+                public readonly int reserved;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int Stat(IntPtr @this, STATSTG* pstatstg, int grfStatFlag)
+            {
+                return HResult.E_NOTIMPL;
+            }
+
+            [UnmanagedCallersOnly]
+            public static int Clone(IntPtr @this, IntPtr* ppstm)
+            {
+                return HResult.E_NOTIMPL;
+            }
+        }
+    }
+#endif
 }
 
