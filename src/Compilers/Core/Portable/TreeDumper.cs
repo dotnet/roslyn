@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -191,6 +192,11 @@ namespace Microsoft.CodeAnalysis
         }
 
         // an (awful) test for a null read-only-array.  Is there no better way to do this?
+        [UnconditionalSuppressMessage(
+            "Trimming",
+            "IL2075:DynamicallyAccessedMembers",
+            Justification = "Only used for debugging purposes, when trimming is disabled"
+        )]
         private static bool IsDefaultImmutableArray(Object o)
         {
             var ti = o.GetType().GetTypeInfo();

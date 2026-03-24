@@ -11,9 +11,13 @@ namespace Roslyn.Utilities
 {
     internal static class EnumUtilities
     {
-        internal static T[] GetValues<T>() where T : struct
+        internal static T[] GetValues<T>() where T : struct, Enum
         {
+#if NET
+            return Enum.GetValues<T>();
+#else
             return (T[])Enum.GetValues(typeof(T));
+#endif
         }
 
 #if DEBUG

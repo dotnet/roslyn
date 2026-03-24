@@ -5,6 +5,7 @@
 #nullable enable
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
@@ -205,6 +206,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// except typed such that it can be used to create a pooled <see cref="ConditionalWeakTable{TKey,
         /// TValue}.CreateValueCallback"/>.
         /// </summary>
+        [UnconditionalSuppressMessage("Trimming", "IL2091:DynamicallyAccessedMembers", Justification = "ConditionalWeakTable TValue constraint mismatch; no dynamic instantiation occurs.")]
         public static Releaser GetPooledCreateValueCallback<TKey, TArg, TValue>(
             Func<TKey, TArg, TValue> unboundFunction, TArg argument,
             out ConditionalWeakTable<TKey, TValue>.CreateValueCallback boundFunction) where TKey : class where TValue : class
@@ -212,6 +214,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             return GetPooledDelegate<CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>, TArg, Func<TKey, TArg, TValue>, ConditionalWeakTable<TKey, TValue>.CreateValueCallback>(unboundFunction, argument, out boundFunction);
         }
+
         /// <summary>
         /// Gets a <see cref="Func{T, TResult}"/> delegate, which calls <paramref name="unboundFunction"/> with the
         /// specified <paramref name="argument"/>. The resulting <paramref name="boundFunction"/> may be called any
@@ -415,6 +418,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 => () => UnboundDelegate(Argument);
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2091:DynamicallyAccessedMembers", Justification = "ConditionalWeakTable TValue constraint mismatch; no dynamic instantiation occurs.")]
         private sealed class CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>
             : AbstractDelegateWithBoundArgument<
                 CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>,

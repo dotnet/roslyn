@@ -170,6 +170,11 @@ namespace Microsoft.CodeAnalysis
             return type.Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion.Split('+')[0];
         }
 
+        [UnconditionalSuppressMessage(
+            "SingleFile",
+            "IL3000:Assembly.Location",
+            Justification = "Single-file is properly handled"
+        )]
         internal static string GetAssemblyLocation(Type type)
         {
             var location = type.Assembly.Location;

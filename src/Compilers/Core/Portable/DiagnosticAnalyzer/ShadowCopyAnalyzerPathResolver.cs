@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
+    [RequiresUnreferencedCode("Part of analyzer loading infrastructure.")]
     internal sealed class ShadowCopyAnalyzerPathResolver : IAnalyzerPathResolver
     {
         private enum DirectoryCleanupState
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis
 
         public string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo)
         {
-            var satelliteFilePath = AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(originalAnalyzerPath, cultureInfo);
+            var satelliteFilePath = AnalyzerAssemblyLoader.RucSpacer.GetSatelliteAssemblyPath(originalAnalyzerPath, cultureInfo);
             if (satelliteFilePath is null)
             {
                 return null;

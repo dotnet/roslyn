@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 
 namespace Microsoft.CodeAnalysis
 {
+    [UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is only used with primitive types here.")]
     internal sealed partial class CodeAnalysisEventSource : EventSource
     {
         public static class Keywords

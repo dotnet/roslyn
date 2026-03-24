@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// 
     /// If you need to manage the lifetime of the analyzer reference (and the file stream) explicitly use <see cref="AnalyzerImageReference"/>.
     /// </remarks>
+    [RequiresUnreferencedCode("Analyzer types are loaded dynamically by design.")]
     public sealed class AnalyzerFileReference : AnalyzerReference, IEquatable<AnalyzerReference>
     {
         private delegate ImmutableArray<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
@@ -366,6 +367,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
+        [RequiresUnreferencedCode("Loads analyzer types with reflection.")]
         private sealed class Extensions<TExtension>
             where TExtension : class
         {

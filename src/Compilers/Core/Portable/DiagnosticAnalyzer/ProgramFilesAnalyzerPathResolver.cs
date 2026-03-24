@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -47,6 +48,6 @@ internal sealed class ProgramFilesAnalyzerPathResolver : IAnalyzerPathResolver
     public string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo)
     {
         Debug.Assert(IsAnalyzerPathHandled(originalAnalyzerPath));
-        return AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(originalAnalyzerPath, cultureInfo);
+        return AnalyzerAssemblyLoader.RucSpacer.GetSatelliteAssemblyPath(originalAnalyzerPath, cultureInfo);
     }
 }
