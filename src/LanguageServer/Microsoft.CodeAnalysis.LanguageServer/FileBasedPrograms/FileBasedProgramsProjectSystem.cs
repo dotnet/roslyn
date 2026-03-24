@@ -257,8 +257,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask CloseDocumentAsync(DocumentUri uri)
     {
+        // If automatic discovery is enabled, we don't want to unload a file-based app upon closing a document.
+        var unloadFromProjectFactory = GlobalOptionService.GetOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery)
+            ? _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory
+            : null;
+
         var documentPath = GetDocumentFilePath(uri);
-        await TryUnloadProjectAsync(documentPath);
+        await TryUnloadProjectAsync(documentPath, unloadFromProjectFactory);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
