@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <RuntimeIdentifier>x64</RuntimeIdentifier>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 

@@ -350,11 +350,11 @@
     <PackageReference Include="ICSharpCode.Decompiler" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" ForceIncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
-    <PackageReference Include="SQLitePCLRaw.core" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SourceGear.sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch" ForceIncludeInVsix="true" />
+    <PackageReference Include="SourceGear.sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SQLitePCLRaw.config.e_sqlite3" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="SQLitePCLRaw.core" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
+    <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(PkgSourceGear_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">

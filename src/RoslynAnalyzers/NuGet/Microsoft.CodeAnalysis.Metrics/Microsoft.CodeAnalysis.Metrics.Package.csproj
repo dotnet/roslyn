@@ -45,7 +45,7 @@
     <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(MicrosoftBuildVersionForMetrics)" ExcludeAssets="Runtime" />
     <PackageReference Include="System.Text.Json" VersionOverride="$(SystemTextJsonVersionForMetrics)" />
 
-    <PackageReference Include="SQLitePCLRaw.bundle_green" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
+    <PackageReference Include="SourceGear.sqlite3" VersionOverride="$(SqliteNativeVersion)" ExcludeAssets="All" />
     <PackageReference Include="SQLitePCLRaw.core" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.linux" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.osx" VersionOverride="$(SQLitePCLRawVersion)" ExcludeAssets="All" />
