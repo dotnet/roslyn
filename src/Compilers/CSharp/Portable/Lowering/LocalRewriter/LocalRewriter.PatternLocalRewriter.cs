@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // automaton is done with it (checked by the caller).
                         foreach (BoundPatternBinding binding in w.Bindings)
                         {
-                            if (binding.VariableAccess is BoundLocal l)
+                            if (binding.VariableAccess is BoundLocal l && !_localRewriter._disablePatternVariableTempSharing)
                             {
                                 Debug.Assert(l.LocalSymbol.DeclarationKind == LocalDeclarationKind.PatternVariable);
                                 _ = _tempAllocator.TrySetTemp(binding.TempContainingValue, binding.VariableAccess);

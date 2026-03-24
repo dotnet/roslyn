@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly SyntheticBoundNodeFactory _factory;
         private readonly SynthesizedSubmissionFields _previousSubmissionFields;
         private readonly bool _allowOmissionOfConditionalCalls;
+        private readonly bool _disablePatternVariableTempSharing;
         private LoweredDynamicOperationFactory _dynamicFactory;
         private bool _sawLambdas;
         private int _availableLocalFunctionOrdinal;
@@ -61,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
+            bool disablePatternVariableTempSharing,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(factory.InstrumentationState != null);
@@ -73,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
+            _disablePatternVariableTempSharing = disablePatternVariableTempSharing;
             _topLevelMethodOrdinal = containingMethodOrdinal;
             _diagnostics = diagnostics;
             _rootStatement = rootStatement;
@@ -96,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<SourceSpan> codeCoverageSpans,
             out bool sawLambdas,
             out bool sawLocalFunctions,
-            out bool sawAwaitInExceptionHandler)
+            out bool sawAwaitInExceptionHandler,
+            bool disablePatternVariableTempSharing = false)
         {
             Debug.Assert(statement != null);
             Debug.Assert(compilationState != null);
@@ -141,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
-                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
+                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, disablePatternVariableTempSharing, diagnostics);
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
