@@ -59,13 +59,17 @@ internal sealed class FindImplementationsHandler : ILspServiceDocumentRequestHan
             var text = definition.GetClassifiedText();
             foreach (var sourceSpan in definition.SourceSpans)
             {
+                // Use a zero-length span at the start of the source span to navigate to a
+                // position rather than selecting the entire span. This is consistent with how
+                // Go to Definition navigates via GetNavigableLocationAsync.
+                var positionSpan = new DocumentSpan(sourceSpan.Document, new TextSpan(sourceSpan.SourceSpan.Start, 0));
                 if (supportsVisualStudioExtensions)
                 {
-                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
+                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(positionSpan, text, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
-                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(sourceSpan, cancellationToken).ConfigureAwait(false));
+                    locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationAsync(positionSpan, cancellationToken).ConfigureAwait(false));
                 }
             }
         }

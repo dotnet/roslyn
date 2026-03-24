@@ -270,9 +270,8 @@ internal abstract partial class AbstractDefinitionLocationService(
             if (document is null)
                 return null;
 
-            var workspace = solution.Workspace;
-            var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
-            return await service.GetLocationForSpanAsync(workspace, document.Id, span, cancellationToken).ConfigureAwait(false);
+            var documentSpan = new DocumentSpan(document, span);
+            return await documentSpan.GetNavigableLocationAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
