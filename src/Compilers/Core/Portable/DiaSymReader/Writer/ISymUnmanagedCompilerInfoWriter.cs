@@ -7,17 +7,12 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader
 {
-#if !NET
-    [ComImport]
     [Guid("2ae6a06a-92ba-4c2d-a64e-7e9fa421a330")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(false)]
-#endif
-    internal interface ISymUnmanagedCompilerInfoWriter
+    [GeneratedWhenPossibleComInterface]
+    public partial interface ISymUnmanagedCompilerInfoWriter
     {
-#if NET
-        public static readonly Guid IID = new Guid("2ae6a06a-92ba-4c2d-a64e-7e9fa421a330");
-#endif
         /// <summary>
         /// Adds compiler version number and name.
         /// </summary>

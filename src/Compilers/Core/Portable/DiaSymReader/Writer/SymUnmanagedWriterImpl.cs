@@ -505,15 +505,7 @@ namespace Microsoft.DiaSymReader
 
                     try
                     {
-                        unsafe
-                        {
-                            fixed (int* yieldPtr = yieldOffsets)
-                            fixed (int* resumePtr = resumeOffsets)
-                            fixed (int* methodsPtr = methods)
-                            {
-                                asyncMethodPropertyWriter.DefineAsyncStepInfo(count, yieldPtr, resumePtr, methodsPtr);
-                            }
-                        }
+                        asyncMethodPropertyWriter.DefineAsyncStepInfo(count, yieldOffsets.ToArray(), resumeOffsets.ToArray(), methods);
                     }
                     catch (Exception ex)
                     {

@@ -1,19 +1,35 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#if NET9_0_OR_GREATER
+global using GeneratedWhenPossibleComInterfaceAttribute = System.Runtime.InteropServices.Marshalling.GeneratedComInterfaceAttribute;
+#else
+global using GeneratedWhenPossibleComInterfaceAttribute = System.Runtime.InteropServices.ComImportAttribute;
+#endif
 
 #nullable disable
 
 using System;
 using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
+#if NET
+using System.Runtime.InteropServices.Marshalling;
+#endif
+
+#if NET9_0_OR_GREATER
+[assembly: System.Runtime.CompilerServices.DisableRuntimeMarshalling]
+#endif
 
 namespace Microsoft.DiaSymReader
 {
-    internal static class SymUnmanagedFactory
+#if NET
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+#endif
+    internal static partial class SymUnmanagedFactory
     {
-        private const string AlternateLoadPathEnvironmentVariableName = "MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH";
+        private const string AlternativeLoadPathEnvironmentVariableName = "MICROSOFT_DIASYMREADER_NATIVE_ALT_LOAD_PATH";
+        private const string AlternativeLoadPathOnlyEnvironmentVariableName = "MICROSOFT_DIASYMREADER_NATIVE_USE_ALT_LOAD_PATH_ONLY";
 
         private const string LegacyDiaSymReaderModuleName = "diasymreader.dll";
         private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
@@ -29,7 +45,11 @@ namespace Microsoft.DiaSymReader
         // CorSymReader_SxS from corsym.idl
         private const string SymReaderClsid = "0A3976C5-4529-4ef8-B0B0-42EED37082CD";
 
+#if NET9_0_OR_GREATER
+        private const string IUnknownIid = "00000000-0000-0000-C000-000000000046";
+#else
         private static Type s_lazySymReaderComType, s_lazySymWriterComType;
+#endif
 
         internal static string DiaSymReaderModuleName
             => RuntimeInformation.ProcessArchitecture switch
@@ -42,103 +62,62 @@ namespace Microsoft.DiaSymReader
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymReaderFactoryName)]
-        private static extern void CreateSymReader32(ref Guid id,
-#if NET
-            out IntPtr symReader);
-#else
-            [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
-#endif
+        private static unsafe extern void CreateSymReader32([MarshalAs(UnmanagedType.LPStruct)] Guid id, IntPtr* symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleNameAmd64, EntryPoint = CreateSymReaderFactoryName)]
-        private static extern void CreateSymReaderAmd64(ref Guid id,
-#if NET
-            out IntPtr symReader);
-#else
-            [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
-#endif
+        private static unsafe extern void CreateSymReaderAmd64([MarshalAs(UnmanagedType.LPStruct)] Guid id, IntPtr* symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleNameArm64, EntryPoint = CreateSymReaderFactoryName)]
-        private static extern void CreateSymReaderArm64(ref Guid id,
-#if NET
-            out IntPtr symReader);
-#else
-            [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
-#endif
+        private static unsafe extern void CreateSymReaderArm64([MarshalAs(UnmanagedType.LPStruct)] Guid id, IntPtr* symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymWriterFactoryName)]
-        private static extern void CreateSymWriter32(ref Guid id,
-#if NET
-            out IntPtr symWriter);
-#else
-            [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
-#endif
+        private static unsafe extern void CreateSymWriter32([MarshalAs(UnmanagedType.LPStruct)] Guid id, IntPtr* symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleNameAmd64, EntryPoint = CreateSymWriterFactoryName)]
-        private static extern void CreateSymWriterAmd64(ref Guid id,
-#if NET
-            out IntPtr symWriter);
-#else
-            [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
-#endif
+        private static unsafe extern void CreateSymWriterAmd64([MarshalAs(UnmanagedType.LPStruct)] Guid id, IntPtr* symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleNameArm64, EntryPoint = CreateSymWriterFactoryName)]
-        private static extern void CreateSymWriterArm64(ref Guid id,
-#if NET
-            out IntPtr symWriter);
+        private static unsafe extern void CreateSymWriterArm64([MarshalAs(UnmanagedType.LPStruct)] Guid id, IntPtr* symWriter);
+
+#if NETSTANDARD2_0
+        [DllImport("kernel32", CharSet = CharSet.Unicode, ExactSpelling = true)]
+        private static extern IntPtr LoadLibraryW(string path);
 #else
-            [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
+        [LibraryImport("kernel32", StringMarshalling = StringMarshalling.Utf16)]
+        private static partial IntPtr LoadLibraryW(string path);
 #endif
 
-        [DllImport("kernel32")]
-        private static extern IntPtr LoadLibrary(string path);
-
-        [DllImport("kernel32")]
+        [DllImport("kernel32", ExactSpelling = true)]
         private static extern bool FreeLibrary(IntPtr hModule);
 
-        [DllImport("kernel32")]
-        private static extern IntPtr GetProcAddress(IntPtr hModule, string procedureName);
-
-#if NET
-        private delegate void NativeFactory(ref Guid id, out IntPtr instance);
+#if NETSTANDARD2_0
+        [DllImport("kernel32", ExactSpelling = true)]
+        private static extern IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string procedureName);
 #else
+        [LibraryImport("kernel32")]
+        private static partial IntPtr GetProcAddress(IntPtr hModule, [MarshalAs(UnmanagedType.LPStr)] string procedureName);
+#endif
+
+#if NETSTANDARD2_0
         private delegate void NativeFactory(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object instance);
 #endif
 
-        private static readonly Lazy<Func<string, string>> s_lazyGetEnvironmentVariable = new Lazy<Func<string, string>>(() =>
-        {
-            try
-            {
-                foreach (var method in typeof(Environment).GetTypeInfo().GetDeclaredMethods("GetEnvironmentVariable"))
-                {
-                    var parameters = method.GetParameters();
-                    if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
-                    {
-                        return (Func<string, string>)method.CreateDelegate(typeof(Func<string, string>));
-                    }
-                }
-            }
-            catch
-            {
-            }
-
-            return null;
-        });
+#if NET9_0_OR_GREATER
+        [LibraryImport("Ole32")]
+        private static unsafe partial int CoCreateInstance(in Guid rclsid, void* pUnkOuter, int dwClsContext, in Guid riid, [MarshalUsing(typeof(ComInterfaceMarshaller<object>))] out object ppObj);
+#endif
 
         // internal for testing
         internal static string GetEnvironmentVariable(string name)
         {
             try
             {
-#if NET
                 return Environment.GetEnvironmentVariable(name);
-#else
-                return s_lazyGetEnvironmentVariable.Value?.Invoke(name);
-#endif
             }
             catch
             {
@@ -146,110 +125,71 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        private static object TryLoadFromAlternativePath(Guid clsid, string factoryName)
+        private static unsafe object TryLoadFromAlternativePath(Guid clsid, bool createReader)
         {
-            var dir = GetEnvironmentVariable(AlternateLoadPathEnvironmentVariableName);
+            var dir = GetEnvironmentVariable(AlternativeLoadPathEnvironmentVariableName);
             if (string.IsNullOrEmpty(dir))
             {
                 return null;
             }
 
-            var moduleHandle = LoadLibrary(Path.Combine(dir, DiaSymReaderModuleName));
+            var moduleHandle = LoadLibraryW(Path.Combine(dir, DiaSymReaderModuleName));
             if (moduleHandle == IntPtr.Zero)
             {
                 Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
             }
 
-#if NET
-            IntPtr resultPtr = IntPtr.Zero;
-#else
             object instance = null;
-#endif
             try
             {
+                string factoryName = createReader ? CreateSymReaderFactoryName : CreateSymWriterFactoryName;
                 var createAddress = GetProcAddress(moduleHandle, factoryName);
                 if (createAddress == IntPtr.Zero)
                 {
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                 }
 
-#if NETSTANDARD1_1
-                var creator = (NativeFactory)Marshal.GetDelegateForFunctionPointer(createAddress, typeof(NativeFactory));
-#else
+#if NETSTANDARD2_0
                 var creator = Marshal.GetDelegateForFunctionPointer<NativeFactory>(createAddress);
-#endif
-#if NET
-                creator(ref clsid, out resultPtr);
-#else
                 creator(ref clsid, out instance);
+#else
+                var creator = (delegate* unmanaged<Guid*, IntPtr*, void>)createAddress;
+                IntPtr rawInstance = default;
+                creator(&clsid, &rawInstance);
+                instance = ComInterfaceMarshaller<ISymUnmanagedWriter5>.ConvertToManaged(rawInstance.ToPointer());
 #endif
             }
             finally
             {
-#if NET
-                if (resultPtr == IntPtr.Zero && !FreeLibrary(moduleHandle))
-#else
                 if (instance == null && !FreeLibrary(moduleHandle))
-#endif
                 {
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
                 }
             }
 
-#if NET
-            if (resultPtr == IntPtr.Zero)
-                return null;
-            return WrapComPointer(resultPtr);
-#else
             return instance;
-#endif
         }
 
-#if NET
-        private static object WrapComPointer(IntPtr ptr)
+#if NET9_0_OR_GREATER
+        private static unsafe object ActivateClass(Guid clsid)
         {
-            var cw = new WriterComWrapperCache();
-            return cw.GetOrCreateObjectForComInstance(ptr, CreateObjectFlags.UniqueInstance);
+            int hr = CoCreateInstance(in clsid, null, 1, new Guid(IUnknownIid), out object instance);
+            Marshal.ThrowExceptionForHR(hr);
+            return instance;
         }
-#endif
-
-#if NET
-        // COM registry fallback is only relevant on Windows with built-in COM support.
-        // In AOT scenarios, this path is not expected to be reached.
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2067:Target parameter argument does not satisfy 'DynamicallyAccessedMembersAttribute' in call to target method. The parameter of method does not have matching annotations.", Justification = "COM registry fallback for legacy Windows PDB support.")]
-        [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2072:'type' argument does not satisfy 'DynamicallyAccessedMemberTypes.PublicParameterlessConstructor' in call to 'System.Activator.CreateInstance(Type)'.", Justification = "COM registry fallback for legacy Windows PDB support.")]
-#endif
-        private static object CreateFromComRegistry(bool createReader, Guid clsid, out Exception loadException)
+#else
+        private static object ActivateClass(ref Type lazyType, Guid clsid)
         {
-            loadException = null;
-            try
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var comType = createReader ?
-                    GetComTypeType(ref s_lazySymReaderComType, clsid) :
-                    GetComTypeType(ref s_lazySymWriterComType, clsid);
-                return Activator.CreateInstance(comType);
+                throw new PlatformNotSupportedException("COM lookup is not supported");
             }
-            catch (Exception e)
-            {
-                loadException = e;
-                return null;
-            }
+            lazyType ??= Marshal.GetTypeFromCLSID(clsid);
+            return Activator.CreateInstance(lazyType);
         }
-
-        private static Type GetComTypeType(ref Type lazyType, Guid clsid)
-        {
-            if (lazyType == null)
-            {
-#if NET
-                System.Diagnostics.Debug.Assert(OperatingSystem.IsWindows());
 #endif
-                lazyType = Marshal.GetTypeFromCLSID(clsid);
-            }
 
-            return lazyType;
-        }
-
-        internal static object CreateObject(bool createReader, bool useAlternativeLoadPath, bool useComRegistry, out string moduleName, out Exception loadException)
+        internal static unsafe object CreateObject(bool createReader, bool useAlternativeLoadPath, bool useComRegistry, out string moduleName, out Exception loadException)
         {
             object instance = null;
             loadException = null;
@@ -259,67 +199,57 @@ namespace Microsoft.DiaSymReader
 
             try
             {
+                DllNotFoundException loadExceptionCandidate = null;
+
                 try
                 {
-#if NET
-                    IntPtr ptr;
-                    switch (RuntimeInformation.ProcessArchitecture, createReader)
+                    if (!(useAlternativeLoadPath && GetEnvironmentVariable(AlternativeLoadPathOnlyEnvironmentVariableName) == "1"))
                     {
-                        case (Architecture.X86, true):
-                            CreateSymReader32(ref clsid, out ptr);
-                            break;
-                        case (Architecture.X86, false):
-                            CreateSymWriter32(ref clsid, out ptr);
-                            break;
-                        case (Architecture.X64, true):
-                            CreateSymReaderAmd64(ref clsid, out ptr);
-                            break;
-                        case (Architecture.X64, false):
-                            CreateSymWriterAmd64(ref clsid, out ptr);
-                            break;
-                        case (Architecture.Arm64, true):
-                            CreateSymReaderArm64(ref clsid, out ptr);
-                            break;
-                        case (Architecture.Arm64, false):
-                            CreateSymWriterArm64(ref clsid, out ptr);
-                            break;
-                        default:
-                            throw new NotSupportedException();
-                    }
-                    instance = WrapComPointer(ptr);
+                        IntPtr rawInstance = default;
+                        switch (RuntimeInformation.ProcessArchitecture, createReader)
+                        {
+                            case (Architecture.X86, true):
+                                CreateSymReader32(clsid, &rawInstance);
+                                break;
+                            case (Architecture.X86, false):
+                                CreateSymWriter32(clsid, &rawInstance);
+                                break;
+                            case (Architecture.X64, true):
+                                CreateSymReaderAmd64(clsid, &rawInstance);
+                                break;
+                            case (Architecture.X64, false):
+                                CreateSymWriterAmd64(clsid, &rawInstance);
+                                break;
+                            case (Architecture.Arm64, true):
+                                CreateSymReaderArm64(clsid, &rawInstance);
+                                break;
+                            case (Architecture.Arm64, false):
+                                CreateSymWriterArm64(clsid, &rawInstance);
+                                break;
+                            default:
+                                throw new NotSupportedException();
+                        }
+
+                        if (rawInstance != default)
+                        {
+#if NET9_0_OR_GREATER
+                            instance = ComInterfaceMarshaller<ISymUnmanagedWriter5>.ConvertToManaged(rawInstance.ToPointer());
 #else
-                    switch (RuntimeInformation.ProcessArchitecture, createReader)
-                    {
-                        case (Architecture.X86, true):
-                            CreateSymReader32(ref clsid, out instance);
-                            break;
-                        case (Architecture.X86, false):
-                            CreateSymWriter32(ref clsid, out instance);
-                            break;
-                        case (Architecture.X64, true):
-                            CreateSymReaderAmd64(ref clsid, out instance);
-                            break;
-                        case (Architecture.X64, false):
-                            CreateSymWriterAmd64(ref clsid, out instance);
-                            break;
-                        case (Architecture.Arm64, true):
-                            CreateSymReaderArm64(ref clsid, out instance);
-                            break;
-                        case (Architecture.Arm64, false):
-                            CreateSymWriterArm64(ref clsid, out instance);
-                            break;
-                        default:
-                            throw new NotSupportedException();
-                    }
+                            instance = (ISymUnmanagedWriter5)Marshal.GetObjectForIUnknown(rawInstance);
 #endif
+                        }
+                    }
                 }
                 catch (DllNotFoundException e) when (useAlternativeLoadPath)
                 {
-                    instance = TryLoadFromAlternativePath(clsid, createReader ? CreateSymReaderFactoryName : CreateSymWriterFactoryName);
-                    if (instance == null)
-                    {
-                        loadException = e;
-                    }
+                    instance = null;
+                    loadExceptionCandidate = e;
+                }
+
+                instance ??= TryLoadFromAlternativePath(clsid, createReader);
+                if (instance == null)
+                {
+                    loadException = loadExceptionCandidate;
                 }
             }
             catch (Exception e)
@@ -335,19 +265,23 @@ namespace Microsoft.DiaSymReader
             else if (useComRegistry)
             {
                 // Try to find a registered CLR implementation
-                instance = CreateFromComRegistry(createReader, clsid, out var comException);
-                if (instance != null)
+                try
                 {
+#if NET9_0_OR_GREATER
+                    instance = ActivateClass(clsid);
+#else
+                    instance = ActivateClass(ref createReader ? ref s_lazySymReaderComType : ref s_lazySymWriterComType, clsid);
+#endif
                     moduleName = LegacyDiaSymReaderModuleName;
                 }
-                else
+                catch (Exception e)
                 {
-                    loadException = comException;
+                    loadException = e;
+                    instance = null;
                 }
             }
 
             return instance;
         }
-
     }
 }
