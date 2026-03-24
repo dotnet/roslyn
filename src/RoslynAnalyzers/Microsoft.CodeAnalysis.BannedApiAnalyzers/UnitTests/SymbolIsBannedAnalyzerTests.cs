@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         root = true
 
                         [*]
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         root = true
 
                         [*]
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -406,10 +406,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         root = true
 
                         [*]
-                        banned_api_analyzer.exclude_generated_code = false
+                        dotnet_banned_api_analyzer.exclude_generated_code = false
 
                         [/0/Generated/Matched.g.cs]
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -466,10 +466,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         root = true
 
                         [*]
-                        banned_api_analyzer.exclude_generated_code = false
+                        dotnet_banned_api_analyzer.exclude_generated_code = false
 
                         [/0/Generated/Matched.g.vb]
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
                         ("/.globalconfig", """
                         is_global = true
 
-                        banned_api_analyzer.exclude_generated_code = true
+                        dotnet_banned_api_analyzer.exclude_generated_code = true
                         """),
                     },
                 },

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
     public abstract class SymbolIsBannedAnalyzerBase<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private const string ExcludeGeneratedCodeOptionName = "banned_api_analyzer.exclude_generated_code";
+        private const string ExcludeGeneratedCodeOptionName = "dotnet_banned_api_analyzer.exclude_generated_code";
 
         protected abstract Dictionary<(string ContainerName, string SymbolName), ImmutableArray<BanFileEntry>>? ReadBannedApis(CompilationStartAnalysisContext compilationContext);
 
@@ -277,12 +277,17 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                             return true;
                         }
 
+                        if (isGeneratedCode == true)
+                        {
+                            return false;
+                        }
+
                         var generatedCodeKind = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options);
                         return generatedCodeKind switch
                         {
                             GeneratedKind.MarkedGenerated => false,
                             GeneratedKind.NotGenerated => true,
-                            _ => !(isGeneratedCode ?? GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken)),
+                            _ => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken),
                         };
                     });
             }

@@ -21,7 +21,7 @@ Generated code is analyzed by default. To exclude generated code from banned API
 ```ini
 is_global = true
 
-banned_api_analyzer.exclude_generated_code = true
+dotnet_banned_api_analyzer.exclude_generated_code = true
 ```
 
 To add a symbol to the banned list, just add an entry in the format below to one of the configuration files (Description Text will be displayed as description in diagnostics, which is optional):
