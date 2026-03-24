@@ -10,7 +10,6 @@ using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -56,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, CancellationToken cancellationToken = default(CancellationToken))
             {
-                var appSettings = new NameValueCollection();
-                return new BuildServerController(appSettings, Logger).RunShutdownAsync(pipeName, waitForProcess, Timeout.Infinite, cancellationToken);
+                return new BuildServerController(Logger).RunShutdownAsync(pipeName, waitForProcess, Timeout.Infinite, cancellationToken);
             }
 
             [Fact]
@@ -468,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public void TimeoutNoTimeout()
             {
-                Assert.True(Parse("-timeout:-1"));
+                Assert.True(Parse("-timeout:0"));
                 Assert.Equal(Timeout.InfiniteTimeSpan, _timeout);
             }
 
@@ -476,6 +474,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void TimeoutInvalid()
             {
                 Assert.False(Parse("-timeout:abc"));
+                Assert.False(Parse("-timeout:-1"));
                 Assert.False(Parse("-timeout:-2"));
                 Assert.False(Parse("-timeout:"));
             }

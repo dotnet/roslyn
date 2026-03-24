@@ -25,12 +25,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         internal const string KeepAliveSettingName = "keepalive";
 
-        private readonly NameValueCollection _appSettings;
         private readonly ICompilerServerLogger _logger;
 
-        internal BuildServerController(NameValueCollection appSettings, ICompilerServerLogger logger)
+        internal BuildServerController(ICompilerServerLogger logger)
         {
-            _appSettings = appSettings;
             _logger = logger;
         }
 
@@ -45,18 +43,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            keepAlive ??= GetKeepAliveTimeout();
+            keepAlive ??= GetDefaultKeepAlive(_logger);
 
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
                 : RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
-        internal TimeSpan GetKeepAliveTimeout()
+        internal static TimeSpan GetDefaultKeepAlive(ICompilerServerLogger logger, NameValueCollection? appSettings = null)
         {
             try
             {
-                if (int.TryParse(_appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
+#if NET472
+                appSettings ??= System.Configuration.ConfigurationManager.AppSettings;
+#else
+                appSettings ??= new NameValueCollection();
+#endif
+                if (int.TryParse(appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
                     keepAliveValue >= 0)
                 {
                     if (keepAliveValue == 0)
@@ -76,12 +79,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception e)
             {
-                _logger.LogException(e, "Could not read AppSettings");
+                logger.LogException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;
             }
         }
-
-        internal TimeSpan GetKeepAliveFromCommandLine(TimeSpan? keepAlive) => keepAlive ?? GetKeepAliveTimeout();
 
         internal static IClientConnectionHost CreateClientConnectionHost(string pipeName, ICompilerServerLogger logger) => new NamedPipeClientConnectionHost(pipeName, logger);
 
@@ -138,14 +139,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             IClientConnectionHost? clientConnectionHost = null,
             IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
-            NameValueCollection? appSettings = null,
             ICompilerServerLogger? logger = null,
             CancellationToken cancellationToken = default)
         {
-            appSettings ??= new NameValueCollection();
             logger ??= EmptyCompilerServerLogger.Instance;
-            var controller = new BuildServerController(appSettings, logger);
-            keepAlive ??= controller.GetKeepAliveTimeout();
+            var controller = new BuildServerController(logger);
+            keepAlive ??= GetDefaultKeepAlive(logger);
             return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken: cancellationToken);
         }
 
@@ -183,12 +182,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     var timeoutValue = arg.Substring(timeoutArgPrefix.Length);
                     if (!int.TryParse(timeoutValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTimeout) ||
-                        (parsedTimeout < 0 && parsedTimeout != -1))
+                        parsedTimeout < 0)
                     {
                         return false;
                     }
 
-                    timeout = parsedTimeout == -1 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
+                    timeout = parsedTimeout == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
                 }
                 else if (arg.StartsWith(logArgPrefix, StringComparison.Ordinal))
                 {

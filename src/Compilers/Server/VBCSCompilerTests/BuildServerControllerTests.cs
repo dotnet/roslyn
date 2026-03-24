@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Specialized;
 using System.Threading;
+using Microsoft.CodeAnalysis.CommandLine;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -19,70 +19,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             NamedPipeTestUtil.DisposeAll();
         }
 
-        public sealed class GetKeepAliveFromCommandLineTests
+        public sealed class GetDefaultKeepAliveTests
         {
             private readonly NameValueCollection _appSettings = new NameValueCollection();
-            private readonly BuildServerController _controller;
-
-            public GetKeepAliveFromCommandLineTests(ITestOutputHelper testOutputHelper)
-            {
-                _controller = new BuildServerController(_appSettings, new XunitCompilerServerLogger(testOutputHelper));
-            }
-
-            [Fact]
-            public void TimeoutMinusOne_ReturnsInfiniteTimeSpan()
-            {
-                Assert.Equal(Timeout.InfiniteTimeSpan, _controller.GetKeepAliveFromCommandLine(keepAlive: Timeout.InfiniteTimeSpan));
-            }
-
-            [Fact]
-            public void PositiveTimeout_ReturnsTimeSpan()
-            {
-                Assert.Equal(TimeSpan.FromSeconds(30), _controller.GetKeepAliveFromCommandLine(keepAlive: TimeSpan.FromSeconds(30)));
-            }
-
-            [Fact]
-            public void NoTimeout_FallsBackToAppSettings()
-            {
-                _appSettings[BuildServerController.KeepAliveSettingName] = "42";
-                Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveFromCommandLine(keepAlive: null));
-            }
-
-            [Fact]
-            public void NoTimeout_NoAppSettings_ReturnsDefault()
-            {
-                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveFromCommandLine(keepAlive: null));
-            }
-        }
-
-        public sealed class GetKeepAliveTimeoutTests
-        {
-            private readonly NameValueCollection _appSettings = new NameValueCollection();
-            private readonly BuildServerController _controller;
-
-            public GetKeepAliveTimeoutTests(ITestOutputHelper testOutputHelper)
-            {
-                _controller = new BuildServerController(_appSettings, new XunitCompilerServerLogger(testOutputHelper));
-            }
 
             [Fact]
             public void Simple()
             {
                 _appSettings[BuildServerController.KeepAliveSettingName] = "42";
-                Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveTimeout());
+                Assert.Equal(TimeSpan.FromSeconds(42), BuildServerController.GetDefaultKeepAlive(EmptyCompilerServerLogger.Instance, _appSettings));
             }
 
             [Fact]
             public void InvalidNumber()
             {
                 _appSettings[BuildServerController.KeepAliveSettingName] = "dog";
-                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, BuildServerController.GetDefaultKeepAlive(EmptyCompilerServerLogger.Instance, _appSettings));
             }
 
             [Fact]
             public void NoSetting()
             {
-                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, BuildServerController.GetDefaultKeepAlive(EmptyCompilerServerLogger.Instance, _appSettings));
             }
         }
     }
