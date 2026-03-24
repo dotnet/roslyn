@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
@@ -36,7 +37,8 @@ internal sealed class ServiceBrokerFactory
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ServiceBrokerFactory([ImportMany] IEnumerable<IOnServiceBrokerInitialized> onServiceBrokerInitialized,
+    public ServiceBrokerFactory(
+        [ImportMany] IEnumerable<IOnServiceBrokerInitialized> onServiceBrokerInitialized,
         ExportProvider exportProvider,
         WrappedServiceBroker wrappedServiceBroker)
     {

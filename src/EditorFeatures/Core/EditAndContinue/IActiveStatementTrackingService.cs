@@ -6,12 +6,11 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal interface IActiveStatementTrackingService : IWorkspaceService, IActiveStatementSpanLocator
+internal interface IActiveStatementTrackingService : IActiveStatementSpanLocator
 {
     void StartTracking(Solution solution, IActiveStatementSpanFactory spanProvider);
 

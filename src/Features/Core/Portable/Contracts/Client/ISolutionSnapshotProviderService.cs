@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Contracts.Client;
 internal readonly record struct SolutionSnapshotId([property: DataMember] int Id);
 
 // brokered service implemented by the client
-internal interface ISolutionSnapshotProvider
+internal interface ISolutionSnapshotProviderService
 {
     ValueTask<SolutionSnapshotId> RegisterSolutionSnapshotAsync(CancellationToken cancellationToken);
 }

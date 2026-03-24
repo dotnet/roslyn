@@ -119,11 +119,6 @@ internal sealed class RoslynPackage : AbstractPackage
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
-
-        // Must be profferred before any C#/VB projects are loaded and the corresponding UI context activated.
-        serviceBrokerContainer.Proffer(
-            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            (_, _, _, _) => ValueTask.FromResult<object?>(ComponentModel.GetService<EditorManagedHotReloadLanguageService>()));
     }
 
     protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)

@@ -38,6 +38,12 @@ internal sealed class PdbMatchingSourceTextProvider() : IEventListener, IPdbMatc
 
     public void StartListening(Workspace workspace)
     {
+        // TODO: Workaround for LSP tests creating two Host workspaces. https://github.com/dotnet/roslyn/issues/82917
+        if (workspace.GetType().Name == "LspTestWorkspace")
+        {
+            return;
+        }
+
         Debug.Assert(_workspaceChangedDisposer == null);
 
         _workspaceChangedDisposer = workspace.RegisterWorkspaceChangedHandler(WorkspaceChanged);
