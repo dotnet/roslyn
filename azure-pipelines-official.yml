@@ -133,11 +133,11 @@ extends:
         name: $(DncEngInternalBuildPool)
         image: 1es-windows-2022
         os: windows
-      sbom:
-        enabled: false
       componentgovernance:
         enabled: false
-        justificationForDisabling: 'Component Governance is handled by the org-level policy injection. The 1ES-injected CG scan on SourceIndexStage1 produces unnecessary alerts for source-indexing-only builds.'
+        justificationForDisabling: 'CG is re-enabled via the org-level policy task in the Official Build job. This disables the 1ES-injected CG task in all other jobs to avoid unnecessary alerts.'
+      sbom:
+        enabled: false
       suppression:
         suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppress
       policheck:
@@ -170,6 +170,8 @@ extends:
       - job: OfficialBuild
         displayName: Official Build
         timeoutInMinutes: 360
+        variables:
+          skipComponentGovernanceDetection: false
         templateContext:
           outputs:
 
