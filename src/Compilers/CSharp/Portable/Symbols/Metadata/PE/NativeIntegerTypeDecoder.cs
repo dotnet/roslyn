@@ -127,27 +127,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            type.GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
-
-            bool haveChanges = false;
-            for (int i = 0; i < allTypeArguments.Count; i++)
+            try
             {
-                TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
-                if (TransformTypeWithAnnotations(oldTypeArgument) is not { } newTypeArgument)
+                type.GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
+
+                bool haveChanges = false;
+                for (int i = 0; i < allTypeArguments.Count; i++)
                 {
-                    return null;
+                    TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
+                    if (TransformTypeWithAnnotations(oldTypeArgument) is not { } newTypeArgument)
+                    {
+                        return null;
+                    }
+
+                    if (!oldTypeArgument.IsSameAs(newTypeArgument))
+                    {
+                        allTypeArguments[i] = newTypeArgument;
+                        haveChanges = true;
+                    }
                 }
 
-                if (!oldTypeArgument.IsSameAs(newTypeArgument))
-                {
-                    allTypeArguments[i] = newTypeArgument;
-                    haveChanges = true;
-                }
+                return haveChanges ? type.WithTypeArguments(allTypeArguments.ToImmutable()) : type;
             }
-
-            NamedTypeSymbol result = haveChanges ? type.WithTypeArguments(allTypeArguments.ToImmutable()) : type;
-            allTypeArguments.Free();
-            return result;
+            finally
+            {
+                allTypeArguments.Free();
+            }
         }
 
         private ArrayTypeSymbol? TransformArrayType(ArrayTypeSymbol type)

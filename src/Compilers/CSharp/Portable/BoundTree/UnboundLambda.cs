@@ -774,6 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!returnType.HasType && inferredReturnType.NumExpressions > 0)
                 {
+                    parameterScopesBuilder.Free();
                     return null;
                 }
             }

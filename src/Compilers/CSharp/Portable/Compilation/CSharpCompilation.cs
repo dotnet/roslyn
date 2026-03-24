@@ -939,34 +939,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             externalSyntaxTrees.AddAll(syntaxAndDeclarations.ExternalSyntaxTrees);
             bool reuseReferenceManager = true;
             int i = 0;
-            foreach (var tree in trees.Cast<CSharpSyntaxTree>())
+            try
             {
-                if (tree == null)
+                foreach (var tree in trees.Cast<CSharpSyntaxTree>())
                 {
-                    throw new ArgumentNullException($"{nameof(trees)}[{i}]");
+                    if (tree == null)
+                    {
+                        throw new ArgumentNullException($"{nameof(trees)}[{i}]");
+                    }
+
+                    if (!tree.HasCompilationUnitRoot)
+                    {
+                        throw new ArgumentException(CSharpResources.TreeMustHaveARootNodeWith, $"{nameof(trees)}[{i}]");
+                    }
+
+                    if (externalSyntaxTrees.Contains(tree))
+                    {
+                        throw new ArgumentException(CSharpResources.SyntaxTreeAlreadyPresent, $"{nameof(trees)}[{i}]");
+                    }
+
+                    if (this.IsSubmission && tree.Options.Kind == SourceCodeKind.Regular)
+                    {
+                        throw new ArgumentException(CSharpResources.SubmissionCanOnlyInclude, $"{nameof(trees)}[{i}]");
+                    }
+
+                    externalSyntaxTrees.Add(tree);
+                    reuseReferenceManager &= !tree.HasReferenceOrLoadDirectives;
+
+                    i++;
                 }
-
-                if (!tree.HasCompilationUnitRoot)
-                {
-                    throw new ArgumentException(CSharpResources.TreeMustHaveARootNodeWith, $"{nameof(trees)}[{i}]");
-                }
-
-                if (externalSyntaxTrees.Contains(tree))
-                {
-                    throw new ArgumentException(CSharpResources.SyntaxTreeAlreadyPresent, $"{nameof(trees)}[{i}]");
-                }
-
-                if (this.IsSubmission && tree.Options.Kind == SourceCodeKind.Regular)
-                {
-                    throw new ArgumentException(CSharpResources.SubmissionCanOnlyInclude, $"{nameof(trees)}[{i}]");
-                }
-
-                externalSyntaxTrees.Add(tree);
-                reuseReferenceManager &= !tree.HasReferenceOrLoadDirectives;
-
-                i++;
             }
-            externalSyntaxTrees.Free();
+            finally
+            {
+                externalSyntaxTrees.Free();
+            }
 
             if (this.IsSubmission && i > 1)
             {
@@ -1004,35 +1010,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var removeSet = PooledHashSet<SyntaxTree>.GetInstance();
-            // This HashSet is needed so that we don't allow adding the same tree twice
-            // with a single call to AddSyntaxTrees.  Rather than using a separate HashSet,
-            // ReplaceSyntaxTrees can just check against ExternalSyntaxTrees, because we
-            // only allow replacing a single tree at a time.
             var externalSyntaxTrees = PooledHashSet<SyntaxTree>.GetInstance();
             var syntaxAndDeclarations = _syntaxAndDeclarations;
             externalSyntaxTrees.AddAll(syntaxAndDeclarations.ExternalSyntaxTrees);
             bool reuseReferenceManager = true;
             int i = 0;
-            foreach (var tree in trees.Cast<CSharpSyntaxTree>())
+            try
             {
-                if (!externalSyntaxTrees.Contains(tree))
+                foreach (var tree in trees.Cast<CSharpSyntaxTree>())
                 {
-                    // Check to make sure this is not a #load'ed tree.
-                    var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
-                    if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
+                    if (!externalSyntaxTrees.Contains(tree))
                     {
-                        throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, $"{nameof(trees)}[{i}]");
+                        // Check to make sure this is not a #load'ed tree.
+                        var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
+                        if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
+                        {
+                            throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, $"{nameof(trees)}[{i}]");
+                        }
+
+                        throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, $"{nameof(trees)}[{i}]");
                     }
 
-                    throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, $"{nameof(trees)}[{i}]");
+                    removeSet.Add(tree);
+                    reuseReferenceManager &= !tree.HasReferenceOrLoadDirectives;
+
+                    i++;
                 }
-
-                removeSet.Add(tree);
-                reuseReferenceManager &= !tree.HasReferenceOrLoadDirectives;
-
-                i++;
             }
-            externalSyntaxTrees.Free();
+            catch
+            {
+                removeSet.Free();
+                throw;
+            }
+            finally
+            {
+                externalSyntaxTrees.Free();
+            }
 
             syntaxAndDeclarations = syntaxAndDeclarations.RemoveSyntaxTrees(removeSet);
             removeSet.Free();

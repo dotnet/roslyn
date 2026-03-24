@@ -524,6 +524,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     result.Add(typeDef, deletedMemberDefs);
                 }
+                else
+                {
+                    deletedMemberDefs?.Free();
+                }
 
                 foreach (var nestedType in typeDef.GetNestedTypes(context))
                 {

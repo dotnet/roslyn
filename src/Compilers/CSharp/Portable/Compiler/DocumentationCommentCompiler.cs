@@ -844,6 +844,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             builder.Free();
                         }
+                        if (diagnosticBag != _diagnostics.DiagnosticBag)
+                        {
+                            diagnosticBag.Free();
+                        }
                         return false;
                     }
 

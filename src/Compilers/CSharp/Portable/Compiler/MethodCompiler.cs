@@ -1787,6 +1787,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
+                // Free IL markers after Generate() has consumed them via GetILOffsetFromMarker().
+                builder.FreeMarkers();
+
                 // Remember diagnostics.
                 diagnostics.AddRange(diagnosticsForThisMethod);
                 diagnosticsForThisMethod.Free();

@@ -132,36 +132,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
                 var fields = ArrayBuilder<FieldSymbol>.GetInstance();
-                bool foundBadField = false;
-                foreach (var f in ContainingType.GetFieldsToEmit())
+                try
                 {
-                    if (!f.IsStatic)
+                    bool foundBadField = false;
+                    foreach (var f in ContainingType.GetFieldsToEmit())
                     {
-                        fields.Add(f);
-
-                        var parameterType = f.Type;
-                        if (parameterType.IsPointerOrFunctionPointer() || parameterType.IsRestrictedType())
+                        if (!f.IsStatic)
                         {
-                            // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
-                            foundBadField = true;
+                            fields.Add(f);
+
+                            var parameterType = f.Type;
+                            if (parameterType.IsPointerOrFunctionPointer() || parameterType.IsRestrictedType())
+                            {
+                                // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
+                                foundBadField = true;
+                            }
                         }
                     }
-                }
 
-                if (fields.Count > 0 && !foundBadField)
-                {
-                    retExpr = MethodBodySynthesizer.GenerateFieldEquals(
-                        retExpr,
-                        other,
-                        fields,
-                        F);
+                    if (fields.Count > 0 && !foundBadField)
+                    {
+                        retExpr = MethodBodySynthesizer.GenerateFieldEquals(
+                            retExpr,
+                            other,
+                            fields,
+                            F);
+                    }
+                    else if (retExpr is null)
+                    {
+                        retExpr = F.Literal(true);
+                    }
                 }
-                else if (retExpr is null)
+                finally
                 {
-                    retExpr = F.Literal(true);
+                    fields.Free();
                 }
-
-                fields.Free();
 
                 if (!isRecordStruct)
                 {

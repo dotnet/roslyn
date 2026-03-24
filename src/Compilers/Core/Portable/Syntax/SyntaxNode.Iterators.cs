@@ -102,8 +102,12 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(_stack is object);
                 if (++_stackPtr >= _stack.Length)
                 {
+                    var oldStack = _stack;
                     // Geometric growth
                     Array.Resize(ref _stack, checked(_stackPtr * 2));
+                    // The old array was allocated from the pool but Array.Resize created a new one,
+                    // so return the old array to the pool.
+                    ReturnStackToPool(oldStack);
                 }
 
                 _stack[_stackPtr].InitializeFrom(node);
@@ -119,11 +123,16 @@ namespace Microsoft.CodeAnalysis
 
             public void Dispose()
             {
+                ReturnStackToPool(_stack);
+            }
+
+            private static void ReturnStackToPool(ChildSyntaxList.Enumerator[]? stack)
+            {
                 // Return only reasonably-sized stacks to the pool.
-                if (_stack?.Length < 256)
+                if (stack?.Length < 256)
                 {
-                    Array.Clear(_stack, 0, _stack.Length);
-                    s_stackPool.Free(_stack);
+                    Array.Clear(stack, 0, stack.Length);
+                    s_stackPool.Free(stack);
                 }
             }
         }
@@ -168,18 +177,25 @@ namespace Microsoft.CodeAnalysis
 
                 if (++_stackPtr >= _stack.Length)
                 {
+                    var oldStack = _stack;
                     // Geometric growth
                     Array.Resize(ref _stack, checked(_stackPtr * 2));
+                    ReturnStackToPool(oldStack);
                 }
             }
 
             public void Dispose()
             {
+                ReturnStackToPool(_stack);
+            }
+
+            private static void ReturnStackToPool(SyntaxTriviaList.Enumerator[]? stack)
+            {
                 // Return only reasonably-sized stacks to the pool.
-                if (_stack?.Length < 256)
+                if (stack?.Length < 256)
                 {
-                    Array.Clear(_stack, 0, _stack.Length);
-                    s_stackPool.Free(_stack);
+                    Array.Clear(stack, 0, stack.Length);
+                    s_stackPool.Free(stack);
                 }
             }
         }

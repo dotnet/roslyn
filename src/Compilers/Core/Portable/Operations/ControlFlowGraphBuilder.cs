@@ -194,6 +194,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 builder[blockBuilder.Ordinal].SetPredecessors(blockBuilder.ConvertPredecessorsToBranches(builder));
             }
 
+            // Free the block builders and their pooled objects.
+            foreach (BasicBlockBuilder blockBuilder in blockBuilders)
+            {
+                blockBuilder.Free();
+            }
+
+            blockBuilders.Free();
+
             return builder.ToImmutableAndFree();
 
             ControlFlowBranch? getFallThroughSuccessor(BasicBlockBuilder blockBuilder)
@@ -4011,6 +4019,7 @@ oneMoreTime:
             {
                 if (resourceQueueOpt == null || resourceQueueOpt.Count == 0)
                 {
+                    resourceQueueOpt?.Free();
                     VisitStatement(body);
                 }
                 else

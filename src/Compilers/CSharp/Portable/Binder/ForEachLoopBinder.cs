@@ -1216,6 +1216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         patternDisposeMethod.ParameterRefKinds.All(static refKind => refKind is RefKind.None or RefKind.In or RefKind.RefReadOnlyParameter));
 
                     diagnostics.AddRangeAndFree(patternDiagnostics);
+
                     var argsBuilder = ArrayBuilder<BoundExpression>.GetInstance(patternDisposeMethod.ParameterCount);
                     var argsToParams = default(ImmutableArray<int>);
 
@@ -1243,6 +1244,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return;
+                }
+                else
+                {
+                    patternDiagnostics.Free();
                 }
             }
 

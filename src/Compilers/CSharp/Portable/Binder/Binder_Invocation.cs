@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
             }
-            resolution.Free();
+            resolution.Free(keepArguments: resolution.AnalyzedArguments == analyzedArguments);
             return result;
         }
 

@@ -35,9 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static BoundExpression Rewrite(LocalRewriter localRewriter, BoundConvertedSwitchExpression node)
             {
                 var rewriter = new SwitchExpressionLocalRewriter(node, localRewriter);
-                BoundExpression result = rewriter.LowerSwitchExpression(node);
-                rewriter.Free();
-                return result;
+                try
+                {
+                    BoundExpression result = rewriter.LowerSwitchExpression(node);
+                    rewriter.Free();
+                    return result;
+                }
+                catch
+                {
+                    rewriter.Free();
+                    throw;
+                }
             }
 
             private BoundExpression LowerSwitchExpression(BoundConvertedSwitchExpression node)
@@ -48,109 +56,126 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
-                var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
-
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? defaultLabel),
-                    loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
-
-                Debug.Assert(savedInputExpression != null);
-
-                object restorePointForEnclosingStatement = new object();
-                object restorePointForSwitchBody = new object();
-
-                // lower the decision dag.
-                (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
-                    LowerDecisionDag(decisionDag);
-
-                if (_whenNodeIdentifierLocal is not null)
+                try
                 {
-                    outerVariables.Add(_whenNodeIdentifierLocal);
-                }
+                    var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
 
-                if (produceDetailedSequencePoints)
-                {
-                    var syntax = (SwitchExpressionSyntax)node.Syntax;
-                    result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForEnclosingStatement));
-                    // While evaluating the state machine, we highlight the `switch {...}` part.
-                    var spanStart = syntax.SwitchKeyword.Span.Start;
-                    var spanEnd = syntax.Span.End;
-                    var spanForSwitchBody = new TextSpan(spanStart, spanEnd - spanStart);
-                    result.Add(new BoundStepThroughSequencePoint(node.Syntax, span: spanForSwitchBody));
-                    result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForSwitchBody));
-                }
+                    BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                        node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? defaultLabel),
+                        loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
 
-                // add the rest of the lowered dag that references that input
-                result.Add(_factory.Block(loweredDag));
-                // A branch to the default label when no switch case matches is included in the
-                // decision tree, so the code in result is unreachable at this point.
+                    Debug.Assert(savedInputExpression != null);
 
-                // Lower each switch expression arm
-                LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
-                LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
-                foreach (BoundSwitchExpressionArm arm in node.SwitchArms)
-                {
-                    _factory.Syntax = arm.Syntax;
-                    var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-                    sectionBuilder.AddRange(switchSections[arm.Syntax]);
-                    sectionBuilder.Add(_factory.Label(arm.Label));
-                    var loweredValue = _localRewriter.VisitExpression(arm.Value);
-                    if (GenerateInstrumentation)
-                        loweredValue = this._localRewriter.Instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
+                    object restorePointForEnclosingStatement = new object();
+                    object restorePointForSwitchBody = new object();
 
-                    sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue));
-                    sectionBuilder.Add(_factory.Goto(afterSwitchExpression));
-                    var statements = sectionBuilder.ToImmutableAndFree();
-                    if (arm.Locals.IsEmpty)
+                    // lower the decision dag.
+                    (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
+                        LowerDecisionDag(decisionDag);
+
+                    if (_whenNodeIdentifierLocal is not null)
                     {
-                        result.Add(_factory.StatementList(statements));
+                        outerVariables.Add(_whenNodeIdentifierLocal);
                     }
-                    else
-                    {
-                        // Lifetime of these locals is expanded to the entire switch body, as it is possible to
-                        // share them as temps in the decision dag.
-                        outerVariables.AddRange(arm.Locals);
 
-                        // Note the language scope of the locals, even though they are included for the purposes of
-                        // lifetime analysis in the enclosing scope.
-                        result.Add(new BoundScope(arm.Syntax, arm.Locals, statements));
-                    }
-                }
-
-                _factory.Syntax = node.Syntax;
-                if (defaultLabel is not null)
-                {
-                    result.Add(_factory.Label(defaultLabel));
                     if (produceDetailedSequencePoints)
-                        result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
-                    var objectType = _factory.SpecialType(SpecialType.System_Object);
-                    BoundStatement? throwCall;
-                    if (tryGetImplicitConversion(savedInputExpression, objectType) is Conversion c &&
-                        _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
                     {
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsBoxing || c.IsReference || c.IsIdentity);
-                        throwCall = ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression, c));
-                    }
-                    else
-                    {
-                        throwCall = (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol) ?
-                                         ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory) :
-                                         ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+                        var syntax = (SwitchExpressionSyntax)node.Syntax;
+                        result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForEnclosingStatement));
+                        // While evaluating the state machine, we highlight the `switch {...}` part.
+                        var spanStart = syntax.SwitchKeyword.Span.Start;
+                        var spanEnd = syntax.Span.End;
+                        var spanForSwitchBody = new TextSpan(spanStart, spanEnd - spanStart);
+                        result.Add(new BoundStepThroughSequencePoint(node.Syntax, span: spanForSwitchBody));
+                        result.Add(new BoundSavePreviousSequencePoint(syntax, restorePointForSwitchBody));
                     }
 
-                    result.Add(throwCall);
+                    // add the rest of the lowered dag that references that input
+                    result.Add(_factory.Block(loweredDag));
+                    // A branch to the default label when no switch case matches is included in the
+                    // decision tree, so the code in result is unreachable at this point.
+
+                    // Lower each switch expression arm
+                    LocalSymbol resultTemp = _factory.SynthesizedLocal(node.Type, node.Syntax, kind: SynthesizedLocalKind.LoweringTemp);
+                    LabelSymbol afterSwitchExpression = _factory.GenerateLabel("afterSwitchExpression");
+                    foreach (BoundSwitchExpressionArm arm in node.SwitchArms)
+                    {
+                        _factory.Syntax = arm.Syntax;
+                        var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                        try
+                        {
+                            sectionBuilder.AddRange(switchSections[arm.Syntax]);
+                            sectionBuilder.Add(_factory.Label(arm.Label));
+                            var loweredValue = _localRewriter.VisitExpression(arm.Value);
+                            if (GenerateInstrumentation)
+                                loweredValue = this._localRewriter.Instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
+
+                            sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue));
+                            sectionBuilder.Add(_factory.Goto(afterSwitchExpression));
+                            var statements = sectionBuilder.ToImmutableAndFree();
+                            if (arm.Locals.IsEmpty)
+                            {
+                                result.Add(_factory.StatementList(statements));
+                            }
+                            else
+                            {
+                                // Lifetime of these locals is expanded to the entire switch body, as it is possible to
+                                // share them as temps in the decision dag.
+                                outerVariables.AddRange(arm.Locals);
+
+                                // Note the language scope of the locals, even though they are included for the purposes of
+                                // lifetime analysis in the enclosing scope.
+                                result.Add(new BoundScope(arm.Syntax, arm.Locals, statements));
+                            }
+                        }
+                        catch
+                        {
+                            sectionBuilder.Free();
+                            throw;
+                        }
+                    }
+
+                    _factory.Syntax = node.Syntax;
+                    if (defaultLabel is not null)
+                    {
+                        result.Add(_factory.Label(defaultLabel));
+                        if (produceDetailedSequencePoints)
+                            result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForSwitchBody));
+                        var objectType = _factory.SpecialType(SpecialType.System_Object);
+                        BoundStatement? throwCall;
+                        if (tryGetImplicitConversion(savedInputExpression, objectType) is Conversion c &&
+                            _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
+                        {
+                            Debug.Assert(c.IsImplicit);
+                            Debug.Assert(c.IsBoxing || c.IsReference || c.IsIdentity);
+                            throwCall = ConstructThrowSwitchExpressionExceptionHelperCall(_factory, _factory.Convert(objectType, savedInputExpression, c));
+                        }
+                        else
+                        {
+                            throwCall = (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol) ?
+                                             ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(_factory) :
+                                             ConstructThrowInvalidOperationExceptionHelperCall(_factory);
+                        }
+
+                        result.Add(throwCall);
+                    }
+
+                    if (GenerateInstrumentation)
+                        result.Add(_factory.HiddenSequencePoint());
+                    result.Add(_factory.Label(afterSwitchExpression));
+                    if (produceDetailedSequencePoints)
+                        result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForEnclosingStatement));
+
+                    outerVariables.Add(resultTemp);
+                    outerVariables.AddRange(_tempAllocator.AllTemps());
+                    return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
                 }
-
-                if (GenerateInstrumentation)
-                    result.Add(_factory.HiddenSequencePoint());
-                result.Add(_factory.Label(afterSwitchExpression));
-                if (produceDetailedSequencePoints)
-                    result.Add(new BoundRestorePreviousSequencePoint(node.Syntax, restorePointForEnclosingStatement));
-
-                outerVariables.Add(resultTemp);
-                outerVariables.AddRange(_tempAllocator.AllTemps());
-                return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+                catch
+                {
+                    result.Free();
+                    outerVariables.Free();
+                    throw;
+                }
 
                 Conversion? tryGetImplicitConversion(BoundExpression expression, TypeSymbol type)
                 {

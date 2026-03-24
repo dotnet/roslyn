@@ -196,6 +196,7 @@ internal static class CustomDataFlowAnalysis<TBlockAnalysisData>
         }
         while (toVisit.Count != 0 || unreachableBlocksToVisit.Count != 0);
 
+        processedBlocks.Free();
         return resultAnalysisData;
 
         // Local functions.

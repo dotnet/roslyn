@@ -179,57 +179,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(!printableMembers.IsEmpty);
 
-                for (var i = 0; i < printableMembers.Length; i++)
+                try
                 {
-                    // builder.Append(", <name> = "); // if previous members exist
-                    // builder.Append("<name> = "); // if it is the first member
-
-                    // The only printable members are fields and properties,
-                    // which cannot be generic so as to have variant names
-
-                    var member = printableMembers[i];
-                    var memberHeader = $"{member.Name} = ";
-                    if (i > 0)
+                    for (var i = 0; i < printableMembers.Length; i++)
                     {
-                        memberHeader = ", " + memberHeader;
+                        // builder.Append(", <name> = "); // if previous members exist
+                        // builder.Append("<name> = "); // if it is the first member
+
+                        // The only printable members are fields and properties,
+                        // which cannot be generic so as to have variant names
+
+                        var member = printableMembers[i];
+                        var memberHeader = $"{member.Name} = ";
+                        if (i > 0)
+                        {
+                            memberHeader = ", " + memberHeader;
+                        }
+
+                        block.Add(makeAppendString(F, builder, memberHeader));
+
+                        var value = member.Kind switch
+                        {
+                            SymbolKind.Field => F.Field(F.This(), (FieldSymbol)member),
+                            SymbolKind.Property => F.Property(F.This(), (PropertySymbol)member),
+                            _ => throw ExceptionUtilities.UnexpectedValue(member.Kind)
+                        };
+
+                        // builder.Append((object)<value>); OR builder.Append(<value>.ToString()); for value types
+
+                        Debug.Assert(value.Type is not null);
+                        if (value.Type.IsValueType)
+                        {
+                            block.Add(F.ExpressionStatement(
+                                F.Call(receiver: builder,
+                                    F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString),
+                                    F.Call(value, F.SpecialMethod(SpecialMember.System_Object__ToString)))));
+                        }
+                        else if (!value.Type.IsRestrictedType())
+                        {
+                            // Otherwise, an error has been reported elsewhere (SourceMemberFieldSymbol.TypeChecks)
+                            var objectType = F.SpecialType(SpecialType.System_Object);
+                            Conversion c = F.ClassifyEmitConversion(value, objectType);
+                            Debug.Assert(c.IsImplicit);
+                            Debug.Assert(c.IsIdentity || c.IsReference || c.IsBoxing);
+                            block.Add(F.ExpressionStatement(
+                                F.Call(receiver: builder,
+                                    F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
+                                    F.Convert(objectType, value, c))));
+                        }
                     }
 
-                    block.Add(makeAppendString(F, builder, memberHeader));
+                    block.Add(F.Return(F.Literal(true)));
 
-                    var value = member.Kind switch
-                    {
-                        SymbolKind.Field => F.Field(F.This(), (FieldSymbol)member),
-                        SymbolKind.Property => F.Property(F.This(), (PropertySymbol)member),
-                        _ => throw ExceptionUtilities.UnexpectedValue(member.Kind)
-                    };
-
-                    // builder.Append((object)<value>); OR builder.Append(<value>.ToString()); for value types
-
-                    Debug.Assert(value.Type is not null);
-                    if (value.Type.IsValueType)
-                    {
-                        block.Add(F.ExpressionStatement(
-                            F.Call(receiver: builder,
-                                F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendString),
-                                F.Call(value, F.SpecialMethod(SpecialMember.System_Object__ToString)))));
-                    }
-                    else if (!value.Type.IsRestrictedType())
-                    {
-                        // Otherwise, an error has been reported elsewhere (SourceMemberFieldSymbol.TypeChecks)
-                        var objectType = F.SpecialType(SpecialType.System_Object);
-                        Conversion c = F.ClassifyEmitConversion(value, objectType);
-                        Debug.Assert(c.IsImplicit);
-                        Debug.Assert(c.IsIdentity || c.IsReference || c.IsBoxing);
-                        block.Add(F.ExpressionStatement(
-                            F.Call(receiver: builder,
-                                F.WellKnownMethod(WellKnownMember.System_Text_StringBuilder__AppendObject),
-                                F.Convert(objectType, value, c))));
-                    }
+                    F.CloseMethod(F.Block(block.ToImmutableAndFree()));
                 }
-
-                block.Add(F.Return(F.Literal(true)));
-
-                F.CloseMethod(F.Block(block.ToImmutableAndFree()));
+                catch
+                {
+                    block.Free();
+                    throw;
+                }
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {

@@ -465,11 +465,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AssertNoPlaceholderReplacements();
 
-            _nestedFunctionVariables?.Free();
+            if (_nestedFunctionVariables is not null)
+            {
+                foreach (var variables in _nestedFunctionVariables.Values)
+                {
+                    variables.Free();
+                }
+
+                _nestedFunctionVariables.Free();
+            }
+
             _resultForPlaceholdersOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
             _variables.Free();
+            // Free the container chain (Variables created from snapshots).
+            var container = _variables.Container;
+            while (container != null)
+            {
+                var next = container.Container;
+                container.Free();
+                container = next;
+            }
             Debug.Assert(_targetTypedAnalysisCompletionOpt is null or { Count: 0 });
             _targetTypedAnalysisCompletionOpt?.Free();
             base.Free();
@@ -2016,6 +2033,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!state.Reachable)
                 return;
 
+            // In Debug builds, nested Variables get randomized Ids. When the Analyze loop
+            // re-analyzes a local function, stale states (from _loopHeadState or other caches)
+            // may have Ids from the previous pass that don't exist in the current Variables chain.
+            // Discard such states rather than asserting in LocalState.Normalize.
+            if (!IsValidVariablesId(state.Id))
+            {
+                state.MarkAsUnreachable();
+                return;
+            }
+
             state.Normalize(this, _variables);
         }
 
@@ -2950,6 +2977,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LocalState.UnreachableState(_variables);
         }
 
+        protected override LocalState LabelState(LabelSymbol label)
+        {
+            var state = base.LabelState(label);
+            // In Debug builds, nested Variables get randomized Ids. When the Analyze loop
+            // re-analyzes a local function, the nested Variables may have a different Id
+            // than in the previous pass. Stale label states with the old Id would cause
+            // assertion failures in LocalState.Normalize. Discard such states and let
+            // the analysis recompute from scratch.
+            if (!IsValidVariablesId(state.Id))
+            {
+                return UnreachableState();
+            }
+            return state;
+        }
+
+        private bool IsValidVariablesId(int id)
+        {
+            var v = _variables;
+            while (v != null)
+            {
+                if (v.Id == id)
+                    return true;
+                v = v.Container;
+            }
+            return false;
+        }
+
         protected override LocalState ReachableBottomState()
         {
             // Create a reachable state in which all variables are known to be non-null.
@@ -3502,6 +3556,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _variables.Free();
+            _nestedFunctionVariables?.Remove(lambdaOrFunctionSymbol);
             _variables = _variables.Container!;
             this.State = oldState;
 #if DEBUG
@@ -13745,6 +13800,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Normalize(ref self);
             Normalize(ref other);
 
+            // After Normalize, a stale state may have been marked as unreachable. Re-check.
+            if (!self.Reachable)
+                return false;
+
+            if (!other.Reachable)
+            {
+                self = other.Clone();
+                return true;
+            }
+
             return self.Meet(in other);
         }
 
@@ -13761,6 +13826,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Normalize(ref self);
             Normalize(ref other);
+
+            // After Normalize, a stale state (from a previous Analyze pass with different
+            // Variables Ids) may have been marked as unreachable. Re-check.
+            if (!other.Reachable)
+                return false;
+
+            if (!self.Reachable)
+            {
+                self = other.Clone();
+                return true;
+            }
 
             return self.Join(in other);
         }
@@ -13869,6 +13945,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public bool Reachable => _state[0];
+
+            public void MarkAsUnreachable() => _state[0] = false;
 
             public bool NormalizeToBottom => false;
 

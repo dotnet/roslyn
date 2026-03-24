@@ -8817,6 +8817,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                     actualReceiverArguments?.Free();
 
+                    // Free firstResult but keep its AnalyzedArguments - they may be the same
+                    // object as actualMethodArguments which is handled below.
+                    if (firstResult.AnalyzedArguments != null && firstResult.AnalyzedArguments != actualMethodArguments)
+                    {
+                        firstResult.Free();
+                    }
+                    else
+                    {
+                        firstResult.Free(keepArguments: true);
+                    }
+
                     if (result.AnalyzedArguments != actualMethodArguments)
                     {
                         actualMethodArguments?.Free();
@@ -8905,6 +8916,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             firstResult = methodResult;
                         }
+                    }
+                    else
+                    {
+                        // keepArguments: true because actualMethodArguments is shared with firstResult
+                        // (both resolutions reference the same AnalyzedArguments instance).
+                        // The arguments lifetime is managed by the caller (ResolveExtension).
+                        methodResult.Free(keepArguments: true);
+                        propertyResult?.Free();
                     }
 
                     return false;
@@ -10452,6 +10471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics,
                         out var implicitIndexerAccess))
                 {
+                    overloadResolutionResult.Free();
                     return implicitIndexerAccess;
                 }
                 else

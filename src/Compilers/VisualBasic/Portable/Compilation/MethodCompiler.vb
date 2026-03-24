@@ -1022,6 +1022,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             closureDebugInfoBuilder.Free()
             stateMachineStateDebugInfoBuilder.Free()
             lambdaRuntimeRudeEditsBuilder.Free()
+            lambdaRuntimeRudeEdits.Free()
         End Sub
 
         Private Sub CompileSynthesizedMethods(compilationState As TypeCompilationState)
@@ -1307,6 +1308,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not DoLoweringPhase AndAlso sourceMethod IsNot Nothing Then
                 Debug.Assert(Me._diagnostics.DependenciesBag Is Nothing)
                 _diagnostics.AddRange(sourceMethod.Diagnostics)
+                diagsForCurrentMethod.Free()
                 Return
             End If
 
@@ -1589,6 +1591,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaDebugInfoBuilder.Free()
                 closureDebugInfoBuilder.Free()
                 lambdaRuntimeRudeEditsBuilder.Free()
+                lambdaRuntimeRudeEdits.Free()
+                stateMachineStateDebugInfoBuilder.Free()
             End Try
         End Sub
 
@@ -1728,8 +1732,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       codeCoverageSpans:=codeCoverageSpans,
                                       isPrimaryConstructor:=False)
             Finally
-                ' Free resources used by the basic blocks in the builder.
-                builder.FreeBasicBlocks()
+                ' Free IL markers used by the builder (basic blocks are freed in Realize).
+                builder.FreeMarkers()
             End Try
         End Function
 

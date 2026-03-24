@@ -28,9 +28,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static BoundStatement Rewrite(LocalRewriter localRewriter, BoundSwitchStatement node)
             {
                 var rewriter = new SwitchStatementLocalRewriter(node, localRewriter);
-                BoundStatement result = rewriter.LowerSwitchStatement(node);
-                rewriter.Free();
-                return result;
+                try
+                {
+                    BoundStatement result = rewriter.LowerSwitchStatement(node);
+                    rewriter.Free();
+                    return result;
+                }
+                catch
+                {
+                    rewriter.Free();
+                    throw;
+                }
+            }
+
+            private new void Free()
+            {
+                ((PooledDictionary<SyntaxNode, LabelSymbol>)_sectionLabels).Free();
+                base.Free();
             }
 
             /// <summary>
@@ -73,110 +87,127 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
-                var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
-                if (!node.WasCompilerGenerated && _localRewriter.Instrument)
+                try
                 {
-                    // EnC: We need to insert a hidden sequence point to handle function remapping in case
-                    // the containing method is edited while methods invoked in the expression are being executed.
-                    var instrumentedExpression = _localRewriter.Instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
-                    if (loweredSwitchGoverningExpression.ConstantValueOpt == null)
+                    var loweredSwitchGoverningExpression = _localRewriter.VisitExpression(node.Expression);
+                    if (!node.WasCompilerGenerated && _localRewriter.Instrument)
                     {
-                        loweredSwitchGoverningExpression = instrumentedExpression;
+                        // EnC: We need to insert a hidden sequence point to handle function remapping in case
+                        // the containing method is edited while methods invoked in the expression are being executed.
+                        var instrumentedExpression = _localRewriter.Instrumenter.InstrumentSwitchStatementExpression(node, loweredSwitchGoverningExpression, _factory);
+                        if (loweredSwitchGoverningExpression.ConstantValueOpt == null)
+                        {
+                            loweredSwitchGoverningExpression = instrumentedExpression;
+                        }
+                        else
+                        {
+                            // If the expression is a constant, we leave it alone (the decision dag lowering code needs
+                            // to see that constant). But we add an additional leading statement with the instrumented expression.
+                            result.Add(_factory.ExpressionStatement(instrumentedExpression));
+                        }
                     }
-                    else
+
+                    // The set of variables attached to the outer block
+                    outerVariables.AddRange(node.InnerLocals);
+
+                    // Evaluate the input and set up sharing for dag temps with user variables
+                    BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
+                        node.GetDecisionDagForLowering(_factory.Compilation),
+                        loweredSwitchGoverningExpression, result, out _);
+
+                    // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
+                    // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
+                    // the decision dag do not appear to jump back up to the enclosing construct.
+                    if (GenerateInstrumentation)
                     {
-                        // If the expression is a constant, we leave it alone (the decision dag lowering code needs
-                        // to see that constant). But we add an additional leading statement with the instrumented expression.
-                        result.Add(_factory.ExpressionStatement(instrumentedExpression));
+                        // Since there may have been no code to evaluate the input, add a no-op for any previous sequence point to bind to.
+                        if (result.Count == 0)
+                            result.Add(_factory.NoOp(NoOpStatementFlavor.Default));
+
+                        result.Add(_factory.HiddenSequencePoint());
                     }
+
+                    // lower the decision dag.
+                    (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
+                        LowerDecisionDag(decisionDag);
+
+                    if (_whenNodeIdentifierLocal is not null)
+                    {
+                        outerVariables.Add(_whenNodeIdentifierLocal);
+                    }
+
+                    // then add the rest of the lowered dag that references that input
+                    result.Add(_factory.Block(loweredDag));
+
+                    // A branch to the default label when no switch case matches is included in the
+                    // decision dag, so the code in `result` is unreachable at this point.
+
+                    // Lower each switch section.
+                    foreach (BoundSwitchSection section in node.SwitchSections)
+                    {
+                        _factory.Syntax = section.Syntax;
+                        var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                        try
+                        {
+                            sectionBuilder.AddRange(switchSections[section.Syntax]);
+                            foreach (BoundSwitchLabel switchLabel in section.SwitchLabels)
+                            {
+                                sectionBuilder.Add(_factory.Label(switchLabel.Label));
+                            }
+
+                            // Add the translated body of the switch section
+                            sectionBuilder.AddRange(_localRewriter.VisitList(section.Statements));
+
+                            // By the semantics of the switch statement, the end of each section is required to be unreachable.
+                            // So we can just seal the block and there is no need to follow it by anything.
+                            ImmutableArray<BoundStatement> statements = sectionBuilder.ToImmutableAndFree();
+
+                            if (section.Locals.IsEmpty)
+                            {
+                                result.Add(_factory.StatementList(statements));
+                            }
+                            else
+                            {
+                                // Lifetime of these locals is expanded to the entire switch body, as it is possible to capture
+                                // them in a different section by using a local function as an intermediary.
+                                outerVariables.AddRange(section.Locals);
+
+                                // Note the language scope of the locals, even though they are included for the purposes of
+                                // lifetime analysis in the enclosing scope.
+                                result.Add(new BoundScope(section.Syntax, section.Locals, statements));
+                            }
+                        }
+                        catch
+                        {
+                            sectionBuilder.Free();
+                            throw;
+                        }
+                    }
+
+                    // Dispatch temps are in scope throughout the switch statement, as they are used
+                    // both in the dispatch section to hold temporary values from the translation of
+                    // the decision dag, and in the branches where the temp values are assigned to the
+                    // pattern variables of matched patterns.
+                    outerVariables.AddRange(_tempAllocator.AllTemps());
+
+                    _factory.Syntax = node.Syntax;
+                    if (GenerateInstrumentation)
+                        result.Add(_factory.HiddenSequencePoint());
+
+                    result.Add(_factory.Label(node.BreakLabel));
+                    BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
+
+                    if (GenerateInstrumentation)
+                        translatedSwitch = _localRewriter.Instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
+
+                    return translatedSwitch;
                 }
-
-                // The set of variables attached to the outer block
-                outerVariables.AddRange(node.InnerLocals);
-
-                // Evaluate the input and set up sharing for dag temps with user variables
-                BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.GetDecisionDagForLowering(_factory.Compilation),
-                    loweredSwitchGoverningExpression, result, out _);
-
-                // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
-                // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
-                // the decision dag do not appear to jump back up to the enclosing construct.
-                if (GenerateInstrumentation)
+                catch
                 {
-                    // Since there may have been no code to evaluate the input, add a no-op for any previous sequence point to bind to.
-                    if (result.Count == 0)
-                        result.Add(_factory.NoOp(NoOpStatementFlavor.Default));
-
-                    result.Add(_factory.HiddenSequencePoint());
+                    result.Free();
+                    outerVariables.Free();
+                    throw;
                 }
-
-                // lower the decision dag.
-                (ImmutableArray<BoundStatement> loweredDag, ImmutableDictionary<SyntaxNode, ImmutableArray<BoundStatement>> switchSections) =
-                    LowerDecisionDag(decisionDag);
-
-                if (_whenNodeIdentifierLocal is not null)
-                {
-                    outerVariables.Add(_whenNodeIdentifierLocal);
-                }
-
-                // then add the rest of the lowered dag that references that input
-                result.Add(_factory.Block(loweredDag));
-
-                // A branch to the default label when no switch case matches is included in the
-                // decision dag, so the code in `result` is unreachable at this point.
-
-                // Lower each switch section.
-                foreach (BoundSwitchSection section in node.SwitchSections)
-                {
-                    _factory.Syntax = section.Syntax;
-                    var sectionBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-                    sectionBuilder.AddRange(switchSections[section.Syntax]);
-                    foreach (BoundSwitchLabel switchLabel in section.SwitchLabels)
-                    {
-                        sectionBuilder.Add(_factory.Label(switchLabel.Label));
-                    }
-
-                    // Add the translated body of the switch section
-                    sectionBuilder.AddRange(_localRewriter.VisitList(section.Statements));
-
-                    // By the semantics of the switch statement, the end of each section is required to be unreachable.
-                    // So we can just seal the block and there is no need to follow it by anything.
-                    ImmutableArray<BoundStatement> statements = sectionBuilder.ToImmutableAndFree();
-
-                    if (section.Locals.IsEmpty)
-                    {
-                        result.Add(_factory.StatementList(statements));
-                    }
-                    else
-                    {
-                        // Lifetime of these locals is expanded to the entire switch body, as it is possible to capture
-                        // them in a different section by using a local function as an intermediary.
-                        outerVariables.AddRange(section.Locals);
-
-                        // Note the language scope of the locals, even though they are included for the purposes of
-                        // lifetime analysis in the enclosing scope.
-                        result.Add(new BoundScope(section.Syntax, section.Locals, statements));
-                    }
-                }
-
-                // Dispatch temps are in scope throughout the switch statement, as they are used
-                // both in the dispatch section to hold temporary values from the translation of
-                // the decision dag, and in the branches where the temp values are assigned to the
-                // pattern variables of matched patterns.
-                outerVariables.AddRange(_tempAllocator.AllTemps());
-
-                _factory.Syntax = node.Syntax;
-                if (GenerateInstrumentation)
-                    result.Add(_factory.HiddenSequencePoint());
-
-                result.Add(_factory.Label(node.BreakLabel));
-                BoundStatement translatedSwitch = _factory.Block(outerVariables.ToImmutableAndFree(), node.InnerLocalFunctions, result.ToImmutableAndFree());
-
-                if (GenerateInstrumentation)
-                    translatedSwitch = _localRewriter.Instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
-
-                return translatedSwitch;
             }
         }
     }

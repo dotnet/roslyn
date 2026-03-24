@@ -4388,6 +4388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     tests1.AddRange(this.RemainingTests);
                     tests2.AddRange(((SequenceTests)obj).RemainingTests);
 
+                    bool result = true;
                     do
                     {
                         var t1 = tests1.Pop();
@@ -4403,7 +4404,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                return false;
+                                result = false;
+                                break;
                             }
 
                             Debug.Assert(t2 is SequenceTests seq && seq.RemainingTests.Length == sequence.RemainingTests.Length);
@@ -4412,12 +4414,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (!t1.Equals(t2))
                         {
-                            return false;
+                            result = false;
+                            break;
                         }
                     }
                     while (tests1.Count != 0);
 
-                    if (!tests2.IsEmpty)
+                    if (result && !tests2.IsEmpty)
                     {
                         throw ExceptionUtilities.Unreachable();
                     }
@@ -4425,7 +4428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     tests1.Free();
                     tests2.Free();
 
-                    return true;
+                    return result;
 
                     static bool? equalsEasyOut(SequenceTests sequence, object? obj)
                     {

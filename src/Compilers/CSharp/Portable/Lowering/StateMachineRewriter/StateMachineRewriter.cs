@@ -129,6 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             GenerateMethodImplementations();
 
+            synthesizedLocalOrdinals.Free();
+
             // Return a replacement body for the kickoff method
             return GenerateKickoffMethodBody();
         }
