@@ -34,16 +34,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         internal int Run(string? pipeName, bool shutdown, TimeSpan? keepAlive)
         {
-            pipeName ??= GetDefaultPipeName();
-            if (pipeName is null)
-            {
-                throw new Exception("Cannot calculate pipe name");
-            }
-
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
-
-            keepAlive ??= GetDefaultKeepAlive(_logger);
 
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
@@ -99,13 +91,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         internal int RunServer(
-            string pipeName,
+            string? pipeName = null,
             ICompilerServerHost? compilerServerHost = null,
             IClientConnectionHost? clientConnectionHost = null,
             IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
             CancellationToken cancellationToken = default)
         {
+            pipeName ??= GetDefaultPipeName();
+            if (pipeName is null)
+            {
+                throw new Exception("Cannot calculate pipe name");
+            }
+
             listener ??= new EmptyDiagnosticListener();
             compilerServerHost ??= CreateCompilerServerHost(_logger);
             clientConnectionHost ??= CreateClientConnectionHost(pipeName, _logger);
@@ -123,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CommonCompiler.Failed;
                 }
 
-                keepAlive ??= Timeout.InfiniteTimeSpan;
+                keepAlive ??= GetDefaultKeepAlive(_logger);
                 compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive.Value.TotalMilliseconds);
                 FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
@@ -144,15 +142,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             logger ??= EmptyCompilerServerLogger.Instance;
             var controller = new BuildServerController(logger);
-            keepAlive ??= GetDefaultKeepAlive(logger);
             return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken: cancellationToken);
         }
 
-        internal int RunShutdown(string pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
+        internal int RunShutdown(string? pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
             RunShutdownAsync(pipeName, waitForProcess: true, timeoutOverride, cancellationToken).GetAwaiter().GetResult();
 
-        internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess, int? timeoutOverride, CancellationToken cancellationToken = default)
+        internal async Task<int> RunShutdownAsync(string? pipeName, bool waitForProcess, int? timeoutOverride, CancellationToken cancellationToken = default)
         {
+            pipeName ??= GetDefaultPipeName();
+            if (pipeName is null)
+            {
+                throw new Exception("Cannot calculate pipe name");
+            }
+
             var success = await BuildServerConnection.RunServerShutdownRequestAsync(
                 pipeName,
                 timeoutOverride,
@@ -162,6 +165,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return success ? CommonCompiler.Succeeded : CommonCompiler.Failed;
         }
 
+        /// <summary>
+        /// Parses the command-line arguments for the build server.
+        /// </summary>
+        /// <remarks>
+        /// Recognized options:
+        /// <list type="bullet">
+        ///   <item><description><c>-pipename:&lt;name&gt;</c> — the named pipe to listen on.</description></item>
+        ///   <item><description><c>-timeout:&lt;seconds&gt;</c> — keep-alive in seconds; <c>0</c> means infinite (no timeout).</description></item>
+        ///   <item><description><c>-log:&lt;path&gt;</c> — path to the log file.</description></item>
+        ///   <item><description><c>-shutdown</c> — request the server to shut down.</description></item>
+        /// </list>
+        /// </remarks>
         internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out TimeSpan? timeout, out string? logFilePath)
         {
             pipeName = null;

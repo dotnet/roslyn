@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ExitingTraceListener.Install(logger);
 #endif
 
-            keepAlive ??= BuildServerController.GetDefaultKeepAlive(logger);
-
             try
             {
                 var controller = new BuildServerController(logger);
