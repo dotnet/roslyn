@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageServiceImpl impl) : IManagedHotReloadLanguageService3, IExportedBrokeredService
 {
-    public ServiceRpcDescriptor? Descriptor
+    ServiceRpcDescriptor IExportedBrokeredService.Descriptor
         => ManagedHotReloadLanguageServiceDescriptor.Descriptor;
 
     public Task InitializeAsync(CancellationToken cancellationToken)
@@ -31,6 +31,9 @@ internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageSe
 
     public ValueTask StartSessionAsync(CancellationToken cancellationToken)
         => impl.StartSessionAsync(cancellationToken);
+
+    public ValueTask EndSessionAsync(CancellationToken cancellationToken)
+        => impl.EndSessionAsync(cancellationToken);
 
     public ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
         => impl.EnterBreakStateAsync(cancellationToken);
@@ -41,39 +44,33 @@ internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageSe
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
         => impl.OnCapabilitiesChangedAsync(cancellationToken);
 
-    public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
-        => impl.HasChangesAsync(sourceFilePath, cancellationToken);
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => throw new NotImplementedException();
 
     [Obsolete]
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
     {
-        var updates = await impl.GetUpdatesAsync(ImmutableArray<InternalContracts.RunningProjectInfo>.Empty, cancellationToken).ConfigureAwait(false);
-        return updates.FromContract();
-    }
+        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
+        if (!runningProjects.IsEmpty)
+            throw new NotImplementedException();
 
-    [Obsolete]
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-    {
-        var updates = await impl.GetUpdatesAsync(runningProjects, cancellationToken).ConfigureAwait(false);
-        return updates.FromContract();
+        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
     }
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
-    {
-        var updates = await impl.GetUpdatesAsync(runningProjects.SelectAsArray(p => p.ToContract()), cancellationToken).ConfigureAwait(false);
-        return updates.FromContract();
-    }
+        => (await impl.GetUpdatesAsync(runningProjects.SelectAsArray(static info => info.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => impl.CommitUpdatesAsync(cancellationToken);
 
+    [Obsolete]
+    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+        => throw new NotImplementedException();
+
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
         => impl.DiscardUpdatesAsync(cancellationToken);
 
-    [Obsolete]
-    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
-        => impl.UpdateBaselinesAsync(projectPaths, cancellationToken);
-
-    public ValueTask EndSessionAsync(CancellationToken cancellationToken)
-        => impl.EndSessionAsync(cancellationToken);
+    public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
+        => impl.HasChangesAsync(sourceFilePath, cancellationToken);
 }

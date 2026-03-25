@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
@@ -17,12 +18,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 [Method(LSP.Methods.TextDocumentDidOpenName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class DidOpenHandler() : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams, LSP.TextDocumentItem>
+internal class DidOpenHandler() : ILspServiceNotificationHandler<LSP.DidOpenTextDocumentParams>, ITextDocumentIdentifierHandler<LSP.DidOpenTextDocumentParams, TextDocumentItem>
 {
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
 
-    public LSP.TextDocumentItem GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument;
+    public TextDocumentItem GetTextDocumentIdentifier(LSP.DidOpenTextDocumentParams request) => request.TextDocument;
 
     public async Task HandleNotificationAsync(LSP.DidOpenTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
