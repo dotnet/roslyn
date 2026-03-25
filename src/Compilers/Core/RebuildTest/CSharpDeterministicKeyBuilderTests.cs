@@ -110,6 +110,18 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
+    ""parseOptions"": [
+      {
+        ""kind"": ""Regular"",
+        ""specifiedKind"": ""Regular"",
+        ""documentationMode"": ""Parse"",
+        ""language"": ""C#"",
+        ""features"": {},
+        ""languageVersion"": ""Preview"",
+        ""specifiedLanguageVersion"": ""Preview"",
+        ""preprocessorSymbols"": []
+      }
+    ],
     ""syntaxTrees"": [
       {
         ""fileName"": """",
@@ -118,16 +130,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": ""Unicode (UTF-8)""
         },
-        ""parseOptions"": {
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""Parse"",
-          ""language"": ""C#"",
-          ""features"": {},
-          ""languageVersion"": ""Preview"",
-          ""specifiedLanguageVersion"": ""Preview"",
-          ""preprocessorSymbols"": []
-        }
+        ""parseOptionsIndex"": 0
       }
     ]
   },
@@ -166,16 +169,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha1"",
       ""encodingName"": ""Unicode (UTF-8)""
     }},
-    ""parseOptions"": {{
-      ""kind"": ""Regular"",
-      ""specifiedKind"": ""Regular"",
-      ""documentationMode"": ""Parse"",
-      ""language"": ""C#"",
-      ""features"": {{}},
-      ""languageVersion"": ""Preview"",
-      ""specifiedLanguageVersion"": ""Preview"",
-      ""preprocessorSymbols"": []
-    }}
+    ""parseOptionsIndex"": 0
   }}
 ]";
             AssertJsonSection(expected, key, "compilation.syntaxTrees");
@@ -270,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""emitOptions"": null,
   ""resources"": []
 }}
-", key, "references", "syntaxTrees", "extensions");
+", key, "references", "syntaxTrees", "extensions", "parseOptions");
         }
 
         [Theory]
@@ -396,16 +390,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha256"",
       ""encodingName"": ""Unicode (UTF-8)""
     },
-    ""parseOptions"": {
-      ""kind"": ""Regular"",
-      ""specifiedKind"": ""Regular"",
-      ""documentationMode"": ""None"",
-      ""language"": ""C#"",
-      ""features"": {},
-      ""languageVersion"": ""CSharp9"",
-      ""specifiedLanguageVersion"": ""CSharp9"",
-      ""preprocessorSymbols"": []
-    }
+    ""parseOptionsIndex"": 0
   }
 ]
 ", compiler);
@@ -470,6 +455,18 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
+    ""parseOptions"": [
+      {
+        ""kind"": ""Regular"",
+        ""specifiedKind"": ""Regular"",
+        ""documentationMode"": ""Parse"",
+        ""language"": ""C#"",
+        ""features"": {},
+        ""languageVersion"": ""CSharp10"",
+        ""specifiedLanguageVersion"": ""CSharp10"",
+        ""preprocessorSymbols"": []
+      }
+    ],
     ""syntaxTrees"": [
       {
         ""fileName"": """",
@@ -478,16 +475,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": null
         },
-        ""parseOptions"": {
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""Parse"",
-          ""language"": ""C#"",
-          ""features"": {},
-          ""languageVersion"": ""CSharp10"",
-          ""specifiedLanguageVersion"": ""CSharp10"",
-          ""preprocessorSymbols"": []
-        }
+        ""parseOptionsIndex"": 0
       }
     ]
   }
@@ -542,6 +530,20 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "topLevelBinderFlags": "None",
       "usings": []
     },
+    "parseOptions": [
+      {
+        "kind": "Regular",
+        "specifiedKind": "Regular",
+        "documentationMode": "None",
+        "language": "C#",
+        "features": {
+          "debug-determinism": "true"
+        },
+        "languageVersion": "{{LanguageVersionFacts.CurrentVersion}}",
+        "specifiedLanguageVersion": "Default",
+        "preprocessorSymbols": []
+      }
+    ],
     "syntaxTrees": [
       {
         "fileName": "{{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}}",
@@ -550,18 +552,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           "checksumAlgorithm": "Sha256",
           "encodingName": "Unicode (UTF-8)"
         },
-        "parseOptions": {
-          "kind": "Regular",
-          "specifiedKind": "Regular",
-          "documentationMode": "None",
-          "language": "C#",
-          "features": {
-            "debug-determinism": "true"
-          },
-          "languageVersion": "{{LanguageVersionFacts.CurrentVersion}}",
-          "specifiedLanguageVersion": "Default",
-          "preprocessorSymbols": []
-        }
+        "parseOptionsIndex": 0
       }
     ]
   },
@@ -713,16 +704,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "checksumAlgorithm": "Sha1",
       "encodingName": "Unicode (UTF-8)"
     },
-    "parseOptions": {
-      "kind": "Regular",
-      "specifiedKind": "Regular",
-      "documentationMode": "Parse",
-      "language": "C#",
-      "features": {},
-      "languageVersion": "Preview",
-      "specifiedLanguageVersion": "Preview",
-      "preprocessorSymbols": []
-    }
+    "parseOptionsIndex": 0
   },
   {
     "fileName": "file2.cs",
@@ -731,19 +713,36 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       "checksumAlgorithm": "Sha256",
       "encodingName": "Unicode (UTF-8)"
     },
-    "parseOptions": {
-      "kind": "Regular",
-      "specifiedKind": "Regular",
-      "documentationMode": "Parse",
-      "language": "C#",
-      "features": {},
-      "languageVersion": "Preview",
-      "specifiedLanguageVersion": "Preview",
-      "preprocessorSymbols": []
-    }
+    "parseOptionsIndex": 0
   }
 ]
 """, key, "compilation.syntaxTrees");
+
+            // Both trees share the same ParseOptions, so the parseOptions array should have exactly one entry.
+            var parseOptionsArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
+            Assert.Equal(1, parseOptionsArray.Count);
+        }
+
+        [Fact]
+        public void ParseOptionsDeduplication()
+        {
+            // Trees with the same ParseOptions produce only one entry in the parseOptions array.
+            // Both trees share the default CSharpParseOptions, so there should be exactly one entry,
+            // and both trees should reference index 0.
+            var tree1 = CSharpTestBase.Parse("class A { }", filename: "a.cs");
+            var tree2 = CSharpTestBase.Parse("class B { }", filename: "b.cs");
+
+            var compilation = CSharpTestBase.CreateCompilation([tree1, tree2], options: Options);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            // One unique set of ParseOptions → one entry in the parseOptions array.
+            var parseOptionsArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
+            Assert.Equal(1, parseOptionsArray.Count);
+
+            // Both syntax trees reference index 0.
+            var syntaxTreesArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.syntaxTrees").Value;
+            Assert.Equal(0, syntaxTreesArray[0].Value<int>("parseOptionsIndex"));
+            Assert.Equal(0, syntaxTreesArray[1].Value<int>("parseOptionsIndex"));
         }
     }
 }

@@ -32,6 +32,11 @@
         <target state="translated">Dodaje odwołanie do pakietu NuGet.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_file_reference">
+        <source>Adds a file reference.</source>
+        <target state="new">Adds a file reference.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adds_a_project_reference">
         <source>Adds a project reference.</source>
         <target state="translated">Dodaje odwołanie do projektu.</target>
@@ -246,6 +251,11 @@
         <source>Global 'using' directives</source>
         <target state="translated">Globalne dyrektywy „using”</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Include_directive_file_path">
+        <source>path</source>
+        <target state="new">path</target>
+        <note>'path' is a placeholder for a file path or glob in a directive like '#:include path'.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>

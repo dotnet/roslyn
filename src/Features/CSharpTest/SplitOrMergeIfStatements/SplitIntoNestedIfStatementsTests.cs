@@ -824,4 +824,21 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                 }
             }
             """);
+
+    [Fact]
+    public Task SplitIntoNestedIfStatements_TopLevelStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            if (a [||]&& b)
+            {
+            }
+            """,
+            """
+            if (a)
+            {
+                if (b)
+                {
+                }
+            }
+            """);
 }

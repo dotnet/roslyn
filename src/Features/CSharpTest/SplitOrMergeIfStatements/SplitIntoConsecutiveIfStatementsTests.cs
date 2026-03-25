@@ -1403,4 +1403,21 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                 }
             }
             """);
+
+    [Fact]
+    public Task SplitIntoConsecutiveIfStatements_TopLevelStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            if (a [||]|| b)
+            {
+            }
+            """,
+            """
+            if (a)
+            {
+            }
+            else if (b)
+            {
+            }
+            """);
 }
