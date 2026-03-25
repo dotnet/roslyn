@@ -341,7 +341,96 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         return (workspace, document);
     }
 
-    // TODO2: some operations need to have delays inserted to ensure the cache timestamp compares newer than the modification time
+    [Fact]
+    public async Task Swap_01()
+    {
+        // Swap an FBA out for non-FBA at the same path 'sub1/File1.cs'.
+        var tempDir = _tempRoot.CreateDirectory();
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+            ]
+        });
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+
+        // Setup
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub1"));
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/File1.cs"), FbaContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/File2.cs"), OrdinaryCsContent);
+
+        // First discovery (no cache)
+        var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();
+
+        // Edits
+        File.Move(Path.Combine(tempDir.Path, @"sub1/File1.cs"), Path.Combine(tempDir.Path, @"sub1/File4.cs"));
+        File.Move(Path.Combine(tempDir.Path, @"sub1/File2.cs"), Path.Combine(tempDir.Path, @"sub1/File1.cs"));
+
+        // Discovery with cache
+        // Note: this result is wrong. Here we are unexpectedly loading 'File1.cs' which is no longer a file-based app.
+        // However, the result of doing this is: a loose file project will be loaded for it.
+        // This is thought to be minimally disruptive, for a case which is unlikely to occur in the real world (swapping out one file for another without making any edits.)
+        var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual([
+            Path.Combine(tempDir.Path, @"sub1/File1.cs"),
+            Path.Combine(tempDir.Path, @"sub1/File4.cs")
+            ], cachedResult, StringComparer.OrdinalIgnoreCase);
+
+        File.SetCreationTimeUtc(Path.Combine(tempDir.Path, @"sub1/File1.cs"), DateTime.UtcNow);
+        var cachedResult2 = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub1/File4.cs")], cachedResult2, StringComparer.OrdinalIgnoreCase);
+
+        // Delete cache
+        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        Directory.Delete(cacheDirectory, recursive: true);
+
+        // Discovery without cache
+        var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub1/File4.cs")], uncachedResult, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Swap_02()
+    {
+        // Swap a non-FBA out for FBA at the same path 'sub/File1.cs'.
+        var tempDir = _tempRoot.CreateDirectory();
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+            ]
+        });
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+
+        // Setup
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub1"));
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/File1.cs"), OrdinaryCsContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/File2.cs"), FbaContent);
+
+        // First discovery (no cache)
+        var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();
+
+        // Edits
+        File.Move(Path.Combine(tempDir.Path, @"sub1/File1.cs"), Path.Combine(tempDir.Path, @"sub1/File4.cs"));
+        File.Move(Path.Combine(tempDir.Path, @"sub1/File2.cs"), Path.Combine(tempDir.Path, @"sub1/File1.cs"));
+
+        // Discovery with cache
+        var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+
+        // Delete cache
+        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        Directory.Delete(cacheDirectory, recursive: true);
+
+        // Discovery without cache — should match
+        var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase);
+    }
 
     [Fact]
     public async Task Fuzz_1()
@@ -404,21 +493,21 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         // Setup
         File.WriteAllText(Path.Combine(tempDir.Path, @"Fba0.cs"), FbaContent);
-        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"deep\nested"));
-        File.WriteAllText(Path.Combine(tempDir.Path, @"deep\nested\Fba1.cs"), FbaContent);
-        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"deep\nested"));
-        File.WriteAllText(Path.Combine(tempDir.Path, @"deep\nested\Project2.csproj"), CsprojContent);
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"deep/nested"));
+        File.WriteAllText(Path.Combine(tempDir.Path, @"deep/nested/Fba1.cs"), FbaContent);
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"deep/nested"));
+        File.WriteAllText(Path.Combine(tempDir.Path, @"deep/nested/Project2.csproj"), CsprojContent);
         File.WriteAllText(Path.Combine(tempDir.Path, @"Project3.csproj"), CsprojContent);
-        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"deep\nested\sub3"));
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"deep/nested/sub3"));
 
         // First discovery (no cache)
         var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();
 
         // Edits
         File.WriteAllText(Path.Combine(tempDir.Path, @"NewOrd40.cs"), OrdinaryCsContent);
-        File.WriteAllText(Path.Combine(tempDir.Path, @"deep\nested\sub3\New52.csproj"), CsprojContent);
-        File.WriteAllText(Path.Combine(tempDir.Path, @"deep\nested\NewOrd20.cs"), OrdinaryCsContent);
-        File.WriteAllText(Path.Combine(tempDir.Path, @"deep\nested\Fba1.cs"), OrdinaryCsContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"deep/nested/sub3/New52.csproj"), CsprojContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"deep/nested/NewOrd20.cs"), OrdinaryCsContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"deep/nested/Fba1.cs"), OrdinaryCsContent);
 
         // Discovery with cache
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
@@ -449,19 +538,19 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         // Setup
         Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub1"));
-        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub1\sub3"));
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub1/sub3"));
         File.WriteAllText(Path.Combine(tempDir.Path, @"Project0.csproj"), CsprojContent);
-        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1\sub3\Fba1.cs"), FbaContent);
-        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1\Fba2.cs"), FbaContent);
-        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1\Fba3.cs"), FbaContent);
-        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1\Ordinary4.cs"), OrdinaryCsContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/sub3/Fba1.cs"), FbaContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/Fba2.cs"), FbaContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/Fba3.cs"), FbaContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/Ordinary4.cs"), OrdinaryCsContent);
 
         // First discovery (no cache)
         var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();
 
         // Edits
         File.Delete(Path.Combine(tempDir.Path, @"Project0.csproj"));
-        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1\sub3\NewFba64.cs"), FbaContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/sub3/NewFba64.cs"), FbaContent);
 
         // Discovery with cache
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();

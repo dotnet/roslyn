@@ -114,7 +114,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         if (lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>()
             is not FileBasedProgramsProjectSystem fileBasedProgramsProjectSystem)
         {
-            _logger.LogWarning("Did not find FileBasedProgramsProjectSystem. Not discovering entry points.");
+            _logger.LogWarning($"Did not find {nameof(FileBasedProgramsProjectSystem)}. Not discovering entry points.");
             return;
         }
 
@@ -122,11 +122,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         // For simplicity we orient our search around one workspace folder at a time.
         foreach (var workspaceFolder in _workspaceFolders)
         {
-            await FindAndLoadEntryPointsAsync(workspaceFolder);
-        }
 
-        async Task FindAndLoadEntryPointsAsync(string workspaceFolder)
-        {
             foreach (var fileBasedAppPath in FindEntryPoints(workspaceFolder))
             {
                 await fileBasedProgramsProjectSystem.TryBeginLoadingFileBasedAppAsync(fileBasedAppPath);
