@@ -288,6 +288,8 @@
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.9.19" />
+    <!-- Update Microsoft.Bcl.Memory used by Basic.CompilerLog.Util to a non-vulnerable version. -->
+    <PackageVersion Include="Microsoft.Bcl.Memory" Version="9.0.14" />
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net20" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net40" Version="$(_BasicReferenceAssembliesVersion)" />
