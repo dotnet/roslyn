@@ -505,7 +505,15 @@ namespace Microsoft.DiaSymReader
 
                     try
                     {
-                        asyncMethodPropertyWriter.DefineAsyncStepInfo(count, yieldOffsets.ToArray(), resumeOffsets.ToArray(), methods);
+                        unsafe
+                        {
+                            fixed (int* yieldPtr = yieldOffsets)
+                            fixed (int* resumePtr = resumeOffsets)
+                            fixed (int* methodsPtr = methods)
+                            {
+                                asyncMethodPropertyWriter.DefineAsyncStepInfo(count, yieldPtr, resumePtr, methodsPtr);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
