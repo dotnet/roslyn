@@ -189,14 +189,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 const string pipeArgPrefix = "-pipename:";
                 const string timeoutArgPrefix = "-timeout:";
                 const string logArgPrefix = "-log:";
-                if (arg.StartsWith(pipeArgPrefix, StringComparison.Ordinal))
+                var argSpan = arg.AsSpan();
+                if (argSpan.StartsWith(pipeArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    pipeName = arg.Substring(pipeArgPrefix.Length);
+                    pipeName = argSpan[pipeArgPrefix.Length..].ToString();
                 }
-                else if (arg.StartsWith(timeoutArgPrefix, StringComparison.Ordinal))
+                else if (argSpan.StartsWith(timeoutArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    var timeoutValue = arg.Substring(timeoutArgPrefix.Length);
-                    if (!int.TryParse(timeoutValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTimeout) ||
+                    var timeoutValue = argSpan[timeoutArgPrefix.Length..];
+                    if (!int.TryParse(timeoutValue.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTimeout) ||
                         parsedTimeout < 0)
                     {
                         return false;
@@ -204,15 +205,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     timeout = parsedTimeout == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
                 }
-                else if (arg.StartsWith(logArgPrefix, StringComparison.Ordinal))
+                else if (argSpan.StartsWith(logArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    var parsedLogFilePath = arg.Substring(logArgPrefix.Length);
+                    var parsedLogFilePath = argSpan[logArgPrefix.Length..];
                     if (parsedLogFilePath.Length == 0)
                     {
                         return false;
                     }
 
-                    logFilePath = parsedLogFilePath;
+                    logFilePath = parsedLogFilePath.ToString();
                 }
                 else if (arg == "-shutdown")
                 {
