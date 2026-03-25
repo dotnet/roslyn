@@ -238,3 +238,82 @@ The frequency-based hash function, trained on Roslyn's own identifier corpus:
 - **Covering n-gram count**: +11.7% (more covering n-grams means more Bloom filter probes)
 - **Mean covering length**: 5.12 → 4.79 (-0.33 chars)
 - **Selective (>= 5 char) covering share**: 40.8% → 36.1%
+
+## Why frequency-based hashing hurts for identifiers
+
+### The original insight (for code text) is correct
+
+The Cursor/Blackbird frequency-based approach was designed for **arbitrary source code text** —
+entire files including operators, braces, whitespace, comments, and string literals. In that
+context, the most common bigrams are syntactic noise (`  `, `//`, `()`, `{}`, `; `) while the
+rare bigrams are the distinctive letter combinations inside identifiers. Giving noise low weight
+(= boundary) and signal high weight (= interior) means n-grams span through distinctive text and
+break at uninteresting syntax.
+
+This works because the noise and signal populations have well-separated frequencies — the weight
+distribution is **bimodal**. The monotonic stack sees deep valleys at syntax and tall peaks at
+identifiers, producing long, selective n-grams.
+
+### Identifiers are a degenerate case
+
+Our use case is fundamentally different: we've already extracted the identifiers. The input to the
+n-gram algorithm is pure identifier text like `cancellationtoken` and `stringbuilder`. All
+syntactic noise has been stripped away.
+
+**The character distribution is narrow.** The effective alphabet is 26 letters plus a handful of
+digits and underscores. Every bigram is a letter-letter pair. There is no bimodal separation
+between noise and signal because everything is signal.
+
+**Common bigrams are densely packed.** `cancellationtoken` has common pairs at nearly every
+position: `an`(35), `nc`(51), `ce`(29), `el`(68), `ll`(74), `la`(20), `at`(9), `ti`(7),
+`io`(12), `on`(2), `nt`(11), `to`(41), `ok`(575), `ke`(148), `en`(8). Twelve of fifteen bigrams
+have weight below 75.
+
+**The weight distribution is clustered.** ~80% of bigrams in identifier text map to the bottom
+5–10% of the weight range, forming a flat, noisy signal rather than decisive peaks and valleys.
+
+### How this interacts with the monotonic stack
+
+The monotonic stack produces long n-grams when it sees **deep valleys followed by long ascending
+runs**. A valley with a very low hash stays on the stack for many iterations because subsequent
+hashes keep being higher. The longer a valley survives, the longer the n-gram it anchors.
+
+Think of the hash sequence as terrain:
+
+- **CRC = the Rocky Mountains.** Hash values are uniformly distributed over ~0 to 4 billion.
+  When a valley forms, it's genuinely deep — surrounding values are orders of magnitude higher.
+  That valley stays on the stack for many positions. Valleys are well-separated, peaks are tall,
+  and the stack does decisive, infrequent work. Result: fewer, longer n-grams.
+
+- **Frequency weights on identifiers = a gently rolling plain.** Most hash values cluster between
+  0 and 100. Every few positions, something slightly higher or lower appears. A value of 35 is
+  pushed, then 51 pops it, then 29 pushes, then 68 pops both. The stack constantly churns through
+  micro-valleys that never survive more than 2–3 positions. Result: many short n-grams.
+
+This isn't about individual identifiers being lucky or unlucky. **A uniform distribution over a
+wide range systematically produces better monotonic-stack behavior than a clustered distribution
+over a narrow range.** The clustering is inherent to our input: identifiers are composed almost
+entirely of common English bigrams, so frequency weights for the vast majority of what we see are
+squeezed into a narrow low band.
+
+### The rare fragments help, but not enough
+
+The frequency approach *does* produce selective rare fragments. For `stringbuilder`, the covering
+set includes `ngb` — a rare trigram appearing in very few documents.
+
+But the covering set must span the **entire** query string — it can't skip the common parts.
+Alongside the selective `ngb`, the set also contains `str`, `tri`, `ring`, `der` — common
+trigrams genuinely present in many unrelated documents. When we AND all covering n-grams, the
+single rare fragment does nearly all the filtering work; the others are redundant.
+
+A 13-character n-gram like `stringbuilder` is strictly more selective than any 3-character
+substring of it — it contains the rare `ngb` transition *plus* all surrounding context. Length
+is the dominant factor in selectivity, and the frequency approach systematically produces shorter
+covering n-grams because boundaries are too densely placed.
+
+### Conclusion
+
+Frequency-based hashing is well-suited for its original domain (arbitrary code text with a bimodal
+character distribution), but identifier text is a degenerate case where the weight distribution
+collapses into a narrow band, degrading monotonic-stack performance. The CRC hash remains the
+better choice for NavigateTo's identifier-focused sparse n-grams.
