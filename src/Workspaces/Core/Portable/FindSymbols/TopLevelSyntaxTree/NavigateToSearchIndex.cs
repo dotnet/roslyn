@@ -69,8 +69,8 @@ internal sealed partial class NavigateToSearchIndex : AbstractSyntaxIndex<Naviga
         public bool HumpCheckPasses(string patternName)
             => index._navigateToSearchInfo.HumpCheckPasses(patternName);
 
-        public bool TrigramCheckPasses(string patternName)
-            => index._navigateToSearchInfo.TrigramCheckPasses(patternName);
+        public bool NgramCheckPasses(string patternName)
+            => index._navigateToSearchInfo.NgramCheckPasses(patternName);
 
         public bool LengthCheckPasses(string patternName)
             => index._navigateToSearchInfo.LengthCheckPasses(patternName);
