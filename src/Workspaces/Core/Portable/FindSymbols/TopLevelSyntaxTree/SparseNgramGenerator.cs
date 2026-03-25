@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -176,8 +176,7 @@ internal static class SparseNgramGenerator
         if (text.Length < MinNgramLength)
             return;
 
-        // Uses a deque (LinkedList here) to track the monotonic structure.
-        var deque = new LinkedList<(uint hash, int pos)>();
+        using var _ = Deque<(uint hash, int pos)>.GetInstance(out var deque);
 
         for (var i = 0; i + 2 <= text.Length; i++)
         {
@@ -188,10 +187,10 @@ internal static class SparseNgramGenerator
             // extremely long n-gram would be so specific it's unlikely to appear in the Bloom
             // filter, offering no benefit over a moderately long one.
             if (deque.Count > 1 &&
-                i - deque.First!.Value.pos + 3 >= maxNgramLength)
+                i - deque.First.pos + 3 >= maxNgramLength)
             {
-                var frontPos = deque.First.Value.pos;
-                var secondPos = deque.First.Next!.Value.pos;
+                var frontPos = deque.First.pos;
+                var secondPos = deque[1].pos;
                 results.Add((frontPos, secondPos + 2 - frontPos));
                 deque.RemoveFirst();
             }
@@ -200,20 +199,20 @@ internal static class SparseNgramGenerator
             // monotonic invariant. When the front and back have the same hash (the entire deque
             // is a single plateau), the plateau collapses: we emit n-grams covering the full
             // span, then unwind the deque to emit bridging n-grams between consecutive entries.
-            while (deque.Count > 0 && hash > deque.Last!.Value.hash)
+            while (deque.Count > 0 && hash > deque.Last.hash)
             {
-                if (deque.First!.Value.hash == deque.Last.Value.hash)
+                if (deque.First.hash == deque.Last.hash)
                 {
-                    var lastPos = deque.Last.Value.pos;
+                    var lastPos = deque.Last.pos;
                     results.Add((lastPos, i + 2 - lastPos));
 
                     // Unwind the entire deque, emitting bridging n-grams that connect each
                     // consecutive pair. This ensures the covering set has no gaps.
                     while (deque.Count > 1)
                     {
-                        var lastPosition = deque.Last.Value.pos + 2;
+                        var lastPosition = deque.Last.pos + 2;
                         deque.RemoveLast();
-                        results.Add((deque.Last!.Value.pos, lastPosition - deque.Last.Value.pos));
+                        results.Add((deque.Last.pos, lastPosition - deque.Last.pos));
                     }
                 }
 
@@ -228,9 +227,9 @@ internal static class SparseNgramGenerator
         // emits the final covering n-grams that span to the end of the string.
         while (deque.Count > 1)
         {
-            var lastPosition = deque.Last!.Value.pos + 2;
+            var lastPosition = deque.Last.pos + 2;
             deque.RemoveLast();
-            results.Add((deque.Last!.Value.pos, lastPosition - deque.Last.Value.pos));
+            results.Add((deque.Last.pos, lastPosition - deque.Last.pos));
         }
     }
 
