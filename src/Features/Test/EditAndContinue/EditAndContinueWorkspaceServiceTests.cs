@@ -1638,7 +1638,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
                 sourceTextProviderCalled = true;
 
                 // fall back to reading the file content:
-                return default;
+                return null;
             }
         };
 
