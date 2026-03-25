@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// contains both. Because these are 6 and 4 characters long (not just 3), they have far fewer false
 /// positives than any individual trigram would.
 /// </summary>
-internal static class SparseNgramGenerator
+internal static partial class SparseNgramGenerator
 {
     /// <summary>
     /// The shortest n-gram the algorithm can produce is 3 characters (a trigram). This happens
@@ -59,22 +59,26 @@ internal static class SparseNgramGenerator
     public const int MinNgramLength = 3;
 
     // Hash constants from the reference implementation (https://github.com/danlark1/sparse_ngrams).
-    // These are mixing constants chosen to spread bigram values across the uint range, ensuring
-    // that n-gram boundaries are well-distributed and don't cluster on common character pairs.
+    // Kept as fallback for characters outside the identifier alphabet (a-z, 0-9, underscore).
     private const ulong Mul1 = 0xc6a4a7935bd1e995UL;
     private const ulong Mul2 = 0x228876a7198b743UL;
 
     /// <summary>
     /// Hashes the bigram at <paramref name="pos"/> (characters at pos and pos+1) into a uint.
     /// The hash determines where n-gram boundaries fall: valleys in the hash sequence become
-    /// n-gram start/end points. A good hash function here is critical — it must spread common
-    /// bigrams widely so that boundaries don't cluster on frequent character pairs like "th" or "er".
+    /// n-gram start/end points.
+    /// <para/>
+    /// Uses a frequency-based weight table (generated from Roslyn's own identifier corpus)
+    /// where rare bigrams get high weights and common ones get low weights. This causes n-gram
+    /// boundaries to cluster around common character pairs (like "er", "in", "st"), producing
+    /// longer n-grams through rare/distinctive regions. The result: fewer, more selective
+    /// covering n-grams at query time, reducing false positives in the Bloom filter.
+    /// <para/>
+    /// See: <see href="https://cursor.com/blog/fast-regex-search"/> for the rationale behind
+    /// frequency-based weighting in sparse n-gram algorithms.
     /// </summary>
     private static uint HashBigram(ReadOnlySpan<char> text, int pos)
-    {
-        var a = text[pos] * Mul1 + text[pos + 1] * Mul2;
-        return (uint)(a + (~a >> 47));
-    }
+        => FrequencyHashBigram(text, pos);
 
     /// <summary>
     /// Produces the full set of sparse n-grams for indexing (at most 2n−2). These are stored in the
