@@ -513,6 +513,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
+            const string UseGlobalCacheFeatureFlag = "use-global-cache";
+
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GenerateCommandLineArgsTaskItems(responseFileCommands);
@@ -565,11 +567,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     ? SharedCompilationId
                     : BuildServerConnection.GetPipeName(clientDirectory);
 
+                // When the use-global-cache feature flag is set, configure the ROSLYN_CACHE_PATH
+                // environment variable so the compiler server (or tool fallback) uses a global cache.
+                IDictionary<string, string>? additionalEnvironmentVariables;
+                const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
+                if (hasUseGlobalCacheFeature() && string.IsNullOrEmpty(Environment.GetEnvironmentVariable(CachePathEnvironmentVariable)))
+                {
+                    var globalCachePath = Path.Combine(Path.GetTempPath(), "roslyn-cache");
+                    logger.Log($"Setting {CachePathEnvironmentVariable} to '{globalCachePath}' ({UseGlobalCacheFeatureFlag} feature flag)");
+
+                    additionalEnvironmentVariables = new Dictionary<string, string>
+                    {
+                        { CachePathEnvironmentVariable, globalCachePath }
+                    };
+                }
+                else
+                {
+                    additionalEnvironmentVariables = null;
+                }
+
                 var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
                     buildRequest,
                     pipeName,
                     clientDirectory,
                     logger: logger,
+                    additionalEnvironmentVariables,
                     cancellationToken: _sharedCompileCts.Token);
 
                 responseTask.Wait(_sharedCompileCts.Token);
@@ -606,6 +628,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 return $"Unnamed compilation {Guid.NewGuid()}";
+            }
+
+            bool hasUseGlobalCacheFeature()
+            {
+                if (string.IsNullOrWhiteSpace(Features) || !Features.Contains(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(Features))
+                {
+                    if (feature.AsSpan().Trim().Equals(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
 
