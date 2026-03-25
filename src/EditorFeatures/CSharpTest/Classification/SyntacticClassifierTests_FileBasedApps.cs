@@ -96,6 +96,50 @@ public partial class SyntacticClassifierTests
             String("1.0"));
 
     [Theory, CombinatorialData]
+    public Task FileBasedApps_Sdk_06(TestHost testHost)
+        => TestAsync("""
+            #:sdk Test 2.1.0
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("sdk"),
+            Identifier("Test 2"),
+            Punctuation.Text("."),
+            Identifier("1"),
+            Punctuation.Text("."),
+            Identifier("0"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Sdk_07(TestHost testHost)
+        => TestAsync($"""
+            #:sdk{'\t'}Test 2.1.0
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("sdk"),
+            Identifier("Test 2"),
+            Punctuation.Text("."),
+            Identifier("1"),
+            Punctuation.Text("."),
+            Identifier("0"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+
+    [Theory, CombinatorialData]
     public Task FileBasedApps_Package_01(TestHost testHost)
         => TestAsync("""
             #:package Newtonsoft.Json@13.0.3
@@ -293,6 +337,41 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword(":"),
             PPKeyword("property"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Unknown_01(TestHost testHost)
+        => TestAsync("""
+            #:unknown // comment
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("unknown"),
+            String("// comment"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Unknown_02(TestHost testHost)
+        => TestAsync("""
+            #:no-space
+            Console.Write();
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("no-space"),
+            Identifier("Console"),
+            Operators.Dot,
+            Identifier("Write"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon);
 
     // Space between `#` and `:` causes the directive to not be treated as an ignored/FBA directive.
     [Theory, CombinatorialData]
