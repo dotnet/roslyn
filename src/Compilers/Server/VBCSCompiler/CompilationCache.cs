@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private const string PdbFileName = "pdb";
         private const string RefAssemblyFileName = "refassembly";
         private const string XmlDocFileName = "xmldoc";
+        private const string LockFileExtension = ".lock";
 
         private readonly string _cachePath;
 
@@ -97,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private string GetCacheEntryDirectory(string dllName, string hashKey)
             => Path.Combine(_cachePath, dllName, hashKey);
 
-        private string GetCachedKeyPath(string dllName, string hashKey)
-            => Path.Combine(GetCacheEntryDirectory(dllName, hashKey), dllName + ".key");
+        private string GetCacheEntryLockPath(string dllName, string hashKey)
+            => Path.Combine(_cachePath, dllName, hashKey + LockFileExtension);
 
         /// <summary>
         /// Checks whether a cached result exists for the given DLL name and hash key.
@@ -114,15 +115,26 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var entryDir = GetCacheEntryDirectory(dllName, hashKey);
             var cachedAssemblyPath = Path.Combine(entryDir, AssemblyFileName);
-            if (!File.Exists(cachedAssemblyPath))
-            {
-                return false;
-            }
-
-            logger.Log($"Cache hit: {dllName} [{hashKey}]");
 
             try
             {
+                if (!File.Exists(cachedAssemblyPath))
+                {
+                    var entryLockPath = GetCacheEntryLockPath(dllName, hashKey);
+                    using var entryLock = File.Exists(entryLockPath) ? TryAcquireEntryLock(entryLockPath, createIfMissing: false) : null;
+                    if (File.Exists(entryLockPath) && entryLock is null && !File.Exists(cachedAssemblyPath))
+                    {
+                        logger.Log($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
+                        return false;
+                    }
+
+                    if (!File.Exists(cachedAssemblyPath))
+                    {
+                        return false;
+                    }
+                }
+
+                logger.Log($"Cache hit: {dllName} [{hashKey}]");
                 File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
 
                 TryCopyOptional(entryDir, PdbFileName, outputFiles.PdbPath);
@@ -221,18 +233,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string deterministicKey,
             ICompilerServerLogger logger)
         {
+            string? stagingDir = null;
             try
             {
+                var dllCacheDir = Path.Combine(_cachePath, dllName);
+                Directory.CreateDirectory(dllCacheDir);
+
+                using var entryLock = TryAcquireEntryLock(GetCacheEntryLockPath(dllName, hashKey));
+                if (entryLock is null)
+                {
+                    logger.Log($"Cache store skipped because another writer is populating: {dllName} [{hashKey}]");
+                    return;
+                }
+
                 var cacheDir = GetCacheEntryDirectory(dllName, hashKey);
-                Directory.CreateDirectory(cacheDir);
+                if (Directory.Exists(cacheDir))
+                {
+                    // Another writer finished publishing this entry before we got here.
+                    logger.Log($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
+                    return;
+                }
 
-                File.Copy(outputFiles.AssemblyPath, Path.Combine(cacheDir, AssemblyFileName), overwrite: true);
+                // Populate a unique staging directory and publish it with a single rename so readers only
+                // ever observe a fully populated cache entry.
+                stagingDir = Path.Combine(dllCacheDir, hashKey + "." + Guid.NewGuid().ToString("N") + ".tmp");
+                Directory.CreateDirectory(stagingDir);
 
-                TryCopyOptional(outputFiles.PdbPath, Path.Combine(cacheDir, PdbFileName));
-                TryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(cacheDir, RefAssemblyFileName));
-                TryCopyOptional(outputFiles.XmlDocPath, Path.Combine(cacheDir, XmlDocFileName));
+                File.Copy(outputFiles.AssemblyPath, Path.Combine(stagingDir, AssemblyFileName), overwrite: false);
 
-                File.WriteAllText(GetCachedKeyPath(dllName, hashKey), deterministicKey, Encoding.UTF8);
+                TryCopyOptional(outputFiles.PdbPath, Path.Combine(stagingDir, PdbFileName));
+                TryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(stagingDir, RefAssemblyFileName));
+                TryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
+
+                File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
+                Directory.Move(stagingDir, cacheDir);
+                stagingDir = null;
 
                 logger.Log($"Cache stored: {dllName} [{hashKey}]");
             }
@@ -240,13 +275,47 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 logger.Log($"Cache store failed for {dllName} [{hashKey}]: {ex.Message}");
             }
+            finally
+            {
+                if (stagingDir is not null)
+                {
+                    try
+                    {
+                        if (Directory.Exists(stagingDir))
+                        {
+                            Directory.Delete(stagingDir, recursive: true);
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        logger.Log($"Cache cleanup failed for {dllName} [{hashKey}]: {ex.Message}");
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        logger.Log($"Cache cleanup failed for {dllName} [{hashKey}]: {ex.Message}");
+                    }
+                }
+            }
 
             static void TryCopyOptional(string? sourcePath, string destPath)
             {
                 if (sourcePath is not null && File.Exists(sourcePath))
                 {
-                    File.Copy(sourcePath, destPath, overwrite: true);
+                    File.Copy(sourcePath, destPath, overwrite: false);
                 }
+            }
+        }
+
+        private static FileStream? TryAcquireEntryLock(string lockFilePath, bool createIfMissing = true)
+        {
+            try
+            {
+                // FileShare.None gives us a simple cross-process mutex for a specific cache entry.
+                return new FileStream(lockFilePath, createIfMissing ? FileMode.OpenOrCreate : FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException)
+            {
+                return null;
             }
         }
 
