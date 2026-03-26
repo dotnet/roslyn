@@ -433,6 +433,99 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
+    public async Task Swap_03()
+    {
+        // Swap a directory containing FBA out for a directory containing non-FBA at 'sub1/File1.cs'.
+        var tempDir = _tempRoot.CreateDirectory();
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+            ]
+        });
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+
+        // Setup
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub1"));
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub2"));
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/File1.cs"), FbaContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub2/File1.cs"), OrdinaryCsContent);
+
+        // First discovery (no cache)
+        var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();
+
+        // Edits
+        Directory.Move(Path.Combine(tempDir.Path, @"sub1"), Path.Combine(tempDir.Path, @"sub4"));
+        Directory.Move(Path.Combine(tempDir.Path, @"sub2"), Path.Combine(tempDir.Path, @"sub1"));
+
+        // Discovery with cache
+        // Note: this result is wrong. Here we are unexpectedly loading 'File1.cs' which is no longer a file-based app.
+        // However, the result of doing this is: a loose file project will be loaded for it.
+        // This is thought to be minimally disruptive, for a case which is unlikely to occur in the real world (swapping out one file for another without making any edits.)
+        var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual([
+            Path.Combine(tempDir.Path, @"sub1/File1.cs"),
+            Path.Combine(tempDir.Path, @"sub4/File1.cs")
+            ], cachedResult, StringComparer.OrdinalIgnoreCase);
+
+        File.SetCreationTimeUtc(Path.Combine(tempDir.Path, @"sub1/File1.cs"), DateTime.UtcNow);
+        var cachedResult2 = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub4/File1.cs")], cachedResult2, StringComparer.OrdinalIgnoreCase);
+
+        // Delete cache
+        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        Directory.Delete(cacheDirectory, recursive: true);
+
+        // Discovery without cache
+        var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub4/File1.cs")], uncachedResult, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Swap_04()
+    {
+        // Swap a directory containing non-FBA out for a diretory containing FBA at the same path 'sub1/File1.cs'.
+        var tempDir = _tempRoot.CreateDirectory();
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+            ]
+        });
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+
+        // Setup
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub1"));
+        Directory.CreateDirectory(Path.Combine(tempDir.Path, @"sub2"));
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub1/File1.cs"), OrdinaryCsContent);
+        File.WriteAllText(Path.Combine(tempDir.Path, @"sub2/File1.cs"), FbaContent);
+
+        // First discovery (no cache)
+        var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();
+
+        // Edits
+        Directory.Move(Path.Combine(tempDir.Path, @"sub1"), Path.Combine(tempDir.Path, @"sub4"));
+        Directory.Move(Path.Combine(tempDir.Path, @"sub2"), Path.Combine(tempDir.Path, @"sub1"));
+
+        // Discovery with cache
+        var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+
+        // Delete cache
+        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+        Directory.Delete(cacheDirectory, recursive: true);
+
+        // Discovery without cache — should match
+        var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Fuzz_1()
     {
         var tempDir = _tempRoot.CreateDirectory();
