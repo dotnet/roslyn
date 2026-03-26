@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public static int Main(string[] args)
         {
             // Pre-parse arguments to extract the log file path and other values so the logger can be
-            // initialised with the correct path before the controller is created.
+            // initialized with the correct path before the controller is created.
             if (!BuildServerController.ParseCommandLine(args, out var pipeName, out var shutdown, out var keepAlive, out var logFilePath))
             {
                 return CommonCompiler.Failed;
