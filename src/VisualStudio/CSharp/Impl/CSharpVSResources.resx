@@ -560,4 +560,13 @@
   <data name="Prefer_implicitly_typed_lambda_expression" xml:space="preserve">
     <value>Prefer implicitly typed lambda expression</value>
   </data>
+  <data name="Always_add_using_when_committed" xml:space="preserve">
+    <value>Always add using when committed</value>
+  </data>
+  <data name="Never_add_using_when_committed" xml:space="preserve">
+    <value>Never add using when committed</value>
+  </data>
+  <data name="Only_add_using_when_committed_explicitly" xml:space="preserve">
+    <value>Only add using when committed explicitly (via TAB or double-click)</value>
+  </data>
 </root>

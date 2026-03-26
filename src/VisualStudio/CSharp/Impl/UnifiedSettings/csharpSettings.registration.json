@@ -203,6 +203,38 @@
         }
       }
     },
+    // CompletionOptionsStorage.ImportCompletionCommitBehavior
+    "languages.csharp.intellisense.importCompletionCommitBehavior": {
+      "title": "@Commit_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "alwaysAddImportWhenCommitted", "neverAddImportWhenCommitted", "onlyAddImportWhenCommittedExplicitly" ],
+      "enumItemLabels": [ "@Always_add_using_when_committed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Never_add_using_when_committed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Only_add_using_when_committed_explicitly;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
+      "default": "alwaysAddImportWhenCommitted",
+      "order": 81,
+      "enableWhen": "${config:languages.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces}=='true'",
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ImportCompletionCommitBehavior"
+          },
+          "map": [
+            {
+              "result": "alwaysAddImportWhenCommitted",
+              "match": 0
+            },
+            {
+              "result": "neverAddImportWhenCommitted",
+              "match": 1
+            },
+            {
+              "result": "onlyAddImportWhenCommittedExplicitly",
+              "match": 2
+            }
+          ]
+        }
+      }
+    },
     // CompletionViewOptionsStorage.EnableArgumentCompletionSnippets
     "languages.csharp.intellisense.enableArgumentCompletionSnippets": {
       "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
