@@ -427,8 +427,8 @@ public sealed class NavigateToSearchIndexTests
 
     [Theory]
     // ═══ Readline ═══
-    // Word-part: "Readline" (one word-part since 'R' followed by lowercase).
-    // Sparse n-grams of the lowercased word-part are stored in a Bloom filter.
+    // N-grams are indexed over the full lowercased name "readline".
+    // Sparse n-grams of the lowercased name are stored in a Bloom filter.
     //
     // True: all covering n-grams of the pattern are present in the filter.
     [InlineData("Readline", "rea", true)]
@@ -474,14 +474,15 @@ public sealed class NavigateToSearchIndexTests
     [InlineData("Combine", "binez", false)]
     //
     // ═══ GooBar ═══
-    // Word-parts: "Goo" and "Bar" (two separate word-parts from CamelCase).
-    // Each word-part is only 3 chars, so only short n-grams are generated.
+    // N-grams are indexed over the full lowercased name "goobar" (not per-word-part),
+    // so cross-boundary n-grams like "oob" and "oba" ARE present in the filter.
     //
     [InlineData("GooBar", "goo", true)]
     [InlineData("GooBar", "bar", true)]
-    // False: cross-word-part n-grams are NOT stored.
-    [InlineData("GooBar", "oob", false)]         // spans "Goo" → "Bar" boundary
-    [InlineData("GooBar", "oba", false)]         // spans boundary
+    [InlineData("GooBar", "oob", true)]           // spans "Goo" → "Bar" boundary — present because full-name indexing
+    [InlineData("GooBar", "oba", true)]           // spans boundary — present because full-name indexing
+    [InlineData("GooBar", "goobar", true)]        // full name
+    [InlineData("GooBar", "ooba", true)]          // cross-boundary, length 4
     //
     // ═══ Longer symbol: "Transformer" ═══
     // Word-part: "Transformer"
