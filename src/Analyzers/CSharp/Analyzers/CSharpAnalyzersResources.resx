@@ -440,4 +440,8 @@
   <data name="Property_accessor_can_be_simplified" xml:space="preserve">
     <value>Property accessor can be simplified</value>
   </data>
+  <data name="File_based_program_entry_point_should_start_with_shebang" xml:space="preserve">
+    <value>File-based program entry point should start with '#!'</value>
+    <comment>{Locked="#!"}</comment>
+  </data>
 </root>

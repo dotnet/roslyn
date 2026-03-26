@@ -82,6 +82,11 @@
         <target state="translated">Vložené příkazy musí mít svůj vlastní řádek.</target>
         <note />
       </trans-unit>
+      <trans-unit id="File_based_program_entry_point_should_start_with_shebang">
+        <source>File-based program entry point should start with '#!'</source>
+        <target state="new">File-based program entry point should start with '#!'</target>
+        <note>{Locked="#!"}</note>
+      </trans-unit>
       <trans-unit id="Implement">
         <source>Implement</source>
         <target state="translated">Implementovat</target>
