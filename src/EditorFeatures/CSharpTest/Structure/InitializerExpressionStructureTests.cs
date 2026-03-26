@@ -25,7 +25,7 @@ public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNo
                 {
                     void M()
                     {
-                        var v = {|hint:new Dictionary<int, int>{|textspan: $${
+                        var v = {|hint:new Dictionary<int, int> {|textspan:$${
                             { 1, 2 },
                             { 1, 2 },
                         }|}|};
@@ -48,6 +48,26 @@ public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNo
                             },|}|}
                             { 1, 2 },
                         };
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestOuterInitializerWithMultiLineArgumentList()
+        => VerifyBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        using var v = {|hint:new MailMessage(
+                            fromAddress,
+                            new MailAddress(member.Emails[0].Address))
+                        {|textspan:$${
+                            Subject = subject,
+                            Body = plainBody
+                        }|}|};
                     }
                 }
                 """,

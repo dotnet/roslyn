@@ -55,13 +55,16 @@ internal sealed class InitializerExpressionStructureProvider : AbstractSyntaxNod
             //          ...
             //      }
             //
-            // The collapsed textspan should be from the   >   to the   }
+            // The collapsed textspan should be from the   {   to the   }
+            // Start at node.SpanStart (the open brace) rather than previousToken.Span.End
+            // so the editor's guideline heuristic picks the right column when the argument
+            // list spans multiple lines.
             //
-            // However, the hint span should be the entire object creation.
+            // The hint span is the entire object creation for hover context.
 
             spans.Add(new BlockSpan(
                 isCollapsible: true,
-                textSpan: TextSpan.FromBounds(previousToken.Span.End, node.Span.End),
+                textSpan: TextSpan.FromBounds(node.SpanStart, node.Span.End),
                 hintSpan: node.Parent.Span,
                 type: BlockTypes.Expression));
         }
