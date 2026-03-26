@@ -523,6 +523,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # IDE0391
             dotnet_diagnostic.IDE0391.severity = %value%
 
+            # IDE0400
+            dotnet_diagnostic.IDE0400.severity = %value%
+
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -938,6 +941,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0340", "csharp_style_prefer_unbound_generic_type_in_nameof", "true"),
             ("IDE0350", "csharp_style_prefer_implicitly_typed_lambda_expression", "true"),
             ("IDE0360", "csharp_style_prefer_simple_property_accessors", "true"),
+            ("IDE0400", null, null),
             ("IDE0370", null, null),
             ("IDE0380", null, null),
             ("IDE0390", null, null),
