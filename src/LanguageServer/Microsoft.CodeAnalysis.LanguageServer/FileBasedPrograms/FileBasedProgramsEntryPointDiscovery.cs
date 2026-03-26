@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -43,12 +44,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     /// <summary>Directories which are ignored per convention.</summary>
     /// <remarks>Some conventional directories like '.git' and '.vs' are expected to be marked hidden and will be automatically ignored by discovery.</remarks>
-    private static readonly ImmutableArray<string> s_ignoredDirectories = [
+    private static readonly SearchValues<string> s_ignoredDirectories = SearchValues.Create([
         "artifacts",
         "bin",
         "obj",
         "node_modules"
-    ];
+    ], StringComparison.OrdinalIgnoreCase);
 
     private readonly ILogger _logger = loggerFactory.CreateLogger<FileBasedProgramsEntryPointDiscovery>();
     private ImmutableArray<string> _workspaceFolders;
@@ -196,7 +197,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             }
 
             newFileBasedAppsBuilder.Add(fileBasedAppPath);
-            _logger.LogInformation("MAGIC Discovered file-based app (cache hit): {fileBasedAppPath}", fileBasedAppPath);
+            _logger.LogInformation("Discovered file-based app (cache hit): {fileBasedAppPath}", fileBasedAppPath);
             yield return fileBasedAppPath;
         }
 
@@ -210,12 +211,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             {
                 var fileBasedAppPath = enumerator.Current;
                 newFileBasedAppsBuilder.Add(fileBasedAppPath);
-                _logger.LogInformation("MAGIC Discovered file-based app (cache miss): {csFilePath}", fileBasedAppPath);
+                _logger.LogInformation("Discovered file-based app (cache miss): {csFilePath}", fileBasedAppPath);
                 yield return fileBasedAppPath;
             }
 
             stopwatch.Stop();
-            _logger.LogInformation("MAGIC Finished discovery in {workspaceFolder} in {stopwatch.ElapsedMilliseconds} milliseconds", workspaceFolder, stopwatch.ElapsedMilliseconds);
+            _logger.LogInformation("Finished discovery in {workspaceFolder} in {stopwatch.ElapsedMilliseconds} milliseconds", workspaceFolder, stopwatch.ElapsedMilliseconds);
             newFileBasedAppsBuilder.Sort(s_pathComparer);
             directoriesContainingCsprojBuilder.Sort(s_pathComparer);
         }
@@ -281,7 +282,9 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 return false;
             }
 
-            // NTFS shenanigans.
+            // On NTFS, the directory timestamps we observe when enumerating can be stale when files are added/deleted from a directory.
+            // If we find the timestamps were old enough (i.e. we fell thru the above check),
+            // we still need to `new DirectoryInfo()` again and force the timestamps to update if needed.
             if (entry.IsDirectory)
             {
                 var directoryInfo = new DirectoryInfo(entry.ToFullPath());
@@ -322,11 +325,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
         {
-            foreach (var ignored in s_ignoredDirectories)
-            {
-                if (entry.FileName.Equals(ignored, StringComparison.OrdinalIgnoreCase))
-                    return false;
-            }
+            if (entry.FileName.ContainsAny(s_ignoredDirectories))
+                return false;
 
             var fullPath = entry.ToFullPath();
             if (IsCacheUpToDate(ref entry))
@@ -357,12 +357,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
     }
 
-    internal record Cache(string WorkspacePath, DateTimeOffset LastWalkTimeUtc, ImmutableArray<string> FileBasedAppFullPaths, ImmutableArray<string> DirectoriesContainingCsproj)
-    {
-        public ImmutableArray<string> FileBasedAppFullPaths { get; init; } = FileBasedAppFullPaths;
-        public ImmutableArray<string> DirectoriesContainingCsproj { get; init; } = DirectoriesContainingCsproj;
-    }
+    internal sealed record Cache(string WorkspacePath, DateTimeOffset LastWalkTimeUtc, ImmutableArray<string> FileBasedAppFullPaths, ImmutableArray<string> DirectoriesContainingCsproj);
 
     [JsonSerializable(typeof(Cache))]
-    internal partial class CacheSerializerContext : JsonSerializerContext;
+    internal sealed partial class CacheSerializerContext : JsonSerializerContext;
 }
