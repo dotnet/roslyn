@@ -575,43 +575,45 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     /// </summary>
     private abstract record FuzzOp
     {
+        protected static string NormalizeForCSharp(string relativePath) => relativePath.Replace('\\', '/');
+
+        public abstract string ToCSharp(string tempDirVar);
+
         /// <summary>Creates a directory at the given relative path.</summary>
         internal sealed record CreateDir(string RelativePath) : FuzzOp
         {
-            public override string ToCSharp(string tempDirVar) => $"Directory.CreateDirectory(Path.Combine({tempDirVar}.Path, @\"{RelativePath}\"));";
+            public override string ToCSharp(string tempDirVar) => $"Directory.CreateDirectory(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"));";
         }
 
         /// <summary>Writes a .cs file with file-based-app content (has '#:' directive).</summary>
         internal sealed record WriteFbaFile(string RelativePath) : FuzzOp
         {
-            public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{RelativePath}\"), FbaContent);";
+            public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"), FbaContent);";
         }
 
         /// <summary>Writes a .cs file without file-based-app content (no '#:' directive).</summary>
         internal sealed record WriteOrdinaryCs(string RelativePath) : FuzzOp
         {
-            public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{RelativePath}\"), OrdinaryCsContent);";
+            public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"), OrdinaryCsContent);";
         }
 
         /// <summary>Writes a .csproj file.</summary>
         internal sealed record WriteCsproj(string RelativePath) : FuzzOp
         {
-            public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{RelativePath}\"), CsprojContent);";
+            public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"), CsprojContent);";
         }
 
         /// <summary>Deletes a file.</summary>
         internal sealed record DeleteFile(string RelativePath) : FuzzOp
         {
-            public override string ToCSharp(string tempDirVar) => $"File.Delete(Path.Combine({tempDirVar}.Path, @\"{RelativePath}\"));";
+            public override string ToCSharp(string tempDirVar) => $"File.Delete(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"));";
         }
 
         /// <summary>Renames/moves a file.</summary>
         internal sealed record RenameFile(string OldRelativePath, string NewRelativePath) : FuzzOp
         {
-            public override string ToCSharp(string tempDirVar) => $"File.Move(Path.Combine({tempDirVar}.Path, @\"{OldRelativePath}\"), Path.Combine({tempDirVar}.Path, @\"{NewRelativePath}\"));";
+            public override string ToCSharp(string tempDirVar) => $"File.Move(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(OldRelativePath)}\"), Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(NewRelativePath)}\"));";
         }
-
-        public abstract string ToCSharp(string tempDirVar);
     }
 
     /// <summary>
