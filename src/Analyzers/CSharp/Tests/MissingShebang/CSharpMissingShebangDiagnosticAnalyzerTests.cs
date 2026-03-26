@@ -1,9 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MissingShebang;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -26,8 +28,10 @@ public sealed class CSharpMissingShebangDiagnosticAnalyzerTests
     public Task EntryPointFileWithoutShebang_Warning()
         => new VerifyCS.Test
         {
+            LanguageVersion = LanguageVersion.Preview,
             TestState =
             {
+                OutputKind = OutputKind.ConsoleApplication,
                 Sources =
                 {
                     ("/0/Test0.cs", """
@@ -43,8 +47,21 @@ public sealed class CSharpMissingShebangDiagnosticAnalyzerTests
     public Task EntryPointFileWithShebang_NoDiagnostic()
         => new VerifyCS.Test
         {
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms =
+            {
+                static (solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+                    return project
+                        .WithParseOptions(
+                            ((CSharpParseOptions)project.ParseOptions!).WithFeature("FileBasedProgram"))
+                        .Solution;
+                },
+            },
             TestState =
             {
+                OutputKind = OutputKind.ConsoleApplication,
                 Sources =
                 {
                     ("/0/Test0.cs", """
@@ -61,6 +78,8 @@ public sealed class CSharpMissingShebangDiagnosticAnalyzerTests
     public Task NoEntryPointFilePathProperty_NoDiagnostic()
         => new VerifyCS.Test
         {
+            LanguageVersion = LanguageVersion.Preview,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
             TestCode = """
                 using System;
                 Console.WriteLine("Hello");
@@ -71,8 +90,10 @@ public sealed class CSharpMissingShebangDiagnosticAnalyzerTests
     public Task NonEntryPointFileWithoutShebang_NoDiagnostic()
         => new VerifyCS.Test
         {
+            LanguageVersion = LanguageVersion.Preview,
             TestState =
             {
+                OutputKind = OutputKind.ConsoleApplication,
                 Sources =
                 {
                     ("/0/Test0.cs", """
@@ -88,8 +109,10 @@ public sealed class CSharpMissingShebangDiagnosticAnalyzerTests
     public Task EmptyEntryPointFilePath_NoDiagnostic()
         => new VerifyCS.Test
         {
+            LanguageVersion = LanguageVersion.Preview,
             TestState =
             {
+                OutputKind = OutputKind.ConsoleApplication,
                 Sources =
                 {
                     ("/0/Test0.cs", """
