@@ -49,8 +49,7 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
     private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>?> _projectIdToDiagnosticIdsCache = [];
     private HashSet<ProjectId> _projectIdsToRefresh = [];
     private Task _refreshTask = Task.CompletedTask;
-    private readonly object _taskGate = new();
-    private readonly object _workGate = new();
+    private readonly object _gate = new();
 
     private readonly Workspace _workspace;
     private readonly IDiagnosticAnalyzerService _analyzerService;
@@ -75,7 +74,7 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
     /// </summary>
     public void RegisterProject(ProjectId projectId)
     {
-        lock (_workGate)
+        lock (_gate)
         {
             // Ensure we have an entry for this projectId in case we get a workspace change event before
             // we set it in RefreshCacheDiagnosticIdsAsync.
@@ -86,35 +85,24 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
 
     public void Refresh()
     {
-        lock (_taskGate)
+        lock (_gate)
         {
-            var refreshToken = _listener.BeginAsyncOperation(nameof(Refresh));
-            _refreshTask = _refreshTask.ContinueWith(_ => PerformRefreshAsync(refreshToken), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
-        }
-
-        return;
-
-        async Task PerformRefreshAsync(IAsyncToken refreshToken)
-        {
-            // The refresh operation begins in Refresh but does not complete until the method completes.
-            using var _ = refreshToken;
-
-            // If we were asked to shutdown, immediately transition to the canceled state without doing any more work.
-            if (_threadingContext.DisposalToken.IsCancellationRequested)
-                return;
-
-            HashSet<ProjectId> projectIdsToRefresh;
-            lock (_workGate)
-            {
-                projectIdsToRefresh = Interlocked.Exchange(ref _projectIdsToRefresh, []);
-            }
+            var projectIdsToRefresh = _projectIdsToRefresh;
+            _projectIdsToRefresh = [];
 
             if (projectIdsToRefresh.Count == 0)
             {
                 return;
             }
 
-            await RefreshCachedDiagnosticIdsAsync(projectIdsToRefresh, _threadingContext.DisposalToken).ConfigureAwait(false);
+            var refreshToken = _listener.BeginAsyncOperation(nameof(Refresh));
+            _refreshTask = _refreshTask.ContinueWith(
+                async _ => await RefreshCachedDiagnosticIdsAsync(projectIdsToRefresh, _threadingContext.DisposalToken).ConfigureAwait(false),
+                _threadingContext.DisposalToken,
+                TaskContinuationOptions.None,
+                TaskScheduler.Default)
+                .Unwrap()
+                .CompletesAsyncOperation(refreshToken);
         }
     }
 
@@ -123,18 +111,18 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
 
     private void WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
-        lock (_workGate)
+        if (_projectIdToDiagnosticIdsCache.IsEmpty)
         {
-            if (_projectIdToDiagnosticIdsCache.IsEmpty)
-            {
-                return;
-            }
+            return;
+        }
 
-            var workspaceChanges = e.NewSolution.GetChanges(e.OldSolution);
+        var workspaceChanges = e.NewSolution.GetChanges(e.OldSolution);
 
-            foreach (var removedProject in workspaceChanges.GetRemovedProjects())
+        foreach (var removedProject in workspaceChanges.GetRemovedProjects())
+        {
+            if (_projectIdToDiagnosticIdsCache.ContainsKey(removedProject.Id))
             {
-                if (_projectIdToDiagnosticIdsCache.ContainsKey(removedProject.Id))
+                lock (_gate)
                 {
                     // Avoid a race condition where we remove a project here only for it to be added back
                     // by a refresh operation which is already in flight. Queue a refresh for this project 
@@ -142,16 +130,19 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
                     _projectIdsToRefresh.Add(removedProject.Id);
                 }
             }
+        }
 
-            foreach (var projectChange in workspaceChanges.GetProjectChanges())
+        foreach (var projectChange in workspaceChanges.GetProjectChanges())
+        {
+            if (_projectIdToDiagnosticIdsCache.ContainsKey(projectChange.ProjectId))
             {
-                if (_projectIdToDiagnosticIdsCache.ContainsKey(projectChange.ProjectId))
-                {
-                    var oldProject = projectChange.OldProject;
-                    var newProject = projectChange.NewProject;
+                var oldProject = projectChange.OldProject;
+                var newProject = projectChange.NewProject;
 
-                    var analyzersChanged = !oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
-                    if (analyzersChanged)
+                var analyzersChanged = !oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
+                if (analyzersChanged)
+                {
+                    lock (_gate)
                     {
                         _projectIdsToRefresh.Add(projectChange.NewProject.Id);
                     }
