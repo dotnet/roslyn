@@ -13847,5 +13847,78 @@ internal class Program
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Age" AndAlso i.Tags.Contains(WellKnownTags.Property))
             End Using
         End Function
+
+        <WpfTheory>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly, vbTab)>
+        Friend Async Function OnlyAddMissingImportWithCorrectCombinationOfOptionAndCommitChar(options As ImportCompletionCommitBehavior, commitChar As Char) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            bar$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, options)
+
+                Dim addedUsing As String = If(options = ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted OrElse (options = ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly AndAlso commitChar = vbTab),
+                    "using NS2;
+
+", String.Empty)
+                Dim afterBar As String = If(commitChar = " "c, " ", String.Empty)
+
+                Dim expectedText As String = $"
+{addedUsing}namespace NS1
+{{
+    class C
+    {{
+        public void Foo()
+        {{
+            Bar{afterBar}
+        }}
+    }}
+}}
+
+namespace NS2
+{{
+    public class Bar
+    {{
+    }}
+}}
+"
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                If commitChar = vbTab Then
+                    state.SendTab()
+                Else
+                    state.SendTypeChars(commitChar)
+                End If
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
     End Class
 End Namespace
