@@ -176,8 +176,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         var newFileBasedAppsBuilder = ArrayBuilder<string>.GetInstance(cache.FileBasedAppFullPaths.Length);
         foreach (var fileBasedAppPath in cache.FileBasedAppFullPaths)
         {
-            var fileInfo = new FileInfo(fileBasedAppPath);
-            if (!fileInfo.Exists)
+            if (!File.Exists(fileBasedAppPath))
             {
                 // Deleted since our last walk.
                 continue;
@@ -189,8 +188,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 continue;
             }
 
-            if ((fileInfo.CreationTimeUtc >= cache.LastWalkTimeUtc || fileInfo.LastWriteTimeUtc >= cache.LastWalkTimeUtc)
-                && !IsFileBasedApp(fileInfo.FullName))
+            if (!IsFileBasedApp(fileBasedAppPath))
             {
                 // Changed to stop being a file-based app since our last walk.
                 continue;

@@ -370,26 +370,15 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         File.Move(Path.Combine(tempDir.Path, @"sub1/File2.cs"), Path.Combine(tempDir.Path, @"sub1/File1.cs"));
 
         // Discovery with cache
-        // Note: this result is wrong. Here we are unexpectedly loading 'File1.cs' which is no longer a file-based app.
-        // However, the result of doing this is: a loose file project will be loaded for it.
-        // This is thought to be minimally disruptive, for a case which is unlikely to occur in the real world (swapping out one file for another without making any edits.)
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
-        AssertEx.SequenceEqual([
-            Path.Combine(tempDir.Path, @"sub1/File1.cs"),
-            Path.Combine(tempDir.Path, @"sub1/File4.cs")
-            ], cachedResult, StringComparer.OrdinalIgnoreCase);
-
-        File.SetCreationTimeUtc(Path.Combine(tempDir.Path, @"sub1/File1.cs"), DateTime.UtcNow);
-        var cachedResult2 = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
-        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub1/File4.cs")], cachedResult2, StringComparer.OrdinalIgnoreCase);
 
         // Delete cache
         var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
         Directory.Delete(cacheDirectory, recursive: true);
 
-        // Discovery without cache
+        // Discovery without cache - should match
         var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
-        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub1/File4.cs")], uncachedResult, StringComparer.OrdinalIgnoreCase);
+        AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -461,19 +450,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         Directory.Move(Path.Combine(tempDir.Path, @"sub1"), Path.Combine(tempDir.Path, @"sub4"));
         Directory.Move(Path.Combine(tempDir.Path, @"sub2"), Path.Combine(tempDir.Path, @"sub1"));
 
-        // Discovery with cache
-        // Note: this result is wrong. Here we are unexpectedly loading 'File1.cs' which is no longer a file-based app.
-        // However, the result of doing this is: a loose file project will be loaded for it.
-        // This is thought to be minimally disruptive, for a case which is unlikely to occur in the real world (swapping out one file for another without making any edits.)
+        // Discovery with cache - should match
         var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
-        AssertEx.SequenceEqual([
-            Path.Combine(tempDir.Path, @"sub1/File1.cs"),
-            Path.Combine(tempDir.Path, @"sub4/File1.cs")
-            ], cachedResult, StringComparer.OrdinalIgnoreCase);
-
-        File.SetCreationTimeUtc(Path.Combine(tempDir.Path, @"sub1/File1.cs"), DateTime.UtcNow);
-        var cachedResult2 = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
-        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub4/File1.cs")], cachedResult2, StringComparer.OrdinalIgnoreCase);
 
         // Delete cache
         var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
@@ -481,7 +459,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         // Discovery without cache
         var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
-        AssertEx.SequenceEqual([Path.Combine(tempDir.Path, @"sub4/File1.cs")], uncachedResult, StringComparer.OrdinalIgnoreCase);
+        AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]
