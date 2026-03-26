@@ -135,35 +135,27 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     }
 
     internal static string GetDiscoveryCacheDirectory(string workspaceFolder)
-    {
-        // We want a location where permissions are expected to be restricted to the current user.
-        string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? Path.GetTempPath()
-            : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-
-        // Include workspace folder name so the cache directory name is not completely opaque.
-        string fileName = Path.GetFileNameWithoutExtension(workspaceFolder);
-        string hash = Sha256Hasher.HashWithNormalizedCasing(workspaceFolder);
-        string directoryName = $"{fileName}-{hash}";
-
-        return Path.Join(directory, "dotnet", "runfile-discovery", directoryName);
-    }
+        => GetTempPathCore("runfile-discovery", workspaceFolder);
 
     // See https://github.com/dotnet/sdk/blob/5a4292947487a9d34f4256c1d17fb3dc26859174/src/Cli/dotnet/Commands/Run/VirtualProjectBuildingCommand.cs#L449
     internal static string GetArtifactsPath(string entryPointFileFullPath)
+        => GetTempPathCore("runfile", entryPointFileFullPath);
+
+    private static string GetTempPathCore(string dotnetSubdirectory, string originalFilePath)
     {
         // We want a location where permissions are expected to be restricted to the current user.
-        string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        string tempDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Path.GetTempPath()
             : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-        // Include entry point file name so the directory name is not completely opaque.
-        string fileName = Path.GetFileNameWithoutExtension(entryPointFileFullPath);
-        string hash = Sha256Hasher.HashWithNormalizedCasing(entryPointFileFullPath);
+        // Include original file name so the directory name is not completely opaque.
+        string fileName = Path.GetFileNameWithoutExtension(originalFilePath);
+        string hash = Sha256Hasher.HashWithNormalizedCasing(originalFilePath);
         string directoryName = $"{fileName}-{hash}";
 
-        return Path.Join(directory, "dotnet", "runfile", directoryName);
+        return Path.Join(tempDirectory, "dotnet", dotnetSubdirectory, directoryName);
     }
+
     #endregion
 
     // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available
