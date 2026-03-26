@@ -129,6 +129,17 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
             CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(commitKey);
         }
 
+        // Decide if we should add import whe this item is committed, based on the option.
+        // Note it's possible that an unimported item is being committed with ImportCompletionCommitBehavior set to `Disabled`.
+        // This is because user can explicitly request unimported items by using the "expander" button, after completion list is shown.
+        // In that case, we'd treat it as `ShowAndAlwaysAddImportWhenCommitted`.
+        if (options.ImportCompletionCommitBehavior is ImportCompletionCommitBehavior.NeverAddImportWhenCommitted ||
+            options.ImportCompletionCommitBehavior is ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly && commitKey != '\t' && commitKey != null)
+        {
+            // TAB and double-click are treated as "committed explicitly"
+            return CompletionChange.Create(new TextChange(completionItem.Span, insertText));
+        }
+
         if (await ShouldCompleteWithFullyQualifyTypeNameAsync().ConfigureAwait(false))
         {
             var completionText = $"{containingNamespace}.{insertText}";
@@ -169,10 +180,7 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
 
         async Task<bool> ShouldCompleteWithFullyQualifyTypeNameAsync()
         {
-            if (ImportCompletionItem.ShouldAlwaysFullyQualify(completionItem))
-                return true;
-
-            if (!IsAddingImportsSupported(document, completionOptions: null))
+            if (!IsAddingImportsSupported(document, options))
                 return true;
 
             // We might need to qualify unimported types to use them in an import directive, because they only affect members of the containing
@@ -209,10 +217,10 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
             && !IsFinalSemicolonOfUsingOrExtern(node, leftToken);
     }
 
-    protected static bool IsAddingImportsSupported(Document document, CompletionOptions? completionOptions)
+    protected static bool IsAddingImportsSupported(Document document, CompletionOptions completionOptions)
     {
         // Certain documents, e.g. Razor document, don't support adding imports
-        return completionOptions?.CanAddImportStatement != false &&
+        return completionOptions.CanAddImportStatement &&
             document.Project.Solution.Services.GetRequiredService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
     }
 

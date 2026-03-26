@@ -141,6 +141,11 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
         }
 
         var options = _globalOptions.GetCompletionOptions(document.Project.Language);
+
+        // Adding import is not allowed in debugger view
+        if (_textView is IDebuggerTextView)
+            options = options with { CanAddImportStatement = false };
+
         var serviceRules = completionService.GetRules(options);
 
         // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
@@ -225,10 +230,6 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
             // for the completion list itself.
             if (roslynItem.Flags.IsCached())
                 roslynItem.Span = completionListSpan;
-
-            // Adding import is not allowed in debugger view
-            if (_textView is IDebuggerTextView)
-                roslynItem = ImportCompletionItem.MarkItemToAlwaysFullyQualify(roslynItem);
 
             change = completionService.GetChangeAsync(document, roslynItem, completionOptions, commitCharacter, cancellationToken).WaitAndGetResult(cancellationToken);
         }
