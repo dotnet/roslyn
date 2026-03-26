@@ -48,9 +48,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
 #if NET472
                 appSettings ??= System.Configuration.ConfigurationManager.AppSettings;
-#else
-                appSettings ??= new NameValueCollection();
 #endif
+                if (appSettings is null)
+                    return ServerDispatcher.DefaultServerKeepAlive;
+
                 if (int.TryParse(appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
                     keepAliveValue >= 0)
                 {
