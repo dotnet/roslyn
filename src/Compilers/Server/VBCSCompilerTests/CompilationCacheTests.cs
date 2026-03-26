@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -190,6 +192,60 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        public void TryRestoreCachedResult_ReturnsTrue_WhenPublishedEntryIsLocked()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var hashKey = "locked-entry";
+            var outputDir = Temp.CreateDirectory().Path;
+            var logMessages = new List<string>();
+            var logger = new CollectingLogger(logMessages);
+
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Directory.CreateDirectory(entryDir);
+            File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [1, 2, 3]);
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, dllName),
+            };
+
+            using var entryLock = File.Open(GetEntryLockPath(cacheDir, dllName, hashKey), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger);
+
+            Assert.True(result);
+            Assert.Equal([1, 2, 3], File.ReadAllBytes(outputFiles.AssemblyPath));
+            Assert.DoesNotContain(logMessages, m => m.Contains("Cache miss because entry is being populated:", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void TryRestoreCachedResult_ReturnsFalseAndLogs_WhenMissingEntryIsLocked()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var hashKey = "locked-miss";
+            var outputDir = Temp.CreateDirectory().Path;
+            var logMessages = new List<string>();
+            var logger = new CollectingLogger(logMessages);
+
+            Directory.CreateDirectory(Path.Combine(cacheDir, dllName));
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, dllName),
+            };
+
+            using var entryLock = File.Open(GetEntryLockPath(cacheDir, dllName, hashKey), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger);
+
+            Assert.False(result);
+            Assert.False(File.Exists(outputFiles.AssemblyPath));
+            Assert.Contains(logMessages, m => m.Contains("Cache miss because entry is being populated:", StringComparison.Ordinal));
+        }
+
+        [Fact]
         public void TryStoreResult_WritesAllOutputFiles()
         {
             var cacheDir = Temp.CreateDirectory().Path;
@@ -271,6 +327,43 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             // No exception should escape even if the source file doesn't exist.
             cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", _logger);
+        }
+
+        [Fact]
+        public void TryStoreResult_OnlyOneWriterStoresEntry()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var hashKey = CompilationCache.ComputeHashKey("shared key");
+            var deterministicKey = """{ "compilation": "data" }""";
+
+            var outputDir = Temp.CreateDirectory().Path;
+            var assemblyPath = Path.Combine(outputDir, dllName);
+            File.WriteAllBytes(assemblyPath, [10, 20, 30]);
+
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = assemblyPath,
+            };
+
+            var logger1Messages = new List<string>();
+            var logger2Messages = new List<string>();
+            var logger1 = new CollectingLogger(logger1Messages);
+            var logger2 = new CollectingLogger(logger2Messages);
+
+            var task1 = Task.Run(() => cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, logger1));
+            var task2 = Task.Run(() => cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, logger2));
+            Task.WaitAll(task1, task2);
+
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            Assert.Equal([10, 20, 30], File.ReadAllBytes(Path.Combine(entryDir, "assembly")));
+
+            var allMessages = logger1Messages.Concat(logger2Messages).ToArray();
+            Assert.Equal(1, allMessages.Count(m => m.StartsWith("Cache stored:", StringComparison.Ordinal)));
+            Assert.Contains(allMessages, m =>
+                m.StartsWith("Cache store skipped because another writer is populating:", StringComparison.Ordinal) ||
+                m.StartsWith("Cache store skipped because entry already exists:", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -361,6 +454,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, null);
             }
         }
+
+        private static string GetEntryLockPath(string cachePath, string dllName, string hashKey)
+            => Path.Combine(cachePath, dllName, hashKey + ".lock");
 
         private sealed class CollectingLogger : ICompilerServerLogger
         {
