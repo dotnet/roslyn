@@ -569,11 +569,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 // When the use-global-cache feature flag is set, configure the ROSLYN_CACHE_PATH
                 // environment variable so the compiler server (or tool fallback) uses a global cache.
+                // The feature flag can optionally specify a custom path: use-global-cache=/path/to/cache
                 IDictionary<string, string>? additionalEnvironmentVariables;
                 const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
-                if (hasUseGlobalCacheFeature() && string.IsNullOrEmpty(Environment.GetEnvironmentVariable(CachePathEnvironmentVariable)))
+                var useGlobalCacheValue = getUseGlobalCacheFeatureValue();
+                if (useGlobalCacheValue is not null && string.IsNullOrEmpty(Environment.GetEnvironmentVariable(CachePathEnvironmentVariable)))
                 {
-                    var globalCachePath = Path.Combine(Path.GetTempPath(), "roslyn-cache");
+                    var globalCachePath = useGlobalCacheValue.Length > 0
+                        ? useGlobalCacheValue
+                        : Path.Combine(Path.GetTempPath(), "roslyn-cache");
                     logger.Log($"Setting {CachePathEnvironmentVariable} to '{globalCachePath}' ({UseGlobalCacheFeatureFlag} feature flag)");
 
                     additionalEnvironmentVariables = new Dictionary<string, string>
@@ -630,22 +634,33 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return $"Unnamed compilation {Guid.NewGuid()}";
             }
 
-            bool hasUseGlobalCacheFeature()
+            // Returns the value of the use-global-cache feature flag, or null if not present.
+            // When specified without a value (e.g., "use-global-cache"), returns empty string.
+            // When specified with a value (e.g., "use-global-cache=/path"), returns the path.
+            string? getUseGlobalCacheFeatureValue()
             {
                 if (string.IsNullOrWhiteSpace(Features) || !Features.Contains(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
                 {
-                    return false;
+                    return null;
                 }
 
                 foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(Features))
                 {
-                    if (feature.AsSpan().Trim().Equals(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
+                    var span = feature.AsSpan().Trim();
+                    if (span.Equals(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
                     {
-                        return true;
+                        return "";
+                    }
+
+                    var equalsIndex = span.IndexOf('=');
+                    if (equalsIndex > 0 &&
+                        span[..equalsIndex].Equals(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return span[(equalsIndex + 1)..].ToString();
                     }
                 }
 
-                return false;
+                return null;
             }
         }
 
