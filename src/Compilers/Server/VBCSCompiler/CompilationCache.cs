@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+#if NET8_0_OR_GREATER
 
 using System;
 using System.Collections.Generic;
@@ -55,9 +56,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private const string PdbFileName = "pdb";
         private const string RefAssemblyFileName = "refassembly";
         private const string XmlDocFileName = "xmldoc";
-#if !NET10_0_OR_GREATER
-        private const string LockFileExtension = ".lock";
-#endif
 
         private readonly string _cachePath;
 
@@ -87,26 +85,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static string ComputeHashKey(string deterministicKey)
         {
-#if NET10_0_OR_GREATER
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(deterministicKey));
-            return Convert.ToHexStringLower(bytes);
-#else
-            using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(deterministicKey));
-            return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
-#endif
+            return Convert.ToHexString(bytes).ToLowerInvariant();
         }
 
         private string GetCacheEntryDirectory(string dllName, string hashKey)
             => Path.Combine(_cachePath, dllName, hashKey);
 
-#if NET10_0_OR_GREATER
         internal string GetCacheEntryMutexName(string dllName, string hashKey)
             => BuildServerConnection.GetServerMutexName($"compilation-cache.{ComputeHashKey($"{_cachePath}|{dllName}|{hashKey}")}");
-#else
-        private string GetCacheEntryLockPath(string dllName, string hashKey)
-            => Path.Combine(_cachePath, dllName, hashKey + LockFileExtension);
-#endif
 
         /// <summary>
         /// Checks whether a cached result exists for the given DLL name and hash key.
@@ -143,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
                 File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
 
-                TryCopyOptional(entryDir, PdbFileName, outputFiles.PdbPath);
-                TryCopyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
-                TryCopyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
+                tryCopyOptional(entryDir, PdbFileName, outputFiles.PdbPath);
+                tryCopyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
+                tryCopyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
             }
             catch (Exception ex)
             {
@@ -155,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return true;
 
-            static void TryCopyOptional(string entryDir, string cachedFileName, string? targetPath)
+            static void tryCopyOptional(string entryDir, string cachedFileName, string? targetPath)
             {
                 if (targetPath is null)
                 {
@@ -192,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             List<(string Path, string Name)> recentEntries;
             try
             {
-                recentEntries = Directory.GetDirectories(dllCacheDir)
+                recentEntries = Directory.EnumerateDirectories(dllCacheDir)
                     .Select(d => (Path: d, Name: System.IO.Path.GetFileName(d)))
                     .Where(e => e.Name != hashKey)
                     .Select(e => (e.Path, e.Name, Time: Directory.GetLastWriteTimeUtc(e.Path)))
@@ -267,9 +254,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 File.Copy(outputFiles.AssemblyPath, Path.Combine(stagingDir, AssemblyFileName), overwrite: false);
 
-                TryCopyOptional(outputFiles.PdbPath, Path.Combine(stagingDir, PdbFileName));
-                TryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(stagingDir, RefAssemblyFileName));
-                TryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
+                tryCopyOptional(outputFiles.PdbPath, Path.Combine(stagingDir, PdbFileName));
+                tryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(stagingDir, RefAssemblyFileName));
+                tryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
 
                 File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
                 Directory.Move(stagingDir, cacheDir);
@@ -303,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
             }
 
-            static void TryCopyOptional(string? sourcePath, string destPath)
+            static void tryCopyOptional(string? sourcePath, string destPath)
             {
                 if (sourcePath is not null && File.Exists(sourcePath))
                 {
@@ -314,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private IDisposable? TryAcquireEntryMutex(string dllName, string hashKey, bool createIfMissing = true)
         {
-#if NET10_0_OR_GREATER
             var mutexName = GetCacheEntryMutexName(dllName, hashKey);
             if (!createIfMissing && !ServerNamedMutex.WasOpen(mutexName))
             {
@@ -340,18 +326,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             mutex.Dispose();
             return null;
-#else
-            try
-            {
-                // FileShare.None gives us a simple cross-process mutex for a specific cache entry.
-                var lockFilePath = GetCacheEntryLockPath(dllName, hashKey);
-                return new FileStream(lockFilePath, createIfMissing ? FileMode.OpenOrCreate : FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            }
-            catch (IOException)
-            {
-                return null;
-            }
-#endif
         }
 
         /// <summary>
@@ -361,7 +335,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static string ComputeDiff(string currentKey, string oldKey)
         {
-            static string[] SplitLines(string text)
+            var currentLines = new HashSet<string>(splitLines(currentKey));
+            var oldLines = new HashSet<string>(splitLines(oldKey));
+
+            var diff = new StringBuilder();
+
+            foreach (var line in splitLines(oldKey))
+            {
+                if (!currentLines.Contains(line))
+                {
+                    diff.AppendLine($"- {line}");
+                }
+            }
+
+            foreach (var line in splitLines(currentKey))
+            {
+                if (!oldLines.Contains(line))
+                {
+                    diff.AppendLine($"+ {line}");
+                }
+            }
+
+            return diff.Length > 0 ? diff.ToString() : "(no differences)";
+
+            static string[] splitLines(string text)
             {
                 var lines = text.Split('\n');
                 for (var i = 0; i < lines.Length; i++)
@@ -371,29 +368,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 return lines;
             }
-
-            var currentLines = new HashSet<string>(SplitLines(currentKey));
-            var oldLines = new HashSet<string>(SplitLines(oldKey));
-
-            var diff = new StringBuilder();
-
-            foreach (var line in SplitLines(oldKey))
-            {
-                if (!currentLines.Contains(line))
-                {
-                    diff.AppendLine($"- {line}");
-                }
-            }
-
-            foreach (var line in SplitLines(currentKey))
-            {
-                if (!oldLines.Contains(line))
-                {
-                    diff.AppendLine($"+ {line}");
-                }
-            }
-
-            return diff.Length > 0 ? diff.ToString() : "(no differences)";
         }
     }
 }
+#else
+using Microsoft.CodeAnalysis.CommandLine;
+
+namespace Microsoft.CodeAnalysis.CompilerServer
+{
+    internal sealed class CompilationCache
+    {
+        internal const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
+
+        internal static CompilationCache? TryCreate(ICompilerServerLogger _)
+            => null;
+    }
+}
+#endif

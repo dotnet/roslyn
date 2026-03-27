@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if NET8_0_OR_GREATER
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = Path.Combine(outputDir, dllName),
             };
 
-            using var entryLock = AcquireEntryMutex(cache, cacheDir, dllName, hashKey);
+            using var entryLock = AcquireEntryMutex(cache, dllName, hashKey);
             var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger);
 
             Assert.True(result);
@@ -238,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = Path.Combine(outputDir, dllName),
             };
 
-            using var entryLock = AcquireEntryMutex(cache, cacheDir, dllName, hashKey);
+            using var entryLock = AcquireEntryMutex(cache, dllName, hashKey);
             var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger);
 
             Assert.False(result);
@@ -456,16 +457,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        private static IDisposable AcquireEntryMutex(CompilationCache cache, string cachePath, string dllName, string hashKey)
-        {
-#if NET10_0_OR_GREATER
-            return new NamedMutexLease(cache.GetCacheEntryMutexName(dllName, hashKey));
-#else
-            return File.Open(Path.Combine(cachePath, dllName, hashKey + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-#endif
-        }
+        private static IDisposable AcquireEntryMutex(CompilationCache cache, string dllName, string hashKey)
+            => new NamedMutexLease(cache.GetCacheEntryMutexName(dllName, hashKey));
 
-#if NET10_0_OR_GREATER
         private sealed class NamedMutexLease : IDisposable
         {
             private readonly ManualResetEventSlim _acquired = new(initialState: false);
@@ -517,7 +511,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 _release.Dispose();
             }
         }
-#endif
 
         private sealed class CollectingLogger : ICompilerServerLogger
         {
@@ -531,3 +524,4 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
     }
 }
+#endif
