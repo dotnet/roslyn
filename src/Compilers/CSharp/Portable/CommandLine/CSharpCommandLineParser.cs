@@ -1549,8 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // immutable and repeatable even with disk changes.
             if (!RoslynString.IsNullOrEmpty(keyFileSetting) || !RoslynString.IsNullOrEmpty(keyContainerSetting))
             {
-                var provider = new DesktopStrongNameProvider(keyFileSearchPaths.AsImmutable());
-                options = options.WithStrongNameKeys(StrongNameKeys.Create(provider, keyFileSetting, keyContainerSetting, MessageProvider));
+                options = options.WithStrongNameKeys(DesktopStrongNameProvider.CreateKeys(keyFileSetting, keyContainerSetting, StrongNameFileSystem.Instance, keyFileSearchPaths.AsImmutable(), MessageProvider));
             }
 
             var emitOptions = new EmitOptions

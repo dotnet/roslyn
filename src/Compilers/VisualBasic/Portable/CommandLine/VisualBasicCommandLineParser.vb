@@ -1471,8 +1471,7 @@ lVbRuntimePlus:
             ' input is read before compilation begins. This ensures compilations are
             ' immutable and repeatable even with disk changes.
             If Not String.IsNullOrEmpty(keyFileSetting) OrElse Not String.IsNullOrEmpty(keyContainerSetting) Then
-                Dim provider = New DesktopStrongNameProvider(keyFileSearchPaths.AsImmutable())
-                options = options.WithStrongNameKeys(StrongNameKeys.Create(provider, keyFileSetting, keyContainerSetting, MessageProvider))
+                options = options.WithStrongNameKeys(DesktopStrongNameProvider.CreateKeys(keyFileSetting, keyContainerSetting, StrongNameFileSystem.Instance, keyFileSearchPaths.AsImmutable(), MessageProvider))
             End If
 
             Dim emitOptions = New EmitOptions(
