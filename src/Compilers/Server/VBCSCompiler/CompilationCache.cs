@@ -190,6 +190,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string currentKey,
             ICompilerServerLogger logger)
         {
+            if (!logger.IsLogging)
+            {
+                return;
+            }
+
             logger.Log($"Cache miss: {dllName} [{hashKey}]");
 
             var dllCacheDir = Path.Combine(_cachePath, dllName);
