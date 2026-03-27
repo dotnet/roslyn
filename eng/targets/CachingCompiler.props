@@ -1,0 +1,16 @@
+<Project>
+
+  <PropertyGroup>
+    <EnableSourceLink>false</EnableSourceLink>
+    <Features>$(Features);use-global-cache</Features>
+    <PathMap Condition="'$(PathMap)' == ''">$(RepoRoot)=/_/</PathMap>
+    <PathMap Condition="'$(PathMap)' != ''">$(RepoRoot)=/_/,$(PathMap)</PathMap>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" PrivateAssets="all" VersionOverride="5.6.0-git.11948a17e75">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

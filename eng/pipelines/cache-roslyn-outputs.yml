@@ -1,0 +1,9 @@
+steps:
+  - task: Cache@2
+    displayName: Cache Roslyn Outputs
+    inputs:
+      key: '"roslyn" | "$(Agent.OS)" | "$(Build.BuildId)"'
+      restoreKeys: |
+        "roslyn" | "$(Agent.OS)"
+        "roslyn"
+      path: $(ROSLYN_CACHE_PATH)

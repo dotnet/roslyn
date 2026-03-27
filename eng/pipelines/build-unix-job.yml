@@ -29,6 +29,8 @@ jobs:
 
     - template: build-file-based-apps.yml
 
+    - template: cache-roslyn-outputs.yml
+
     - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
       displayName: Build
 

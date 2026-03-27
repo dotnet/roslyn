@@ -40,6 +40,8 @@ jobs:
 
     - template: build-file-based-apps.yml
 
+    - template: cache-roslyn-outputs.yml
+
     - task: PowerShell@2
       displayName: Build
       inputs:

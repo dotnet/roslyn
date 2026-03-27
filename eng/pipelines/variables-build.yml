@@ -17,3 +17,5 @@ variables:
   value: 1
 - name: MSBUILDUSESERVER
   value: 1
+- name: ROSLYN_CACHE_PATH
+  value: $(Agent.TempDirectory)/roslyn-cache
