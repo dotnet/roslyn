@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!RoslynString.IsNullOrEmpty(keyFileSetting) || !RoslynString.IsNullOrEmpty(keyContainerSetting))
             {
                 var provider = new DesktopStrongNameProvider(keyFileSearchPaths.AsImmutable());
-                options = options.WithStrongNameKeys(StrongNameKeys.Create(provider, keyFileSetting, keyContainerSetting, hasCounterSignature: false, MessageProvider));
+                options = options.WithStrongNameKeys(StrongNameKeys.Create(provider, keyFileSetting, keyContainerSetting, MessageProvider));
             }
 
             var emitOptions = new EmitOptions

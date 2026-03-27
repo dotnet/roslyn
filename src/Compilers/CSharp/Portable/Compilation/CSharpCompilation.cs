@@ -3570,6 +3570,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return SourceAssembly.StrongNameKeys; }
         }
 
+        internal override bool HasCounterSignature
+            => !string.IsNullOrEmpty(SourceAssembly.SignatureKey);
+
         internal override CommonPEModuleBuilder? CreateModuleBuilder(
             EmitOptions emitOptions,
             IMethodSymbol? debugEntryPoint,

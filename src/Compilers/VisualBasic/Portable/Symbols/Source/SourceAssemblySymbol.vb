@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 _lazyStrongNameKeys = compilation.Options.StrongNameKeys
             ElseIf Not compilation.Options.CryptoPublicKey.IsEmpty Then
                 ' Private key Is Not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey:=Nothing, hasCounterSignature:=False, MessageProvider.Instance)
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey:=Nothing, MessageProvider.Instance)
             End If
         End Sub
 
@@ -1738,21 +1738,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Dim hasCounterSignature = Not String.IsNullOrEmpty(SignatureKey)
-
             ' Use pre-read keys if available and the key settings haven't been
             ' overridden by assembly-level attributes.
             If preReadKeys IsNot Nothing AndAlso
                keyFile = _compilation.Options.CryptoKeyFile AndAlso
                keyContainer = _compilation.Options.CryptoKeyContainer Then
 
-                If preReadKeys.DiagnosticOpt IsNot Nothing OrElse preReadKeys.HasCounterSignature = hasCounterSignature Then
-                    keys = preReadKeys
-                Else
-                    keys = New StrongNameKeys(preReadKeys.KeyPair, preReadKeys.PublicKey, preReadKeys.PrivateKey, preReadKeys.KeyContainer, preReadKeys.KeyFilePath, hasCounterSignature)
-                End If
+                keys = preReadKeys
             Else
-                keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance)
+                keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
             End If
 
             Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)

@@ -2369,6 +2369,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasCounterSignature As Boolean
+            Get
+                Return Not String.IsNullOrEmpty(SourceAssembly.SignatureKey)
+            End Get
+        End Property
+
         Friend Overrides Function CreateModuleBuilder(
             emitOptions As EmitOptions,
             debugEntryPoint As IMethodSymbol,

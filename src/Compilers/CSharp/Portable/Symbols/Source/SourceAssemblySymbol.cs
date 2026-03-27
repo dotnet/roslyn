@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
                 // Private key is not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
-                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, hasCounterSignature: false, MessageProvider.Instance);
+                _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, MessageProvider.Instance);
             }
         }
 
@@ -535,23 +535,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var hasCounterSignature = !string.IsNullOrEmpty(this.SignatureKey);
-
             // Use pre-read keys if available and the key settings haven't been
             // overridden by assembly-level attributes.
             if (preReadKeys is not null
                 && keyFile == _compilation.Options.CryptoKeyFile
                 && keyContainer == _compilation.Options.CryptoKeyContainer)
             {
-                if (preReadKeys.DiagnosticOpt is not null || preReadKeys.HasCounterSignature == hasCounterSignature)
-                {
-                    return preReadKeys;
-                }
-
-                return new StrongNameKeys(preReadKeys.KeyPair, preReadKeys.PublicKey, preReadKeys.PrivateKey, preReadKeys.KeyContainer, preReadKeys.KeyFilePath, hasCounterSignature);
+                return preReadKeys;
             }
 
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance);
+            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
         }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name

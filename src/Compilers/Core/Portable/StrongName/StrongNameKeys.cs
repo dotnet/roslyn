@@ -54,12 +54,6 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal readonly string? KeyFilePath;
 
-        /// <summary>
-        /// True when the assembly contains a <see cref="System.Reflection.AssemblySignatureKeyAttribute"/> value 
-        /// and hence signing requires counter signature verification.
-        /// </summary>
-        internal readonly bool HasCounterSignature;
-
         internal static readonly StrongNameKeys None = new StrongNameKeys();
 
         private StrongNameKeys()
@@ -72,7 +66,7 @@ namespace Microsoft.CodeAnalysis
             this.DiagnosticOpt = diagnostic;
         }
 
-        internal StrongNameKeys(ImmutableArray<byte> keyPair, ImmutableArray<byte> publicKey, RSAParameters? privateKey, string? keyContainerName, string? keyFilePath, bool hasCounterSignature)
+        internal StrongNameKeys(ImmutableArray<byte> keyPair, ImmutableArray<byte> publicKey, RSAParameters? privateKey, string? keyContainerName, string? keyFilePath)
         {
             Debug.Assert(keyContainerName == null || keyPair.IsDefault);
             Debug.Assert(keyPair.IsDefault || keyFilePath != null);
@@ -82,16 +76,15 @@ namespace Microsoft.CodeAnalysis
             this.PrivateKey = privateKey;
             this.KeyContainer = keyContainerName;
             this.KeyFilePath = keyFilePath;
-            this.HasCounterSignature = hasCounterSignature;
         }
 
-        internal static StrongNameKeys Create(ImmutableArray<byte> publicKey, RSAParameters? privateKey, bool hasCounterSignature, CommonMessageProvider messageProvider)
+        internal static StrongNameKeys Create(ImmutableArray<byte> publicKey, RSAParameters? privateKey, CommonMessageProvider messageProvider)
         {
             Debug.Assert(!publicKey.IsDefaultOrEmpty);
 
             if (MetadataHelpers.IsValidPublicKey(publicKey))
             {
-                return new StrongNameKeys(keyPair: default, publicKey, privateKey, keyContainerName: null, keyFilePath: null, hasCounterSignature);
+                return new StrongNameKeys(keyPair: default, publicKey, privateKey, keyContainerName: null, keyFilePath: null);
             }
             else
             {
@@ -110,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 var fileContent = ImmutableArray.Create(File.ReadAllBytes(keyFilePath));
-                return CreateHelper(fileContent, keyFilePath, hasCounterSignature: false);
+                return CreateHelper(fileContent, keyFilePath);
             }
             catch (IOException ex)
             {
@@ -125,7 +118,7 @@ namespace Microsoft.CodeAnalysis
         private static Tuple<ImmutableArray<byte>, ImmutableArray<byte>, RSAParameters?>? s_lastSeenKeyPair;
 
         // Note: Errors are reported by throwing an IOException
-        internal static StrongNameKeys CreateHelper(ImmutableArray<byte> keyFileContent, string keyFilePath, bool hasCounterSignature)
+        internal static StrongNameKeys CreateHelper(ImmutableArray<byte> keyFileContent, string keyFilePath)
         {
             ImmutableArray<byte> keyPair;
             ImmutableArray<byte> publicKey;
@@ -160,10 +153,10 @@ namespace Microsoft.CodeAnalysis
                 Interlocked.Exchange(ref s_lastSeenKeyPair, cachedKeyPair);
             }
 
-            return new StrongNameKeys(keyPair, publicKey, privateKey, null, keyFilePath, hasCounterSignature);
+            return new StrongNameKeys(keyPair, publicKey, privateKey, null, keyFilePath);
         }
 
-        internal static StrongNameKeys Create(StrongNameProvider? providerOpt, string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
+        internal static StrongNameKeys Create(StrongNameProvider? providerOpt, string? keyFilePath, string? keyContainerName, CommonMessageProvider messageProvider)
         {
             if (string.IsNullOrEmpty(keyFilePath) && string.IsNullOrEmpty(keyContainerName))
             {
@@ -176,7 +169,7 @@ namespace Microsoft.CodeAnalysis
                 return new StrongNameKeys(diagnostic);
             }
 
-            return providerOpt.CreateKeys(keyFilePath, keyContainerName, hasCounterSignature, messageProvider);
+            return providerOpt.CreateKeys(keyFilePath, keyContainerName, messageProvider);
         }
 
         /// <summary>

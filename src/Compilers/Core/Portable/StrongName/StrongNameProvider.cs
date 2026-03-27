@@ -35,6 +35,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Create a <see cref="StrongNameKeys"/> for the provided information.
         /// </summary>
-        internal abstract StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider);
+        internal abstract StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, CommonMessageProvider messageProvider);
     }
 }

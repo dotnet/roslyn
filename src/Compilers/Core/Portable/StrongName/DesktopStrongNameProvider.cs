@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
             _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
         }
 
-        internal override StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, bool hasCounterSignature, CommonMessageProvider messageProvider)
+        internal override StrongNameKeys CreateKeys(string? keyFilePath, string? keyContainerName, CommonMessageProvider messageProvider)
         {
             var keyPair = default(ImmutableArray<byte>);
             var publicKey = default(ImmutableArray<byte>);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
 
                     Debug.Assert(PathUtilities.IsAbsolute(resolvedKeyFile));
                     var fileContent = ImmutableArray.Create(FileSystem.ReadAllBytes(resolvedKeyFile));
-                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath, hasCounterSignature);
+                    return StrongNameKeys.CreateHelper(fileContent, keyFilePath);
                 }
                 catch (Exception ex)
                 {
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new StrongNameKeys(keyPair, publicKey, privateKey: null, container, keyFilePath, hasCounterSignature);
+            return new StrongNameKeys(keyPair, publicKey, privateKey: null, container, keyFilePath);
         }
 
         /// <summary>

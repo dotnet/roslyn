@@ -2199,7 +2199,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool SignUsingBuilder =>
             string.IsNullOrEmpty(StrongNameKeys.KeyContainer) &&
-            !StrongNameKeys.HasCounterSignature &&
+            !HasCounterSignature &&
             !HasFeature(CodeAnalysis.Feature.UseLegacyStrongNameProvider);
 
         /// <summary>
@@ -2476,6 +2476,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract bool IsDelaySigned { get; }
         internal abstract StrongNameKeys StrongNameKeys { get; }
+        internal abstract bool HasCounterSignature { get; }
 
         internal abstract CommonPEModuleBuilder? CreateModuleBuilder(
             EmitOptions emitOptions,
