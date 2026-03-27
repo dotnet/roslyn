@@ -949,6 +949,7 @@ namespace Microsoft.CodeAnalysis
             var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken, out var cacheState);
             if (cachedExitCode.HasValue)
             {
+                consoleOutput.WriteLine("Compilation result restored from cache.");
                 diagnostics.Free();
                 return cachedExitCode.Value;
             }
