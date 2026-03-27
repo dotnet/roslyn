@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     var oldKey = File.ReadAllText(keyPath, Encoding.UTF8);
                     var diff = ComputeDiff(currentKey, oldKey);
-                    logger.Log($"Cache miss diff vs entry {entryName}:{Environment.NewLine}{diff}");
+                    logger.Log($"Cache miss {dllName} [{hashKey}] diff vs entry [{entryName}]:{Environment.NewLine}{diff}");
                 }
                 catch (IOException)
                 {
