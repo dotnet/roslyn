@@ -94,36 +94,31 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             var stack = ArrayBuilder<IOperation.OperationList.Enumerator>.GetInstance();
-            try
+            stack.Push(operation.ChildOperations.GetEnumerator());
+
+            while (stack.Any())
             {
-                stack.Push(operation.ChildOperations.GetEnumerator());
+                var iterator = stack.Pop();
 
-                while (stack.Any())
+                if (!iterator.MoveNext())
                 {
-                    var iterator = stack.Pop();
+                    continue;
+                }
 
-                    if (!iterator.MoveNext())
-                    {
-                        continue;
-                    }
+                var current = iterator.Current;
 
-                    var current = iterator.Current;
+                // push current iterator back in to the stack
+                stack.Push(iterator);
 
-                    // push current iterator back in to the stack
-                    stack.Push(iterator);
-
-                    // push children iterator to the stack
-                    if (current != null)
-                    {
-                        yield return current;
-                        stack.Push(current.ChildOperations.GetEnumerator());
-                    }
+                // push children iterator to the stack
+                if (current != null)
+                {
+                    yield return current;
+                    stack.Push(current.ChildOperations.GetEnumerator());
                 }
             }
-            finally
-            {
-                stack.Free();
-            }
+
+            stack.Free();
         }
 
         /// <summary>
