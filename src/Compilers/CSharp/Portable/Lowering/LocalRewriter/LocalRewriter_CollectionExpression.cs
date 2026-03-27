@@ -1166,215 +1166,206 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsBuilder = ArrayBuilder<BoundLocal>.GetInstance();
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(elements.Length + 1);
 
-            try
+            // We only want to use the known length when creating the final list if there was no existing receiver that
+            // we're already instantiating.  In that case, our caller has already figured out the value and just wants
+            // us to add the elements to it.
+            var useKnownLength = ShouldUseKnownLength(node, out var numberIncludingLastSpread) && rewrittenReceiver is null;
+            RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+
+            bool useOptimizations = false;
+            MethodSymbol? setCount = null;
+            MethodSymbol? asSpan = null;
+
+            // Do not use optimizations in async method since the optimizations require Span<T>.
+            if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
             {
-                // We only want to use the known length when creating the final list if there was no existing receiver that
-                // we're already instantiating.  In that case, our caller has already figured out the value and just wants
-                // us to add the elements to it.
-                var useKnownLength = ShouldUseKnownLength(node, out var numberIncludingLastSpread) && rewrittenReceiver is null;
-                RewriteCollectionExpressionElementsIntoTemporaries(elements, numberIncludingLastSpread, localsBuilder, sideEffects);
+                setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
+                asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);
 
-                bool useOptimizations = false;
-                MethodSymbol? setCount = null;
-                MethodSymbol? asSpan = null;
-
-                // Do not use optimizations in async method since the optimizations require Span<T>.
-                if (useKnownLength && elements.Length > 0 && _factory.CurrentFunction?.IsAsync == false)
+                if (setCount is { } && asSpan is { })
                 {
-                    setCount = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__SetCount_T))?.Construct(typeArguments);
-                    asSpan = ((MethodSymbol?)_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T))?.Construct(typeArguments);
-
-                    if (setCount is { } && asSpan is { })
-                    {
-                        useOptimizations = true;
-                    }
+                    useOptimizations = true;
                 }
+            }
 
-                // Create a temp for the knownLength
-                BoundAssignmentOperator assignmentToTemp;
-                BoundLocal? knownLengthTemp = null;
+            // Create a temp for the knownLength
+            BoundAssignmentOperator assignmentToTemp;
+            BoundLocal? knownLengthTemp = null;
 
-                if (rewrittenReceiver is null)
+            if (rewrittenReceiver is null)
+            {
+                if (useKnownLength && elements.Length > 0)
                 {
-                    if (useKnownLength && elements.Length > 0)
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
+                    var knownLengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
+
+                    if (useOptimizations)
                     {
-                        var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctorInt32)).AsMember(collectionType);
-                        var knownLengthExpression = GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder);
+                        // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
 
-                        if (useOptimizations)
-                        {
-                            // If we use optimizations, we know the length of the resulting list, and we store it in a temp so we can pass it to List.ctor(int32) and to CollectionsMarshal.SetCount
+                        // int knownLengthTemp = N + s1.Length + ...;
+                        knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp);
+                        localsBuilder.Add(knownLengthTemp);
+                        sideEffects.Add(assignmentToTemp);
 
-                            // int knownLengthTemp = N + s1.Length + ...;
-                            knownLengthTemp = _factory.StoreToTemp(knownLengthExpression, out assignmentToTemp);
-                            localsBuilder.Add(knownLengthTemp);
-                            sideEffects.Add(assignmentToTemp);
-
-                            // List<ElementType> list = new(knownLengthTemp);
-                            rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
-                        }
-                        else
-                        {
-                            // List<ElementType> list = new(N + s1.Length + ...)
-                            rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
-                        }
+                        // List<ElementType> list = new(knownLengthTemp);
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create<BoundExpression>(knownLengthTemp));
                     }
                     else
                     {
-                        // List<ElementType> list = new();
-                        var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctor)).AsMember(collectionType);
-                        rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+                        // List<ElementType> list = new(N + s1.Length + ...)
+                        rewrittenReceiver = _factory.New(constructor, ImmutableArray.Create(knownLengthExpression));
                     }
-                }
-
-                // Create a temp for the list.
-                BoundLocal listTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
-                localsBuilder.Add(listTemp);
-                sideEffects.Add(assignmentToTemp);
-
-                // Use Span<T> if CollectionsMarshal methods are available, otherwise use List<T>.Add().
-                if (useOptimizations)
-                {
-                    Debug.Assert(useKnownLength);
-                    Debug.Assert(setCount is { });
-                    Debug.Assert(asSpan is { });
-                    Debug.Assert(knownLengthTemp is { });
-
-                    // CollectionsMarshal.SetCount<ElementType>(list, knownLengthTemp);
-                    sideEffects.Add(_factory.Call(receiver: null, setCount, listTemp, knownLengthTemp));
-
-                    // var span = CollectionsMarshal.AsSpan<ElementType(list);
-                    BoundLocal spanTemp = _factory.StoreToTemp(_factory.Call(receiver: null, asSpan, listTemp), out assignmentToTemp);
-                    localsBuilder.Add(spanTemp);
-                    sideEffects.Add(assignmentToTemp);
-
-                    // Populate the span.
-                    var spanGetItem = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item)).AsMember((NamedTypeSymbol)spanTemp.Type);
-
-                    // indexTemp is null when we can use constant compile-time indices.
-                    // indexTemp is non-null when we need a runtime-tracked index variable (for spread elements).
-                    BoundLocal? indexTemp = null;
-
-                    if (numberIncludingLastSpread != 0)
-                    {
-                        // int index = 0;
-                        indexTemp = _factory.StoreToTemp(
-                            _factory.Literal(0),
-                            out assignmentToTemp);
-                        localsBuilder.Add(indexTemp);
-                        sideEffects.Add(assignmentToTemp);
-                    }
-
-                    int currentElementIndex = 0;
-                    AddCollectionExpressionElements(
-                        elements,
-                        spanTemp,
-                        localsBuilder,
-                        numberIncludingLastSpread,
-                        sideEffects,
-                        addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue, bool isLastElement) =>
-                        {
-                            Debug.Assert(spanTemp.Type is NamedTypeSymbol);
-
-                            var expressionSyntax = rewrittenValue.Syntax;
-                            var elementType = ((NamedTypeSymbol)spanTemp.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
-
-                            if (indexTemp is null)
-                            {
-                                // span[0] = element; span[1] = element; etc.
-                                expressions.Add(
-                                    new BoundAssignmentOperator(
-                                        expressionSyntax,
-                                        _factory.Call(spanTemp, spanGetItem, _factory.Literal(currentElementIndex)),
-                                        rewrittenValue,
-                                        isRef: false,
-                                        elementType));
-                                currentElementIndex++;
-                            }
-                            else
-                            {
-                                // span[index] = element;
-                                expressions.Add(
-                                    new BoundAssignmentOperator(
-                                        expressionSyntax,
-                                        _factory.Call(spanTemp, spanGetItem, indexTemp),
-                                        rewrittenValue,
-                                        isRef: false,
-                                        elementType));
-                                if (!isLastElement)
-                                {
-                                    // index = index + 1;
-                                    expressions.Add(
-                                        new BoundAssignmentOperator(
-                                            expressionSyntax,
-                                            indexTemp,
-                                            _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
-                                            isRef: false,
-                                            indexTemp.Type));
-                                }
-                            }
-                        },
-                        tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
-                        {
-                            // When we have spreads, we always need a runtime-tracked index variable.
-                            Debug.Assert(indexTemp is not null);
-
-                            if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
-                                return false;
-
-                            PerformCopyToOptimization(sideEffects, localsBuilder, indexTemp, spanTemp, rewrittenSpreadOperand, spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod);
-                            return true;
-                        });
                 }
                 else
                 {
-                    var addMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_List_T__Add).AsMember(collectionType);
-                    var addRangeMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_List_T__AddRange, isOptional: true)?.AsMember(collectionType);
-                    AddCollectionExpressionElements(
-                        elements,
-                        listTemp,
-                        localsBuilder,
-                        numberIncludingLastSpread,
-                        sideEffects,
-                        addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue, bool isLastElement) =>
-                        {
-                            // list.Add(element);
-                            expressions.Add(
-                                _factory.Call(listTemp, addMethod, rewrittenValue));
-                        },
-                        tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
-                        {
-                            Debug.Assert(rewrittenSpreadOperand.Type is not null);
+                    // List<ElementType> list = new();
+                    var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Collections_Generic_List_T__ctor)).AsMember(collectionType);
+                    rewrittenReceiver = _factory.New(constructor, ImmutableArray<BoundExpression>.Empty);
+                }
+            }
 
-                            if (addRangeMethod is null)
-                                return false;
+            // Create a temp for the list.
+            BoundLocal listTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp);
+            localsBuilder.Add(listTemp);
+            sideEffects.Add(assignmentToTemp);
 
-                            if (!ShouldUseIEnumerableBulkAddMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
-                            {
-                                return false;
-                            }
+            // Use Span<T> if CollectionsMarshal methods are available, otherwise use List<T>.Add().
+            if (useOptimizations)
+            {
+                Debug.Assert(useKnownLength);
+                Debug.Assert(setCount is { });
+                Debug.Assert(asSpan is { });
+                Debug.Assert(knownLengthTemp is { });
 
-                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
-                            return true;
-                        });
+                // CollectionsMarshal.SetCount<ElementType>(list, knownLengthTemp);
+                sideEffects.Add(_factory.Call(receiver: null, setCount, listTemp, knownLengthTemp));
+
+                // var span = CollectionsMarshal.AsSpan<ElementType(list);
+                BoundLocal spanTemp = _factory.StoreToTemp(_factory.Call(receiver: null, asSpan, listTemp), out assignmentToTemp);
+                localsBuilder.Add(spanTemp);
+                sideEffects.Add(assignmentToTemp);
+
+                // Populate the span.
+                var spanGetItem = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Span_T__get_Item)).AsMember((NamedTypeSymbol)spanTemp.Type);
+
+                // indexTemp is null when we can use constant compile-time indices.
+                // indexTemp is non-null when we need a runtime-tracked index variable (for spread elements).
+                BoundLocal? indexTemp = null;
+
+                if (numberIncludingLastSpread != 0)
+                {
+                    // int index = 0;
+                    indexTemp = _factory.StoreToTemp(
+                        _factory.Literal(0),
+                        out assignmentToTemp);
+                    localsBuilder.Add(indexTemp);
+                    sideEffects.Add(assignmentToTemp);
                 }
 
-                var locals = localsBuilder.SelectAsArray(l => l.LocalSymbol);
-                localsBuilder.Free();
+                int currentElementIndex = 0;
+                AddCollectionExpressionElements(
+                    elements,
+                    spanTemp,
+                    localsBuilder,
+                    numberIncludingLastSpread,
+                    sideEffects,
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue, bool isLastElement) =>
+                    {
+                        Debug.Assert(spanTemp.Type is NamedTypeSymbol);
 
-                return new BoundSequence(
-                    node.Syntax,
-                    locals,
-                    sideEffects.ToImmutableAndFree(),
-                    listTemp,
-                    collectionType);
+                        var expressionSyntax = rewrittenValue.Syntax;
+                        var elementType = ((NamedTypeSymbol)spanTemp.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+
+                        if (indexTemp is null)
+                        {
+                            // span[0] = element; span[1] = element; etc.
+                            expressions.Add(
+                                new BoundAssignmentOperator(
+                                    expressionSyntax,
+                                    _factory.Call(spanTemp, spanGetItem, _factory.Literal(currentElementIndex)),
+                                    rewrittenValue,
+                                    isRef: false,
+                                    elementType));
+                            currentElementIndex++;
+                        }
+                        else
+                        {
+                            // span[index] = element;
+                            expressions.Add(
+                                new BoundAssignmentOperator(
+                                    expressionSyntax,
+                                    _factory.Call(spanTemp, spanGetItem, indexTemp),
+                                    rewrittenValue,
+                                    isRef: false,
+                                    elementType));
+                            if (!isLastElement)
+                            {
+                                // index = index + 1;
+                                expressions.Add(
+                                    new BoundAssignmentOperator(
+                                        expressionSyntax,
+                                        indexTemp,
+                                        _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                        isRef: false,
+                                        indexTemp.Type));
+                            }
+                        }
+                    },
+                    tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                    {
+                        // When we have spreads, we always need a runtime-tracked index variable.
+                        Debug.Assert(indexTemp is not null);
+
+                        if (PrepareCopyToOptimization(spreadElement, rewrittenSpreadOperand) is not var (spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod))
+                            return false;
+
+                        PerformCopyToOptimization(sideEffects, localsBuilder, indexTemp, spanTemp, rewrittenSpreadOperand, spanSliceMethod, spreadElementAsSpan, getLengthMethod, copyToMethod);
+                        return true;
+                    });
             }
-            catch
+            else
             {
-                localsBuilder.Free();
-                sideEffects.Free();
-                throw;
+                var addMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_List_T__Add).AsMember(collectionType);
+                var addRangeMethod = _factory.WellKnownMethod(WellKnownMember.System_Collections_Generic_List_T__AddRange, isOptional: true)?.AsMember(collectionType);
+                AddCollectionExpressionElements(
+                    elements,
+                    listTemp,
+                    localsBuilder,
+                    numberIncludingLastSpread,
+                    sideEffects,
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue, bool isLastElement) =>
+                    {
+                        // list.Add(element);
+                        expressions.Add(
+                            _factory.Call(listTemp, addMethod, rewrittenValue));
+                    },
+                    tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
+                    {
+                        Debug.Assert(rewrittenSpreadOperand.Type is not null);
+
+                        if (addRangeMethod is null)
+                            return false;
+
+                        if (!ShouldUseIEnumerableBulkAddMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+                        {
+                            return false;
+                        }
+
+                        sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
+                        return true;
+                    });
             }
+
+            var locals = localsBuilder.SelectAsArray(l => l.LocalSymbol);
+            localsBuilder.Free();
+
+            return new BoundSequence(
+                node.Syntax,
+                locals,
+                sideEffects.ToImmutableAndFree(),
+                listTemp,
+                collectionType);
         }
 
         private BoundExpression RewriteCollectionExpressionElementExpression(BoundNode element)

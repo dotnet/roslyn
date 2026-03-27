@@ -132,41 +132,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
                 var fields = ArrayBuilder<FieldSymbol>.GetInstance();
-                try
+                bool foundBadField = false;
+                foreach (var f in ContainingType.GetFieldsToEmit())
                 {
-                    bool foundBadField = false;
-                    foreach (var f in ContainingType.GetFieldsToEmit())
+                    if (!f.IsStatic)
                     {
-                        if (!f.IsStatic)
-                        {
-                            fields.Add(f);
+                        fields.Add(f);
 
-                            var parameterType = f.Type;
-                            if (parameterType.IsPointerOrFunctionPointer() || parameterType.IsRestrictedType())
-                            {
-                                // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
-                                foundBadField = true;
-                            }
+                        var parameterType = f.Type;
+                        if (parameterType.IsPointerOrFunctionPointer() || parameterType.IsRestrictedType())
+                        {
+                            // We'll have reported a diagnostic elsewhere (SourceMemberFieldSymbol.TypeChecks)
+                            foundBadField = true;
                         }
                     }
+                }
 
-                    if (fields.Count > 0 && !foundBadField)
-                    {
-                        retExpr = MethodBodySynthesizer.GenerateFieldEquals(
-                            retExpr,
-                            other,
-                            fields,
-                            F);
-                    }
-                    else if (retExpr is null)
-                    {
-                        retExpr = F.Literal(true);
-                    }
-                }
-                finally
+                if (fields.Count > 0 && !foundBadField)
                 {
-                    fields.Free();
+                    retExpr = MethodBodySynthesizer.GenerateFieldEquals(
+                        retExpr,
+                        other,
+                        fields,
+                        F);
                 }
+                else if (retExpr is null)
+                {
+                    retExpr = F.Literal(true);
+                }
+
+                fields.Free();
 
                 if (!isRecordStruct)
                 {

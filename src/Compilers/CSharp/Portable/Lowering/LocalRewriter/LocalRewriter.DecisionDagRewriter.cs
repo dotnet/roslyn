@@ -387,51 +387,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ImmutableArray<BoundDecisionDagNode> nodesToLower = sortedNodes.WhereAsArray(n => n.Kind != BoundKind.WhenDecisionDagNode && n.Kind != BoundKind.LeafDecisionDagNode);
                 var loweredNodes = PooledHashSet<BoundDecisionDagNode>.GetInstance();
-                try
+                for (int i = 0, length = nodesToLower.Length; i < length; i++)
                 {
-                    for (int i = 0, length = nodesToLower.Length; i < length; i++)
+                    BoundDecisionDagNode node = nodesToLower[i];
+                    // A node may have been lowered as part of a switch dispatch, but if it had a label, we'll need to lower it individually as well
+                    bool alreadyLowered = loweredNodes.Contains(node);
+                    if (alreadyLowered && !_dagNodeLabels.TryGetValue(node, out _))
                     {
-                        BoundDecisionDagNode node = nodesToLower[i];
-                        // A node may have been lowered as part of a switch dispatch, but if it had a label, we'll need to lower it individually as well
-                        bool alreadyLowered = loweredNodes.Contains(node);
-                        if (alreadyLowered && !_dagNodeLabels.TryGetValue(node, out _))
-                        {
-                            continue;
-                        }
-
-                        if (_dagNodeLabels.TryGetValue(node, out LabelSymbol label))
-                        {
-                            _loweredDecisionDag.Add(_factory.Label(label));
-                        }
-
-                        // If we can generate an IL switch instruction, do so
-                        if (!alreadyLowered && GenerateSwitchDispatch(node, loweredNodes))
-                        {
-                            continue;
-                        }
-
-                        // If we can generate a type test and cast more efficiently as an `is` followed by a null check, do so
-                        if (GenerateTypeTestAndCast(node, loweredNodes, nodesToLower, i))
-                        {
-                            continue;
-                        }
-
-                        // We pass the node that will follow so we can permit a test to fall through if appropriate
-                        BoundDecisionDagNode nextNode = ((i + 1) < length) ? nodesToLower[i + 1] : null;
-                        if (nextNode != null && loweredNodes.Contains(nextNode))
-                        {
-                            nextNode = null;
-                        }
-
-                        LowerDecisionDagNode(node, nextNode);
+                        continue;
                     }
-                }
-                catch
-                {
-                    loweredNodes.Free();
-                    _loweredDecisionDag.Free();
-                    _loweredDecisionDag = null;
-                    throw;
+
+                    if (_dagNodeLabels.TryGetValue(node, out LabelSymbol label))
+                    {
+                        _loweredDecisionDag.Add(_factory.Label(label));
+                    }
+
+                    // If we can generate an IL switch instruction, do so
+                    if (!alreadyLowered && GenerateSwitchDispatch(node, loweredNodes))
+                    {
+                        continue;
+                    }
+
+                    // If we can generate a type test and cast more efficiently as an `is` followed by a null check, do so
+                    if (GenerateTypeTestAndCast(node, loweredNodes, nodesToLower, i))
+                    {
+                        continue;
+                    }
+
+                    // We pass the node that will follow so we can permit a test to fall through if appropriate
+                    BoundDecisionDagNode nextNode = ((i + 1) < length) ? nodesToLower[i + 1] : null;
+                    if (nextNode != null && loweredNodes.Contains(nextNode))
+                    {
+                        nextNode = null;
+                    }
+
+                    LowerDecisionDagNode(node, nextNode);
                 }
 
                 loweredNodes.Free();

@@ -638,34 +638,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
             var diagReporter = GetAddSemanticDiagnostic(semanticModel.SyntaxTree, analyzer, analyzerOptions, cancellationToken);
 
-            try
-            {
-                using var _ = PooledDelegates.GetPooledFunction(
-                    static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
-                    (self: this, analyzer),
-                    out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
-                // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-                // can use the same instance across all actions.
-                var context = new SemanticModelAnalysisContext(
-                    semanticModel, analyzerOptions, diagReporter.AddDiagnosticAction,
-                    isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
-                var contextInfo = new AnalysisContextInfo(semanticModel);
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new SemanticModelAnalysisContext(
+                semanticModel, analyzerOptions, diagReporter.AddDiagnosticAction,
+                isSupportedDiagnostic, filterSpan, isGeneratedCode, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(semanticModel);
 
-                foreach (var semanticModelAction in semanticModelActions)
-                {
-                    ExecuteAndCatchIfThrows(
-                        semanticModelAction.Analyzer,
-                        static data => data.semanticModelAction.Action(data.context),
-                        (semanticModelAction, context),
-                        contextInfo,
-                        cancellationToken);
-                }
-            }
-            finally
+            foreach (var semanticModelAction in semanticModelActions)
             {
-                diagReporter.Free();
+                ExecuteAndCatchIfThrows(
+                    semanticModelAction.Analyzer,
+                    static data => data.semanticModelAction.Action(data.context),
+                    (semanticModelAction, context),
+                    contextInfo,
+                    cancellationToken);
             }
+
+            diagReporter.Free();
         }
 
         /// <summary>
@@ -697,34 +692,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
             var diagReporter = GetAddSyntaxDiagnostic(file, analyzer, analyzerOptions, cancellationToken);
 
-            try
-            {
-                using var _ = PooledDelegates.GetPooledFunction(
-                    static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
-                    (self: this, analyzer),
-                    out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
-                // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-                // can use the same instance across all actions.
-                var context = new SyntaxTreeAnalysisContext(
-                    tree, analyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
-                    Compilation, filterSpan, isGeneratedCode, cancellationToken);
-                var contextInfo = new AnalysisContextInfo(Compilation, file);
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new SyntaxTreeAnalysisContext(
+                tree, analyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
+                Compilation, filterSpan, isGeneratedCode, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, file);
 
-                foreach (var syntaxTreeAction in syntaxTreeActions)
-                {
-                    ExecuteAndCatchIfThrows(
-                        syntaxTreeAction.Analyzer,
-                        static data => data.syntaxTreeAction.Action(data.context),
-                        (syntaxTreeAction, context),
-                        contextInfo,
-                        cancellationToken);
-                }
-            }
-            finally
+            foreach (var syntaxTreeAction in syntaxTreeActions)
             {
-                diagReporter.Free();
+                ExecuteAndCatchIfThrows(
+                    syntaxTreeAction.Analyzer,
+                    static data => data.syntaxTreeAction.Action(data.context),
+                    (syntaxTreeAction, context),
+                    contextInfo,
+                    cancellationToken);
             }
+
+            diagReporter.Free();
         }
 
         /// <summary>
@@ -748,34 +738,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerOptions = this.GetAnalyzerSpecificOptions(analyzer);
             var diagReporter = GetAddSyntaxDiagnostic(file, analyzer, analyzerOptions, cancellationToken);
 
-            try
-            {
-                using var _ = PooledDelegates.GetPooledFunction(
-                    static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
-                    (self: this, analyzer),
-                    out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
-                // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
-                // can use the same instance across all actions.
-                var context = new AdditionalFileAnalysisContext(
-                    additionalFile, analyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
-                    Compilation, filterSpan, cancellationToken);
-                var contextInfo = new AnalysisContextInfo(Compilation, file);
+            // This context doesn't build up any state as we pass it to the Action method of the analyzer. As such, we
+            // can use the same instance across all actions.
+            var context = new AdditionalFileAnalysisContext(
+                additionalFile, analyzerOptions, diagReporter.AddDiagnosticAction, isSupportedDiagnostic,
+                Compilation, filterSpan, cancellationToken);
+            var contextInfo = new AnalysisContextInfo(Compilation, file);
 
-                foreach (var additionalFileAction in additionalFileActions)
-                {
-                    ExecuteAndCatchIfThrows(
-                        additionalFileAction.Analyzer,
-                        static data => data.additionalFileAction.Action(data.context),
-                        (additionalFileAction, context),
-                        contextInfo,
-                        cancellationToken);
-                }
-            }
-            finally
+            foreach (var additionalFileAction in additionalFileActions)
             {
-                diagReporter.Free();
+                ExecuteAndCatchIfThrows(
+                    additionalFileAction.Analyzer,
+                    static data => data.additionalFileAction.Action(data.context),
+                    (additionalFileAction, context),
+                    contextInfo,
+                    cancellationToken);
             }
+
+            diagReporter.Free();
         }
 
         private void ExecuteSyntaxNodeAction<TLanguageKindEnum>(
@@ -1071,29 +1056,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 executionData.SemanticModel.SyntaxTree, declaredNode.FullSpan,
                 executionData.Analyzer, executionData.AnalyzerOptions, cancellationToken);
 
-            try
-            {
-                // Include the stateful actions.
-                foreach (var startAction in startActions)
-                    addActions(startAction, blockEndActions, executionData, argument, cancellationToken);
+            // Include the stateful actions.
+            foreach (var startAction in startActions)
+                addActions(startAction, blockEndActions, executionData, argument, cancellationToken);
 
-                using var _ = PooledDelegates.GetPooledFunction(
-                    static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.Analyzer, d, ct),
-                    (self: this, executionData.Analyzer),
-                    out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.Analyzer, d, ct),
+                (self: this, executionData.Analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
-                // Execute stateful executable node analyzers, if any.
-                executeActions(diagReporter, isSupportedDiagnostic, executionData, argument, cancellationToken);
+            // Execute stateful executable node analyzers, if any.
+            executeActions(diagReporter, isSupportedDiagnostic, executionData, argument, cancellationToken);
 
-                executeBlockActions(blockActions, diagReporter, isSupportedDiagnostic, executionData, argument, cancellationToken);
-                executeBlockActions(blockEndActions, diagReporter, isSupportedDiagnostic, executionData, argument, cancellationToken);
-            }
-            finally
-            {
-                diagReporter.Free();
-                blockActions.Free();
-                blockEndActions.Free();
-            }
+            executeBlockActions(blockActions, diagReporter, isSupportedDiagnostic, executionData, argument, cancellationToken);
+            executeBlockActions(blockEndActions, diagReporter, isSupportedDiagnostic, executionData, argument, cancellationToken);
+
+            diagReporter.Free();
+            blockActions.Free();
+            blockEndActions.Free();
         }
 
         internal static ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> GetNodeActionsByKind<TLanguageKindEnum>(
@@ -1142,22 +1122,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(
                 model.SyntaxTree, spanForContainingTopmostNodeForAnalysis, analyzer, analyzerOptions, cancellationToken);
 
-            try
-            {
-                using var _ = PooledDelegates.GetPooledFunction(
-                    static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
-                    (self: this, analyzer),
-                    out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
-                ExecuteSyntaxNodeActions(
-                    nodesToAnalyze, nodeActionsByKind,
-                    new ExecutionData(analyzer, analyzerOptions, declaredSymbol, model, filterSpan, isGeneratedCode),
-                    getKind, diagReporter, isSupportedDiagnostic, hasCodeBlockStartOrSymbolStartActions, cancellationToken);
-            }
-            finally
-            {
-                diagReporter.Free();
-            }
+            ExecuteSyntaxNodeActions(
+                nodesToAnalyze, nodeActionsByKind,
+                new ExecutionData(analyzer, analyzerOptions, declaredSymbol, model, filterSpan, isGeneratedCode),
+                getKind, diagReporter, isSupportedDiagnostic, hasCodeBlockStartOrSymbolStartActions, cancellationToken);
+
+            diagReporter.Free();
         }
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
@@ -1248,22 +1223,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagReporter = GetAddSemanticDiagnostic(
                 model.SyntaxTree, spanForContainingOperationBlock, analyzer, analyzerOptions, cancellationToken);
 
-            try
-            {
-                using var _ = PooledDelegates.GetPooledFunction(
-                    static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
-                    (self: this, analyzer),
-                    out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
+            using var _ = PooledDelegates.GetPooledFunction(
+                static (d, ct, arg) => arg.self.IsSupportedDiagnostic(arg.analyzer, d, ct),
+                (self: this, analyzer),
+                out Func<Diagnostic, CancellationToken, bool> isSupportedDiagnostic);
 
-                ExecuteOperationActions(
-                    operationsToAnalyze, operationActionsByKind,
-                    new ExecutionData(analyzer, analyzerOptions, declaredSymbol, model, filterSpan, isGeneratedCode),
-                    diagReporter, isSupportedDiagnostic, hasOperationBlockStartOrSymbolStartActions, cancellationToken);
-            }
-            finally
-            {
-                diagReporter.Free();
-            }
+            ExecuteOperationActions(
+                operationsToAnalyze, operationActionsByKind,
+                new ExecutionData(analyzer, analyzerOptions, declaredSymbol, model, filterSpan, isGeneratedCode),
+                diagReporter, isSupportedDiagnostic, hasOperationBlockStartOrSymbolStartActions, cancellationToken);
+
+            diagReporter.Free();
         }
 
         private void ExecuteOperationActions(

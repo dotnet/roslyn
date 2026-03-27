@@ -59,33 +59,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var builderLocalSymbol = F.SynthesizedLocal(stringBuilder);
                 BoundLocal builderLocal = F.Local(builderLocalSymbol);
                 var block = ArrayBuilder<BoundStatement>.GetInstance();
-                try
-                {
-                    // var builder = new StringBuilder();
-                    block.Add(F.Assignment(builderLocal, F.New(stringBuilderCtor)));
+                // var builder = new StringBuilder();
+                block.Add(F.Assignment(builderLocal, F.New(stringBuilderCtor)));
 
-                    // builder.Append(<name>);
-                    block.Add(makeAppendString(F, builderLocal, ContainingType.Name));
+                // builder.Append(<name>);
+                block.Add(makeAppendString(F, builderLocal, ContainingType.Name));
 
-                    // builder.Append(" { ");
-                    block.Add(makeAppendString(F, builderLocal, " { "));
+                // builder.Append(" { ");
+                block.Add(makeAppendString(F, builderLocal, " { "));
 
-                    // if (this.PrintMembers(builder)) builder.Append(' ');
-                    block.Add(F.If(F.Call(F.This(), _printMethod, builderLocal), makeAppendChar(F, builderLocal, ' ')));
+                // if (this.PrintMembers(builder)) builder.Append(' ');
+                block.Add(F.If(F.Call(F.This(), _printMethod, builderLocal), makeAppendChar(F, builderLocal, ' ')));
 
-                    // builder.Append('}');
-                    block.Add(makeAppendChar(F, builderLocal, '}'));
+                // builder.Append('}');
+                block.Add(makeAppendChar(F, builderLocal, '}'));
 
-                    // return builder.ToString();
-                    block.Add(F.Return(F.Call(builderLocal, F.SpecialMethod(SpecialMember.System_Object__ToString))));
+                // return builder.ToString();
+                block.Add(F.Return(F.Call(builderLocal, F.SpecialMethod(SpecialMember.System_Object__ToString))));
 
-                    F.CloseMethod(F.Block(ImmutableArray.Create(builderLocalSymbol), block.ToImmutableAndFree()));
-                }
-                catch
-                {
-                    block.Free();
-                    throw;
-                }
+                F.CloseMethod(F.Block(ImmutableArray.Create(builderLocalSymbol), block.ToImmutableAndFree()));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {

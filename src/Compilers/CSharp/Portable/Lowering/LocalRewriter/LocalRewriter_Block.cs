@@ -57,11 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals = locals.AddRange(additionalLocals);
                 return new BoundBlock(node.Syntax, locals, node.LocalFunctions, node.HasUnsafeModifier, instrumentation, builder.ToImmutableAndFree(), node.HasErrors);
             }
-            catch
-            {
-                builder.Free();
-                throw;
-            }
             finally
             {
                 if (previousLocals is null)

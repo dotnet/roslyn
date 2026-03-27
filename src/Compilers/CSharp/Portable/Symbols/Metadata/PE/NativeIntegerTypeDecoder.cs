@@ -127,32 +127,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-            try
+            type.GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
+
+            bool haveChanges = false;
+            for (int i = 0; i < allTypeArguments.Count; i++)
             {
-                type.GetAllTypeArgumentsNoUseSiteDiagnostics(allTypeArguments);
-
-                bool haveChanges = false;
-                for (int i = 0; i < allTypeArguments.Count; i++)
+                TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
+                if (TransformTypeWithAnnotations(oldTypeArgument) is not { } newTypeArgument)
                 {
-                    TypeWithAnnotations oldTypeArgument = allTypeArguments[i];
-                    if (TransformTypeWithAnnotations(oldTypeArgument) is not { } newTypeArgument)
-                    {
-                        return null;
-                    }
-
-                    if (!oldTypeArgument.IsSameAs(newTypeArgument))
-                    {
-                        allTypeArguments[i] = newTypeArgument;
-                        haveChanges = true;
-                    }
+                    allTypeArguments.Free();
+                    return null;
                 }
 
-                return haveChanges ? type.WithTypeArguments(allTypeArguments.ToImmutable()) : type;
+                if (!oldTypeArgument.IsSameAs(newTypeArgument))
+                {
+                    allTypeArguments[i] = newTypeArgument;
+                    haveChanges = true;
+                }
             }
-            finally
-            {
-                allTypeArguments.Free();
-            }
+
+            NamedTypeSymbol result = haveChanges ? type.WithTypeArguments(allTypeArguments.ToImmutable()) : type;
+            allTypeArguments.Free();
+            return result;
         }
 
         private ArrayTypeSymbol? TransformArrayType(ArrayTypeSymbol type)
