@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = Path.Combine(outputDir, dllName),
             };
 
-            using var entryLock = File.Open(GetEntryLockPath(cacheDir, dllName, hashKey), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            using var entryLock = AcquireEntryMutex(cache, cacheDir, dllName, hashKey);
             var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger);
 
             Assert.True(result);
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = Path.Combine(outputDir, dllName),
             };
 
-            using var entryLock = File.Open(GetEntryLockPath(cacheDir, dllName, hashKey), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            using var entryLock = AcquireEntryMutex(cache, cacheDir, dllName, hashKey);
             var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger);
 
             Assert.False(result);
@@ -455,8 +456,68 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
         }
 
-        private static string GetEntryLockPath(string cachePath, string dllName, string hashKey)
-            => Path.Combine(cachePath, dllName, hashKey + ".lock");
+        private static IDisposable AcquireEntryMutex(CompilationCache cache, string cachePath, string dllName, string hashKey)
+        {
+#if NET10_0_OR_GREATER
+            return new NamedMutexLease(cache.GetCacheEntryMutexName(dllName, hashKey));
+#else
+            return File.Open(Path.Combine(cachePath, dllName, hashKey + ".lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+#endif
+        }
+
+#if NET10_0_OR_GREATER
+        private sealed class NamedMutexLease : IDisposable
+        {
+            private readonly ManualResetEventSlim _acquired = new(initialState: false);
+            private readonly ManualResetEventSlim _release = new(initialState: false);
+            private readonly Thread _thread;
+            private Exception? _exception;
+
+            internal NamedMutexLease(string mutexName)
+            {
+                _thread = new Thread(() =>
+                {
+                    try
+                    {
+                        using var mutex = new ServerNamedMutex(mutexName, out var createdNew);
+                        if (!createdNew && !mutex.TryLock(timeoutMs: Timeout.Infinite))
+                        {
+                            throw new InvalidOperationException("Failed to acquire named mutex.");
+                        }
+
+                        _acquired.Set();
+                        _release.Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        _exception = ex;
+                        _acquired.Set();
+                    }
+                })
+                {
+                    IsBackground = true,
+                };
+
+                _thread.Start();
+                _acquired.Wait();
+
+                if (_exception is not null)
+                {
+                    _release.Set();
+                    _thread.Join();
+                    throw new InvalidOperationException("Failed to acquire named mutex for test.", _exception);
+                }
+            }
+
+            public void Dispose()
+            {
+                _release.Set();
+                _thread.Join();
+                _acquired.Dispose();
+                _release.Dispose();
+            }
+        }
+#endif
 
         private sealed class CollectingLogger : ICompilerServerLogger
         {

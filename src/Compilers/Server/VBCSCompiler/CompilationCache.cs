@@ -55,7 +55,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private const string PdbFileName = "pdb";
         private const string RefAssemblyFileName = "refassembly";
         private const string XmlDocFileName = "xmldoc";
+#if !NET10_0_OR_GREATER
         private const string LockFileExtension = ".lock";
+#endif
 
         private readonly string _cachePath;
 
@@ -98,8 +100,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private string GetCacheEntryDirectory(string dllName, string hashKey)
             => Path.Combine(_cachePath, dllName, hashKey);
 
+#if NET10_0_OR_GREATER
+        internal string GetCacheEntryMutexName(string dllName, string hashKey)
+            => BuildServerConnection.GetServerMutexName($"compilation-cache.{ComputeHashKey($"{_cachePath}|{dllName}|{hashKey}")}");
+#else
         private string GetCacheEntryLockPath(string dllName, string hashKey)
             => Path.Combine(_cachePath, dllName, hashKey + LockFileExtension);
+#endif
 
         /// <summary>
         /// Checks whether a cached result exists for the given DLL name and hash key.
@@ -120,9 +127,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 if (!File.Exists(cachedAssemblyPath))
                 {
-                    var entryLockPath = GetCacheEntryLockPath(dllName, hashKey);
-                    using var entryLock = File.Exists(entryLockPath) ? TryAcquireEntryLock(entryLockPath, createIfMissing: false) : null;
-                    if (File.Exists(entryLockPath) && entryLock is null && !File.Exists(cachedAssemblyPath))
+                    using var entryMutex = TryAcquireEntryMutex(dllName, hashKey, createIfMissing: false);
+                    if (entryMutex is null && !File.Exists(cachedAssemblyPath))
                     {
                         logger.Log($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
                         return false;
@@ -239,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var dllCacheDir = Path.Combine(_cachePath, dllName);
                 Directory.CreateDirectory(dllCacheDir);
 
-                using var entryLock = TryAcquireEntryLock(GetCacheEntryLockPath(dllName, hashKey));
-                if (entryLock is null)
+                using var entryMutex = TryAcquireEntryMutex(dllName, hashKey);
+                if (entryMutex is null)
                 {
                     logger.Log($"Cache store skipped because another writer is populating: {dllName} [{hashKey}]");
                     return;
@@ -306,17 +312,46 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private static FileStream? TryAcquireEntryLock(string lockFilePath, bool createIfMissing = true)
+        private IDisposable? TryAcquireEntryMutex(string dllName, string hashKey, bool createIfMissing = true)
         {
+#if NET10_0_OR_GREATER
+            var mutexName = GetCacheEntryMutexName(dllName, hashKey);
+            if (!createIfMissing && !ServerNamedMutex.WasOpen(mutexName))
+            {
+                return null;
+            }
+
+            var mutex = new ServerNamedMutex(mutexName, out var createdNew);
+            if (createdNew)
+            {
+                if (!createIfMissing)
+                {
+                    mutex.Dispose();
+                    return null;
+                }
+
+                return mutex;
+            }
+
+            if (mutex.TryLock(timeoutMs: 0))
+            {
+                return mutex;
+            }
+
+            mutex.Dispose();
+            return null;
+#else
             try
             {
                 // FileShare.None gives us a simple cross-process mutex for a specific cache entry.
+                var lockFilePath = GetCacheEntryLockPath(dllName, hashKey);
                 return new FileStream(lockFilePath, createIfMissing ? FileMode.OpenOrCreate : FileMode.Open, FileAccess.ReadWrite, FileShare.None);
             }
             catch (IOException)
             {
                 return null;
             }
+#endif
         }
 
         /// <summary>
