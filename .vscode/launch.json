@@ -72,7 +72,6 @@
         "-restore",
         "-p:RoslynCompilerType=Custom",
         "-p:RoslynTargetsPath=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/net472",
-        "-p:RoslynTasksAssembly=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/net472/Microsoft.Build.Tasks.CodeAnalysis.dll",
         "-t:Rebuild",
       ],
       // A simple project that can be used to debug the build tasks against.
@@ -108,7 +107,6 @@
         "-restore",
         "-p:RoslynCompilerType=Custom",
         "-p:RoslynTargetsPath=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/netcore",
-        "-p:RoslynTasksAssembly=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/netcore/Microsoft.Build.Tasks.CodeAnalysis.dll",
         "-t:Rebuild",
       ],
       // A simple project that can be used to debug the build tasks against.
@@ -126,7 +124,6 @@
         "build",
         "-p:RoslynCompilerType=Custom",
         "-p:RoslynTargetsPath=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/netcore",
-        "-p:RoslynTasksAssembly=${workspaceFolder}/artifacts/bin/Microsoft.Net.Compilers.Toolset.Package/Debug/tasks/netcore/Microsoft.Build.Tasks.CodeAnalysis.dll",
         "-t:Rebuild",
       ],
       // A simple project that can be used to debug the build tasks against.

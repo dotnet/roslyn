@@ -152,18 +152,6 @@
   -->
   <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
 
-  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <Features>$(Features);use-global-cache</Features>
-    <PathMap Condition="'$(PathMap)' == ''">$(RepoRoot)=/_/</PathMap>
-    <PathMap Condition="'$(PathMap)' != ''">$(RepoRoot)=/_/,$(PathMap)</PathMap>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <PackageReference Include="jjones.Microsoft.Net.Compilers.Toolset" PrivateAssets="all">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
-
   <!--
     Analyzers
   -->
