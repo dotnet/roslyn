@@ -19,7 +19,7 @@ The experiment has four primary goals:
 
 1. Avoid repeating identical compilations when the deterministic inputs have not changed.
 2. Reuse successful compiler outputs across compiler-server lifetimes instead of limiting reuse to a single warm process.
-3. Preserve normal compiler behavior by falling back to a regular compilation on any cache miss or cache-related failure.
+3. Preserve correctness by falling back to a regular compilation on any cache miss or cache-related failure.
 4. Produce enough logging to make cache hits, misses, and key mismatches diagnosable while the experiment is being evaluated.
 
 ## Non-goals
@@ -139,6 +139,7 @@ On a miss, Roslyn may also log diffs against recent prior key files for the same
 The experiment currently has several important limitations:
 
 - `PathMap` stability is effectively required for useful cache reuse. Differences in path mapping participate in the deterministic key, so builds that do not normalize machine-specific source paths are much less likely to hit the same cache entry across machines or worktrees.
+- Normal compiler behavior is not fully preserved on cache hits today. In particular, a restored cached result does not currently replay warnings and other compiler diagnostics that would normally be produced during a regular compilation.
 - Because the cache key is based on the current deterministic-key computation, the set of inputs that control cache reuse should be treated as an implementation detail of the experiment rather than a guaranteed contract.
 - The on-disk cache format is intentionally provisional and may change without compatibility support.
 
