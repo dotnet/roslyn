@@ -55,7 +55,7 @@ internal static class CompletionOptionsStorage
 
     // Use tri-value so the default state can be used to turn on the feature with experimentation service.
     public static readonly PerLanguageOption2<bool?> ShowItemsFromUnimportedNamespaces = new("dotnet_show_completion_items_from_unimported_namespaces", CompletionOptions.Default.ShowItemsFromUnimportedNamespaces, group: s_completionOptionGroup);
-    public static readonly PerLanguageOption2<ImportCompletionCommitBehavior> ImportCompletionCommitBehavior = new("dotnet_completion_items_from_unimported_namespaces_commit_behavior", CompletionOptions.Default.ImportCompletionCommitBehavior, group: s_completionOptionGroup);
+    public static readonly PerLanguageOption2<ImportCompletionCommitBehavior> ImportCompletionCommitBehavior = new("dotnet_completion_items_from_unimported_namespaces_commit_behavior", CompletionOptions.Default.ImportCompletionCommitBehavior, serializer: EditorConfigValueSerializer.CreateSerializerForEnum<ImportCompletionCommitBehavior>(), group: s_completionOptionGroup);
 
     public static readonly PerLanguageOption2<bool> TriggerInArgumentLists = new("dotnet_trigger_completion_in_argument_lists", CompletionOptions.Default.TriggerInArgumentLists, group: s_completionOptionGroup);
 
