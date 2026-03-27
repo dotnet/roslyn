@@ -137,9 +137,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
                 File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
 
-                TryCopyOptional(entryDir, PdbFileName, outputFiles.PdbPath);
-                TryCopyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
-                TryCopyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
+                if (!tryCopyOptional(entryDir, PdbFileName, outputFiles.PdbPath)
+                    || !tryCopyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
+                    || !tryCopyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
+                {
+                    logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
+                    return false;
+                }
             }
             catch (Exception ex)
             {
@@ -149,18 +153,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return true;
 
-            static void TryCopyOptional(string entryDir, string cachedFileName, string? targetPath)
+            // Returns true if the file was successfully copied or was not needed.
+            // Returns false if the target path was requested but the cached file is missing.
+            static bool tryCopyOptional(string entryDir, string cachedFileName, string? targetPath)
             {
                 if (targetPath is null)
                 {
-                    return;
+                    return true;
                 }
 
                 var cachedPath = Path.Combine(entryDir, cachedFileName);
                 if (File.Exists(cachedPath))
                 {
                     File.Copy(cachedPath, targetPath, overwrite: true);
+                    return true;
                 }
+
+                return false;
             }
         }
 
@@ -261,9 +270,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 File.Copy(outputFiles.AssemblyPath, Path.Combine(stagingDir, AssemblyFileName), overwrite: false);
 
-                TryCopyOptional(outputFiles.PdbPath, Path.Combine(stagingDir, PdbFileName));
-                TryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(stagingDir, RefAssemblyFileName));
-                TryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
+                tryCopyOptional(outputFiles.PdbPath, Path.Combine(stagingDir, PdbFileName));
+                tryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(stagingDir, RefAssemblyFileName));
+                tryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
 
                 File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
                 Directory.Move(stagingDir, cacheDir);
@@ -297,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
             }
 
-            static void TryCopyOptional(string? sourcePath, string destPath)
+            static void tryCopyOptional(string? sourcePath, string destPath)
             {
                 if (sourcePath is not null && File.Exists(sourcePath))
                 {
@@ -326,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static string ComputeDiff(string currentKey, string oldKey)
         {
-            static string[] SplitLines(string text)
+            static string[] splitLines(string text)
             {
                 var lines = text.Split('\n');
                 for (var i = 0; i < lines.Length; i++)
@@ -337,12 +346,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return lines;
             }
 
-            var currentLines = new HashSet<string>(SplitLines(currentKey));
-            var oldLines = new HashSet<string>(SplitLines(oldKey));
+            var currentLines = new HashSet<string>(splitLines(currentKey));
+            var oldLines = new HashSet<string>(splitLines(oldKey));
 
             var diff = new StringBuilder();
 
-            foreach (var line in SplitLines(oldKey))
+            foreach (var line in splitLines(oldKey))
             {
                 if (!currentLines.Contains(line))
                 {
@@ -350,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
             }
 
-            foreach (var line in SplitLines(currentKey))
+            foreach (var line in splitLines(currentKey))
             {
                 if (!oldLines.Contains(line))
                 {

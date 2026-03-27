@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
-        public void TryRestoreCachedResult_SkipsOptionalFiles_WhenNotCached()
+        public void TryRestoreCachedResult_ReturnsFalse_WhenRequestedOutputFileMissingFromCache()
         {
             var cacheDir = Temp.CreateDirectory().Path;
             var cache = CreateCache(cacheDir);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var hashKey = "assemblonly";
             var outputDir = Temp.CreateDirectory().Path;
 
-            // Cache entry with only the assembly.
+            // Cache entry with only the assembly (no PDB).
             var entryDir = Path.Combine(cacheDir, dllName, hashKey);
             Directory.CreateDirectory(entryDir);
             File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [10]);
@@ -183,12 +183,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 PdbPath = Path.Combine(outputDir, "MyLib.pdb"),
             };
 
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, _logger);
+            var logMessages = new List<string>();
+            var logger = new CollectingLogger(logMessages);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, logger);
 
-            Assert.True(result);
-            Assert.True(File.Exists(outputFiles.AssemblyPath));
-            // PDB was requested but not cached — should not be written.
-            Assert.False(File.Exists(outputFiles.PdbPath!));
+            // PDB was requested but not cached — should be treated as a cache miss.
+            Assert.False(result);
+            Assert.Contains(logMessages, m => m.Contains("Cache miss because entry is missing required output files:", StringComparison.Ordinal));
         }
 
         [Fact]
