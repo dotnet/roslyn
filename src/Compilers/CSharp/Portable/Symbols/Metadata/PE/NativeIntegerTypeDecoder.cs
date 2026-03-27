@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     if (TransformTypeWithAnnotations(param.TypeWithAnnotations) is not { } transformedParam)
                     {
+                        builder.Free();
                         return null;
                     }
 

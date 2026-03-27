@@ -2524,36 +2524,47 @@ namespace Microsoft.Cci
         {
             resourceDataWriter = null;
 
-            if (dynamicAnalysisData != null)
+            try
             {
-                resourceDataWriter = PooledBlobBuilder.GetInstance();
-                metadata.AddManifestResource(
-                    attributes: ManifestResourceAttributes.Private,
-                    name: metadata.GetOrAddString("<DynamicAnalysisData>"),
-                    implementation: default(EntityHandle),
-                    offset: writeBuilderResourceAndGetOffset(dynamicAnalysisData, resourceDataWriter)
-                );
+                if (dynamicAnalysisData != null)
+                {
+                    resourceDataWriter = PooledBlobBuilder.GetInstance();
+                    metadata.AddManifestResource(
+                        attributes: ManifestResourceAttributes.Private,
+                        name: metadata.GetOrAddString("<DynamicAnalysisData>"),
+                        implementation: default(EntityHandle),
+                        offset: writeBuilderResourceAndGetOffset(dynamicAnalysisData, resourceDataWriter)
+                    );
+                }
+
+                foreach (var resource in this.module.GetResources(Context))
+                {
+                    EntityHandle implementation;
+                    if (resource.ExternalFile != null)
+                    {
+                        // Length checked on insertion into the file table.
+                        implementation = GetAssemblyFileHandle(resource.ExternalFile);
+                    }
+                    else
+                    {
+                        // This is an embedded resource, we don't support references to resources from referenced assemblies.
+                        implementation = default(EntityHandle);
+                    }
+
+                    metadata.AddManifestResource(
+                        attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
+                        name: GetStringHandleForNameAndCheckLength(resource.Name),
+                        implementation: implementation,
+                        offset: writeManagedResourceAndGetOffset(resource, ref resourceDataWriter));
+                }
             }
-
-            foreach (var resource in this.module.GetResources(Context))
+            catch
             {
-                EntityHandle implementation;
-                if (resource.ExternalFile != null)
-                {
-                    // Length checked on insertion into the file table.
-                    implementation = GetAssemblyFileHandle(resource.ExternalFile);
-                }
-                else
-                {
-                    // This is an embedded resource, we don't support references to resources from referenced assemblies.
-                    implementation = default(EntityHandle);
-                }
-
-                metadata.AddManifestResource(
-                    attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
-                    name: GetStringHandleForNameAndCheckLength(resource.Name),
-                    implementation: implementation,
-                    offset: writeManagedResourceAndGetOffset(resource, ref resourceDataWriter));
+                // Exceptions (e.g. ResourceException) are handled as diagnostics by the caller.
+                // Free the builder to avoid pool leaks.
+                resourceDataWriter?.Free();
+                resourceDataWriter = null;
+                throw;
             }
 
             // the stream should be aligned:
