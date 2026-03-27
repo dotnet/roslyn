@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis
 
             var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
-            var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken);
+            var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken, out var cacheState);
             if (cachedExitCode.HasValue)
             {
                 diagnostics.Free();
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis
 
             if (exitCode == Succeeded)
             {
-                OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cancellationToken);
+                OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, cancellationToken);
             }
 
             return exitCode;
@@ -1760,13 +1760,16 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="additionalTexts"/> are all resolved, but before
         /// <see cref="CompileAndEmit"/> runs.
         /// </remarks>
+        /// <param name="cacheState">Opaque state to be passed to <see cref="OnCompilationSucceeded"/> on success.</param>
         protected virtual int? CheckCache(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            out object? cacheState)
         {
+            cacheState = null;
             return null;
         }
 
@@ -1777,11 +1780,13 @@ namespace Microsoft.CodeAnalysis
         /// <remarks>
         /// Called from <see cref="RunCore"/> after <see cref="CompileAndEmit"/> succeeds.
         /// </remarks>
+        /// <param name="cacheState">Opaque state returned from <see cref="CheckCache"/>.</param>
         protected virtual void OnCompilationSucceeded(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            object? cacheState,
             CancellationToken cancellationToken)
         {
         }

@@ -17,9 +17,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _metadataProvider;
         private readonly CompilationCache? _cache;
         private readonly ICompilerServerLogger _logger;
-        // Stored between CheckCache and OnCompilationSucceeded to avoid recomputing.
-        private string? _deterministicKey;
-        private string? _hashKey;
 
         internal VisualBasicCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache, CompilationCache? cache = null, ICompilerServerLogger? logger = null)
             : this(metadataProvider, Path.Combine(buildPaths.ClientDirectory, ResponseFileName), args, buildPaths, libDirectory, analyzerLoader, driverCache, cache, logger)
@@ -44,9 +41,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            out object? cacheState)
         {
-            return CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, cancellationToken, out _deterministicKey, out _hashKey);
+            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, cancellationToken, out var deterministicKey, out var hashKey);
+            cacheState = (deterministicKey, hashKey);
+            return result;
         }
 
         protected override void OnCompilationSucceeded(
@@ -54,9 +54,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            object? cacheState,
             CancellationToken cancellationToken)
         {
-            CompilationCacheUtilities.OnCompilationSucceeded(_cache, _logger, Arguments, _deterministicKey, _hashKey);
+            var (deterministicKey, hashKey) = ((string?, string?))cacheState!;
+            CompilationCacheUtilities.OnCompilationSucceeded(_cache, _logger, Arguments, deterministicKey, hashKey);
         }
     }
 }
