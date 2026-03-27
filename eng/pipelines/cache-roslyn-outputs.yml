@@ -1,9 +1,15 @@
+parameters:
+- name: configuration
+  type: string
+  default: 'Debug'
+
 steps:
   - task: Cache@2
     displayName: Cache Roslyn Outputs
     inputs:
-      key: '"roslyn" | "$(Agent.OS)" | "$(Build.BuildId)"'
+      key: '"roslyn" | "$(Agent.OS)" | "${{ parameters.configuration }}" | "$(Build.BuildId)"'
       restoreKeys: |
+        "roslyn" | "$(Agent.OS)" | "${{ parameters.configuration }}"
         "roslyn" | "$(Agent.OS)"
         "roslyn"
       path: $(ROSLYN_CACHE_PATH)
