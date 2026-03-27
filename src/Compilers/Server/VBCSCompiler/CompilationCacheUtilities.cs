@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 #if NET8_0_OR_GREATER
 using System;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -47,8 +48,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var dllName = arguments.OutputFileName;
             try
             {
-                // Open the source link file if specified so its content is included
-                // in the deterministic key, matching what CompileAndEmit does.
                 using var sourceLinkStream = arguments.SourceLink is not null
                     ? new FileStream(arguments.SourceLink, FileMode.Open, FileAccess.Read, FileShare.Read)
                     : null;

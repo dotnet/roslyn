@@ -139,7 +139,6 @@ On a miss, Roslyn may also log diffs against recent prior key files for the same
 The experiment currently has several important limitations:
 
 - `PathMap` stability is effectively required for useful cache reuse. Differences in path mapping participate in the deterministic key, so builds that do not normalize machine-specific source paths are much less likely to hit the same cache entry across machines or worktrees.
-- Source Link data is not currently included in the cache identity. The current implementation passes `sourceLinkStream: null` when computing the deterministic key for cache lookup, so Source Link configuration or content is not independently represented by the cache key.
 - Because the cache key is based on the current deterministic-key computation, the set of inputs that control cache reuse should be treated as an implementation detail of the experiment rather than a guaranteed contract.
 - The on-disk cache format is intentionally provisional and may change without compatibility support.
 
@@ -148,7 +147,7 @@ The experiment currently has several important limitations:
 Areas still under evaluation include:
 
 - correctness of the deterministic key as a cache identity for all relevant build scenarios
-- whether the current treatment of `PathMap` and Source Link is sufficient for the scenarios where this experiment is expected to be useful
+- whether the current treatment of `PathMap` and other deterministic inputs is sufficient for the scenarios where this experiment is expected to be useful
 - disk growth and cache cleanup policy
 - behavior across SDK, compiler, or machine-environment changes
 - whether the current enablement mechanism should remain environment-variable based
