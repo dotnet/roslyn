@@ -134,16 +134,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
 
-                logger.Log($"Cache hit: {dllName} [{hashKey}]");
-                File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
-
-                if (!tryCopyOptional(entryDir, PdbFileName, outputFiles.PdbPath)
-                    || !tryCopyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
-                    || !tryCopyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
+                // Verify all required cached files exist before copying anything,
+                // so we don't partially overwrite outputs on a cache miss.
+                if (!existsOptional(entryDir, PdbFileName, outputFiles.PdbPath)
+                    || !existsOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
+                    || !existsOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
                 {
                     logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
                     return false;
                 }
+
+                logger.Log($"Cache hit: {dllName} [{hashKey}]");
+                File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
+                copyOptional(entryDir, PdbFileName, outputFiles.PdbPath);
+                copyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
+                copyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
             }
             catch (Exception ex)
             {
@@ -153,23 +158,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return true;
 
-            // Returns true if the file was successfully copied or was not needed.
-            // Returns false if the target path was requested but the cached file is missing.
-            static bool tryCopyOptional(string entryDir, string cachedFileName, string? targetPath)
+            // Returns true if the cached file exists or is not needed (targetPath is null).
+            static bool existsOptional(string entryDir, string cachedFileName, string? targetPath)
             {
                 if (targetPath is null)
                 {
                     return true;
                 }
 
-                var cachedPath = Path.Combine(entryDir, cachedFileName);
-                if (File.Exists(cachedPath))
+                return File.Exists(Path.Combine(entryDir, cachedFileName));
+            }
+
+            static void copyOptional(string entryDir, string cachedFileName, string? targetPath)
+            {
+                if (targetPath is null)
                 {
-                    File.Copy(cachedPath, targetPath, overwrite: true);
-                    return true;
+                    return;
                 }
 
-                return false;
+                File.Copy(Path.Combine(entryDir, cachedFileName), targetPath, overwrite: true);
             }
         }
 
