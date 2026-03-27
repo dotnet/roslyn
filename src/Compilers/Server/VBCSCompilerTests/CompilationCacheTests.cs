@@ -4,11 +4,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -440,6 +443,53 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.True(logMessages.Count >= 2);
             Assert.Contains(logMessages, m => m.Contains("Cache miss:"));
             Assert.Contains(logMessages, m => m.Contains("diff vs entry"));
+        }
+
+        [Fact]
+        public void GetDeterministicKey_DiffersWithSourceLink()
+        {
+            var compilation = CSharpCompilation.Create(
+                "TestAssembly",
+                [CSharpSyntaxTree.ParseText("class C { }")],
+                [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+
+            var emitOptions = new EmitOptions();
+
+            var keyWithoutSourceLink = compilation.GetDeterministicKey(
+                emitOptions: emitOptions,
+                sourceLinkStream: null);
+
+            using var sourceLinkStream = new MemoryStream("""{ "documents": { "*": "https://example.com/*" } }"""u8.ToArray());
+            var keyWithSourceLink = compilation.GetDeterministicKey(
+                emitOptions: emitOptions,
+                sourceLinkStream: sourceLinkStream);
+
+            Assert.NotEqual(keyWithoutSourceLink, keyWithSourceLink);
+        }
+
+        [Fact]
+        public void GetDeterministicKey_DiffersWithDifferentSourceLinkContent()
+        {
+            var compilation = CSharpCompilation.Create(
+                "TestAssembly",
+                [CSharpSyntaxTree.ParseText("class C { }")],
+                [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)],
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+
+            var emitOptions = new EmitOptions();
+
+            using var sourceLinkStreamA = new MemoryStream("""{ "documents": { "*": "https://a.com/*" } }"""u8.ToArray());
+            var keyA = compilation.GetDeterministicKey(
+                emitOptions: emitOptions,
+                sourceLinkStream: sourceLinkStreamA);
+
+            using var sourceLinkStreamB = new MemoryStream("""{ "documents": { "*": "https://b.com/*" } }"""u8.ToArray());
+            var keyB = compilation.GetDeterministicKey(
+                emitOptions: emitOptions,
+                sourceLinkStream: sourceLinkStreamB);
+
+            Assert.NotEqual(keyA, keyB);
         }
 
         private static CompilationCache CreateCache(string cachePath)

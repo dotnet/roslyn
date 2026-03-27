@@ -46,13 +46,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var dllName = arguments.OutputFileName;
             try
             {
+                // Open the source link file if specified so its content is included
+                // in the deterministic key, matching what CompileAndEmit does.
+                using var sourceLinkStream = arguments.SourceLink is not null
+                    ? new FileStream(arguments.SourceLink, FileMode.Open, FileAccess.Read, FileShare.Read)
+                    : null;
+
                 deterministicKey = compilation.GetDeterministicKey(
                     additionalTexts,
                     analyzers,
                     generators,
                     arguments.PathMap,
                     arguments.EmitOptions,
-                    sourceLinkStream: null,
+                    sourceLinkStream,
                     arguments.ManifestResources);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
