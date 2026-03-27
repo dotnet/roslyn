@@ -405,13 +405,13 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask<Project?> TryBeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, Project> createPrimordialProject, bool doDesignTimeBuild)
+    protected async ValueTask<Project> TryBeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, Project> createPrimordialProject, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            if (_loadedProjects.ContainsKey(projectPath))
+            if (_loadedProjects.TryGetValue(projectPath, out var existingState))
             {
-                return null;
+                return Lookup(existingState);
             }
 
             var primordialProject = createPrimordialProject(primordialProjectFactory);
@@ -420,6 +420,23 @@ internal abstract class LanguageServerProjectLoader
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
 
             return primordialProject;
+        }
+
+        Project Lookup(ProjectLoadState loadState)
+        {
+            if (loadState is ProjectLoadState.Primordial primordial)
+            {
+                return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
+            }
+            else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
+            {
+                // TODO2:
+                loadedTargets.LoadedProjectTargets.First
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(loadState);
+            }
         }
     }
 

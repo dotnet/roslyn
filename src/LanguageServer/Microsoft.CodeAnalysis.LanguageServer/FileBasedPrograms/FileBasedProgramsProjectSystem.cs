@@ -233,7 +233,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
     }
 
-    public async ValueTask<Project?> TryBeginLoadingProjectWithPrimordialAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
+    public async ValueTask<Project> TryBeginLoadingProjectWithPrimordialAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
         return await base.TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProject, doDesignTimeBuild);
 
