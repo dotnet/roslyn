@@ -523,7 +523,30 @@ namespace Microsoft.CodeAnalysis
             writer.Write("scriptClassName", options.ScriptClassName);
             writer.Write("mainTypeName", options.MainTypeName);
             WriteByteArrayValue(writer, "cryptoPublicKey", options.CryptoPublicKey.AsSpan());
-            writer.Write("cryptoKeyFile", options.CryptoKeyFile);
+
+            // When pre-read key content is available, write a checksum of the content
+            // instead of the file path. This ensures the deterministic key is based on
+            // what the compilation actually uses rather than where it came from on disk.
+            if (options.StrongNameKeys is { } strongNameKeys)
+            {
+                if (!strongNameKeys.KeyPair.IsDefault)
+                {
+                    WriteByteArrayValue(writer, "cryptoKeyFileContents", strongNameKeys.KeyPair.AsSpan());
+                }
+                else if (!strongNameKeys.PublicKey.IsDefault)
+                {
+                    WriteByteArrayValue(writer, "cryptoKeyFileContents", strongNameKeys.PublicKey.AsSpan());
+                }
+                else
+                {
+                    writer.Write("cryptoKeyFile", options.CryptoKeyFile);
+                }
+            }
+            else
+            {
+                writer.Write("cryptoKeyFile", options.CryptoKeyFile);
+            }
+
             writer.Write("delaySign", options.DelaySign);
             writer.Write("publicSign", options.PublicSign);
             writer.Write("checkOverflow", options.CheckOverflow);

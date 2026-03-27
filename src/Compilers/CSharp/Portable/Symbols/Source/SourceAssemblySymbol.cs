@@ -143,7 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _modules = moduleBuilder.ToImmutableAndFree();
 
-            if (!compilation.Options.CryptoPublicKey.IsEmpty)
+            if (compilation.Options.StrongNameKeys is not null)
+            {
+                _lazyStrongNameKeys = compilation.Options.StrongNameKeys;
+            }
+            else if (!compilation.Options.CryptoPublicKey.IsEmpty)
             {
                 // Private key is not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
                 _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey: null, hasCounterSignature: false, MessageProvider.Instance);
@@ -481,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // when both attributes and command-line options specified, cmd line wins.
             string keyFile = _compilation.Options.CryptoKeyFile;
+            var preReadKeys = _compilation.Options.StrongNameKeys;
 
             // Public sign requires a keyfile
             if (DeclaringCompilation.Options.PublicSign)
@@ -496,6 +501,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // about it
                     Debug.Assert(!DeclaringCompilation.Options.Errors.IsEmpty);
                     return StrongNameKeys.None;
+                }
+
+                // Use pre-read keys if available for the command-line specified key file
+                if (preReadKeys is not null)
+                {
+                    return preReadKeys;
                 }
 
                 // If we're public signing, we don't need a strong name provider
@@ -525,6 +536,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var hasCounterSignature = !string.IsNullOrEmpty(this.SignatureKey);
+
+            // Use pre-read keys if available and the key settings haven't been
+            // overridden by assembly-level attributes.
+            if (preReadKeys is not null
+                && keyFile == _compilation.Options.CryptoKeyFile
+                && keyContainer == _compilation.Options.CryptoKeyContainer)
+            {
+                if (preReadKeys.DiagnosticOpt is not null || preReadKeys.HasCounterSignature == hasCounterSignature)
+                {
+                    return preReadKeys;
+                }
+
+                return new StrongNameKeys(preReadKeys.KeyPair, preReadKeys.PublicKey, preReadKeys.PrivateKey, preReadKeys.KeyContainer, preReadKeys.KeyFilePath, hasCounterSignature);
+            }
+
             return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance);
         }
 

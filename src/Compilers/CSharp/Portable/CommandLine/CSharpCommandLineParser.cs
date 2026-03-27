@@ -1544,6 +1544,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options = options.WithDebugPlusMode(debugPlus);
             }
 
+            // Pre-read strong name key material during command line parsing so all
+            // input is read before compilation begins. This ensures compilations are
+            // immutable and repeatable even with disk changes.
+            if (!RoslynString.IsNullOrEmpty(keyFileSetting) || !RoslynString.IsNullOrEmpty(keyContainerSetting))
+            {
+                var provider = new DesktopStrongNameProvider(keyFileSearchPaths.AsImmutable());
+                options = options.WithStrongNameKeys(StrongNameKeys.Create(provider, keyFileSetting, keyContainerSetting, hasCounterSignature: false, MessageProvider));
+            }
+
             var emitOptions = new EmitOptions
             (
                 metadataOnly: refOnly,

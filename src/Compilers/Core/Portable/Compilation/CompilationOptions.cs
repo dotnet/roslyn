@@ -229,6 +229,12 @@ namespace Microsoft.CodeAnalysis
         public StrongNameProvider? StrongNameProvider { get; protected set; }
 
         /// <summary>
+        /// Pre-computed strong name keys for the assembly. When set, the compiler uses these
+        /// keys directly instead of reading key files from disk during compilation.
+        /// </summary>
+        internal StrongNameKeys? StrongNameKeys { get; set; }
+
+        /// <summary>
         /// Used to compare assembly identities. May implement unification and portability policies specific to the target platform.
         /// <see cref="AssemblyIdentityComparer.Default"/> if not specified.
         /// </summary>

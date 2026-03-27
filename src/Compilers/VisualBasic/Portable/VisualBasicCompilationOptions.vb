@@ -332,6 +332,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign,
                 ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
+
+            StrongNameKeys = other.StrongNameKeys
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -978,6 +980,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New VisualBasicCompilationOptions(Me) With {.StrongNameProvider = provider}
+        End Function
+
+        Friend Function WithStrongNameKeys(keys As StrongNameKeys) As VisualBasicCompilationOptions
+            If keys Is Me.StrongNameKeys Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.StrongNameKeys = keys}
         End Function
 
         Protected Overrides Function CommonWithOutputKind(kind As OutputKind) As CompilationOptions

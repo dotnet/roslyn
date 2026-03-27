@@ -103,7 +103,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             _modules = moduleBuilder.ToImmutableAndFree()
 
-            If Not compilation.Options.CryptoPublicKey.IsEmpty Then
+            If compilation.Options.StrongNameKeys IsNot Nothing Then
+                _lazyStrongNameKeys = compilation.Options.StrongNameKeys
+            ElseIf Not compilation.Options.CryptoPublicKey.IsEmpty Then
                 ' Private key Is Not necessary for assembly identity, only when emitting.  For this reason, the private key can remain null.
                 _lazyStrongNameKeys = StrongNameKeys.Create(compilation.Options.CryptoPublicKey, privateKey:=Nothing, hasCounterSignature:=False, MessageProvider.Instance)
             End If
@@ -1696,6 +1698,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim keys As StrongNameKeys
             Dim keyFile As String = _compilation.Options.CryptoKeyFile
+            Dim preReadKeys As StrongNameKeys = _compilation.Options.StrongNameKeys
 
             ' Public sign requires a keyfile
             If DeclaringCompilation.Options.PublicSign Then
@@ -1704,6 +1707,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' about it
                     Debug.Assert(Not DeclaringCompilation.Options.Errors.IsEmpty)
                     keys = StrongNameKeys.None
+                ElseIf preReadKeys IsNot Nothing Then
+                    ' Use pre-read keys if available for the command-line specified key file
+                    keys = preReadKeys
                 Else
                     keys = StrongNameKeys.Create(keyFile, MessageProvider.Instance)
                 End If
@@ -1733,7 +1739,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim hasCounterSignature = Not String.IsNullOrEmpty(SignatureKey)
-            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance)
+
+            ' Use pre-read keys if available and the key settings haven't been
+            ' overridden by assembly-level attributes.
+            If preReadKeys IsNot Nothing AndAlso
+               keyFile = _compilation.Options.CryptoKeyFile AndAlso
+               keyContainer = _compilation.Options.CryptoKeyContainer Then
+
+                If preReadKeys.DiagnosticOpt IsNot Nothing OrElse preReadKeys.HasCounterSignature = hasCounterSignature Then
+                    keys = preReadKeys
+                Else
+                    keys = New StrongNameKeys(preReadKeys.KeyPair, preReadKeys.PublicKey, preReadKeys.PrivateKey, preReadKeys.KeyContainer, preReadKeys.KeyFilePath, hasCounterSignature)
+                End If
+            Else
+                keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, hasCounterSignature, MessageProvider.Instance)
+            End If
+
             Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
