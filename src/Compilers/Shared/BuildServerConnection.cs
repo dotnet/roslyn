@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             string? dotNetRoot = IsBuiltinToolRunningOnCoreClr ? RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) : null;
 
-            if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
+            if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation && additionalEnvironmentVariables == null)
             {
                 return null;
             }
