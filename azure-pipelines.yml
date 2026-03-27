@@ -278,6 +278,7 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
+        poolParameters: ${{ parameters.vs2022PreviewPool }}
         testArguments: -testCoreClr
 
   - template: eng/pipelines/test-windows-job.yml
