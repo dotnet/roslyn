@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -106,30 +106,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   isReturnType As Boolean,
                                                   emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
 
-            If synthesized IsNot Nothing Then
-                For Each attribute In synthesized
-                    Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=False))
-                    Yield attribute
-                Next
+            Try
+                If synthesized IsNot Nothing Then
+                    For Each attribute In synthesized
+                        Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=False))
+                        Yield attribute
+                    Next
+                End If
 
-                synthesized.Free()
-            End If
+                For i = 0 To userDefined.Length - 1
+                    Dim attribute As VisualBasicAttributeData = userDefined(i)
 
-            For i = 0 To userDefined.Length - 1
-                Dim attribute As VisualBasicAttributeData = userDefined(i)
-
-                If Me.Kind = SymbolKind.Assembly Then
-                    ' We need to filter out duplicate assembly attributes,
-                    ' i.e. attributes that bind to the same constructor and have identical arguments.
-                    If DirectCast(Me, SourceAssemblySymbol).IsIndexOfDuplicateAssemblyAttribute(i) Then
-                        Continue For
+                    If Me.Kind = SymbolKind.Assembly Then
+                        ' We need to filter out duplicate assembly attributes,
+                        ' i.e. attributes that bind to the same constructor and have identical arguments.
+                        If DirectCast(Me, SourceAssemblySymbol).IsIndexOfDuplicateAssemblyAttribute(i) Then
+                            Continue For
+                        End If
                     End If
-                End If
 
-                If attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule) Then
-                    Yield attribute
+                    If attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule) Then
+                        Yield attribute
+                    End If
+                Next
+            Finally
+                If synthesized IsNot Nothing Then
+                    synthesized.Free()
                 End If
-            Next
+            End Try
         End Function
 
         ''' <summary>

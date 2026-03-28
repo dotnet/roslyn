@@ -134,36 +134,41 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckDefinitionInvariant();
 
-            if (synthesized != null)
+            try
             {
-                foreach (var attribute in synthesized)
+                if (synthesized != null)
                 {
-                    // only synthesize attributes that are emitted:
-                    Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule));
-                    yield return attribute;
-                }
-
-                synthesized.Free();
-            }
-
-            for (int i = 0; i < userDefined.Length; i++)
-            {
-                CSharpAttributeData attribute = userDefined[i];
-                if (this.Kind == SymbolKind.Assembly)
-                {
-                    // We need to filter out duplicate assembly attributes (i.e. attributes that
-                    // bind to the same constructor and have identical arguments) and invalid
-                    // InternalsVisibleTo attributes.
-                    if (((SourceAssemblySymbol)this).IsIndexOfOmittedAssemblyAttribute(i))
+                    foreach (var attribute in synthesized)
                     {
-                        continue;
+                        // only synthesize attributes that are emitted:
+                        Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule));
+                        yield return attribute;
                     }
                 }
 
-                if (attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule))
+                for (int i = 0; i < userDefined.Length; i++)
                 {
-                    yield return attribute;
+                    CSharpAttributeData attribute = userDefined[i];
+                    if (this.Kind == SymbolKind.Assembly)
+                    {
+                        // We need to filter out duplicate assembly attributes (i.e. attributes that
+                        // bind to the same constructor and have identical arguments) and invalid
+                        // InternalsVisibleTo attributes.
+                        if (((SourceAssemblySymbol)this).IsIndexOfOmittedAssemblyAttribute(i))
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule))
+                    {
+                        yield return attribute;
+                    }
                 }
+            }
+            finally
+            {
+                synthesized?.Free();
             }
         }
     }

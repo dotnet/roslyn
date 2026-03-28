@@ -94,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.body.HasErrors)
             {
+                synthesizedLocalOrdinals.Free();
                 return this.body;
             }
 
@@ -119,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (diagnostics.HasAnyErrors())
             {
+                synthesizedLocalOrdinals.Free();
                 // Avoid triggering assertions in further lowering.
                 return new BoundBadStatement(F.Syntax, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }

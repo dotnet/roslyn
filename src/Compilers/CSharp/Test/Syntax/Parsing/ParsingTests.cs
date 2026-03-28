@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             static ImmutableArray<Syntax.InternalSyntax.SyntaxToken> getLexedTokens(string text)
             {
-                var lexer = new Syntax.InternalSyntax.Lexer(Text.SourceText.From(text), CSharpParseOptions.Default);
+                using var lexer = new Syntax.InternalSyntax.Lexer(Text.SourceText.From(text), CSharpParseOptions.Default);
                 var tokensBuilder = ArrayBuilder<Syntax.InternalSyntax.SyntaxToken>.GetInstance();
 
                 while (lexer.Lex(Syntax.InternalSyntax.LexerMode.Syntax) is var token && token.Kind != SyntaxKind.EndOfFileToken)

@@ -53,8 +53,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                     Console.Write("""" & e.ToString() & """")
                 Next
                 Console.WriteLine()
+                actual.Free()
                 Assert.True(False)
             End If
+            actual.Free()
         End Sub
 
         <Fact>

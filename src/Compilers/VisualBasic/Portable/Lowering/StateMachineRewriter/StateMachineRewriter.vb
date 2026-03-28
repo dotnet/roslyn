@@ -115,6 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             GenerateMethodImplementations()
 
+            SynthesizedLocalOrdinals.Free()
+
             ' Return a replacement body for the kickoff method
             Return GenerateKickoffMethodBody()
         End Function
