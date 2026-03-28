@@ -6,7 +6,7 @@ The `roslyn-language-server` is a .NET tool that provides C# language intelligen
 
 ### Install the plugin
 
-In your agent (Copilot CLI, etc.), add the marketplace and install the `dotnet` plugin:
+In your agent (Copilot CLI, GitHub Copilot, etc.), add the marketplace and install the `dotnet` plugin:
 
 ```
 /plugin marketplace add dotnet/skills
@@ -14,6 +14,8 @@ In your agent (Copilot CLI, etc.), add the marketplace and install the `dotnet` 
 ```
 
 Restart the agent to load the plugin. Once installed, the agent will automatically have access to C# language intelligence for `.cs` files through the LSP.
+
+Here's an example of [adding the plugin to GitHub Copilot](https://github.com/dotnet/roslyn/pull/82965).
 
 ### What it provides
 
