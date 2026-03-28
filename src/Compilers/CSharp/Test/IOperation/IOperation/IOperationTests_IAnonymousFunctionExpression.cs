@@ -881,7 +881,6 @@ struct C
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
-        [ValidatePooledObjects(Skip = "OperationExtensions.Descendants leaks ArrayBuilder when iteration stops early")]
         public void LambdaFlow_05()
         {
             string source = @"

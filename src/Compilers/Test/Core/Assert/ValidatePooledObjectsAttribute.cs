@@ -28,19 +28,26 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     public bool TraceLeaks { get; set; }
 
     /// <summary>
-    /// When set to a non-<see langword="null"/> value, pool leak validation is skipped.
+    /// When set to a non-<see langword="null"/> value, pool leak validation is skipped entirely (no tracking).
     /// The value should describe the reason for skipping. When applied at the method level,
     /// this also suppresses validation from a class-level attribute.
     /// </summary>
     public string? Skip { get; set; }
 
+    /// <summary>
+    /// When set to a non-<see langword="null"/> value, leaks are expected and the test will
+    /// fail if no leaks are detected (i.e., the expectation is no longer necessary and should be removed).
+    /// The value should describe the reason leaks are expected.
+    /// When applied at the method level, this also suppresses validation from a class-level attribute.
+    /// </summary>
+    public string? LeaksExpected { get; set; }
+
 #if DEBUG
     /// <summary>
-    /// Set to <see langword="true"/> on the current execution context when any instance
-    /// has <see cref="Skip"/> set. Once set, all instances (including a class-level attribute)
-    /// suppress leak validation for the current test.
+    /// When a method-level attribute has <see cref="Skip"/> or <see cref="LeaksExpected"/> set,
+    /// this flag suppresses the class-level attribute's validation for the same test.
     /// </summary>
-    private static readonly AsyncLocal<bool> s_skipValidation = new();
+    private static readonly AsyncLocal<bool> s_suppressClassLevelValidation = new();
 
     private PoolTrackingContext? _context;
 #endif
@@ -50,12 +57,17 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 #if DEBUG
         if (Skip is not null)
         {
-            s_skipValidation.Value = true;
+            s_suppressClassLevelValidation.Value = true;
             return;
         }
 
         Assert.True(!TraceLeaks || string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CI")),
             "Tracing leaks is very slow, shouldn't be set in CI.");
+
+        if (LeaksExpected is not null)
+        {
+            s_suppressClassLevelValidation.Value = true;
+        }
 
         PoolTracker.StartTracking(out var context, TraceLeaks);
         _context = context;
@@ -73,7 +85,18 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 
         PoolTracker.StopTracking();
 
-        if (!s_skipValidation.Value && context?.HasLeaks == true)
+        if (LeaksExpected is not null)
+        {
+            if (context?.HasLeaks != true)
+            {
+                throw new XunitException(
+                    $"{nameof(LeaksExpected)} was set but no leaks were detected. Remove {nameof(LeaksExpected)}. Reason was: {LeaksExpected}");
+            }
+
+            return;
+        }
+
+        if (!s_suppressClassLevelValidation.Value && context?.HasLeaks == true)
         {
             throw new XunitException(context.GetLeakSummary());
         }
