@@ -3020,6 +3020,7 @@ class C
 
         [Fact]
         [WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")]
+        [ValidatePooledObjects(Skip = "EnsureCSharpSymbolOrNull throws on VB type arguments after ArrayBuilder allocation")]
         public void ConstructTypeWithNullability()
         {
             var source =
@@ -3054,6 +3055,7 @@ class C
 
         [Fact]
         [WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")]
+        [ValidatePooledObjects(Skip = "EnsureCSharpSymbolOrNull throws on VB type arguments after ArrayBuilder allocation")]
         public void ConstructMethodWithNullability()
         {
             var source =
