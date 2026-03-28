@@ -181,11 +181,9 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
     }
 
     [Theory, CombinatorialData]
-    public async Task TestLooseFile_RazorFile(bool mutatingLspWorkspace, bool addTestRazorService)
+    public async Task TestLooseFile_RazorFile(bool mutatingLspWorkspace)
     {
-        var composition = addTestRazorService
-            ? Composition.AddParts(typeof(TestRazorMiscellaneousProjectInfoService))
-            : null;
+        var composition = Composition.AddParts(typeof(TestRazorMiscellaneousProjectInfoService));
 
         // Create a server that supports LSP misc files and verify no misc files present.
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
@@ -393,7 +391,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         return documents.SingleOrDefault();
     }
 
-    private static async ValueTask<TextDocument?> GetMiscellaneousAdditionalDocumentAsync(TestLspServer testLspServer)
+    private protected static async ValueTask<TextDocument?> GetMiscellaneousAdditionalDocumentAsync(TestLspServer testLspServer)
     {
         var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.AdditionalDocuments).ToImmutableArrayAsync(CancellationToken.None);
         return documents.SingleOrDefault();
