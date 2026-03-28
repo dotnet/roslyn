@@ -25,7 +25,13 @@ jobs:
 
       - name: Install .NET agent skills
         continue-on-error: true
-        run: ./.github/scripts/setup-copilot-skills.sh
+        run: |
+          copilot plugin marketplace add dotnet/skills
+          copilot plugin install dotnet@dotnet-agent-skills
+          copilot plugin install dotnet-msbuild@dotnet-agent-skills
+          copilot plugin install dotnet-test@dotnet-agent-skills
+          copilot plugin install dotnet-diag@dotnet-agent-skills
+          copilot plugin install dotnet-nuget@dotnet-agent-skills
 
       # Restore dependencies - this is critical for Copilot to understand the project structure
       - name: Restore dependencies
