@@ -523,6 +523,7 @@ namespace Microsoft.CodeAnalysis
                 if (_states.Count == 0)
                 {
                     _states.Free();
+                    _steps?.Free();
                     return NodeStateTable<T>.Empty;
                 }
 
@@ -649,7 +650,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 Debug.Assert(itemBuilder.Count < this.Count);
-                return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableArray()), s_allCachedEntries, anyRemoved: false);
+                return new TableEntry(OneOrMany.Create(itemBuilder.ToImmutableAndFree()), s_allCachedEntries, anyRemoved: false);
             }
 
             public TableEntry AsRemovedDueToInputRemoval() => new(_items, s_allRemovedDueToInputRemoval, anyRemoved: true);

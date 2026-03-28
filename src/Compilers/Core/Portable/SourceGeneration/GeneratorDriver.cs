@@ -358,9 +358,17 @@ namespace Microsoft.CodeAnalysis
             foreach (var outputNode in outputNodes)
             {
                 // if we're looking for this output kind, and it has not been explicitly disabled
-                if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
+                try
                 {
-                    outputNode.AppendOutputs(context, cancellationToken);
+                    if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
+                    {
+                        outputNode.AppendOutputs(context, cancellationToken);
+                    }
+                }
+                catch
+                {
+                    context.Free();
+                    throw;
                 }
             }
             return context;
@@ -433,6 +441,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (ArgumentException ex)
                 {
+                    filteredDiagnostics.Free();
                     throw new UserFunctionException(ex);
                 }
 

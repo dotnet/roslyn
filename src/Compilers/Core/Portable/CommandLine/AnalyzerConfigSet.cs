@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis
                              keyName,
                              sectionName,
                              string.Join(", ", configPaths)));
+                        configPaths.Free();
                     }
                 }
                 _duplicates = null;
