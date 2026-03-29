@@ -26916,6 +26916,1221 @@ forLowering: true);
             verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", expectedIL);
         }
+
+        [Fact]
+        public void HasValueProperty_13()
+        {
+            var src = @"
+#nullable enable
+
+public class S0
+{
+    public bool HasValue => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+public class S1 : S0
+{
+    public S1(string? x) {}
+    public object? Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.HasValue)
+        {
+#line 100
+            _ = s switch { string => 1 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { string => 1 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (!s.HasValue)
+        {
+#line 300
+            _ = s switch { string => 1 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { string => 1 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_01([CombinatorialValues("class", "struct")] string typeKind)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+" + typeKind + @" S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(new S1(null)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1<T>
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public T TryGetValue(out int value) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(10)));
+        System.Console.Write(Test1(new S1<bool>(0)));
+        System.Console.Write(Test1(new S1<bool>(""10"")));
+        System.Console.Write(Test1(new S1<bool>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_03()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1<T>
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(out T value) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(new S1<int>(0)));
+        System.Console.Write(Test1(new S1<int>(""10"")));
+        System.Console.Write(Test1(new S1<int>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_04()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public new T TryGetValue(out int value) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(10)));
+        System.Console.Write(Test1(new S1<bool>(0)));
+        System.Console.Write(Test1(new S1<bool>(""10"")));
+        System.Console.Write(Test1(new S1<bool>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_05()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public bool TryGetValue(out T value) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(new S1<int>(0)));
+        System.Console.Write(Test1(new S1<int>(""10"")));
+        System.Console.Write(Test1(new S1<int>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_06()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(new S1(""10"")));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_07()
+        {
+            var src = @"
+class S01(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+class S02(object value) : S01(value)
+{
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S02
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(new S1(""10"")));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_08()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public T TryGetValue(out int value) { if (_value is int) { value = (int)_value; return (T)(object)true; } else { value = 0; return (T)(object)false; } }
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0<bool>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(new S1(""10"")));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_09()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out T value) { if (_value is T) { value = (T)_value; return true; } else { value = default; return false; } }
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0<int>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(new S1(""10"")));
+        System.Console.Write(Test1(new S1(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_10()
+        {
+            var src = @"
+class S0<T1, T2>(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public T1 TryGetValue(out int value) { if (_value is int) { value = (int)_value; return (T1)(object)true; } else { value = 0; return (T1)(object)false; } }
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<bool, T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<Program>(10)));
+        System.Console.Write(Test1(new S1<Program>(0)));
+        System.Console.Write(Test1(new S1<Program>(""10"")));
+        System.Console.Write(Test1(new S1<Program>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<Program> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_11()
+        {
+            var src = @"
+class S0<T1, T2>(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out T1 value) { if (_value is T1) { value = (T1)_value; return true; } else { value = default; return false; } }
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<int, T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<Program>(10)));
+        System.Console.Write(Test1(new S1<Program>(0)));
+        System.Console.Write(Test1(new S1<Program>(""10"")));
+        System.Console.Write(Test1(new S1<Program>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<Program> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_12()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+    public T TryGetValue(out int value) => throw null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<bool>(10)));
+        System.Console.Write(Test1(new S1<bool>(0)));
+        System.Console.Write(Test1(new S1<bool>(""10"")));
+        System.Console.Write(Test1(new S1<bool>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<bool> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_13()
+        {
+            var src = @"
+class S0<T>(object value)
+{
+    private readonly object _value = value;
+    public object Value => _value;
+    public bool TryGetValue(out T value) => throw null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(new S1<int>(0)));
+        System.Console.Write(Test1(new S1<int>(""10"")));
+        System.Console.Write(Test1(new S1<int>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_14()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+        System.Console.Write(Test1(new S0(10)));
+        System.Console.Write(Test1(new S0(""11"")));
+        System.Console.Write(Test1(new S0(true)));
+    }
+
+    static bool Test1(S0 u)
+    {
+        return u is S1 and 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_15_Override()
+        {
+            var src1 = @"
+class S0(object value)
+{
+    protected readonly object _value = value;
+    public object Value => throw null;
+    public virtual bool TryGetValue(out int value) => throw null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
+    public S1(bool x) : base(x) {}
+
+    public override bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(true)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src1, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0013
+  IL_0003:  ldarg.0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  callvirt   ""bool S0.TryGetValue(out int)""
+  IL_000b:  brfalse.s  IL_0013
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.s   10
+  IL_0010:  ceq
+  IL_0012:  ret
+  IL_0013:  ldc.i4.0
+  IL_0014:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TryGetValueMethod_16()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1<T>
+{
+    private readonly object _value;
+    public S1(T x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out T value) { if (_value is T) { value = (T)_value; return true; } else { value = default; return false; } }
+
+    public bool Test(out T value)
+    {
+        if (this is T and var val)
+        {
+            value = val;
+            return true;
+        }
+        else
+        {
+            value = default;
+            return false;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((new S1<int>(10) ).Test(out var _));
+        System.Console.Write((new S1<int>(0)).Test(out var _));
+        System.Console.Write((new S1<int>(""10"")).Test(out var _));
+        System.Console.Write((new S1<int>(null)).Test(out var _));
+
+        System.Console.WriteLine();
+
+        System.Console.Write((new S1<int?>((int?)null)).Test(out var _));
+        System.Console.Write((new S1<int?>(4)).Test(out var x));
+        System.Console.Write(x);
+
+        //System.Console.WriteLine();
+
+        //var s = new S1<int?>(4);
+        //System.Console.Write(s is 4);
+        //System.Console.Write(s is 1);
+    }
+}
+";
+            // PROTOTYPE: Commented out code in the test scenario above should work (use TryGetValue).
+            //            Probably TryGetValue-out-parameter-conversions should allow us to do that, but they aren't implemented yet.
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"
+TrueTrueFalseFalse
+FalseTrue4
+").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_17()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1<T>
+{
+    private readonly object _value;
+    public S1(T x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(out int value) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((new S1<int>(10)) is 10);
+        System.Console.Write((new S1<int>(1)) is 10);
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"TrueFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_18()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1<T>
+{
+    private readonly object _value;
+    public S1(T x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out T value) { if (_value is T) { value = (T)_value; return true; } else { value = default; return false; } }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((new S1<int>(10)) is 10);
+        System.Console.Write((new S1<int>(1)) is 10);
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: @"TrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_19_Determinism(
+            [CombinatorialValues(
+                """
+                public S1(T x) { _value = x; }
+                public S1(int x) { _value = x; }
+                """,
+                """
+                public S1(int x) { _value = x; }
+                public S1(T x) { _value = x; }
+                
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                """
+                public bool TryGetValue(out T value) { if (_value is T) { value = (T)_value; return true; } else { value = default; return false; } }
+                public bool TryGetValue(out int value) => throw null;
+                """,
+                """
+                public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+                public bool TryGetValue(out T value) => throw null;
+                """)]
+            string tryGetValues)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public class S1<T>
+{
+    private readonly object _value;
+    " + constructors + @"
+    public object Value => throw null;
+    " + tryGetValues + @"
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write((new S1<int>(10)) is 10);
+        System.Console.Write((new S1<int>(1)) is 10);
+    }
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: @"TrueFalse").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: @"TrueFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_20(
+            [CombinatorialValues(
+                """
+                public S1(string? x) {}
+                public S1(T x) {}
+                """,
+                """
+                public S1(T x) {}
+                public S1(string? x) {}
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                """
+                public bool TryGetValue(out string? value) => throw null!;
+                public bool TryGetValue(out T value) => throw null!;
+                """,
+                """
+                public bool TryGetValue(out T value) => throw null!;
+                public bool TryGetValue(out string? value) => throw null!;
+                """)]
+            string tryGetValues)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+public class S1<T>
+{
+    " + constructors + @"
+    public object? Value => throw null!;
+    " + tryGetValues + @"
+}
+
+class Program
+{
+    static void Test2(S1<string?> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+        else
+        {
+#line 200
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+    } 
+
+    static void Test4(S1<string?> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+        else
+        {
+#line 400
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (201,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(201, 13),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19),
+                // (301,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(301, 13)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_21(
+            [CombinatorialValues(
+                """
+                public S1(string? x) {}
+                public S1(T x) {}
+                """,
+                """
+                public S1(T x) {}
+                public S1(string? x) {}
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                """
+                public bool TryGetValue(out string? value) => throw null!;
+                public bool TryGetValue(out T value) => throw null!;
+                """,
+                """
+                public bool TryGetValue(out T value) => throw null!;
+                public bool TryGetValue(out string? value) => throw null!;
+                """)]
+            string tryGetValues)
+        {
+            var src = @"
+#nullable enable
+
+public class S0<T>
+{
+    " + tryGetValues + @"
+}
+
+[System.Runtime.CompilerServices.Union]
+public class S1<T> : S0<T>
+{
+    " + constructors + @"
+    public object? Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1<string?> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+        else
+        {
+#line 200
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+    } 
+
+    static void Test4(S1<string?> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+        else
+        {
+#line 400
+            _ = s switch { string => 1 };
+            value.ToString();
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (201,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(201, 13),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19),
+                // (301,13): warning CS8602: Dereference of a possibly null reference.
+                //             value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "value").WithLocation(301, 13)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_22(
+            [CombinatorialValues(
+                """
+                public S1(int x) {}
+                public bool TryGetValue(out T value) => throw null!;
+                """,
+                """
+                public S1(T x) {}
+                public bool TryGetValue(out int value) => throw null!;
+                """)]
+            string members)
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+public class S1<T>
+{
+    " + members + @"
+    public object? Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1<int> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            _ = s switch { int => 1 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1 };
+        }
+    } 
+
+    static void Test4(S1<int> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            _ = s switch { int => 1 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19),
+                // (400,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(400, 19)
+                );
+        }
+
+        [Fact]
+        public void TryGetValueMethod_23()
+        {
+            var src = @"
+#nullable enable
+
+public class S0
+{
+    public bool TryGetValue(out int value) => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+public class S1<T> : S0
+{
+    public S1(T x) {}
+    public object? Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1<int> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            _ = s switch { int => 1 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1 };
+        }
+    } 
+
+    static void Test4(S1<int> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            _ = s switch { int => 1 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19),
+                // (400,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(400, 19)
+                );
+        }
+
+        [Fact]
+        public void TryGetValueMethod_24()
+        {
+            var src = @"
+#nullable enable
+
+public class S0<T>
+{
+    public bool TryGetValue(out T value) => throw null!;
+}
+
+[System.Runtime.CompilerServices.Union]
+public class S1<T> : S0<T>
+{
+    public S1(int x) {}
+    public object? Value => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1<int> s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            _ = s switch { int => 1 };
+        }
+        else
+        {
+#line 200
+            _ = s switch { int => 1 };
+        }
+    } 
+
+    static void Test4(S1<int> s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            _ = s switch { int => 1 };
+        }
+        else
+        {
+#line 400
+            _ = s switch { int => 1 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 19),
+                // (200,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(200, 19),
+                // (300,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(300, 19),
+                // (400,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { int => 1 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(400, 19)
+                );
+        }
     }
 }
 

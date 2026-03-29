@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         if (property.GetMethod is not null)
                                         {
                                             // A property evaluation splits the state if MemberNotNullWhen is used
-                                            ApplyMemberPostConditions(inputSlot, property.GetMethod);
+                                            ApplyMemberPostConditions(inputType, inputSlot, property.GetMethod);
                                         }
 
                                         break;

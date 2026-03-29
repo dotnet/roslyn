@@ -665,19 +665,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             */
             if (evaluation is BoundDagDeconstructEvaluation
                 {
-                    DeconstructMethod:
-                    {
-                        Name: WellKnownMemberNames.TryGetValueMethodName,
-                        ReturnType.SpecialType: SpecialType.System_Boolean,
-                        DeclaredAccessibility: Accessibility.Public,
-                        RefKind: RefKind.None,
-                        Parameters: [{ RefKind: RefKind.Out, Type: var parameterType }],
-                    },
+                    DeconstructMethod: { Name: WellKnownMemberNames.TryGetValueMethodName } deconstructMethod,
                     Input: { } tryGetValueInput
                 } &&
+                Binder.HasTryGetValueSignature(deconstructMethod) &&
                 tryGetValueInput.Type is NamedTypeSymbol { IsUnionType: true } match)
             {
-                targetType = parameterType;
+                targetType = deconstructMethod.Parameters[0].Type;
                 unionInstance = tryGetValueInput;
                 return true;
             }
@@ -794,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (_forLowering)
                     {
-                        var deconstructEvaluation = new BoundDagDeconstructEvaluation(syntax, tryGetValue, OriginalInput(inputInfo.DagTemp, tryGetValue)); // PROTOTYPE: Inherited TryGetValue and OriginalInput?
+                        var deconstructEvaluation = new BoundDagDeconstructEvaluation(syntax, tryGetValue, inputInfo.DagTemp);
                         tests.Add(new Tests.One(deconstructEvaluation));
 
                         var boolResult = deconstructEvaluation.MakeReturnValueTemp();

@@ -3949,6 +3949,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // collection expression.
                     var reinferenceResult = this.VisitArgumentsCore(
                         objectCreation,
+                        receiverType: null,
                         objectCreation.Arguments,
                         objectCreation.ArgumentRefKindsOpt,
                         objectCreation.Constructor.Parameters,
@@ -3986,6 +3987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var reinferenceResult = this.VisitArgumentsCore(
                         call,
+                        receiverType: null,
                         call.Arguments,
                         call.ArgumentRefKindsOpt,
                         call.Method.Parameters,
@@ -4251,7 +4253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = node.Arguments;
 
             ReinferenceResult<MethodSymbol> reinferenceResult = VisitArgumentsCore(
-                node, arguments, node.ArgumentRefKindsOpt, constructor?.Parameters ?? default,
+                node, receiverType: null, arguments, node.ArgumentRefKindsOpt, constructor?.Parameters ?? default,
                 node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded, usesExtensionReceiver: false,
                 constructor, delayCompletionForTargetMember: isTargetTyped);
 
@@ -4581,7 +4583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var reinferenceResult = VisitArgumentsCore(
-                            objectInitializer, arguments, refKindsOpt,
+                            objectInitializer, containingType, arguments, refKindsOpt,
                             parameters, argsToParamsOpt,
                             objectInitializer.DefaultArguments, objectInitializer.Expanded,
                             usesExtensionReceiver: isExtensionBlockMember, member: (Symbol?)null, delayCompletionForTargetMember: delayCompletionForType);
@@ -4809,6 +4811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we analyze even omitted calls
             var reinferenceResult = VisitArgumentsCore(
                     node,
+                    containingType,
                     node.Arguments,
                     refKindsOpt: default,
                     addMethod.Parameters,
@@ -6962,7 +6965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             argsToParamsOpt = AdjustArgsToParamsOptIfNeeded(argsToParamsOpt, adjustForExtensionBlockMember);
 
             bool usesExtensionReceiver = invokedAsExtensionMethod || method.IsExtensionBlockMember();
-            ReinferenceResult<MethodSymbol> reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parameters, argsToParamsOpt, defaultArguments,
+            ReinferenceResult<MethodSymbol> reinferenceResult = VisitArgumentsCore(node, receiverType.Type, arguments, refKindsOpt, parameters, argsToParamsOpt, defaultArguments,
                 expanded, usesExtensionReceiver, method, firstArgumentResult: firstArgumentResult, delayCompletionForTargetMember: false);
 
             Debug.Assert(reinferenceResult.Completion is null);
@@ -7471,6 +7474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitArguments(
             BoundExpression node,
+            TypeSymbol? receiverType,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
             MethodSymbol? method,
@@ -7479,12 +7483,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             bool invokedAsExtensionMethod)
         {
-            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMember: false);
+            var reinferenceResult = VisitArgumentsCore(node, receiverType, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, defaultArguments, expanded, invokedAsExtensionMethod, method, delayCompletionForTargetMember: false);
             Debug.Assert(reinferenceResult.Completion is null);
         }
 
         private void VisitArguments(
             BoundExpression node,
+            TypeSymbol? receiverType,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
             PropertySymbol? property,
@@ -7492,7 +7497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             bool expanded)
         {
-            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parametersOpt: property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver: false, member: property, delayCompletionForTargetMember: false);
+            var reinferenceResult = VisitArgumentsCore(node, receiverType, arguments, refKindsOpt, parametersOpt: property is null ? default : property.Parameters, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver: false, member: property, delayCompletionForTargetMember: false);
             Debug.Assert(reinferenceResult.Completion is null);
         }
 
@@ -7513,6 +7518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ReinferenceResult<TMember> VisitArgumentsCore<TMember>(
             BoundNode node,
+            TypeSymbol? receiverType,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<ParameterSymbol> parametersOpt,
@@ -7545,11 +7551,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<VisitResult> results = VisitArgumentsEvaluate(argumentsNoConversions, refKindsOpt, GetParametersAnnotations(arguments, parametersOpt, argsToParamsOpt, expanded), defaultArguments, firstArgumentResult: firstArgumentResult);
 
             return visitArgumentsCore(
+                receiverType,
                 node, arguments, argumentsNoConversions, conversions, results, refKindsOpt,
                 parametersOpt, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver,
                 member, delayCompletionForTargetMember);
 
             ReinferenceResult<TMember> visitArgumentsCore(
+                TypeSymbol? receiverType,
                 BoundNode node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<BoundExpression> argumentsNoConversions,
@@ -7569,6 +7577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (delayCompletionForTargetMember)
                 {
                     return new ReinferenceResult<TMember>(member, results, shouldReturnNotNull, visitArgumentsCoreAsContinuation(
+                                                                      receiverType,
                                                                       node, arguments, argumentsNoConversions, conversions, refKindsOpt,
                                                                       argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver));
                 }
@@ -7707,6 +7716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         VisitArgumentOutboundAssignmentsAndPostConditions(
+                            receiverType,
                             arguments[i],
                             GetRefKind(refKindsOpt, i),
                             parameter,
@@ -7740,6 +7750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ArgumentsCompletionDelegate<TMember> visitArgumentsCoreAsContinuation(
+                TypeSymbol? receiverType,
                 BoundNode node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<BoundExpression> argumentsNoConversions,
@@ -7753,6 +7764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (ImmutableArray<VisitResult> results, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) =>
                        {
                            var result = visitArgumentsCore(
+                                           receiverType,
                                            node, arguments, argumentsNoConversions, conversions, results, refKindsOpt,
                                            parametersOpt, argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver,
                                            member, delayCompletionForTargetMember: false);
@@ -7873,7 +7885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ApplyMemberPostConditions(receiverSlot, method);
+            ApplyMemberPostConditions(receiverOpt?.Type, receiverSlot, method);
         }
 
         /// <summary>
@@ -7911,7 +7923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return 0;
         }
 
-        private void ApplyMemberPostConditions(int receiverSlot, MethodSymbol method)
+        private void ApplyMemberPostConditions(TypeSymbol? receiverType, int receiverSlot, MethodSymbol method)
         {
             Debug.Assert(receiverSlot >= 0);
             if (method.IsExtensionBlockMember())
@@ -7946,16 +7958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         applyMemberPostConditions(receiverSlot, type, notNullWhenFalseMembers, ref StateWhenFalse);
                     }
 
-                    if (method is MethodSymbol
-                        {
-                            Name: WellKnownMemberNames.TryGetValueMethodName,
-                            ReturnType.SpecialType: SpecialType.System_Boolean,
-                            DeclaredAccessibility: Accessibility.Public,
-                            RefKind: RefKind.None,
-                            Parameters: [{ RefKind: RefKind.Out, Type: var parameterType }],
-                            ContainingType: { IsUnionType: true } unionType
-                        } tryGetValue &&
-                        (object)tryGetValue.OriginalDefinition == Binder.GetUnionTypeTryGetValueMethod(unionType, parameterType)?.OriginalDefinition && // Looking for TryGetValue with exact type match at this call site
+                    if (Binder.HasTryGetValueSignature(method) &&
+                        receiverType is NamedTypeSymbol { IsUnionType: true } unionType &&
+                        Binder.IsUnionTypeTryGetValueMethod(unionType, method) &&
                         Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType) is { } unionValue)
                     {
                         Split();
@@ -8286,6 +8291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// tracks those assignments (or learns from post-condition attributes)
         /// </summary>
         private void VisitArgumentOutboundAssignmentsAndPostConditions(
+            TypeSymbol? receiverType,
             BoundExpression argument,
             RefKind refKind,
             ParameterSymbol parameter,
@@ -8320,7 +8326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
                         var lValueType = result.LValueType;
-                        trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations, refKind, parameter);
+                        trackNullableStateForAssignment(receiverType, parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations, refKind, parameter);
 
                         // check whether parameter would unsafely let a null out in the worse case
                         if (!argument.IsSuppressed)
@@ -8364,7 +8370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax);
 
                         AdjustSetValue(argument, ref parameterWithState);
-                        trackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations, refKind, parameter);
+                        trackNullableStateForAssignment(receiverType, parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations, refKind, parameter);
 
                         // report warnings if parameter would unsafely let a null out in the worst case
                         if (!argument.IsSuppressed)
@@ -8402,9 +8408,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return parameterAnnotations;
             }
 
-            void trackNullableStateForAssignment(BoundExpression parameterValue, TypeWithAnnotations lValueType, int targetSlot, TypeWithState parameterWithState, bool isSuppressed, FlowAnalysisAnnotations parameterAnnotations, RefKind refKind, ParameterSymbol parameter)
+            void trackNullableStateForAssignment(TypeSymbol? receiverType, BoundExpression parameterValue, TypeWithAnnotations lValueType, int targetSlot, TypeWithState parameterWithState, bool isSuppressed, FlowAnalysisAnnotations parameterAnnotations, RefKind refKind, ParameterSymbol parameter)
             {
-                if (!IsConditionalState && !hasConditionalPostCondition(parameterAnnotations, refKind, parameter))
+                if (!IsConditionalState && !hasConditionalPostCondition(receiverType, parameterAnnotations, refKind, parameter))
                 {
                     TrackNullableStateForAssignment(parameterValue, lValueType, targetSlot, parameterWithState.WithSuppression(isSuppressed));
                 }
@@ -8415,7 +8421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     SetState(StateWhenTrue);
                     // Note: the suppression applies over the post-condition attributes
-                    TrackNullableStateForAssignment(parameterValue, lValueType, targetSlot, applyPostConditionsWhenTrue(parameterWithState, parameterAnnotations, refKind, parameter).WithSuppression(isSuppressed));
+                    TrackNullableStateForAssignment(parameterValue, lValueType, targetSlot, applyPostConditionsWhenTrue(receiverType, parameterWithState, parameterAnnotations, refKind, parameter).WithSuppression(isSuppressed));
                     Debug.Assert(!IsConditionalState);
                     var newWhenTrue = State.Clone();
 
@@ -8427,7 +8433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            static bool hasConditionalPostCondition(FlowAnalysisAnnotations annotations, RefKind refKind, ParameterSymbol parameter)
+            static bool hasConditionalPostCondition(TypeSymbol? receiverType, FlowAnalysisAnnotations annotations, RefKind refKind, ParameterSymbol parameter)
             {
                 if ((((annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0) ^ ((annotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0)) ||
                     (((annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0) ^ ((annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0)))
@@ -8435,22 +8441,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                return isUnionTryGetValueValue(refKind, parameter);
+                return isUnionTryGetValueValue(receiverType, refKind, parameter);
             }
 
-            static bool isUnionTryGetValueValue(RefKind refKind, ParameterSymbol parameter)
+            static bool isUnionTryGetValueValue(TypeSymbol? receiverType, RefKind refKind, ParameterSymbol parameter)
             {
                 if (refKind == RefKind.Out &&
-                    parameter.ContainingSymbol is MethodSymbol
-                    {
-                        Name: WellKnownMemberNames.TryGetValueMethodName,
-                        ReturnType.SpecialType: SpecialType.System_Boolean,
-                        DeclaredAccessibility: Accessibility.Public,
-                        RefKind: RefKind.None,
-                        ParameterCount: 1,
-                        ContainingType: { IsUnionType: true } unionType
-                    } tryGetValue &&
-                    (object)tryGetValue.OriginalDefinition == Binder.GetUnionTypeTryGetValueMethod(unionType, parameter.Type)?.OriginalDefinition) // Looking for TryGetValue with exact type match at this call site
+                    parameter.ContainingSymbol is MethodSymbol method &&
+                    Binder.HasTryGetValueSignature(method) &&
+                    receiverType is NamedTypeSymbol { IsUnionType: true } unionType &&
+                    Binder.IsUnionTypeTryGetValueMethod(unionType, method))
                 {
                     return true;
                 }
@@ -8475,7 +8475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return typeWithState;
             }
 
-            static TypeWithState applyPostConditionsWhenTrue(TypeWithState typeWithState, FlowAnalysisAnnotations annotations, RefKind refKind, ParameterSymbol parameter)
+            static TypeWithState applyPostConditionsWhenTrue(TypeSymbol? receiverType, TypeWithState typeWithState, FlowAnalysisAnnotations annotations, RefKind refKind, ParameterSymbol parameter)
             {
                 bool notNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
                 bool maybeNullWhenTrue = (annotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
@@ -8486,7 +8486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // [MaybeNull, NotNullWhen(true)] means [MaybeNullWhen(false)]
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.MaybeDefault);
                 }
-                else if (notNullWhenTrue || isUnionTryGetValueValue(refKind, parameter))
+                else if (notNullWhenTrue || isUnionTryGetValueValue(receiverType, refKind, parameter))
                 {
                     return TypeWithState.Create(typeWithState.Type, NullableFlowState.NotNull);
                 }
@@ -11470,6 +11470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (nestedVariables == null)
                     {
                         VisitArgumentOutboundAssignmentsAndPostConditions(
+                            receiverType: invocation.ReceiverOpt?.Type,
                             variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
                             new VisitResult(variable.Type.ToTypeWithState(), variable.Type),
                             notNullParametersOpt: null, compareExchangeInfoOpt: default);
@@ -12062,7 +12063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> refKindsOpt = extensionParameter.RefKind == RefKind.Ref ? [RefKind.Ref] : default;
 
             // Tracked by https://github.com/dotnet/roslyn/issues/37238 : properties/indexers should account for NotNullIfNotNull
-            var reinferenceResult = VisitArgumentsCore(node, arguments, refKindsOpt, parameters, default, defaultArguments: default,
+            var reinferenceResult = VisitArgumentsCore(node, receiver.Type, arguments, refKindsOpt, parameters, default, defaultArguments: default,
                 expanded: false, usesExtensionReceiver: true, property, firstArgumentResult: null, delayCompletionForTargetMember: false);
 
             Debug.Assert(reinferenceResult.Completion is null);
@@ -12124,7 +12125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 indexer = (PropertySymbol)AsMemberOfType(receiverType, indexer);
             }
 
-            VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
+            VisitArguments(node, node.ReceiverOpt?.Type, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
 
             var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
             SetResult(node, resultType, indexer.TypeWithAnnotations);
@@ -13590,7 +13591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAttribute(BoundAttribute node)
         {
-            VisitArguments(node, node.ConstructorArguments, ImmutableArray<RefKind>.Empty, node.Constructor, argsToParamsOpt: node.ConstructorArgumentsToParamsOpt, defaultArguments: node.ConstructorDefaultArguments,
+            VisitArguments(node, receiverType: null, node.ConstructorArguments, ImmutableArray<RefKind>.Empty, node.Constructor, argsToParamsOpt: node.ConstructorArgumentsToParamsOpt, defaultArguments: node.ConstructorDefaultArguments,
                 expanded: node.ConstructorExpanded, invokedAsExtensionMethod: false);
             foreach (var assignment in node.NamedArguments)
             {
@@ -13711,6 +13712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ResultType is TypeWithState { Type: FunctionPointerTypeSymbol { }, State: NullableFlowState.NotNull });
             VisitArguments(
                 node,
+                receiverType: null,
                 node.Arguments,
                 node.ArgumentRefKindsOpt,
                 node.FunctionPointer.Signature,
