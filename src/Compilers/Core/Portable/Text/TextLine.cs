@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.Text
     {
         private readonly SourceText? _text;
         private readonly int _start;
-        private readonly int _endIncludingBreaks;
+        private readonly int _end;
 
-        private TextLine(SourceText text, int start, int endIncludingBreaks)
+        private TextLine(SourceText text, int start, int end)
         {
             _text = text;
             _start = start;
-            _endIncludingBreaks = endIncludingBreaks;
+            _end = end;
         }
 
         /// <summary>
@@ -51,30 +51,20 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeStartOfLine);
                 }
 
-                bool endIncludesLineBreak = false;
-                if (span.End > span.Start)
+                // Calculate lineEnd without line break for storage
+                int lineEnd = span.End;
+                if (lineEnd > span.Start && TextUtilities.IsAnyLineBreakCharacter(text[lineEnd - 1]))
                 {
-                    endIncludesLineBreak = TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]);
+                    // Span already includes line break at the end - need to exclude it (and maybe the position before it)
+                    TextUtilities.GetStartAndLengthOfLineBreakEndingAt(text, span.End - 1, out lineEnd, out _);
                 }
-
-                if (!endIncludesLineBreak && span.End < text.Length)
+                else if (lineEnd < text.Length && TextUtilities.GetLengthOfLineBreak(text, lineEnd) == 0)
                 {
-                    var lineBreakLen = TextUtilities.GetLengthOfLineBreak(text, span.End);
-                    if (lineBreakLen > 0)
-                    {
-                        // adjust span to include line breaks
-                        endIncludesLineBreak = true;
-                        span = new TextSpan(span.Start, span.Length + lineBreakLen);
-                    }
-                }
-
-                // check end of span is at end of line
-                if (span.End < text.Length && !endIncludesLineBreak)
-                {
+                    // Span doesn't include line break and we're not at EOF - invalid span
                     throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeEndOfLine);
                 }
 
-                return new TextLine(text, span.Start, span.End);
+                return new TextLine(text, span.Start, lineEnd);
             }
             else
             {
@@ -90,7 +80,14 @@ namespace Microsoft.CodeAnalysis.Text
             Debug.Assert(span.Start == 0 || TextUtilities.IsAnyLineBreakCharacter(text[span.Start - 1]));
             Debug.Assert(span.End == text.Length || TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]));
 
-            return new TextLine(text, span.Start, span.End);
+            // Calculate lineEnd without line break for storage
+            int lineEnd = span.End;
+            if (lineEnd > span.Start)
+            {
+                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(text, lineEnd - 1, out lineEnd, out _);
+            }
+
+            return new TextLine(text, span.Start, lineEnd);
         }
 
         /// <summary>
@@ -125,22 +122,25 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int End
         {
-            get { return _endIncludingBreaks - this.LineBreakLength; }
+            get { return _end; }
         }
 
         private int LineBreakLength
         {
             get
             {
-                if (_text == null || _text.Length == 0 || _endIncludingBreaks == _start)
+                if (_text == null || _text.Length == 0)
                 {
                     return 0;
                 }
 
-                int startLineBreak;
-                int lineBreakLength;
-                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, _endIncludingBreaks - 1, out startLineBreak, out lineBreakLength);
-                return lineBreakLength;
+                // Check if there's a line break after the end of the line content
+                if (_end < _text.Length)
+                {
+                    return TextUtilities.GetLengthOfLineBreak(_text, _end);
+                }
+
+                return 0;
             }
         }
 
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int EndIncludingLineBreak
         {
-            get { return _endIncludingBreaks; }
+            get { return _end + this.LineBreakLength; }
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             return other._text == _text
                 && other._start == _start
-                && other._endIncludingBreaks == _endIncludingBreaks;
+                && other._end == _end;
         }
 
         public override bool Equals(object? obj)
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_text, Hash.Combine(_start, _endIncludingBreaks));
+            return Hash.Combine(_text, Hash.Combine(_start, _end));
         }
     }
 }
