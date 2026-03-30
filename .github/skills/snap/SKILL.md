@@ -35,7 +35,7 @@ Older `release/dev{version}` branches (e.g., `release/dev18.3` and below) remain
 ## Prerequisites
 
 Before starting, verify these CLI tools are available:
-- `gh` — GitHub CLI, authenticated (`gh auth status`)
+- `gh` — GitHub CLI, authenticated (`gh auth status`). The user may need to switch accounts via `gh auth switch` to one with push access to their fork.
 - `darc` — .NET Arcade/BAR CLI for subscription management (`darc authenticate` must have been run)
 
 Test with:
@@ -43,6 +43,10 @@ Test with:
 gh --version
 darc get-subscriptions --exact --source-repo https://github.com/dotnet/roslyn --target-repo https://github.com/dotnet/dotnet
 ```
+
+### Fork-based workflow
+
+Snap PRs are typically opened from a user's fork. Ask the user for their fork (e.g., `jjonescz/roslyn`). Branches are created in the fork via the GitHub API, and PRs are opened cross-fork with `--head {forkOwner}:{branchName}`. Verify the `gh` account has push access to the fork (`gh api repos/{forkOwner}/{repo} --jq '.permissions'`).
 
 ## Workflow
 
@@ -166,30 +170,31 @@ darc get-subscriptions --exact --source-repo https://github.com/{owner}/{repo} -
 
 After gathering, present **all** planned actions in a numbered list for the user to review. The plan typically includes:
 
-1. **Merge `release/insiders` → `release/stable`**: Open a snap PR to bring insiders' content (e.g., 18.5) into stable.
+1. **Merge `release/insiders` → `release/stable`**: Open a draft snap PR to bring insiders' content (e.g., 18.5) into stable.
 
-2. **Merge `main` → `release/insiders`**: Open a snap PR to bring main's content (e.g., 18.6) into insiders, up to the chosen snap commit.
+2. **Merge `main` → `release/insiders`**: Open a draft snap PR to bring main's content (e.g., 18.6) into insiders, up to the chosen snap commit.
 
-3. **Update `PublishData.json` on `main`**: Keep `vsBranch` as `main`, update `insertionTitlePrefix` if needed (e.g., `[InsidersVNext]` stays as-is typically). No change is usually needed here since main always inserts to VS main.
+3. **Update `PublishData.json` on `main`**: Set `insertionCreateDraftPR` to `true`. VS snaps about a week after Roslyn snaps, so during that interim period main's insertions should be drafts to avoid merging into the wrong VS branch. This change goes in the same PR as the version bump.
 
-4. **Update `PublishData.json` on `release/insiders`**: Typically stays as `rel/insiders` with prefix `[Insiders]` — no change needed since the branch name stays the same, just its content changes.
+4. **Update `Versions.props` on `main`**: Bump the minor version (e.g., 5.6.0 → 5.7.0).
 
-5. **Update `PublishData.json` on `release/stable`**: Typically stays as `rel/stable` with prefix `[Stable]` — same reasoning.
+5. **Update SARIF files** (roslyn only): Replace old version string with new version in all `.sarif` files under `src/RoslynAnalyzers/`.
 
-6. **Update `Versions.props` on `main`**: Bump the minor version (e.g., 5.6.0 → 5.7.0).
-
-7. **Update SARIF files** (roslyn only): Replace old version string with new version in all `.sarif` files under `src/RoslynAnalyzers/`.
-
-8. **Darc subscription changes**: Update default channels to reflect the new version each branch carries:
-   - `main` → new channel (e.g., `VS 18.7` or keep existing dev channels)
+6. **Darc subscription changes**: Update default channels to reflect the new version each branch carries:
    - `release/insiders` → channel for the snapped version (e.g., `VS 18.6`)
    - `release/stable` → channel for what was previously insiders (e.g., `VS 18.5`)
    - Also update corresponding VMR flows and backflows for each branch.
    - Remove/retire default channels for the old stable version if no longer needed.
 
-9. **Move milestones**: Move merged PRs and closed issues from `Next` milestone to the target milestone (e.g., `VS 18.6`). Create the milestone if it doesn't exist.
+7. **Move milestones**: Move merged PRs and closed issues from `Next` milestone to the target milestone (e.g., `18.6`). Create the milestone if it doesn't exist.
 
-10. **Retire old stable** (if applicable): If the old stable version (e.g., 18.4) is fully retired, remove its darc default channels. If a servicing branch is needed (e.g., `release/sdk10.0.3xx`), note that for the user to handle separately.
+8. **Retire old stable** (if applicable): If the old stable version (e.g., 18.4) is fully retired, remove its darc default channels. If a servicing branch is needed (e.g., `release/sdk10.0.3xx`), note that for the user to handle separately.
+
+Other than the draft flag on `main`, `PublishData.json` typically does **not** need changes during a snap — the named branches keep their fixed insertion targets (`main`, `rel/insiders`, `rel/stable`).
+
+### Post-snap follow-up
+
+After VS snaps (~1 week later), `PublishData.json` on `main` should be updated to set `insertionCreateDraftPR` back to `false` so insertions resume as normal PRs. Remind the user about this follow-up.
 
 Present the plan clearly and ask: **"Shall I proceed with these changes?"**
 
@@ -199,42 +204,46 @@ Only proceed after explicit user confirmation. Execute changes in this order:
 
 #### 3.1 Merge insiders → stable
 
-Create a snap PR to merge `release/insiders` into `release/stable`:
+Create a draft snap PR to merge `release/insiders` into `release/stable`. Create the branch in the user's fork and open a cross-fork PR:
 ```
-gh api repos/{owner}/{repo}/git/refs/heads/release/insiders  # get head SHA
-gh api -X POST repos/{owner}/{repo}/git/refs --field ref=refs/heads/snap-insiders-to-stable-{timestamp} --field sha={insidersHeadSha}
-gh pr create --title "Snap release/insiders into release/stable" --body "Auto-generated by snap skill." --head snap-insiders-to-stable-{timestamp} --base release/stable --repo {owner}/{repo}
+gh api repos/{owner}/{repo}/git/refs/heads/release/insiders --jq '.object.sha'  # get head SHA
+gh api -X POST repos/{forkOwner}/{repo}/git/refs --field ref=refs/heads/snap-insiders-to-stable --field sha={insidersHeadSha}
+gh pr create --repo {owner}/{repo} --title "Snap release/insiders into release/stable" --body "Auto-generated by snap skill." --head {forkOwner}:snap-insiders-to-stable --base release/stable --draft
 ```
 
 #### 3.2 Merge main → insiders
 
-Create a snap PR to merge `main` into `release/insiders` up to the chosen snap commit:
+Create a draft snap PR to merge `main` into `release/insiders` up to the chosen snap commit:
 ```
-gh api -X POST repos/{owner}/{repo}/git/refs --field ref=refs/heads/snap-main-to-insiders-{timestamp} --field sha={snapCommitSha}
-gh pr create --title "Snap main into release/insiders" --body "Auto-generated by snap skill." --head snap-main-to-insiders-{timestamp} --base release/insiders --repo {owner}/{repo}
+gh api -X POST repos/{forkOwner}/{repo}/git/refs --field ref=refs/heads/snap-main-to-insiders --field sha={snapCommitSha}
+gh pr create --repo {owner}/{repo} --title "Snap main into release/insiders" --body "Auto-generated by snap skill." --head {forkOwner}:snap-main-to-insiders --base release/insiders --draft
 ```
 
-#### 3.2 Update configuration files
+#### 3.3 Update configuration files
 
-For each config file change, create a branch from the target and update files via the GitHub API:
+For each config file change (e.g., `Versions.props`, SARIF files), create a branch in the fork and update files via the GitHub API:
 ```
 # Get current file SHA
 gh api -X GET repos/{owner}/{repo}/contents/{filePath} --field ref=refs/heads/{branch}
 
+# Create branch in fork from the target branch head
+gh api repos/{owner}/{repo}/git/refs/heads/{branch} --jq '.object.sha'
+gh api -X POST repos/{forkOwner}/{repo}/git/refs --field ref=refs/heads/{updateBranch} --field sha={branchHeadSha}
+
 # Update file
-gh api -X PUT repos/{owner}/{repo}/contents/{filePath} \
+gh api -X PUT repos/{forkOwner}/{repo}/contents/{filePath} \
   --field message="Update {fileName}" \
   --field branch={updateBranch} \
   --field sha={fileSha} \
   --field content={base64Content}
 ```
 
-Then open PRs for the config changes:
+Then open a draft PR for the config changes:
 ```
-gh pr create --title "Update snap configuration files" --body "Auto-generated by snap skill." --head {updateBranch} --base {targetBranch} --repo {owner}/{repo}
+gh pr create --repo {owner}/{repo} --title "Update snap configuration files" --body "Auto-generated by snap skill." --head {forkOwner}:{updateBranch} --base {branch} --draft
 ```
 
-#### 3.3 Update darc subscriptions
+#### 3.4 Update darc subscriptions
 
 For new flows:
 ```
@@ -254,9 +263,9 @@ darc get-subscriptions --exact --source-repo {sourceUrl} --target-repo {targetUr
 darc update-subscription --id {subscriptionId} --channel "{newChannel}"
 ```
 
-#### 3.4 Move milestones
+#### 3.5 Move milestones
 
-Create the target milestone if needed:
+Create the target milestone if needed (milestone name is just the version number, e.g., `18.6`):
 ```
 gh api -X POST repos/{owner}/{repo}/milestones --field title="{milestoneName}"
 ```
@@ -279,7 +288,7 @@ gh issue edit {issueNumber} --repo {owner}/{repo} --milestone "{targetMilestone}
 | VS insertion (insiders) | `rel/insiders` | prefix `[Insiders]` |
 | VS insertion (stable) | `rel/stable` | prefix `[Stable]` |
 | Darc channel | `VS {VS Major}.{VS Minor}` | `VS 18.6` |
-| Target milestone | `VS {VS Major}.{VS Minor}` | `VS 18.6` |
+| Target milestone | `{VS Major}.{VS Minor}` | `18.6` |
 | Servicing branches | `release/dev{version}` or `release/sdk{version}` | `release/dev18.3`, `release/sdk10.0.3xx` |
 
 ## Error Handling
