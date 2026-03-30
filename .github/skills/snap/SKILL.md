@@ -176,7 +176,7 @@ After gathering, present **all** planned actions in a numbered list for the user
 
 3. **Update `PublishData.json` on `main`**: Set `insertionCreateDraftPR` to `true`. VS snaps about a week after Roslyn snaps, so during that interim period main's insertions should be drafts to avoid merging into the wrong VS branch. This change goes in the same PR as the version bump.
 
-4. **Update `Versions.props` on `main`**: Bump the minor version (e.g., 5.6.0 → 5.7.0).
+4. **Update `Versions.props` on `main`**: Bump the minor version (e.g., 5.6.0 → 5.7.0) and reset `PreReleaseVersionLabel` to `1`.
 
 5. **Update SARIF files** (roslyn only): Replace old version string with new version in all `.sarif` files under `src/RoslynAnalyzers/` (search recursively).
 
