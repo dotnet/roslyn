@@ -97,6 +97,35 @@ internal abstract partial class PatternMatcher : IDisposable
             pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries), s_dotCharacterArray, includeMatchedSpans, culture);
     }
 
+    /// <summary>
+    /// Creates a matcher for the "name" portion of a NavigateTo search. When <paramref name="isRegex"/>
+    /// is <see langword="true"/>, returns a regex-based matcher (or <see langword="null"/> if the
+    /// pattern is not a valid .NET regex). Otherwise returns the standard pattern matcher.
+    /// </summary>
+    public static PatternMatcher? CreateNameMatcher(
+        string name, bool isRegex, bool includeMatchedSpans, PatternMatcherKind matchKinds = PatternMatcherKind.Standard)
+    {
+        return isRegex
+            ? RegexPatternMatcher.TryCreate(name, includeMatchedSpans)
+            : CreatePatternMatcher(name, includeMatchedSpans, matchKinds);
+    }
+
+    /// <summary>
+    /// Creates a matcher for the "container" portion of a NavigateTo search. When <paramref name="isRegex"/>
+    /// is <see langword="true"/>, returns a regex-based matcher for the container (or <see langword="null"/>
+    /// if no container or the pattern is invalid). Otherwise returns the standard dot-separated container matcher.
+    /// </summary>
+    public static PatternMatcher? CreateContainerMatcher(
+        string? container, bool isRegex, bool includeMatchedSpans)
+    {
+        if (container is null)
+            return null;
+
+        return isRegex
+            ? RegexPatternMatcher.TryCreate(container, includeMatchedSpans)
+            : CreateDotSeparatedContainerMatcher(container, includeMatchedSpans);
+    }
+
     internal static (string name, string? containerOpt) GetNameAndContainer(string pattern)
     {
         var dotIndex = pattern.LastIndexOf('.');

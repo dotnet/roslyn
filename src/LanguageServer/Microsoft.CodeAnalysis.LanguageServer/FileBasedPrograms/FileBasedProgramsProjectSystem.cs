@@ -208,12 +208,8 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var documentFilePath = GetDocumentFilePath(documentUri);
         var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
         var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
-        var primordialProject = await this.TryBeginLoadingProjectWithPrimordialAsync(
+        return await this.GetOrLoadEntryPointDocumentAsync(
             documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
-
-        // TODO2: What are we supposed to do if we lose the race to add a document?
-        // I guess we could try looking it up over again? Or will LspWorkspaceManager do this for us?
-        return primordialProject.Solution.GetDocumentIdsWithFilePath(documentFilePath)?.Documents.Single();
     }
 
     /// <summary>
@@ -230,12 +226,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             Contract.Fail($"Could not find language information for '{documentFilePath}'");
         }
 
-        await TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
+        await GetOrLoadEntryPointDocumentAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
     }
 
-    public async ValueTask<Project?> TryBeginLoadingProjectWithPrimordialAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
+    public async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
-        return await base.TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProject, doDesignTimeBuild);
+        return await base.GetOrLoadEntryPointDocumentAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProject, doDesignTimeBuild);
 
         Project CreatePrimordialProject(ProjectSystemProjectFactory projectFactory)
         {
