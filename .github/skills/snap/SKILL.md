@@ -12,6 +12,8 @@ Perform a branch snap (release branch cut) for dotnet repositories. A snap shift
 
 > **NOTE**: This skill works for multiple dotnet repos (e.g., `dotnet/roslyn`, `dotnet/razor`). Do not assume `dotnet/roslyn` — always confirm the repo.
 
+> **SKILL MAINTENANCE**: If you deviate from this skill during execution (e.g., a step doesn't work as described, a new step is needed, or the process has changed), remind the user to update this skill file so future snaps benefit from the fix.
+
 ## Branch Model
 
 Roslyn (and similar repos) use three named branches that cascade during a snap:
@@ -373,6 +375,10 @@ After all snap steps are completed, draft a reply to the pre-snap announcement e
 > The snap for {VS version} is now complete. main now points to {new VS version}, release/insiders points to {VS version}, and release/stable points to {previous insiders VS version}.
 
 Present the draft to the user before they send it.
+
+#### 3.8 Review skill for updates
+
+After completing the snap, review whether any steps needed to be done differently than described in this skill. If so, remind the user to update this skill file so future snaps benefit from the improvements.
 
 ## Version / VS Branch Conventions
 
