@@ -143,6 +143,16 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
     internal void StartSearchWithDocuments(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents)
         => StartSearchWorker(categoryName, searchScope, callback, documents);
 
+    /// <summary>
+    /// Starts a search operation for the given category.
+    /// 
+    /// Threading guarantees:
+    /// - This method is called on the UI thread by VS.
+    /// - Concurrent calls with different categoryNames are safe; each category has its own cancellation source.
+    /// - Concurrent calls with the same categoryName will cancel the previous search.
+    /// - The actual search work is offloaded to a background thread via Task.Run to avoid blocking the UI thread.
+    /// - Callbacks are invoked on the background thread; the callback implementation must handle thread safety.
+    /// </summary>
     private void StartSearchWorker(string categoryName, CallHierarchySearchScope searchScope, ICallHierarchySearchCallback callback, IImmutableSet<Document> documents)
     {
         var searchCategory = _searchCategories.FirstOrDefault(s => s.SearchCategory == categoryName);
@@ -155,6 +165,8 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
         _searches[categoryName] = cancellationSource;
         var asyncToken = _provider.AsyncListener.BeginAsyncOperation(this.GetType().Name + ".Search");
 
+        // NOTE: This task has CancellationToken.None specified, since it must complete no matter what
+        // so the callback is appropriately notified that the search has terminated.
         Task.Run(async () =>
         {
             string completionErrorMessage = null;
@@ -164,16 +176,15 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
                     _workspace, searchCategory.SearchDescriptor, searchScope, documents, cancellationSource.Token).ConfigureAwait(false);
                 foreach (var result in results)
                 {
-                    switch (result)
+                    if (result.Item != null)
                     {
-                        case CallHierarchyItemSearchResult itemResult:
-                            var item = await _provider.CreateItemAsync(itemResult.Item, _workspace, itemResult.ReferenceLocations, cancellationSource.Token).ConfigureAwait(false);
-                            callback.AddResult(item);
-                            break;
-                        case CallHierarchyLocationSearchResult locationResult:
-                            var details = locationResult.ReferenceLocations.SelectAsArray(loc => new CallHierarchyDetail(_provider, loc, _workspace));
-                            callback.AddResult(_provider.CreateInitializerItem(details));
-                            break;
+                        var item = await _provider.CreateItemAsync(result.Item, _workspace, result.ReferenceLocations, cancellationSource.Token).ConfigureAwait(false);
+                        callback.AddResult(item);
+                    }
+                    else
+                    {
+                        var details = result.ReferenceLocations.SelectAsArray(loc => new CallHierarchyDetail(_provider, loc, _workspace));
+                        callback.AddResult(_provider.CreateInitializerItem(details));
                     }
 
                     cancellationSource.Token.ThrowIfCancellationRequested();

@@ -212,13 +212,13 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
 
             var item = await CreateItemAsync(caller.CallingSymbol, callingProject, cancellationToken).ConfigureAwait(false);
             if (item != null)
-                results.Add(new CallHierarchyItemSearchResult(item, [.. caller.Locations]));
+                results.Add(new CallHierarchySearchResult(item, [.. caller.Locations]));
 
             cancellationToken.ThrowIfCancellationRequested();
         }
 
         if (initializerLocations.Count > 0)
-            results.Add(new CallHierarchyLocationSearchResult(initializerLocations.ToImmutable()));
+            results.Add(new CallHierarchySearchResult(Item: null, initializerLocations.ToImmutable()));
 
         return results.ToImmutableAndClear();
     }
@@ -243,7 +243,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
 
             var item = await CreateItemAsync(symbol, bestLocation.Project, cancellationToken).ConfigureAwait(false);
             if (item != null)
-                results.Add(new CallHierarchyItemSearchResult(item, []));
+                results.Add(new CallHierarchySearchResult(item, []));
 
             cancellationToken.ThrowIfCancellationRequested();
         }

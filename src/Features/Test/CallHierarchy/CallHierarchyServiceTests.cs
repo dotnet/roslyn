@@ -202,7 +202,7 @@ public class D : I
     }
 
     private static IEnumerable<string> GetItemDisplayNames(ImmutableArray<CallHierarchySearchResult> results)
-        => results.OfType<CallHierarchyItemSearchResult>().Select(static r => GetDisplayName(r.Item));
+        => results.OfType<CallHierarchySearchResult>().Select(static r => GetDisplayName(r.Item));
 
     private static string GetDisplayName(CallHierarchyItemDescriptor item)
         => string.IsNullOrEmpty(item.ContainingTypeName)
