@@ -87,11 +87,14 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
+            #!/usr/bin/env dotnet
             #:sdk Microsoft.Net.SDK
             Console.WriteLine("Hello World");
             """;
         var appFile = tempDir.CreateFile("App.cs").WriteAllText(appText);
+        // Note: having '#:' is not enough for discovery to detect a file. The file needs to start with '#!'.
         var ordinaryText = """
+            #:sdk Microsoft.Net.Sdk
             public class Ordinary { }
             """;
         var ordinaryFile = tempDir.CreateFile("Ordinary.cs").WriteAllText(ordinaryText);
@@ -111,7 +114,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         // Verify stability
         AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
 
-        // Changed but still has '#:'
+        // Changed but still has '#!'
         appFile.WriteAllText(appText + """
 
             Console.WriteLine("Additional content");
@@ -126,13 +129,13 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         appFile.WriteAllText(appText);
         AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
 
-        // Changed and no longer has '#:'
+        // Changed and no longer has '#!'
         appFile.WriteAllText("""
-            Console.WriteLine("No more #: directives!");
+            Console.WriteLine("No more #! at start of file");
             """);
         AssertEx.Empty(discovery.FindEntryPoints(tempDir.Path));
 
-        // Changed and again has '#:'
+        // Changed and again has '#!'
         appFile.WriteAllText(appText);
         AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
     }
@@ -150,6 +153,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         var artifactsDir = tempDir.CreateDirectory("artifacts");
         var app1Text = """
+            #!/usr/bin/env dotnet
             #:sdk Microsoft.Net.SDK
             Console.WriteLine("Hello World");
             """;
@@ -191,6 +195,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var csprojFile = projectDir.CreateFile("Project.csproj");
 
         var appText = """
+            #!/usr/bin/env dotnet
             #:sdk Microsoft.Net.SDK
             Console.WriteLine("Hello World");
             """;
@@ -229,6 +234,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
+            #!/usr/bin/env dotnet
             #:sdk Microsoft.Net.SDK
             Console.WriteLine("Hello World");
             """;
@@ -261,6 +267,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
+            #!/usr/bin/env dotnet
             #:sdk Microsoft.Net.SDK
             Console.WriteLine("Hello World");
             """;
@@ -293,6 +300,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
+            #!/usr/bin/env dotnet
             #:sdk Microsoft.Net.SDK
             Console.WriteLine("Hello World");
             """;
@@ -314,6 +322,36 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
         Assert.Null(workspace);
         Assert.Null(document);
+    }
+
+    [Fact]
+    public async Task TestDiscovery_07()
+    {
+        // File starting with UTF-8 BOM followed by '#!' should be discovered
+        var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
+
+        var appText = """
+            #!/usr/bin/env dotnet
+            #:sdk Microsoft.Net.SDK
+            Console.WriteLine("Hello World");
+
+            """;
+        var bomAppText = "\uFEFF" + appText;
+        var appFile = tempDir.CreateFile("App.cs").WriteAllText(bomAppText);
+        var ordinaryFile = tempDir.CreateFile("Ordinary.cs").WriteAllText("public class Ordinary { }");
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+            ]
+        });
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
     }
 
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
@@ -633,8 +671,16 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
     #region Fuzzer
 
-    private const string FbaContent = "#:sdk Microsoft.Net.SDK\nConsole.WriteLine(\"hello\");\n";
-    private const string OrdinaryCsContent = "public class C {}\n";
+    private const string FbaContent = """
+        #!/usr/bin/env dotnet
+        #:sdk Microsoft.Net.SDK
+        Console.WriteLine("hello");
+
+        """;
+    private const string OrdinaryCsContent = """
+        public class C {}
+
+        """;
     private const string CsprojContent = "<Project />";
 
     /// <summary>
@@ -652,13 +698,13 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             public override string ToCSharp(string tempDirVar) => $"Directory.CreateDirectory(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"));";
         }
 
-        /// <summary>Writes a .cs file with file-based-app content (has '#:' directive).</summary>
+        /// <summary>Writes a .cs file with file-based-app content (starts with '#!').</summary>
         internal sealed record WriteFbaFile(string RelativePath) : FuzzOp
         {
             public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"), FbaContent);";
         }
 
-        /// <summary>Writes a .cs file without file-based-app content (no '#:' directive).</summary>
+        /// <summary>Writes a .cs file without file-based-app content (no '#!' at start).</summary>
         internal sealed record WriteOrdinaryCs(string RelativePath) : FuzzOp
         {
             public override string ToCSharp(string tempDirVar) => $"File.WriteAllText(Path.Combine({tempDirVar}.Path, @\"{NormalizeForCSharp(RelativePath)}\"), OrdinaryCsContent);";
@@ -917,7 +963,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         sb.AppendLine($"    public async Task Fuzz_{iteration}()");
         sb.AppendLine("    {");
         sb.AppendLine("        var tempDir = _tempRoot.CreateDirectory();");
-        sb.AppendLine("        DeferDeleteCachDirectory(tempDir.Path);");
+        sb.AppendLine("        DeferDeleteCacheDirectory(tempDir.Path);");
         sb.AppendLine();
         sb.AppendLine("        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions");
         sb.AppendLine("        {");

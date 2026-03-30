@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.IO.Enumeration;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Collections;
@@ -259,8 +260,13 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     private static bool IsFileBasedApp(string fullPath)
     {
         using var fileStream = File.OpenRead(fullPath);
-        var isFileBasedApp = VirtualProjectXmlProvider.HasFileBasedAppDirectives(SourceText.From(fileStream));
-        return isFileBasedApp;
+        var toRead = (int)Math.Min(5, fileStream.Length);
+        InlineArray5<byte> bytes = default;
+        Span<byte> bytesSpan = bytes;
+        fileStream.ReadExactly(bytesSpan[..toRead]);
+
+        // Discovery only considers a file to be file-based app, if it starts with either "#!", or UTF-8 BOM followed by "#!".
+        return bytesSpan is [(byte)'#', (byte)'!', ..] or [0xEF, 0xBB, 0xBF, (byte)'#', (byte)'!'];
     }
 
     private class IncrementalEntryPointEnumerator : FileSystemEnumerator<string>

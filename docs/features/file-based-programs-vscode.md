@@ -179,6 +179,7 @@ The cache data allows the following optimizations in subsequent discovery passes
 ### `#!` requirement
 
 This design requires files to start with `#!` in order to participate in discovery.
+Specifically, a discoverable file must start with either the byte sequence `0x23, 0x21` (ASCII/UTF-8 `#!`), or the byte sequence `0xEF, 0xBB, 0xBF, 0x23, 0x21` (UTF-8 BOM followed by `#!`).
 
 The reason for this is: we anticipate adding support for `#:` to non-entry-point files. This means that having `#:` is not going to be enough to identify a file as definitely the entry point.
 
