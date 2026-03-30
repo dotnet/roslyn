@@ -238,30 +238,30 @@ SOURCE_COMMIT=$(git rev-parse {upstreamRemote}/release/insiders)
 SOURCE_TREE=$(git rev-parse "{upstreamRemote}/release/insiders^{tree}")
 TARGET_COMMIT=$(git rev-parse {upstreamRemote}/release/stable)
 
-# Build a modified tree: take source tree entirely
-TEMP_INDEX=$(mktemp)
-GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
+# Commit 1: Pure merge (take-source strategy)
+MERGE_COMMIT=$(git commit-tree "$SOURCE_TREE" \
+  -p "$TARGET_COMMIT" -p "$SOURCE_COMMIT" \
+  -m "Merge release/insiders into release/stable")
 
-# Construct custom PublishData.json for the stable branch.
+# Commit 2: Update PublishData.json for the stable branch.
 # Use source's PD as base (it has the up-to-date package list),
 # then set the correct branchInfo values for release/stable.
-#   - vsBranch: ask user (default: rel/insiders for interim redirect, or rel/stable if no redirect)
+#   - vsBranch: ask user (default: rel/stable; or rel/insiders for interim redirect)
 #   - insertionTitlePrefix: [Stable]
 #   - insertionCreateDraftPR: false
 # See "Constructing custom PublishData.json" below for the JSON manipulation approach.
 NEW_PD_BLOB=$(...)  # git hash-object -w of the modified JSON
+TEMP_INDEX=$(mktemp)
+GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
 GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,$NEW_PD_BLOB,eng/config/PublishData.json
-
-MODIFIED_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
+CONFIG_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
 rm -f "$TEMP_INDEX"
-
-# Create merge commit (two parents, source tree with custom PublishData.json)
-MERGE_COMMIT=$(git commit-tree "$MODIFIED_TREE" \
-  -p "$TARGET_COMMIT" -p "$SOURCE_COMMIT" \
-  -m "Merge release/insiders into release/stable")
+CONFIG_COMMIT=$(git commit-tree "$CONFIG_TREE" \
+  -p "$MERGE_COMMIT" \
+  -m "Update PublishData.json for release/stable")
 
 # Create branch, push to fork, open draft PR
-git branch snap-insiders-to-stable "$MERGE_COMMIT"
+git branch snap-insiders-to-stable "$CONFIG_COMMIT"
 git push {forkRemote} snap-insiders-to-stable
 
 gh pr create --repo {owner}/{repo} \
@@ -279,26 +279,28 @@ SOURCE_COMMIT={snapCommitSha}
 SOURCE_TREE=$(git rev-parse "{snapCommitSha}^{tree}")
 TARGET_COMMIT=$(git rev-parse {upstreamRemote}/release/insiders)
 
-TEMP_INDEX=$(mktemp)
-GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
+# Commit 1: Pure merge (take-source strategy)
+MERGE_COMMIT=$(git commit-tree "$SOURCE_TREE" \
+  -p "$TARGET_COMMIT" -p "$SOURCE_COMMIT" \
+  -m "Merge main into release/insiders")
 
-# Construct custom PublishData.json for the insiders branch.
+# Commit 2: Update PublishData.json for the insiders branch.
 # Use source's PD as base (from the snap commit on main),
 # then set the correct branchInfo values for release/insiders:
 #   - vsBranch: main (temporary — VS hasn't snapped yet, so rel/insiders still points to the old version)
 #   - insertionTitlePrefix: [Insiders]
 #   - insertionCreateDraftPR: false
 NEW_PD_BLOB=$(...)  # git hash-object -w of the modified JSON
+TEMP_INDEX=$(mktemp)
+GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
 GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,$NEW_PD_BLOB,eng/config/PublishData.json
-
-MODIFIED_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
+CONFIG_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
 rm -f "$TEMP_INDEX"
+CONFIG_COMMIT=$(git commit-tree "$CONFIG_TREE" \
+  -p "$MERGE_COMMIT" \
+  -m "Update PublishData.json for release/insiders")
 
-MERGE_COMMIT=$(git commit-tree "$MODIFIED_TREE" \
-  -p "$TARGET_COMMIT" -p "$SOURCE_COMMIT" \
-  -m "Merge main into release/insiders")
-
-git branch snap-main-to-insiders "$MERGE_COMMIT"
+git branch snap-main-to-insiders "$CONFIG_COMMIT"
 git push {forkRemote} snap-main-to-insiders
 
 gh pr create --repo {owner}/{repo} \
