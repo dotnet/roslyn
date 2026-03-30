@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <!-- Test our primary scenarios: VS OOP, devenv -->
-    <TargetFrameworks>$(NetVS);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynWindows);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
