@@ -172,9 +172,9 @@ darc get-subscriptions --exact --source-repo https://github.com/{owner}/{repo} -
 
 After gathering, present **all** planned actions in a numbered list for the user to review. The plan typically includes:
 
-1. **Merge `release/insiders` → `release/stable`**: Open a draft snap PR to bring insiders' content (e.g., 18.5) into stable. Ask user whether `release/stable` should **temporarily insert into `rel/insiders`** (instead of `rel/stable`) during the interim before VS snaps. If yes, let the source's `PublishData.json` flow through (do not preserve target's). If no, preserve target's `PublishData.json` as usual.
+1. **Merge `release/insiders` → `release/stable`**: Open a draft snap PR to bring insiders' content (e.g., 18.5) into stable. Construct a custom `PublishData.json` with `insertionTitlePrefix` = `[Stable]`. Ask the user whether `vsBranch` should temporarily be `rel/insiders` (interim redirect before VS snaps) or `rel/stable` (no redirect). Default is typically **no redirect**.
 
-2. **Merge `main` → `release/insiders`**: Open a draft snap PR to bring main's content (e.g., 18.6) into insiders, up to the chosen snap commit. During the interim before VS snaps, `release/insiders` must **temporarily insert into VS `main`** (not `rel/insiders`), because VS hasn't snapped yet and `rel/insiders` still corresponds to the old version. This is achieved by letting the source's `PublishData.json` flow through (do not preserve target's).
+2. **Merge `main` → `release/insiders`**: Open a draft snap PR to bring main's content (e.g., 18.6) into insiders, up to the chosen snap commit. Construct a custom `PublishData.json` with `insertionTitlePrefix` = `[Insiders]` and `vsBranch` = `main` (temporary — VS hasn't snapped yet, so `rel/insiders` still points to the old version).
 
 3. **Update `PublishData.json` on `main`**: Set `insertionCreateDraftPR` to `true`. VS snaps about a week after Roslyn snaps, so during that interim period main's insertions should be drafts to avoid merging into the wrong VS branch. This change goes in the same PR as the version bump.
 
@@ -213,7 +213,7 @@ Only proceed after explicit user confirmation. Execute changes in this order:
 
 Snap merges use a **"take source"** strategy (inspired by the VS repo's `Merge-ToMoreStableBranch`). Instead of letting Git three-way merge source and target (which conflicts on config files), we create a merge commit whose **tree is taken entirely from the source branch** using `git commit-tree` plumbing. The commit has two parents (target branch tip + source commit) so Git records it as a proper merge, but the content comes exclusively from the source — no merge conflicts are possible.
 
-Files that must differ per named branch (specifically `eng/config/PublishData.json`, which controls VS insertion target) are **preserved from the target branch** by modifying the tree via a temporary index before creating the merge commit. This mirrors how `snap.cs` pushes the correct `PublishData.json` to the snap branch.
+Files that must differ per named branch (specifically `eng/config/PublishData.json`, which controls VS insertion target) are **replaced with a custom version** constructed from the source's package list and the correct `branchInfo` values for the target branch. This mirrors how `snap.cs` pushes the correct `PublishData.json` to the snap branch.
 
 This approach does NOT touch the user's working tree — all operations use git plumbing (temp index, `commit-tree`, `write-tree`) which do not read or modify the working tree or the repo's main index.
 
@@ -242,18 +242,20 @@ TARGET_COMMIT=$(git rev-parse {upstreamRemote}/release/stable)
 TEMP_INDEX=$(mktemp)
 GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
 
-# PublishData.json handling:
-#   If user confirmed temporary redirect (stable → rel/insiders):
-#     Skip the override — source's PublishData.json (pointing to rel/insiders) flows through.
-#   If NOT redirecting:
-#     Preserve target's PublishData.json (pointing to rel/stable).
-TARGET_PD_BLOB=$(git rev-parse "{upstreamRemote}/release/stable:eng/config/PublishData.json")
-GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,$TARGET_PD_BLOB,eng/config/PublishData.json
+# Construct custom PublishData.json for the stable branch.
+# Use source's PD as base (it has the up-to-date package list),
+# then set the correct branchInfo values for release/stable.
+#   - vsBranch: ask user (default: rel/insiders for interim redirect, or rel/stable if no redirect)
+#   - insertionTitlePrefix: [Stable]
+#   - insertionCreateDraftPR: false
+# See "Constructing custom PublishData.json" below for the JSON manipulation approach.
+NEW_PD_BLOB=$(...)  # git hash-object -w of the modified JSON
+GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,$NEW_PD_BLOB,eng/config/PublishData.json
 
 MODIFIED_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
 rm -f "$TEMP_INDEX"
 
-# Create merge commit (two parents, source tree with appropriate PublishData.json)
+# Create merge commit (two parents, source tree with custom PublishData.json)
 MERGE_COMMIT=$(git commit-tree "$MODIFIED_TREE" \
   -p "$TARGET_COMMIT" -p "$SOURCE_COMMIT" \
   -m "Merge release/insiders into release/stable")
@@ -268,20 +270,26 @@ gh pr create --repo {owner}/{repo} \
   --head {forkOwner}:snap-insiders-to-stable --base release/stable --draft
 ```
 
-> **PublishData.json in this step**: If the user confirmed temporary redirection, **omit** the `git update-index` override so source's `PublishData.json` (with `vsBranch` = `rel/insiders`, prefix `[Insiders]`) flows through. This lets `release/stable` insert into `rel/insiders` during the interim before VS snaps. If not redirecting, run the `git update-index` line to preserve target's `PublishData.json` (with `vsBranch` = `rel/stable`, prefix `[Stable]`).
-
 #### 3.3 Merge main → insiders
 
-Same "take source" approach, but use the chosen **snap commit** (not branch HEAD) as the source. **Do not preserve target's `PublishData.json`** — let the source's version (from `main`) flow through so that `release/insiders` temporarily inserts into VS `main` during the interim before VS snaps:
+Same "take source" approach, but use the chosen **snap commit** (not branch HEAD) as the source:
 
 ```bash
 SOURCE_COMMIT={snapCommitSha}
 SOURCE_TREE=$(git rev-parse "{snapCommitSha}^{tree}")
 TARGET_COMMIT=$(git rev-parse {upstreamRemote}/release/insiders)
 
-# Build tree from source — source's PublishData.json flows through (no override needed)
 TEMP_INDEX=$(mktemp)
 GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
+
+# Construct custom PublishData.json for the insiders branch.
+# Use source's PD as base (from the snap commit on main),
+# then set the correct branchInfo values for release/insiders:
+#   - vsBranch: main (temporary — VS hasn't snapped yet, so rel/insiders still points to the old version)
+#   - insertionTitlePrefix: [Insiders]
+#   - insertionCreateDraftPR: false
+NEW_PD_BLOB=$(...)  # git hash-object -w of the modified JSON
+GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,$NEW_PD_BLOB,eng/config/PublishData.json
 
 MODIFIED_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
 rm -f "$TEMP_INDEX"
@@ -295,11 +303,31 @@ git push {forkRemote} snap-main-to-insiders
 
 gh pr create --repo {owner}/{repo} \
   --title "Snap main into release/insiders" \
-  --body "Auto-generated by snap skill. Snap merge (take-source strategy). PublishData.json from main flows through for interim VS insertion." \
+  --body "Auto-generated by snap skill. Snap merge (take-source strategy)." \
   --head {forkOwner}:snap-main-to-insiders --base release/insiders --draft
 ```
 
 > **PowerShell note**: On Windows, use `$env:GIT_INDEX_FILE` for environment variables and `[System.IO.Path]::GetTempFileName()` for temp files. Set `$env:GIT_INDEX_FILE` before each git command and restore it afterward.
+
+#### Constructing custom PublishData.json
+
+For each merge PR, construct a `PublishData.json` from the source's content (up-to-date package list) with the correct `branchInfo` / `branches` values for the target branch:
+
+1. Read source's PD content: `git show {sourceCommit}:eng/config/PublishData.json`
+2. Parse and modify the JSON:
+   - **Roslyn** (uses `branchInfo` key): Replace `vsBranch`, `insertionTitlePrefix`, `insertionCreateDraftPR` values.
+   - **Razor** (uses `branches` key with branch name as sub-key, e.g., `"branches": { "main": { ... } }`): Rename the sub-key from the source branch name to the target branch name (e.g., `main` → `release/insiders`), and replace `vsBranch`, `insertionTitlePrefix`, `insertionCreateDraftPR`.
+3. Write modified JSON to a git blob: `echo "{modifiedJson}" | git hash-object -w --stdin`
+4. Override in temp index: `GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,{newBlobSha},eng/config/PublishData.json`
+
+**Target values for each merge:**
+
+| Merge | `vsBranch` (interim) | `vsBranch` (final) | `insertionTitlePrefix` |
+|-------|---------------------|--------------------|----------------------|
+| main → insiders | `main` | `rel/insiders` | `[Insiders]` |
+| insiders → stable | `rel/insiders` (if redirecting) or `rel/stable` (if not) | `rel/stable` | `[Stable]` |
+
+Set `insertionCreateDraftPR` to `false` for both. Ask the user whether `release/stable` needs temporary redirection — default is typically **no** (unlike insiders, which always needs it).
 
 After both merge PRs are opened, clean up the local branches:
 
