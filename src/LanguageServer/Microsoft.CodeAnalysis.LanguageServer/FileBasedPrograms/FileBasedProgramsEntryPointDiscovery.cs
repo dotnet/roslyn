@@ -123,11 +123,35 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         // For simplicity we orient our search around one workspace folder at a time.
         foreach (var workspaceFolder in _workspaceFolders)
         {
-
             foreach (var fileBasedAppPath in FindEntryPoints(workspaceFolder))
             {
                 await fileBasedProgramsProjectSystem.TryBeginLoadingFileBasedAppAsync(fileBasedAppPath);
             }
+        }
+
+        // Discovery pass done. Find and delete old caches.
+        IOUtilities.PerformIO(() =>
+        {
+            var enumerator = new OldCacheEnumerator();
+            while (enumerator.MoveNext())
+            {
+                Directory.Delete(enumerator.Current, recursive: true);
+            }
+        });
+    }
+
+    private sealed class OldCacheEnumerator() : FileSystemEnumerator<string>(
+        directory: VirtualProjectXmlProvider.GetDiscoveryCacheRootDirectory(),
+        options: new() { RecurseSubdirectories = false })
+    {
+        // Yield cache directories that have not been modified in 30 days (indicates they are stale and should be deleted)
+        private readonly DateTimeOffset _includeCachesEarlierThanUtc = DateTimeOffset.UtcNow - TimeSpan.FromDays(30);
+
+        protected override string TransformEntry(ref FileSystemEntry entry) => entry.ToFullPath();
+
+        protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
+        {
+            return entry.IsDirectory && entry.LastWriteTimeUtc < _includeCachesEarlierThanUtc;
         }
     }
 
