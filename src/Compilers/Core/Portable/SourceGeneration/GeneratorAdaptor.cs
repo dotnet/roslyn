@@ -65,13 +65,19 @@ namespace Microsoft.CodeAnalysis
             context.RegisterSourceOutput(contextBuilderSource, (productionContext, contextBuilder) =>
             {
                 var generatorExecutionContext = contextBuilder.ToExecutionContext(_sourceExtension, productionContext.ChecksumAlgorithm, productionContext.CancellationToken);
+                try
+                {
 #pragma warning disable CS0618 // Type or member is obsolete
-                SourceGenerator.Execute(generatorExecutionContext);
+                    SourceGenerator.Execute(generatorExecutionContext);
 #pragma warning restore CS0618 // Type or member is obsolete
 
-                // copy the contents of the old context to the new
-                generatorExecutionContext.CopyToProductionContext(productionContext);
-                generatorExecutionContext.Free();
+                    // copy the contents of the old context to the new
+                    generatorExecutionContext.CopyToProductionContext(productionContext);
+                }
+                finally
+                {
+                    generatorExecutionContext.Free();
+                }
             });
         }
 

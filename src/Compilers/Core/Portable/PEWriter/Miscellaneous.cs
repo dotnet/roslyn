@@ -40,7 +40,8 @@ namespace Microsoft.Cci
                 return asIList.Count != 0;
             }
 
-            return enumerable.GetEnumerator().MoveNext();
+            using var enumerator = enumerable.GetEnumerator();
+            return enumerator.MoveNext();
         }
 
         /// <summary>

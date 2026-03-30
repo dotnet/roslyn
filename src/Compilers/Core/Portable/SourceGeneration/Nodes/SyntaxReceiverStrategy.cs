@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e)
                 {
+                    _nodeStateTable.Free();
                     throw new UserFunctionException(e);
                 }
 
@@ -62,6 +63,11 @@ namespace Microsoft.CodeAnalysis
             {
                 _nodeStateTable.AddEntry(_receiver, EntryState.Modified, lastElapsedTime, TrackIncrementalSteps ? System.Collections.Immutable.ImmutableArray<(IncrementalGeneratorRunStep, int)>.Empty : default, EntryState.Modified);
                 tables.SetTable(_key, _nodeStateTable.ToImmutableAndFree());
+            }
+
+            public void Free()
+            {
+                _nodeStateTable.Free();
             }
 
             public void VisitTree(

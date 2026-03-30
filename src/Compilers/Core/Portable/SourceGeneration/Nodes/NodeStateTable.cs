@@ -556,6 +556,12 @@ namespace Microsoft.CodeAnalysis
                     isCached: finalStates.All(static s => s.IsCached) && _previous.GetTotalEntryItemCount() == finalStates.Sum(static s => s.Count));
             }
 
+            public void Free()
+            {
+                _states.Free();
+                _steps?.Free();
+            }
+
             private (T chosen, EntryState state, bool chosePrevious) GetModifiedItemAndState(T previous, T replacement)
             {
                 // when comparing an item to check if its modified we explicitly cache the *previous* item in the case where its 

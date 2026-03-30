@@ -4284,23 +4284,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
-            for (int i = 0; i < elementTypes.Length; i++)
+            try
             {
-                ITypeSymbol typeSymbol = elementTypes[i];
-                var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
-                var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
-                typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
-            }
+                for (int i = 0; i < elementTypes.Length; i++)
+                {
+                    ITypeSymbol typeSymbol = elementTypes[i];
+                    var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
+                    var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
+                    typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
+                }
 
-            return NamedTypeSymbol.CreateTuple(
-                locationOpt: null, // no location for the type declaration
-                elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
-                elementLocations: elementLocations,
-                elementNames: elementNames,
-                compilation: this,
-                shouldCheckConstraints: false,
-                includeNullability: false,
-                errorPositions: default).GetPublicSymbol();
+                return NamedTypeSymbol.CreateTuple(
+                    locationOpt: null, // no location for the type declaration
+                    elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
+                    elementLocations: elementLocations,
+                    elementNames: elementNames,
+                    compilation: this,
+                    shouldCheckConstraints: false,
+                    includeNullability: false,
+                    errorPositions: default).GetPublicSymbol();
+            }
+            catch
+            {
+                typesBuilder.Free();
+                throw;
+            }
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(

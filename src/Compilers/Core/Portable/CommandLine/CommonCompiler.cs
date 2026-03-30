@@ -913,6 +913,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null);
                     Debug.Assert(hadErrors);
+                    diagnostics.Free();
                     return Failed;
                 }
 
@@ -928,6 +929,7 @@ namespace Microsoft.CodeAnalysis
             Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
             if (compilation == null)
             {
+                diagnostics.Free();
                 return Failed;
             }
 
@@ -936,12 +938,14 @@ namespace Microsoft.CodeAnalysis
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
             {
+                diagnostics.Free();
                 return Failed;
             }
 
             ImmutableArray<EmbeddedText?> embeddedTexts = AcquireEmbeddedTexts(compilation, diagnostics);
             if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation))
             {
+                diagnostics.Free();
                 return Failed;
             }
 

@@ -2258,8 +2258,8 @@ internal abstract partial class AbstractEditAndContinueAnalyzer : IEditAndContin
                 continue;
             }
 
-            var newTokensEnum = newTokens.GetEnumerator();
-            var oldTokensEnum = oldTokens.GetEnumerator();
+            using var newTokensEnum = newTokens.GetEnumerator();
+            using var oldTokensEnum = oldTokens.GetEnumerator();
 
             var lastNewToken = default(SyntaxToken);
             var lastOldStartLine = -1;

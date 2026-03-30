@@ -44,21 +44,37 @@ namespace Microsoft.CodeAnalysis
             }
 
             var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<OutputType>.Default);
-            foreach (var entry in sourceTable)
+            try
             {
-                var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
-                if (entry.State == EntryState.Removed)
+                foreach (var entry in sourceTable)
                 {
-                    nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
+                    var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                    if (entry.State == EntryState.Removed)
+                    {
+                        nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
+                    }
+                    else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                    {
+                        ArrayBuilder<(string, object)> output = ArrayBuilder<(string, object)>.GetInstance();
+                        try
+                        {
+                            HostOutputProductionContext context = new HostOutputProductionContext(output, cancellationToken);
+                            var stopwatch = SharedStopwatch.StartNew();
+                            _action(context, entry.Item, cancellationToken);
+                            nodeTable.AddEntry(output.ToImmutableAndFree(), EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
+                        }
+                        catch
+                        {
+                            output.Free();
+                            throw;
+                        }
+                    }
                 }
-                else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
-                {
-                    ArrayBuilder<(string, object)> output = ArrayBuilder<(string, object)>.GetInstance();
-                    HostOutputProductionContext context = new HostOutputProductionContext(output, cancellationToken);
-                    var stopwatch = SharedStopwatch.StartNew();
-                    _action(context, entry.Item, cancellationToken);
-                    nodeTable.AddEntry(output.ToImmutableAndFree(), EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
-                }
+            }
+            catch
+            {
+                nodeTable.Free();
+                throw;
             }
 
             return nodeTable.ToImmutableAndFree();
