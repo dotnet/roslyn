@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
 
                 _freed = true;
+                Container?.Free();
                 _variableBySlot.Free();
                 _variableTypes.Free();
                 _variableSlot.Free();
