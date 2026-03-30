@@ -440,7 +440,7 @@ internal abstract class LanguageServerProjectLoader
                 var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
                 if (target is null)
                 {
-                    _logger.LogWarning("Project {projectPath} loaded with no targets", projectPath);
+                    _logger.LogWarning("Could not get a document for '{projectPath}' because its project loaded with no targets", projectPath);
                     return null;
                 }
 
@@ -448,7 +448,7 @@ internal abstract class LanguageServerProjectLoader
                 var document = solution.GetDocument(solution.GetDocumentIdsWithFilePath(projectPath).FirstOrDefault());
                 if (document is null)
                 {
-                    _logger.LogWarning("Project {projectPath} does not contain a document for the entry point file", projectPath);
+                    _logger.LogWarning("Could not get a document for '{projectPath}' because its project doesn't contain a document for it", projectPath);
                 }
 
                 return document;
