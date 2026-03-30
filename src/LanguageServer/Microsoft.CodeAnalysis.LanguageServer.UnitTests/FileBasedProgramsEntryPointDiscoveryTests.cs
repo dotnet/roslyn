@@ -34,6 +34,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     private readonly TempRoot _tempRoot;
     private readonly TempDirectory _mefCacheDirectory;
 
+    private readonly List<string> _additionalDirectoriesToDelete = [];
+
     public FileBasedProgramsEntryPointDiscoveryTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
@@ -60,6 +62,17 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         _tempRoot.Dispose();
         _loggerProvider.Dispose();
+
+        foreach (var directory in _additionalDirectoriesToDelete)
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    private void DeferDeleteCacheDirectory(string workspacePath)
+    {
+        _additionalDirectoriesToDelete.Add(VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspacePath));
     }
 
     [Fact]
@@ -71,11 +84,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //   Ordinary.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-
-        // Delete artifacts from possible previous runs of this test
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
-        if (Directory.Exists(cacheDirectory))
-            Directory.Delete(cacheDirectory, recursive: true);
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #:sdk Microsoft.Net.SDK
@@ -137,11 +146,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //   App2.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-
-        // Delete artifacts from possible previous runs of this test
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
-        if (Directory.Exists(cacheDirectory))
-            Directory.Delete(cacheDirectory, recursive: true);
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         var artifactsDir = tempDir.CreateDirectory("artifacts");
         var app1Text = """
@@ -180,11 +185,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         //   App.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-
-        // Delete artifacts from possible previous runs of this test
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
-        if (Directory.Exists(cacheDirectory))
-            Directory.Delete(cacheDirectory, recursive: true);
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         var projectDir = tempDir.CreateDirectory("Project");
         var csprojFile = projectDir.CreateFile("Project.csproj");
@@ -225,11 +226,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         // Ensure discovery occurs when relevant options are enabled
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
         var tempDir = _tempRoot.CreateDirectory();
-
-        // Delete artifacts from possible previous runs of this test
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
-        if (Directory.Exists(cacheDirectory))
-            Directory.Delete(cacheDirectory, recursive: true);
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #:sdk Microsoft.Net.SDK
@@ -261,11 +258,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         // Ensure discovery doesn't occur when 'dotnet.projects.enableFileBasedPrograms: false' is set
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
         var tempDir = _tempRoot.CreateDirectory();
-
-        // Delete artifacts from possible previous runs of this test
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
-        if (Directory.Exists(cacheDirectory))
-            Directory.Delete(cacheDirectory, recursive: true);
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #:sdk Microsoft.Net.SDK
@@ -297,11 +290,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         // Ensure discovery doesn't occur when 'dotnet.fileBasedApps.enableAutomaticDiscovery: false' is set
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
         var tempDir = _tempRoot.CreateDirectory();
-
-        // Delete artifacts from possible previous runs of this test
-        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
-        if (Directory.Exists(cacheDirectory))
-            Directory.Delete(cacheDirectory, recursive: true);
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         var appText = """
             #:sdk Microsoft.Net.SDK
@@ -346,6 +335,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap an FBA out for non-FBA at the same path 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -386,6 +376,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap a non-FBA out for FBA at the same path 'sub/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -426,6 +417,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap a directory containing FBA out for a directory containing non-FBA at 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -467,6 +459,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         // Swap a directory containing non-FBA out for a diretory containing FBA at the same path 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -507,6 +500,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     public async Task Fuzz_1()
     {
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -551,6 +545,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     public async Task Fuzz_2()
     {
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -596,6 +591,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     public async Task Fuzz_3()
     {
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -827,6 +823,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         _testOutputHelper.WriteLine($"Random seed: {seed}");
 
         var tempDir = _tempRoot.CreateDirectory();
+        DeferDeleteCacheDirectory(tempDir.Path);
 
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
@@ -920,6 +917,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         sb.AppendLine($"    public async Task Fuzz_{iteration}()");
         sb.AppendLine("    {");
         sb.AppendLine("        var tempDir = _tempRoot.CreateDirectory();");
+        sb.AppendLine("        DeferDeleteCachDirectory(tempDir.Path);");
         sb.AppendLine();
         sb.AppendLine("        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions");
         sb.AppendLine("        {");
