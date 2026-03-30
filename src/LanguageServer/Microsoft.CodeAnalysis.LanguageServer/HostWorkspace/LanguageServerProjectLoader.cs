@@ -406,13 +406,15 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask<Project?> TryBeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, Project> createPrimordialProject, bool doDesignTimeBuild)
+    protected async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, Project> createPrimordialProject, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
             if (_loadedProjects.TryGetValue(projectPath, out var existingState))
             {
-                return Lookup(existingState);
+                // Note: this generally only happens if we fall through to the "add to misc workspace" path,
+                // and we lose a race to begin loading the miscellaneous file project.
+                return LookupExistingDocument(existingState);
             }
 
             var primordialProject = createPrimordialProject(primordialProjectFactory);
@@ -420,14 +422,18 @@ internal abstract class LanguageServerProjectLoader
             if (doDesignTimeBuild)
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
 
-            return primordialProject;
+            return GetPrimordialDocument(primordialProject);
         }
 
-        Project? Lookup(ProjectLoadState loadState)
+        TextDocument GetPrimordialDocument(Project primordialProject) =>
+            primordialProject.Documents.SingleOrDefault() ?? primordialProject.AdditionalDocuments.Single();
+
+        TextDocument? LookupExistingDocument(ProjectLoadState loadState)
         {
             if (loadState is ProjectLoadState.Primordial primordial)
             {
-                return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
+                var project = primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
+                return GetPrimordialDocument(project);
             }
             else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
             {
@@ -438,7 +444,14 @@ internal abstract class LanguageServerProjectLoader
                     return null;
                 }
 
-                return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
+                var solution = target.ProjectFactory.Workspace.CurrentSolution;
+                var document = solution.GetDocument(solution.GetDocumentIdsWithFilePath(projectPath).FirstOrDefault());
+                if (document is null)
+                {
+                    _logger.LogWarning("Project {projectPath} does not contain a document for the entry point file", projectPath);
+                }
+
+                return document;
             }
             else
             {
