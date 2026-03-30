@@ -117,10 +117,16 @@ internal class TestDiscovery
 
                 // Our unix build will build net framework dlls for multi-targeted projects.
                 // These are not valid testing on unix and discovery will throw if we try.
-                if (dirName is "net472") return false;
+                if (dirName is "net472")
+                {
+                    return false;
+                }
 
-                // TFMs with OS-specific suffixes (e.g. net10.0-windows) should not run on unix.
-                if (dirName is not null && dirName.EndsWith("-windows", StringComparison.Ordinal)) return false;
+                // TFMs with OS-specific suffixes (e.g. net10-windows) should not run on unix.
+                if (dirName is not null && dirName.EndsWith("-windows", StringComparison.Ordinal))
+                {
+                    return false;
+                }
             }
 
             return true;
