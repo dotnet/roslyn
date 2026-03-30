@@ -17176,7 +17176,6 @@ System.Console.WriteLine(s);";
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Interpolated string error path leaks pooled objects")]
         public void ParenthesizedAdditiveExpression_04()
         {
             var code = @"

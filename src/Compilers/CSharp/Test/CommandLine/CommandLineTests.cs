@@ -12774,7 +12774,6 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        [ValidatePooledObjects(LeakReason = "Compilation error path leaks pooled objects")]
         public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
         {
             const string SourceCode = @"
