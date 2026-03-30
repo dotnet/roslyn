@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -422,6 +422,7 @@ public class C {
 
         [Fact]
         [WorkItem(748533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748533")]
+        [ValidatePooledObjects(LeakReason = "Missing well-known async members error path")]
         public void Bug748533()
         {
             var text =

@@ -3300,7 +3300,7 @@ class Program
         }
 
         [Fact]
-        [ValidatePooledObjects(LeaksExpected = "Pattern matching DAG lowering leaks pooled objects when predefined types are missing")]
+        [ValidatePooledObjects(LeakReason = "Pattern matching DAG lowering leaks pooled objects when predefined types are missing")]
         public void MissingExceptions_01()
         {
             var source = @"namespace System {

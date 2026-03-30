@@ -40,11 +40,11 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     /// The value should describe the reason leaks are expected.
     /// When applied at the method level, this also suppresses validation from a class-level attribute.
     /// </summary>
-    public string? LeaksExpected { get; set; }
+    public string? LeakReason { get; set; }
 
 #if DEBUG
     /// <summary>
-    /// When a method-level attribute has <see cref="Skip"/> or <see cref="LeaksExpected"/> set,
+    /// When a method-level attribute has <see cref="Skip"/> or <see cref="LeakReason"/> set,
     /// this flag suppresses the class-level attribute's validation for the same test.
     /// </summary>
     private static readonly AsyncLocal<bool> s_suppressClassLevelValidation = new();
@@ -64,7 +64,7 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
         Assert.True(!TraceLeaks || string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CI")),
             "Tracing leaks is very slow, shouldn't be set in CI.");
 
-        if (LeaksExpected is not null)
+        if (LeakReason is not null)
         {
             s_suppressClassLevelValidation.Value = true;
         }
@@ -85,12 +85,12 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 
         PoolTracker.StopTracking();
 
-        if (LeaksExpected is not null)
+        if (LeakReason is not null)
         {
             if (context?.HasLeaks != true)
             {
                 throw new XunitException(
-                    $"{nameof(LeaksExpected)} was set but no leaks were detected. Remove {nameof(LeaksExpected)}. Reason was: {LeaksExpected}");
+                    $"{nameof(LeakReason)} was set but no leaks were detected. Remove {nameof(LeakReason)}. Reason was: {LeakReason}");
             }
 
             return;

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -195,6 +195,7 @@ namespace System.Runtime.CompilerServices
         #region Missing Well-Known Members
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known dynamic members error path")]
         public void Missing_CSharpArgumentInfo()
         {
             string source = @"
@@ -228,6 +229,7 @@ class C
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known dynamic members error path")]
         public void Missing_Binder()
         {
             var csrtRef = MakeCSharpRuntime(excludeBinder: "InvokeConstructor");
@@ -473,6 +475,7 @@ class C
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known dynamic members error path")]
         public void Missing_CallSiteOfT()
         {
             string systemCoreSource = ExpressionTypeSource + DynamicAttributeSource + @"
@@ -15777,6 +15780,7 @@ class C
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known dynamic members error path")]
         public void MissingCSharpArgumentInfoCreate()
         {
             string source =

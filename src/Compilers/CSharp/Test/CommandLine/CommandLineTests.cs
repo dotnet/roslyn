@@ -1460,6 +1460,7 @@ class C
         // The following test is failing in the Linux Debug test leg of CI.
         // This issue is being tracked by https://github.com/dotnet/roslyn/issues/58077
         [ConditionalFact(typeof(WindowsOrMacOSOnly))]
+        [ValidatePooledObjects(LeakReason = "Script argument parsing error path leaks PooledStringBuilder")]
         public void ArgumentParsing()
         {
             var sdkDirectory = SdkDirectory;
@@ -6353,6 +6354,7 @@ public class CS1698_a {}
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
+        [ValidatePooledObjects(LeakReason = "Binary file detection exception path")]
         public void BinaryFileErrorTest()
         {
             var binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path;
@@ -12772,6 +12774,7 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
+        [ValidatePooledObjects(LeakReason = "Compilation error path leaks pooled objects")]
         public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
         {
             const string SourceCode = @"

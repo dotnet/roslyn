@@ -6569,7 +6569,7 @@ End Class";
         }
 
         [Fact]
-        [ValidatePooledObjects(LeaksExpected = "EnsureCSharpSymbolOrNull throws on VB elements after ArrayBuilder allocation")]
+        [ValidatePooledObjects(LeakReason = "EnsureCSharpSymbolOrNull throws on VB elements after ArrayBuilder allocation")]
         public void CreateTupleTypeSymbol2_VisualBasicElements()
         {
             var vbSource = @"Public Class C

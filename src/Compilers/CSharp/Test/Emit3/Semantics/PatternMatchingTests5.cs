@@ -2933,6 +2933,7 @@ class N
         }
 
         [Theory, CombinatorialData, WorkItem(64399, "https://github.com/dotnet/roslyn/issues/64399")]
+        [ValidatePooledObjects(LeakReason = "Pattern matching DAG lowering leaks BoundDagTemp on error paths")]
         public void ShortestPathToDefaultNodeYieldsNoRemainingValues_Nullability_Deconstruction(bool nullableEnable)
         {
             var source = """

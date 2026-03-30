@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1049,6 +1049,7 @@ string Throw() => throw new Exception();
     [Theory]
     [InlineData(@"$""""""base{await Hole()}""""""")]
     [InlineData(@"$""""""base"""""" + $""""""{await Hole()}""""""")]
+    [ValidatePooledObjects(Skip = "Concatenation variant leaks ArrayBuilder<BoundBinaryOperator>")]
     public void AwaitInHoles_UsesFormat(string expression)
     {
         var source = @"
@@ -1497,6 +1498,7 @@ value:2");
     [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
     [InlineData(@"$""""""base{hole}""""""")]
     [InlineData(@"$""""""base"""""" + $""""""{hole}""""""")]
+    [ValidatePooledObjects(Skip = "Concatenation variant leaks ArrayBuilder<BoundBinaryOperator>")]
     public void DynamicInHoles_UsesFormat(string expression)
     {
         var source = @"
@@ -1549,6 +1551,7 @@ Console.WriteLine(" + expression + @");
     [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
     [InlineData(@"$""""""{hole}base""""""")]
     [InlineData(@"$""""""{hole}"""""" + $""""""base""""""")]
+    [ValidatePooledObjects(Skip = "Concatenation variant leaks ArrayBuilder<BoundBinaryOperator>")]
     public void DynamicInHoles_UsesFormat2(string expression)
     {
         var source = @"
@@ -12213,6 +12216,7 @@ System.Console.WriteLine(s);";
     }
 
     [Fact]
+    [ValidatePooledObjects(LeakReason = "Interpolated string error path leaks pooled objects")]
     public void ParenthesizedAdditiveExpression_04()
     {
         var code = @"

@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -13804,6 +13804,7 @@ End Class
 
         <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <ValidatePooledObjects(LeakReason:="Deep binary expression tree overflows stack guard, leaking PendingBranch builder")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
             Dim size = 8192
             Dim source =
@@ -13883,6 +13884,7 @@ End Class
         ' is to prevent regressions and single language should be sufficient here
         <ConditionalFact(GetType(NoIOperationValidation), GetType(WindowsOnly), GetType(IsEnglishLocal))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
+        <ValidatePooledObjects(LeakReason:="Deep binary expression tree overflows stack guard, leaking PendingBranch builder")>
         Public Sub EmitSequenceOfBinaryExpressions_06()
             Dim source =
 $"

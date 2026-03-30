@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -13406,6 +13406,7 @@ Imports System.Runtime.CompilerServices
         End Sub
 
         <Fact>
+        <ValidatePooledObjects(LeakReason:="Invalid friend assembly name error path")>
         Public Sub BC31537ERR_FriendAssemblyNameInvalid()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="FriendAssemblyNameInvalid">

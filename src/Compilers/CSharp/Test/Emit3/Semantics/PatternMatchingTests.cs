@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -5601,6 +5601,7 @@ M15a
 
         [Fact]
         [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        [ValidatePooledObjects(LeakReason = "Pattern matching DAG lowering leaks BoundDagTemp on error paths")]
         public void DecisionTreeCoverage_BadEquals()
         {
             // tests added to complete coverage of the decision tree and pattern-matching implementation

@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -6847,6 +6847,7 @@ _Lambda$__1#4-0#4
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <ValidatePooledObjects(LeakReason:="SymWriter error path leaks pooled objects")>
         Public Sub SymWriterErrors()
             Dim source0 =
 <compilation>
@@ -7380,6 +7381,7 @@ End Class")
         End Sub
 
         <Fact>
+        <ValidatePooledObjects(LeakReason:="Ambiguous code with imports leaks during EnC")>
         Public Sub AddImports_AmbiguousCode()
 
             Dim source0 = MarkedSource("
@@ -7751,6 +7753,7 @@ End Class
 
         <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
+        <ValidatePooledObjects(LeakReason:="PrivateImplDetails RVA fields leak during EnC emit")>
         Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
             Using New EditAndContinueTest().
                 AddBaseline(

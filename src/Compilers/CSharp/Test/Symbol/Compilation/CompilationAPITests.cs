@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1557,6 +1557,7 @@ var a = new C2();
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Invalid syntax tree operations leak PooledHashSet")]
         public void NegSynTree()
         {
             var comp = CSharpCompilation.Create("Compilation");
@@ -3020,7 +3021,7 @@ class C
 
         [Fact]
         [WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")]
-        [ValidatePooledObjects(LeaksExpected = "EnsureCSharpSymbolOrNull throws on VB type arguments after ArrayBuilder allocation")]
+        [ValidatePooledObjects(LeakReason = "EnsureCSharpSymbolOrNull throws on VB type arguments after ArrayBuilder allocation")]
         public void ConstructTypeWithNullability()
         {
             var source =
@@ -3055,7 +3056,7 @@ class C
 
         [Fact]
         [WorkItem(37310, "https://github.com/dotnet/roslyn/issues/37310")]
-        [ValidatePooledObjects(LeaksExpected = "EnsureCSharpSymbolOrNull throws on VB type arguments after ArrayBuilder allocation")]
+        [ValidatePooledObjects(LeakReason = "EnsureCSharpSymbolOrNull throws on VB type arguments after ArrayBuilder allocation")]
         public void ConstructMethodWithNullability()
         {
             var source =

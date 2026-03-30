@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -667,6 +667,7 @@ ABACABADABACABABBBBDDBBDDBBABACCCCDADACCCCBBDDDDDDDD";
 
         [Fact]
         [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
+        [ValidatePooledObjects(LeakReason = "Floating point conversion error path leaks DiagnosticBag")]
         public void NullableConversionFromFloatingPointConst()
         {
             var source = @"

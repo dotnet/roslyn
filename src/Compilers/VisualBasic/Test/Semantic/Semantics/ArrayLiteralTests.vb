@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -1836,6 +1836,7 @@ End Module
 
         <WorkItem(796610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
         <Fact()>
+        <ValidatePooledObjects(LeakReason:="Array literal error path leaks pooled objects")>
         Public Sub Bug796610_1()
             Dim source =
 <compilation>
@@ -1999,6 +2000,7 @@ Static=System.Object[,], Runtime x=System.Object[,], Runtime y=Nothing
 
         <WorkItem(796610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
         <Fact()>
+        <ValidatePooledObjects(LeakReason:="Array literal error path leaks pooled objects")>
         Public Sub Bug796610_2()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>

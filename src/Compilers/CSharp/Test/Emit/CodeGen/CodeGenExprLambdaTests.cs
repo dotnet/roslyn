@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -4994,6 +4994,7 @@ class Test
 
         [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known expression tree members error path")]
         public void MissingMember_System_Type__GetTypeFromHandle()
         {
             var text =
@@ -5044,6 +5045,7 @@ class C
 
         [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known expression tree members error path")]
         public void MissingMember_System_Reflection_FieldInfo__GetFieldFromHandle()
         {
             var text =
@@ -5110,6 +5112,7 @@ class B<T>
 
         [WorkItem(797996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797996")]
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known expression tree members error path")]
         public void MissingMember_System_Reflection_MethodBase__GetMethodFromHandle()
         {
             var text =
@@ -5651,6 +5654,7 @@ class C : TestBase
         /// </summary>
         [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known expression tree members error path")]
         public void IgnoreInaccessibleExpressionMembers_01()
         {
             var source1 =
