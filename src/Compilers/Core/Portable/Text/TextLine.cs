@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly int _start;
 
         // Top 2 bits encode line break length (0, 1, or 2), bottom 30 bits store the end position
-        private readonly int _end;
+        private readonly int _endAndLineBreakLength;
 
         // Mask for extracting the end position (bottom 30 bits)
         private const int EndPositionMask = 0x3FFFFFFF;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Text
             _start = start;
 
             // Pack: top 2 bits = line break length, bottom 30 bits = end position
-            _end = (lineBreakLength << LineBreakLengthShift) | end;
+            _endAndLineBreakLength = (lineBreakLength << LineBreakLengthShift) | end;
         }
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int End
         {
-            get { return _end & EndPositionMask; }
+            get { return _endAndLineBreakLength & EndPositionMask; }
         }
 
         private int LineBreakLength
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Text
             get
             {
                 // Extract line break length from top 2 bits using unsigned right shift
-                return _end >>> LineBreakLengthShift;
+                return _endAndLineBreakLength >>> LineBreakLengthShift;
             }
         }
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Text
             // Both _end values include packed line break length, so direct comparison is correct
             return other._text == _text
                 && other._start == _start
-                && other._end == _end;
+                && other._endAndLineBreakLength == _endAndLineBreakLength;
         }
 
         public override bool Equals(object? obj)
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_text, Hash.Combine(_start, _end));
+            return Hash.Combine(_text, Hash.Combine(_start, _endAndLineBreakLength));
         }
     }
 }
