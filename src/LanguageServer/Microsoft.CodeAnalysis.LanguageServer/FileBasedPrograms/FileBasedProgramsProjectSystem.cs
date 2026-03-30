@@ -213,10 +213,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
             workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
         projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
-        var id = projectInfo.Documents.Single().Id;
-        var primordialDoc = workspace.CurrentSolution.GetRequiredDocument(id);
+        var projectId = projectInfo.Id;
+        var project = workspace.CurrentSolution.GetRequiredProject(projectId);
+        var primordialDoc = project.Documents.SingleOrDefault() ?? project.AdditionalDocuments.Single();
         var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
-        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: primordialDoc.Project.Id, doDesignTimeBuild);
+        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: projectId, doDesignTimeBuild);
         return primordialDoc;
     }
 
