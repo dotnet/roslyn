@@ -115,6 +115,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             pushLeftNodes(binary, stack, arg, binaryOperatorCallback);
 
+            bool result = true;
+
             while (stack.TryPop(out BoundBinaryOperator? current))
             {
                 switch (current.Left)
@@ -124,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TInterpolatedStringType interpolatedString:
                         if (!stringCallback(interpolatedString, arg))
                         {
-                            return false;
+                            result = false;
+                            goto done;
                         }
                         break;
                     default:
@@ -139,7 +142,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TInterpolatedStringType interpolatedString:
                         if (!stringCallback(interpolatedString, arg))
                         {
-                            return false;
+                            result = false;
+                            goto done;
                         }
                         break;
                     default:
@@ -148,8 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(stack.Count == 0);
+
+done:
             stack.Free();
-            return true;
+            return result;
 
             static void pushLeftNodes(BoundBinaryOperator binary, ArrayBuilder<BoundBinaryOperator> stack, TArg arg, Action<BoundBinaryOperator, TArg>? binaryOperatorCallback)
             {

@@ -2679,7 +2679,6 @@ string Throw() => throw new Exception();
         [Theory]
         [InlineData(@"$""base{await Hole()}""")]
         [InlineData(@"$""base"" + $""{await Hole()}""")]
-        [ValidatePooledObjects(Skip = "Concatenation variant leaks ArrayBuilder<BoundBinaryOperator>")]
         public void AwaitInHoles_UsesFormat(string expression)
         {
             var source = @"
@@ -3128,7 +3127,6 @@ value:2");
         [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""base{hole}""")]
         [InlineData(@"$""base"" + $""{hole}""")]
-        [ValidatePooledObjects(Skip = "Concatenation variant leaks ArrayBuilder<BoundBinaryOperator>")]
         public void DynamicInHoles_UsesFormat(string expression)
         {
             var source = @"
@@ -3181,7 +3179,6 @@ Console.WriteLine(" + expression + @");
         [Theory, WorkItem(55609, "https://github.com/dotnet/roslyn/issues/55609")]
         [InlineData(@"$""{hole}base""")]
         [InlineData(@"$""{hole}"" + $""base""")]
-        [ValidatePooledObjects(Skip = "Concatenation variant leaks ArrayBuilder<BoundBinaryOperator>")]
         public void DynamicInHoles_UsesFormat2(string expression)
         {
             var source = @"
