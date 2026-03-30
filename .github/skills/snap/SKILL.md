@@ -208,17 +208,46 @@ Snap merges use a **"take source"** strategy (inspired by the VS repo's `Merge-T
 
 Files that must differ per named branch (specifically `eng/config/PublishData.json`, which controls VS insertion target) are **preserved from the target branch** by modifying the tree via a temporary index before creating the merge commit. This mirrors how `snap.cs` pushes the correct `PublishData.json` to the snap branch.
 
-This approach does NOT touch the working tree — all operations use git plumbing.
+This approach does NOT touch the user's working tree — all operations use git plumbing in a temporary worktree.
 
-#### 3.1 Set up remotes and fetch
+#### 3.1 Set up a temporary worktree
+
+Ask the user for the **path to their local clone** of the repo (e.g., `D:\roslyn`). Default to the current workspace folder if it matches the repo being snapped.
+
+Create a temporary detached worktree so that the user's checkout is not disturbed:
 
 ```bash
+# From the user's repo root
+cd {repoPath}
+
 # Add fork remote if not present
 git remote add fork https://github.com/{forkOwner}/{repo}.git 2>/dev/null || true
 
 # Fetch latest branch refs
 git fetch origin release/insiders release/stable main
+
+# Create a temp worktree (detached HEAD, lightweight)
+SNAP_WORKTREE=$(mktemp -d)
+git worktree add --detach "$SNAP_WORKTREE"
+cd "$SNAP_WORKTREE"
 ```
+
+All subsequent git plumbing commands (steps 3.2–3.3) run inside this worktree. After the merge commits are pushed, clean up:
+
+```bash
+cd {repoPath}
+git worktree remove "$SNAP_WORKTREE"
+```
+
+> **PowerShell equivalent**:
+> ```powershell
+> $snapWorktree = Join-Path ([System.IO.Path]::GetTempPath()) "snap-$(Get-Random)"
+> git worktree add --detach $snapWorktree
+> Push-Location $snapWorktree
+> # ... run steps 3.2–3.3 ...
+> Pop-Location
+> git worktree remove $snapWorktree
+> ```
 
 #### 3.2 Merge insiders → stable
 
@@ -287,7 +316,14 @@ gh pr create --repo {owner}/{repo} \
   --head {forkOwner}:snap-main-to-insiders --base release/insiders --draft
 ```
 
-> **PowerShell note**: On Windows, adapt the commands for PowerShell. Use `$env:GIT_INDEX_FILE` for environment variables, and `New-TemporaryFile` or `[System.IO.Path]::GetTempFileName()` for temp files. Set `$env:GIT_INDEX_FILE` before each git command and restore it afterward.
+> **PowerShell note**: On Windows, adapt the commands for PowerShell. Use `$env:GIT_INDEX_FILE` for environment variables, and `[System.IO.Path]::GetTempFileName()` for temp files. Set `$env:GIT_INDEX_FILE` before each git command and restore it afterward.
+
+After both merge PRs are opened, clean up the worktree:
+
+```bash
+cd {repoPath}
+git worktree remove "$SNAP_WORKTREE"
+```
 
 #### 3.4 Update configuration files on main
 
