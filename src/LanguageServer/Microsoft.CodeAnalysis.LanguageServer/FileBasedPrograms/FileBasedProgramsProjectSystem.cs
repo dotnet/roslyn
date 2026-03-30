@@ -213,7 +213,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // TODO2: What are we supposed to do if we lose the race to add a document?
         // I guess we could try looking it up over again? Or will LspWorkspaceManager do this for us?
-        return primordialProject?.Documents.Single();
+        return primordialProject.Solution.GetDocumentIdsWithFilePath(documentFilePath)?.Documents.Single();
     }
 
     /// <summary>
@@ -233,7 +233,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         await TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
     }
 
-    public async ValueTask<Project> TryBeginLoadingProjectWithPrimordialAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
+    public async ValueTask<Project?> TryBeginLoadingProjectWithPrimordialAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
         return await base.TryBeginLoadingProjectWithPrimordialAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProject, doDesignTimeBuild);
 

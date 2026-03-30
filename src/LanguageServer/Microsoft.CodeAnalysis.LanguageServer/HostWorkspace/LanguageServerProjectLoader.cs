@@ -405,7 +405,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask<Project> TryBeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, Project> createPrimordialProject, bool doDesignTimeBuild)
+    protected async ValueTask<Project?> TryBeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, Project> createPrimordialProject, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -422,7 +422,7 @@ internal abstract class LanguageServerProjectLoader
             return primordialProject;
         }
 
-        Project Lookup(ProjectLoadState loadState)
+        Project? Lookup(ProjectLoadState loadState)
         {
             if (loadState is ProjectLoadState.Primordial primordial)
             {
@@ -430,8 +430,14 @@ internal abstract class LanguageServerProjectLoader
             }
             else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
             {
-                // TODO2:
-                loadedTargets.LoadedProjectTargets.First
+                var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
+                if (target is null)
+                {
+                    _logger.LogWarning("Project {projectPath} loaded with no targets", projectPath);
+                    return null;
+                }
+
+                return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
             }
             else
             {
