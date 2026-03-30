@@ -24202,7 +24202,7 @@ class Program
         {
             var src = """
 C c = new C();
-_ = c.F[1..];
+_ = c.F[1..^1];
 
 class C
 {
@@ -24219,8 +24219,8 @@ static class E
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int_Int);
             comp.VerifyEmitDiagnostics(
                 // (2,5): error CS0656: Missing compiler required member 'System.Span`1.Slice'
-                // _ = c.F[1..];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c.F[1..]").WithArguments("System.Span`1", "Slice").WithLocation(2, 5));
+                // _ = c.F[1..^1];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c.F[1..^1]").WithArguments("System.Span`1", "Slice").WithLocation(2, 5));
         }
 
         [Fact]
@@ -24228,7 +24228,7 @@ static class E
         {
             var src = """
 C c = new C();
-_ = c.F[1..];
+_ = c.F[1..^1];
 
 class C
 {
@@ -24248,8 +24248,8 @@ static class E
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int_Int);
             comp.VerifyEmitDiagnostics(
                 // (2,5): error CS0656: Missing compiler required member 'System.Span`1.Slice'
-                // _ = c.F[1..];
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c.F[1..]").WithArguments("System.Span`1", "Slice").WithLocation(2, 5));
+                // _ = c.F[1..^1];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "c.F[1..^1]").WithArguments("System.Span`1", "Slice").WithLocation(2, 5));
         }
     }
 }
