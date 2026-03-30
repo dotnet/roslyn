@@ -1398,6 +1398,7 @@ End Module").Path
         End Sub
 
         <Fact>
+        <ValidatePooledObjects(LeakReason:="Script argument parsing error path leaks PooledStringBuilder")>
         Public Sub ArgumentParsing()
             Dim parsedArgs = InteractiveParse({"a + b"}, _baseDirectory)
             Assert.Equal(False, parsedArgs.Errors.Any())
@@ -4944,6 +4945,7 @@ End Class
         End Sub
 
         <Fact()>
+        <ValidatePooledObjects(LeakReason:="Binary file detection exception path")>
         Public Sub BinaryFile()
             Dim binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path
             Dim outWriter As New StringWriter()
@@ -7461,6 +7463,7 @@ End Module
         End Sub
 
         <Fact()>
+        <ValidatePooledObjects(LeakReason:="Error path leaks PooledStringBuilder")>
         Public Sub ReservedDeviceNameAsFileName2()
             Dim source As String = Temp.CreateFile().WriteAllText(<text>
 Module Module1
@@ -9129,6 +9132,7 @@ End Class
         End Sub
 
         <Fact>
+        <ValidatePooledObjects(LeakReason:="Binary file detection exception path")>
         Public Sub AdditionalFileDiagnostics()
             Dim dir = Temp.CreateDirectory()
             Dim source = dir.CreateFile("a.vb").WriteAllText(<text>

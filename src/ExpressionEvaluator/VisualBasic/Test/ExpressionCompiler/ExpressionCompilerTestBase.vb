@@ -26,6 +26,7 @@ Imports Roslyn.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
+    <ValidatePooledObjects(Skip:="VB expression evaluator leaks PooledDictionary systemically")>
     Public MustInherit Class ExpressionCompilerTestBase
         Inherits BasicTestBase
         Implements IDisposable

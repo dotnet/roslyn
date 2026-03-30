@@ -13392,6 +13392,7 @@ class C
 
         [WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ValidatePooledObjects(LeakReason = "SymWriter error path leaks pooled objects")]
         public void SymWriterErrors()
         {
             var source0 =

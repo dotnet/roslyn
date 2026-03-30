@@ -6076,6 +6076,7 @@ public class C
                     typeName: out typeName,
                     testData: null);
                 AssertEx.SetEqual(locals.Select(l => l.LocalName), "x", "y");
+                locals.Free();
             }
         }
 

@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
+    <ValidatePooledObjects(Skip:="VB symbol lookup leaks ArrayBuilder(Of Symbol) systemically")>
     Public Class SymbolCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 

@@ -2072,6 +2072,7 @@ class UsePia
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Missing well-known members error path leaks ArrayBuilder<BoundStatement>")]
         public void NewCoClassMissingWellKnownMembers()
         {
             string pia = @"
@@ -5772,6 +5773,7 @@ namespace NetImplNS2
         }
 
         [Fact, WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")]
+        [ValidatePooledObjects(LeakReason = "Missing ComAwareEventInfo error path leaks ArrayBuilder<BoundStatement>")]
         public void MissingComAwareEventInfo()
         {
             string pia = @"
