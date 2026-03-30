@@ -46,7 +46,7 @@ darc get-subscriptions --exact --source-repo https://github.com/dotnet/roslyn --
 
 ### Fork-based workflow
 
-Snap PRs are typically opened from a user's fork. Ask the user for their fork (e.g., `jjonescz/roslyn`). Branches are created in the fork via the GitHub API, and PRs are opened cross-fork with `--head {forkOwner}:{branchName}`. Verify the `gh` account has push access to the fork (`gh api repos/{forkOwner}/{repo} --jq '.permissions'`).
+Snap PRs are typically opened from a user's fork. Ask the user for their fork (e.g., `{username}/roslyn`). Branches are created in the fork via the GitHub API, and PRs are opened cross-fork with `--head {forkOwner}:{branchName}`. Verify the `gh` account has push access to the fork (`gh api repos/{forkOwner}/{repo} --jq '.permissions'`).
 
 ## Workflow
 
@@ -214,17 +214,17 @@ This approach does NOT touch the user's working tree — all operations use git 
 
 Ask the user for the **path to their local clone** of the repo (e.g., `D:\roslyn`). Default to the current workspace folder if it matches the repo being snapped.
 
+**Find the fork remote name** — the user likely already has a remote for their fork. List remotes (`git remote -v`) and find the one pointing to `{forkOwner}/{repo}`. Use that name as `{forkRemote}` throughout. Do **not** create a new remote if one already exists.
+
+Also identify the upstream remote (typically `origin` or `dotnet`) — the one pointing to `{owner}/{repo}`. Use that as `{upstreamRemote}`.
+
 Create a temporary detached worktree so that the user's checkout is not disturbed:
 
 ```bash
-# From the user's repo root
 cd {repoPath}
 
-# Add fork remote if not present
-git remote add fork https://github.com/{forkOwner}/{repo}.git 2>/dev/null || true
-
-# Fetch latest branch refs
-git fetch origin release/insiders release/stable main
+# Fetch latest branch refs from upstream
+git fetch {upstreamRemote} release/insiders release/stable main
 
 # Create a temp worktree (detached HEAD, lightweight)
 SNAP_WORKTREE=$(mktemp -d)
@@ -253,15 +253,15 @@ git worktree remove "$SNAP_WORKTREE"
 
 ```bash
 # Resolve refs
-SOURCE_COMMIT=$(git rev-parse origin/release/insiders)
-SOURCE_TREE=$(git rev-parse "origin/release/insiders^{tree}")
-TARGET_COMMIT=$(git rev-parse origin/release/stable)
+SOURCE_COMMIT=$(git rev-parse {upstreamRemote}/release/insiders)
+SOURCE_TREE=$(git rev-parse "{upstreamRemote}/release/insiders^{tree}")
+TARGET_COMMIT=$(git rev-parse {upstreamRemote}/release/stable)
 
 # Build a modified tree: take source tree entirely, but preserve PublishData.json from target
 TEMP_INDEX=$(mktemp)
 GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
 
-TARGET_PD_BLOB=$(git rev-parse "origin/release/stable:eng/config/PublishData.json")
+TARGET_PD_BLOB=$(git rev-parse "{upstreamRemote}/release/stable:eng/config/PublishData.json")
 GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,$TARGET_PD_BLOB,eng/config/PublishData.json
 
 MODIFIED_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
@@ -274,7 +274,7 @@ MERGE_COMMIT=$(git commit-tree "$MODIFIED_TREE" \
 
 # Create branch, push to fork, open draft PR
 git branch snap-insiders-to-stable "$MERGE_COMMIT"
-git push fork snap-insiders-to-stable
+git push {forkRemote} snap-insiders-to-stable
 
 gh pr create --repo {owner}/{repo} \
   --title "Snap release/insiders into release/stable" \
@@ -291,13 +291,13 @@ Same "take source" approach, but use the chosen **snap commit** (not branch HEAD
 ```bash
 SOURCE_COMMIT={snapCommitSha}
 SOURCE_TREE=$(git rev-parse "{snapCommitSha}^{tree}")
-TARGET_COMMIT=$(git rev-parse origin/release/insiders)
+TARGET_COMMIT=$(git rev-parse {upstreamRemote}/release/insiders)
 
 # Build modified tree preserving target's PublishData.json
 TEMP_INDEX=$(mktemp)
 GIT_INDEX_FILE=$TEMP_INDEX git read-tree $SOURCE_TREE
 
-TARGET_PD_BLOB=$(git rev-parse "origin/release/insiders:eng/config/PublishData.json")
+TARGET_PD_BLOB=$(git rev-parse "{upstreamRemote}/release/insiders:eng/config/PublishData.json")
 GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,$TARGET_PD_BLOB,eng/config/PublishData.json
 
 MODIFIED_TREE=$(GIT_INDEX_FILE=$TEMP_INDEX git write-tree)
@@ -308,7 +308,7 @@ MERGE_COMMIT=$(git commit-tree "$MODIFIED_TREE" \
   -m "Merge main into release/insiders")
 
 git branch snap-main-to-insiders "$MERGE_COMMIT"
-git push fork snap-main-to-insiders
+git push {forkRemote} snap-main-to-insiders
 
 gh pr create --repo {owner}/{repo} \
   --title "Snap main into release/insiders" \
