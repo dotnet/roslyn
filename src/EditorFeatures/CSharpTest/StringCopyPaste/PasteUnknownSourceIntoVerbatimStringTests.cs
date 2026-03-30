@@ -110,7 +110,7 @@ public sealed class PasteUnknownSourceIntoVerbatimStringTests
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/62969")]
     public void TestNormalTextWithSomeQuotesToEscapeAndSomeToNotEscapeIntoVerbatimString()
     {
-        // Because we're escaping the quotes in "CA2013", we should also escape teh `""`, even though `""` is legal
+        // Because we're escaping the quotes in "CA2013", we should also escape the `""`, even though `""` is legal
         // to have in a verbatim string.
         TestPasteUnknownSource(
             pasteText: """

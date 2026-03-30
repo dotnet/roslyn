@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -80,10 +81,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsNativeIntegerType { get; }
 
-        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.IsExtension)} instead.")]
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         bool IsExtension { get; }
 
-        [Obsolete($"This API will be removed in the future. Use {nameof(INamedTypeSymbol)}.{nameof(INamedTypeSymbol.ExtensionParameter)} instead.")]
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IParameterSymbol? ExtensionParameter { get; }
 
         /// <summary>

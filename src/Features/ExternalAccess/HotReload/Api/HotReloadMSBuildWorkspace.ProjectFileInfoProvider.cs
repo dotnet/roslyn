@@ -2,19 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-extern alias BuildHost;
-
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.HotReload.Internal;
 using Microsoft.CodeAnalysis.MSBuild;
 
 using MSB = Microsoft.Build;
-using MSBuildHost = BuildHost::Microsoft.CodeAnalysis.MSBuild;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 
@@ -37,17 +31,17 @@ internal sealed partial class HotReloadMSBuildWorkspace
 
             return Task.FromResult(instances.SelectAsArray(instance =>
             {
-                var reader = new MSBuildHost.ProjectInstanceReader(
-                    MSBuildHost.ProjectCommandLineProvider.Create(languageName),
-                    instance,
-                    project);
+                // dotnet-watch only supports C# projects for Hot Reload and ensures that C# language services are available:
+                var commandLineReader = ProjectCommandLineProvider.TryCreate(languageName, knownCommandLineParserLanguages: [LanguageNames.CSharp]);
 
-                return reader.CreateProjectFileInfo().Convert();
+                var reader = new ProjectInstanceReader(languageName, commandLineReader, instance, project);
+
+                return reader.CreateProjectFileInfo();
             }));
         }
 
         public Task<ImmutableArray<string>> GetProjectOutputPathsAsync(string projectPath, CancellationToken cancellationToken)
             => Task.FromResult(
-                getBuildProjects(projectPath).instances.SelectAsArray(static instance => instance.GetPropertyValue(MSBuildHost.PropertyNames.TargetPath)));
+                getBuildProjects(projectPath).instances.SelectAsArray(static instance => instance.GetPropertyValue(PropertyNames.TargetPath)));
     }
 }

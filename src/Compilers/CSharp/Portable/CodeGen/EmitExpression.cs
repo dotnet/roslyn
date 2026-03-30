@@ -1903,11 +1903,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // calling a method defined in a base class or interface.
 
-                        // When calling a method that is virtual in metadata on a struct receiver, 
+                        // When calling a method that is virtual in metadata on a struct receiver,
                         // we use a constrained virtual call. If possible, it will skip boxing.
                         if (method.IsMetadataVirtual())
                         {
-                            addressKind = AddressKind.Writeable;
+                            // For readonly value type receivers, we only need readonly access since
+                            // readonly structs guarantee non-mutation for all their methods, and the
+                            // constrained call either resolves to a non-mutating method or boxes the
+                            // value (which copies it). Either way, the original receiver is not mutated.
+                            addressKind = receiverType.IsReadOnly ? AddressKind.ReadOnly : AddressKind.Writeable;
                             callKind = CallKind.ConstrainedCallVirt;
                         }
                         else

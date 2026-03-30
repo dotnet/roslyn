@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -23,7 +23,7 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
     /// that we will not try to read previously cached data from a prior version of roslyn with a different format and
     /// will instead regenerate all the indices with the new format.
     /// </summary>
-    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("51");
+    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("52");
 
     /// <summary>
     /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained

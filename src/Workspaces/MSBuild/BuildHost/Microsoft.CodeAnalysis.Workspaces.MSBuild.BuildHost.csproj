@@ -92,6 +92,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Contracts\Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildBuildHostResources.resx" GenerateSource="true" />
   </ItemGroup>
 
@@ -108,6 +112,5 @@
   </Target>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
-  <Import Project="..\..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets" />
 </Project>

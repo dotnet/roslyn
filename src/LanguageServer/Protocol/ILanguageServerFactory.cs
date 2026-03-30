@@ -15,7 +15,6 @@ internal interface ILanguageServerFactory
     public AbstractLanguageServer<RequestContext> Create(
         JsonRpc jsonRpc,
         JsonSerializerOptions options,
-        ICapabilitiesProvider capabilitiesProvider,
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
         HostServices hostServices,

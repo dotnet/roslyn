@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -32,7 +32,6 @@ internal abstract partial class PatternMatcher : IDisposable
     public const int CamelCaseMaxWeight = CamelCaseContiguousBonus + CamelCaseMatchesFromStartBonus;
 
     private readonly bool _includeMatchedSpans;
-    private readonly bool _allowFuzzyMatching;
 
     // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
     private readonly CompareInfo _compareInfo;
@@ -45,11 +44,9 @@ internal abstract partial class PatternMatcher : IDisposable
     /// </summary>
     /// <param name="culture">The culture to use for string searching and comparison.</param>
     /// <param name="includeMatchedSpans">Whether or not the matching parts of the candidate should be supplied in results.</param>
-    /// <param name="allowFuzzyMatching">Whether or not close matches should count as matches.</param>
     protected PatternMatcher(
         bool includeMatchedSpans,
-        CultureInfo? culture,
-        bool allowFuzzyMatching = false)
+        CultureInfo? culture)
     {
         culture ??= CultureInfo.CurrentCulture;
 
@@ -57,7 +54,6 @@ internal abstract partial class PatternMatcher : IDisposable
         _textInfo = culture.TextInfo;
 
         _includeMatchedSpans = includeMatchedSpans;
-        _allowFuzzyMatching = allowFuzzyMatching;
     }
 
     public virtual void Dispose()
@@ -66,33 +62,32 @@ internal abstract partial class PatternMatcher : IDisposable
 
     public static PatternMatcher CreatePatternMatcher(
         string pattern,
-        CultureInfo? culture = null,
-        bool includeMatchedSpans = false,
-        bool allowFuzzyMatching = false)
+        bool includeMatchedSpans,
+        bool allowFuzzyMatching)
+    {
+        return CreatePatternMatcher(pattern, culture: null, includeMatchedSpans, allowFuzzyMatching);
+    }
+
+    public static PatternMatcher CreatePatternMatcher(
+        string pattern,
+        CultureInfo? culture,
+        bool includeMatchedSpans,
+        bool allowFuzzyMatching)
     {
         return new SimplePatternMatcher(pattern, culture, includeMatchedSpans, allowFuzzyMatching);
     }
 
-    public static PatternMatcher CreateContainerPatternMatcher(
-        string[] patternParts,
-        char[] containerSplitCharacters,
-        bool includeMatchedSpans = false,
-        CultureInfo? culture = null,
-        bool allowFuzzyMatching = false)
+    [return: NotNullIfNotNull(nameof(pattern))]
+    public static PatternMatcher? CreateDotSeparatedContainerMatcher(
+        string? pattern,
+        bool includeMatchedSpans,
+        CultureInfo? culture = null)
     {
-        return new ContainerPatternMatcher(
-            patternParts, containerSplitCharacters, includeMatchedSpans, culture, allowFuzzyMatching);
-    }
+        if (pattern is null)
+            return null;
 
-    public static PatternMatcher CreateDotSeparatedContainerMatcher(
-        string pattern,
-        bool includeMatchedSpans = false,
-        CultureInfo? culture = null,
-        bool allowFuzzyMatching = false)
-    {
-        return CreateContainerPatternMatcher(
-            pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries),
-            s_dotCharacterArray, includeMatchedSpans, culture, allowFuzzyMatching);
+        return new ContainerPatternMatcher(
+            pattern.Split(s_dotCharacterArray, StringSplitOptions.RemoveEmptyEntries), s_dotCharacterArray, includeMatchedSpans, culture);
     }
 
     internal static (string name, string? containerOpt) GetNameAndContainer(string pattern)
@@ -137,11 +132,18 @@ internal abstract partial class PatternMatcher : IDisposable
         string candidate,
         ref TextChunk patternChunk,
         bool punctuationStripped,
-        bool fuzzyMatch)
+        bool allowFuzzyMatching)
     {
-        return fuzzyMatch
-            ? FuzzyMatchPatternChunk(candidate, ref patternChunk, punctuationStripped)
-            : NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
+        // Always try non-fuzzy first — it's cheaper and gives better quality results.
+        var match = NonFuzzyMatchPatternChunk(candidate, patternChunk, punctuationStripped);
+        if (match != null)
+            return match;
+
+        // Fuzzy is a fallback, only attempted when the caller explicitly allows it.
+        if (allowFuzzyMatching)
+            return FuzzyMatchPatternChunk(candidate, ref patternChunk, punctuationStripped);
+
+        return null;
     }
 
     private static PatternMatch? FuzzyMatchPatternChunk(
@@ -333,19 +335,13 @@ internal abstract partial class PatternMatcher : IDisposable
     /// <param name="candidate">The word being tested.</param>
     /// <param name="segment">The segment of the pattern to check against the candidate.</param>
     /// <param name="matches">The result array to place the matches in.</param>
-    /// <param name="fuzzyMatch">If a fuzzy match should be performed</param>
-    /// <returns>If there's only one match, then the return value is that match. Otherwise it is null.</returns>
+    /// <param name="allowFuzzyMatching">Whether to allow fuzzy (edit-distance) matching as a fallback.</param>
     private bool MatchPatternSegment(
         string candidate,
         ref PatternSegment segment,
         ref TemporaryArray<PatternMatch> matches,
-        bool fuzzyMatch)
+        bool allowFuzzyMatching)
     {
-        if (fuzzyMatch && !_allowFuzzyMatching)
-        {
-            return false;
-        }
-
         // First check if the segment matches as is.  This is also useful if the segment contains
         // characters we would normally strip when splitting into parts that we also may want to
         // match in the candidate.  For example if the segment is "@int" and the candidate is
@@ -356,7 +352,7 @@ internal abstract partial class PatternMatcher : IDisposable
         if (!ContainsSpaceOrAsterisk(segment.TotalTextChunk.Text))
         {
             var match = MatchPatternChunk(
-                candidate, ref segment.TotalTextChunk, punctuationStripped: false, fuzzyMatch: fuzzyMatch);
+                candidate, ref segment.TotalTextChunk, punctuationStripped: false, allowFuzzyMatching);
             if (match != null)
             {
                 matches.Add(match.Value);
@@ -384,11 +380,9 @@ internal abstract partial class PatternMatcher : IDisposable
         if (subWordTextChunks.Length == 1)
         {
             var result = MatchPatternChunk(
-                candidate, ref subWordTextChunks[0], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                candidate, ref subWordTextChunks[0], punctuationStripped: true, allowFuzzyMatching);
             if (result == null)
-            {
                 return false;
-            }
 
             matches.Add(result.Value);
             return true;
@@ -401,7 +395,7 @@ internal abstract partial class PatternMatcher : IDisposable
             {
                 // Try to match the candidate with this word
                 var result = MatchPatternChunk(
-                    candidate, ref subWordTextChunks[i], punctuationStripped: true, fuzzyMatch: fuzzyMatch);
+                    candidate, ref subWordTextChunks[i], punctuationStripped: true, allowFuzzyMatching);
                 if (result == null)
                     return false;
 

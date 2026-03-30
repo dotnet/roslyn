@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -208,26 +209,68 @@ internal sealed partial class RemoteWorkspace : Workspace
         CancellationToken cancellationToken)
     {
         // See if we can just incrementally update the current solution.
-        var currentSolution = this.CurrentSolution;
-        if (await IsIncrementalUpdateAsync().ConfigureAwait(false))
-            return currentSolution;
+        var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
+            AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
+            AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
+        var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
+            AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+
+        // We update CurrentSolution by periodically syncing the primary solution over from our main process. During solution load, that might not happen prior to
+        // a file being opened and the user trying to interact with a project; in that case CurrentSolution might still be empty. In that window of time,
+        // each operation from OOP would then synchronize over the projects or cone from scratch, and then effectively throwing away that state since the next request will
+        // try to base itself from the (empty) CurrentSolution again. To avoid that, we'll see if we have some other forked solution available that has some of the projects we might
+        // need, but checking how many projects are missing. This is especially important for cases where the projects may have generators, since a first time generator run
+        // could be expensive.
+        Solution? bestSolution = null;
+        int? bestSolutionProjectsMissingCount = null;
+
+        // First, is our CurrentSolution already a candidate that can't be beat?
+        UpdateBestSolution(this.CurrentSolution);
+        if (bestSolution is not null && bestSolutionProjectsMissingCount == 0)
+            return bestSolution;
+
+        using var _ = PooledHashSet<Solution>.GetInstance(out var solutions);
+        using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            _lastRequestedAnyBranchSolutions.AddAllTo(solutions);
+        }
+
+        foreach (var solution in solutions)
+            UpdateBestSolution(solution);
+
+        if (bestSolution is not null)
+            return bestSolution;
 
         // If not, have to create a new, fresh, solution instance to update.
         var solutionInfo = await assetProvider.CreateSolutionInfoAsync(
             solutionChecksum, this.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
         return CreateSolutionFromInfo(solutionInfo);
 
-        async Task<bool> IsIncrementalUpdateAsync()
+        // Updates <see cref="bestSolution"/>, preferring whichever Solution will require synchronizing over the fewest new projects.
+        void UpdateBestSolution(Solution candidateSolution)
         {
-            var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
-            var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
-            var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+            if (candidateSolution.Id == newSolutionInfo.Id && candidateSolution.FilePath == newSolutionInfo.FilePath)
+            {
+                // Compute how many projects are missing from this one
+                using var _ = PooledHashSet<ProjectId>.GetInstance(out var ids);
+                ids.AddAll(newSolutionChecksums.Projects.Ids);
+                foreach (var id in candidateSolution.ProjectIds)
+                    ids.Remove(id);
 
-            // if either solution id or file path changed, then we consider it as new solution
-            return currentSolution.Id == newSolutionInfo.Id && currentSolution.FilePath == newSolutionInfo.FilePath;
+                var projectsMissing = ids.Count;
+
+                if (!bestSolutionProjectsMissingCount.HasValue)
+                {
+                    bestSolution = candidateSolution;
+                    bestSolutionProjectsMissingCount = projectsMissing;
+                }
+                else if (projectsMissing < bestSolutionProjectsMissingCount.Value)
+                {
+                    bestSolution = candidateSolution;
+                    bestSolutionProjectsMissingCount = projectsMissing;
+                }
+            }
         }
     }
 

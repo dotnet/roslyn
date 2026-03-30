@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             // This test verifies that GetServerEnvironmentVariables properly sets up DOTNET_ROOT
             // without modifying the current process environment
             var currentEnvironment = Environment.GetEnvironmentVariables();
-            var originalDotNetRoot = currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
+            var originalDotNetRoot = (string?)currentEnvironment[RuntimeHostInfo.DotNetRootEnvironmentName];
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(currentEnvironment);
 
@@ -162,10 +162,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // Should not have modified the current process environment
                 Assert.Equal(originalDotNetRoot, Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetRootEnvironmentName));
             }
-            else
+            else if (envVars != null)
             {
-                // If no DOTNET_ROOT is needed, should return null
-                Assert.Null(envVars);
+                // No DOTNET_ROOT modification is needed
+                var modifiedDotNetRoot = envVars.TryGetValue(RuntimeHostInfo.DotNetRootEnvironmentName, out var value) ? value : null;
+                Assert.Equal(originalDotNetRoot, modifiedDotNetRoot);
             }
         }
 
@@ -190,8 +191,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(testEnvironment);
 
-            if (envVars != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Logger.Log) != null)
             {
+                Assert.NotNull(envVars);
+
                 // Should set DOTNET_ROOT* variants to empty string to prevent inheritance
                 foreach (var testEnvVar in testEnvVars)
                 {
