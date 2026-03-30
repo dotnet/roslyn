@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// Tests related to binding (but not lowering) lock statements.
     /// </summary>
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class UnsafeTests : CompilingTestBase
     {
         private static string GetEscapedNewLine()
@@ -11407,6 +11408,9 @@ class C<T> : A
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expected);
 
+            CreateCompilation(text, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expected);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expected);
+
             expected = new[]
             {
                 // (8,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -13249,6 +13253,54 @@ class C
                 // (6,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M1(X t) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(6, 13));
+        }
+
+        [Fact]
+        public void UsingAlias_Multiple()
+        {
+            CreateCompilation("""
+                #pragma warning disable CS8019 // unnecessary using
+                using unsafe X = System.Collections.Generic.List<int*[]>;
+                using Y = System.Collections.Generic.List<long*[]>;
+                """,
+                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using Y = System.Collections.Generic.List<long*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 43));
+
+            CreateCompilation("""
+                #pragma warning disable CS8019 // unnecessary using
+                using X = System.Collections.Generic.List<int*[]>;
+                using unsafe Y = System.Collections.Generic.List<long*[]>;
+                """,
+                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using X = System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82426")]
+        public void UsingStatic_Multiple()
+        {
+            CreateCompilation("""
+                #pragma warning disable CS8019 // unnecessary using
+                using static unsafe System.Collections.Generic.List<int*[]>;
+                using static System.Collections.Generic.List<long*[]>;
+                """,
+                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (3,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using static System.Collections.Generic.List<long*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 46));
+
+            CreateCompilation("""
+                #pragma warning disable CS8019 // unnecessary using
+                using static System.Collections.Generic.List<int*[]>;
+                using static unsafe System.Collections.Generic.List<long*[]>;
+                """,
+                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (2,46): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // using static System.Collections.Generic.List<int*[]>;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 46));
         }
 
         [Fact]

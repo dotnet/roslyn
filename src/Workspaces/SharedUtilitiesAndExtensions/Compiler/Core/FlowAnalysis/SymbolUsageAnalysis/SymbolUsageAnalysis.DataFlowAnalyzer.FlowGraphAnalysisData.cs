@@ -139,7 +139,7 @@ internal static partial class SymbolUsageAnalysis
                 static ImmutableArray<IParameterSymbol> GetParameters(ISymbol owningSymbol)
                 {
                     var parameters = owningSymbol.GetParameters();
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
                     if (owningSymbol.ContainingSymbol is INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } extensionParameter })
                     {
                         return parameters.Add(extensionParameter); // order doesn't matter

@@ -8,17 +8,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Threading;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 
 namespace Microsoft.VisualStudio.LanguageServices.TaskList;
 
@@ -40,12 +38,22 @@ internal sealed class VisualStudioDiagnosticIdCacheFactory(
 
 internal class VisualStudioDiagnosticIdCache : IWorkspaceService
 {
-    // This dictionary maps ProjectIds to a descriptor list.
-    private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _projectIdToDiagnosticIdsCache = [];
-    private readonly AsyncBatchingWorkQueue<ProjectId> _projectDescriptorRefreshQueue;
+    /// <summary>
+    /// This dictionary maps ProjectIds to a set of DiagnosticIds.
+    /// </summary>
+    /// <remarks>
+    /// A <see cref="ProjectId" /> being in the map means we are tracking changes for this project
+    /// and will update diagnostic ids when AnalyzerReferences change. A null value
+    /// means that we haven't computed the diagnostic ids for this project id yet.
+    /// </remarks>
+    private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>?> _projectIdToDiagnosticIdsCache = [];
+    private HashSet<ProjectId> _projectIdsToRefresh = [];
+    private Task _refreshTask = Task.CompletedTask;
+    private readonly object _gate = new();
 
     private readonly Workspace _workspace;
     private readonly IDiagnosticAnalyzerService _analyzerService;
+    private readonly IThreadingContext _threadingContext;
     private readonly IAsynchronousOperationListener _listener;
 
     public VisualStudioDiagnosticIdCache(
@@ -55,72 +63,131 @@ internal class VisualStudioDiagnosticIdCache : IWorkspaceService
     {
         _workspace = workspace;
         _analyzerService = workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        _threadingContext = threadingContext;
         _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
-        _projectDescriptorRefreshQueue = new AsyncBatchingWorkQueue<ProjectId>(
-            delay: DelayTimeSpan.Short,
-            processBatchAsync: RefreshCachedDiagnosticIdsAsync,
-            equalityComparer: EqualityComparer<ProjectId>.Default,
-            asyncListener: _listener,
-            cancellationToken: threadingContext.DisposalToken);
-
         _workspace.RegisterWorkspaceChangedHandler(WorkspaceChanged);
+    }
 
-        foreach (var projectId in _workspace.CurrentSolution.ProjectIds)
+    /// <summary>
+    /// We will only cache diagnostic ids for projects which have been registered by the <see cref="AbstractLegacyProject"/>.
+    /// </summary>
+    public void RegisterProject(ProjectId projectId)
+    {
+        lock (_gate)
         {
-            _projectDescriptorRefreshQueue.AddWork(projectId);
+            // Ensure we have an entry for this projectId in case we get a workspace change event before
+            // we set it in RefreshCacheDiagnosticIdsAsync.
+            _projectIdToDiagnosticIdsCache.TryAdd(projectId, null);
+            _projectIdsToRefresh.Add(projectId);
+        }
+    }
+
+    public void Refresh()
+    {
+        lock (_gate)
+        {
+            var projectIdsToRefresh = _projectIdsToRefresh;
+            _projectIdsToRefresh = [];
+
+            if (projectIdsToRefresh.Count == 0)
+            {
+                return;
+            }
+
+            var refreshToken = _listener.BeginAsyncOperation(nameof(Refresh));
+            _refreshTask = _refreshTask.ContinueWith(
+                async _ => await RefreshCachedDiagnosticIdsAsync(projectIdsToRefresh, _threadingContext.DisposalToken).ConfigureAwait(false),
+                _threadingContext.DisposalToken,
+                TaskContinuationOptions.None,
+                TaskScheduler.Default)
+                .Unwrap()
+                .CompletesAsyncOperation(refreshToken);
         }
     }
 
     public bool TryGetDiagnosticIds(ProjectId projectId, [NotNullWhen(returnValue: true)] out ImmutableHashSet<string>? diagnosticIds)
-        => _projectIdToDiagnosticIdsCache.TryGetValue(projectId, out diagnosticIds);
+        => _projectIdToDiagnosticIdsCache.TryGetValue(projectId, out diagnosticIds) && diagnosticIds != null;
 
     private void WorkspaceChanged(WorkspaceChangeEventArgs e)
     {
-        var workspaceChanges = e.NewSolution.GetChanges(e.OldSolution);
-
-        foreach (var addedProject in workspaceChanges.GetAddedProjects())
+        if (_projectIdToDiagnosticIdsCache.IsEmpty)
         {
-            _projectDescriptorRefreshQueue.AddWork(addedProject.Id);
+            return;
         }
+
+        var workspaceChanges = e.NewSolution.GetChanges(e.OldSolution);
 
         foreach (var removedProject in workspaceChanges.GetRemovedProjects())
         {
-            _projectDescriptorRefreshQueue.AddWork(removedProject.Id);
+            if (_projectIdToDiagnosticIdsCache.ContainsKey(removedProject.Id))
+            {
+                lock (_gate)
+                {
+                    // Avoid a race condition where we remove a project here only for it to be added back
+                    // by a refresh operation which is already in flight. Queue a refresh for this project 
+                    // and remove it when refreshing.
+                    _projectIdsToRefresh.Add(removedProject.Id);
+                }
+            }
         }
 
         foreach (var projectChange in workspaceChanges.GetProjectChanges())
         {
-            var oldProject = projectChange.OldProject;
-            var newProject = projectChange.NewProject;
-
-            var analyzersChanged = !oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
-            if (analyzersChanged)
+            if (_projectIdToDiagnosticIdsCache.ContainsKey(projectChange.ProjectId))
             {
-                _projectDescriptorRefreshQueue.AddWork(projectChange.NewProject.Id);
+                var oldProject = projectChange.OldProject;
+                var newProject = projectChange.NewProject;
+
+                var analyzersChanged = !oldProject.AnalyzerReferences.Equals(newProject.AnalyzerReferences);
+                if (analyzersChanged)
+                {
+                    lock (_gate)
+                    {
+                        _projectIdsToRefresh.Add(projectChange.NewProject.Id);
+                    }
+                }
             }
         }
     }
 
     private async ValueTask RefreshCachedDiagnosticIdsAsync(
-        ImmutableSegmentedList<ProjectId> projectIds,
+        IEnumerable<ProjectId> projectIds,
         CancellationToken cancellationToken)
     {
+        var solution = _workspace.CurrentSolution;
+        var builder = ImmutableArray.CreateBuilder<ProjectId>();
         foreach (var projectId in projectIds)
         {
-            var project = _workspace.CurrentSolution.GetProject(projectId);
-            if (project == null)
+            if (!solution.ContainsProject(projectId))
             {
                 _projectIdToDiagnosticIdsCache.TryRemove(projectId, out _);
                 continue;
             }
 
-            var descriptorMap = await _analyzerService.GetDiagnosticDescriptorsPerReferenceAsync(
-                project.Solution,
-                project.Id,
-                cancellationToken).ConfigureAwait(false);
-
-            _projectIdToDiagnosticIdsCache[project.Id] = [.. descriptorMap.Values.SelectMany(static descriptors => descriptors.Select(descriptor => descriptor.Id))];
+            builder.Add(projectId);
         }
+
+        if (builder.Count == 0)
+        {
+            return;
+        }
+
+        var projectIdToDiagnosticIdsMap = await _analyzerService.GetAllDiagnosticIdsAsync(
+            solution,
+            builder.ToImmutable(),
+            cancellationToken).ConfigureAwait(false);
+
+        foreach (var projectIdToDiagnosticIds in projectIdToDiagnosticIdsMap)
+        {
+            _projectIdToDiagnosticIdsCache[projectIdToDiagnosticIds.Key] = projectIdToDiagnosticIds.Value;
+        }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(VisualStudioDiagnosticIdCache diagnosticCache)
+    {
+        public int RegisteredProjectCount => diagnosticCache._projectIdToDiagnosticIdsCache.Count;
     }
 }

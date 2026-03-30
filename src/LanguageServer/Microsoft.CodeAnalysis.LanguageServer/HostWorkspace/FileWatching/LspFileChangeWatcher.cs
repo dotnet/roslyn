@@ -62,7 +62,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
         /// <summary>
         /// The list of file paths we're watching manually that were outside the directories being watched. The count in this case counts
-        /// the number of 
+        /// the number of watchers registered for each file.
         /// </summary>
         private readonly Dictionary<string, int> _watchedFiles = new(s_stringComparer);
         private static readonly StringComparer s_stringComparer = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;

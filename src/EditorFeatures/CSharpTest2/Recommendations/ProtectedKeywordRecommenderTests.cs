@@ -182,6 +182,13 @@ public sealed class ProtectedKeywordRecommenderTests : KeywordRecommenderTests
             """);
 
     [Fact]
+    public Task TestNotInsideUnion()
+        => VerifyAbsenceAsync("""
+            union U(int) {
+               $$
+            """, CSharpNextParseOptions, CSharpNextScriptParseOptions);
+
+    [Fact]
     public Task TestInsideInterface()
         => VerifyKeywordAsync("""
             interface I {

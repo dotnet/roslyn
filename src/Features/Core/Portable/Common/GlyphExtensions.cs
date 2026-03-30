@@ -297,6 +297,7 @@ internal static class GlyphExtensions
             DeclaredSymbolInfoKind.Property => Glyph.PropertyPublic,
             DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
             DeclaredSymbolInfoKind.RecordStruct => Glyph.StructurePublic,
+            DeclaredSymbolInfoKind.Union => Glyph.StructurePublic,
             _ => Glyph.ClassPublic,
         };
 }

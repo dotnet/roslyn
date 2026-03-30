@@ -484,6 +484,8 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription NativeIntegerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NativeIntegerAttribute", s_signaturesOfNativeIntegerAttribute);
         internal static readonly AttributeDescription ScopedRefAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ScopedRefAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription RefSafetyRulesAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RefSafetyRulesAttribute", s_signatures_HasThis_Void_Int32_Only);
+        internal static readonly AttributeDescription MemorySafetyRulesAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MemorySafetyRulesAttribute", s_signatures_HasThis_Void_Int32_Only);
+        internal static readonly AttributeDescription RequiresUnsafeAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "RequiresUnsafeAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ModuleInitializerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ModuleInitializerAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription UnmanagedCallersOnlyAttribute = new AttributeDescription("System.Runtime.InteropServices", "UnmanagedCallersOnlyAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription InterpolatedStringHandlerAttribute = new AttributeDescription("System.Runtime.CompilerServices", "InterpolatedStringHandlerAttribute", s_signatures_HasThis_Void_Only);
@@ -500,5 +502,6 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription RuntimeAsyncMethodGenerationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeAsyncMethodGenerationAttribute", s_signatures_HasThis_Void_Boolean_Only);
         internal static readonly AttributeDescription MetadataUpdateDeletedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MetadataUpdateDeletedAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ExtendedLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "ExtendedLayoutAttribute", s_signaturesOfExtendedLayoutAttribute);
+        internal static readonly AttributeDescription UnionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "UnionAttribute", s_signatures_HasThis_Void_Only);
     }
 }

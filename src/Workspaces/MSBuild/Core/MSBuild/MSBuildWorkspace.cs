@@ -96,6 +96,13 @@ public sealed class MSBuildWorkspace : Workspace
     internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider)
         => _loader.LoggerFactory.AddProvider(loggerProvider);
 
+    protected override void Dispose(bool finalize)
+    {
+        // Dispose the LoggerFactory to ensure any logger providers added via AddLoggerProvider are disposed.
+        _loader.LoggerFactory.Dispose();
+        base.Dispose(finalize);
+    }
+
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
     /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.

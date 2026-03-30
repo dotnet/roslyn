@@ -18,15 +18,11 @@ parameters:
     type: string
     default: 'true'
 
-  - name: buildUserName
+  - name: devDivAzdoToken
     type: string
-  - name: buildPassword
+  - name: dncEngAzdoToken
     type: string
-  - name: componentUserName
-    type: string
-  - name: componentPassword
-    type: string
-  
+
   - name: publishDataURI
     type: string
   - name: publishDataAccessToken
@@ -52,15 +48,13 @@ parameters:
 
   - name: cherryPick
     type: string
+    default: ''
 
 steps:
   - checkout: none
-  
-  - task: NuGetCommand@2
-    displayName: 'Install RIT from Azure Artifacts'
-    inputs:
-      command: custom
-      arguments: 'install RoslynTools.VisualStudioInsertionTool -PreRelease -Source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
+
+  - script: dotnet tool install Microsoft.RoslynTools --tool-path .tools --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+    displayName: 'Install roslyn-tools'
 
   - powershell: |
       $authorization = if ("" -ne $Env:PublishDataAccessToken) { "Bearer $Env:PublishDataAccessToken" } else { "" }
@@ -76,7 +70,8 @@ steps:
       Write-Host "##vso[task.setvariable variable=Template.InsertToolset]$($true)"
       Write-Host "##vso[task.setvariable variable=Template.ComponentAzdoUri]$('')"
       Write-Host "##vso[task.setvariable variable=Template.ComponentProjectName]$('')"
-      Write-Host "##vso[task.setvariable variable=Template.DropPath]$('(default)')"
+      Write-Host "##vso[task.setvariable variable=Template.DropPath]$('')"
+      Write-Host "##vso[task.setvariable variable=Template.CherryPick]$('')"
 
       Write-Host "##vso[task.setvariable variable=Template.ComponentBranchName]$branchName"
       Write-Host "##vso[task.setvariable variable=Template.VSBranchName]$($insertionData.vsBranch)"
@@ -107,15 +102,6 @@ steps:
       PublishDataAccessToken: ${{ parameters.publishDataAccessToken }}
 
   - powershell: |
-      # Set AzDO authorization template variables
-      Write-Host "Setting BuildUserName to $Env:BuildUserName"
-      Write-Host "##vso[task.setvariable variable=Template.BuildUserName]$Env:BuildUserName"
-      Write-Host "##vso[task.setvariable variable=Template.BuildPassword]$Env:BuildPassword"
-
-      Write-Host "Setting ComponentUserName to $Env:ComponentUserName"
-      Write-Host "##vso[task.setvariable variable=Template.ComponentUserName]$Env:ComponentUserName"
-      Write-Host "##vso[task.setvariable variable=Template.ComponentPassword]$Env:ComponentPassword"
-
       # Overwrite template variables with values passed into this template as parameters
       if ("" -ne $Env:CreateDraftPR)
       {
@@ -161,12 +147,14 @@ steps:
         Write-Host "##vso[task.setvariable variable=Template.DropPath]$Env:DropPath"
       }
 
+      if ("" -ne $Env:CherryPick -and "(default)" -ne $Env:CherryPick)
+      {
+        Write-Host "Setting CherryPick to $Env:CherryPick"
+        Write-Host "##vso[task.setvariable variable=Template.CherryPick]$Env:CherryPick"
+      }
+
     displayName: Set Variables from Input Parameters
     env:
-      BuildUserName: ${{ parameters.buildUserName }}
-      BuildPassword: ${{ parameters.buildPassword }}
-      ComponentUserName: ${{ parameters.componentUserName }}
-      ComponentPassword: ${{ parameters.componentPassword }}
       CreateDraftPR: ${{ parameters.createDraftPR }}
       AutoComplete: ${{ parameters.autoComplete }}
       TitlePrefix: ${{ parameters.titlePrefix }}
@@ -174,43 +162,67 @@ steps:
       VSBranchName: ${{ parameters.vsBranchName }}
       ComponentBuildProjectName: ${{ parameters.componentBuildProjectName }}
       DropPath: ${{ parameters.dropPath }}
+      CherryPick: ${{ parameters.cherryPick }}
 
   # Now that everything is set, actually perform the insertion.
   - powershell: |
-      mv RoslynTools.VisualStudioInsertionTool.* RIT
-      .\RIT\tools\net472\OneOffInsertion.ps1 `
-        -autoComplete "$(Template.AutoComplete)" `
-        -buildQueueName "$(Build.DefinitionName)" `
-        -cherryPick "${{ parameters.cherryPick }}" `
-        -userName "$(Template.BuildUserName)" `
-        -password "$(Template.BuildPassword)" `
-        -componentUserName "$(Template.ComponentUserName)" `
-        -componentPassword "$(Template.ComponentPassword)" `
-        -componentAzdoUri "$(Template.ComponentAzdoUri)" `
-        -componentProjectName "$(Template.ComponentProjectName)" `
-        -componentName "Roslyn" `
-        -componentGitHubRepoName "dotnet/roslyn" `
-        -componentBranchName "$(Template.ComponentBranchName)" `
-        -createDraftPR "$(Template.CreateDraftPR)" `
-        -defaultValueSentinel "(default)" `
-        -dropPath "$(Template.DropPath)" `
-        -insertCore "(default)" `
-        -insertDevDiv "(default)" `
-        -insertionCount "1" `
-        -insertToolset "$(Template.InsertToolset)" `
-        -titlePrefix "$(Template.TitlePrefix)" `
-        -titleSuffix "$(Template.TitleSuffix)" `
-        -queueValidation "true" `
-        -requiredValueSentinel "REQUIRED" `
-        -reviewerGUID "6c25b447-1d90-4840-8fde-d8b22cb8733e" `
-        -specificBuild "$(Build.BuildNumber)" `
-        -updateAssemblyVersions "(default)" `
-        -updateCoreXTLibraries "(default)" `
-        -visualStudioBranchName "$(Template.VSBranchName)" `
-        -writePullRequest "prid.txt" `
-        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}" `
-        -retaininsertedbuild "${{ parameters.retainInsertedBuild }}" 
-    displayName: 'Run OneOffInsertion.ps1'
+      $arguments = @(
+        "create-insertion"
+        "--insertion-name", "Roslyn"
+        "--vs-branch", "$(Template.VSBranchName)"
+        "--component-branch", "$(Template.ComponentBranchName)"
+        "--component-build-queue", "$(Build.DefinitionName)"
+        "--specific-build", "$(Build.BuildNumber)"
+        "--create-draft-pr", "$(Template.CreateDraftPR)"
+        "--set-auto-complete", "$(Template.AutoComplete)"
+        "--insert-toolset", "$(Template.InsertToolset)"
+        "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
+        "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
+        "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
+        "--devdiv-azdo-token", $Env:DevDivToken
+        "--dnceng-azdo-token", $Env:DncEngToken
+        "--ci"
+      )
 
-  - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
-    displayName: 'Report PR URL'
+      $componentAzdoUri = "$(Template.ComponentAzdoUri)"
+      if ($componentAzdoUri -ne "")
+      {
+        $arguments += "--component-azdo-uri", $componentAzdoUri
+      }
+
+      $componentProjectName = "$(Template.ComponentProjectName)"
+      if ($componentProjectName -ne "")
+      {
+        $arguments += "--component-project", $componentProjectName
+      }
+
+      $dropPath = "$(Template.DropPath)"
+      if ($dropPath -ne "")
+      {
+        $arguments += "--build-drop-path", $dropPath
+      }
+
+      $titlePrefix = "$(Template.TitlePrefix)"
+      if ($titlePrefix -ne "")
+      {
+        $arguments += "--title-prefix", $titlePrefix
+      }
+
+      $titleSuffix = "$(Template.TitleSuffix)"
+      if ($titleSuffix -ne "")
+      {
+        $arguments += "--title-suffix", $titleSuffix
+      }
+
+      $cherryPick = "$(Template.CherryPick)"
+      if ($cherryPick -ne "")
+      {
+        $arguments += "--cherry-pick", $cherryPick
+      }
+
+      & ./.tools/roslyn-tools @arguments
+    displayName: 'Create VS Insertion PR'
+    env:
+      DevDivToken: ${{ parameters.devDivAzdoToken }}
+      DncEngToken: ${{ parameters.dncEngAzdoToken }}
+      DOTNET_ROLL_FORWARD: Major

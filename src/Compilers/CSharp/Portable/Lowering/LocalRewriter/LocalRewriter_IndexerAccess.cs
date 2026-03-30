@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -287,47 +288,65 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PatternIndexOffsetLoweringStrategy startStrategy, endStrategy;
                     RewriteRangeParts(node.Argument, out rangeExpr, out startMakeOffsetInput, out startStrategy, out endMakeOffsetInput, out endStrategy, out rewrittenRangeArg);
 
-                    var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-                    var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-
-                    BoundExpression startExpr;
-                    BoundExpression rangeSizeExpr;
-                    if (rangeExpr is not null)
+                    // For open-ended ranges like `startExpr..`, use Slice(int) instead of Slice(int, int) when available
+                    if (rangeExpr is not null && endMakeOffsetInput is null &&
+                        TryGetStartOnlyOverload(getItemOrSliceHelper, node.Syntax) is MethodSymbol startOnlyOverload)
                     {
-
-                        startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
-                        BoundExpression endExpr = makePatternIndexOffsetExpression(endMakeOffsetInput, length, endStrategy);
-                        rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
+                        BoundExpression startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
+                        if (isInt32ConstantZero(startExpr))
+                        {
+                            // Start is 0, so the result is the full span. No need for Slice at all.
+                            result = _factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true);
+                        }
+                        else
+                        {
+                            var spanExpr = _factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true);
+                            result = _factory.Call(spanExpr, startOnlyOverload, startExpr);
+                        }
                     }
                     else
                     {
-                        Debug.Assert(rewrittenRangeArg is not null);
-                        DeconstructRange(rewrittenRangeArg, _factory.Literal(length), localsBuilder, sideEffectsBuilder, out startExpr, out rangeSizeExpr);
-                    }
+                        var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+                        var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
 
-                    BoundExpression possiblyRefCapturedReceiver = rewrittenReceiver;
+                        BoundExpression startExpr;
+                        BoundExpression rangeSizeExpr;
+                        if (rangeExpr is not null)
+                        {
+                            startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
+                            BoundExpression endExpr = makePatternIndexOffsetExpression(endMakeOffsetInput, length, endStrategy);
+                            rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
+                        }
+                        else
+                        {
+                            Debug.Assert(rewrittenRangeArg is not null);
+                            DeconstructRange(rewrittenRangeArg, _factory.Literal(length), localsBuilder, sideEffectsBuilder, out startExpr, out rangeSizeExpr);
+                        }
 
-                    if (sideEffectsBuilder.Count != 0)
-                    {
-                        possiblyRefCapturedReceiver = _factory.StoreToTemp(possiblyRefCapturedReceiver, out var refCapture, createSpan.Parameters[0].RefKind == RefKind.In ? RefKindExtensions.StrictIn : RefKind.Ref);
-                        localsBuilder.Insert(0, ((BoundLocal)possiblyRefCapturedReceiver).LocalSymbol);
-                        sideEffectsBuilder.Insert(0, refCapture);
-                    }
+                        BoundExpression possiblyRefCapturedReceiver = rewrittenReceiver;
 
-                    if (startExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 } &&
-                        rangeSizeExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: >= 0 and int rangeSizeConst } &&
-                        rangeSizeConst <= length)
-                    {
-                        // No need to call Slice, we can create a Span of the right length from the start.
-                        result = _factory.Call(null, createSpan, possiblyRefCapturedReceiver, rangeSizeExpr, useStrictArgumentRefKinds: true);
-                    }
-                    else
-                    {
-                        result = _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
-                                           getItemOrSliceHelper, startExpr, rangeSizeExpr);
-                    }
+                        if (sideEffectsBuilder.Count != 0)
+                        {
+                            possiblyRefCapturedReceiver = _factory.StoreToTemp(possiblyRefCapturedReceiver, out var refCapture, createSpan.Parameters[0].RefKind == RefKind.In ? RefKindExtensions.StrictIn : RefKind.Ref);
+                            localsBuilder.Insert(0, ((BoundLocal)possiblyRefCapturedReceiver).LocalSymbol);
+                            sideEffectsBuilder.Insert(0, refCapture);
+                        }
 
-                    result = _factory.Sequence(localsBuilder.ToImmutableAndFree(), sideEffectsBuilder.ToImmutableAndFree(), result);
+                        if (isInt32ConstantZero(startExpr) &&
+                            rangeSizeExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: >= 0 and int rangeSizeConst } &&
+                            rangeSizeConst <= length)
+                        {
+                            // No need to call Slice, we can create a Span of the right length from the start.
+                            result = _factory.Call(null, createSpan, possiblyRefCapturedReceiver, rangeSizeExpr, useStrictArgumentRefKinds: true);
+                        }
+                        else
+                        {
+                            result = _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
+                                getItemOrSliceHelper, startExpr, rangeSizeExpr);
+                        }
+
+                        result = _factory.Sequence(localsBuilder.ToImmutableAndFree(), sideEffectsBuilder.ToImmutableAndFree(), result);
+                    }
                 }
             }
 
@@ -339,6 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+
+            static bool isInt32ConstantZero(BoundExpression expr)
+            {
+                return expr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 };
+            }
 
             BoundExpression makePatternIndexOffsetExpression(BoundExpression? makeOffsetInput, int length, PatternIndexOffsetLoweringStrategy strategy)
             {
@@ -890,8 +914,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression startExpr;
             BoundExpression rangeSizeExpr;
+            var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
             if (rangeExpr is not null)
             {
+                BoundExpression? lengthAccess = null;
+                Debug.Assert(startStrategy is not PatternIndexOffsetLoweringStrategy.Length);
+                Debug.Assert(endMakeOffsetInput is not null || endStrategy == PatternIndexOffsetLoweringStrategy.Length);
+
+                // For open-ended ranges like `start..`, use Slice(int) or Substring(int) when available
+                if (!cacheAllArgumentsOnly &&
+                    endMakeOffsetInput is null &&
+                    TryGetStartOnlyOverload(sliceCall.Method, node.Syntax) is MethodSymbol startOnlyOverload)
+                {
+                    if (startStrategy is PatternIndexOffsetLoweringStrategy.SubtractFromLength or PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI)
+                    {
+                        if (startStrategy == PatternIndexOffsetLoweringStrategy.SubtractFromLength)
+                        {
+                            Debug.Assert(startMakeOffsetInput is not null);
+                            storeExpressionIfNotConstant(ref startMakeOffsetInput, localsBuilder, sideEffectsBuilder);
+                        }
+
+                        lengthAccess = VisitExpression(node.LengthOrCountAccess);
+                    }
+
+                    startExpr = MakePatternIndexOffsetExpression(startMakeOffsetInput, lengthAccess, startStrategy);
+
+                    RemovePlaceholderReplacement(node.ReceiverPlaceholder);
+                    return F.Call(receiver, startOnlyOverload, startExpr);
+                }
+
                 // If we know that the input is a range expression, we can
                 // optimize by pulling it apart inline, so
                 // 
@@ -961,26 +1012,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((rewriteFlags & captureStartOffset) != 0)
                 {
                     Debug.Assert(startMakeOffsetInput is not null);
-                    if (startMakeOffsetInput.ConstantValueOpt is null)
-                    {
-                        startMakeOffsetInput = F.StoreToTemp(startMakeOffsetInput, out BoundAssignmentOperator inputStore);
-                        localsBuilder.Add(((BoundLocal)startMakeOffsetInput).LocalSymbol);
-                        sideEffectsBuilder.Add(inputStore);
-                    }
+                    storeExpressionIfNotConstant(ref startMakeOffsetInput, localsBuilder, sideEffectsBuilder);
                 }
 
                 if ((rewriteFlags & captureEndOffset) != 0)
                 {
                     Debug.Assert(endMakeOffsetInput is not null);
-                    if (endMakeOffsetInput.ConstantValueOpt is null)
-                    {
-                        endMakeOffsetInput = F.StoreToTemp(endMakeOffsetInput, out BoundAssignmentOperator inputStore);
-                        localsBuilder.Add(((BoundLocal)endMakeOffsetInput).LocalSymbol);
-                        sideEffectsBuilder.Add(inputStore);
-                    }
+                    storeExpressionIfNotConstant(ref endMakeOffsetInput, localsBuilder, sideEffectsBuilder);
                 }
-
-                BoundExpression? lengthAccess = null;
 
                 if ((rewriteFlags & useLength) != 0)
                 {
@@ -1010,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var rangeSizeLocal = F.StoreToTemp(rangeSizeExpr, out var rangeSizeStore);
                     localsBuilder.Add(rangeSizeLocal.LocalSymbol);
                     sideEffectsBuilder.Add(rangeSizeStore);
-                    rangeSizeExpr = startLocal;
+                    rangeSizeExpr = rangeSizeLocal;
                 }
             }
             else
@@ -1023,7 +1062,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPlaceholderReplacement(node.ArgumentPlaceholders[0], startExpr);
             AddPlaceholderReplacement(node.ArgumentPlaceholders[1], rangeSizeExpr);
 
-            var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
             var rewrittenIndexerAccess = VisitExpression(sliceCall);
 
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
@@ -1031,6 +1069,80 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemovePlaceholderReplacement(node.ReceiverPlaceholder);
 
             return rewrittenIndexerAccess;
+
+            void storeExpressionIfNotConstant([DisallowNull] ref BoundExpression? expression, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
+            {
+                if (expression.ConstantValueOpt is null)
+                {
+                    expression = this._factory.StoreToTemp(expression, out BoundAssignmentOperator store);
+                    localsBuilder.Add(((BoundLocal)expression).LocalSymbol);
+                    sideEffectsBuilder.Add(store);
+                }
+            }
+        }
+
+        /// <summary>
+        /// For known types (string, Span, ReadOnlySpan, Memory, ReadOnlyMemory),
+        /// tries to find a one-argument overload (e.g., Slice(int) or Substring(int))
+        /// corresponding to the given two-argument method (e.g., Slice(int, int) or Substring(int, int)).
+        /// </summary>
+        private MethodSymbol? TryGetStartOnlyOverload(MethodSymbol method, SyntaxNode syntax)
+        {
+            // 1. string.Substring(int, int) → string.Substring(int)
+            MethodSymbol? startLengthOverload;
+            MethodSymbol? startOverload;
+
+            if (method is { Name: nameof(string.Substring), ContainingType.SpecialType: SpecialType.System_String }
+                && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringIntInt, out startLengthOverload, isOptional: true)
+                && ReferenceEquals(method, startLengthOverload)
+                && TryGetSpecialTypeMethod(syntax, SpecialMember.System_String__SubstringInt, out startOverload, isOptional: true))
+            {
+                Debug.Assert(startLengthOverload.Name == startOverload.Name
+                    && startLengthOverload.ReturnType.Equals(startOverload.ReturnType, TypeCompareKind.ConsiderEverything));
+
+                return startOverload;
+            }
+
+            // 2. various Slice(int, int) → Slice(int) cases
+            if (method is not { Name: WellKnownMemberNames.SliceMethodName, OriginalDefinition: var originalDefinition, ContainingType: NamedTypeSymbol containingType })
+            {
+                return null;
+            }
+
+            startOverload = containingType.Name switch
+            {
+                nameof(Span<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_Span_T__Slice_Int_Int, WellKnownMember.System_Span_T__Slice_Int, originalDefinition, syntax),
+                nameof(ReadOnlySpan<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, originalDefinition, syntax),
+                nameof(Memory<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_Memory_T__Slice_Int_Int, WellKnownMember.System_Memory_T__Slice_Int, originalDefinition, syntax),
+                nameof(ReadOnlyMemory<>) => tryGetWellKnownSliceStartOverload(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int, WellKnownMember.System_ReadOnlyMemory_T__Slice_Int, originalDefinition, syntax),
+                _ => null,
+            };
+
+            if (startOverload is null)
+            {
+                return null;
+            }
+
+            return startOverload.AsMember(containingType);
+
+            MethodSymbol? tryGetWellKnownSliceStartOverload(WellKnownMember startLengthMember, WellKnownMember startMember, MethodSymbol methodDefinition, SyntaxNode syntax)
+            {
+                Debug.Assert(methodDefinition.IsDefinition);
+                MethodSymbol? startLengthOverload;
+                MethodSymbol? startOverload;
+
+                if (!this.TryGetWellKnownTypeMember(syntax, startLengthMember, out startLengthOverload, isOptional: true)
+                    || !ReferenceEquals(methodDefinition, startLengthOverload)
+                    || !this.TryGetWellKnownTypeMember(syntax, startMember, out startOverload, isOptional: true))
+                {
+                    return null;
+                }
+
+                Debug.Assert(startLengthOverload.Name == startOverload.Name
+                    && startLengthOverload.ReturnType.Equals(startOverload.ReturnType, TypeCompareKind.ConsiderEverything));
+
+                return startOverload;
+            }
         }
 
         private BoundExpression MakeRangeSize(ref BoundExpression startExpr, BoundExpression endExpr, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)

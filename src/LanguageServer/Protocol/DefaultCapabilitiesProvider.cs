@@ -84,6 +84,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         };
 
         capabilities.FoldingRangeProvider = true;
+        capabilities.SelectionRangeProvider = true;
         capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
         capabilities.TextDocumentSync = new TextDocumentSyncOptions
         {
