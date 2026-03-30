@@ -366,6 +366,14 @@ gh pr edit {prNumber} --repo {owner}/{repo} --milestone "{targetMilestone}"
 gh issue edit {issueNumber} --repo {owner}/{repo} --milestone "{targetMilestone}"
 ```
 
+#### 3.7 Reply to the snap announcement email
+
+After all snap steps are completed, draft a reply to the pre-snap announcement email (from step 1.3) confirming the snap is done. For example:
+
+> The snap for {VS version} is now complete. main now points to {new VS version}, release/insiders points to {VS version}, and release/stable points to {previous insiders VS version}.
+
+Present the draft to the user before they send it.
+
 ## Version / VS Branch Conventions
 
 | Concept | Pattern | Example |
