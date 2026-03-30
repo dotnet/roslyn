@@ -35,6 +35,8 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
     private readonly Func<ImageSource> _glyphCreator;
     private readonly CallHierarchyProvider _provider;
 
+    private readonly object _gate = new();
+
     public CallHierarchyItem(
         CallHierarchyProvider provider,
         CallHierarchyItemDescriptor descriptor,
@@ -99,6 +101,14 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
 
     public void CancelSearch(string categoryName)
     {
+        lock (_gate)
+        {
+            CancelSearch_NoLock(categoryName);
+        }
+    }
+
+    private void CancelSearch_NoLock(string categoryName)
+    {
         if (_searches.TryGetValue(categoryName, out var cancellationSource))
             cancellationSource.Cancel();
     }
@@ -159,10 +169,15 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
         if (searchCategory == default)
             return;
 
-        CancelSearch(categoryName);
+        CancellationTokenSource cancellationSource;
+        lock (_gate)
+        {
+            CancelSearch_NoLock(categoryName);
 
-        var cancellationSource = new CancellationTokenSource();
-        _searches[categoryName] = cancellationSource;
+            cancellationSource = new();
+            _searches[categoryName] = cancellationSource;
+        }
+
         var asyncToken = _provider.AsyncListener.BeginAsyncOperation(this.GetType().Name + ".Search");
 
         // NOTE: This task has CancellationToken.None specified, since it must complete no matter what
@@ -200,7 +215,10 @@ internal sealed class CallHierarchyItem : ICallHierarchyMemberItem
             }
             finally
             {
-                _searches.Remove(categoryName);
+                lock (_gate)
+                {
+                    _searches.Remove(categoryName);
+                }
 
                 if (completionErrorMessage != null)
                 {
