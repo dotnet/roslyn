@@ -992,6 +992,8 @@ namespace Microsoft.CodeAnalysis.Text
             internal const int LineBreakLengthShift = 30;
             internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1;
 
+            private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
+
             private readonly SourceText _text;
             private readonly SegmentedList<uint> _lineStarts;
             private int _lastLineNumber;
@@ -1013,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.Text
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
-                    int start = (int)(_lineStarts[index] & LineStartMask);
+                    int start = GetLineStart(_lineStarts[index]);
                     if (index == _lineStarts.Count - 1)
                     {
                         return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length), lineBreakLength: 0);
@@ -1021,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.Text
                     else
                     {
                         uint nextEntry = _lineStarts[index + 1];
-                        int end = (int)(nextEntry & LineStartMask);
+                        int end = GetLineStart(nextEntry);
                         int lineBreakLen = (int)(nextEntry >> LineBreakLengthShift);
                         return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end), lineBreakLen);
                     }
@@ -1040,12 +1042,12 @@ namespace Microsoft.CodeAnalysis.Text
                 // it is common to ask about position on the same line
                 // as before or on the next couple lines
                 var lastLineNumber = _lastLineNumber;
-                if (position >= (int)(_lineStarts[lastLineNumber] & LineStartMask))
+                if (position >= GetLineStart(_lineStarts[lastLineNumber]))
                 {
                     var limit = Math.Min(_lineStarts.Count, lastLineNumber + 4);
                     for (int i = lastLineNumber; i < limit; i++)
                     {
-                        if (position < (int)(_lineStarts[i] & LineStartMask))
+                        if (position < GetLineStart(_lineStarts[i]))
                         {
                             lineNumber = i - 1;
                             _lastLineNumber = lineNumber;
@@ -1074,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.Text
                 while (lo <= hi)
                 {
                     int mid = lo + ((hi - lo) >> 1);
-                    int midStart = (int)(lineStarts[mid] & LineStartMask);
+                    int midStart = GetLineStart(lineStarts[mid]);
                     if (midStart == position) return mid;
                     if (midStart < position) lo = mid + 1;
                     else hi = mid - 1;
