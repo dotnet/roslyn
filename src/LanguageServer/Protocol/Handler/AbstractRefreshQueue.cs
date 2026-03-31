@@ -49,10 +49,9 @@ internal abstract class AbstractRefreshQueue :
         providerRefresher.ProviderRefreshRequested += EnqueueRefreshNotification;
     }
 
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         Initialize(clientCapabilities);
-        return Task.CompletedTask;
     }
 
     public void Initialize(ClientCapabilities clientCapabilities)

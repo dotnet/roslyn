@@ -14,6 +14,7 @@ internal abstract partial class PatternMatcher
 {
     internal sealed partial class SimplePatternMatcher : PatternMatcher
     {
+        private readonly bool _allowFuzzyMatching;
         private PatternSegment _fullPatternSegment;
 
         public SimplePatternMatcher(
@@ -21,8 +22,9 @@ internal abstract partial class PatternMatcher
             CultureInfo culture,
             bool includeMatchedSpans,
             bool allowFuzzyMatching)
-            : base(includeMatchedSpans, culture, allowFuzzyMatching)
+            : base(includeMatchedSpans, culture)
         {
+            _allowFuzzyMatching = allowFuzzyMatching;
             pattern = pattern.Trim();
 
             _fullPatternSegment = new PatternSegment(pattern, allowFuzzyMatching);
@@ -44,12 +46,13 @@ internal abstract partial class PatternMatcher
         public override bool AddMatches(string candidate, ref TemporaryArray<PatternMatch> matches)
         {
             if (SkipMatch(candidate))
-            {
                 return false;
-            }
 
-            return MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: false) ||
-                   MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, fuzzyMatch: true);
+            // Always do the cheap non-fuzzy check first.  If that fails, and we allow fuzzy matching, fall back to trying that.
+            if (MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, allowFuzzyMatching: false))
+                return true;
+
+            return _allowFuzzyMatching && MatchPatternSegment(candidate, ref _fullPatternSegment, ref matches, allowFuzzyMatching: true);
         }
 
         public TestAccessor GetTestAccessor()

@@ -153,6 +153,26 @@ void M()
 
 See also https://github.com/dotnet/roslyn/issues/80954.
 
+## `nameof(this.)` in attributes is disallowed
+
+***Introduced in Visual Studio 2026 version 18.3 and .NET 10.0.200***
+
+Using `this` or `base` keyword inside `nameof` in an attribute was previously unintentionally allowed in Roslyn since C# 12
+and is [now properly disallowed](https://github.com/dotnet/roslyn/pull/81628) to match the language specification.
+This breaking change can be mitigated by removing `this.` and accessing the member without the qualifier. 
+
+See also https://github.com/dotnet/roslyn/issues/82251.
+
+```cs
+class C
+{
+    string P;
+    [System.Obsolete(nameof(this.P))] // now disallowed
+    [System.Obsolete(nameof(P))] // workaround
+    void M() { }
+}
+```
+
 ## Parsing of 'with' within a switch-expression-arm
 
 ***Introduced in Visual Studio 2026 version 18.4***

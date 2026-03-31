@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -12,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Text
     internal static class EncodedStringText
     {
         private const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
+
+        // Note: CodePagesEncodingProvider.Instance may be null on .NET Framework.
+        private static volatile bool s_encodingProviderRegistered = CodePagesEncodingProvider.Instance == null;
 
         /// <summary>
         /// Encoding to use when there is no byte order mark (BOM) on the stream. This encoder may throw a <see cref="DecoderFallbackException"/>
@@ -29,23 +33,64 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal static Encoding CreateFallbackEncoding()
         {
+            // Try to get the default ANSI code page in the operating system's
+            // regional and language settings, and fall back to 1252 otherwise
+            return TryGetCodePageEncoding(0)
+                ?? TryGetCodePageEncoding(1252)
+                ?? Encoding.GetEncoding(name: "Latin1");
+        }
+
+        internal static Encoding? TryGetCodePageEncoding(int codePage)
+        {
+            // Read to local to avoid race condition when multiple threads fail to get the encoding,
+            // only one of them executes the filter to retry, sets the static field and suppresses retry for the other threads.
+            var encodingProviderRegistered = s_encodingProviderRegistered;
+
             try
             {
-                if (CodePagesEncodingProvider.Instance != null)
+                return Encoding.GetEncoding(codePage);
+            }
+            catch (NotSupportedException) when (!encodingProviderRegistered)
+            {
+                // From documentation:
+                //   - 'GetEncoding' throws NotSupportedException when codepage is not supported by the underlying platform.
+                //   - 'EncodingProvider.Instance' gets an encoding provider for code pages supported
+                //     in the desktop .NET Framework but not by the current underlying platform.
+                //   - 'Encoding.RegisterProvider' makes character encodings available on a platform that does not otherwise support them.
+                //      * Once the encoding provider is registered, the encodings that it supports can be retrieved by calling any
+                //        Encoding.GetEncoding overload.
+                //      * Registering an encoding provider by using the 'RegisterProvider' method also affects the behavior of
+                //        GetEncoding(Int32) when passed an argument of 0.
+                //      * If multiple providers are registered, GetEncoding(Int32) attempts to retrieve the encoding from the most recently
+                //        registered provider first.
+                //      * If the 'RegisterProvider' method is called to register multiple providers that handle the same encoding,
+                //        the last registered provider is the used for all encoding and decoding operations. Any previously registered providers are ignored.
+                //      * If the same encoding provider is used in multiple calls to the 'RegisterProvider' method,
+                //        only the first method call registers the provider. Subsequent calls are ignored.
+                //      
+                //  Given all that:
+                //   - We don't call 'Encoding.RegisterProvider' unconditionally to avoid changing environment
+                //     that is already configured to support the requested codepage. We call it only when we encounter
+                //     a 'NotSupportedException'.
+                //   - We also do not attempt to call 'Encoding.RegisterProvider' more than once.
+                try
                 {
-                    // If we're running on CoreCLR we have to register the CodePagesEncodingProvider
-                    // first
+                    // Ignore any exceptions from an attempt to register the provider.
                     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 }
+                catch
+                {
+                }
 
-                // Try to get the default ANSI code page in the operating system's
-                // regional and language settings, and fall back to 1252 otherwise
-                return Encoding.GetEncoding(0)
-                    ?? Encoding.GetEncoding(1252);
+                s_encodingProviderRegistered = true;
+
+                // Try to get the encoding again after attempting to register the provider.
+                // Since we set `s_registeredEncodingProvider` to true, we won't get here again.
+                return TryGetCodePageEncoding(codePage);
             }
-            catch (NotSupportedException)
+            catch (Exception)
             {
-                return Encoding.GetEncoding(name: "Latin1");
+                return null;
             }
         }
 

@@ -61,5 +61,23 @@ namespace Microsoft.CodeAnalysis.Text
         {
             return CreateInstance(Default);
         }
+
+        public static bool TryParseAlgorithmName(string name, out SourceHashAlgorithm algorithm)
+        {
+            if (string.Equals("sha1", name, StringComparison.OrdinalIgnoreCase))
+            {
+                algorithm = SourceHashAlgorithm.Sha1;
+                return true;
+            }
+
+            if (string.Equals("sha256", name, StringComparison.OrdinalIgnoreCase))
+            {
+                algorithm = SourceHashAlgorithm.Sha256;
+                return true;
+            }
+
+            algorithm = SourceHashAlgorithm.None;
+            return false;
+        }
     }
 }

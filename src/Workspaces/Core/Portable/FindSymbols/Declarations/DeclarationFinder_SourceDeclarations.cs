@@ -213,7 +213,7 @@ internal static partial class DeclarationFinder
         // If we don't have a dot in the pattern, just make a pattern matcher for the entire
         // pattern they passed in.  Otherwise, make a pattern matcher just for the part after
         // the dot.
-        using var nameMatcher = PatternMatcher.CreatePatternMatcher(namePart, includeMatchedSpans: false);
+        using var nameMatcher = PatternMatcher.CreatePatternMatcher(namePart, includeMatchedSpans: false, allowFuzzyMatching: false);
         using var query = SearchQuery.CreateCustom(nameMatcher.Matches);
 
         var symbolAndProjectIds = await searchAsync(query).ConfigureAwait(false);
@@ -228,7 +228,7 @@ internal static partial class DeclarationFinder
 
         // Ok, we had a dotted pattern.  Have to see if the symbol's container matches the 
         // pattern as well.
-        using var containerPatternMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(containerPart);
+        using var containerPatternMatcher = PatternMatcher.CreateDotSeparatedContainerMatcher(containerPart, includeMatchedSpans: false);
 
         return symbolAndProjectIds.WhereAsArray(t =>
             containerPatternMatcher.Matches(GetContainer(t)));

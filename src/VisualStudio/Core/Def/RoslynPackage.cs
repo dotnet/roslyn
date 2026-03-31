@@ -110,6 +110,8 @@ internal sealed class RoslynPackage : AbstractPackage
 
         await LoadStackTraceExplorerMenusAsync(cancellationToken).ConfigureAwait(false);
 
+        await RegisterLogRoslynWorkspaceCommandAsync(cancellationToken).ConfigureAwait(false);
+
         // Initialize keybinding reset detector
         await ComponentModel.DefaultExportProvider.GetExportedValue<KeybindingReset.KeybindingResetDetector>().InitializeAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -145,6 +147,19 @@ internal sealed class RoslynPackage : AbstractPackage
         var menuCommandService = (OleMenuCommandService?)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
         Assumes.Present(menuCommandService);
         StackTraceExplorerCommandHandler.Initialize(menuCommandService, this);
+    }
+
+    private async Task RegisterLogRoslynWorkspaceCommandAsync(CancellationToken cancellationToken)
+    {
+        // Obtain services and QueryInterface from the main thread
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var menuCommandService = (OleMenuCommandService?)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+        Assumes.Present(menuCommandService);
+
+        var menuCommandId = new CommandID(Guids.RoslynGroupId, ID.RoslynCommands.LogRoslynWorkspaceStructure);
+        var menuItem = new MenuCommand((_, _) => ProjectSystem.Logging.RoslynWorkspaceStructureLogger.ShowSaveDialogAndLog(this), menuCommandId);
+        menuCommandService.AddCommand(menuItem);
     }
 
     protected override void Dispose(bool disposing)

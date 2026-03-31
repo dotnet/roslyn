@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -22,6 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
 using CachedIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<TopLevelSyntaxTreeIndex?>>;
+using CachedFilterIndexMap = ConcurrentDictionary<(IChecksummedPersistentStorageService service, DocumentKey documentKey, StringTable stringTable), AsyncLazy<NavigateToSearchIndex?>>;
 
 internal abstract partial class AbstractNavigateToSearchService
 {
@@ -31,6 +32,12 @@ internal abstract partial class AbstractNavigateToSearchService
     /// (set to <see langword="null"/>) to release all cached data.
     /// </summary>
     private static CachedIndexMap? s_cachedIndexMap = [];
+
+    /// <summary>
+    /// Cached map from document key to the (potentially stale) lightweight filter index.  Loaded first
+    /// to quickly reject documents before loading the much larger <see cref="TopLevelSyntaxTreeIndex"/>.
+    /// </summary>
+    private static CachedFilterIndexMap? s_cachedFilterIndexMap = [];
 
     /// <summary>
     /// String table we use to dedupe common values while deserializing <see cref="SyntaxTreeIndex"/>s.  Once the 
@@ -43,16 +50,19 @@ internal abstract partial class AbstractNavigateToSearchService
         // Volatiles are technically not necessary due to automatic fencing of reference-type writes.  However,
         // i prefer the explicitness here as we are reading and writing these fields from different threads.
         Volatile.Write(ref s_cachedIndexMap, null);
+        Volatile.Write(ref s_cachedFilterIndexMap, null);
         Volatile.Write(ref s_stringTable, null);
     }
 
     private static bool ShouldSearchCachedDocuments(
         [NotNullWhen(true)] out CachedIndexMap? cachedIndexMap,
+        [NotNullWhen(true)] out CachedFilterIndexMap? cachedFilterIndexMap,
         [NotNullWhen(true)] out StringTable? stringTable)
     {
         cachedIndexMap = Volatile.Read(ref s_cachedIndexMap);
+        cachedFilterIndexMap = Volatile.Read(ref s_cachedFilterIndexMap);
         stringTable = Volatile.Read(ref s_stringTable);
-        return cachedIndexMap != null && stringTable != null;
+        return cachedIndexMap != null && cachedFilterIndexMap != null && stringTable != null;
     }
 
     public async Task SearchCachedDocumentsAsync(
@@ -107,7 +117,7 @@ internal abstract partial class AbstractNavigateToSearchService
         CancellationToken cancellationToken)
     {
         // Quick abort if OOP is now fully loaded.
-        if (!ShouldSearchCachedDocuments(out _, out _))
+        if (!ShouldSearchCachedDocuments(out _, out _, out _))
             return;
 
         var (patternName, patternContainer) = PatternMatcher.GetNameAndContainer(searchPattern);
@@ -143,13 +153,19 @@ internal abstract partial class AbstractNavigateToSearchService
                 cancellationToken,
                 async (documentKey, cancellationToken) =>
                 {
-                    var index = await GetIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
+                    // First, load the lightweight filter index to check if this document could possibly match.
+                    var filterIndex = await GetFilterIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
+                    if (filterIndex is null || !filterIndex.CouldContainNavigateToMatch(patternName, patternContainer, out var nameMatchKinds))
+                        return;
+
+                    // The filter passed — now load the full index with all declared symbols.
+                    var index = await GetFullIndexAsync(storageService, documentKey, cancellationToken).ConfigureAwait(false);
                     if (index == null)
                         return;
 
                     ProcessIndex(
                         documentKey, document: null, patternName, patternContainer, declaredSymbolInfoKindsSet,
-                        index, linkedIndices: null, onItemFound, cancellationToken);
+                        nameMatchKinds, index, linkedIndices: null, onItemFound, cancellationToken);
                 }).ConfigureAwait(false);
 
             // done with project.  Let the host know.
@@ -157,7 +173,26 @@ internal abstract partial class AbstractNavigateToSearchService
         }
     }
 
-    private static Task<TopLevelSyntaxTreeIndex?> GetIndexAsync(
+    private static async Task<NavigateToSearchIndex?> GetFilterIndexAsync(
+        IChecksummedPersistentStorageService storageService,
+        DocumentKey documentKey,
+        CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return null;
+
+        if (!ShouldSearchCachedDocuments(out _, out var cachedFilterIndexMap, out var stringTable))
+            return null;
+
+        var asyncLazy = cachedFilterIndexMap.GetOrAdd(
+            (storageService, documentKey, stringTable),
+            static t => AsyncLazy.Create(static (t, c) =>
+                NavigateToSearchIndex.LoadAsync(t.service, t.documentKey, checksum: null, t.stringTable, c),
+                arg: t));
+        return await asyncLazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private static Task<TopLevelSyntaxTreeIndex?> GetFullIndexAsync(
         IChecksummedPersistentStorageService storageService,
         DocumentKey documentKey,
         CancellationToken cancellationToken)
@@ -167,7 +202,7 @@ internal abstract partial class AbstractNavigateToSearchService
 
         // Retrieve the string table we use to dedupe strings.  If we can't get it, that means the solution has 
         // fully loaded and we've switched over to normal navto lookup.
-        if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out var stringTable))
+        if (!ShouldSearchCachedDocuments(out var cachedIndexMap, out _, out var stringTable))
             return SpecializedTasks.Null<TopLevelSyntaxTreeIndex>();
 
         // Add the async lazy to compute the index for this document.  Or, return the existing cached one if already

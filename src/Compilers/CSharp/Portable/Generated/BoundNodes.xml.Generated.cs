@@ -5056,25 +5056,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDecisionDag : BoundNode
     {
-        public BoundDecisionDag(SyntaxNode syntax, BoundDecisionDagNode rootNode, bool hasErrors = false)
+        public BoundDecisionDag(SyntaxNode syntax, BoundDecisionDagNode rootNode, bool suitableForLowering, bool hasErrors = false)
             : base(BoundKind.DecisionDag, syntax, hasErrors || rootNode.HasErrors())
         {
 
             RoslynDebug.Assert(rootNode is object, "Field 'rootNode' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.RootNode = rootNode;
+            this.SuitableForLowering = suitableForLowering;
         }
 
         public BoundDecisionDagNode RootNode { get; }
+        public bool SuitableForLowering { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDecisionDag(this);
 
-        public BoundDecisionDag Update(BoundDecisionDagNode rootNode)
+        public BoundDecisionDag Update(BoundDecisionDagNode rootNode, bool suitableForLowering)
         {
-            if (rootNode != this.RootNode)
+            if (rootNode != this.RootNode || suitableForLowering != this.SuitableForLowering)
             {
-                var result = new BoundDecisionDag(this.Syntax, rootNode, this.HasErrors);
+                var result = new BoundDecisionDag(this.Syntax, rootNode, suitableForLowering, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5350,7 +5352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagExplicitNullTest(this);
 
-        public BoundDagExplicitNullTest Update(BoundDagTemp input)
+        public new BoundDagExplicitNullTest Update(BoundDagTemp input)
         {
             if (input != this.Input)
             {
@@ -11800,7 +11802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDecisionDag(BoundDecisionDag node)
         {
             BoundDecisionDagNode rootNode = (BoundDecisionDagNode)this.Visit(node.RootNode);
-            return node.Update(rootNode);
+            return node.Update(rootNode, node.SuitableForLowering);
         }
         public override BoundNode? VisitEvaluationDecisionDagNode(BoundEvaluationDecisionDagNode node)
         {
@@ -16424,6 +16426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDecisionDag(BoundDecisionDag node, object? arg) => new TreeDumperNode("decisionDag", null, new TreeDumperNode[]
         {
             new TreeDumperNode("rootNode", null, new TreeDumperNode[] { Visit(node.RootNode, null) }),
+            new TreeDumperNode("suitableForLowering", node.SuitableForLowering, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

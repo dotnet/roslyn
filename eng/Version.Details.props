@@ -13,7 +13,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftDotNetDarcLibPackageVersion>1.1.0-beta.25161.2</MicrosoftDotNetDarcLibPackageVersion>
     <!-- dotnet-dotnet dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>10.0.1</MicrosoftBclAsyncInterfacesPackageVersion>
-    <MicrosoftDotNetFileBasedProgramsPackageVersion>11.0.100-alpha.1.26060.102</MicrosoftDotNetFileBasedProgramsPackageVersion>
+    <MicrosoftDotNetFileBasedProgramsPackageVersion>11.0.100-alpha.1.26062.101</MicrosoftDotNetFileBasedProgramsPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>10.0.1</MicrosoftExtensionsConfigurationPackageVersion>
     <MicrosoftExtensionsDependencyInjectionPackageVersion>10.0.1</MicrosoftExtensionsDependencyInjectionPackageVersion>
     <MicrosoftExtensionsFileSystemGlobbingPackageVersion>10.0.1</MicrosoftExtensionsFileSystemGlobbingPackageVersion>
@@ -23,9 +23,9 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsPackageVersion>10.0.1</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.1</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.1</MicrosoftExtensionsPrimitivesPackageVersion>
-    <RoslynDiagnosticsAnalyzersPackageVersion>5.4.0-2.26060.102</RoslynDiagnosticsAnalyzersPackageVersion>
+    <RoslynDiagnosticsAnalyzersPackageVersion>5.4.0-2.26062.101</RoslynDiagnosticsAnalyzersPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.1</SystemCollectionsImmutablePackageVersion>
-    <SystemCommandLinePackageVersion>3.0.0-alpha.1.26060.102</SystemCommandLinePackageVersion>
+    <SystemCommandLinePackageVersion>3.0.0-alpha.1.26062.101</SystemCommandLinePackageVersion>
     <SystemComponentModelCompositionPackageVersion>10.0.1</SystemComponentModelCompositionPackageVersion>
     <SystemCompositionPackageVersion>10.0.1</SystemCompositionPackageVersion>
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.1</SystemConfigurationConfigurationManagerPackageVersion>

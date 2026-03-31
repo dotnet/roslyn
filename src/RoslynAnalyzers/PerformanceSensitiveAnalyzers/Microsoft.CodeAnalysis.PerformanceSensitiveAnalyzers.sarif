@@ -5,7 +5,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers",
-        "version": "5.4.0",
+        "version": "5.5.0",
         "language": "en-US"
       },
       "rules": {
@@ -184,7 +184,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes",
-        "version": "5.4.0",
+        "version": "5.5.0",
         "language": "en-US"
       },
       "rules": {
@@ -193,7 +193,7 @@
     {
       "tool": {
         "name": "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers",
-        "version": "5.4.0",
+        "version": "5.5.0",
         "language": "en-US"
       },
       "rules": {

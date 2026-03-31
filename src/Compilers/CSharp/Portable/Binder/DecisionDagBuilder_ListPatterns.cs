@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lengthProperty is not null);
                 var lengthEvaluation = new BoundDagPropertyEvaluation(syntax, lengthProperty, isLengthOrCount: true, input);
                 tests.Add(new Tests.One(lengthEvaluation));
-                var lengthTemp = new BoundDagTemp(syntax, _compilation.GetSpecialType(SpecialType.System_Int32), lengthEvaluation);
+                var lengthTemp = lengthEvaluation.MakeResultTemp();
                 tests.Add(new Tests.One(list.HasSlice
                     ? new BoundDagRelationalTest(syntax, BinaryOperatorKind.IntGreaterThanOrEqual, ConstantValue.Create(subpatterns.Length - 1), lengthTemp)
                     : new BoundDagValueTest(syntax, ConstantValue.Create(subpatterns.Length), lengthTemp)));
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 slice.IndexerAccess, slice.ReceiverPlaceholder, slice.ArgumentPlaceholder, input);
 
                             tests.Add(new Tests.One(sliceEvaluation));
-                            var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
+                            var sliceTemp = sliceEvaluation.MakeResultTemp();
                             tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
                         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         list.IndexerAccess, list.ReceiverPlaceholder, list.ArgumentPlaceholder, input);
 
                     tests.Add(new Tests.One(indexEvaluation));
-                    var indexTemp = new BoundDagTemp(subpattern.Syntax, subpattern.InputType, indexEvaluation);
+                    var indexTemp = indexEvaluation.MakeResultTemp();
                     tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
                 }
             }
