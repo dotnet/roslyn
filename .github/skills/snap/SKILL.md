@@ -410,10 +410,21 @@ Create the target milestone if needed (milestone name is just the version number
 gh api -X POST repos/{owner}/{repo}/milestones --field title="{milestoneName}"
 ```
 
-Move PRs and issues:
+List merged PRs and closed issues in the `Next` milestone:
 ```
-gh pr edit {prNumber} --repo {owner}/{repo} --milestone "{targetMilestone}"
-gh issue edit {issueNumber} --repo {owner}/{repo} --milestone "{targetMilestone}"
+$prs = gh pr list --repo {owner}/{repo} --search "is:merged milestone:Next base:main" --json number --limit 200 | ConvertFrom-Json
+$issues = gh issue list --repo {owner}/{repo} --search "is:closed milestone:Next" --json number --limit 200 | ConvertFrom-Json
+```
+
+Get the milestone number for the target milestone:
+```
+$msNumber = gh api repos/{owner}/{repo}/milestones --jq '.[] | select(.title == "{milestoneName}") | .number'
+```
+
+Move them using the REST API (more reliable than `gh pr edit` / `gh issue edit` for bulk operations):
+```
+foreach ($pr in $prs) { gh api repos/{owner}/{repo}/issues/$($pr.number) -X PATCH -f milestone=$msNumber }
+foreach ($iss in $issues) { gh api repos/{owner}/{repo}/issues/$($iss.number) -X PATCH -f milestone=$msNumber }
 ```
 
 #### 3.7 Reply to the snap announcement email
