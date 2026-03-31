@@ -1144,15 +1144,11 @@ namespace Microsoft.CodeAnalysis.Text
                 var index = 0;
                 if (lastWasCR)
                 {
-                    int breakLen;
+                    int breakLen = 1;
                     if (length > 0 && buffer[0] == '\n')
                     {
                         index++;
-                        breakLen = 2;
-                    }
-                    else
-                    {
-                        breakLen = 1;
+                        breakLen++;
                     }
 
                     lineStarts.Add(LineInfo.PackEntry(position + index, breakLen));
