@@ -5601,7 +5601,6 @@ M15a
 
         [Fact]
         [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
-        [ValidatePooledObjects(LeakReason = "Pattern matching DAG lowering leaks BoundDagTemp on error paths")]
         public void DecisionTreeCoverage_BadEquals()
         {
             // tests added to complete coverage of the decision tree and pattern-matching implementation

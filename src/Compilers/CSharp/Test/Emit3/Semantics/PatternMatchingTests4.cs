@@ -2579,7 +2579,6 @@ namespace System.Runtime.CompilerServices
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Pattern matching DAG lowering leaks BoundDagTemp on error paths")]
         public void UnmatchedInput_08()
         {
             var source =

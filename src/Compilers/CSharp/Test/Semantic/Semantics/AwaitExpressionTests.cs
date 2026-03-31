@@ -422,7 +422,6 @@ public class C {
 
         [Fact]
         [WorkItem(748533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748533")]
-        [ValidatePooledObjects(LeakReason = "Missing well-known async members error path")]
         public void Bug748533()
         {
             var text =

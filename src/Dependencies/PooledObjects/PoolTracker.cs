@@ -81,6 +81,22 @@ internal static class PoolTracker
         }
 #endif
     }
+
+    /// <summary>
+    /// Forgives all currently outstanding pooled object allocations, treating them as non-leaks.
+    /// Use this when an exception path is known to abandon pooled objects and that is acceptable
+    /// (e.g., MissingPredefinedMember exception unwinding through intermediate lowering methods).
+    /// </summary>
+    [Conditional("DEBUG")]
+    internal static void ForgiveLeaks()
+    {
+#if DEBUG
+        if (s_activeTrackers > 0)
+        {
+            s_currentContext.Value?.ForgiveLeaks();
+        }
+#endif
+    }
 }
 
 #if DEBUG
@@ -111,6 +127,14 @@ internal sealed class PoolTrackingContext
     /// Returns true if there are pooled objects that were allocated but never freed.
     /// </summary>
     internal bool HasLeaks => !_outstanding.IsEmpty;
+
+    /// <summary>
+    /// Clears all outstanding allocations, forgiving any current leaks.
+    /// </summary>
+    internal void ForgiveLeaks()
+    {
+        _outstanding.Clear();
+    }
 
     /// <summary>
     /// Returns a human-readable summary of leaked pooled objects, grouped by type with counts

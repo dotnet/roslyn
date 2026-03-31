@@ -605,7 +605,6 @@ class Program
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Missing well-known members error path")]
         public void CreateDelegate__MethodInfoVsDelegate_01()
         {
             var source = @"
@@ -652,7 +651,6 @@ class C1
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Missing well-known members error path")]
         public void CreateDelegate__MethodInfoVsDelegate_02()
         {
             var source = @"
@@ -691,7 +689,6 @@ class C1<T>
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Missing well-known members error path")]
         public void GetMethodFromHandle_WellKnown_01()
         {
             var corLib_v1 = @"
@@ -886,7 +883,6 @@ class Program
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Missing well-known members error path")]
         public void GetMethodFromHandle_WellKnown_02()
         {
             var corLib_v1 = @"
