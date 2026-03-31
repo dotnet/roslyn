@@ -502,7 +502,6 @@ namespace Microsoft.CodeAnalysis.Text
                     var firstSegmentTextLine = firstSegment.Lines[lineNumber - firstSegmentFirstLineNumber];
 
                     var lineLength = firstSegmentTextLine.SpanIncludingLineBreak.Length;
-                    int lineBreakLen;
 
                     // walk forward through segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive, and add their
                     // view of the length of this line. This loop handles all segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive.
@@ -518,6 +517,7 @@ namespace Microsoft.CodeAnalysis.Text
                         lineLength += nextSegment.Lines[0].SpanIncludingLineBreak.Length;
                     }
 
+                    int lineBreakLen;
                     if (firstSegmentIndexInclusive != lastSegmentIndexInclusive)
                     {
                         var lastSegment = _compositeText.Segments[lastSegmentIndexInclusive];
