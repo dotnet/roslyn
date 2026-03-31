@@ -3540,9 +3540,10 @@ namespace Microsoft.CodeAnalysis
                 var baseline = MapToCompilation(moduleBeingBuilt);
                 var encId = Guid.NewGuid();
 
+                DeltaMetadataWriter? writer = null;
                 try
                 {
-                    var writer = new DeltaMetadataWriter(
+                    writer = new DeltaMetadataWriter(
                         context,
                         MessageProvider,
                         baseline,
@@ -3583,6 +3584,8 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
+                    writer?.FreePooledObjects();
+
                     foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
                     {
                         builder.Free();

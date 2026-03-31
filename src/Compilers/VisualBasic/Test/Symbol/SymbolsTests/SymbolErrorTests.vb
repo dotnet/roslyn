@@ -13406,7 +13406,6 @@ Imports System.Runtime.CompilerServices
         End Sub
 
         <Fact>
-        <ValidatePooledObjects(LeakReason:="Invalid friend assembly name error path")>
         Public Sub BC31537ERR_FriendAssemblyNameInvalid()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
 <compilation name="FriendAssemblyNameInvalid">

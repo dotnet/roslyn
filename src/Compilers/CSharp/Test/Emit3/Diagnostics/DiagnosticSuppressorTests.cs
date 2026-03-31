@@ -664,6 +664,7 @@ class C { }";
 
         [CombinatorialData]
         [Theory, WorkItem(41713, "https://github.com/dotnet/roslyn/issues/41713")]
+        [ValidatePooledObjects(Skip = "Cancellation during suppressor execution may interrupt async work, leaving pooled objects un-freed non-deterministically")]
         public void TestCancellationDuringSuppressorExecution(bool concurrent)
         {
             string source = @"class C1 { }";

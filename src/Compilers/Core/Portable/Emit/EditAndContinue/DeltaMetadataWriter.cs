@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly Dictionary<EntityHandle, ImmutableArray<int>> _customAttributesAdded;
 
         private readonly ArrayBuilder<int> _customAttributeRowIds;
+        private bool _pooledObjectsFreed;
         private readonly List<(EntityHandle parentHandle, IEnumerator<ICustomAttribute> attributeEnumerator)> _deferredCustomAttributes = new();
 
         private readonly Dictionary<IParameterDefinition, int> _existingParameterDefs;
@@ -125,6 +126,15 @@ namespace Microsoft.CodeAnalysis.Emit
             _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this, lastRowId: sizes[(int)TableIndex.StandAloneSig]);
 
             _addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>(Cci.SymbolEquivalentEqualityComparer.Instance);
+        }
+
+        internal void FreePooledObjects()
+        {
+            if (!_pooledObjectsFreed)
+            {
+                _pooledObjectsFreed = true;
+                _customAttributeRowIds.Free();
+            }
         }
 
         public SymbolChanges Changes
@@ -1130,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.Emit
             PopulateEncLogTableRows(typeSystemRowCounts, paramEncMapRows);
             PopulateEncMapTableRows(typeSystemRowCounts, paramEncMapRows);
 
-            _customAttributeRowIds.Free();
+            FreePooledObjects();
             paramEncMapRows.Free();
         }
 

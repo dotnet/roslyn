@@ -768,7 +768,6 @@ Public Partial Class A
         End Sub
 
         <Fact()>
-        <ValidatePooledObjects(LeakReason:="WinRT event synthesis error path leaks pooled objects")>
         Public Sub WinMdSynthesizedEventDelegate()
             Dim src =
             <compilation>
