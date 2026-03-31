@@ -389,7 +389,7 @@ namespace RunTests
                     return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
                 }
 
-                if (tfmDirName.EndsWith("-macos", StringComparison.Ordinal) || tfmDirName.EndsWith("-osx", StringComparison.Ordinal))
+                if (tfmDirName.EndsWith("-macos", StringComparison.Ordinal))
                 {
                     return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
                 }
