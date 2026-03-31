@@ -212,7 +212,7 @@ object with(object a, object b) { ... }
 
 ## `dotnet_diagnostic` severity now takes precedence over inline code style notification for code style diagnostics
 
-***Introduced in Visual Studio 2026 version 18.4***
+***Introduced in Visual Studio 2026 version 18.7***
 
 For C# code style diagnostics, Roslyn previously could still report a diagnostic when the
 code style option included an inline notification level, even if the same diagnostic was
