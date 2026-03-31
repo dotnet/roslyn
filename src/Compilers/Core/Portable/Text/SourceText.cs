@@ -999,7 +999,11 @@ namespace Microsoft.CodeAnalysis.Text
 
             private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
             // priorLineBreakLength must be 1 or 2; stored as (priorLineBreakLength - 1) in the top bit.
-            internal static uint PackEntry(int lineStart, int priorLineBreakLength) => (uint)lineStart | ((uint)(priorLineBreakLength - 1) << LineBreakLengthShift);
+            internal static uint PackEntry(int lineStart, int priorLineBreakLength)
+            {
+                Debug.Assert(priorLineBreakLength is >= 1 and <= 2);
+                return (uint)lineStart | ((uint)(priorLineBreakLength - 1) << LineBreakLengthShift);
+            }
 
             private readonly SourceText _text;
             private readonly SegmentedList<uint> _lineStarts;
