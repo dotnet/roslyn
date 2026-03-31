@@ -1,6 +1,6 @@
 # Roslyn Architecture - Project Layering
 
-Arrows point from a project **down to** its dependencies.
+Arrows point from a project **up to** its dependencies.
 
 ```mermaid
 graph BT
