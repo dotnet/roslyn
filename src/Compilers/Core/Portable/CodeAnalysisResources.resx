@@ -276,6 +276,9 @@
   <data name="SpanDoesNotIncludeEndOfLine" xml:space="preserve">
     <value>The span does not include the end of a line.</value>
   </data>
+  <data name="LineEndIsTooLarge" xml:space="preserve">
+    <value>The line end is beyond the supported range.</value>
+  </data>
   <data name="StartMustNotBeNegative" xml:space="preserve">
     <value>'start' must not be negative</value>
   </data>

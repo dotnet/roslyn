@@ -26,8 +26,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         private TextLine(SourceText text, int start, int end, int lineBreakLength)
         {
+            if (end > EndPositionMask)
+            {
+                throw new ArgumentOutOfRangeException(nameof(end), CodeAnalysisResources.LineEndIsTooLarge);
+            }
+
             Debug.Assert(lineBreakLength is >= 0 and <= 2, "Line break length must be 0, 1, or 2");
-            Debug.Assert(end >= 0 && end <= EndPositionMask, "End position out of range for bit packing");
+            Debug.Assert(end >= 0);
 
             _text = text;
             _start = start;
