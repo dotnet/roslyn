@@ -372,24 +372,34 @@ gh pr create --repo {owner}/{repo} \
 
 Find them with `git ls-files 'src/RoslynAnalyzers/**/*.sarif'` or search via the GitHub API. Replace `"version": "{oldVersion}"` with `"version": "{newVersion}"` (e.g., `"5.6.0"` → `"5.7.0"`).
 
-#### 3.5 Update darc subscriptions
+#### 3.5 Update darc default channels
 
-For new flows:
+All channel updates across all repos should be collected into a **single PR** in the `maestro-configuration` repository. Use `--configuration-branch` to target a shared branch and `--no-pr` to avoid creating separate PRs for each command. Then create one PR at the end.
+
+Pick a branch name (e.g., `snap/{repo1}-{repo2}-{newVsVersion}`). For each repo, delete the old channel mapping, then add the new one:
+
 ```
-darc add-default-channel --repo https://github.com/{owner}/{repo} --branch {branch} --channel "{channelName}"
-darc add-subscription --source-repo https://github.com/{owner}/{repo} --target-repo https://github.com/dotnet/dotnet --target-branch {vmrBranch} --channel "{channelName}" --update-frequency EveryDay --source-enabled --target-directory {repoName}
+# First command creates the branch; all subsequent commands reuse it.
+# Use --ci to avoid interactive prompts.
+
+# Delete old mapping (find ID via darc get-default-channels first)
+darc delete-default-channel --id {id} --configuration-branch {cfgBranch} --no-pr --ci
+
+# Add new mapping
+darc add-default-channel --repo https://github.com/{owner}/{repo} --branch {branch} --channel "{channelName}" --configuration-branch {cfgBranch} --no-pr --ci
 ```
 
-Before adding a default channel, delete existing associations for the same channel (only one branch should publish to a given channel):
+Repeat for every repo and branch being snapped (e.g., insiders and stable for both roslyn and razor).
+
+If subscription changes are also needed (e.g., VMR flows), they use the same config repo and can be batched onto the same branch:
 ```
-darc get-default-channels --source-repo https://github.com/{owner}/{repo} --channel "{channelName}"
-darc delete-default-channel --id {id}
+darc add-subscription --source-repo https://github.com/{owner}/{repo} --target-repo https://github.com/dotnet/dotnet --target-branch {vmrBranch} --channel "{channelName}" --update-frequency EveryDay --source-enabled --target-directory {repoName} --configuration-branch {cfgBranch} --no-pr --ci
+darc update-subscription --id {subscriptionId} --channel "{newChannel}" --configuration-branch {cfgBranch} --no-pr --ci
 ```
 
-For updating existing subscriptions:
+After all commands, create one PR:
 ```
-darc get-subscriptions --exact --source-repo {sourceUrl} --target-repo {targetUrl}
-darc update-subscription --id {subscriptionId} --channel "{newChannel}"
+az repos pr create --repository maestro-configuration --org https://dev.azure.com/dnceng --project internal --source-branch {cfgBranch} --target-branch production --title "Snap: update default channels for {repos} ({newVsVersion})" --description "Updates default channels for the {newVsVersion} snap."
 ```
 
 #### 3.6 Move milestones
