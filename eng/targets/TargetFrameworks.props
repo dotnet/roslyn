@@ -15,7 +15,7 @@
   <PropertyGroup>
     <NetRoslyn>net10.0</NetRoslyn>
     <NetRoslynAll>net8.0;net10.0</NetRoslynAll>
-    <NetRoslynWindows>net10-windows</NetRoslynWindows>
+    <NetRoslynWindows>net10.0-windows</NetRoslynWindows>
     <NetVS>net10.0</NetVS>
     <NetVSCode>net10.0</NetVSCode>
     <NetVSShared>net10.0</NetVSShared>
