@@ -20842,4 +20842,128 @@ public static class E
         // Note: slice patterns currently assume that returned slices are not-null
         comp.VerifyEmitDiagnostics();
     }
+
+    [Fact]
+    public void ExtensionSlice_01()
+    {
+        // slice on Span with missing Slice, classic extension Slice method
+        var src = """
+#pragma warning disable CS0436 // The type 'Span<T>' in '' conflicts with the imported type 'Span<T>'
+
+System.Span<int> s = default;
+_ = s[1..^1];
+
+static class E
+{
+    public static System.Span<int> Slice(this System.Span<int> s, int i, int j) { System.Console.Write("ran"); return s; }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        public Span() { }
+        public int Length => 3;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionSlice_02()
+    {
+        // slice on Span with missing Slice, extension Slice
+        var src = """
+#pragma warning disable CS0436 // The type 'Span<T>' in '' conflicts with the imported type 'Span<T>'
+
+System.Span<int> s = default;
+_ = s[1..^1];
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public System.Span<int> Slice(int i, int j) { System.Console.Write("ran"); return s; }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        public Span() { }
+        public int Length => 3;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionSlice_03()
+    {
+        // slice with open-ended range on Span with missing Slice(int, int), classic extension Slice method
+        var src = """
+#pragma warning disable CS0436 // The type 'Span<T>' in '' conflicts with the imported type 'Span<T>'
+
+System.Span<int> s = default;
+_ = s[1..];
+
+static class E
+{
+    public static System.Span<int> Slice(this System.Span<int> s, int i, int j) { System.Console.Write("ran"); return s; }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        public Span() { }
+        public int Length => 3;
+        public System.Span<int> Slice(int start) => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ExtensionSlice_04()
+    {
+        // slice with open-ended range on Span with missing Slice(int, int), extension Slice
+        var src = """
+#pragma warning disable CS0436 // The type 'Span<T>' in '' conflicts with the imported type 'Span<T>'
+
+System.Span<int> s = default;
+_ = s[1..];
+
+static class E
+{
+    extension(System.Span<int> s)
+    {
+        public System.Span<int> Slice(int i, int j) { System.Console.Write("ran"); return s; }
+    }
+}
+
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        public Span() { }
+        public int Length => 3;
+        public System.Span<int> Slice(int start) => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
 }
