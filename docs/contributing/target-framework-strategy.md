@@ -26,7 +26,7 @@ Projects in our repository should include the following values in `<TargetFramew
 4. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
 5. `$(NetRoslyn)`: code that needs to execute on .NET but does not have any specific product deployment requirements. For example utilities that are used by our infra, compiler unit tests, etc ... This property also controls which of the frameworks the compiler builds against are shipped in the toolset packages. This value will potentially change in source builds.
 6. `$(NetRoslynAll)`: code, generally test utilities, that need to build for all .NET runtimes that we support.
-7. `$(NetRoslynWindows)`: test projects that use `$(NetRoslyn)` but can only run on Windows. These tests will be automatically excluded when running on Unix/Linux because the `-windows` OS-specific TFM suffix tells the .NET SDK and the test runner to skip them on non-Windows platforms.
+7. `$(NetRoslynWindowsTests)`: test projects that use `$(NetRoslyn)` but can only run on Windows. These tests will be automatically excluded when running on Unix/Linux because the `-windows` OS-specific TFM suffix tells the .NET SDK and the test runner to skip them on non-Windows platforms.
 8. `$(NetRoslynBuildHostNetCoreVersion)`: the target used for the .NET Core BuildHost process used by MSBuildWorkspace.
 9. `$(NetRoslynNext)`: code that needs to run on the next .NET Core version. This is used during the transition to a new .NET Core version where we need to move forward but don't want to hard code a .NET Core TFM into the build files.
 
