@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CallHierarchy;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -58,7 +59,7 @@ internal sealed partial class CallHierarchyProvider
                            SymbolKind.Event or
                            SymbolKind.Field)
         {
-            symbol = GetTargetSymbol(symbol);
+            symbol = CallHierarchyHelpers.GetTargetSymbol(symbol);
 
             var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
             var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
@@ -74,18 +75,6 @@ internal sealed partial class CallHierarchyProvider
         }
 
         return null;
-    }
-
-    private static ISymbol GetTargetSymbol(ISymbol symbol)
-    {
-        if (symbol is IMethodSymbol methodSymbol)
-        {
-            methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
-            methodSymbol = methodSymbol.ConstructedFrom ?? methodSymbol;
-            return methodSymbol;
-        }
-
-        return symbol;
     }
 
     public FieldInitializerItem CreateInitializerItem(IEnumerable<CallHierarchyDetail> details)
@@ -112,7 +101,7 @@ internal sealed partial class CallHierarchyProvider
                 finders.Add(new OverridingMemberFinder(symbol, project.Id, AsyncListener, this));
             }
 
-            var @overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var overrides = await CallHierarchyHelpers.FindOverridingMembersAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
             if (overrides.Any())
             {
                 finders.Add(new CallToOverrideFinder(symbol, project.Id, AsyncListener, this));
@@ -123,7 +112,7 @@ internal sealed partial class CallHierarchyProvider
                 finders.Add(new BaseMemberFinder(overridenMember, project.Id, AsyncListener, this));
             }
 
-            var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var implementedInterfaceMembers = await CallHierarchyHelpers.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken).ConfigureAwait(false);
             foreach (var implementedInterfaceMember in implementedInterfaceMembers)
             {
                 finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember, project.Id, AsyncListener, this));
