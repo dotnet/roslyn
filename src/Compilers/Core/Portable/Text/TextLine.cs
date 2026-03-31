@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -65,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Text
                 if (span.End > span.Start && TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]))
                 {
                     // End already includes line break - determine its length
-                    int startLineBreak;
-                    TextUtilities.GetStartAndLengthOfLineBreakEndingAt(text, span.End - 1, out startLineBreak, out lineBreakLen);
+                    TextUtilities.GetStartAndLengthOfLineBreakEndingAt(text, span.End - 1, out _, out lineBreakLen);
                 }
                 else if (span.End < text.Length)
                 {
