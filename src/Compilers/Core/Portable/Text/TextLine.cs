@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,17 +16,14 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceText? _text;
 
         // Encoding (64 bits total):
-        //   Bit  63     (1 bit):  1 = line break length is known, 0 = unknown (compute on demand)
-        //   Bits 62-61  (2 bits): line break length (0, 1, or 2); only valid when bit 63 is set
-        //   Bits 60-30  (31 bits): start position
-        //   Bits 29-0   (30 bits): total length = EndIncludingLineBreak - Start (always)
+        //   Bits 63-62  (2 bits): line break length (0, 1, or 2)
+        //   Bits 61-31  (31 bits): start position
+        //   Bits 30-0   (31 bits): total length = EndIncludingLineBreak - Start
         private readonly ulong _data;
 
-        private const int KnownShift = 63;
-        private const int BreakLenShift = 61;
-        private const int StartShift = 30;
-        private const ulong StartMask = 0x7FFFFFFFUL;  // 31 bits
-        private const ulong LengthMask = 0x3FFFFFFFUL; // 30 bits
+        private const int BreakLenShift = 62;
+        private const int StartShift = 31;
+        private const ulong PositionMask = 0x7FFFFFFFUL; // 31 bits, used for both start and length
 
         private TextLine(SourceText text, ulong data)
         {
@@ -35,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         private static ulong Pack(int start, int totalLength, int lineBreakLength)
-            => (1UL << KnownShift) | ((ulong)(uint)lineBreakLength << BreakLenShift) | ((ulong)(uint)start << StartShift) | (uint)totalLength;
+            => ((ulong)(uint)lineBreakLength << BreakLenShift) | ((ulong)(uint)start << StartShift) | (uint)totalLength;
 
         /// <summary>
         /// Creates a <see cref="TextLine"/> instance.
@@ -130,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Start
         {
-            get { return (int)((_data >> StartShift) & StartMask); }
+            get { return (int)((_data >> StartShift) & PositionMask); }
         }
 
         /// <summary>
@@ -138,26 +135,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int End
         {
-            get { return EndIncludingLineBreak - LineBreakLength; }
-        }
-
-        private int LineBreakLength
-        {
-            get
-            {
-                if ((_data & (1UL << KnownShift)) != 0)
-                    return (int)((_data >> BreakLenShift) & 3UL);
-
-                // Unknown: compute from text
-                if (_text == null || _text.Length == 0 || (_data & LengthMask) == 0)
-                    return 0;
-
-                int endIncludingBreak = Start + (int)(_data & LengthMask);
-                int startLineBreak;
-                int lineBreakLength;
-                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, endIncludingBreak - 1, out startLineBreak, out lineBreakLength);
-                return lineBreakLength;
-            }
+            get { return EndIncludingLineBreak - (int)(_data >> BreakLenShift); }
         }
 
         /// <summary>
@@ -165,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int EndIncludingLineBreak
         {
-            get { return Start + (int)(_data & LengthMask); }
+            get { return Start + (int)(_data & PositionMask); }
         }
 
         /// <summary>
@@ -208,15 +186,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public bool Equals(TextLine other)
         {
-            if (other._text != _text)
-                return false;
-
-            // Fast path: both have known line break length, compare packed data directly
-            if ((_data & other._data & (1UL << KnownShift)) != 0)
-                return _data == other._data;
-
-            // Slow path: at least one has unknown encoding, compare decoded logical positions
-            return Start == other.Start && EndIncludingLineBreak == other.EndIncludingLineBreak;
+            return other._text == _text && other._data == _data;
         }
 
         public override bool Equals(object? obj)
@@ -231,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_text, Hash.Combine(Start, EndIncludingLineBreak));
+            return Hash.Combine(_text, Hash.Combine((int)_data, (int)(_data >> 32)));
         }
     }
 }
