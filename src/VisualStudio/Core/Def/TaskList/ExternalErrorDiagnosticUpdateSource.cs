@@ -40,6 +40,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 {
     private readonly Workspace _workspace;
     private readonly IServiceBroker _serviceBroker;
+    private readonly VisualStudioDiagnosticIdCache _diagnosticCache;
 
     /// <summary>
     /// Task queue to serialize all the work for errors reported by build.
@@ -68,6 +69,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         IThreadingContext threadingContext)
     {
         _workspace = workspace;
+        _diagnosticCache = workspace.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
 
         _serviceBroker = serviceBroker;
         _taskQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
@@ -140,6 +142,10 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     /// </summary>
     internal void OnSolutionBuildStarted()
     {
+        // We want the diagnostic cache to be up-to-date when building so that we 
+        // can correctly report unsupported diagnostic ids back to VS.
+        _diagnosticCache.Refresh();
+
         _ = GetOrCreateInProgressState();
 
         _taskQueue.AddWork(async cancellationToken =>
@@ -316,15 +322,13 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             // We take current snapshot of solution when the state is first created. and through out this code, we use this snapshot.
             // Since we have no idea what actual snapshot of solution the out of proc build has picked up, it doesn't remove the race we can have
             // between build and diagnostic service, but this at least make us to consistent inside of our code.
-            _stateDoNotAccessDirectly ??= new InProgressState(_workspace.CurrentSolution);
+            _stateDoNotAccessDirectly ??= new InProgressState(_workspace.CurrentSolution, _diagnosticCache);
             return _stateDoNotAccessDirectly;
         }
     }
 
-    private sealed class InProgressState(Solution solution)
+    private sealed class InProgressState(Solution solution, VisualStudioDiagnosticIdCache diagnosticIdCache)
     {
-        private readonly VisualStudioDiagnosticIdCache _diagnosticIdCache = solution.Workspace.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
-
         public Solution Solution { get; } = solution;
 
         public bool IsUnsupportedDiagnosticId(ProjectId projectId, string id)
@@ -335,7 +339,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
                 return true;
             }
 
-            if (_diagnosticIdCache.TryGetDiagnosticIds(projectId, out var supportedIds))
+            if (diagnosticIdCache.TryGetDiagnosticIds(projectId, out var supportedIds))
             {
                 return !supportedIds.Contains(id);
             }

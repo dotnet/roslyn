@@ -21,6 +21,7 @@
 - `dotnet test` for specific test projects
 - Tests inherit from base classes like `AbstractLanguageServerProtocolTests`, `WorkspaceTestBase`
 - Use `[UseExportProvider]` for MEF-dependent tests
+- Copilot coding agent setup preinstalls `roslyn-language-server` as a global tool and syncs the `dotnet/skills` catalog into `~/.copilot/skills`
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
@@ -84,6 +85,13 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - Test failures often indicate MEF composition issues - check export attributes
 - VSIX deployment targets multiple architectures - ensure platform-specific assets are handled
 - ServiceHub components require special deployment considerations for .NET Core vs Framework
+
+## Documentation
+
+**Creating new docs**:
+- Use **kebab-case** for file names (e.g., `roslyn-language-server-copilot-plugin.md`, not `Roslyn Language Server Copilot Plugin.md`)
+- Place docs in the appropriate subdirectory under `docs/` (e.g., `docs/contributing/`, `docs/compilers/`, `docs/features/`)
+- General docs that don't fit a subdirectory go directly in `docs/`
 
 ## Essential Files for Context
 

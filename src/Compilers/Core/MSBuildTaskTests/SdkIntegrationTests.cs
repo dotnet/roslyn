@@ -7,12 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Basic.CompilerLog.Util;
+using Microsoft.Build.Logging.StructuredLogger;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using Basic.CompilerLog.Util;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
@@ -198,6 +198,81 @@ public sealed class SdkIntegrationTests : IDisposable
             Assert.False(options.SpecificDiagnosticOptions.TryGetValue("BC41997", out _));
         }
 
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82721")]
+    public void EditorConfig_EmbeddedInBinlog_Generated()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>{NetCoreTfm}</TargetFramework>
+              </PropertyGroup>
+
+              <ItemGroup>
+                <CompilerVisibleProperty Include="RootNamespace" />
+              </ItemGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("c.cs").WriteAllText("""
+            class C { }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path);
+
+        var build = BinaryLog.ReadBuild(binlogPath);
+
+        string embeddedText = build.SourceFiles
+            .Single(static f => f.FullPath.EndsWith("GeneratedMSBuildEditorConfig.editorconfig", StringComparison.OrdinalIgnoreCase))
+            .Text;
+
+        Assert.Contains("is_global = true", embeddedText);
+        Assert.Contains("build_property.RootNamespace", embeddedText);
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82721")]
+    public void EditorConfig_EmbeddedInBinlog_FromTarget()
+    {
+        string analyzerGlobalConfigText = """
+            is_global = true
+            some_prop = some_val
+            """;
+        var analyzerGlobalConfig = ProjectDir.CreateFile("analyzer.globalconfig").WriteAllText(analyzerGlobalConfigText);
+
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>{NetCoreTfm}</TargetFramework>
+              </PropertyGroup>
+
+              <Target Name="AddAnalyzerPackageEditorConfigFile" BeforeTargets="CoreCompile">
+                <ItemGroup>
+                  <EditorConfigFiles Include="{analyzerGlobalConfig.Path}" />
+                </ItemGroup>
+              </Target>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("c.cs").WriteAllText("""
+            class C { }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path);
+
+        var build = BinaryLog.ReadBuild(binlogPath);
+
+        string embeddedText = build.SourceFiles
+            .Single(f => f.FullPath.Equals(analyzerGlobalConfig.Path, StringComparison.OrdinalIgnoreCase))
+            .Text;
+
+        Assert.Equal(analyzerGlobalConfigText, embeddedText);
         ArtifactUploadUtil.SetSucceeded();
     }
 }

@@ -98,11 +98,9 @@ internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLangu
     {
         Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
 
-        var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
-
         if (GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
         {
-            _libraryManager = new ObjectBrowserLibraryManager(this, ComponentModel, workspace);
+            _libraryManager = new ObjectBrowserLibraryManager(this, ComponentModel);
 
             if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
             {

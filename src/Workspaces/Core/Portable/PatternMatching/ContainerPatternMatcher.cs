@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,7 +14,7 @@ internal abstract partial class PatternMatcher
     /// <summary>
     /// Pattern matcher for matching against the container of a symbol (like <c>System.Collections.Generic</c>).  Understands
     /// how to break on dots and match subportions of that container.  Note: all matching is done in a non-fuzzy way.  Fuzzy
-    /// matching is only performed by the <see cref="SimplePatternMatcher"/>.
+    /// matching is only performed by the <see cref="FuzzyPatternMatcher"/>.
     /// </summary>
     private sealed partial class ContainerPatternMatcher : PatternMatcher
     {
@@ -30,7 +30,7 @@ internal abstract partial class PatternMatcher
         {
             _containerSplitCharacters = containerSplitCharacters;
 
-            _patternSegments = [.. patternParts.Select(text => new PatternSegment(text.Trim(), allowFuzzyMatching: false))];
+            _patternSegments = [.. patternParts.Select(text => new PatternSegment(text.Trim()))];
 
             _invalidPattern = _patternSegments.Length == 0 || _patternSegments.Any(s => s.IsInvalid);
         }
@@ -46,13 +46,10 @@ internal abstract partial class PatternMatcher
         }
 
         /// <summary>
-        /// Container matching is always non-fuzzy
+        /// Container matching is always non-fuzzy.
         /// </summary>
-        public override bool AddMatches(string? container, ref TemporaryArray<PatternMatch> matches)
+        protected override bool AddMatchesWorker(string container, ref TemporaryArray<PatternMatch> matches)
         {
-            if (SkipMatch(container))
-                return false;
-
             using var tempContainerMatches = TemporaryArray<PatternMatch>.Empty;
 
             var containerParts = container.Split(_containerSplitCharacters, StringSplitOptions.RemoveEmptyEntries);
@@ -72,7 +69,7 @@ internal abstract partial class PatternMatcher
                     i--, j--)
             {
                 var containerName = containerParts[j];
-                if (!MatchPatternSegment(containerName, ref _patternSegments[i], ref tempContainerMatches.AsRef(), allowFuzzyMatching: false))
+                if (!MatchPatternSegment(containerName, ref _patternSegments[i], ref tempContainerMatches.AsRef()))
                 {
                     // This container didn't match the pattern piece.  So there's no match at all.
                     return false;

@@ -387,6 +387,21 @@
         <target state="translated">Atrybut AsyncMethodBuilder jest niedozwolony w metodach anonimowych bez jawnego zwracanego typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
+        <target state="translated">Niezabezpieczony element członkowski „{0}” nie może zaimplementować zabezpieczonego elementu członkowskiego „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+        <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
+        <target state="translated">Niezabezpieczony element członkowski „{0}” nie może niejawnie zaimplementować zabezpieczonego elementu członkowskiego „{1}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+        <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
+        <target state="translated">Niezabezpieczony element członkowski „{0}” nie może przesłonić zabezpieczonego elementu członkowskiego „{1}”</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
         <target state="translated">Nie można użyć atrybutu "OverloadResolutionPriorityAttribute" w tej składowej.</target>
@@ -595,6 +610,11 @@
       <trans-unit id="ERR_CollectionRefLikeElementType">
         <source>Element type of this collection may not be a ref struct or a type parameter allowing ref structs</source>
         <target state="translated">Typ elementu tej kolekcji nie może być strukturą ref ani parametrem typu dopuszczającym struktury ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">Nieprawidłowa wartość „{0}”: „{1}” dla języka C# {2}. Użyj wersji języka „{3}” lub nowszej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
@@ -885,6 +905,11 @@
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
         <target state="translated">Drzewo wyrażenia nie może zawierać operatora == ani != krotki.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsUnionConversion">
+        <source>An expression tree may not contain a union conversion.</source>
+        <target state="translated">Drzewo wyrażenia nie może zawierać konwersji unii.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsWithExpression">
@@ -1222,6 +1247,16 @@
         <target state="translated">Pole elementu tablicy wbudowanej nie może być zadeklarowane jako wymagane, tylko do odczytu, nietrwałe ani jako bufor o stałym rozmiarze.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InstanceCtorWithOneParameterInUnion">
+        <source>Explicitly declared public constructors with a single parameter are not permitted in a 'union' declaration.</source>
+        <target state="translated">Jawnie zadeklarowane konstruktory publiczne z pojedynczym parametrem nie są dozwolone w deklaracji „union”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InstanceFieldInUnion">
+        <source>Instance fields, auto-properties or field-like events are not permitted in a 'union' declaration.</source>
+        <target state="translated">Pola wystąpienia, właściwości automatyczne lub zdarzenia podobne do pól nie są dozwolone w deklaracji „union”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstanceMemberWithUnnamedExtensionsParameter">
         <source>'{0}': cannot declare instance members in an extension block with an unnamed receiver parameter</source>
         <target state="translated">„{0}”: nie można deklarować elementów członkowskich wystąpienia w bloku rozszerzenia z nienazwanym parametrem odbiornika</target>
@@ -1451,6 +1486,16 @@
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">„{0}” nie zawiera definicji dla „{1}” i nie znaleziono dostępnej metody rozszerzenia „{1}”, która przyjmowałaby pierwszy argument typu „{0}” (czy chodziło Ci o iterację kolekcji asynchronicznej za pomocą polecenia „await foreach”?)</target>
         <note>'await foreach' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="ERR_NoImplicitConversionToObject">
+        <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
+        <target state="translated">Nie można przekonwertować typu „{0}” na „object” za pomocą niejawnego odwołania lub konwersji typu boxing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
+        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
+        <target state="translated">Nie można zastosować atrybutu RequiresUnsafeAttribute do tego symbolu.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -1840,11 +1885,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">Oczekiwano opcji „warnings” lub „annotations” albo końca dyrektywy</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="new">Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2657,6 +2697,21 @@
         <target state="translated">Nieoczekiwana lista parametrów.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnionConstructorCallsDefaultConstructor">
+        <source>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</source>
+        <target state="translated">Konstruktor zadeklarowany w deklaracji „union” musi mieć inicjator „this”, który wywołuje konstruktor syntetyzowany lub jawnie zadeklarowany konstruktor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionDeclarationNeedsCaseTypes">
+        <source>A union declaration must specify at least one case type.</source>
+        <target state="translated">Deklaracja unii musi określać co najmniej jeden typ przypadku.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnionMatchingWrongPattern">
+        <source>An expression of type '{0}' cannot be handled by this pattern, see additional errors at this location.</source>
+        <target state="translated">Wyrażenie typu „{0}” nie może być obsługiwane przez ten wzorzec. Zobacz dodatkowe błędy w tej lokalizacji.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go wywołać bezpośrednio. Uzyskaj wskaźnik funkcji do tej metody.</target>
@@ -2667,10 +2722,35 @@
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go przekonwertować na typ delegowany. Uzyskaj wskaźnik funkcji do tej metody.</target>
         <note>UnmanagedCallersOnly is not localizable.</note>
       </trans-unit>
-      <trans-unit id="ERR_UnrecognizedRefSafetyRulesAttributeVersion">
-        <source>'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</source>
-        <target state="new">'{0}' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.</target>
+      <trans-unit id="ERR_UnrecognizedAttributeVersion">
+        <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
+        <target state="translated">Atrybut „{0}” jest zdefiniowany w module z nierozpoznaną wersją {1}, ponieważ oczekiwano „{2}”.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">Niebezpieczny kontekst jest wymagany dla konstruktora „{0}” oznaczonego jako „RequiresUnsafe” lub „extern”, aby spełnić ograniczenie „new()” parametru typu „{1}” w „{2}”</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperation">
+        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
+        <target state="translated">Atrybut „{0}” musi być używany w niezabezpieczonym kontekście, ponieważ jest oznaczony jako „RequiresUnsafe” lub „extern”</target>
+        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeMemberOperationCompat">
+        <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
+        <target state="translated">Atrybut „{0}” musi być używany w niezabezpieczonym kontekście, ponieważ ma wskaźniki w sygnaturze</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeOperation">
+        <source>This operation may only be used in an unsafe context</source>
+        <target state="translated">Ta operacja może być używana tylko w niezabezpieczonym kontekście</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
+        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
+        <target state="translated">wyrażenie stackalloc bez inicjatora wewnątrz elementu SkipLocalsInit może być używane tylko w niezabezpieczonym kontekście</target>
+        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
@@ -3050,6 +3130,16 @@
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
         <source>unbound generic types in nameof operator</source>
         <target state="translated">niepowiązane typy ogólne w operatorze nameof</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnions">
+        <source>unions</source>
+        <target state="translated">unie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnsafeEvolution">
+        <source>updated memory safety rules</source>
+        <target state="translated">zaktualizowano reguły zabezpieczeń pamięci</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
@@ -3837,6 +3927,16 @@
         <target state="translated">Składowa struktury zwraca element „this” lub inne składowe wystąpienia według odwołania</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">Atrybut RequiresUnsafeAttribute jest prawidłowy tylko w ramach zaktualizowanych reguł zabezpieczeń pamięci.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
+      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
+        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
+        <target state="translated">Atrybut RequiresUnsafeAttribute jest prawidłowy tylko w ramach zaktualizowanych reguł zabezpieczeń pamięci.</target>
+        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
         <target state="translated">Wartość zwracana musi być inna niż null, ponieważ parametr „{0}” ma wartość inną niż null.</target>
@@ -4090,7 +4190,7 @@
 -baseaddress:&lt;address&gt;        Base address for the library to be built
 -checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
                               checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
+                              SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;n&gt;                 Specify the codepage to use when opening source
                               files
 -utf8output                   Output compiler messages in UTF-8 encoding
@@ -4128,165 +4228,165 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="new">
-                             Visual C# Compiler Options
+        <target state="translated">
+                             Opcje kompilatora języka Visual C#
 
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
-                              form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
+                       - PLIKI WYJŚCIOWE - 
+-out:&lt;file&gt;                   Określanie nazwy pliku wyjściowego (domyślnie: nazwa podstawowa
+                              pliku z klasą główną lub pierwszym plikiem)
+-target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (skrócona
+                              postać: -t:exe)
+-target:winexe                   Kompiluj plik wykonywalny systemu Windows (skrócona postać:
                               -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
+-target:library               Utwórz bibliotekę (skrócona postać: -t:library)
+-target:module                Tworzenie modułu, który można będzie dodać do innego
+                              zestawu (skrócona postać: -t:module)
+-target:appcontainerexe       Tworzenie pliku wykonywalnego Appcontainer (skrócona postać:
                               -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
+-target:winmdobj              Tworzenie pośredniego pliku środowiska uruchomieniowego systemu Windows, który
+                              jest używany przez WinMDExp (skrócona postać: -t:winmdobj)
+-doc:&lt;file&gt;                       Plik dokumentacji XML do wygenerowania
+-refout:&lt;file&gt;                    Odwołanie do danych wyjściowych zestawu do wygenerowania
+-platform:&lt;string&gt;                Ograniczanie platformy, na których można uruchomić ten kod: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred lub
+                              anycpu. Domyślną jest anycpu.
 
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB.
+                       - PLIKI WEJŚCIOWE -
+-recurse:&lt;wildcard&gt;               Uwzględnianie wszystkie plików w bieżącym katalogu oraz
+                              podkatalogach zgodnie ze specyfikacjami
+                              symbolu wieloznacznego
+-reference:&lt;alias&gt;=&lt;file&gt;     Odwołanie do metadanych z określonego pliku
+                              zestawu, używając danego aliasu (skrócona postać: -r)
+-reference:&lt;file list&gt;            Odwołanie do metadanych z określonych plików
+                              zestawu (skrócona postać: -r)
+-addmodule:&lt;file list&gt;        Łączenie określonych modułów w tym zestawie
+-link:&lt;file_list&gt;                 Osadzone metadane z określonych plików zestawu
+                              międzyoperacyjności (skrócona postać: -l)
+-analyzer:&lt;file_list&gt;             Uruchamianie analizatorów z tego zestawu
+                              (skrócona postać: -a)
+-additionalfile:&lt;file list&gt;   Dodatkowe pliki, które nie mają bezpośredniego wpływu na generowanie
+                              kodu, ale mogą być używane przez analizatory do generowania
+                              błędów i ostrzeżeń.
+-embed                        Osadzanie wszystkich plików źródłowych w pliku PDB.
+-embed:&lt;file list&gt;            Osadzanie określonych plików w pliku PDB.
 
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+                       - ZASOBY -
+-win32res:&lt;file&gt;              Określanie plik zasobów Win32 (.res)
+-win32icon:&lt;file&gt;             Używanie tej ikony dla danych wyjściowych
+-win32manifest:&lt;file&gt;             Określanie plik manifestu Win32 (xml)
+-nowin32manifest              Nie dołączaj domyślnego manifestu Win32
+-resource:&lt;resinfo&gt;           Osadzanie określonego zasobu (skrócona postać: -res)
+-linkresource:&lt;resinfo&gt;       Łączenie określonego zasobu z tym zestawem
+                              (skrócona postać: -linkres) Gdzie format resinfo
+                              to &lt;file&gt;[,&lt;name&gt;[,public|private]]
 
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
+                       - GENEROWANIE KODU -
+-debug[+|-]                       Emitowanie informacji o debugowaniu
 -debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+                              Określanie typu debugowania (wartość „full” jest domyślna,
+                              „portable” jest formatem międzyplatformowym,
+                              „embedded” jest formatem międzyplatformowym osadzonym w
+                              docelowym pliku .dll lub .exe.)
+-optimize[+|-]                Włączanie optymalizacji (skrócona postać: -o)
+-deterministic                    Generowanie zestawu deterministycznego
+                              (w tym identyfikatora GUID i sygnatury czasowej wersji modułu)
+-refonly                          Tworzenie zestawu odwołania zamiast wyjścia głównego
+-instrument:TestCoverage          Generowanie zestawu instrumentowanego do zbierania
+                              informacji o pokryciach
+-sourcelink:&lt;file&gt;                Informacje o linku źródłowym do osadzenia w pliku PDB.
 
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
-                              (use "nullable" for all nullability warnings)
--warn:&lt;n&gt;                     Set warning level (0 or higher) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
-                              (use "nullable" for all nullability warnings)
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
+                       - BŁĘDY I OSTRZEŻENIA -
+-warnaserror[+|-]                 Raportowanie wszystkich ostrzeżeń jako błędy
+-warnaserror[+|-]:&lt;warn list&gt; Raportowanie określonych ostrzeżeń jako błędy
+                              (użyj wartości „nullable” dla wszystkich ostrzeżeń dotyczących dopuszczania wartości null)
+-warn:&lt;n&gt;                     Ustawianie poziomu ostrzeżeń (0 lub wyższy) (skrócona postać: -w)
+-nowarn:&lt;warn list&gt;           Wyłączanie określonych komunikatów ostrzegawczych
+                              (użyj wartości „nullable” dla wszystkich ostrzeżeń dotyczących dopuszczania wartości null)
+-ruleset:&lt;file&gt;                   Określanie pliku zestawu reguł, który wyłącza określoną
+                              diagnostykę.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              Specify a file to log all compiler and analyzer
-                              diagnostics.
-                              sarif_version:{1|2|2.1} Default is 1. 2 and 2.1
-                              both mean SARIF version 2.1.0.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
--skipanalyzers[+|-]           Skip execution of diagnostic analyzers.
+                              Określanie pliku do rejestrowania całej diagnostyki kompilatora
+                              i analizatora.
+                              sarif_version:{1|2|2.1} Wartość domyślna to 1. 2 i 2.1
+                              obie oznaczające wersję SARIF 2.1.0.
+-reportanalyzer                   Raportowanie dodatkowych informacje analizatora, takich jak
+                              czas wykonania.
+-skipanalyzers[+|-]               Pomijanie wykonywanie analizatorów diagnostycznych.
 
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `latest` (latest version, including minor versions),
-                              `default` (same as `latest`),
-                              `latestmajor` (latest version, excluding minor versions),
-                              `preview` (latest version, including features in unsupported preview),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
+                       - JĘZYK -
+-checked[+|-]                 Generowanie testów przepełnienia
+-unsafe[+|-]                  Zezwalanie na kod „unsafe”
+-define:&lt;symbol list&gt;             Definiowanie symboli kompilacji warunkowej (skrócona
+                              postać: -d)
+-langversion:?                Wyświetlanie dozwolone wartości dla wersji językowej
+-langversion:&lt;string&gt;             Określanie wersji języka, na przykład
+                              `latest` (najnowsza wersja, w tym wersje pomocnicze),
+                              `default` (tak samo jak `latest`),
+                              `latestmajor` (najnowsza wersja, z wyjątkiem wersji pomocniczych),
+                              `preview` (najnowsza wersja, w tym funkcje w nieobsługiwanym wersji zapoznawczej),
+                              lub dokładnych wersji, takich jak `6` lub `7.1`
+-nullable[+|-]                Określanie włączenia|wyłączenia opcji kontekstu dopuszczania wartości null.
 -nullable:{enable|disable|warnings|annotations}
-                              Specify nullable context option enable|disable|warnings|annotations.
+                              Określanie opcji kontekstu dopuszczania wartości null enable|disable|warnings|annotations.
 
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
+                       - ZABEZPIECZENIA -
+-delaysign[+|-]                   Podpisywanie z opóźnieniem zestawu tylko przy użyciu publicznego
+                              fragmentu silnego klucza nazwy
+-publicsign[+|-]                  Podpisywanie publiczne zestawu tylko przy użyciu publicznego
+                              fragmentu silnego klucza nazwy
+-keyfile:&lt;file&gt;                   Określanie pliku silnego klucza nazwy
+-keycontainer:&lt;string&gt;            Określanie kontenera silnych kluczy nazw
+-highentropyva[+|-]               Włączanie funkcji ASLR o wysokiej entropii
 
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
+                       - RÓŻNE -
+@&lt;file&gt;                       Odczytywanie pliku odpowiedzi w celu uzyskania dodatkowych opcji
+-help                         Wyświetlanie tego komunikatu o użyciu (skrócona postać: -?)
+-nologo                       Wstrzymywanie komunikatu kompilatora o prawach autorskich
+-noconfig                         Nie dołączaj automatycznie pliku CSC.RSP
+-parallel[+|-]                    Współbieżna kompilacja.
+-version                          Wyświetlanie numer wersji kompilatora i wyjście.
 
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
+                       - ZAAWANSOWANE -
+-baseaddress:&lt;address&gt;        Adres podstawowy dla bibiloteki, która ma być utworzona
+-checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania pliku źródłowego
+                              pliku źródłowego przechowywanego w pliku PDB. Obsługiwane wartości to:
+                              SHA1, SHA256 (domyślne), SHA384 lub SHA512.
+-codepage:&lt;n&gt;                 Określanie strony kodowej do używania podczas otwierania plików
+                              źródłowych
+-utf8output                   Komunikaty kompilatora danych wyjściowych w kodowaniu UTF-8
+-main:&lt;type&gt;                   Określanie typu zawierającego punktu wejścia
+                              (ignoruj wszystkie inne możliwe punkty wejścia) (skrócona
+                              postać: -m)
+-fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
+-filealign:&lt;n&gt;               Określanie wyrównania używanego dla sekcji
+                              pliku wyjściowego
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--sdkpath:&lt;path&gt;         Path used to search for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
--generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
-                              specified directory.
--reportivts[+|-]                    Output information on all IVTs granted to this
-                              assembly by all dependencies, and annotate foreign assembly
-                              accessibility errors with what assembly they came from.
+                              Określanie mapowania dla danych wyjściowych nazw ścieżek źródłowych przez
+                              kompilator.
+-pdb:&lt;file&gt;                   Określanie nazwy pliku z informacjami o debugowaniu (domyślnie:
+                              nazwa pliku wyjściowego z rozszerzeniem .pdb)
+-errorendlocation             wiersz i kolumna danych wyjściowych lokalizacji końcowej
+                              każdego błędu
+-preferreduilang                  Określanie preferowanej nazwy języka danych wyjściowych.
+-nosdkpath                        Wyłączanie wyszukiwania domyślnej ścieżki zestawu SDK dla zestawów bibliotek standardowych.
+-sdkpath:&lt;path&gt;         Ścieżka używana do wyszukiwania standardowych zestawów biblioteki.
+-nostdlib[+|-]                Nie odwołuj do biblioteki standardowej (mscorlib.dll)
+-subsystemversion:&lt;version&gt;       Określanie wersji podsystemu zestawu
+-lib:&lt;file list&gt;              Określanie dodatkowych katalogów do wyszukania
+                              odwołań
+-errorreport:&lt;string&gt;             Określanie sposobu obsługi wewnętrznych błędów kompilatora:
+                              monit, wysyłanie, kolejka lub brak. Wartością domyślną to
+                              kolejka.
+-appconfig:&lt;file&gt;             Określanie pliku konfiguracji aplikacji
+                              zawierającego ustawienia powiązania zestawu
+-moduleassemblyname:&lt;string&gt;  Nazwa zestawu, którego częścią będzie
+                              ten moduł
+-modulename:&lt;string&gt;          Określanie nazwy modułu źródłowego
+-generatedfilesout:&lt;dir&gt;          Umieszczanie plików wygenerowane podczas kompilacji w
+                              określonym katalogu.
+-reportivts[+|-]                  Informacje dotyczące danych wyjściowych o wszystkich plikach IVT przyznanych temu
+                              zestawowi przez wszystkie zależności i adnotowanie błędów
+                              dotyczących dostępności zestawu, z którego one pochodzą.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -5830,6 +5930,16 @@
         <target state="translated">Parametr nie został odczytany. Czy zapomniano użyć go do zainicjowania właściwości o tej nazwie?</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">Modyfikator „unsafe” nie ma tutaj żadnego wpływu w bieżących regułach zabezpieczeń pamięci.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">Modyfikator „unsafe” nie ma tutaj żadnego wpływu w bieżących regułach zabezpieczeń pamięci.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
         <target state="translated">Atrybut UnscopedRefAttribute jest prawidłowy tylko w języku C# 11 lub nowszym albo w przypadku platformy docelowej net7.0 lub nowszej.</target>
@@ -7106,8 +7216,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeKindConflict">
-        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</source>
-        <target state="new">Partial declarations of '{0}' must be all classes, all record classes, all structs, all record structs, or all interfaces</target>
+        <source>Partial declarations of '{0}' must be all classes, all record classes, all structs, all unions, all record structs, or all interfaces</source>
+        <target state="translated">Częściowe deklaracje elementu „{0}” muszą być wszystkimi klasami, wszystkimi klasami rekordów, wszystkimi strukturami, wszystkimi uniami, wszystkimi strukturami rekordów lub wszystkimi interfejsami</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialModifierConflict">

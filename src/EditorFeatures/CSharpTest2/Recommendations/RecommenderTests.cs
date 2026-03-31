@@ -24,14 +24,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
 public abstract class RecommenderTests : TestBase
 {
     protected static readonly CSharpParseOptions CSharp9ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
-    protected static readonly CSharpParseOptions CSharpNextParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
-    protected static readonly CSharpParseOptions CSharpNextScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersion.CSharp14);
+    protected static readonly CSharpParseOptions CSharp14ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
+    protected static readonly CSharpParseOptions CSharpNextParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+    protected static readonly CSharpParseOptions CSharpNextScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+
+    // If no language version is specified, then we want to test against the implicit language version (ie. preview)
+    protected static readonly CSharpParseOptions CSharpImplicitParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
+    protected static readonly CSharpParseOptions CSharpImplicitScriptParseOptions = Options.Script.WithLanguageVersion(LanguageVersion.Preview);
 
     protected abstract string KeywordText { get; }
     internal Func<int, CSharpSyntaxContext, Task<ImmutableArray<RecommendedKeyword>>>? RecommendKeywordsAsync;
 
     internal async Task VerifyWorkerAsync(string markup, bool absent, CSharpParseOptions? options = null, int? matchPriority = null)
     {
+        options ??= CSharpImplicitParseOptions;
         Testing.TestFileMarkupParser.GetPosition(markup, out var code, out var position);
         await VerifyAtPositionAsync(code, position, absent, options: options, matchPriority: matchPriority);
         await VerifyInFrontOfCommentAsync(code, position, absent, options: options, matchPriority: matchPriority);
@@ -168,8 +174,10 @@ public abstract class RecommenderTests : TestBase
         CSharpParseOptions? scriptOptions = null)
     {
         // run the verification in both context(normal and script)
+        options ??= CSharpImplicitParseOptions;
+        scriptOptions ??= CSharpImplicitScriptParseOptions;
         await VerifyWorkerAsync(text, absent: false, options: options);
-        await VerifyWorkerAsync(text, absent: false, options: scriptOptions ?? Options.Script);
+        await VerifyWorkerAsync(text, absent: false, options: scriptOptions);
     }
 
     protected async Task VerifyKeywordAsync(
@@ -183,7 +191,7 @@ public abstract class RecommenderTests : TestBase
                 break;
 
             case SourceCodeKind.Script:
-                await VerifyWorkerAsync(text, absent: false, options: Options.Script);
+                await VerifyWorkerAsync(text, absent: false, options: CSharpImplicitScriptParseOptions);
                 break;
         }
     }
@@ -194,8 +202,10 @@ public abstract class RecommenderTests : TestBase
         CSharpParseOptions? scriptOptions = null)
     {
         // run the verification in both context(normal and script)
+        options ??= CSharpImplicitParseOptions;
+        scriptOptions ??= CSharpImplicitScriptParseOptions;
         await VerifyWorkerAsync(text, absent: true, options: options);
-        await VerifyWorkerAsync(text, absent: true, options: scriptOptions ?? Options.Script);
+        await VerifyWorkerAsync(text, absent: true, options: scriptOptions);
     }
 
     protected async Task VerifyAbsenceAsync(
@@ -208,7 +218,7 @@ public abstract class RecommenderTests : TestBase
                 await VerifyWorkerAsync(text, absent: true);
                 break;
             case SourceCodeKind.Script:
-                await VerifyWorkerAsync(text, absent: true, options: Options.Script);
+                await VerifyWorkerAsync(text, absent: true, options: CSharpImplicitScriptParseOptions);
                 break;
         }
     }
