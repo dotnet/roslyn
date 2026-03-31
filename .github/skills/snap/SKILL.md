@@ -397,9 +397,10 @@ darc add-subscription --source-repo https://github.com/{owner}/{repo} --target-r
 darc update-subscription --id {subscriptionId} --channel "{newChannel}" --configuration-branch {cfgBranch} --no-pr --ci
 ```
 
-After all commands, create one PR:
+After all commands, create one PR with auto-complete enabled:
 ```
-az repos pr create --repository maestro-configuration --org https://dev.azure.com/dnceng --project internal --source-branch {cfgBranch} --target-branch production --title "Snap: update default channels for {repos} ({newVsVersion})" --description "Updates default channels for the {newVsVersion} snap."
+$prId = az repos pr create --repository maestro-configuration --org https://dev.azure.com/dnceng --project internal --source-branch {cfgBranch} --target-branch production --title "Snap: update default channels for {repos} ({newVsVersion})" --description "Updates default channels for the {newVsVersion} snap." --query pullRequestId -o tsv
+az repos pr update --id $prId --org https://dev.azure.com/dnceng --auto-complete true --merge-strategy squash
 ```
 
 #### 3.6 Move milestones
