@@ -169,6 +169,11 @@ namespace Microsoft.CodeAnalysis.Text
                     var startInSubText = startInUnderlyingText - _subText.UnderlyingSpan.Start;
 
                     var length = endInUnderlyingText - startInUnderlyingText;
+                    // The line break portion included in this subtext is the overlap of the underlying
+                    // line's break region [underlyingTextLine.End, EndIncludingLineBreak) with our
+                    // clipped window [startInUnderlyingText, endInUnderlyingText). The inner Max guards
+                    // against startInUnderlyingText falling inside the break region (e.g. the \n half
+                    // of a split \r\n, where this subtext begins after the \r).
                     var lineBreakLen = Math.Max(0, endInUnderlyingText - Math.Max(underlyingTextLine.End, startInUnderlyingText));
                     var resultLine = TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length), lineBreakLen);
 

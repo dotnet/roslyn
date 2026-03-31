@@ -993,6 +993,7 @@ namespace Microsoft.CodeAnalysis.Text
             internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1;
 
             private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
+            internal static uint PackEntry(int lineStart, int priorLineBreakLength) => (uint)lineStart | ((uint)priorLineBreakLength << LineBreakLengthShift);
 
             private readonly SourceText _text;
             private readonly SegmentedList<uint> _lineStarts;
@@ -1148,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.Text
                         breakLen = 1;
                     }
 
-                    lineStarts.Add((uint)(position + index) | ((uint)breakLen << LineInfo.LineBreakLengthShift));
+                    lineStarts.Add(LineInfo.PackEntry(position + index, breakLen));
                     lastWasCR = false;
                 }
 
@@ -1195,7 +1196,7 @@ namespace Microsoft.CodeAnalysis.Text
                     }
 
                     // next line starts at index; encode the prior line's break length in the top 2 bits
-                    lineStarts.Add((uint)(position + index) | ((uint)lineBreakLen << LineInfo.LineBreakLengthShift));
+                    lineStarts.Add(LineInfo.PackEntry(position + index, lineBreakLen));
                 }
             });
 
