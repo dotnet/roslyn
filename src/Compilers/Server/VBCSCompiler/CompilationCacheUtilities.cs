@@ -7,7 +7,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if NET
 using System;
 using System.IO;
 
@@ -116,38 +115,3 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 }
-#else
-namespace Microsoft.CodeAnalysis.CompilerServer
-{
-    internal static class CompilationCacheUtilities
-    {
-#pragma warning disable IDE0060 // Remove unused parameter, shape needed for cross-targeting
-        internal static int? CheckCache(
-            CompilationCache? cache,
-            ICompilerServerLogger logger,
-            CommandLineArguments arguments,
-            Compilation compilation,
-            ImmutableArray<DiagnosticAnalyzer> analyzers,
-            ImmutableArray<ISourceGenerator> generators,
-            ImmutableArray<AdditionalText> additionalTexts,
-            CancellationToken cancellationToken,
-            out string? deterministicKey,
-            out string? hashKey)
-        {
-            deterministicKey = null;
-            hashKey = null;
-            return null;
-        }
-
-        internal static void OnCompilationSucceeded(
-            CompilationCache? cache,
-            ICompilerServerLogger logger,
-            CommandLineArguments arguments,
-            string? deterministicKey,
-            string? hashKey)
-        {
-        }
-#pragma warning restore IDE0060 // Remove unused parameter
-    }
-}
-#endif

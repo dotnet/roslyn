@@ -1,8 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#if NET
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -96,8 +94,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static string ComputeHashKey(string deterministicKey)
         {
+#if NET
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(deterministicKey));
             return Convert.ToHexString(bytes).ToLowerInvariant();
+#else
+            using var sha256 = SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(deterministicKey));
+            return BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
+#endif
         }
 
         private string GetCacheEntryDirectory(string dllName, string hashKey)
@@ -404,15 +408,3 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
     }
 }
-#else
-using Microsoft.CodeAnalysis.CommandLine;
-
-namespace Microsoft.CodeAnalysis.CompilerServer
-{
-    internal sealed class CompilationCache
-    {
-        internal static CompilationCache? TryCreate(CommandLineArguments _, ICompilerServerLogger __)
-            => null;
-    }
-}
-#endif
