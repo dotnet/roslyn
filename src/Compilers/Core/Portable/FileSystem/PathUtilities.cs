@@ -91,6 +91,31 @@ namespace Roslyn.Utilities
             }
         }
 
+        internal static string GetTempCachePath(string directoryName)
+        {
+            var path = GetTempCachePath(directoryName, Path.GetTempPath(), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), PlatformInformation.IsWindows);
+
+#if NET
+            if (!PlatformInformation.IsWindows)
+            {
+                Directory.CreateDirectory(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                return path;
+            }
+#endif
+
+            Directory.CreateDirectory(path);
+            return path;
+        }
+
+        private static string GetTempCachePath(string directoryName, string tempPath, string localApplicationDataPath, bool isWindows)
+        {
+            var parentPath = isWindows || string.IsNullOrEmpty(localApplicationDataPath)
+                ? tempPath
+                : localApplicationDataPath;
+
+            return Path.Combine(parentPath, directoryName);
+        }
+
         public static string GetExtension(string path)
         {
             return FileNameUtilities.GetExtension(path);
@@ -902,6 +927,9 @@ namespace Roslyn.Utilities
         {
             internal static string? GetDirectoryName(string path, bool isUnixLike)
                 => PathUtilities.GetDirectoryName(path, isUnixLike);
+
+            internal static string GetTempCachePath(string directoryName, string tempPath, string localApplicationDataPath, bool isWindows)
+                => PathUtilities.GetTempCachePath(directoryName, tempPath, localApplicationDataPath, isWindows);
         }
     }
 }

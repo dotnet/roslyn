@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             return featureValue.Length == 0 || string.Equals(featureValue, bool.TrueString, StringComparison.OrdinalIgnoreCase)
-                ? Path.Combine(Path.GetTempPath(), DefaultCacheDirectoryName)
+                ? PathUtilities.GetTempCachePath(DefaultCacheDirectoryName)
                 : featureValue;
         }
 

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public void TryCreate_ReturnsCache_WhenFeatureFlagUsesDefaultPath()
         {
-            var expectedPath = Path.Combine(Path.GetTempPath(), "roslyn-cache");
+            var expectedPath = PathUtilities.TestAccessor.GetTempCachePath("roslyn-cache", Path.GetTempPath(), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), PlatformInformation.IsWindows);
             var logMessages = new List<string>();
             var cache = CompilationCache.TryCreate(
                 ParseArguments(["/features:use-global-cache", "test.cs"]),

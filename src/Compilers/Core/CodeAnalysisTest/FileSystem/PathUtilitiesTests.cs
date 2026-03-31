@@ -113,6 +113,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
                 PathUtilities.TestAccessor.GetDirectoryName(null, isUnixLike: true));
         }
 
+        [Fact]
+        public void GetTempCachePath_UsesTempPathOnWindows()
+        {
+            var path = PathUtilities.TestAccessor.GetTempCachePath("roslyn-cache", @"C:\temp", @"/home/usr/.local/share", isWindows: true);
+            Assert.Equal(Path.Combine(@"C:\temp", "roslyn-cache"), path);
+        }
+
+        [Fact]
+        public void GetTempCachePath_UsesLocalApplicationDataOnUnix()
+        {
+            var path = PathUtilities.TestAccessor.GetTempCachePath("roslyn-cache", @"/tmp", @"/home/usr/.local/share", isWindows: false);
+            Assert.Equal(@"/home/usr/.local/share/roslyn-cache", path);
+        }
+
         [ConditionalFact(typeof(WindowsOnly))]
         public void TestGetDirectoryName_WindowsSharePaths()
         {
