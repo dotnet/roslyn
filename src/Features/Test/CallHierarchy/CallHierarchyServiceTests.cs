@@ -197,12 +197,12 @@ public class D : I
 
         AssertEx.SetEqual(["C.M()"], GetItemDisplayNames(results));
 
-        var locationResult = Assert.Single(results.OfType<CallHierarchyLocationSearchResult>());
+        var locationResult = Assert.Single(results.Where(r => r.Item is null));
         Assert.Equal(2, locationResult.ReferenceLocations.Length);
     }
 
     private static IEnumerable<string> GetItemDisplayNames(ImmutableArray<CallHierarchySearchResult> results)
-        => results.OfType<CallHierarchySearchResult>().Select(static r => GetDisplayName(r.Item));
+        => results.Where(static r => r.Item is not null).Select(static r => GetDisplayName(r.Item!));
 
     private static string GetDisplayName(CallHierarchyItemDescriptor item)
         => string.IsNullOrEmpty(item.ContainingTypeName)
