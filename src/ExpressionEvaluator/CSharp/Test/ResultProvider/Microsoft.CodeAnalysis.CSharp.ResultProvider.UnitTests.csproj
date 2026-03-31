@@ -31,7 +31,7 @@
     <!--Keep the folder visible in the IDE-->
     <None Include="NetCoreTests\**\*.cs"/>
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == '$(NetRoslyn)'">
+  <ItemGroup Condition="'$(TargetFramework)' == '$(NetRoslynWindows)'">
     <!--Only compile the tests under NetCoreTests-->
     <Compile Remove="**\*.cs" />
     <Compile Include="CSharpResultProviderTestBase.cs"/>
