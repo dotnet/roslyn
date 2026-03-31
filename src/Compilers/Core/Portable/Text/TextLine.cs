@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         private static ulong Pack(int start, int totalLength, int lineBreakLength)
-            => (1UL << KnownShift) | ((ulong)lineBreakLength << BreakLenShift) | ((ulong)start << StartShift) | (ulong)totalLength;
+            => (1UL << KnownShift) | ((ulong)(uint)lineBreakLength << BreakLenShift) | ((ulong)(uint)start << StartShift) | (uint)totalLength;
 
         /// <summary>
         /// Creates a <see cref="TextLine"/> instance.
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             // Store total length (including any line break) with unknown encoding;
             // LineBreakLength will be computed from text on demand.
-            return new TextLine(text, ((ulong)span.Start << StartShift) | (ulong)(span.End - span.Start));
+            return new TextLine(text, ((ulong)(uint)span.Start << StartShift) | (uint)(span.End - span.Start));
         }
 
         /// <summary>
