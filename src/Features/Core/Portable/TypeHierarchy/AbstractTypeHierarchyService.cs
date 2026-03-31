@@ -17,8 +17,8 @@ internal abstract class AbstractTypeHierarchyService : ITypeHierarchyService
         => BaseTypeFinder.FindBaseTypesAndInterfaces(typeSymbol);
 
     public async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
-        INamedTypeSymbol typeSymbol,
         Solution solution,
+        INamedTypeSymbol typeSymbol,
         bool transitive,
         CancellationToken cancellationToken)
     {

@@ -309,8 +309,8 @@ internal abstract partial class AbstractInheritanceMarginService
 
         // Get all derived types
         var allDerivedSymbols = await typeHierarchyService.GetDerivedTypesAndImplementationsAsync(
-            memberSymbol,
             solution,
+            memberSymbol,
             transitive: true,
             cancellationToken).ConfigureAwait(false);
 

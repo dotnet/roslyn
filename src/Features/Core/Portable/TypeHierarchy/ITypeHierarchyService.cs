@@ -14,8 +14,8 @@ internal interface ITypeHierarchyService : ILanguageService
     ImmutableArray<INamedTypeSymbol> GetBaseTypesAndInterfaces(INamedTypeSymbol typeSymbol);
 
     Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
-        INamedTypeSymbol typeSymbol,
         Solution solution,
+        INamedTypeSymbol typeSymbol,
         bool transitive,
         CancellationToken cancellationToken);
 }

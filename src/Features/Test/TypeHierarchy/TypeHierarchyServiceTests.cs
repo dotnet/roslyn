@@ -78,8 +78,8 @@ public sealed class TypeHierarchyServiceTests
 
         var (document, service, symbol) = await GetTypeSymbolWithServiceAsync(workspace);
         var derivedTypes = await service.GetDerivedTypesAndImplementationsAsync(
-            symbol,
             document.Project.Solution,
+            symbol,
             transitive: true,
             CancellationToken.None);
 
@@ -145,8 +145,8 @@ public sealed class TypeHierarchyServiceTests
 
         var (document, service, symbol) = await GetTypeSymbolWithServiceAsync(workspace);
         var derivedTypes = await service.GetDerivedTypesAndImplementationsAsync(
-            symbol,
             document.Project.Solution,
+            symbol,
             transitive: true,
             CancellationToken.None);
         var derivedTypeNames = derivedTypes.Select(static t => t.Name).ToImmutableArray();
