@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Text
         //     When break len is unknown (bits 63-61 == 0): length includes the line break
         private readonly ulong _data;
 
+        private const int BreakLenShift = 61;
+        private const int StartShift = 30;
+        private const ulong StartMask = 0x7FFFFFFFUL;  // 31 bits
+        private const ulong LengthMask = 0x3FFFFFFFUL; // 30 bits
+
         private TextLine(SourceText text, ulong data)
         {
             _text = text;
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         private static ulong Pack(int start, int length, int lineBreakLength)
-            => ((ulong)(lineBreakLength + 1) << 61) | ((ulong)start << 30) | (ulong)length;
+            => ((ulong)(lineBreakLength + 1) << BreakLenShift) | ((ulong)start << StartShift) | (ulong)length;
 
         /// <summary>
         /// Creates a <see cref="TextLine"/> instance.
@@ -104,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             // Store total length (including any line break) with unknown encoding;
             // LineBreakLength will be computed from text on demand.
-            return new TextLine(text, ((ulong)span.Start << 30) | (ulong)(span.End - span.Start));
+            return new TextLine(text, ((ulong)span.Start << StartShift) | (ulong)(span.End - span.Start));
         }
 
         /// <summary>
@@ -131,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Start
         {
-            get { return (int)((_data >> 30) & 0x7FFFFFFFUL); }
+            get { return (int)((_data >> StartShift) & StartMask); }
         }
 
         /// <summary>
@@ -142,8 +147,8 @@ namespace Microsoft.CodeAnalysis.Text
             get
             {
                 int start = Start;
-                int rawLength = (int)(_data & 0x3FFFFFFFUL);
-                int encoded = (int)(_data >> 61);
+                int rawLength = (int)(_data & LengthMask);
+                int encoded = (int)(_data >> BreakLenShift);
                 if (encoded != 0)
                     return start + rawLength;
                 else
@@ -155,17 +160,17 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                int encoded = (int)(_data >> 61);
+                int encoded = (int)(_data >> BreakLenShift);
                 if (encoded != 0)
                     return encoded - 1;
 
                 // Unknown: compute from text
-                if (_text == null || _text.Length == 0 || (_data & 0x3FFFFFFFUL) == 0)
+                if (_text == null || _text.Length == 0 || (_data & LengthMask) == 0)
                 {
                     return 0;
                 }
 
-                int endIncludingBreak = Start + (int)(_data & 0x3FFFFFFFUL);
+                int endIncludingBreak = Start + (int)(_data & LengthMask);
                 int startLineBreak;
                 int lineBreakLength;
                 TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, endIncludingBreak - 1, out startLineBreak, out lineBreakLength);
@@ -181,8 +186,8 @@ namespace Microsoft.CodeAnalysis.Text
             get
             {
                 int start = Start;
-                int rawLength = (int)(_data & 0x3FFFFFFFUL);
-                int encoded = (int)(_data >> 61);
+                int rawLength = (int)(_data & LengthMask);
+                int encoded = (int)(_data >> BreakLenShift);
                 if (encoded != 0)
                     return start + rawLength + (encoded - 1);
                 else
@@ -234,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return false;
 
             // Fast path: both have known line break length, compare packed data directly
-            if ((_data >> 61) != 0 && (other._data >> 61) != 0)
+            if ((_data >> BreakLenShift) != 0 && (other._data >> BreakLenShift) != 0)
                 return _data == other._data;
 
             // Slow path: at least one has unknown encoding, compare decoded logical positions
