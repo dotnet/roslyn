@@ -1001,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Text
             // priorLineBreakLength must be 1 or 2; stored as (priorLineBreakLength - 1) in the top bit.
             internal static uint PackEntry(int lineStart, int priorLineBreakLength)
             {
-                Debug.Assert(priorLineBreakLength is >= 1 and <= 2);
+                Debug.Assert(priorLineBreakLength is 1 or 2);
                 return (uint)lineStart | ((uint)(priorLineBreakLength - 1) << LineBreakLengthShift);
             }
 
