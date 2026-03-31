@@ -6,6 +6,8 @@ param(
 )
 
 try {
+  . $PSScriptRoot\post-build-utils.ps1
+
   & $PSScriptRoot\nuget-verification.ps1 ${PackagesPath}\*.nupkg
 } 
 catch {

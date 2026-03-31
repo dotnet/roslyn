@@ -24,7 +24,7 @@ steps:
             $Content = Get-Content $(Build.StagingDirectory)/ReleaseConfigs/ReleaseConfigs.txt
 
             $BarId = $Content | Select -Index 0
-            $Channels = $Content | Select -Index 1
+            $Channels = $Content | Select -Index 1             
             $IsStableBuild = $Content | Select -Index 2
 
             $AzureDevOpsProject = $Env:System_TeamProject
@@ -32,7 +32,7 @@ steps:
             $AzureDevOpsBuildId = $Env:Build_BuildId
           }
           else {
-            . $(Build.SourcesDirectory)\eng\common\tools.ps1
+            . $(System.DefaultWorkingDirectory)\eng\common\tools.ps1
             $darc = Get-Darc
             $buildInfo = & $darc get-build `
               --id ${{ parameters.BARBuildId }} `

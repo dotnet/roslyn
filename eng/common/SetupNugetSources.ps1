@@ -17,8 +17,8 @@
 #    displayName: Setup Private Feeds Credentials
 #    condition: eq(variables['Agent.OS'], 'Windows_NT')
 #    inputs:
-#      filePath: $(Build.SourcesDirectory)/eng/common/SetupNugetSources.ps1
-#      arguments: -ConfigFile $(Build.SourcesDirectory)/NuGet.config -Password $Env:Token
+#      filePath: $(System.DefaultWorkingDirectory)/eng/common/SetupNugetSources.ps1
+#      arguments: -ConfigFile $(System.DefaultWorkingDirectory)/NuGet.config -Password $Env:Token
 #    env:
 #      Token: $(dn-bot-dnceng-artifact-feeds-rw)
 
@@ -48,7 +48,6 @@ function AddPackageSource($sources, $SourceName, $SourceEndPoint, $creds, $Usern
     else {
         Write-Host "Package source $SourceName already present."
     }
-    
     AddCredential -Creds $creds -Source $SourceName -Username $Username -pwd $pwd
 }
 
@@ -82,6 +81,7 @@ function AddCredential($creds, $source, $username, $pwd) {
         $passwordElement.SetAttribute("key", "ClearTextPassword")
         $sourceElement.AppendChild($passwordElement) | Out-Null
     }
+    
     $passwordElement.SetAttribute("value", $pwd)
 }
 
@@ -146,22 +146,22 @@ $userName = "dn-bot"
 # Insert credential nodes for Maestro's private feeds
 InsertMaestroPrivateFeedCredentials -Sources $sources -Creds $creds -Username $userName -pwd $Password
 
+# 3.1 uses a different feed url format so it's handled differently here
 $dotnet31Source = $sources.SelectSingleNode("add[@key='dotnet3.1']")
 if ($dotnet31Source -ne $null) {
     AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal/nuget/v2" -Creds $creds -Username $userName -pwd $Password
     AddPackageSource -Sources $sources -SourceName "dotnet3.1-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/_packaging/dotnet3.1-internal-transport/nuget/v2" -Creds $creds -Username $userName -pwd $Password
 }
 
-$dotnet5Source = $sources.SelectSingleNode("add[@key='dotnet5']")
-if ($dotnet5Source -ne $null) {
-    AddPackageSource -Sources $sources -SourceName "dotnet5-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet5-internal/nuget/v2" -Creds $creds -Username $userName -pwd $Password
-    AddPackageSource -Sources $sources -SourceName "dotnet5-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet5-internal-transport/nuget/v2" -Creds $creds -Username $userName -pwd $Password
-}
+$dotnetVersions = @('5','6','7','8')
 
-$dotnet6Source = $sources.SelectSingleNode("add[@key='dotnet6']")
-if ($dotnet6Source -ne $null) {
-    AddPackageSource -Sources $sources -SourceName "dotnet6-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet6-internal/nuget/v2" -Creds $creds -Username $userName -pwd $Password
-    AddPackageSource -Sources $sources -SourceName "dotnet6-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet6-internal-transport/nuget/v2" -Creds $creds -Username $userName -pwd $Password
+foreach ($dotnetVersion in $dotnetVersions) {
+    $feedPrefix = "dotnet" + $dotnetVersion;
+    $dotnetSource = $sources.SelectSingleNode("add[@key='$feedPrefix']")
+    if ($dotnetSource -ne $null) {
+        AddPackageSource -Sources $sources -SourceName "$feedPrefix-internal" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/$feedPrefix-internal/nuget/v2" -Creds $creds -Username $userName -pwd $Password
+        AddPackageSource -Sources $sources -SourceName "$feedPrefix-internal-transport" -SourceEndPoint "https://pkgs.dev.azure.com/dnceng/internal/_packaging/$feedPrefix-internal-transport/nuget/v2" -Creds $creds -Username $userName -pwd $Password
+    }
 }
 
 $doc.Save($filename)

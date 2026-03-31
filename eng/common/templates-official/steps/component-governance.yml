@@ -1,5 +1,6 @@
 parameters:
   disableComponentGovernance: false
+  componentGovernanceIgnoreDirectories: ''
 
 steps:
 - ${{ if eq(parameters.disableComponentGovernance, 'true') }}:
@@ -8,3 +9,5 @@ steps:
 - ${{ if ne(parameters.disableComponentGovernance, 'true') }}:
   - task: ComponentGovernanceComponentDetection@0
     continueOnError: true
+    inputs:
+      ignoreDirectories: ${{ parameters.componentGovernanceIgnoreDirectories }}

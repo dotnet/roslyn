@@ -17,6 +17,7 @@ scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 # replace all special characters with _, some builds use special characters like : in Agent.Jobname, that is not a permissible name while uploading artifacts.
 artifact_name=$SYSTEM_STAGENAME"_"$AGENT_JOBNAME"_SBOM"
 safe_artifact_name="${artifact_name//["/:<>\\|?@*$" ]/_}"
+
 manifest_dir=$1
 
 # Normally - we'd listen to the manifest path given, but 1ES templates will overwrite if this level gets uploaded directly

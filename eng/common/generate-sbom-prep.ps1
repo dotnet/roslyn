@@ -14,6 +14,7 @@ Write-Host "Artifact name before : $ArtifactName"
 Write-Host "Artifact name after : $SafeArtifactName"
 
 Write-Host "Creating dir $ManifestDirPath"
+
 # create directory for sbom manifest to be placed
 if (!(Test-Path -path $SbomGenerationDir))
 {

@@ -12,6 +12,9 @@ parameters:
   # the usage of the properties on this object is split between the 'job' and 'steps' templates.
   platform: {}
 
+  # Optional list of directories to ignore for component governance scans.
+  cgIgnoreDirectories: []
+
 steps:
 # Build. Keep it self-contained for simple reusability. (No source-build-specific job variables.)
 - script: |
@@ -23,11 +26,11 @@ steps:
     # In addition, add an msbuild argument to copy the WIP from the repo to the target build location.
     # This is because SetupNuGetSources.sh will alter the current NuGet.config file, and we need to preserve those
     # changes.
-    $internalRestoreArgs=
+    internalRestoreArgs=
     if [ '$(dn-bot-dnceng-artifact-feeds-rw)' != '$''(dn-bot-dnceng-artifact-feeds-rw)' ]; then
       # Temporarily work around https://github.com/dotnet/arcade/issues/7709
-      chmod +x $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh
-      $(Build.SourcesDirectory)/eng/common/SetupNugetSources.sh $(Build.SourcesDirectory)/NuGet.config $(dn-bot-dnceng-artifact-feeds-rw)
+      chmod +x $(System.DefaultWorkingDirectory)/eng/common/SetupNugetSources.sh
+      $(System.DefaultWorkingDirectory)/eng/common/SetupNugetSources.sh $(System.DefaultWorkingDirectory)/NuGet.config $(dn-bot-dnceng-artifact-feeds-rw)
       internalRestoreArgs='/p:CopyWipIntoInnerSourceBuildRepo=true'
 
       # The 'Copy WIP' feature of source build uses git stash to apply changes from the original repo.
@@ -44,7 +47,7 @@ steps:
     # in the default public locations.
     internalRuntimeDownloadArgs=
     if [ '$(dotnetbuilds-internal-container-read-token-base64)' != '$''(dotnetbuilds-internal-container-read-token-base64)' ]; then
-      internalRuntimeDownloadArgs='/p:DotNetRuntimeSourceFeed=https://dotnetbuilds.blob.core.windows.net/internal /p:DotNetRuntimeSourceFeedKey=$(dotnetbuilds-internal-container-read-token-base64) --runtimesourcefeed https://dotnetbuilds.blob.core.windows.net/internal --runtimesourcefeedkey $(dotnetbuilds-internal-container-read-token-base64)'
+      internalRuntimeDownloadArgs='/p:DotNetRuntimeSourceFeed=https://ci.dot.net/internal /p:DotNetRuntimeSourceFeedKey=$(dotnetbuilds-internal-container-read-token-base64) --runtimesourcefeed https://ci.dot.net/internal --runtimesourcefeedkey $(dotnetbuilds-internal-container-read-token-base64)'
     fi
 
     buildConfig=Release
@@ -68,9 +71,19 @@ steps:
       runtimeOsArgs='/p:RuntimeOS=${{ parameters.platform.runtimeOS }}'
     fi
 
+    baseOsArgs=
+    if [ '${{ parameters.platform.baseOS }}' != '' ]; then
+      baseOsArgs='/p:BaseOS=${{ parameters.platform.baseOS }}'
+    fi
+
     publishArgs=
     if [ '${{ parameters.platform.skipPublishValidation }}' != 'true' ]; then
       publishArgs='--publish'
+    fi
+
+    assetManifestFileName=SourceBuild_RidSpecific.xml
+    if [ '${{ parameters.platform.name }}' != '' ]; then
+      assetManifestFileName=SourceBuild_${{ parameters.platform.name }}.xml
     fi
 
     ${{ coalesce(parameters.platform.buildScript, './build.sh') }} --ci \
@@ -81,15 +94,17 @@ steps:
       $internalRestoreArgs \
       $targetRidArgs \
       $runtimeOsArgs \
+      $baseOsArgs \
       /p:SourceBuildNonPortable=${{ parameters.platform.nonPortable }} \
-      /p:ArcadeBuildFromSource=true
+      /p:ArcadeBuildFromSource=true \
+      /p:AssetManifestFileName=$assetManifestFileName
   displayName: Build
 
 # Upload build logs for diagnosis.
 - task: CopyFiles@2
   displayName: Prepare BuildLogs staging directory
   inputs:
-    SourceFolder: '$(Build.SourcesDirectory)'
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
     Contents: |
       **/*.log
       **/*.binlog
@@ -106,3 +121,15 @@ steps:
     artifactName: BuildLogs_SourceBuild_${{ parameters.platform.name }}_Attempt$(System.JobAttempt)
   continueOnError: true
   condition: succeededOrFailed()
+
+# Manually inject component detection so that we can ignore the source build upstream cache, which contains
+# a nupkg cache of input packages (a local feed).
+# This path must match the upstream cache path in property 'CurrentRepoSourceBuiltNupkgCacheDir'
+# in src\Microsoft.DotNet.Arcade.Sdk\tools\SourceBuild\SourceBuildArcade.targets
+- task: ComponentGovernanceComponentDetection@0
+  displayName: Component Detection (Exclude upstream cache)
+  inputs:
+    ${{ if eq(length(parameters.cgIgnoreDirectories), 0) }}:
+      ignoreDirectories: '$(System.DefaultWorkingDirectory)/artifacts/source-build/self/src/artifacts/obj/source-built-upstream-cache'
+    ${{ else }}:
+      ignoreDirectories: ${{ join(',', parameters.cgIgnoreDirectories) }}

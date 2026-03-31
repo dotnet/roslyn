@@ -1,7 +1,4 @@
 variables:
-  - group: AzureDevOps-Artifact-Feeds-Pats
-  - group: DotNet-Blob-Feed
-  - group: DotNet-DotNetCli-Storage
   - group: Publish-Build-Assets
 
   # Whether the build is internal or not
@@ -11,6 +8,8 @@ variables:
   # Default Maestro++ API Endpoint and API Version
   - name: MaestroApiEndPoint
     value: "https://maestro.dot.net"
+  - name: MaestroApiAccessToken
+    value: $(MaestroAccessToken)
   - name: MaestroApiVersion
     value: "2020-02-20"
 

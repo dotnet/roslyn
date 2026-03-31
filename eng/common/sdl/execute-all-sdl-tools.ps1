@@ -6,7 +6,6 @@ Param(
   [string] $BranchName=$env:BUILD_SOURCEBRANCH,                                                  # Optional: name of branch or version of gdn settings; defaults to master
   [string] $SourceDirectory=$env:BUILD_SOURCESDIRECTORY,                                         # Required: the directory where source files are located
   [string] $ArtifactsDirectory = (Join-Path $env:BUILD_ARTIFACTSTAGINGDIRECTORY ('artifacts')),  # Required: the directory where build artifacts are located
-  [string] $AzureDevOpsAccessToken,                                                              # Required: access token for dnceng; should be provided via KeyVault
 
   # Optional: list of SDL tools to run on source code. See 'configure-sdl-tool.ps1' for tools list
   # format.
@@ -35,6 +34,7 @@ Param(
   [string[]] $CrScanAdditionalRunConfigParams,                                                   # Optional: Additional Params to custom build a CredScan run config in the format @("xyz:abc","sdf:1")
   [string[]] $PoliCheckAdditionalRunConfigParams,                                                # Optional: Additional Params to custom build a Policheck run config in the format @("xyz:abc","sdf:1")
   [string[]] $CodeQLAdditionalRunConfigParams,                                                   # Optional: Additional Params to custom build a Semmle/CodeQL run config in the format @("xyz < abc","sdf < 1")
+  [string[]] $BinskimAdditionalRunConfigParams,                                                  # Optional: Additional Params to custom build a Binskim run config in the format @("xyz < abc","sdf < 1")
   [bool] $BreakOnFailure=$False                                                                  # Optional: Fail the build if there were errors during the run
 )
 
@@ -74,7 +74,7 @@ try {
   }
 
   Exec-BlockVerbosely {
-    & $(Join-Path $PSScriptRoot 'init-sdl.ps1') -GuardianCliLocation $guardianCliLocation -Repository $RepoName -BranchName $BranchName -WorkingDirectory $workingDirectory -AzureDevOpsAccessToken $AzureDevOpsAccessToken -GuardianLoggerLevel $GuardianLoggerLevel
+    & $(Join-Path $PSScriptRoot 'init-sdl.ps1') -GuardianCliLocation $guardianCliLocation -Repository $RepoName -BranchName $BranchName -WorkingDirectory $workingDirectory -GuardianLoggerLevel $GuardianLoggerLevel
   }
   $gdnFolder = Join-Path $workingDirectory '.gdn'
 
@@ -103,11 +103,11 @@ try {
           -TargetDirectory $targetDirectory `
           -GdnFolder $gdnFolder `
           -ToolsList $tools `
-          -AzureDevOpsAccessToken $AzureDevOpsAccessToken `
           -GuardianLoggerLevel $GuardianLoggerLevel `
           -CrScanAdditionalRunConfigParams $CrScanAdditionalRunConfigParams `
           -PoliCheckAdditionalRunConfigParams $PoliCheckAdditionalRunConfigParams `
-          -CodeQLAdditionalRunConfigParams $CodeQLAdditionalRunConfigParams
+          -CodeQLAdditionalRunConfigParams $CodeQLAdditionalRunConfigParams `
+          -BinskimAdditionalRunConfigParams $BinskimAdditionalRunConfigParams
         if ($BreakOnFailure) {
           Exit-IfNZEC "Sdl"
         }
@@ -126,7 +126,7 @@ try {
   Exec-BlockVerbosely {
     & $(Join-Path $PSScriptRoot 'run-sdl.ps1') `
       -GuardianCliLocation $guardianCliLocation `
-      -WorkingDirectory $workingDirectory `
+      -WorkingDirectory $SourceDirectory `
       -UpdateBaseline $UpdateBaseline `
       -GdnFolder $gdnFolder
   }
