@@ -19,7 +19,7 @@ internal interface ICallHierarchyService : ILanguageService
         IImmutableSet<Document>? documents,
         CancellationToken cancellationToken);
 
-    Task<ImmutableArray<CallHierarchyItemSearchResult>> SearchOutgoingCallsAsync(
+    Task<ImmutableArray<CallHierarchySearchResult>> SearchOutgoingCallsAsync(
         Solution solution,
         CallHierarchyItemId itemId,
         IImmutableSet<Document>? documents,

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CallHierarchy;
@@ -43,9 +44,9 @@ internal sealed class CallHierarchyOutgoingCallsHandler() : ILspServiceDocumentR
             cancellationToken).ConfigureAwait(false);
 
         var outgoingCalls = new List<LSP.CallHierarchyOutgoingCall>();
-        foreach (var result in results)
+        foreach (var result in results.Where(result => result.Item != null))
         {
-            var toItem = await CallHierarchyHelpers.CreateItemAsync(result.Item, solution, cancellationToken).ConfigureAwait(false);
+            var toItem = await CallHierarchyHelpers.CreateItemAsync(result.Item!, solution, cancellationToken).ConfigureAwait(false);
             if (toItem == null)
                 continue;
 

@@ -60,7 +60,7 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         };
     }
 
-    public async Task<ImmutableArray<CallHierarchyItemSearchResult>> SearchOutgoingCallsAsync(
+    public async Task<ImmutableArray<CallHierarchySearchResult>> SearchOutgoingCallsAsync(
         Solution solution,
         CallHierarchyItemId itemId,
         IImmutableSet<Document>? documents,
@@ -205,13 +205,13 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         return await CreateSourceDeclarationResultsAsync(overrides, project, documents, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<ImmutableArray<CallHierarchyItemSearchResult>> SearchOutgoingCallsAsync(
+    private async Task<ImmutableArray<CallHierarchySearchResult>> SearchOutgoingCallsAsync(
         ISymbol symbol,
         Project project,
         IImmutableSet<Document>? documents,
         CancellationToken cancellationToken)
     {
-        var groupedResults = new Dictionary<CallHierarchyItemId, (CallHierarchyItemDescriptor Item, ArrayBuilder<Location> Locations)>();
+        using var _ = PooledDictionary<CallHierarchyItemId, (CallHierarchyItemDescriptor Item, ArrayBuilder<Location> Locations)>.GetInstance(out var groupedResults);
 
         foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
         {
@@ -224,13 +224,16 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
 
             foreach (var operationRoot in operationRoots)
             {
-                foreach (var operation in operationRoot.DescendantsAndSelf())
+                foreach (var operation in operationRoot.Descendants())
                 {
                     var referencedSymbol = GetReferencedSymbol(operation);
                     if (referencedSymbol == null || !SupportsCallHierarchy(referencedSymbol))
                         continue;
 
-                    var referencedProject = project.Solution.GetProject(referencedSymbol.ContainingAssembly, cancellationToken) ?? project;
+                    var referencedProject = project.Solution.GetProject(referencedSymbol.ContainingAssembly, cancellationToken);
+                    if (referencedProject == null)
+                        continue;
+
                     var item = await CreateItemAsync(referencedSymbol, referencedProject, cancellationToken).ConfigureAwait(false);
                     if (item == null)
                         continue;
@@ -247,10 +250,10 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
             }
         }
 
-        using var _ = ArrayBuilder<CallHierarchyItemSearchResult>.GetInstance(out var results);
+        using var __ = ArrayBuilder<CallHierarchySearchResult>.GetInstance(out var results);
         foreach (var (_, value) in groupedResults)
         {
-            results.Add(new CallHierarchyItemSearchResult(value.Item, value.Locations.ToImmutableAndClear()));
+            results.Add(new CallHierarchySearchResult(value.Item, value.Locations.ToImmutableAndClear()));
         }
 
         return results.ToImmutableAndClear();
@@ -331,6 +334,10 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         CancellationToken cancellationToken)
     {
         var syntax = await syntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+
+        // In VB, declaration syntax references point at statement nodes (for example,
+        // MethodStatement/PropertyStatement) instead of the enclosing block node. GetOperation
+        // returns null for the statement but non-null for the block, so we step to the parent.
         if (semanticModel.Language == LanguageNames.VisualBasic && syntax.Parent != null)
             syntax = syntax.Parent;
 

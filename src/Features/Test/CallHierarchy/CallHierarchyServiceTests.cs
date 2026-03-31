@@ -273,6 +273,7 @@ class D
             CancellationToken.None);
 
         var constructorCall = Assert.Single(results);
+        Assert.NotNull(constructorCall.Item);
         Assert.Equal("C()", constructorCall.Item.MemberName);
         Assert.Equal("C", constructorCall.Item.ContainingTypeName);
         Assert.Single(constructorCall.ReferenceLocations);
@@ -384,6 +385,7 @@ public class D
         var results = await GetOutgoingSearchResultsAsync(workspace);
 
         var call = Assert.Single(results);
+        Assert.NotNull(call.Item);
         Assert.Equal("GetValue()", call.Item.MemberName);
         Assert.Equal("C", call.Item.ContainingTypeName);
         Assert.Single(call.ReferenceLocations);
@@ -391,9 +393,6 @@ public class D
 
     private static IEnumerable<string> GetItemDisplayNames(ImmutableArray<CallHierarchySearchResult> results)
         => results.Where(static r => r.Item is not null).Select(static r => GetDisplayName(r.Item!));
-
-    private static IEnumerable<string> GetItemDisplayNames(ImmutableArray<CallHierarchyItemSearchResult> results)
-        => results.Select(static r => GetDisplayName(r.Item));
 
     private static string GetDisplayName(CallHierarchyItemDescriptor item)
         => string.IsNullOrEmpty(item.ContainingTypeName)
@@ -410,7 +409,7 @@ public class D
         return await service.SearchIncomingCallsAsync(document.Project.Solution, searchDescriptor, documents, CancellationToken.None);
     }
 
-    private static async Task<ImmutableArray<CallHierarchyItemSearchResult>> GetOutgoingSearchResultsAsync(
+    private static async Task<ImmutableArray<CallHierarchySearchResult>> GetOutgoingSearchResultsAsync(
         TestWorkspace workspace,
         IImmutableSet<Document>? documents = null)
     {

@@ -43,7 +43,7 @@ internal sealed class CallHierarchyIncomingCallsHandler() : ILspServiceDocumentR
             cancellationToken).ConfigureAwait(false);
 
         var incomingCalls = new List<LSP.CallHierarchyIncomingCall>();
-        foreach (var result in results.OfType<CallHierarchyItemSearchResult>())
+        foreach (var result in results.Where(result => result.Item != null))
         {
             var locationsByDocumentId = result.ReferenceLocations
                 .Where(static location => location.IsInSource)
@@ -58,7 +58,7 @@ internal sealed class CallHierarchyIncomingCallsHandler() : ILspServiceDocumentR
                 if (callerDocument == null)
                     continue;
 
-                var fromItem = await CallHierarchyHelpers.CreateItemAsync(result.Item, solution, locationGroup.Key, cancellationToken).ConfigureAwait(false);
+                var fromItem = await CallHierarchyHelpers.CreateItemAsync(result.Item!, solution, locationGroup.Key, cancellationToken).ConfigureAwait(false);
                 if (fromItem == null)
                     continue;
 
