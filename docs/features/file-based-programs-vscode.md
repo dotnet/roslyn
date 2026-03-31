@@ -199,21 +199,10 @@ We may want to make a change in the future, to stop using this designation for f
 
 ### Allowing non-entry-point files to contain `#:` directives
 
-We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points. We think we want users to use a `#!` at the top of the file, in this case, to indicate that it is an entry point.
+We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points.
+For *multi-file file-based apps*, users should use a `#!` at the top of the entry point file to make it easy to identify.
+For *single-file file-based apps*, we think that just using `#:` and top-level statements together should be enough, to identify a file that was explicitly opened in the editor as an entry point.
 
 ### Checking top-level statements presence without doing a full parse
 
 Currently there are cases where we may end up needing to do an additional parse of a file just to check if it contains top-level statements. This is generally a situation we'd like to avoid, and, would prefer to either use a pattern where the file already exists in some project and has a syntax tree we can check incrementally, or, that we devise some other solution for performing our heuristics which doesn't require a full parse.
-
-### Automatic discovery
-
-Currently, the main way file-based apps are discovered is: a classification is performed when a document is requested for a file which was not found in the host workspace. If the classification indicates the file is a file-based app entry point, then a load is initiated for it.
-
-In situations where the user opens an ordinary file `#:include`d by a file-based app, there is a desire to somehow discover the file-based app entry points which haven't been opened, in order to give full information about the file that was opened.
-
-We are considering various methods for accomplishing this, such as:
-- performing a "crawl" of `.cs` files in the workspace which are outside any `.csproj` cone, and:
-   - cracking the `.cs` files to check for `#:` or `#!` directives, or, possibly requiring a naming convention such as `MyTool.app.cs`
-- or introducing some convention for listing the paths of file-based apps in a discoverable location. (smells very strongly like a solution file).
-
-It feels like "low-configuration, low-ceremony, simple conventions", is the norm for file-based apps. So, it feels like doing a crawl which includes some heuristics to ignore files that are very likely not file-based app entry points, may be viable here. We just need to do the work and prove it out.
