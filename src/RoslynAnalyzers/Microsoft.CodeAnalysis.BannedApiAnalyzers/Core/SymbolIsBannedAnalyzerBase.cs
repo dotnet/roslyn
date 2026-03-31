@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -13,12 +14,15 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     public abstract class SymbolIsBannedAnalyzerBase<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
+        private const string ExcludeGeneratedCodeOptionName = "dotnet_banned_api_analyzer.exclude_generated_code";
+
         protected abstract Dictionary<(string ContainerName, string SymbolName), ImmutableArray<BanFileEntry>>? ReadBannedApis(CompilationStartAnalysisContext compilationContext);
 
         protected abstract DiagnosticDescriptor SymbolIsBannedRule { get; }
@@ -32,6 +36,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
         protected abstract IEnumerable<SyntaxNode> GetTypeSyntaxNodesFromBaseType(SyntaxNode syntaxNode);
 
         protected abstract SymbolDisplayFormat SymbolDisplayFormat { get; }
+
+        protected abstract bool IsRegularCommentOrDocumentationComment(SyntaxTrivia trivia);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -49,6 +55,8 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             if (bannedApis == null || bannedApis.Count == 0)
                 return;
 
+            var shouldAnalyzeMap = new ConcurrentDictionary<SyntaxTree, bool>();
+
             if (ShouldAnalyzeAttributes())
             {
                 compilationContext.RegisterCompilationEndAction(
@@ -59,7 +67,10 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                     });
 
                 compilationContext.RegisterSymbolAction(
-                    context => VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken),
+                    context =>
+                    {
+                        VerifyAttributes(context.ReportDiagnostic, context.Symbol.GetAttributes(), context.CancellationToken);
+                    },
                     SymbolKind.NamedType,
                     SymbolKind.Method,
                     SymbolKind.Field,
@@ -71,6 +82,9 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 context =>
                 {
                     context.CancellationToken.ThrowIfCancellationRequested();
+                    if (ShouldSkipOperationAnalysis(context))
+                        return;
+
                     switch (context.Operation)
                     {
                         case IObjectCreationOperation objectCreation:
@@ -153,11 +167,23 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 OperationKind.TypeOf);
 
             compilationContext.RegisterSyntaxNodeAction(
-                context => VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context),
+                context =>
+                {
+                    if (ShouldSkipSyntaxNodeAnalysis(context))
+                        return;
+
+                    VerifyDocumentationSyntax(context.ReportDiagnostic, GetReferenceSyntaxNodeFromXmlCref(context.Node), context);
+                },
                 XmlCrefSyntaxKind);
 
             compilationContext.RegisterSyntaxNodeAction(
-                context => VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context),
+                context =>
+                {
+                    if (ShouldSkipSyntaxNodeAnalysis(context))
+                        return;
+
+                    VerifyBaseTypesSyntax(context.ReportDiagnostic, GetTypeSyntaxNodesFromBaseType(context.Node), context);
+                },
                 BaseTypeSyntaxKinds);
 
             return;
@@ -219,32 +245,79 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
                 };
             }
 
+            bool ShouldSkipOperationAnalysis(OperationAnalysisContext context)
+                => !ShouldAnalyzeInTree(context.Operation.Syntax.SyntaxTree, context.IsGeneratedCode, context.CancellationToken);
+
+            bool ShouldSkipSyntaxNodeAnalysis(SyntaxNodeAnalysisContext context)
+                => !ShouldAnalyzeInTree(context.Node.SyntaxTree, context.IsGeneratedCode, context.CancellationToken);
+
+            bool ShouldSkipTreeAnalysis(SyntaxTree tree, bool? isGeneratedCode, CancellationToken cancellationToken)
+                => !ShouldAnalyzeInTree(tree, isGeneratedCode, cancellationToken);
+
+            bool ShouldAnalyzeInTree(SyntaxTree tree, bool? isGeneratedCode, CancellationToken cancellationToken)
+            {
+                if (isGeneratedCode == false)
+                {
+                    _ = shouldAnalyzeMap.TryAdd(tree, true);
+                    return true;
+                }
+
+                return shouldAnalyzeMap.GetOrAdd(
+                    tree,
+                    tree =>
+                    {
+                        var options = compilationContext.Options.AnalyzerConfigOptionsProvider.GetOptions(tree);
+                        var excludesGeneratedCode =
+                            options.TryGetValue(ExcludeGeneratedCodeOptionName, out var optionValue) &&
+                            bool.TryParse(optionValue, out var val) &&
+                            val;
+
+                        if (!excludesGeneratedCode)
+                        {
+                            return true;
+                        }
+
+                        if (isGeneratedCode == true)
+                        {
+                            return false;
+                        }
+
+                        var generatedCodeKind = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options);
+                        return generatedCodeKind switch
+                        {
+                            GeneratedKind.MarkedGenerated => false,
+                            GeneratedKind.NotGenerated => true,
+                            _ => !GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocumentationComment, cancellationToken),
+                        };
+                    });
+            }
+
             void VerifyAttributes(Action<Diagnostic> reportDiagnostic, ImmutableArray<AttributeData> attributes, CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 foreach (var attribute in attributes)
                 {
+                    var applicationSyntaxReference = attribute.ApplicationSyntaxReference;
+                    if (applicationSyntaxReference == null)
+                        continue;
+
+                    if (ShouldSkipTreeAnalysis(applicationSyntaxReference.SyntaxTree, isGeneratedCode: null, cancellationToken))
+                        continue;
+
+                    var node = applicationSyntaxReference.GetSyntax(cancellationToken);
+
                     if (IsBannedSymbol(attribute.AttributeClass, out var entry))
                     {
-                        var node = attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken);
-                        if (node != null)
-                        {
-                            reportDiagnostic(
-                                node.CreateDiagnostic(
-                                    SymbolIsBannedRule,
-                                    attribute.AttributeClass.ToDisplayString(),
-                                    string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
-                        }
+                        reportDiagnostic(
+                            node.CreateDiagnostic(
+                                SymbolIsBannedRule,
+                                attribute.AttributeClass.ToDisplayString(),
+                                string.IsNullOrWhiteSpace(entry.Message) ? "" : ": " + entry.Message));
                     }
 
                     if (attribute.AttributeConstructor != null)
                     {
-                        var syntaxNode = attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken);
-
-                        if (syntaxNode != null)
-                        {
-                            VerifySymbol(reportDiagnostic, attribute.AttributeConstructor, syntaxNode);
-                        }
+                        VerifySymbol(reportDiagnostic, attribute.AttributeConstructor, node);
                     }
                 }
             }

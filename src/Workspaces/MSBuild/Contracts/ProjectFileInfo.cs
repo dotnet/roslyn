@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// the information from a single target framework.
 /// </summary>
 [DataContract]
-internal sealed class ProjectFileInfo
+internal sealed record ProjectFileInfo
 {
     [DataMember]
     public bool IsEmpty { get; init; }

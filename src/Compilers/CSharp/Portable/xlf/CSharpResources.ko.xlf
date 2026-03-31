@@ -5932,12 +5932,12 @@
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <target state="translated">'안전하지 않은' 한정자는 현재 메모리 안전 규칙에서 아무런 영향을 주지 않습니다.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless_Title">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <target state="translated">'안전하지 않은' 한정자는 현재 메모리 안전 규칙에서 아무런 영향을 주지 않습니다.</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">

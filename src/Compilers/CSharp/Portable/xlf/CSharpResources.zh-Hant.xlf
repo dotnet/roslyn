@@ -5932,12 +5932,12 @@ strument:TestCoverage      產生檢測要收集
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <target state="translated">根據目前的記憶體安全規則，'unsafe' 修飾元在此不會產生任何效果。</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnsafeMeaningless_Title">
         <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
-        <target state="new">The 'unsafe' modifier does not have any effect here under the current memory safety rules.</target>
+        <target state="translated">根據目前的記憶體安全規則，'unsafe' 修飾元在此不會產生任何效果。</target>
         <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
