@@ -21,6 +21,7 @@
 - `dotnet test` for specific test projects
 - Tests inherit from base classes like `AbstractLanguageServerProtocolTests`, `WorkspaceTestBase`
 - Use `[UseExportProvider]` for MEF-dependent tests
+- Copilot coding agent setup preinstalls `roslyn-language-server` as a global tool and syncs the `dotnet/skills` catalog into `~/.copilot/skills`
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file

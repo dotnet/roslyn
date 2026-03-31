@@ -1380,4 +1380,34 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
         Assert.True(document.Project.State.HasAllInformation);
     }
+
+    /// <remarks>
+    /// Test needed to be copy-pasted from the base type in order to properly handle the MEF composition, and meaningfully exercise FileBasedProgramsProjectSystem.
+    /// </remarks>
+    /// <seealso cref="AbstractLspMiscellaneousFilesWorkspaceTests.TestLooseFile_RazorFile"/>
+    [Theory, CombinatorialData]
+    public async Task TestLooseFile_RazorFile_FileBasedProgramsProjectSystem(bool mutatingLspWorkspace)
+    {
+        // Create a server that supports LSP misc files and verify no misc files present.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition: null);
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
+
+        // Open an empty loose file and make a request to verify it gets added to the misc workspace.
+        var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.razor");
+        await testLspServer.OpenDocumentAsync(looseFileUri, "<div></div>").ConfigureAwait(false);
+
+        // Trigger a request and assert we got a file in the misc workspace.
+        await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        Assert.NotNull(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
+
+        // Trigger another request and assert we got a file in the misc workspace.
+        await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
+        Assert.NotNull(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
+
+        await testLspServer.CloseDocumentAsync(looseFileUri).ConfigureAwait(false);
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
+    }
 }

@@ -1184,7 +1184,7 @@ recurse:
         /// </summary>
         public IEnumerable<SyntaxTrivia> DescendantTrivia(Func<SyntaxNode, bool>? descendIntoChildren = null, bool descendIntoTrivia = false)
         {
-            return DescendantTriviaImpl(this.FullSpan, descendIntoChildren, descendIntoTrivia);
+            return DescendantTriviaImpl(this.FullSpan, descendIntoChildrenGreen: null, descendIntoChildren, descendIntoTrivia);
         }
 
         /// <summary>
@@ -1192,7 +1192,30 @@ recurse:
         /// </summary>
         public IEnumerable<SyntaxTrivia> DescendantTrivia(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren = null, bool descendIntoTrivia = false)
         {
-            return DescendantTriviaImpl(span, descendIntoChildren, descendIntoTrivia);
+            return DescendantTriviaImpl(span, descendIntoChildrenGreen: null, descendIntoChildren, descendIntoTrivia);
+        }
+
+        /// <summary>
+        /// Get a list of all the trivia associated with the descendant nodes and tokens.
+        /// </summary>
+        internal IEnumerable<SyntaxTrivia> DescendantTrivia(
+            Func<GreenNode, bool>? descendIntoChildrenGreen,
+            Func<SyntaxNode, bool>? descendIntoChildrenRed,
+            bool descendIntoTrivia = false)
+        {
+            return DescendantTriviaImpl(this.FullSpan, descendIntoChildrenGreen, descendIntoChildrenRed, descendIntoTrivia);
+        }
+
+        /// <summary>
+        /// Get a list of all the trivia associated with the descendant nodes and tokens.
+        /// </summary>
+        internal IEnumerable<SyntaxTrivia> DescendantTrivia(
+            TextSpan span,
+            Func<GreenNode, bool>? descendIntoChildrenGreen,
+            Func<SyntaxNode, bool>? descendIntoChildrenRed,
+            bool descendIntoTrivia = false)
+        {
+            return DescendantTriviaImpl(span, descendIntoChildrenGreen, descendIntoChildrenRed, descendIntoTrivia);
         }
 
         #endregion
@@ -1328,7 +1351,7 @@ recurse:
         /// </summary>
         public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia(string annotationKind)
         {
-            return this.DescendantTrivia(n => n.ContainsAnnotations, descendIntoTrivia: true)
+            return this.DescendantTrivia(descendIntoChildrenGreen: static n => n.ContainsAnnotations, descendIntoChildrenRed: null, descendIntoTrivia: true)
                        .Where(tr => tr.HasAnnotations(annotationKind));
         }
 
@@ -1337,7 +1360,7 @@ recurse:
         /// </summary>
         public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia(params string[] annotationKinds)
         {
-            return this.DescendantTrivia(n => n.ContainsAnnotations, descendIntoTrivia: true)
+            return this.DescendantTrivia(descendIntoChildrenGreen: static n => n.ContainsAnnotations, descendIntoChildrenRed: null, descendIntoTrivia: true)
                        .Where(tr => tr.HasAnnotations(annotationKinds));
         }
 
@@ -1346,7 +1369,7 @@ recurse:
         /// </summary>
         public IEnumerable<SyntaxTrivia> GetAnnotatedTrivia(SyntaxAnnotation annotation)
         {
-            return this.DescendantTrivia(n => n.ContainsAnnotations, descendIntoTrivia: true)
+            return this.DescendantTrivia(descendIntoChildrenGreen: static n => n.ContainsAnnotations, descendIntoChildrenRed: null, descendIntoTrivia: true)
                        .Where(tr => tr.HasAnnotation(annotation));
         }
 
