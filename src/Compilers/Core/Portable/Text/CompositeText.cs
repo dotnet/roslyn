@@ -502,6 +502,7 @@ namespace Microsoft.CodeAnalysis.Text
                     var firstSegmentTextLine = firstSegment.Lines[lineNumber - firstSegmentFirstLineNumber];
 
                     var lineLength = firstSegmentTextLine.SpanIncludingLineBreak.Length;
+                    int lineBreakLen;
 
                     // walk forward through segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive, and add their
                     // view of the length of this line. This loop handles all segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive.
@@ -524,10 +525,16 @@ namespace Microsoft.CodeAnalysis.Text
                         // lastSegment should have at least one line.
                         Debug.Assert(lastSegment.Lines.Count >= 1);
 
-                        lineLength += lastSegment.Lines[0].SpanIncludingLineBreak.Length;
+                        var lastSegmentLine = lastSegment.Lines[0];
+                        lineLength += lastSegmentLine.SpanIncludingLineBreak.Length;
+                        lineBreakLen = lastSegmentLine.EndIncludingLineBreak - lastSegmentLine.End;
+                    }
+                    else
+                    {
+                        lineBreakLen = firstSegmentTextLine.EndIncludingLineBreak - firstSegmentTextLine.End;
                     }
 
-                    var resultLine = TextLine.FromSpanUnsafe(_compositeText, new TextSpan(firstSegmentOffset + firstSegmentTextLine.Start, lineLength));
+                    var resultLine = TextLine.FromSpanUnsafe(_compositeText, new TextSpan(firstSegmentOffset + firstSegmentTextLine.Start, lineLength), lineBreakLen);
 
                     // Assert resultLine only has line breaks in the appropriate locations
                     Debug.Assert(resultLine.ToString().All(static c => !TextUtilities.IsAnyLineBreakCharacter(c)));

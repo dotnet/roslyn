@@ -108,6 +108,14 @@ namespace Microsoft.CodeAnalysis.Text
             return new TextLine(text, ((ulong)(uint)span.Start << StartShift) | (uint)(span.End - span.Start));
         }
 
+        internal static TextLine FromSpanUnsafe(SourceText text, TextSpan span, int lineBreakLength)
+        {
+            Debug.Assert(span.Start == 0 || TextUtilities.IsAnyLineBreakCharacter(text[span.Start - 1]));
+            Debug.Assert(span.End == text.Length || TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]));
+            Debug.Assert(lineBreakLength is >= 0 and <= 2);
+            return new TextLine(text, Pack(span.Start, span.Length, lineBreakLength));
+        }
+
         /// <summary>
         /// Gets the source text.
         /// </summary>
