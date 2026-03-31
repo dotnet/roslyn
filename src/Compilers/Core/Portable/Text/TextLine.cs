@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -14,15 +14,27 @@ namespace Microsoft.CodeAnalysis.Text
     public readonly struct TextLine : IEquatable<TextLine>
     {
         private readonly SourceText? _text;
-        private readonly int _start;
-        private readonly int _endIncludingBreaks;
 
-        private TextLine(SourceText text, int start, int endIncludingBreaks)
+        // Encoding (64 bits total):
+        //   Bits 63-61 (3 bits): line break length encoding
+        //     0 = unknown (compute from text on demand), used by FromSpanUnsafe
+        //     1 = line break length is 0
+        //     2 = line break length is 1
+        //     3 = line break length is 2
+        //   Bits 60-30 (31 bits): start position
+        //   Bits 29-0  (30 bits): line length
+        //     When break len is known (bits 63-61 != 0): length excludes the line break
+        //     When break len is unknown (bits 63-61 == 0): length includes the line break
+        private readonly ulong _data;
+
+        private TextLine(SourceText text, ulong data)
         {
             _text = text;
-            _start = start;
-            _endIncludingBreaks = endIncludingBreaks;
+            _data = data;
         }
+
+        private static ulong Pack(int start, int length, int lineBreakLength)
+            => ((ulong)(lineBreakLength + 1) << 61) | ((ulong)start << 30) | (ulong)length;
 
         /// <summary>
         /// Creates a <see cref="TextLine"/> instance.
@@ -51,34 +63,34 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeStartOfLine);
                 }
 
-                bool endIncludesLineBreak = false;
-                if (span.End > span.Start)
+                int lineBreakLen = 0;
+                if (span.End > span.Start && TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]))
                 {
-                    endIncludesLineBreak = TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]);
+                    // End already includes line break - determine its length
+                    int startLineBreak;
+                    TextUtilities.GetStartAndLengthOfLineBreakEndingAt(text, span.End - 1, out startLineBreak, out lineBreakLen);
                 }
-
-                if (!endIncludesLineBreak && span.End < text.Length)
+                else if (span.End < text.Length)
                 {
-                    var lineBreakLen = TextUtilities.GetLengthOfLineBreak(text, span.End);
+                    lineBreakLen = TextUtilities.GetLengthOfLineBreak(text, span.End);
                     if (lineBreakLen > 0)
                     {
                         // adjust span to include line breaks
-                        endIncludesLineBreak = true;
                         span = new TextSpan(span.Start, span.Length + lineBreakLen);
                     }
                 }
 
                 // check end of span is at end of line
-                if (span.End < text.Length && !endIncludesLineBreak)
+                if (span.End < text.Length && lineBreakLen == 0)
                 {
                     throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeEndOfLine);
                 }
 
-                return new TextLine(text, span.Start, span.End);
+                return new TextLine(text, Pack(span.Start, span.Length - lineBreakLen, lineBreakLen));
             }
             else
             {
-                return new TextLine(text, 0, 0);
+                return new TextLine(text, Pack(0, 0, 0));
             }
         }
 
@@ -90,7 +102,9 @@ namespace Microsoft.CodeAnalysis.Text
             Debug.Assert(span.Start == 0 || TextUtilities.IsAnyLineBreakCharacter(text[span.Start - 1]));
             Debug.Assert(span.End == text.Length || TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]));
 
-            return new TextLine(text, span.Start, span.End);
+            // Store total length (including any line break) with unknown encoding;
+            // LineBreakLength will be computed from text on demand.
+            return new TextLine(text, ((ulong)span.Start << 30) | (ulong)(span.End - span.Start));
         }
 
         /// <summary>
@@ -108,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                return _text?.Lines.IndexOf(_start) ?? 0;
+                return _text?.Lines.IndexOf(Start) ?? 0;
             }
         }
 
@@ -117,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Start
         {
-            get { return _start; }
+            get { return (int)((_data >> 30) & 0x7FFFFFFFUL); }
         }
 
         /// <summary>
@@ -125,21 +139,36 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int End
         {
-            get { return _endIncludingBreaks - this.LineBreakLength; }
+            get
+            {
+                int start = Start;
+                int rawLength = (int)(_data & 0x3FFFFFFFUL);
+                int encoded = (int)(_data >> 61);
+                if (encoded != 0)
+                    return start + rawLength;
+                else
+                    return start + rawLength - LineBreakLength;
+            }
         }
 
         private int LineBreakLength
         {
             get
             {
-                if (_text == null || _text.Length == 0 || _endIncludingBreaks == _start)
+                int encoded = (int)(_data >> 61);
+                if (encoded != 0)
+                    return encoded - 1;
+
+                // Unknown: compute from text
+                if (_text == null || _text.Length == 0 || (_data & 0x3FFFFFFFUL) == 0)
                 {
                     return 0;
                 }
 
+                int endIncludingBreak = Start + (int)(_data & 0x3FFFFFFFUL);
                 int startLineBreak;
                 int lineBreakLength;
-                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, _endIncludingBreaks - 1, out startLineBreak, out lineBreakLength);
+                TextUtilities.GetStartAndLengthOfLineBreakEndingAt(_text, endIncludingBreak - 1, out startLineBreak, out lineBreakLength);
                 return lineBreakLength;
             }
         }
@@ -149,7 +178,16 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int EndIncludingLineBreak
         {
-            get { return _endIncludingBreaks; }
+            get
+            {
+                int start = Start;
+                int rawLength = (int)(_data & 0x3FFFFFFFUL);
+                int encoded = (int)(_data >> 61);
+                if (encoded != 0)
+                    return start + rawLength + (encoded - 1);
+                else
+                    return start + rawLength;
+            }
         }
 
         /// <summary>
@@ -192,9 +230,15 @@ namespace Microsoft.CodeAnalysis.Text
 
         public bool Equals(TextLine other)
         {
-            return other._text == _text
-                && other._start == _start
-                && other._endIncludingBreaks == _endIncludingBreaks;
+            if (other._text != _text)
+                return false;
+
+            // Fast path: both have known line break length, compare packed data directly
+            if ((_data >> 61) != 0 && (other._data >> 61) != 0)
+                return _data == other._data;
+
+            // Slow path: at least one has unknown encoding, compare decoded logical positions
+            return Start == other.Start && EndIncludingLineBreak == other.EndIncludingLineBreak;
         }
 
         public override bool Equals(object? obj)
@@ -209,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_text, Hash.Combine(_start, _endIncludingBreaks));
+            return Hash.Combine(_text, Hash.Combine(Start, EndIncludingLineBreak));
         }
     }
 }
