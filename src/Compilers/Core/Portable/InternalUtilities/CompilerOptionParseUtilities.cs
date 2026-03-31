@@ -44,9 +44,9 @@ namespace Roslyn.Utilities
                 return;
             }
 
-            if (HasFeatureFlag(arguments))
+            if (cachePath[0] != '"')
             {
-                return;
+                cachePath = $"\"{cachePath}\"";
             }
 
             log?.Invoke($"Normalizing {CachePathEnvironmentVariable} to /features:{UseGlobalCacheFeatureFlag}={cachePath}");
@@ -59,35 +59,13 @@ namespace Roslyn.Utilities
             if (equals > 0)
             {
                 string name = feature.Substring(0, equals);
-                string value = feature.Substring(equals + 1);
+                string value = feature.Substring(equals + 1).Trim('"');
                 builder[name] = value;
             }
             else
             {
                 builder[feature] = "true";
             }
-        }
-
-        private static bool HasFeatureFlag(List<string> arguments)
-        {
-            foreach (var argument in arguments)
-            {
-                if (!argument.StartsWith("/features:", StringComparison.OrdinalIgnoreCase) &&
-                    !argument.StartsWith("-features:", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                var features = new List<string> { argument["/features:".Length..] };
-                var parsedFeatures = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                ParseFeatures(parsedFeatures, features);
-                if (parsedFeatures.ContainsKey(UseGlobalCacheFeatureFlag))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

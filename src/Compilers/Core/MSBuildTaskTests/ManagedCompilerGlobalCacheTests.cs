@@ -37,7 +37,8 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
     public void PrependFeatureFlagFromEnvironment_PrependsWhenFeatureFlagMissing(bool visualBasic)
     {
         var expectedPath = Path.Combine(Path.GetTempPath(), $"{(visualBasic ? "vb" : "cs")}-cache-path");
-        var arguments = new List<string> { "test.cs" };
+        var sourceFileName = visualBasic ? "test.vb" : "test.cs";
+        var arguments = new List<string> { sourceFileName };
 
         ApplyEnvironmentVariables(
             [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
@@ -47,8 +48,55 @@ public sealed class ManagedCompilerGlobalCacheTests : TestBase
                 return true;
             });
 
-        Assert.Equal($"/features:use-global-cache={expectedPath}", arguments[0]);
-        Assert.Equal("test.cs", arguments[1]);
+        Assert.Equal($"/features:use-global-cache=\"{expectedPath}\"", arguments[0]);
+        Assert.Equal(sourceFileName, arguments[1]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PrependFeatureFlagFromEnvironment_QuotesPathWithSpaces(bool visualBasic)
+    {
+        var expectedPath = Path.Combine(Path.GetTempPath(), $"{(visualBasic ? "vb" : "cs")} cache path");
+        var arguments = new List<string> { visualBasic ? "test.vb" : "test.cs" };
+        string? message = null;
+
+        ApplyEnvironmentVariables(
+            [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
+            () =>
+            {
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, text => message = text);
+                return true;
+            });
+
+        Assert.Equal(
+            $"Normalizing {CompilerOptionParseUtilities.CachePathEnvironmentVariable} to /features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}=\"{expectedPath}\"",
+            message);
+        Assert.Equal($"/features:use-global-cache=\"{expectedPath}\"", arguments[0]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void PrependFeatureFlagFromEnvironment_KeepsAlreadyQuotedPath(bool visualBasic)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"{(visualBasic ? "vb" : "cs")} cache path");
+        var quotedPath = $"\"{path}\"";
+        var arguments = new List<string> { visualBasic ? "test.vb" : "test.cs" };
+        string? message = null;
+
+        ApplyEnvironmentVariables(
+            [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, quotedPath)],
+            () =>
+            {
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments, text => message = text);
+                return true;
+            });
+
+        Assert.Equal(
+            $"Normalizing {CompilerOptionParseUtilities.CachePathEnvironmentVariable} to /features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={quotedPath}",
+            message);
+        Assert.Equal($"/features:use-global-cache={quotedPath}", arguments[0]);
     }
 
     [Theory]
