@@ -328,18 +328,12 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
         return operation;
     }
 
-    private static async Task<ImmutableArray<IOperation>> GetOperationRootsAsync(
+    private async Task<ImmutableArray<IOperation>> GetOperationRootsAsync(
         SyntaxReference syntaxReference,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        var syntax = await syntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-
-        // In VB, declaration syntax references point at statement nodes (for example,
-        // MethodStatement/PropertyStatement) instead of the enclosing block node. GetOperation
-        // returns null for the statement but non-null for the block, so we step to the parent.
-        if (semanticModel.Language == LanguageNames.VisualBasic && syntax.Parent != null)
-            syntax = syntax.Parent;
+        var syntax = await GetOperationRootSyntaxAsync(syntaxReference, cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<IOperation>.GetInstance(out var operations);
         using var __ = PooledHashSet<SyntaxNode>.GetInstance(out var seenRootSyntaxes);
@@ -363,6 +357,9 @@ internal abstract class AbstractCallHierarchyService : ICallHierarchyService
                 operations.Add(root);
         }
     }
+
+    protected virtual Task<SyntaxNode> GetOperationRootSyntaxAsync(SyntaxReference syntaxReference, CancellationToken cancellationToken)
+        => syntaxReference.GetSyntaxAsync(cancellationToken);
 
     private static ISymbol? GetReferencedSymbol(IOperation operation)
         => operation switch
