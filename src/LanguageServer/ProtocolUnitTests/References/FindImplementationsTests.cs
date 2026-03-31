@@ -32,7 +32,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             }
             class A : IA
             {
-                void IA.{|implementation:M|}()
+                void IA.{|implementation:|}M()
                 {
                 }
             }
@@ -62,7 +62,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             {
                 class A : IA
                 {
-                    void IA.{|implementation:M|}()
+                    void IA.{|implementation:|}M()
                     {
                     }
                 }
@@ -129,9 +129,9 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             """
             class {|caret:|}A { }
 
-            class {|implementation:B|} : A { }
+            class {|implementation:|}B : A { }
 
-            class {|implementation:C|} : A { }
+            class {|implementation:|}C : A { }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
@@ -146,7 +146,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
             using System;
             class C : IDisposable
             {
-                public void {|implementation:Dispose|}()
+                public void {|implementation:|}Dispose()
                 {
                     IDisposable d;
                     d.{|caret:|}Dispose();

@@ -1845,7 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList(forExtension: false);
+                var node = parser.ParseParenthesizedParameterList(forExtensionOrUnion: false);
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return CreateRed<ParameterListSyntax>(node, lexer.Options);
             }
@@ -2984,5 +2984,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
         public static EnumDeclarationSyntax EnumDeclaration(string identifier)
             => SyntaxFactory.EnumDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.EnumKeyword), SyntaxFactory.Identifier(identifier), null, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            => StructDeclaration(
+                keyword.Kind() is SyntaxKind.UnionKeyword ? SyntaxKind.UnionDeclaration : SyntaxKind.StructDeclaration,
+                attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
     }
 }

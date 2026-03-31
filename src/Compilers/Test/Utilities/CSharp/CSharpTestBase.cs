@@ -38,6 +38,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14]);
 
+        protected static readonly string IUnionSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+#nullable enable
+#line 100000
+        object? Value { get; }
+#nullable disable
+    }
+}
+";
+        protected static readonly string UnionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public class UnionAttribute : System.Attribute
+    {
+    }
+}
+";
+
         protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -682,17 +703,17 @@ namespace System.Runtime.CompilerServices
         protected static readonly string MemorySafetyRulesAttributeDefinition = """
             namespace System.Runtime.CompilerServices
             {
+                [AttributeUsage(AttributeTargets.Module, Inherited = false, AllowMultiple = false)] 
                 public sealed class MemorySafetyRulesAttribute : Attribute
                 {
                     public MemorySafetyRulesAttribute(int version) { Version = version; }
-                    public int Version;
+                    public int Version { get; }
                 }
             }
             """;
 
-        // https://github.com/dotnet/roslyn/issues/82546: Confirm the attribute shape in BCL API review.
         protected static readonly string RequiresUnsafeAttributeDefinition = """
-            namespace System.Runtime.CompilerServices
+            namespace System.Diagnostics.CodeAnalysis
             {
                 [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
                 public sealed class RequiresUnsafeAttribute : Attribute { }
@@ -3270,5 +3291,46 @@ namespace System
     }
 }
 ";
+
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0, bool forLowering = false)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            BoundDecisionDag decisionDag;
+
+            switch (node)
+            {
+                case SwitchStatementSyntax n:
+                    {
+                        var b = (BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case SwitchExpressionSyntax n:
+                    {
+                        var b = (BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case IsPatternExpressionSyntax n:
+                    {
+                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
     }
 }

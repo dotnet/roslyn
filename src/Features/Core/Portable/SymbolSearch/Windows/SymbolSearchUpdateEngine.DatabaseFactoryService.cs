@@ -11,19 +11,18 @@ internal sealed partial class SymbolSearchUpdateEngine
 {
     private sealed class DatabaseFactoryService : IDatabaseFactoryService
     {
-        public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes, bool isBinary)
+        public AddReferenceDatabase CreateDatabaseFromStream(Stream stream, bool isBinary)
         {
-            using var memoryStream = new MemoryStream(bytes);
             var database = new AddReferenceDatabase(ArdbVersion.V1);
 
             if (isBinary)
             {
-                using var binaryReader = new BinaryReader(memoryStream);
+                using var binaryReader = new BinaryReader(stream);
                 database.ReadBinary(binaryReader);
             }
             else
             {
-                using var streamReader = new StreamReader(memoryStream);
+                using var streamReader = new StreamReader(stream);
                 database.ReadText(streamReader);
             }
 
