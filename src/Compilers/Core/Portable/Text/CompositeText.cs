@@ -527,11 +527,11 @@ namespace Microsoft.CodeAnalysis.Text
 
                         var lastSegmentLine = lastSegment.Lines[0];
                         lineLength += lastSegmentLine.SpanIncludingLineBreak.Length;
-                        lineBreakLen = lastSegmentLine.EndIncludingLineBreak - lastSegmentLine.End;
+                        lineBreakLen = lastSegmentLine.LineBreakLength;
                     }
                     else
                     {
-                        lineBreakLen = firstSegmentTextLine.EndIncludingLineBreak - firstSegmentTextLine.End;
+                        lineBreakLen = firstSegmentTextLine.LineBreakLength;
                     }
 
                     var resultLine = TextLine.FromSpanUnsafe(_compositeText, new TextSpan(firstSegmentOffset + firstSegmentTextLine.Start, lineLength), lineBreakLen);

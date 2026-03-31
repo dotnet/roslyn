@@ -130,11 +130,19 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
+        /// Gets the length of the line break sequence at the end of this line (0, 1, or 2).
+        /// </summary>
+        internal int LineBreakLength
+        {
+            get { return (int)(_data >> BreakLenShift); }
+        }
+
+        /// <summary>
         /// Gets the end position of the line not including the line break.
         /// </summary>
         public int End
         {
-            get { return EndIncludingLineBreak - (int)(_data >> BreakLenShift); }
+            get { return EndIncludingLineBreak - LineBreakLength; }
         }
 
         /// <summary>
