@@ -13,7 +13,7 @@ namespace IdeCoreBenchmarks
 {
     /// <summary>
     /// Benchmark to measure the performance difference of accessing End vs EndIncludingLineBreak
-    /// properties after refactoring TextLine to store _end instead of _endIncludingBreaks.
+    /// properties after refactoring TextLine to store _endAndLineBreakLength instead of _endIncludingBreaks.
     /// </summary>
     [MemoryDiagnoser]
     public class TextLinePropertyAccessBenchmark
@@ -68,7 +68,7 @@ namespace IdeCoreBenchmarks
             }
         }
 
-        // Benchmarks for End property (now O(1) - direct field access)
+        // Benchmarks for End property
 
         [Benchmark]
         public int AccessEnd_SmallText()
@@ -92,7 +92,7 @@ namespace IdeCoreBenchmarks
             return sum;
         }
 
-        // Benchmarks for EndIncludingLineBreak property (now O(n) - requires line break calculation)
+        // Benchmarks for EndIncludingLineBreak property
 
         [Benchmark]
         public int AccessEndIncludingLineBreak_SmallText()
