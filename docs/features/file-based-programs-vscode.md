@@ -158,7 +158,8 @@ It uses file watchers to watch the project globs and redo the design time build 
 
 ## Automatic discovery
 
-The Roslyn LSP will automatically discover and load file-based apps in the opened workspace folders. The user can opt out of this discovery process by setting `"dotnet.projects.enableFileBasedProgramsAutomaticDiscovery": false`.
+The Roslyn LSP will automatically discover and load file-based apps in the opened workspace folders. The user can opt out of this discovery process by setting `"dotnet.fileBasedApps.enableAutomaticDiscovery": false`.
+For the first release of the feature in the VS Code C# extension, the setting will be disabled-by-default in the stable release channel and enabled-by-default in the prerelease channel.
 
 Certain subfolders in a workspace are excluded from this discovery process:
 - Any folders which contain a `.csproj` file.
