@@ -173,6 +173,11 @@
         <target state="translated">İstenen satır numarası {0}, {1} satır sayısından az olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineEndIsTooLarge">
+        <source>The line end is beyond the supported range.</source>
+        <target state="new">The line end is beyond the supported range.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">Yöntem sembolü bekleniyor</target>

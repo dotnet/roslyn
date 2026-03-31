@@ -173,6 +173,11 @@
         <target state="translated">要求的行號 {0} 必須小於 {1} 的行數。</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineEndIsTooLarge">
+        <source>The line end is beyond the supported range.</source>
+        <target state="new">The line end is beyond the supported range.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">預期的方法符號</target>

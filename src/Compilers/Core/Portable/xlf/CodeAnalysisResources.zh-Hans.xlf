@@ -173,6 +173,11 @@
         <target state="translated">请求的行号 {0} 必须小于 {1} 的行数。</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineEndIsTooLarge">
+        <source>The line end is beyond the supported range.</source>
+        <target state="new">The line end is beyond the supported range.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">应为方法符号</target>

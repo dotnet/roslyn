@@ -173,6 +173,11 @@
         <target state="translated">O número de linha solicitado {0} deve ser menor que o número de linhas {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineEndIsTooLarge">
+        <source>The line end is beyond the supported range.</source>
+        <target state="new">The line end is beyond the supported range.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">Símbolo de método esperado</target>

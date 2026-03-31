@@ -173,6 +173,11 @@
         <target state="translated">要求された行番号 {0} は、行数 {1} より小さくする必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="LineEndIsTooLarge">
+        <source>The line end is beyond the supported range.</source>
+        <target state="new">The line end is beyond the supported range.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodSymbolExpected">
         <source>Method symbol expected</source>
         <target state="translated">メソッド シンボルが必要です</target>
