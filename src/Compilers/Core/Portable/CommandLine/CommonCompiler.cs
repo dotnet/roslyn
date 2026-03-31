@@ -1755,10 +1755,6 @@ namespace Microsoft.CodeAnalysis
         /// inputs. Override in server compiler subclasses to provide caching. Return a non-null
         /// value to short-circuit compilation with a cached exit code.
         /// </summary>
-        /// Called from <see cref="RunCore"/> after <paramref name="compilation"/>,
-        /// <paramref name="analyzers"/>, <paramref name="generators"/>, and
-        /// <paramref name="additionalTexts"/> are all resolved, but before
-        /// <see cref="CompileAndEmit"/> runs.
         /// <param name="cacheState">Opaque state to be passed to <see cref="OnCompilationSucceeded"/> on success.</param>
         protected virtual int? CheckCache(
             Compilation compilation,
@@ -1776,9 +1772,6 @@ namespace Microsoft.CodeAnalysis
         /// Notifies the compiler that a compilation completed successfully. Override in server
         /// compiler subclasses to store the result in a cache.
         /// </summary>
-        /// <remarks>
-        /// Called from <see cref="RunCore"/> after <see cref="CompileAndEmit"/> succeeds.
-        /// </remarks>
         /// <param name="cacheState">Opaque state returned from <see cref="CheckCache"/>.</param>
         protected virtual void OnCompilationSucceeded(
             Compilation compilation,
