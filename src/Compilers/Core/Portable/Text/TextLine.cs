@@ -16,17 +16,13 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceText? _text;
 
         // Encoding (64 bits total):
-        //   Bits 63-61 (3 bits): line break length encoding
-        //     0 = unknown (compute from text on demand), used by FromSpanUnsafe
-        //     1 = line break length is 0
-        //     2 = line break length is 1
-        //     3 = line break length is 2
-        //   Bits 60-30 (31 bits): start position
-        //   Bits 29-0  (30 bits): line length
-        //     When break len is known (bits 63-61 != 0): length excludes the line break
-        //     When break len is unknown (bits 63-61 == 0): length includes the line break
+        //   Bit  63     (1 bit):  1 = line break length is known, 0 = unknown (compute on demand)
+        //   Bits 62-61  (2 bits): line break length (0, 1, or 2); only valid when bit 63 is set
+        //   Bits 60-30  (31 bits): start position
+        //   Bits 29-0   (30 bits): total length = EndIncludingLineBreak - Start (always)
         private readonly ulong _data;
 
+        private const int KnownShift = 63;
         private const int BreakLenShift = 61;
         private const int StartShift = 30;
         private const ulong StartMask = 0x7FFFFFFFUL;  // 31 bits
@@ -38,8 +34,8 @@ namespace Microsoft.CodeAnalysis.Text
             _data = data;
         }
 
-        private static ulong Pack(int start, int length, int lineBreakLength)
-            => ((ulong)(lineBreakLength + 1) << BreakLenShift) | ((ulong)start << StartShift) | (ulong)length;
+        private static ulong Pack(int start, int totalLength, int lineBreakLength)
+            => (1UL << KnownShift) | ((ulong)lineBreakLength << BreakLenShift) | ((ulong)start << StartShift) | (ulong)totalLength;
 
         /// <summary>
         /// Creates a <see cref="TextLine"/> instance.
@@ -91,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeEndOfLine);
                 }
 
-                return new TextLine(text, Pack(span.Start, span.Length - lineBreakLen, lineBreakLen));
+                return new TextLine(text, Pack(span.Start, span.Length, lineBreakLen));
             }
             else
             {
@@ -144,31 +140,19 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int End
         {
-            get
-            {
-                int start = Start;
-                int rawLength = (int)(_data & LengthMask);
-                int encoded = (int)(_data >> BreakLenShift);
-                if (encoded != 0)
-                    return start + rawLength;
-                else
-                    return start + rawLength - LineBreakLength;
-            }
+            get { return EndIncludingLineBreak - LineBreakLength; }
         }
 
         private int LineBreakLength
         {
             get
             {
-                int encoded = (int)(_data >> BreakLenShift);
-                if (encoded != 0)
-                    return encoded - 1;
+                if ((_data & (1UL << KnownShift)) != 0)
+                    return (int)((_data >> BreakLenShift) & 3UL);
 
                 // Unknown: compute from text
                 if (_text == null || _text.Length == 0 || (_data & LengthMask) == 0)
-                {
                     return 0;
-                }
 
                 int endIncludingBreak = Start + (int)(_data & LengthMask);
                 int startLineBreak;
@@ -183,16 +167,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int EndIncludingLineBreak
         {
-            get
-            {
-                int start = Start;
-                int rawLength = (int)(_data & LengthMask);
-                int encoded = (int)(_data >> BreakLenShift);
-                if (encoded != 0)
-                    return start + rawLength + (encoded - 1);
-                else
-                    return start + rawLength;
-            }
+            get { return Start + (int)(_data & LengthMask); }
         }
 
         /// <summary>
@@ -239,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return false;
 
             // Fast path: both have known line break length, compare packed data directly
-            if ((_data >> BreakLenShift) != 0 && (other._data >> BreakLenShift) != 0)
+            if ((_data & other._data & (1UL << KnownShift)) != 0)
                 return _data == other._data;
 
             // Slow path: at least one has unknown encoding, compare decoded logical positions
