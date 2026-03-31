@@ -984,11 +984,19 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal sealed class LineInfo : TextLineCollection
         {
+            // Each entry encodes two fields in a uint:
+            //   Bits 31-30 (2 bits): line break length of the *prior* line (0, 1, or 2)
+            //   Bits 29-0  (30 bits): start position of this line
+            // The first entry always has bits 31-30 == 0 (no prior line).
+            // The last line always has a line break length of 0, so its entry's top bits are never read for that purpose.
+            internal const int LineBreakLengthShift = 30;
+            internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1;
+
             private readonly SourceText _text;
-            private readonly SegmentedList<int> _lineStarts;
+            private readonly SegmentedList<uint> _lineStarts;
             private int _lastLineNumber;
 
-            public LineInfo(SourceText text, SegmentedList<int> lineStarts)
+            public LineInfo(SourceText text, SegmentedList<uint> lineStarts)
             {
                 _text = text;
                 _lineStarts = lineStarts;
@@ -1005,15 +1013,17 @@ namespace Microsoft.CodeAnalysis.Text
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
-                    int start = _lineStarts[index];
+                    int start = (int)(_lineStarts[index] & LineStartMask);
                     if (index == _lineStarts.Count - 1)
                     {
-                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length));
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length), lineBreakLength: 0);
                     }
                     else
                     {
-                        int end = _lineStarts[index + 1];
-                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end));
+                        uint nextEntry = _lineStarts[index + 1];
+                        int end = (int)(nextEntry & LineStartMask);
+                        int lineBreakLen = (int)(nextEntry >> LineBreakLengthShift);
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end), lineBreakLen);
                     }
                 }
             }
@@ -1027,15 +1037,15 @@ namespace Microsoft.CodeAnalysis.Text
 
                 int lineNumber;
 
-                // it is common to ask about position on the same line 
+                // it is common to ask about position on the same line
                 // as before or on the next couple lines
                 var lastLineNumber = _lastLineNumber;
-                if (position >= _lineStarts[lastLineNumber])
+                if (position >= (int)(_lineStarts[lastLineNumber] & LineStartMask))
                 {
                     var limit = Math.Min(_lineStarts.Count, lastLineNumber + 4);
                     for (int i = lastLineNumber; i < limit; i++)
                     {
-                        if (position < _lineStarts[i])
+                        if (position < (int)(_lineStarts[i] & LineStartMask))
                         {
                             lineNumber = i - 1;
                             _lastLineNumber = lineNumber;
@@ -1047,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // Binary search to find the right line
                 // if no lines start exactly at position, round to the left
                 // EoF position will map to the last line.
-                lineNumber = _lineStarts.BinarySearch(position);
+                lineNumber = BinarySearchLineStart(position);
                 if (lineNumber < 0)
                 {
                     lineNumber = (~lineNumber) - 1;
@@ -1055,6 +1065,21 @@ namespace Microsoft.CodeAnalysis.Text
 
                 _lastLineNumber = lineNumber;
                 return lineNumber;
+            }
+
+            private int BinarySearchLineStart(int position)
+            {
+                var lineStarts = _lineStarts;
+                int lo = 0, hi = lineStarts.Count - 1;
+                while (lo <= hi)
+                {
+                    int mid = lo + ((hi - lo) >> 1);
+                    int midStart = (int)(lineStarts[mid] & LineStartMask);
+                    if (midStart == position) return mid;
+                    if (midStart < position) lo = mid + 1;
+                    else hi = mid - 1;
+                }
+                return ~lo;
             }
 
             public override TextLine GetLineFromPosition(int position)
@@ -1083,19 +1108,19 @@ namespace Microsoft.CodeAnalysis.Text
             s_charArrayPool.Free(buffer);
         }
 
-        private SegmentedList<int> ParseLineStarts()
+        private SegmentedList<uint> ParseLineStarts()
         {
             // Corner case check
             if (0 == this.Length)
             {
-                return [0];
+                return [0u];
             }
 
             // Initial line capacity estimated at 64 chars / line. This value was obtained by
             // looking at ratios in large files in the roslyn repo.
-            var lineStarts = new SegmentedList<int>(Length / 64)
+            var lineStarts = new SegmentedList<uint>(Length / 64)
             {
-                0 // there is always the first line
+                0u // there is always the first line; top bits are 0 (no prior line break)
             };
 
             var lastWasCR = false;
@@ -1103,17 +1128,25 @@ namespace Microsoft.CodeAnalysis.Text
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
+            // Each entry encodes the start of the line in the low 30 bits and the line break
+            // length of the *prior* line in the top 2 bits (see LineInfo constants).
             EnumerateChars((int position, char[] buffer, int length) =>
             {
                 var index = 0;
                 if (lastWasCR)
                 {
+                    int breakLen;
                     if (length > 0 && buffer[0] == '\n')
                     {
                         index++;
+                        breakLen = 2;
+                    }
+                    else
+                    {
+                        breakLen = 1;
                     }
 
-                    lineStarts.Add(position + index);
+                    lineStarts.Add((uint)(position + index) | ((uint)breakLen << LineInfo.LineBreakLengthShift));
                     lastWasCR = false;
                 }
 
@@ -1132,25 +1165,35 @@ namespace Microsoft.CodeAnalysis.Text
                     }
 
                     // Assumes that the only 2-char line break sequence is CR+LF
+                    int lineBreakLen;
                     if (c == '\r')
                     {
                         if (index < length && buffer[index] == '\n')
                         {
                             index++;
+                            lineBreakLen = 2;
                         }
                         else if (index >= length)
                         {
                             lastWasCR = true;
                             continue;
                         }
+                        else
+                        {
+                            lineBreakLen = 1;
+                        }
                     }
                     else if (!TextUtilities.IsAnyLineBreakCharacter(c))
                     {
                         continue;
                     }
+                    else
+                    {
+                        lineBreakLen = 1;
+                    }
 
-                    // next line starts at index
-                    lineStarts.Add(position + index);
+                    // next line starts at index; encode the prior line's break length in the top 2 bits
+                    lineStarts.Add((uint)(position + index) | ((uint)lineBreakLen << LineInfo.LineBreakLengthShift));
                 }
             });
 
