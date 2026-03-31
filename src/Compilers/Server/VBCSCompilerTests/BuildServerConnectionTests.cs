@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -202,26 +201,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.Equal(string.Empty, envVars[testEnvVar]);
                 }
             }
-        }
-
-        [Fact]
-        public void GetServerEnvironmentVariables_IncludesAdditionalEnvironmentVariables()
-        {
-            var testEnvironment = new System.Collections.Hashtable();
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            {
-                testEnvironment[entry.Key] = entry.Value;
-            }
-
-            var envVars = BuildServerConnection.GetServerEnvironmentVariables(
-                testEnvironment,
-                additionalEnvironmentVariables: new Dictionary<string, string>
-                {
-                    ["ROSLYN_CACHE_PATH"] = "/tmp/roslyn-cache"
-                });
-
-            var environmentVariables = Assert.IsType<Dictionary<string, string>>(envVars);
-            Assert.Equal("/tmp/roslyn-cache", environmentVariables["ROSLYN_CACHE_PATH"]);
         }
     }
 }

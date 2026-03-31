@@ -174,23 +174,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 => RunServerBuildRequestAsync(
                     buildRequest,
                     pipeName,
-                    clientDirectory,
-                    logger,
-                    additionalEnvironmentVariables: null,
-                    cancellationToken);
-
-        internal static Task<BuildResponse> RunServerBuildRequestAsync(
-            BuildRequest buildRequest,
-            string pipeName,
-            string clientDirectory,
-            ICompilerServerLogger logger,
-            IDictionary<string, string>? additionalEnvironmentVariables,
-            CancellationToken cancellationToken)
-                => RunServerBuildRequestAsync(
-                    buildRequest,
-                    pipeName,
                     timeoutOverride: null,
-                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger, out int _, additionalEnvironmentVariables),
+                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger, out int _),
                     logger,
                     cancellationToken);
 
@@ -503,13 +488,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <param name="currentEnvironment">Current environment variables to use as a base</param>
         /// <param name="logger">Optional logger for logging environment variable setup</param>
         /// <returns>Dictionary of environment variables to set, or null if no custom environment is needed</returns>
-        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null, IDictionary<string, string>? additionalEnvironmentVariables = null)
+        internal static Dictionary<string, string>? GetServerEnvironmentVariables(System.Collections.IDictionary currentEnvironment, ICompilerServerLogger? logger = null)
         {
             string? dotNetRoot = IsBuiltinToolRunningOnCoreClr ? RuntimeHostInfo.GetToolDotNetRoot(logger is null ? null : logger.Log) : null;
 
-            if (dotNetRoot == null &&
-                !RuntimeHostInfo.ShouldDisableTieredCompilation &&
-                (additionalEnvironmentVariables is null || additionalEnvironmentVariables.Count == 0))
+            if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
             {
                 return null;
             }
@@ -547,14 +530,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 environmentVariables[RuntimeHostInfo.DotNetTieredCompilationEnvironmentName] = value;
             }
 
-            if (additionalEnvironmentVariables != null)
-            {
-                foreach (var kvp in additionalEnvironmentVariables)
-                {
-                    environmentVariables[kvp.Key] = kvp.Value;
-                }
-            }
-
             return environmentVariables;
         }
 
@@ -564,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger, out int processId, IDictionary<string, string>? additionalEnvironmentVariables = null)
+        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger, out int processId)
         {
             processId = 0;
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
@@ -576,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
-            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger, additionalEnvironmentVariables);
+            var environmentVariables = GetServerEnvironmentVariables(Environment.GetEnvironmentVariables(), logger);
 
             if (PlatformInformation.IsWindows)
             {

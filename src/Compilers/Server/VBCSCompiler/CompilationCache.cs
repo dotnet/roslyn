@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#if NET8_0_OR_GREATER
+#if NET
 
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.CodeAnalysis.CommandLine;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>The absolute path of the main output assembly. Always set.</summary>
         public string AssemblyPath { get; init; }
 
-        /// <summary>The absolute path of the PDB file, or <see langword="null"/> if no PDB file is emitted.</summary>
+        /// <summary>The absolute path of the PDB file, or <see langword="null"/> if no standalone PDB file is emitted (including embedded PDBs).</summary>
         public string? PdbPath { get; init; }
 
         /// <summary>The absolute path of the reference assembly, or <see langword="null"/> if none is produced.</summary>
@@ -34,11 +35,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     /// <summary>
     /// Provides a file-system based cache for compilation outputs.
-    /// The cache is enabled by setting the <c>ROSLYN_CACHE_PATH</c> environment variable
-    /// to the directory where cached outputs should be stored.
+    /// The cache is enabled by the <c>use-global-cache</c> feature flag on the compiler request.
     /// </summary>
     /// <remarks>
-    /// Cache layout: <c>$ROSLYN_CACHE_PATH/&lt;dll name&gt;/&lt;sha-256&gt;/</c>.
+    /// Cache layout: <c>&lt;cache root&gt;/&lt;dll name&gt;/&lt;sha-256&gt;/</c>.
     /// Each entry directory contains the following files (when present):
     /// <list type="bullet">
     ///   <item><c>assembly</c> — the main output assembly (always present in a valid entry)</item>
@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// </remarks>
     internal sealed class CompilationCache
     {
-        internal const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
-
+        private const string DefaultCacheDirectoryName = "roslyn-cache";
         private const string AssemblyFileName = "assembly";
         private const string PdbFileName = "pdb";
         private const string RefAssemblyFileName = "refassembly";
@@ -65,19 +64,31 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Creates a <see cref="CompilationCache"/> if the <c>ROSLYN_CACHE_PATH</c>
-        /// environment variable is set; otherwise returns <see langword="null"/>.
+        /// Creates a <see cref="CompilationCache"/> when the compiler request enables the
+        /// <c>use-global-cache</c> experiment; otherwise returns <see langword="null"/>.
         /// </summary>
-        internal static CompilationCache? TryCreate(ICompilerServerLogger logger)
+        internal static CompilationCache? TryCreate(CommandLineArguments arguments, ICompilerServerLogger logger)
         {
-            var cachePath = Environment.GetEnvironmentVariable(CachePathEnvironmentVariable);
-            if (string.IsNullOrEmpty(cachePath))
+            var cachePath = GetCachePath(arguments.ParseOptions.Features);
+            if (cachePath is null)
             {
                 return null;
             }
 
             logger.Log($"Compilation cache enabled at: {cachePath}");
             return new CompilationCache(cachePath);
+        }
+
+        private static string? GetCachePath(IReadOnlyDictionary<string, string> features)
+        {
+            if (!features.TryGetValue(CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag, out var featureValue) || featureValue is null)
+            {
+                return null;
+            }
+
+            return featureValue.Length == 0 || string.Equals(featureValue, bool.TrueString, StringComparison.OrdinalIgnoreCase)
+                ? Path.Combine(Path.GetTempPath(), DefaultCacheDirectoryName)
+                : featureValue;
         }
 
         /// <summary>
@@ -129,9 +140,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Verify all required cached files exist before copying anything,
                 // so we don't partially overwrite outputs on a cache miss.
-                if (!existsOptional(entryDir, PdbFileName, outputFiles.PdbPath)
-                    || !existsOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
-                    || !existsOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
+                if (isMissingWhenRequired(entryDir, PdbFileName, outputFiles.PdbPath)
+                    || isMissingWhenRequired(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
+                    || isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
                 {
                     logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
                     return false;
@@ -139,9 +150,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
                 File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
-                copyOptional(entryDir, PdbFileName, outputFiles.PdbPath);
-                copyOptional(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
-                copyOptional(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
+                copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath);
+                copyIfNeeded(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
+                copyIfNeeded(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
             }
             catch (Exception ex)
             {
@@ -152,17 +163,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return true;
 
             // Returns true if the cached file exists or is not needed (targetPath is null).
-            static bool existsOptional(string entryDir, string cachedFileName, string? targetPath)
+            static bool isMissingWhenRequired(string entryDir, string cachedFileName, string? targetPath)
             {
                 if (targetPath is null)
                 {
-                    return true;
+                    return false;
                 }
 
-                return File.Exists(Path.Combine(entryDir, cachedFileName));
+                return !File.Exists(Path.Combine(entryDir, cachedFileName));
             }
 
-            static void copyOptional(string entryDir, string cachedFileName, string? targetPath)
+            static void copyIfNeeded(string entryDir, string cachedFileName, string? targetPath)
             {
                 if (targetPath is null)
                 {
@@ -201,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 recentEntries = Directory.EnumerateDirectories(dllCacheDir)
-                    .Select(d => (Path: d, Name: System.IO.Path.GetFileName(d)))
+                    .Select(d => (Path: d, Name: Path.GetFileName(d)))
                     .Where(e => e.Name != hashKey)
                     .Select(e => (e.Path, e.Name, Time: Directory.GetLastWriteTimeUtc(e.Path)))
                     .OrderByDescending(e => e.Time)
@@ -356,12 +367,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static string ComputeDiff(string currentKey, string oldKey)
         {
-            var currentLines = new HashSet<string>(splitLines(currentKey));
-            var oldLines = new HashSet<string>(splitLines(oldKey));
+            var currentLineList = splitLines(currentKey);
+            var oldLineList = splitLines(oldKey);
+            var currentLines = new HashSet<string>(currentLineList);
+            var oldLines = new HashSet<string>(oldLineList);
 
             var diff = new StringBuilder();
 
-            foreach (var line in splitLines(oldKey))
+            foreach (var line in oldLineList)
             {
                 if (!currentLines.Contains(line))
                 {
@@ -369,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
             }
 
-            foreach (var line in splitLines(currentKey))
+            foreach (var line in currentLineList)
             {
                 if (!oldLines.Contains(line))
                 {
@@ -398,9 +411,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal sealed class CompilationCache
     {
-        internal const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
-
-        internal static CompilationCache? TryCreate(ICompilerServerLogger _)
+        internal static CompilationCache? TryCreate(CommandLineArguments _, ICompilerServerLogger __)
             => null;
     }
 }

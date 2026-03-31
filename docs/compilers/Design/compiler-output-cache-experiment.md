@@ -7,6 +7,8 @@
 
 Roslyn's compiler server already amortizes several compilation costs by keeping compiler state alive across requests. This experiment extends that idea by allowing the server to persist the outputs of successful compilations to disk and restore them on later requests when the compilation inputs are determined to be equivalent.
 
+This is particularly useful for workflows that repeatedly materialize equivalent builds in fresh worktrees, including agent-driven development where matching compilations may exist even when MSBuild's usual up-to-date checks do not carry across clones or ephemeral working directories.
+
 The current implementation is intentionally scoped as an experiment:
 
 - it is only enabled for the `.NET 8+` compiler-server path
@@ -35,12 +37,7 @@ The current design does **not** attempt to provide:
 
 The experiment is only compiled into the relevant server-side code on `.NET 8+`.
 
-At runtime, the cache is enabled when the compiler server observes the `ROSLYN_CACHE_PATH` environment variable. If that variable is not set, the server behaves exactly as it did before and no compilation outputs are cached.
-
-There are currently two ways the variable can be provided:
-
-1. Directly set `ROSLYN_CACHE_PATH` in the environment before invoking the compiler or build.
-2. Use the MSBuild feature flag `use-global-cache`, which causes `Microsoft.Build.Tasks.CodeAnalysis` to set `ROSLYN_CACHE_PATH` when launching the compiler server.
+At runtime, the cache is enabled when the compiler request carries the `use-global-cache` feature flag. If that feature flag is absent, the server behaves exactly as it did before and no compilation outputs are cached.
 
 The feature flag can be used in either of these forms:
 
@@ -53,7 +50,12 @@ When the feature flag is present without an explicit path, the current implement
 <temp>/roslyn-cache
 ```
 
-If `ROSLYN_CACHE_PATH` is already set in the environment, that value wins and the feature flag does not override it.
+There are currently two ways to get the feature onto the request:
+
+1. Pass the feature explicitly, for example via `/features:use-global-cache` or MSBuild's `Features` property.
+2. Set `ROSLYN_CACHE_PATH` in the client environment before invoking the compiler or build. Roslyn normalizes that value into the same feature flag when constructing the compiler-server request.
+
+If both are supplied, the explicit feature flag wins over `ROSLYN_CACHE_PATH`.
 
 ## Cache key
 
@@ -82,7 +84,7 @@ Each cache entry is a directory containing the outputs of a successful compilati
 The current layout is:
 
 ```text
-$ROSLYN_CACHE_PATH/
+<cache root>/
   <dll name>/
     <sha-256>/
       assembly
@@ -132,6 +134,8 @@ While the experiment is active, the compiler server logs notable cache events, i
 - cache store skipped because another writer won the race
 - cache store or restore failures
 
+When `ROSLYN_CACHE_PATH` is used, the client also logs that it normalized the environment variable into the feature flag sent to the server.
+
 On a miss, Roslyn may also log diffs against recent prior key files for the same output name. This is intended to help explain why two apparently similar builds did not reuse the same cached result.
 
 ## Current limitations
@@ -139,6 +143,7 @@ On a miss, Roslyn may also log diffs against recent prior key files for the same
 The experiment currently has several important limitations:
 
 - `PathMap` stability is effectively required for useful cache reuse. Differences in path mapping participate in the deterministic key, so builds that do not normalize machine-specific source paths are much less likely to hit the same cache entry across machines or worktrees.
+- `SourceLink` stability is also required for useful reuse. Differences in Source Link input participate in the deterministic key and will prevent matching builds from sharing cache entries. This likely means that Source Link needs to be disabled for the project.
 - Normal compiler behavior is not fully preserved on cache hits today. In particular, a restored cached result does not currently replay warnings and other compiler diagnostics that would normally be produced during a regular compilation.
 - Because the cache key is based on the current deterministic-key computation, the set of inputs that control cache reuse should be treated as an implementation detail of the experiment rather than a guaranteed contract.
 - The on-disk cache format is intentionally provisional and may change without compatibility support.
@@ -151,7 +156,7 @@ Areas still under evaluation include:
 - whether the current treatment of `PathMap` and other deterministic inputs is sufficient for the scenarios where this experiment is expected to be useful
 - disk growth and cache cleanup policy
 - behavior across SDK, compiler, or machine-environment changes
-- whether the current enablement mechanism should remain environment-variable based
+- whether the current request-level enablement mechanism should remain the right shape long term
 - what, if any, parts of the on-disk format should become durable
 
 Because these questions are still open, consumers should treat this document as a description of the current experiment, not a product contract.

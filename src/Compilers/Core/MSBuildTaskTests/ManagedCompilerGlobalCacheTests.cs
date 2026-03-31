@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET8_0_OR_GREATER
+#if NET
 
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -15,118 +17,130 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
 public sealed class ManagedCompilerGlobalCacheTests : TestBase
 {
-    private const string RoslynCachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void UseGlobalCacheFeatureFlag_IsIgnoredWhenAbsent(bool visualBasic)
+    public void PrependFeatureFlagFromEnvironment_DoesNothingWhenEnvironmentVariableMissing(bool visualBasic)
     {
-        var messages = ExecuteCompiler(
-            visualBasic,
-            features: null,
-            throwWhen: static message => message.StartsWith("BuildResponseFile =", StringComparison.Ordinal));
+        var sourceFileName = visualBasic ? "test.vb" : "test.cs";
+        var arguments = new List<string> { sourceFileName };
 
-        Assert.DoesNotContain(messages, static message => message.Contains("ROSLYN_CACHE_PATH", StringComparison.Ordinal));
+        CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
+
+        Assert.Single(arguments);
+        Assert.Equal(sourceFileName, arguments[0]);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void UseGlobalCacheFeatureFlag_UsesDefaultPath(bool visualBasic)
+    public void PrependFeatureFlagFromEnvironment_PrependsWhenFeatureFlagMissing(bool visualBasic)
     {
-        var expectedPath = Path.Combine(Path.GetTempPath(), "roslyn-cache");
-        var messages = ExecuteCompiler(
-            visualBasic,
-            features: "use-global-cache",
-            throwWhen: static message => message.Contains("Setting ROSLYN_CACHE_PATH", StringComparison.Ordinal));
+        var expectedPath = Path.Combine(Path.GetTempPath(), $"{(visualBasic ? "vb" : "cs")}-cache-path");
+        var arguments = new List<string> { "test.cs" };
 
-        Assert.Contains(messages, message => message.Contains($"Setting ROSLYN_CACHE_PATH to '{expectedPath}'", StringComparison.Ordinal));
+        ApplyEnvironmentVariables(
+            [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, expectedPath)],
+            () =>
+            {
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
+                return true;
+            });
+
+        Assert.Equal($"/features:use-global-cache={expectedPath}", arguments[0]);
+        Assert.Equal("test.cs", arguments[1]);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void UseGlobalCacheFeatureFlag_UsesExplicitPath(bool visualBasic)
+    public void UseGlobalCacheEnvironmentVariable_IsNormalizedToFeatureFlag(bool visualBasic)
     {
         var expectedPath = Path.Combine(Path.GetTempPath(), "custom-cache-path");
-        var messages = ExecuteCompiler(
+        var features = ParseFeatures(
             visualBasic,
-            features: $"use-global-cache={expectedPath}",
-            throwWhen: static message => message.Contains("Setting ROSLYN_CACHE_PATH", StringComparison.Ordinal));
+            expectedPath);
 
-        Assert.Contains(messages, message => message.Contains($"Setting ROSLYN_CACHE_PATH to '{expectedPath}'", StringComparison.Ordinal));
+        Assert.Equal(expectedPath, features[CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag]);
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void UseGlobalCacheFeatureFlag_DoesNotOverrideExistingEnvironmentVariable(bool visualBasic)
+    public void ExplicitUseGlobalCacheFeatureFlag_WinsOverEnvironmentVariable(bool visualBasic)
     {
-        var existingPath = Path.Combine(Path.GetTempPath(), "existing-cache-path");
-        var messages = ExecuteCompiler(
+        var explicitPath = Path.Combine(Path.GetTempPath(), "explicit-cache-path");
+        var features = ParseFeatures(
             visualBasic,
-            features: $"use-global-cache={Path.Combine(Path.GetTempPath(), "ignored-cache-path")}",
-            environmentVariables:
-            [
-                new KeyValuePair<string, string?>(RoslynCachePathEnvironmentVariable, existingPath),
-            ],
-            throwWhen: static message => message.Contains("Environment variable ROSLYN_CACHE_PATH is already set.", StringComparison.Ordinal));
+            Path.Combine(Path.GetTempPath(), "environment-cache-path"),
+            $"/features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={explicitPath}");
 
-        Assert.Contains(messages, static message => message.Contains("Environment variable ROSLYN_CACHE_PATH is already set. Skipping use-global-cache feature flag value.", StringComparison.Ordinal));
-        Assert.DoesNotContain(messages, static message => message.Contains("ignored-cache-path", StringComparison.Ordinal));
+        Assert.Equal(explicitPath, features[CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag]);
     }
 
-    private static List<string> ExecuteCompiler(
-        bool visualBasic,
-        string? features,
-        IEnumerable<KeyValuePair<string, string?>>? environmentVariables,
-        Func<string, bool> throwWhen)
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UnrelatedFeaturesSwitch_DoesNotBlockEnvironmentNormalization(bool visualBasic)
     {
-        var compiler = CreateCompiler(visualBasic);
-        compiler.Features = features;
+        var expectedPath = Path.Combine(Path.GetTempPath(), $"{(visualBasic ? "vb" : "cs")}-cache-path");
+        var features = ParseFeatures(
+            visualBasic,
+            expectedPath,
+            "/features:unrelated-flag");
 
-        var logger = new CollectingCompilerServerLogger(throwWhen);
-        ApplyEnvironmentVariables(environmentVariables ?? [], () => compiler.ExecuteTool(compiler.PathToBuiltInTool, "", "", logger));
-        return logger.Messages;
+        Assert.Equal(expectedPath, features[CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag]);
+        Assert.Equal("true", features["unrelated-flag"]);
     }
 
-    private static List<string> ExecuteCompiler(
-        bool visualBasic,
-        string? features,
-        Func<string, bool> throwWhen)
-        => ExecuteCompiler(visualBasic, features, environmentVariables: null, throwWhen);
-
-    private static ManagedCompiler CreateCompiler(bool visualBasic)
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BlankFeaturesColonSwitch_DoesNotBlockEnvironmentNormalization(bool visualBasic)
     {
-        ManagedCompiler compiler = visualBasic
-            ? new Vbc()
-            : new Csc();
+        var expectedPath = Path.Combine(Path.GetTempPath(), $"{(visualBasic ? "vb" : "cs")}-cache-path");
+        var features = ParseFeatures(
+            visualBasic,
+            expectedPath,
+            "/features:");
 
-        compiler.BuildEngine = new MockEngine();
-        compiler.UseSharedCompilation = true;
-        compiler.SharedCompilationId = Guid.NewGuid().ToString("N");
-        compiler.UseAppHost_TestOnly = true;
-        return compiler;
+        Assert.Equal(expectedPath, features[CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag]);
     }
 
-    private sealed class CollectingCompilerServerLogger(Func<string, bool> throwWhen) : ICompilerServerLogger
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BlankFeaturesSwitch_ClearsNormalizedFeature(bool visualBasic)
     {
-        private readonly Func<string, bool> _throwWhen = throwWhen;
+        var expectedPath = Path.Combine(Path.GetTempPath(), $"{(visualBasic ? "vb" : "cs")}-cache-path");
+        var features = ParseFeatures(
+            visualBasic,
+            expectedPath,
+            "/features");
 
-        public List<string> Messages { get; } = [];
+        Assert.DoesNotContain(CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag, features.Keys);
+    }
 
-        public bool IsLogging => true;
-
-        public void Log(string message)
+    private static IReadOnlyDictionary<string, string> ParseFeatures(bool visualBasic, string? environmentCachePath, params string[] args)
+    {
+        var arguments = new List<string>(args)
         {
-            Messages.Add(message);
+            visualBasic ? "test.vb" : "test.cs",
+        };
 
-            if (_throwWhen(message))
+        ApplyEnvironmentVariables(
+            environmentCachePath is null
+                ? []
+                : [new KeyValuePair<string, string?>(CompilerOptionParseUtilities.CachePathEnvironmentVariable, environmentCachePath)],
+            () =>
             {
-                throw new OperationCanceledException();
-            }
-        }
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(arguments);
+                return true;
+            });
+
+        return visualBasic
+            ? VisualBasicCommandLineParser.Default.Parse(arguments, Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features
+            : CSharpCommandLineParser.Default.Parse(arguments, baseDirectory: Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null).ParseOptions.Features;
     }
 }
 #endif

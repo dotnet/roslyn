@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET8_0_OR_GREATER
+#if NET
 
 #nullable disable
 
@@ -16,6 +16,7 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -47,26 +48,21 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             }
             """;
 
-        await ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string>(CompilationCache.CachePathEnvironmentVariable, cacheDirectory.Path)],
-            async () =>
-            {
-                using var serverData = await ServerUtil.CreateServer(_logger);
-                var arguments = BuildCompilationArguments(visualBasic, serverData.PipeName, sourceFileName, outputFileName, additionalArguments: $"/a:{supportAssembly}");
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(visualBasic, serverData.PipeName, sourceFileName, outputFileName, additionalArguments: $"/a:{supportAssembly}", cachePath: cacheDirectory.Path);
 
-                var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("warning CACHWARN001", output, StringComparison.Ordinal);
-                Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("warning CACHWARN001", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
 
-                File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
+        File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
 
-                (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
-                Assert.DoesNotContain("warning CACHWARN001", output, StringComparison.Ordinal);
-                Assert.True(File.Exists(Path.Combine(workingDirectory.Path, outputFileName)));
-            });
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("warning CACHWARN001", output, StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Combine(workingDirectory.Path, outputFileName)));
     }
 
     [Theory]
@@ -90,28 +86,23 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             }
             """;
 
-        await ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string>(CompilationCache.CachePathEnvironmentVariable, cacheDirectory.Path)],
-            async () =>
-            {
-                using var serverData = await ServerUtil.CreateServer(_logger);
-                var arguments = BuildCompilationArguments(visualBasic, serverData.PipeName, sourceFileName, outputFileName, additionalArguments: $"/touchedfiles:{touchedFilesBase}");
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(visualBasic, serverData.PipeName, sourceFileName, outputFileName, additionalArguments: $"/touchedfiles:{touchedFilesBase}", cachePath: cacheDirectory.Path);
 
-                var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
-                Assert.Equal(0, exitCode);
-                Assert.True(File.Exists(touchedFilesBase + ".read"));
-                Assert.True(File.Exists(touchedFilesBase + ".write"));
+        var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(0, exitCode);
+        Assert.True(File.Exists(touchedFilesBase + ".read"));
+        Assert.True(File.Exists(touchedFilesBase + ".write"));
 
-                File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
-                File.Delete(touchedFilesBase + ".read");
-                File.Delete(touchedFilesBase + ".write");
+        File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
+        File.Delete(touchedFilesBase + ".read");
+        File.Delete(touchedFilesBase + ".write");
 
-                (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
-                Assert.False(File.Exists(touchedFilesBase + ".read"));
-                Assert.False(File.Exists(touchedFilesBase + ".write"));
-            });
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        Assert.False(File.Exists(touchedFilesBase + ".read"));
+        Assert.False(File.Exists(touchedFilesBase + ".write"));
     }
 
     [Theory]
@@ -135,30 +126,25 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             }
             """;
 
-        await ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string>(CompilationCache.CachePathEnvironmentVariable, cacheDirectory.Path)],
-            async () =>
-            {
-                using var serverData = await ServerUtil.CreateServer(_logger);
-                var arguments = BuildCompilationArguments(visualBasic, serverData.PipeName, sourceFileName, outputFileName, additionalArguments: $"/reportanalyzer /a:{supportAssembly}");
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(visualBasic, serverData.PipeName, sourceFileName, outputFileName, additionalArguments: $"/reportanalyzer /a:{supportAssembly}", cachePath: cacheDirectory.Path);
 
-                var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Total analyzer execution time:", output, StringComparison.Ordinal);
-                Assert.Contains("Total generator execution time:", output, StringComparison.Ordinal);
-                Assert.Contains("CacheWarningAnalyzer", output, StringComparison.Ordinal);
-                Assert.Contains("CacheReportGenerator", output, StringComparison.Ordinal);
+        var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Total analyzer execution time:", output, StringComparison.Ordinal);
+        Assert.Contains("Total generator execution time:", output, StringComparison.Ordinal);
+        Assert.Contains("CacheWarningAnalyzer", output, StringComparison.Ordinal);
+        Assert.Contains("CacheReportGenerator", output, StringComparison.Ordinal);
 
-                File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
+        File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
 
-                (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
-                Assert.DoesNotContain("Total analyzer execution time:", output, StringComparison.Ordinal);
-                Assert.DoesNotContain("Total generator execution time:", output, StringComparison.Ordinal);
-                Assert.DoesNotContain("CacheWarningAnalyzer", output, StringComparison.Ordinal);
-                Assert.DoesNotContain("CacheReportGenerator", output, StringComparison.Ordinal);
-            });
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Total analyzer execution time:", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Total generator execution time:", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("CacheWarningAnalyzer", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("CacheReportGenerator", output, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -200,35 +186,31 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             }
             """;
 
-        await ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string>(CompilationCache.CachePathEnvironmentVariable, cacheDirectory.Path)],
-            async () =>
-            {
-                using var serverData = await ServerUtil.CreateServer(_logger);
+        using var serverData = await ServerUtil.CreateServer(_logger);
 
-                var referenceArguments = BuildCompilationArguments(visualBasic, serverData.PipeName, referenceSourceFileName, referenceOutputFileName);
-                var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), referenceArguments, workingDirectory, [new(referenceSourceFileName, referenceSource)]);
-                Assert.Equal(0, exitCode);
+        var referenceArguments = BuildCompilationArguments(visualBasic, serverData.PipeName, referenceSourceFileName, referenceOutputFileName, cachePath: cacheDirectory.Path);
+        var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), referenceArguments, workingDirectory, [new(referenceSourceFileName, referenceSource)]);
+        Assert.Equal(0, exitCode);
 
-                var consumerArguments = BuildCompilationArguments(
-                    visualBasic,
-                    serverData.PipeName,
-                    consumerSourceFileName,
-                    consumerOutputFileName,
-                    additionalArguments: $"/reportivts /r:{referenceOutputFileName}");
+        var consumerArguments = BuildCompilationArguments(
+            visualBasic,
+            serverData.PipeName,
+            consumerSourceFileName,
+            consumerOutputFileName,
+            additionalArguments: $"/reportivts /r:{referenceOutputFileName}",
+            cachePath: cacheDirectory.Path);
 
-                (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), consumerArguments, workingDirectory, [new(consumerSourceFileName, consumerSource)]);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Printing 'InternalsVisibleToAttribute' information", output, StringComparison.Ordinal);
-                Assert.Contains("Grants IVT to current assembly: True", output, StringComparison.Ordinal);
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), consumerArguments, workingDirectory, [new(consumerSourceFileName, consumerSource)]);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Printing 'InternalsVisibleToAttribute' information", output, StringComparison.Ordinal);
+        Assert.Contains("Grants IVT to current assembly: True", output, StringComparison.Ordinal);
 
-                File.Delete(Path.Combine(workingDirectory.Path, consumerOutputFileName));
+        File.Delete(Path.Combine(workingDirectory.Path, consumerOutputFileName));
 
-                (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), consumerArguments, workingDirectory);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
-                Assert.DoesNotContain("Printing 'InternalsVisibleToAttribute' information", output, StringComparison.Ordinal);
-            });
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), consumerArguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Printing 'InternalsVisibleToAttribute' information", output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -248,30 +230,26 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
 
         Directory.CreateDirectory(generatedFilesDirectory);
 
-        await ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string>(CompilationCache.CachePathEnvironmentVariable, cacheDirectory.Path)],
-            async () =>
-            {
-                using var serverData = await ServerUtil.CreateServer(_logger);
-                var arguments = BuildCompilationArguments(
-                    visualBasic: false,
-                    serverData.PipeName,
-                    sourceFileName,
-                    outputFileName,
-                    additionalArguments: $"/langversion:preview /generatedfilesout:{generatedFilesDirectory} /a:{generatorAssembly}");
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(
+            visualBasic: false,
+            serverData.PipeName,
+            sourceFileName,
+            outputFileName,
+            additionalArguments: $"/langversion:preview /generatedfilesout:{generatedFilesDirectory} /a:{generatorAssembly}",
+            cachePath: cacheDirectory.Path);
 
-                var (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory, [new(sourceFileName, source)]);
-                Assert.Equal(0, exitCode);
-                Assert.Single(Directory.GetFiles(generatedFilesDirectory, "generatedSource.cs", SearchOption.AllDirectories));
+        var (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(0, exitCode);
+        Assert.Single(Directory.GetFiles(generatedFilesDirectory, "generatedSource.cs", SearchOption.AllDirectories));
 
-                File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
-                Directory.Delete(generatedFilesDirectory, recursive: true);
+        File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
+        Directory.Delete(generatedFilesDirectory, recursive: true);
 
-                (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
-                Assert.False(Directory.Exists(generatedFilesDirectory));
-            });
+        (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        Assert.False(Directory.Exists(generatedFilesDirectory));
     }
 
     [Theory]
@@ -296,39 +274,35 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             }
             """;
 
-        await ApplyEnvironmentVariables(
-            [new KeyValuePair<string, string>(CompilationCache.CachePathEnvironmentVariable, cacheDirectory.Path)],
-            async () =>
-            {
-                using var serverData = await ServerUtil.CreateServer(_logger);
-                var arguments = BuildCompilationArguments(
-                    visualBasic,
-                    serverData.PipeName,
-                    sourceFileName,
-                    outputFileName,
-                    additionalArguments: "/debug:portable /features:debug-determinism");
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(
+            visualBasic,
+            serverData.PipeName,
+            sourceFileName,
+            outputFileName,
+            additionalArguments: "/debug:portable /features:debug-determinism",
+            cachePath: cacheDirectory.Path);
 
-                var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
-                Assert.Equal(0, exitCode);
-                Assert.True(File.Exists(Path.Combine(workingDirectory.Path, keyFileName)));
+        var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(0, exitCode);
+        Assert.True(File.Exists(Path.Combine(workingDirectory.Path, keyFileName)));
 
-                File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
-                File.Delete(Path.Combine(workingDirectory.Path, pdbFileName));
-                File.Delete(Path.Combine(workingDirectory.Path, keyFileName));
+        File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
+        File.Delete(Path.Combine(workingDirectory.Path, pdbFileName));
+        File.Delete(Path.Combine(workingDirectory.Path, keyFileName));
 
-                (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
-                Assert.Equal(0, exitCode);
-                Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
-                Assert.True(File.Exists(Path.Combine(workingDirectory.Path, outputFileName)));
-                Assert.True(File.Exists(Path.Combine(workingDirectory.Path, pdbFileName)));
-                Assert.False(File.Exists(Path.Combine(workingDirectory.Path, keyFileName)));
-            });
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Combine(workingDirectory.Path, outputFileName)));
+        Assert.True(File.Exists(Path.Combine(workingDirectory.Path, pdbFileName)));
+        Assert.False(File.Exists(Path.Combine(workingDirectory.Path, keyFileName)));
     }
 
     private static RequestLanguage GetLanguage(bool visualBasic)
         => visualBasic ? RequestLanguage.VisualBasicCompile : RequestLanguage.CSharpCompile;
 
-    private static string BuildCompilationArguments(bool visualBasic, string pipeName, string sourceFileName, string outputFileName, string additionalArguments = "")
+    private static string BuildCompilationArguments(bool visualBasic, string pipeName, string sourceFileName, string outputFileName, string additionalArguments = "", string cachePath = null)
     {
         var languageArguments = visualBasic ? "/vbruntime*" : "";
         var segments = new[]
@@ -339,6 +313,7 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             "/nologo",
             "/t:library",
             $"/out:{outputFileName}",
+            cachePath is null ? "" : $"/features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={cachePath}",
             languageArguments,
             additionalArguments,
         };

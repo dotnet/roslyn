@@ -67,18 +67,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private readonly GeneratorDriverCache _driverCache = new GeneratorDriverCache();
 
-        /// <summary>
-        /// Optional compilation output cache. Non-null when <c>ROSLYN_CACHE_PATH</c> is set.
-        /// </summary>
-        private readonly CompilationCache? _compilationCache;
-
         internal CompilerServerHost(string clientDirectory, string? sdkDirectory, ICompilerServerLogger logger)
         {
             ClientDirectory = clientDirectory;
             SdkDirectory = sdkDirectory;
             Logger = logger;
             AnalyzerAssemblyLoader = Microsoft.CodeAnalysis.AnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader"));
-            _compilationCache = CompilationCache.TryCreate(logger);
         }
 
         public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
@@ -93,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader,
                         _driverCache,
-                        cache: _compilationCache,
                         logger: Logger);
                     return true;
                 case LanguageNames.VisualBasic:
@@ -104,7 +97,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         libDirectory: request.LibDirectory,
                         analyzerLoader: AnalyzerAssemblyLoader,
                         _driverCache,
-                        cache: _compilationCache,
                         logger: Logger);
                     return true;
                 default:
@@ -179,4 +171,3 @@ Output:
         }
     }
 }
-

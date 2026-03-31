@@ -9,6 +9,9 @@ namespace Roslyn.Utilities
 {
     internal static class CompilerOptionParseUtilities
     {
+        internal const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
+        internal const string UseGlobalCacheFeatureFlag = "use-global-cache";
+
         /// <summary>
         /// Parse the value provided to an MSBuild Feature option into a list of entries.  This will 
         /// leave name=value in their raw form.
@@ -34,6 +37,22 @@ namespace Roslyn.Utilities
             }
         }
 
+        internal static void PrependFeatureFlagFromEnvironment(List<string> arguments, Action<string>? log = null)
+        {
+            if (Environment.GetEnvironmentVariable(CachePathEnvironmentVariable) is not { Length: > 0 } cachePath)
+            {
+                return;
+            }
+
+            if (HasFeatureFlag(arguments))
+            {
+                return;
+            }
+
+            log?.Invoke($"Normalizing {CachePathEnvironmentVariable} to /features:{UseGlobalCacheFeatureFlag}={cachePath}");
+            arguments.Insert(0, $"/features:{UseGlobalCacheFeatureFlag}={cachePath}");
+        }
+
         private static void ParseFeatureCore(IDictionary<string, string> builder, string feature)
         {
             int equals = feature.IndexOf('=');
@@ -47,6 +66,28 @@ namespace Roslyn.Utilities
             {
                 builder[feature] = "true";
             }
+        }
+
+        private static bool HasFeatureFlag(List<string> arguments)
+        {
+            foreach (var argument in arguments)
+            {
+                if (!argument.StartsWith("/features:", StringComparison.OrdinalIgnoreCase) &&
+                    !argument.StartsWith("-features:", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var features = new List<string> { argument["/features:".Length..] };
+                var parsedFeatures = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                ParseFeatures(parsedFeatures, features);
+                if (parsedFeatures.ContainsKey(UseGlobalCacheFeatureFlag))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

@@ -552,10 +552,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // Note: using ToolArguments here (the property) since
                 // commandLineCommands (the parameter) may have been mucked with
                 // (to support using the dotnet cli)
+                var buildRequestArguments = GenerateCommandLineArgsList(responseFileCommands);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     Language,
-                    GenerateCommandLineArgsList(responseFileCommands),
+                    buildRequestArguments,
                     workingDirectory: CurrentDirectoryToUse(),
                     tempDirectory: tempDirectory,
                     keepAlive: null,
@@ -565,17 +567,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     ? SharedCompilationId
                     : BuildServerConnection.GetPipeName(clientDirectory);
 
-                IDictionary<string, string>? additionalEnvironmentVariables = null;
-#if NET8_0_OR_GREATER
-                additionalEnvironmentVariables = getGlobalCacheEnvironmentVariables();
-#endif
-
                 var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
                     buildRequest,
                     pipeName,
                     clientDirectory,
                     logger: logger,
-                    additionalEnvironmentVariables,
                     cancellationToken: _sharedCompileCts.Token);
 
                 responseTask.Wait(_sharedCompileCts.Token);
@@ -613,64 +609,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 return $"Unnamed compilation {Guid.NewGuid()}";
             }
-
-#if NET8_0_OR_GREATER
-            // Returns any environment variables needed to enable the global cache experiment.
-            // The feature flag can optionally specify a custom path: use-global-cache=/path/to/cache
-            Dictionary<string, string>? getGlobalCacheEnvironmentVariables()
-            {
-                const string UseGlobalCacheFeatureFlag = "use-global-cache";
-                const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
-
-                // Returns the value of the use-global-cache feature flag, or null if not present.
-                // When specified without a value (e.g., "use-global-cache"), returns empty string.
-                // When specified with a value (e.g., "use-global-cache=/path"), returns the path.
-                if (string.IsNullOrWhiteSpace(Features) || !Features.Contains(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
-                {
-                    return null;
-                }
-
-                foreach (var feature in CompilerOptionParseUtilities.ParseFeatureFromMSBuild(Features))
-                {
-                    var span = feature.AsSpan().Trim();
-                    if (span.Equals(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return createEnvironmentVariables("");
-                    }
-
-                    var equalsIndex = span.IndexOf('=');
-                    if (equalsIndex > 0 &&
-                        span[..equalsIndex].Equals(UseGlobalCacheFeatureFlag, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return createEnvironmentVariables(span[(equalsIndex + 1)..].ToString());
-                    }
-                }
-
-                return null;
-
-                Dictionary<string, string>? createEnvironmentVariables(string useGlobalCacheValue)
-                {
-                    if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(CachePathEnvironmentVariable)))
-                    {
-                        if (useGlobalCacheValue.Length > 0)
-                        {
-                            logger.Log($"Environment variable {CachePathEnvironmentVariable} is already set. Skipping {UseGlobalCacheFeatureFlag} feature flag value.");
-                        }
-                        return null;
-                    }
-
-                    var globalCachePath = useGlobalCacheValue.Length > 0
-                        ? useGlobalCacheValue
-                        : Path.Combine(Path.GetTempPath(), "roslyn-cache");
-                    logger.Log($"Setting {CachePathEnvironmentVariable} to '{globalCachePath}'");
-
-                    return new Dictionary<string, string>
-                    {
-                        { CachePathEnvironmentVariable, globalCachePath }
-                    };
-                }
-            }
-#endif
         }
 
         /// <summary>

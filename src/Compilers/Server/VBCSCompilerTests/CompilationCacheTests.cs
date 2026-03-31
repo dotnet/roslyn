@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET8_0_OR_GREATER
+#if NET
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -30,42 +31,36 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
-        public void TryCreate_ReturnsNull_WhenEnvironmentVariableNotSet()
+        public void TryCreate_ReturnsNull_WhenFeatureFlagNotSet()
         {
-            Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, null);
-            var cache = CompilationCache.TryCreate(_logger);
+            var cache = CompilationCache.TryCreate(ParseArguments(["test.cs"]), _logger);
             Assert.Null(cache);
         }
 
         [Fact]
-        public void TryCreate_ReturnsCache_WhenEnvironmentVariableSet()
+        public void TryCreate_ReturnsCache_WhenFeatureFlagUsesDefaultPath()
         {
-            var cacheDir = Temp.CreateDirectory().Path;
-            Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, cacheDir);
-            try
-            {
-                var cache = CompilationCache.TryCreate(_logger);
-                Assert.NotNull(cache);
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, null);
-            }
+            var expectedPath = Path.Combine(Path.GetTempPath(), "roslyn-cache");
+            var logMessages = new List<string>();
+            var cache = CompilationCache.TryCreate(
+                ParseArguments(["/features:use-global-cache", "test.cs"]),
+                new CollectingLogger(logMessages));
+
+            Assert.NotNull(cache);
+            Assert.Contains(logMessages, m => m.Contains($"Compilation cache enabled at: {expectedPath}", StringComparison.Ordinal));
         }
 
         [Fact]
-        public void TryCreate_ReturnsNull_WhenEnvironmentVariableEmpty()
+        public void TryCreate_ReturnsCache_WhenFeatureFlagHasExplicitPath()
         {
-            Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, "");
-            try
-            {
-                var cache = CompilationCache.TryCreate(_logger);
-                Assert.Null(cache);
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, null);
-            }
+            var cacheDir = Temp.CreateDirectory().Path;
+            var logMessages = new List<string>();
+            var cache = CompilationCache.TryCreate(
+                ParseArguments([$"/features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={cacheDir}", "test.cs"]),
+                new CollectingLogger(logMessages));
+
+            Assert.NotNull(cache);
+            Assert.Contains(logMessages, m => m.Contains($"Compilation cache enabled at: {cacheDir}", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -496,17 +491,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private static CompilationCache CreateCache(string cachePath)
         {
-            Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, cachePath);
-            try
-            {
-                return CompilationCache.TryCreate(EmptyCompilerServerLogger.Instance)
-                    ?? throw new InvalidOperationException("Failed to create cache");
-            }
-            finally
-            {
-                Environment.SetEnvironmentVariable(CompilationCache.CachePathEnvironmentVariable, null);
-            }
+            return CompilationCache.TryCreate(
+                ParseArguments([$"/features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={cachePath}", "test.cs"]),
+                EmptyCompilerServerLogger.Instance)
+                ?? throw new InvalidOperationException("Failed to create cache");
         }
+
+        private static CommandLineArguments ParseArguments(string[] args)
+            => CSharpCommandLineParser.Default.Parse(args, baseDirectory: Directory.GetCurrentDirectory(), sdkDirectory: null, additionalReferenceDirectories: null);
 
         private static IDisposable AcquireEntryMutex(CompilationCache cache, string dllName, string hashKey)
             => new NamedMutexLease(cache.GetCacheEntryMutexName(dllName, hashKey));

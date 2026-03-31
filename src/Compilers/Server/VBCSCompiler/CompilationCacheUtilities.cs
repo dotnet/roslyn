@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if NET8_0_OR_GREATER
+#if NET
 using System;
 using System.IO;
 
