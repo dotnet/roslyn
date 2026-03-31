@@ -1,53 +1,28 @@
+# Roslyn Compiler Instructions for AI Coding Agents
+
 ---
 applyTo: "src/{Compilers,Dependencies,ExpressionEvaluator,Tools}/**/*.{cs,vb}"
 ---
 
-# Roslyn Compiler Instructions for AI Coding Agents
-
 ## Architecture Overview
 
-Roslyn follows a **layered compiler pipeline**: Lexer → Parser → Syntax Trees → Binding (BoundNodes) → Lowering/Rewriting → Emit
-
-- `Compilation` is immutable — create new instances via `AddSyntaxTrees()`, `ReplaceSyntaxTree()`, etc.
-- **Internal vs Public APIs**: `InternalSyntax` namespace for performance-critical parsing; `Microsoft.CodeAnalysis` for public consumption
+Roslyn follows a **layered compiler architecture**:
+- **Lexer → Parser → Syntax Trees → Semantic Analysis → Lowering/Rewriting → Symbol Tables → Emit**
+- Core abstraction: `Compilation` is immutable and reusable. Create new compilations via `AddSyntaxTrees()`, `RemoveSyntaxTrees()`, `ReplaceSyntaxTree()` for incremental changes
+- **Internal vs Public APIs**: Use `InternalSyntax` namespace for performance-critical parsing; `Microsoft.CodeAnalysis` for public consumption
 
 ### Key Directories
-- `src/Compilers/Core/Portable/` — Language-agnostic compiler infrastructure
-- `src/Compilers/CSharp/Portable/` — C# compiler implementation
-- `src/Compilers/VisualBasic/Portable/` — VB compiler implementation
-- `src/Dependencies/` — High-performance collections (`PooledObjects`, `Threading`)
-- `src/ExpressionEvaluator/` — Debugger expression evaluation
-- `src/Tools/` — Compiler tooling (BuildBoss, format tools, analyzers)
+- `src/Compilers/Core/Portable/` - Language-agnostic compiler infrastructure
+- `src/Compilers/CSharp/Portable/` - C# compiler implementation  
+- `src/Compilers/VisualBasic/Portable/` - VB compiler implementation
+- `src/Dependencies/` - High-performance collections (`PooledObjects`, `Threading`)
+- `src/ExpressionEvaluator/` - Debugger expression evaluation (uses special `LexerMode.DebuggerSyntax`)
+- `src/Tools/` - Compiler tooling (BuildBoss, format tools, analyzers)
 
-## Code Generation from XML Definitions
+## Essential Patterns
 
-Several core data structures are **generated from XML** — never edit generated `.cs` files directly.
-
-- **Syntax trees**: Defined in `src/Compilers/CSharp/Portable/Syntax/Syntax.xml` (C#) and the VB equivalent. Defines all `SyntaxNode` subclasses, their fields, and kinds.
-- **Bound trees**: Defined in `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml`. Defines the intermediate representation used during semantic analysis and lowering.
-- **After modifying XML files**, run: `dotnet run --file eng/generate-compiler-code.cs`
-
-## Error and Diagnostic Patterns
-
-### Adding New Errors
-1. Add entry to `ErrorCode` enum in `src/Compilers/CSharp/Portable/Errors/ErrorCode.cs` — use `ERR_` prefix for errors, `WRN_` for warnings, `FTL_` for fatal
-2. Add the error message string to `CSharpResources.resx`
-3. Update `ErrorFacts.cs` if the error needs custom severity/category logic
-4. Run `dotnet msbuild <path to csproj> /t:UpdateXlf` to update localization `.xlf` files after `.resx` changes
-
-### Language Version Feature Gating
-New language features are gated by `MessageID` → `LanguageVersion` mapping:
-- Add a `IDS_Feature*` entry to `MessageID` enum in `src/Compilers/CSharp/Portable/Errors/MessageID.cs`
-- Use `MessageID.IDS_FeatureXxx.RequiredVersion()` to get the minimum `LanguageVersion`
-- In parsing/binding, check `languageVersion >= feature.RequiredVersion()` before allowing the feature
-
-### Public API Tracking
-Each assembly has `PublicAPI.Shipped.txt` and `PublicAPI.Unshipped.txt` files. When adding/changing public APIs, update `PublicAPI.Unshipped.txt` with the new API signature. This is enforced by analyzers at build time.
-
-## Testing Patterns
-
-### Test Base Classes
-Inherit from `CSharpTestBase` (C#) or `VisualBasicTestBase` (VB):
+### Test Structure Convention
+Inherit from language-specific base classes: `CSharpTestBase` for C#, `VisualBasicTestBase` for VB
 ```cs
 public class MyTests : CSharpTestBase
 {
@@ -55,36 +30,63 @@ public class MyTests : CSharpTestBase
     public void TestMethod()
     {
         var comp = CreateCompilation(sourceCode);
-        comp.VerifyDiagnostics(
-            // ERR_NameNotInContext: The name 'x' does not exist in the current context
-            Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x"));
+        // Test compilation, symbols, diagnostics
     }
 }
 ```
 
-### Key Test APIs
-- `CreateCompilation(source, references, parseOptions, options)` — create a test compilation
-- `CompileAndVerify(source)` — compile and verify IL output
-- `comp.VerifyDiagnostics(...)` — assert specific diagnostics with `Diagnostic(ErrorCode).WithLocation(line, col).WithArguments(...)`
-- `comp.VerifyEmitDiagnostics()` — verify diagnostics during emit so reviewers can see if code is legal
-- Use `TestOptions.Regular.WithLanguageVersion(...)` or `TestOptions.RegularPreview` for parse options
-- Add `[WorkItem("https://github.com/dotnet/roslyn/issues/NNN")]` to tests fixing specific issues
-- Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) for test source code
-- Keep tests focused — use `.Single()` instead of asserting count then extracting
+### Memory Management
+- **Avoid LINQ in hot paths** - use manual enumeration or `struct` enumerators
+- **Avoid `foreach` over collections without struct enumerators** 
+- **Use object pools extensively** - see patterns in `src/Dependencies/PooledObjects/`
+- **Prefer `Debug.Assert()` over exceptions** for internal validation
 
-### Testing New Language Features
-```cs
-// Test that feature works with correct language version
-var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp12));
-comp.VerifyDiagnostics();
+## Build & Test Workflows
 
-// Test that feature is rejected with older language version
-comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
-comp.VerifyDiagnostics(
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ...).WithArguments(...));
+### Essential Build Commands
+
+```powershell
+# Full build (use VS Code tasks when available)
+./build.sh
+
+# Build specific components  
+dotnet build Compilers.slnf                    # Compiler-only build
+dotnet build src/Compilers/CSharp/csc/AnyCpu/  # C# compiler
+
+# Generate compiler code after changes
+dotnet run --file eng/generate-compiler-code.cs
 ```
 
-### Symbol Resolution in Tests
+### Testing Strategy
+- **Unit tests**: Test individual compiler phases (lexing, parsing)
+- **Compilation tests**: Create `Compilation` objects and verify symbols/diagnostics
+- **Cross-language patterns**: Many test patterns work for both C# and VB with minor syntax changes
+- **Keep tests focused**: Avoid unnecessary assertions. Tests should do the minimal work necessary to get to the core assertions that validate the issue being addressed. For example, use `Single()` instead of checking counts and then accessing the first element.
+
+## Debugger Integration
+
+**Expression Evaluator** uses special parsing modes:
+- `LexerMode.DebuggerSyntax` for expression evaluation
+- `IsInFieldKeywordContext` flag for context-aware parsing
+- `ConsumeFullText` parameter for complete expression parsing
+
+## MSBuild Integration
+
+Compiler tasks are in `src/Compilers/Core/MSBuildTask/`:
+- `Csc.cs` - C# compiler task
+- `Vbc.cs` - VB compiler task  
+- `ManagedCompiler.cs` - Base compiler task functionality
+
+## Performance Considerations
+
+1. **Lexer/Parser optimizations**: Use `InternalSyntax` types for performance-critical code
+2. **Immutable data structures**: Roslyn heavily uses immutable collections and copy-on-write semantics
+3. **Caching**: `Compilation` objects cache semantic information - reuse when possible
+4. **Threading**: Most compiler operations are thread-safe through immutability
+
+## Symbol Resolution
+
+Navigate the symbol hierarchy:
 ```cs
 var compilation = CreateCompilation(source);
 var globalNamespace = compilation.GlobalNamespace;
@@ -92,32 +94,4 @@ var typeSymbol = globalNamespace.GetTypeMembers("MyClass").Single();
 var methodSymbol = typeSymbol.GetMembers("MyMethod").Single();
 ```
 
-## Performance Rules
-
-- **Avoid LINQ in hot paths** — use manual enumeration or `struct` enumerators
-- **Avoid `foreach` over collections without struct enumerators**
-- **Use object pools** — see patterns in `src/Dependencies/PooledObjects/`
-- **Use `InternalSyntax` types** for performance-critical lexer/parser code
-- **Prefer `Debug.Assert()` over exceptions** for internal invariant validation
-- **Threading**: Most compiler operations are thread-safe through immutability — avoid unnecessary locking
-
-## Source Generators
-
-- **Use `IIncrementalGenerator`** (preferred) — `ISourceGenerator` is deprecated
-- Attribute: `[Generator(LanguageNames.CSharp)]`
-- Define pipeline via `IncrementalGeneratorInitializationContext` in `Initialize()`
-
-## MSBuild Integration
-
-Compiler MSBuild tasks are in `src/Compilers/Core/MSBuildTask/`:
-- `Csc.cs` — C# compiler task
-- `Vbc.cs` — VB compiler task
-- `ManagedCompiler.cs` — Base compiler task functionality
-
-## Build Commands
-
-```powershell
-dotnet build Compilers.slnf                    # Compiler-only build
-dotnet build src/Compilers/CSharp/csc/AnyCpu/  # C# compiler only
-dotnet run --file eng/generate-compiler-code.cs # Regenerate from XML definitions
-```
+Symbol equality is complex due to generics and substitution - always test with multiple generic scenarios.
