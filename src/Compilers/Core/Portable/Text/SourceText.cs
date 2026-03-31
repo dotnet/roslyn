@@ -985,15 +985,21 @@ namespace Microsoft.CodeAnalysis.Text
         internal sealed class LineInfo : TextLineCollection
         {
             // Each entry encodes two fields in a uint:
-            //   Bits 31-30 (2 bits): line break length of the *prior* line (0, 1, or 2)
-            //   Bits 29-0  (30 bits): start position of this line
-            // The first entry always has bits 31-30 == 0 (no prior line).
-            // The last line always has a line break length of 0, so its entry's top bits are never read for that purpose.
-            internal const int LineBreakLengthShift = 30;
-            internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1;
+            //   Bit  31    (1 bit):  prior line break length, bias-encoded: 0 = length 1, 1 = length 2
+            //   Bits 30-0  (31 bits): start position of this line
+            //
+            // The top bit uses a bias of 1 because every line break is either 1 or 2 characters —
+            // a new line entry is only ever added when a line break is found, so the prior break
+            // length is never 0 for any entry at index > 0. The first entry (_lineStarts[0]) always
+            // has bit 31 == 0, but that bit is never read as a break length: the indexer reads break
+            // lengths from _lineStarts[index + 1], so the minimum index accessed for break length
+            // is 1, which always corresponds to a real prior line break.
+            internal const int LineBreakLengthShift = 31;
+            internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1; // 31 bits
 
             private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
-            internal static uint PackEntry(int lineStart, int priorLineBreakLength) => (uint)lineStart | ((uint)priorLineBreakLength << LineBreakLengthShift);
+            // priorLineBreakLength must be 1 or 2; stored as (priorLineBreakLength - 1) in the top bit.
+            internal static uint PackEntry(int lineStart, int priorLineBreakLength) => (uint)lineStart | ((uint)(priorLineBreakLength - 1) << LineBreakLengthShift);
 
             private readonly SourceText _text;
             private readonly SegmentedList<uint> _lineStarts;
@@ -1025,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.Text
                     {
                         uint nextEntry = _lineStarts[index + 1];
                         int end = GetLineStart(nextEntry);
-                        int lineBreakLen = (int)(nextEntry >> LineBreakLengthShift);
+                        int lineBreakLen = (int)(nextEntry >> LineBreakLengthShift) + 1; // reverse the bias-1 encoding
                         return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end), lineBreakLen);
                     }
                 }
