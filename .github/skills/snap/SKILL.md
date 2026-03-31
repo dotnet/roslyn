@@ -70,7 +70,7 @@ Use darc default channels and version files to infer the branch structure. Do **
 ```
 darc get-default-channels --source-repo https://github.com/{owner}/{repo}
 ```
-Identify the three named branches (`main`, `release/insiders`, `release/stable`) and their current VS channels.
+Identify the three named branches (`main`, `release/insiders`, `release/stable`) and their current VS channels. Also note any SDK channels (e.g., `.NET 10.0.3xx SDK`, `.NET 11.0.1xx SDK`) assigned to each branch — these will need to shift during the snap.
 
 **Step B — Read versions and configs** from all three branches:
 - Fetch `eng/Versions.props` from each branch to get the current version.
@@ -83,14 +83,16 @@ Identify the three named branches (`main`, `release/insiders`, `release/stable`)
 - The snap version is whatever `main` currently targets (e.g., 18.6).
 - After snap: main bumps +1 minor, insiders gets main's current version, stable gets insiders' current version.
 - The old stable version is retired (unless the user says otherwise, e.g., creating a `release/sdk*` branch).
+- SDK channels shift to follow the content: any SDK channel on `main` that corresponds to the current VS version moves to `release/insiders` (since insiders now carries that content). SDK channels for the next major (e.g., `.NET 11.0.1xx SDK`) stay on `main`. If the next SDK band channel doesn't exist yet, note it as a follow-up.
 
 Present a summary like:
 ```
 Snap for VS 18.6 on dotnet/roslyn:
-  main:              18.6 (VS main)     → 18.7 (VS main, version bump)
-  release/insiders:  18.5 (rel/insiders) → 18.6 (rel/insiders, merge from main)
-  release/stable:    18.4 (rel/stable)   → 18.5 (rel/stable, merge from insiders)
+  main:              18.6 (VS main, .NET 10.0.3xx SDK)  → 18.7 (VS main, .NET 10.0.4xx SDK*)
+  release/insiders:  18.5 (VS 18.5)                     → 18.6 (VS 18.6, .NET 10.0.3xx SDK)
+  release/stable:    18.4 (VS 18.4)                     → 18.5 (VS 18.5)
   Old 18.4:          retired
+  * .NET 10.0.4xx SDK channel may not exist yet — follow up when created
 ```
 Confirm with the user before proceeding.
 
@@ -108,19 +110,18 @@ The email should follow this format:
 >
 > Following is important information about branches and dates.
 >
-> | Roslyn/Razor Branch | Current Targeting | Notes |
-> |---|---|---|
-> | main | {current VS version} -> inserts into VS main | Snap for {VS version} on {day}, {date}. main will point to {new VS version} after the snap |
-> | release/insiders | {current insiders VS version} | release/insiders will point to {VS version} (rel/insiders) after the snap. {Schedule link}. First QB period is {dates}. |
-> | release/stable | NA | release/stable will point to {previous VS version} (rel/stable) after the snap |
-> | release/dev{old version} and below | Respective release branches | Only servicing changes |
+> | Branch | Current VS | Current SDK | After-snap VS | After-snap SDK | Notes |
+> |---|---|---|---|---|---|
+
+Fill in each row using the VS channels and SDK channels discovered in step 1.2. For example, if `main` currently flows to `.NET 10.0.3xx SDK` and `.NET 11.0.1xx SDK`, show those in "Current SDK" and show the after-snap state (SDK channel moves to insiders, next-major stays on main). Mark channels that don't exist yet with `*` and add a footnote.
+
+> \* {channel name} will be added when that channel is created.
 >
 > If there's anything that needs to be checked in for QB mode, please contact the InfraSwat team.
 
 **Adapt the table** to the actual branch structure:
-- Include all active branches (main, release/insiders, release/stable, older release branches).
-- Fill "Current Targeting" from the `PublishData.json` `vsBranch` of each branch.
-- Fill "Notes" with what changes after the snap for each branch.
+- Include all active named branches and relevant servicing branches.
+- Fill current/after-snap columns from darc default channels and `PublishData.json`.
 - If the user provides a QB schedule or schedule link, include it.
 
 Present the draft to the user for review and editing before they send it.
@@ -182,10 +183,11 @@ After gathering, present **all** planned actions in a numbered list for the user
 
 5. **Update SARIF files** (roslyn only): Replace old version string with new version in all `.sarif` files under `src/RoslynAnalyzers/` (search recursively).
 
-6. **Darc subscription changes**: Update default channels to reflect the new version each branch carries:
-   - `release/insiders` → channel for the snapped version (e.g., `VS 18.6`)
-   - `release/stable` → channel for what was previously insiders (e.g., `VS 18.5`)
-   - Also update corresponding VMR flows and backflows for each branch.
+6. **Darc channel changes**: Update default channels to reflect the new version each branch carries:
+   - `release/insiders` → VS channel for the snapped version (e.g., `VS 18.6`)
+   - `release/stable` → VS channel for what was previously insiders (e.g., `VS 18.5`)
+   - SDK channels: move `.NET 10.0.Nxx SDK` from `main` to `release/insiders` (insiders now carries that SDK band). `main` will be added to the next SDK band (e.g., `.NET 10.0.(N+1)xx SDK`) when that channel is created.
+   - Also update corresponding VMR flows and backflows for each branch if needed.
    - Remove/retire default channels for the old stable version if no longer needed.
 
 7. **Move milestones**: Move merged PRs and closed issues from `Next` milestone to the target milestone (e.g., `18.6`). Create the milestone if it doesn't exist.
@@ -376,7 +378,9 @@ Find them with `git ls-files 'src/RoslynAnalyzers/**/*.sarif'` or search via the
 
 All channel updates across all repos should be collected into a **single PR** in the `maestro-configuration` repository. Use `--configuration-branch` to target a shared branch and `--no-pr` to avoid creating separate PRs for each command. Then create one PR at the end.
 
-Pick a branch name (e.g., `snap/{repo1}-{repo2}-{newVsVersion}`). For each repo, delete the old channel mapping, then add the new one:
+Pick a branch name (e.g., `snap/{repo1}-{repo2}-{newVsVersion}`). For each repo, update both VS channels and SDK channels:
+
+**VS channels**: delete the old channel mapping, then add the new one:
 
 ```
 # First command creates the branch; all subsequent commands reuse it.
@@ -391,16 +395,28 @@ darc add-default-channel --repo https://github.com/{owner}/{repo} --branch {bran
 
 Repeat for every repo and branch being snapped (e.g., insiders and stable for both roslyn and razor).
 
+**SDK channels**: Move the current SDK band from `main` to `release/insiders`:
+```
+# Delete main → .NET 10.0.Nxx SDK
+darc delete-default-channel --id {id} --configuration-branch {cfgBranch} --no-pr --ci
+
+# Add insiders → .NET 10.0.Nxx SDK
+darc add-default-channel --repo https://github.com/{owner}/{repo} --branch release/insiders --channel ".NET 10.0.Nxx SDK" --configuration-branch {cfgBranch} --no-pr --ci
+```
+
+Note: Adding `main` to the next SDK band (e.g., `.NET 10.0.(N+1)xx SDK`) is a **follow-up** — that channel may not exist yet at snap time.
+
 If subscription changes are also needed (e.g., VMR flows), they use the same config repo and can be batched onto the same branch:
 ```
 darc add-subscription --source-repo https://github.com/{owner}/{repo} --target-repo https://github.com/dotnet/dotnet --target-branch {vmrBranch} --channel "{channelName}" --update-frequency EveryDay --source-enabled --target-directory {repoName} --configuration-branch {cfgBranch} --no-pr --ci
 darc update-subscription --id {subscriptionId} --channel "{newChannel}" --configuration-branch {cfgBranch} --no-pr --ci
 ```
 
-After all commands, create one PR with auto-complete enabled:
+After all commands, create one PR with auto-complete enabled and print the URL:
 ```
-$prId = az repos pr create --repository maestro-configuration --org https://dev.azure.com/dnceng --project internal --source-branch {cfgBranch} --target-branch production --title "Snap: update default channels for {repos} ({newVsVersion})" --description "Updates default channels for the {newVsVersion} snap." --query pullRequestId -o tsv
-az repos pr update --id $prId --org https://dev.azure.com/dnceng --auto-complete true --merge-strategy squash
+$prId = az repos pr create --repository maestro-configuration --org https://dev.azure.com/dnceng --project internal --source-branch {cfgBranch} --target-branch production --title "Snap: update default channels for {repos} ({newVsVersion})" --description "Updates default channels for the {newVsVersion} snap.`n`nAuto-generated by snap skill." --query pullRequestId -o tsv
+az repos pr update --id $prId --org https://dev.azure.com/dnceng --auto-complete true --squash true --query pullRequestId -o tsv
+Write-Output "PR: https://dev.azure.com/dnceng/internal/_git/maestro-configuration/pullrequest/$prId"
 ```
 
 #### 3.6 Move milestones
@@ -429,9 +445,7 @@ foreach ($iss in $issues) { gh api repos/{owner}/{repo}/issues/$($iss.number) -X
 
 #### 3.7 Reply to the snap announcement email
 
-After all snap steps are completed, draft a reply to the pre-snap announcement email (from step 1.3) confirming the snap is done. For example:
-
-> The snap for {VS version} is now complete. main now points to {new VS version}, release/insiders points to {VS version}, and release/stable points to {previous insiders VS version}.
+After all snap steps are completed, draft a reply to the pre-snap announcement email (from step 1.3) confirming the snap is done. Don't include links to created PRs. Summarize what each branch now targets (VS channel and SDK channels, using the values discovered in step 1.2). Mention any pending follow-ups (e.g., SDK channel not yet created).
 
 Present the draft to the user before they send it.
 
