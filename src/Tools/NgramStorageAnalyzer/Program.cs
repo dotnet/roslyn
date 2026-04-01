@@ -17,9 +17,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 // basis. Each C# file is treated as one "document" (matching NavigateTo's indexing model), and
 // we compute the distinct n-gram set that would be inserted into that document's Bloom filter.
 //
-// Uses the exact same Bloom filter sizing formula as Roslyn's BloomFilter implementation:
-//   m = ceil((n * log(p)) / log(1 / 2^ln2))  with p = 0.0001 (NavigateTo's actual FPR)
-//   rounded up to even bytes
+// Uses the exact same Bloom filter sizing formula and false positive rate as NavigateTo's
+// production code (via BloomFilter.ComputeBitArrayLength and NavigateToSearchIndex.FalsePositiveProbability).
 //
 // The sparse n-gram algorithm calls SparseNgramGenerator directly (via InternalsVisibleTo).
 //
@@ -38,10 +37,8 @@ if (!Directory.Exists(rootDir))
     return 1;
 }
 
-const double FalsePositiveProbability = 0.0001;
-
 static int ComputeBloomBytes(int elementCount)
-    => elementCount <= 0 ? 0 : BloomFilter.ComputeBitArrayLength(elementCount, FalsePositiveProbability) / 8;
+    => elementCount <= 0 ? 0 : BloomFilter.ComputeBitArrayLength(elementCount, NavigateToSearchIndex.FalsePositiveProbability) / 8;
 
 // --- Per-document analysis ---
 
@@ -129,7 +126,7 @@ sb.AppendLine("This analysis compares the Bloom filter storage cost of **fixed t
 sb.AppendLine("approach) vs **sparse n-grams** (this PR) on a per-document basis. Each C# source file is");
 sb.AppendLine("treated as one NavigateTo document. All identifier tokens are lowercased and deduplicated");
 sb.AppendLine("(matching NavigateTo's indexing behavior). The Bloom filter size is computed using Roslyn's");
-sb.AppendLine($"exact `BloomFilter.ComputeM` formula with the actual false positive rate of **{FalsePositiveProbability}**.");
+sb.AppendLine($"exact `BloomFilter.ComputeM` formula with the actual false positive rate of **{NavigateToSearchIndex.FalsePositiveProbability}**.");
 sb.AppendLine();
 
 // Per-document Bloom filter sizes

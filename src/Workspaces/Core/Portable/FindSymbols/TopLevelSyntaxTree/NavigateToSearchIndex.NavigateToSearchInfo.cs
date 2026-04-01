@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal sealed partial class NavigateToSearchIndex
 {
     /// <summary>
+    /// The false positive probability for bloom filters, matching the value used by <see
+    /// cref="SyntaxTreeIndex"/> for find-references bloom filters.
+    /// </summary>
+    internal const double FalsePositiveProbability = 0.0001;
+
+    /// <summary>
     /// Pre-computed data used by NavigateTo to quickly pre-filter documents before performing
     /// expensive per-symbol pattern matching. Contains:
     /// <list type="bullet">
@@ -40,12 +46,6 @@ internal sealed partial class NavigateToSearchIndex
         /// bucketed into bit 63.
         /// </summary>
         private const int MaxSymbolNameLengthBitIndex = 63;
-
-        /// <summary>
-        /// The false positive probability for bloom filters, matching the value used by <see
-        /// cref="SyntaxTreeIndex"/> for find-references bloom filters.
-        /// </summary>
-        private const double FalsePositiveProbability = 0.0001;
 
         /// <summary>
         /// Exact set storing data derived from symbol name hump structure:
