@@ -68,6 +68,10 @@
     <ProjectReference Include="..\..\ExpressionEvaluator\VisualBasic\Source\ResultProvider\Portable\Microsoft.CodeAnalysis.VisualBasic.ResultProvider.vbproj" PrivateAssets="all" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
+  </ItemGroup>
+
   <Target Name="_GetFilesToPackage">
     <ItemGroup>
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" TargetDir="" />
