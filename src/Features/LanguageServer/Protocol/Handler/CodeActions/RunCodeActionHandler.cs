@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.ExecuteCommandParams request)
         {
-            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
+            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>()!;
             return runRequest.TextDocument;
         }
 
         public override async Task<object> HandleRequestAsync(LSP.ExecuteCommandParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
+            var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>()!;
             var document = context.Document;
 
             Contract.ThrowIfNull(document);

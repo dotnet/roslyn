@@ -2458,6 +2458,8 @@ Returned From Function 2");
         [Fact]
         public void Typeof()
         {
+            // On .NET 8+, function pointer types are reflected natively as e.g. "System.Void()" instead of "System.IntPtr".
+            var expectedOutput = RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "System.Void()" : "System.IntPtr";
             var verifier = CompileAndVerifyFunctionPointers(@"
 using System;
 class C
@@ -2468,7 +2470,7 @@ class C
         Console.WriteLine(t.ToString());
     }
 }
-", expectedOutput: "System.IntPtr");
+", expectedOutput: expectedOutput);
 
             verifier.VerifyIL("C.Main()", expectedIL: @"
 {

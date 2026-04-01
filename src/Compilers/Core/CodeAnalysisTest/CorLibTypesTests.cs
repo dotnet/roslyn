@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -191,11 +192,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ConstantValueToStringTest01()
         {
+            // ConstantValueTypeDiscriminator.Null and .Nothing have the same underlying value (0).
+            // On .NET 8+, Enum.ToString() may return "Nothing" instead of "Null" for duplicate-valued enums.
+            var nullDiscriminatorName = RuntimeUtilities.IsCoreClr8OrHigherRuntime ? "Nothing" : "Null";
+
             var cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.Null);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {nullDiscriminatorName})", cv.ToString());
 
             cv = ConstantValue.Create(null, ConstantValueTypeDiscriminator.String);
-            Assert.Equal("ConstantValueNull(null: Null)", cv.ToString());
+            Assert.Equal($"ConstantValueNull(null: {nullDiscriminatorName})", cv.ToString());
             // Never hit "ConstantValueString(null: Null)"
 
             var strVal = "QC";
