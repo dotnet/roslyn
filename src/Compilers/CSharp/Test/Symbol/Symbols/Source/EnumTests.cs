@@ -341,7 +341,8 @@ class c1
     static void Main(string[] args)
     {
         Suits S = (Suits)Enum.ToObject(typeof(Suits), 2);
-        Console.WriteLine(S.ToString()); // ValueE
+        Console.WriteLine(S == Suits.ValueB);
+        Console.WriteLine(S == Suits.ValueE);
         Suits S1 = (Suits)Enum.ToObject(typeof(Suits), -1);
         Console.WriteLine(S1.ToString()); // -1
     }
@@ -349,8 +350,8 @@ class c1
 ";
             VerifyEnumsValue(source, "c1.Suits", 1, 2, 4, 2, 2);
 
-            CompileAndVerify(source, expectedOutput: @"
-ValueE
+            CompileAndVerify(source, expectedOutput: @"True
+True
 -1
 ");
         }

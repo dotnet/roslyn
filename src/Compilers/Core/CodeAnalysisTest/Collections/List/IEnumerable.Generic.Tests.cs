@@ -73,6 +73,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         protected virtual bool Enumerator_Current_UndefinedOperation_Throws => false;
 
         /// <summary>
+        /// Same as <see cref="Enumerator_Current_UndefinedOperation_Throws"/> but only on empty collections.
+        /// </summary>
+        protected virtual bool Enumerator_Current_UndefinedOperation_Throws_On_Empty => false;
+
+        /// <summary>
         /// When calling MoveNext or Reset after modification of the enumeration, the resulting behavior is
         /// undefined. Tests are included to cover two behavioral scenarios:
         ///   - Throwing an InvalidOperationException
@@ -602,6 +607,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 if (Enumerator_Current_UndefinedOperation_Throws)
                     Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                else if (Enumerator_Current_UndefinedOperation_Throws_On_Empty && count == 0)
+                    Assert.Throws<InvalidOperationException>(() => enumerator.Current);
                 else
                     current = enumerator.Current;
             }
@@ -617,6 +624,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 while (enumerator.MoveNext()) ;
                 if (Enumerator_Current_UndefinedOperation_Throws)
+                    Assert.Throws<InvalidOperationException>(() => enumerator.Current);
+                else if (Enumerator_Current_UndefinedOperation_Throws_On_Empty && count == 0)
                     Assert.Throws<InvalidOperationException>(() => enumerator.Current);
                 else
                     current = enumerator.Current;
