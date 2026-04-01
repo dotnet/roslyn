@@ -53,17 +53,28 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public readonly bool TrimOnFree;
 
-        internal ObjectPool(Factory factory, bool trimOnFree = true)
-            : this(factory, Environment.ProcessorCount * 2, trimOnFree)
+#if DEBUG
+        /// <summary>
+        /// When false, this pool's objects are not tracked for leak detection.
+        /// Used for pools where cross-thread usage causes false positive leak reports.
+        /// </summary>
+        private readonly bool _trackLeaks;
+#endif
+
+        internal ObjectPool(Factory factory, bool trimOnFree = true, bool trackLeaks = true)
+            : this(factory, Environment.ProcessorCount * 2, trimOnFree, trackLeaks)
         {
         }
 
-        internal ObjectPool(Factory factory, int size, bool trimOnFree = true)
+        internal ObjectPool(Factory factory, int size, bool trimOnFree = true, bool trackLeaks = true)
         {
             Debug.Assert(size >= 1);
             _factory = factory;
             _items = new Element[size - 1];
             TrimOnFree = trimOnFree;
+#if DEBUG
+            _trackLeaks = trackLeaks;
+#endif
         }
 
         internal ObjectPool(Func<ObjectPool<T>, T> factory, int size)
@@ -71,6 +82,9 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             Debug.Assert(size >= 1);
             _factory = () => factory(this);
             _items = new Element[size - 1];
+#if DEBUG
+            _trackLeaks = true;
+#endif
         }
 
         private T CreateInstance()
@@ -99,7 +113,10 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 inst = AllocateSlow();
             }
 
-            PoolTracker.OnAllocate(inst);
+#if DEBUG
+            if (_trackLeaks)
+#endif
+                PoolTracker.OnAllocate(inst);
             return inst;
         }
 
@@ -178,6 +195,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         [Conditional("DEBUG")]
         internal void ForgetTrackedObject(T old, T? replacement = null)
         {
+#if DEBUG
+            if (!_trackLeaks)
+                return;
+#endif
+
             PoolTracker.OnFree(old);
 
             if (replacement != null)

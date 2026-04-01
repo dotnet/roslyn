@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Workspace)]
-[ValidatePooledObjects(Skip = "Workspaces pool validation is not reliable")]
 public sealed class SolutionTests : TestBase
 {
 #nullable enable

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         public const int DefaultWindowLength = 4096;
 
-        private static readonly ObjectPool<char[]> s_windowPool = new ObjectPool<char[]>(() => new char[DefaultWindowLength]);
+        private static readonly ObjectPool<char[]> s_windowPool = new ObjectPool<char[]>(() => new char[DefaultWindowLength], trackLeaks: false);
 
         /// <summary>
         /// Underlying source text we are lexing.  This is the final truth of all characters.  Chunks of
