@@ -4,7 +4,9 @@
 
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.FindSymbols;
 
 // Compares the Bloom filter storage cost of fixed trigrams vs sparse n-grams on a per-document
 // basis. Each C# file is treated as one "document" (matching NavigateTo's indexing model), and
@@ -14,7 +16,7 @@ using Microsoft.CodeAnalysis.CSharp;
 //   m = ceil((n * log(p)) / log(1 / 2^ln2))  with p = 0.0001 (NavigateTo's actual FPR)
 //   rounded up to even bytes
 //
-// The sparse n-gram algorithm is ported from SparseNgramGenerator.cs.
+// The sparse n-gram algorithm calls SparseNgramGenerator directly (via InternalsVisibleTo).
 //
 // Usage: NgramStorageAnalyzer <root-directory>
 
@@ -41,55 +43,10 @@ static int ComputeBloomBits(int elementCount)
     var numerator = elementCount * Math.Log(FalsePositiveProbability);
     var denominator = Math.Log(1.0 / Math.Pow(2.0, Math.Log(2.0)));
     var m = Math.Max(1, (int)Math.Ceiling(numerator / denominator));
-    return (m + 7) & ~7;  // round up to even bytes
+    return (m + 7) & ~7;
 }
 
 static int ComputeBloomBytes(int elementCount) => ComputeBloomBits(elementCount) / 8;
-
-// --- Sparse n-gram algorithm (ported from SparseNgramGenerator.cs) ---
-
-const ulong Mul1 = 0xc6a4a7935bd1e995UL;
-const ulong Mul2 = 0x228876a7198b743UL;
-
-static uint HashBigram(ReadOnlySpan<char> text, int pos)
-{
-    var a = (ulong)text[pos] * Mul1 + (ulong)text[pos + 1] * Mul2;
-    return (uint)(a + (~a >> 47));
-}
-
-static List<(int start, int length)> BuildAllNgrams(string text)
-{
-    var results = new List<(int start, int length)>();
-    if (text.Length < 3) return results;
-
-    var stack = new List<(uint hash, int pos)>();
-
-    for (var i = 0; i + 2 <= text.Length; i++)
-    {
-        var hash = HashBigram(text, i);
-
-        while (stack.Count > 0 && hash > stack[^1].hash)
-        {
-            var ngramStart = stack[^1].pos;
-            results.Add((ngramStart, i + 2 - ngramStart));
-
-            while (stack.Count > 1 && stack[^1].hash == stack[^2].hash)
-                stack.RemoveAt(stack.Count - 1);
-
-            stack.RemoveAt(stack.Count - 1);
-        }
-
-        if (stack.Count > 0)
-        {
-            var ngramStart = stack[^1].pos;
-            results.Add((ngramStart, i + 2 - ngramStart));
-        }
-
-        stack.Add((hash, i));
-    }
-
-    return results;
-}
 
 // --- Per-document analysis ---
 
@@ -122,7 +79,7 @@ foreach (var file in Directory.EnumerateFiles(rootDir, "*.cs", SearchOption.AllD
     var lowered = docIdentifiers
         .Select(id => id.ToLowerInvariant())
         .Distinct()
-        .Where(id => id.Length >= 3)
+        .Where(id => id.Length >= SparseNgramGenerator.MinNgramLength)
         .ToList();
 
     totalFiles++;
@@ -141,8 +98,9 @@ foreach (var file in Directory.EnumerateFiles(rootDir, "*.cs", SearchOption.AllD
             globalTrigramEmitted++;
         }
 
-        var sparse = BuildAllNgrams(id);
-        foreach (var (start, length) in sparse)
+        using var ngrams = TemporaryArray<(int start, int length)>.Empty;
+        SparseNgramGenerator.BuildAllNgrams(id, ref ngrams.AsRef());
+        foreach (var (start, length) in ngrams)
         {
             var s = id.Substring(start, length);
             docSparseSet.Add(s);
@@ -185,7 +143,6 @@ sb.AppendLine();
 sb.AppendLine("| Percentile | Trigram Bloom | Sparse Bloom | Delta | Ratio |");
 sb.AppendLine("|---|---|---|---|---|");
 
-var sortedByTriBloom = validDocs.OrderBy(d => d.trigramBloomBytes).ToList();
 var triBloomSorted = validDocs.Select(d => d.trigramBloomBytes).OrderBy(x => x).ToList();
 var sparseBloomSorted = validDocs.Select(d => d.sparseBloomBytes).OrderBy(x => x).ToList();
 var ratiosSorted = validDocs.Select(d => (double)d.sparseBloomBytes / d.trigramBloomBytes).OrderBy(x => x).ToList();
