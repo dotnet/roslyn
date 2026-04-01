@@ -1389,6 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
                         {
+                            VisitList(spreadElementInitializer.Arguments);
                             var methodInvocationInfo = MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer);
                             CheckInvocationArgMixing(
                                 element.Syntax,
