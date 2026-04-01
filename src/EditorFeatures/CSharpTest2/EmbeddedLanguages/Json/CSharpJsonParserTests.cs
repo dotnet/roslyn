@@ -396,7 +396,7 @@ public partial class CSharpJsonParserTests
         return new XElement(element.Name, children);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly))] // Deep recursion test relies on Windows stack size (~1MB) to trigger stack overflow; Linux has 8MB stack
     public void TestDeepRecursion1()
     {
         var (token, tree, chars) =
@@ -447,7 +447,7 @@ public partial class CSharpJsonParserTests
         Assert.Null(tree);
     }
 
-    [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")]
+    [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/1691963")] // Deep recursion test relies on Windows stack size
     public void TestDeepRecursion2()
     {
         var (token, tree, chars) =
