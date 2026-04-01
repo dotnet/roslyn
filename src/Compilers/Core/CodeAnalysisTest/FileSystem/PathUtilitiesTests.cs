@@ -114,17 +114,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         }
 
         [Fact]
-        public void GetTempCachePath_UsesTempPathOnWindows()
+        public void GetTempCachePath_UsesLocalApplicationData()
         {
-            var path = PathUtilities.TestAccessor.GetTempCachePath("roslyn-cache", @"C:\temp", @"/home/usr/.local/share", isWindows: true);
-            Assert.Equal(Path.Combine(@"C:\temp", "roslyn-cache"), path);
-        }
+            var directoryName = "roslyn-cache-" + Guid.NewGuid().ToString("N");
+            var expectedParentPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var expectedPath = string.IsNullOrEmpty(expectedParentPath)
+                ? null
+                : Path.Combine(expectedParentPath, directoryName);
 
-        [Fact]
-        public void GetTempCachePath_UsesLocalApplicationDataOnUnix()
-        {
-            var path = PathUtilities.TestAccessor.GetTempCachePath("roslyn-cache", @"/tmp", @"/home/usr/.local/share", isWindows: false);
-            Assert.Equal(@"/home/usr/.local/share/roslyn-cache", path);
+            try
+            {
+                var path = PathUtilities.GetTempCachePath(directoryName);
+                Assert.Equal(expectedPath, path);
+
+                if (path is not null)
+                {
+                    Assert.True(Directory.Exists(path));
+                }
+            }
+            finally
+            {
+                if (expectedPath is not null && Directory.Exists(expectedPath))
+                {
+                    Directory.Delete(expectedPath, recursive: true);
+                }
+            }
         }
 
         [ConditionalFact(typeof(WindowsOnly))]

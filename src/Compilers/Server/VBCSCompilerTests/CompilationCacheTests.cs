@@ -39,14 +39,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [Fact]
         public void TryCreate_ReturnsCache_WhenFeatureFlagUsesDefaultPath()
         {
-            var expectedPath = PathUtilities.TestAccessor.GetTempCachePath("roslyn-cache", Path.GetTempPath(), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), PlatformInformation.IsWindows);
+            var expectedPath = PathUtilities.GetTempCachePath("roslyn-cache");
             var logMessages = new List<string>();
             var cache = CompilationCache.TryCreate(
                 ParseArguments(["/features:use-global-cache", "test.cs"]),
                 new CollectingLogger(logMessages));
 
-            Assert.NotNull(cache);
-            Assert.Contains(logMessages, m => m.Contains($"Compilation cache enabled at: {expectedPath}", StringComparison.Ordinal));
+            if (expectedPath is null)
+            {
+                Assert.Null(cache);
+                Assert.Contains(logMessages, m => m.Contains("Compilation cache disabled because LocalApplicationData is unavailable.", StringComparison.Ordinal));
+            }
+            else
+            {
+                Assert.NotNull(cache);
+                Assert.Contains(logMessages, m => m.Contains($"Compilation cache enabled at: {expectedPath}", StringComparison.Ordinal));
+            }
         }
 
         [Fact]

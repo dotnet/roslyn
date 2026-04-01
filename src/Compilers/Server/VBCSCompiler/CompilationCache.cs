@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal static CompilationCache? TryCreate(CommandLineArguments arguments, ICompilerServerLogger logger)
         {
-            var cachePath = GetCachePath(arguments.ParseOptions.Features);
+            var cachePath = GetCachePath(arguments.ParseOptions.Features, logger);
             if (cachePath is null)
             {
                 return null;
@@ -77,16 +77,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new CompilationCache(cachePath);
         }
 
-        private static string? GetCachePath(IReadOnlyDictionary<string, string> features)
+        private static string? GetCachePath(IReadOnlyDictionary<string, string> features, ICompilerServerLogger logger)
         {
             if (!features.TryGetValue(CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag, out var featureValue) || featureValue is null)
             {
                 return null;
             }
 
-            return featureValue.Length == 0 || string.Equals(featureValue, bool.TrueString, StringComparison.OrdinalIgnoreCase)
-                ? PathUtilities.GetTempCachePath(DefaultCacheDirectoryName)
-                : featureValue;
+            if (featureValue.Length != 0 && !string.Equals(featureValue, bool.TrueString, StringComparison.OrdinalIgnoreCase))
+            {
+                return featureValue;
+            }
+
+            var cachePath = PathUtilities.GetTempCachePath(DefaultCacheDirectoryName);
+            if (cachePath is null)
+            {
+                logger.Log("Compilation cache disabled because LocalApplicationData is unavailable.");
+            }
+
+            return cachePath;
         }
 
         /// <summary>
