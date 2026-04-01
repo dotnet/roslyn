@@ -2,7 +2,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <RuntimeIdentifier>x64</RuntimeIdentifier>
     <!-- This packs up vs debugger config files, which are only generated when using the VS SDK -->
     <ExcludeFromBuild Condition="!$([MSBuild]::IsOSPlatform('Windows'))">true</ExcludeFromBuild>
 
