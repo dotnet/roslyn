@@ -28,7 +28,7 @@ public sealed class TextLineNewLineTests : TestBase
     private static readonly TextKind[] s_allTextKinds =
         [TextKind.String, TextKind.Large, TextKind.Sub, TextKind.Composite];
 
-    private static readonly (string Nl, int Len)[] s_newlines =
+    private static readonly (string NewLine, int NewLineLength)[] s_newlines =
     [
         ("\n", 1), ("\r", 1), ("\r\n", 2),
         ("\u0085", 1), ("\u2028", 1), ("\u2029", 1),
@@ -40,8 +40,8 @@ public sealed class TextLineNewLineTests : TestBase
     {
         get
         {
-            foreach (var (nl, len) in s_newlines)
-                yield return [nl, len];
+            foreach (var (newLine, newLineLength) in s_newlines)
+                yield return [newLine, newLineLength];
         }
     }
 
@@ -59,10 +59,10 @@ public sealed class TextLineNewLineTests : TestBase
     {
         get
         {
-            foreach (var (nl, len) in s_newlines)
+            foreach (var (newLine, newLineLength) in s_newlines)
             {
                 foreach (var kind in s_allTextKinds)
-                    yield return [nl, len, kind];
+                    yield return [newLine, newLineLength, kind];
             }
         }
     }
@@ -72,12 +72,12 @@ public sealed class TextLineNewLineTests : TestBase
     {
         get
         {
-            foreach (var (nl1, len1) in s_newlines)
+            foreach (var (newLine1, newLineLength1) in s_newlines)
             {
-                foreach (var (nl2, len2) in s_newlines)
+                foreach (var (newLine2, newLineLength2) in s_newlines)
                 {
                     foreach (var kind in s_allTextKinds)
-                        yield return [nl1, len1, nl2, len2, kind];
+                        yield return [newLine1, newLineLength1, newLine2, newLineLength2, kind];
                 }
             }
         }
@@ -149,11 +149,11 @@ public sealed class TextLineNewLineTests : TestBase
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 
-    private static SourceText CreateLargeText(string s)
+    private static SourceText CreateLargeText(string content)
     {
-        if (s.Length == 0)
-            return SourceText.From(s);
-        return LargeText.Decode(new StringReader(s), s.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
+        if (content.Length == 0)
+            return SourceText.From(content);
+        return LargeText.Decode(new StringReader(content), content.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
     }
 
     /// <summary>
@@ -185,16 +185,16 @@ public sealed class TextLineNewLineTests : TestBase
     private static SourceText CreateLargeTextWithChunks(params string[] chunks)
     {
         var builder = ImmutableArray.CreateBuilder<char[]>(chunks.Length);
-        foreach (var c in chunks)
-            builder.Add(c.ToCharArray());
+        foreach (var chunk in chunks)
+            builder.Add(chunk.ToCharArray());
         return new LargeText(builder.MoveToImmutable(), Encoding.UTF8, SourceHashAlgorithm.Sha1);
     }
 
     private static SourceText CreateCompositeText(params string[] segments)
     {
         var builder = ArrayBuilder<SourceText>.GetInstance();
-        foreach (var s in segments)
-            builder.Add(SourceText.From(s));
+        foreach (var segment in segments)
+            builder.Add(SourceText.From(segment));
 
         var reference = SourceText.From(string.Concat(segments));
         var result = CompositeText.ToSourceText(builder, reference, adjustSegments: false);
@@ -208,15 +208,15 @@ public sealed class TextLineNewLineTests : TestBase
 
     private static void CheckLine(
         SourceText text, int lineNumber,
-        int start, int length, int newlineLength,
+        int start, int length, int newLineLength,
         string lineText)
     {
         var line = text.Lines[lineNumber];
         Assert.Equal(start, line.Start);
         Assert.Equal(start + length, line.End);
-        Assert.Equal(start + length + newlineLength, line.EndIncludingLineBreak);
+        Assert.Equal(start + length + newLineLength, line.EndIncludingLineBreak);
         Assert.Equal(length, line.Span.Length);
-        Assert.Equal(length + newlineLength, line.SpanIncludingLineBreak.Length);
+        Assert.Equal(length + newLineLength, line.SpanIncludingLineBreak.Length);
         Assert.Equal(lineText, line.ToString());
     }
 
@@ -232,14 +232,14 @@ public sealed class TextLineNewLineTests : TestBase
 
         for (var i = 0; i < reference.Lines.Count; i++)
         {
-            var r = reference.Lines[i];
-            var a = actual.Lines[i];
-            Assert.Equal(r.Start, a.Start);
-            Assert.Equal(r.End, a.End);
-            Assert.Equal(r.EndIncludingLineBreak, a.EndIncludingLineBreak);
-            Assert.Equal(r.Span, a.Span);
-            Assert.Equal(r.SpanIncludingLineBreak, a.SpanIncludingLineBreak);
-            Assert.Equal(r.ToString(), a.ToString());
+            var referenceLine = reference.Lines[i];
+            var actualLine = actual.Lines[i];
+            Assert.Equal(referenceLine.Start, actualLine.Start);
+            Assert.Equal(referenceLine.End, actualLine.End);
+            Assert.Equal(referenceLine.EndIncludingLineBreak, actualLine.EndIncludingLineBreak);
+            Assert.Equal(referenceLine.Span, actualLine.Span);
+            Assert.Equal(referenceLine.SpanIncludingLineBreak, actualLine.SpanIncludingLineBreak);
+            Assert.Equal(referenceLine.ToString(), actualLine.ToString());
         }
 
         for (var pos = 0; pos < reference.Length; pos++)
@@ -256,69 +256,69 @@ public sealed class TextLineNewLineTests : TestBase
     // =========================================================================
 
     [Theory, MemberData(nameof(AllNewlinesAndKinds))]
-    public void NewlineInMiddle(string nl, int nlLen, TextKind kind)
+    public void NewlineInMiddle(string newLine, int newLineLength, TextKind kind)
     {
-        var text = CreateText("abc" + nl + "def", kind);
+        var text = CreateText("abc" + newLine + "def", kind);
         Assert.Equal(2, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 3, newlineLength: nlLen, lineText: "abc");
-        CheckLine(text, 1, start: 3 + nlLen, length: 3, newlineLength: 0, lineText: "def");
+        CheckLine(text, 0, start: 0, length: 3, newLineLength: newLineLength, lineText: "abc");
+        CheckLine(text, 1, start: 3 + newLineLength, length: 3, newLineLength: 0, lineText: "def");
     }
 
     [Theory, MemberData(nameof(AllNewlinesAndKinds))]
-    public void NewlineAtEnd(string nl, int nlLen, TextKind kind)
+    public void NewlineAtEnd(string newLine, int newLineLength, TextKind kind)
     {
-        var text = CreateText("abc" + nl, kind);
+        var text = CreateText("abc" + newLine, kind);
         Assert.Equal(2, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 3, newlineLength: nlLen, lineText: "abc");
-        CheckLine(text, 1, start: 3 + nlLen, length: 0, newlineLength: 0, lineText: "");
+        CheckLine(text, 0, start: 0, length: 3, newLineLength: newLineLength, lineText: "abc");
+        CheckLine(text, 1, start: 3 + newLineLength, length: 0, newLineLength: 0, lineText: "");
     }
 
     [Theory, MemberData(nameof(AllNewlinesAndKinds))]
-    public void NewlineAtStart(string nl, int nlLen, TextKind kind)
+    public void NewlineAtStart(string newLine, int newLineLength, TextKind kind)
     {
-        var text = CreateText(nl + "abc", kind);
+        var text = CreateText(newLine + "abc", kind);
         Assert.Equal(2, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 0, newlineLength: nlLen, lineText: "");
-        CheckLine(text, 1, start: nlLen, length: 3, newlineLength: 0, lineText: "abc");
+        CheckLine(text, 0, start: 0, length: 0, newLineLength: newLineLength, lineText: "");
+        CheckLine(text, 1, start: newLineLength, length: 3, newLineLength: 0, lineText: "abc");
     }
 
     [Theory, MemberData(nameof(AllNewlinesAndKinds))]
-    public void OnlyNewline(string nl, int nlLen, TextKind kind)
+    public void OnlyNewline(string newLine, int newLineLength, TextKind kind)
     {
-        var text = CreateText(nl, kind);
+        var text = CreateText(newLine, kind);
         Assert.Equal(2, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 0, newlineLength: nlLen, lineText: "");
-        CheckLine(text, 1, start: nlLen, length: 0, newlineLength: 0, lineText: "");
+        CheckLine(text, 0, start: 0, length: 0, newLineLength: newLineLength, lineText: "");
+        CheckLine(text, 1, start: newLineLength, length: 0, newLineLength: 0, lineText: "");
     }
 
     [Theory, MemberData(nameof(AllNewlinesAndKinds))]
-    public void ConsecutiveSameNewlines(string nl, int nlLen, TextKind kind)
+    public void ConsecutiveSameNewlines(string newLine, int newLineLength, TextKind kind)
     {
-        var text = CreateText(nl + nl, kind);
+        var text = CreateText(newLine + newLine, kind);
         Assert.Equal(3, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 0, newlineLength: nlLen, lineText: "");
-        CheckLine(text, 1, start: nlLen, length: 0, newlineLength: nlLen, lineText: "");
-        CheckLine(text, 2, start: 2 * nlLen, length: 0, newlineLength: 0, lineText: "");
+        CheckLine(text, 0, start: 0, length: 0, newLineLength: newLineLength, lineText: "");
+        CheckLine(text, 1, start: newLineLength, length: 0, newLineLength: newLineLength, lineText: "");
+        CheckLine(text, 2, start: 2 * newLineLength, length: 0, newLineLength: 0, lineText: "");
     }
 
     [Theory, MemberData(nameof(AllNewlinesAndKinds))]
-    public void ThreeConsecutiveSameNewlines(string nl, int nlLen, TextKind kind)
+    public void ThreeConsecutiveSameNewlines(string newLine, int newLineLength, TextKind kind)
     {
-        var text = CreateText(nl + nl + nl, kind);
+        var text = CreateText(newLine + newLine + newLine, kind);
         Assert.Equal(4, text.Lines.Count);
         for (var i = 0; i < 3; i++)
-            CheckLine(text, i, start: i * nlLen, length: 0, newlineLength: nlLen, lineText: "");
-        CheckLine(text, 3, start: 3 * nlLen, length: 0, newlineLength: 0, lineText: "");
+            CheckLine(text, i, start: i * newLineLength, length: 0, newLineLength: newLineLength, lineText: "");
+        CheckLine(text, 3, start: 3 * newLineLength, length: 0, newLineLength: 0, lineText: "");
     }
 
     [Theory, MemberData(nameof(AllNewlinePairsAndKinds))]
-    public void TwoDifferentNewlines(string nl1, int nl1Len, string nl2, int nl2Len, TextKind kind)
+    public void TwoDifferentNewlines(string newLine1, int newLine1Length, string newLine2, int newLine2Length, TextKind kind)
     {
-        var text = CreateText("a" + nl1 + "b" + nl2 + "c", kind);
+        var text = CreateText("a" + newLine1 + "b" + newLine2 + "c", kind);
         Assert.Equal(3, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 1, newlineLength: nl1Len, lineText: "a");
-        CheckLine(text, 1, start: 1 + nl1Len, length: 1, newlineLength: nl2Len, lineText: "b");
-        CheckLine(text, 2, start: 1 + nl1Len + 1 + nl2Len, length: 1, newlineLength: 0, lineText: "c");
+        CheckLine(text, 0, start: 0, length: 1, newLineLength: newLine1Length, lineText: "a");
+        CheckLine(text, 1, start: 1 + newLine1Length, length: 1, newLineLength: newLine2Length, lineText: "b");
+        CheckLine(text, 2, start: 1 + newLine1Length + 1 + newLine2Length, length: 1, newLineLength: 0, lineText: "c");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -326,7 +326,7 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("", kind);
         Assert.Equal(1, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 0, newlineLength: 0, lineText: "");
+        CheckLine(text, 0, start: 0, length: 0, newLineLength: 0, lineText: "");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -334,7 +334,7 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("hello world", kind);
         Assert.Equal(1, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 11, newlineLength: 0, lineText: "hello world");
+        CheckLine(text, 0, start: 0, length: 11, newLineLength: 0, lineText: "hello world");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -342,9 +342,9 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("abc\rdef\nghi", kind);
         Assert.Equal(3, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 3, newlineLength: 1, lineText: "abc");
-        CheckLine(text, 1, start: 4, length: 3, newlineLength: 1, lineText: "def");
-        CheckLine(text, 2, start: 8, length: 3, newlineLength: 0, lineText: "ghi");
+        CheckLine(text, 0, start: 0, length: 3, newLineLength: 1, lineText: "abc");
+        CheckLine(text, 1, start: 4, length: 3, newLineLength: 1, lineText: "def");
+        CheckLine(text, 2, start: 8, length: 3, newLineLength: 0, lineText: "ghi");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -352,9 +352,9 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("abc\n\rdef", kind);
         Assert.Equal(3, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 3, newlineLength: 1, lineText: "abc");
-        CheckLine(text, 1, start: 4, length: 0, newlineLength: 1, lineText: "");
-        CheckLine(text, 2, start: 5, length: 3, newlineLength: 0, lineText: "def");
+        CheckLine(text, 0, start: 0, length: 3, newLineLength: 1, lineText: "abc");
+        CheckLine(text, 1, start: 4, length: 0, newLineLength: 1, lineText: "");
+        CheckLine(text, 2, start: 5, length: 3, newLineLength: 0, lineText: "def");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -362,13 +362,13 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("a\nb\rc\r\nd\u0085e\u2028f\u2029g", kind);
         Assert.Equal(7, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 1, newlineLength: 1, lineText: "a");
-        CheckLine(text, 1, start: 2, length: 1, newlineLength: 1, lineText: "b");
-        CheckLine(text, 2, start: 4, length: 1, newlineLength: 2, lineText: "c");
-        CheckLine(text, 3, start: 7, length: 1, newlineLength: 1, lineText: "d");
-        CheckLine(text, 4, start: 9, length: 1, newlineLength: 1, lineText: "e");
-        CheckLine(text, 5, start: 11, length: 1, newlineLength: 1, lineText: "f");
-        CheckLine(text, 6, start: 13, length: 1, newlineLength: 0, lineText: "g");
+        CheckLine(text, 0, start: 0, length: 1, newLineLength: 1, lineText: "a");
+        CheckLine(text, 1, start: 2, length: 1, newLineLength: 1, lineText: "b");
+        CheckLine(text, 2, start: 4, length: 1, newLineLength: 2, lineText: "c");
+        CheckLine(text, 3, start: 7, length: 1, newLineLength: 1, lineText: "d");
+        CheckLine(text, 4, start: 9, length: 1, newLineLength: 1, lineText: "e");
+        CheckLine(text, 5, start: 11, length: 1, newLineLength: 1, lineText: "f");
+        CheckLine(text, 6, start: 13, length: 1, newLineLength: 0, lineText: "g");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -376,9 +376,9 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("a\r\n\r\nb", kind);
         Assert.Equal(3, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 1, newlineLength: 2, lineText: "a");
-        CheckLine(text, 1, start: 3, length: 0, newlineLength: 2, lineText: "");
-        CheckLine(text, 2, start: 5, length: 1, newlineLength: 0, lineText: "b");
+        CheckLine(text, 0, start: 0, length: 1, newLineLength: 2, lineText: "a");
+        CheckLine(text, 1, start: 3, length: 0, newLineLength: 2, lineText: "");
+        CheckLine(text, 2, start: 5, length: 1, newLineLength: 0, lineText: "b");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -386,9 +386,9 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("a\r\r\nb", kind);
         Assert.Equal(3, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 1, newlineLength: 1, lineText: "a");
-        CheckLine(text, 1, start: 2, length: 0, newlineLength: 2, lineText: "");
-        CheckLine(text, 2, start: 4, length: 1, newlineLength: 0, lineText: "b");
+        CheckLine(text, 0, start: 0, length: 1, newLineLength: 1, lineText: "a");
+        CheckLine(text, 1, start: 2, length: 0, newLineLength: 2, lineText: "");
+        CheckLine(text, 2, start: 4, length: 1, newLineLength: 0, lineText: "b");
     }
 
     [Theory, MemberData(nameof(AllTextKinds))]
@@ -396,9 +396,9 @@ public sealed class TextLineNewLineTests : TestBase
     {
         var text = CreateText("a\r\n\rb", kind);
         Assert.Equal(3, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 1, newlineLength: 2, lineText: "a");
-        CheckLine(text, 1, start: 3, length: 0, newlineLength: 1, lineText: "");
-        CheckLine(text, 2, start: 4, length: 1, newlineLength: 0, lineText: "b");
+        CheckLine(text, 0, start: 0, length: 1, newLineLength: 2, lineText: "a");
+        CheckLine(text, 1, start: 3, length: 0, newLineLength: 1, lineText: "");
+        CheckLine(text, 2, start: 4, length: 1, newLineLength: 0, lineText: "b");
     }
 
     // =========================================================================
@@ -424,19 +424,19 @@ public sealed class TextLineNewLineTests : TestBase
     // --- LargeText: chunk boundary tests ---
 
     [Theory, MemberData(nameof(AllNewlines))]
-    public void LargeText_ChunkBoundaryBeforeNewline(string nl, int nlLen)
+    public void LargeText_ChunkBoundaryBeforeNewline(string newLine, int newLineLength)
     {
         AssertLinesMatch(
-            SourceText.From("abc" + nl + "def"),
-            CreateLargeTextWithChunks("abc", nl + "def"));
+            SourceText.From("abc" + newLine + "def"),
+            CreateLargeTextWithChunks("abc", newLine + "def"));
     }
 
     [Theory, MemberData(nameof(AllNewlines))]
-    public void LargeText_ChunkBoundaryAfterNewline(string nl, int nlLen)
+    public void LargeText_ChunkBoundaryAfterNewline(string newLine, int newLineLength)
     {
         AssertLinesMatch(
-            SourceText.From("abc" + nl + "def"),
-            CreateLargeTextWithChunks("abc" + nl, "def"));
+            SourceText.From("abc" + newLine + "def"),
+            CreateLargeTextWithChunks("abc" + newLine, "def"));
     }
 
     [Fact]
@@ -445,8 +445,8 @@ public sealed class TextLineNewLineTests : TestBase
         var text = CreateLargeTextWithChunks("abc\r", "\ndef");
         AssertLinesMatch(SourceText.From("abc\r\ndef"), text);
         Assert.Equal(2, text.Lines.Count);
-        CheckLine(text, 0, start: 0, length: 3, newlineLength: 2, lineText: "abc");
-        CheckLine(text, 1, start: 5, length: 3, newlineLength: 0, lineText: "def");
+        CheckLine(text, 0, start: 0, length: 3, newLineLength: 2, lineText: "abc");
+        CheckLine(text, 1, start: 5, length: 3, newLineLength: 0, lineText: "def");
     }
 
     [Fact]
@@ -505,7 +505,7 @@ public sealed class TextLineNewLineTests : TestBase
         var subText = new SubText(fullText, new TextSpan(0, 4));
         AssertLinesMatch(SourceText.From("abc\r"), subText);
         Assert.Equal(2, subText.Lines.Count);
-        CheckLine(subText, 0, start: 0, length: 3, newlineLength: 1, lineText: "abc");
+        CheckLine(subText, 0, start: 0, length: 3, newLineLength: 1, lineText: "abc");
     }
 
     [Fact]
@@ -636,12 +636,12 @@ public sealed class TextLineNewLineTests : TestBase
     public void CompositeText_ThreeWaySplit_AllCombinations(string content)
     {
         var reference = SourceText.From(content);
-        for (var s1 = 1; s1 < content.Length - 1; s1++)
+        for (var split1 = 1; split1 < content.Length - 1; split1++)
         {
-            for (var s2 = s1 + 1; s2 < content.Length; s2++)
+            for (var split2 = split1 + 1; split2 < content.Length; split2++)
             {
                 var composite = CreateCompositeText(
-                    content[..s1], content[s1..s2], content[s2..]);
+                    content[..split1], content[split1..split2], content[split2..]);
                 AssertLinesMatch(reference, composite);
             }
         }
