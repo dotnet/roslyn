@@ -2,11 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 // Compares the Bloom filter storage cost of fixed trigrams vs sparse n-grams on a per-document
 // basis. Each C# file is treated as one "document" (matching NavigateTo's indexing model), and
@@ -33,20 +38,10 @@ if (!Directory.Exists(rootDir))
     return 1;
 }
 
-// --- Bloom filter sizing (matches Roslyn's BloomFilter.ComputeM exactly) ---
-
 const double FalsePositiveProbability = 0.0001;
 
-static int ComputeBloomBits(int elementCount)
-{
-    if (elementCount <= 0) return 0;
-    var numerator = elementCount * Math.Log(FalsePositiveProbability);
-    var denominator = Math.Log(1.0 / Math.Pow(2.0, Math.Log(2.0)));
-    var m = Math.Max(1, (int)Math.Ceiling(numerator / denominator));
-    return (m + 7) & ~7;
-}
-
-static int ComputeBloomBytes(int elementCount) => ComputeBloomBits(elementCount) / 8;
+static int ComputeBloomBytes(int elementCount)
+    => elementCount <= 0 ? 0 : BloomFilter.ComputeBitArrayLength(elementCount, FalsePositiveProbability) / 8;
 
 // --- Per-document analysis ---
 
