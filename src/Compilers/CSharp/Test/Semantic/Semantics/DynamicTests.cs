@@ -3238,7 +3238,6 @@ class C : List<int>
 
         [Fact]
         [WorkItem(18320, "https://github.com/dotnet/roslyn/issues/18320")]
-        [ValidatePooledObjects(LeakReason = "Missing Microsoft.CSharp reference error path")]
         public void TestMissingMicrosoftCSharpDllReference()
         {
             string source = @"

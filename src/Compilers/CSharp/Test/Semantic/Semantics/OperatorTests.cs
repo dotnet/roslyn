@@ -4769,7 +4769,6 @@ unsafe struct A
         }
 
         [Fact, WorkItem(60059, "https://github.com/dotnet/roslyn/issues/60059")]
-        [ValidatePooledObjects(LeakReason = "Deep binary expression tree overflows stack guard, leaking ArrayBuilder")]
         public void TestNullCoalesce_Dynamic()
         {
             var source = @"

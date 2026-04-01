@@ -6847,7 +6847,6 @@ _Lambda$__1#4-0#4
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
-        <ValidatePooledObjects(LeakReason:="SymWriter error path leaks pooled objects")>
         Public Sub SymWriterErrors()
             Dim source0 =
 <compilation>

@@ -726,7 +726,6 @@ class C
 
         [WorkItem(217748, "https://devdiv.visualstudio.com/DevDiv/_workitems?_a=edit&id=217748")]
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Bad expression constructor error path")]
         public void BadExpressionConstructor()
         {
             string source =

@@ -12774,7 +12774,7 @@ class C
 
         [WorkItem(62540, "https://github.com/dotnet/roslyn/issues/62540")]
         [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
-        [ValidatePooledObjects(LeakReason = "AnalyzerDriver async continuations may not complete before pool validation")]
+        [ValidatePooledObjects(Skip = "AnalyzerDriver async continuations may not complete before pool validation")]
         public void TestSuppression_CompilerSyntaxParseError_SuppressWarningCaughtDuringParsingStage(bool skipAnalyzers)
         {
             const string SourceCode = @"
