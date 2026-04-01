@@ -610,15 +610,7 @@ public sealed class TextLineNewLineTests : TestBase
             CreateCompositeText("abc\r", "def"));
     }
 
-    [Theory]
-    [InlineData("abcdefghijkl")]
-    [InlineData("\r\r\r\r\r\r")]
-    [InlineData("\n\n\n\n\n\n")]
-    [InlineData("\r\n\r\n\r\n")]
-    [InlineData("\n\r\n\r\n\r")]
-    [InlineData("a\r\nb\r\nc\r\n")]
-    [InlineData("ab\r\ncd\r\nef")]
-    [InlineData("ab\u0085cd\u2028ef\u2029gh")]
+    [Theory, MemberData(nameof(InterestingContents))]
     public void CompositeText_AllSplitPoints_MatchStringText(string content)
     {
         var reference = SourceText.From(content);
