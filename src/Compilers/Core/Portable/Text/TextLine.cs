@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentOutOfRangeException(nameof(span), CodeAnalysisResources.SpanDoesNotIncludeStartOfLine);
                 }
 
-                int lineBreakLen = 0;
+                var lineBreakLen = 0;
                 if (span.End > span.Start && TextUtilities.IsAnyLineBreakCharacter(text[span.End - 1]))
                 {
                     // End already includes line break - determine its length

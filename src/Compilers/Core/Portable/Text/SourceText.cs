@@ -1001,6 +1001,13 @@ namespace Microsoft.CodeAnalysis.Text
             internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1; // 31 bits
 
             private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
+
+            private sealed class LineStartComparer : IComparer<uint>
+            {
+                public static readonly LineStartComparer Instance = new();
+                public int Compare(uint x, uint y) => GetLineStart(x).CompareTo(GetLineStart(y));
+            }
+
             // priorLineBreakLength is 1 (any single-char break) or 2 (\r\n only); the top bit stores
             // whether this was the 2-char \r\n case: (priorLineBreakLength - 1).
             internal static uint PackEntry(int lineStart, int priorLineBreakLength)
@@ -1030,16 +1037,16 @@ namespace Microsoft.CodeAnalysis.Text
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
-                    int start = GetLineStart(_lineStarts[index]);
+                    var start = GetLineStart(_lineStarts[index]);
                     if (index == _lineStarts.Count - 1)
                     {
                         return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length), lineBreakLength: 0);
                     }
                     else
                     {
-                        uint nextEntry = _lineStarts[index + 1];
-                        int end = GetLineStart(nextEntry);
-                        int lineBreakLen = (int)(nextEntry >> LineBreakLengthShift) + 1; // reverse the bias-1 encoding
+                        var nextEntry = _lineStarts[index + 1];
+                        var end = GetLineStart(nextEntry);
+                        var lineBreakLen = (int)(nextEntry >> LineBreakLengthShift) + 1; // reverse the bias-1 encoding
                         return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end), lineBreakLen);
                     }
                 }
@@ -1060,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.Text
                 if (position >= GetLineStart(_lineStarts[lastLineNumber]))
                 {
                     var limit = Math.Min(_lineStarts.Count, lastLineNumber + 4);
-                    for (int i = lastLineNumber; i < limit; i++)
+                    for (var i = lastLineNumber; i < limit; i++)
                     {
                         if (position < GetLineStart(_lineStarts[i]))
                         {
@@ -1074,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // Binary search to find the right line
                 // if no lines start exactly at position, round to the left
                 // EoF position will map to the last line.
-                lineNumber = BinarySearchLineStart(position);
+                lineNumber = _lineStarts.BinarySearch((uint)position, LineStartComparer.Instance);
                 if (lineNumber < 0)
                 {
                     lineNumber = (~lineNumber) - 1;
@@ -1082,21 +1089,6 @@ namespace Microsoft.CodeAnalysis.Text
 
                 _lastLineNumber = lineNumber;
                 return lineNumber;
-            }
-
-            private int BinarySearchLineStart(int position)
-            {
-                var lineStarts = _lineStarts;
-                int lo = 0, hi = lineStarts.Count - 1;
-                while (lo <= hi)
-                {
-                    int mid = lo + ((hi - lo) >> 1);
-                    int midStart = GetLineStart(lineStarts[mid]);
-                    if (midStart == position) return mid;
-                    if (midStart < position) lo = mid + 1;
-                    else hi = mid - 1;
-                }
-                return ~lo;
             }
 
             public override TextLine GetLineFromPosition(int position)
@@ -1152,11 +1144,11 @@ namespace Microsoft.CodeAnalysis.Text
                 var index = 0;
                 if (lastWasCR)
                 {
-                    int breakLen = 1;
+                    var breakLen = 1;
                     if (length > 0 && buffer[0] == '\n')
                     {
                         index++;
-                        breakLen++;
+                        breakLen = 2;
                     }
 
                     lineStarts.Add(LineInfo.PackEntry(position + index, breakLen));
@@ -1165,7 +1157,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                 while (index < length)
                 {
-                    char c = buffer[index];
+                    var c = buffer[index];
                     index++;
 
                     // Common case - ASCII & not a line break
@@ -1178,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.Text
                     }
 
                     // Assumes that the only 2-char line break sequence is CR+LF
-                    int lineBreakLen;
+                    var lineBreakLen = 1;
                     if (c == '\r')
                     {
                         if (index < length && buffer[index] == '\n')
@@ -1191,21 +1183,13 @@ namespace Microsoft.CodeAnalysis.Text
                             lastWasCR = true;
                             continue;
                         }
-                        else
-                        {
-                            lineBreakLen = 1;
-                        }
                     }
                     else if (!TextUtilities.IsAnyLineBreakCharacter(c))
                     {
                         continue;
                     }
-                    else
-                    {
-                        lineBreakLen = 1;
-                    }
 
-                    // next line starts at index; encode the prior line's break length in the top 2 bits
+                    // next line starts at index; encode the prior line's break length in the top bit
                     lineStarts.Add(LineInfo.PackEntry(position + index, lineBreakLen));
                 }
             });
