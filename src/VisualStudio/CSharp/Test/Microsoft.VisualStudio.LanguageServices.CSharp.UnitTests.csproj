@@ -63,7 +63,7 @@
       <Private>true</Private>
     </Reference>
 
-    <PackageReference Include="SourceGear,.sqlite3" GeneratePathProperty="true" PrivateAssets="all" />
+    <PackageReference Include="SourceGear.sqlite3" GeneratePathProperty="true" PrivateAssets="all" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
