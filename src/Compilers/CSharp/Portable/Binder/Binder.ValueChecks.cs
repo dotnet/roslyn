@@ -4841,7 +4841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                if (element is BoundCollectionExpressionSpreadElement { IteratorBody: BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer } } spreadElement)
+                if (element is BoundCollectionExpressionSpreadElement { IteratorBody: BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer } })
                 {
                     safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
                     return true;
