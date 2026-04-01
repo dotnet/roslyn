@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <StartupObject />
-    <TargetFrameworks>$(NetRoslyn)</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynWindowsTests)</TargetFrameworks>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
   </PropertyGroup>

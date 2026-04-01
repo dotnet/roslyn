@@ -41,7 +41,7 @@ usage()
   echo "  --sourceBuild              Build the repository in source-only mode"
   echo "  --productBuild             Build the repository in product-build mode."
   echo "  --fromVMR                  Build the repository in product-build mode."
-  echo "  --solution                 Solution to build (default is Compilers.slnf)"
+  echo "  --solution                 Solution to build (default is Roslyn.slnx)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -86,7 +86,7 @@ properties=()
 source_build=false
 product_build=false
 from_vmr=false
-solution_to_build="Compilers.slnf"
+solution_to_build="Roslyn.slnx"
 
 args=""
 
@@ -383,7 +383,7 @@ fi
 if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
 
-  if [[ -n "$test_compiler_only" ]]; then
+  if [[ "$test_compiler_only" == true ]]; then
     runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
   fi
 
