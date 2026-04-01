@@ -49,7 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xunit.Combinatorial" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Cache" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" NoWarn="NU1701" />
     <!-- 
         This is necessary because Microsoft.VisualStudio.LanguageServer.Client.Implementation has transitive dependencies on Microsoft.VisualStudio.Workspace.
