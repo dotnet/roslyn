@@ -14,6 +14,8 @@ Perform a branch snap (release branch cut) for dotnet repositories. A snap shift
 
 > **SKILL MAINTENANCE**: If you deviate from this skill during execution (e.g., a step doesn't work as described, a new step is needed, or the process has changed), remind the user to update this skill file so future snaps benefit from the fix.
 
+> **SESSION**: A snap spans multiple days (initial snap, then post-VS-snap follow-up ~1 week later). Recommend the user reuse the same chat session throughout one snap cycle so context (PR numbers, branch names, channel IDs, etc.) is preserved. If starting a new session, review session memory for prior snap state.
+
 ## Branch Model
 
 Roslyn (and similar repos) use three named branches that cascade during a snap:
@@ -449,7 +451,19 @@ After all snap steps are completed, draft a reply to the pre-snap announcement e
 
 Present the draft to the user before they send it.
 
-#### 3.8 Review skill for updates
+#### 3.8 Post-VS-snap config updates
+
+After VS snaps (~1 week later), the interim `PublishData.json` overrides need reverting. For each repo, create a PR to update:
+
+- **`main`**: Set `insertionCreateDraftPR` back to `false` so insertions are no longer drafts.
+- **`release/insiders`**: Change `vsBranch` from `main` to `rel/insiders` (VS has now created the `rel/insiders` branch).
+- **`release/stable`** (only if temporarily redirected during snap): Change `vsBranch` to `rel/stable`.
+
+Also handle any pending SDK channel follow-ups (e.g., adding `main` to a newly created `.NET 10.0.Nxx SDK` channel).
+
+This step happens ~1 week after the initial snap — remind the user about it when finishing the snap, and pick it up when the user resumes this session.
+
+#### 3.9 Review skill for updates
 
 After completing the snap, review whether any steps needed to be done differently than described in this skill. If so, remind the user to update this skill file so future snaps benefit from the improvements.
 
