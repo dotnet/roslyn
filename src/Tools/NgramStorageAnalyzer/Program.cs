@@ -17,11 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 // basis. Each C# file is treated as one "document" (matching NavigateTo's indexing model), and
 // we compute the distinct n-gram set that would be inserted into that document's Bloom filter.
 //
-// Uses the exact same Bloom filter sizing formula and false positive rate as NavigateTo's
-// production code (via BloomFilter.ComputeBitArrayLength and NavigateToSearchIndex.FalsePositiveProbability).
-//
-// The sparse n-gram algorithm calls SparseNgramGenerator directly (via InternalsVisibleTo).
-//
 // Usage: NgramStorageAnalyzer <root-directory>
 
 if (args.Length == 0)
