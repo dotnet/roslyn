@@ -77,11 +77,6 @@ public abstract class CompletionProvider
     public virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         => Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
 
-    internal virtual Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? commitKey, CancellationToken cancellationToken)
-#pragma warning disable RS0030 // Do not use banned APIs
-        => GetChangeAsync(document, item, commitKey, cancellationToken);
-#pragma warning restore RS0030 // Do not use banned APIs
-
     /// <summary>
     /// True if the provider produces snippet items.
     /// </summary>

@@ -67,19 +67,19 @@ internal abstract class CommonCompletionProvider : CompletionProvider
         // Then, if we would commit text that could be expanded as a snippet, 
         // put that information in the description so that the user knows.
         var description = await GetDescriptionWorkerAsync(document, item, options, displayOptions, cancellationToken).ConfigureAwait(false);
-        var parts = await TryAddSnippetInvocationPartAsync(document, item, options, description.TaggedParts, cancellationToken).ConfigureAwait(false);
+        var parts = await TryAddSnippetInvocationPartAsync(document, item, description.TaggedParts, cancellationToken).ConfigureAwait(false);
 
         return description.WithTaggedParts(parts);
     }
 
     private async Task<ImmutableArray<TaggedText>> TryAddSnippetInvocationPartAsync(
-        Document document, CompletionItem item, CompletionOptions options,
+        Document document, CompletionItem item,
         ImmutableArray<TaggedText> parts, CancellationToken cancellationToken)
     {
         var snippetService = document.Project.Services.GetService<ISnippetInfoService>();
         if (snippetService != null)
         {
-            var change = await GetTextChangeAsync(document, item, options, ch: '\t', cancellationToken: cancellationToken).ConfigureAwait(false) ??
+            var change = await GetTextChangeAsync(document, item, ch: '\t', cancellationToken: cancellationToken).ConfigureAwait(false) ??
                 new TextChange(item.Span, item.DisplayText);
             var insertionText = change.NewText;
 
@@ -107,25 +107,17 @@ internal abstract class CommonCompletionProvider : CompletionProvider
             : Task.FromResult(CompletionDescription.Empty);
     }
 
-    public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
+    public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
     {
-        Debug.Fail("For backwards API compat only, should not be called");
-
-        // Publicly available options do not affect this API.
-        return GetChangeAsync(document, item, CompletionOptions.Default, commitKey, cancellationToken);
-    }
-
-    internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? commitKey = null, CancellationToken cancellationToken = default)
-    {
-        var change = (await GetTextChangeAsync(document, item, options, commitKey, cancellationToken).ConfigureAwait(false))
+        var change = (await GetTextChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false))
             ?? new TextChange(item.Span, item.DisplayText);
         return CompletionChange.Create(change);
     }
 
-    public virtual Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
-        => GetTextChangeAsync(selectedItem, options, ch, cancellationToken);
+    public virtual Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        => GetTextChangeAsync(selectedItem, ch, cancellationToken);
 
-    protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
+    protected virtual Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         => SpecializedTasks.Default<TextChange?>();
 
     protected static CompletionItem CreateSuggestionModeItem(string? displayText, string? description)

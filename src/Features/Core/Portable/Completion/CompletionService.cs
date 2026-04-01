@@ -228,26 +228,9 @@ public abstract partial class CompletionService : ILanguageService
     /// <param name="commitCharacter">The typed character that caused the item to be committed. 
     /// This character may be used as part of the change. 
     /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
-    public virtual Task<CompletionChange> GetChangeAsync(
+    public virtual async Task<CompletionChange> GetChangeAsync(
         Document document,
         CompletionItem item,
-        char? commitCharacter = null,
-        CancellationToken cancellationToken = default)
-        => GetChangeAsync(document, item, CompletionOptions.Default, commitCharacter, cancellationToken);
-
-    /// <summary>
-    /// Gets the change to be applied when the item is committed.
-    /// </summary>
-    /// <param name="document">The document that completion is occurring within.</param>
-    /// <param name="item">The item to get the change for.</param>
-    /// <param name="options">Completion options</param>
-    /// <param name="commitCharacter">The typed character that caused the item to be committed. 
-    /// This character may be used as part of the change. 
-    /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
-    internal virtual async Task<CompletionChange> GetChangeAsync(
-        Document document,
-        CompletionItem item,
-        CompletionOptions options,
         char? commitCharacter = null,
         CancellationToken cancellationToken = default)
     {
@@ -262,7 +245,7 @@ public abstract partial class CompletionService : ILanguageService
 
             var change = await extensionManager.PerformFunctionAsync(
                 provider,
-                cancellationToken => provider.GetChangeAsync(document, item, options, commitCharacter, cancellationToken),
+                cancellationToken => provider.GetChangeAsync(document, item, commitCharacter, cancellationToken),
                 defaultValue: null!,
                 cancellationToken).ConfigureAwait(false);
             if (change == null)

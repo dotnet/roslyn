@@ -41,7 +41,6 @@ internal static class CompletionResultFactory
         bool isIncomplete,
         bool isHardSelection,
         long resultId,
-        CompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         var isSuggestionMode = !isHardSelection;
@@ -129,7 +128,6 @@ internal static class CompletionResultFactory
                 typedText,
                 item,
                 completionService,
-                completionOptions,
                 cancellationToken).ConfigureAwait(false);
 
             if (!item.InlineDescription.IsEmpty())
@@ -334,7 +332,6 @@ internal static class CompletionResultFactory
         string typedText,
         CompletionItem item,
         CompletionService completionService,
-        CompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         if (supportsVSExtensions)
@@ -347,7 +344,6 @@ internal static class CompletionResultFactory
                 defaultSpan,
                 item,
                 completionService,
-                completionOptions,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -370,7 +366,6 @@ internal static class CompletionResultFactory
                 item,
                 lspItem,
                 completionService,
-                completionOptions,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -385,7 +380,6 @@ internal static class CompletionResultFactory
         TextSpan defaultSpan,
         CompletionItem item,
         CompletionService completionService,
-        CompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         var lspItem = new LSP.VSInternalCompletionItem
@@ -415,7 +409,6 @@ internal static class CompletionResultFactory
                 item,
                 lspItem,
                 completionService,
-                completionOptions,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -526,13 +519,12 @@ internal static class CompletionResultFactory
         CompletionItem item,
         LSP.CompletionItem lspItem,
         CompletionService completionService,
-        CompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(item.IsComplexTextEdit);
         Contract.ThrowIfNull(lspItem.Label);
 
-        var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, item, completionOptions, cancellationToken).ConfigureAwait(false);
+        var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, item, cancellationToken).ConfigureAwait(false);
         var change = completionChange.TextChange;
 
         // If the change's span is different from default, then the item should be mark as IsComplexTextEdit.
@@ -541,15 +533,14 @@ internal static class CompletionResultFactory
         PopulateTextEdit(lspItem, change.Span, change.NewText ?? string.Empty, documentText, itemDefaultsSupported, defaultSpan);
     }
 
-    private static async Task<LSP.TextEdit[]?> GenerateAdditionalTextEditForImportCompletionAsync(
+    public static async Task<LSP.TextEdit[]?> GenerateAdditionalTextEditForImportCompletionAsync(
         CompletionItem selectedItem,
         Document document,
         CompletionService completionService,
-        CompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(selectedItem.Flags.IsExpanded());
-        var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, completionOptions, cancellationToken).ConfigureAwait(false);
+        var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var builder);
@@ -568,16 +559,11 @@ internal static class CompletionResultFactory
         return builder.ToArray();
     }
 
-    private static async Task<CompletionChange> GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(
-        CompletionService completionService,
-        Document document,
-        CompletionItem completionItem,
-        CompletionOptions completionOptions,
-        CancellationToken cancellationToken)
+    private static async Task<CompletionChange> GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(CompletionService completionService, Document document, CompletionItem completionItem, CancellationToken cancellationToken)
     {
         try
         {
-            return await completionService.GetChangeAsync(document, completionItem, completionOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await completionService.GetChangeAsync(document, completionItem, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
         {
@@ -627,13 +613,13 @@ internal static class CompletionResultFactory
             if (roslynItem.Flags.IsExpanded())
             {
                 var additionalEdits = await GenerateAdditionalTextEditForImportCompletionAsync(
-                    roslynItem, document, completionService, completionOptions, cancellationToken).ConfigureAwait(false);
+                    roslynItem, document, completionService, cancellationToken).ConfigureAwait(false);
                 lspItem.AdditionalTextEdits = additionalEdits;
             }
             else
             {
                 var (textEdit, isSnippetString, newPosition) = await GenerateComplexTextEditAsync(
-                    document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: false, completionOptions, cancellationToken).ConfigureAwait(false);
+                    document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: false, cancellationToken).ConfigureAwait(false);
 
                 var lspOffset = newPosition is null ? -1 : newPosition.Value;
 
@@ -684,7 +670,7 @@ internal static class CompletionResultFactory
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var (edit, _, _) = await GenerateComplexTextEditAsync(
-                document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: true, completionOptions, cancellationToken).ConfigureAwait(false);
+                document, completionService, roslynItem, capabilityHelper.SupportSnippets, insertNewPositionPlaceholder: true, cancellationToken).ConfigureAwait(false);
 
             lspItem.TextEdit = edit;
         }
@@ -698,12 +684,11 @@ internal static class CompletionResultFactory
         CompletionItem selectedItem,
         bool snippetsSupported,
         bool insertNewPositionPlaceholder,
-        CompletionOptions completionOptions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(selectedItem.IsComplexTextEdit);
 
-        var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, completionOptions, cancellationToken).ConfigureAwait(false);
+        var completionChange = await GetCompletionChangeOrDisplayNameInCaseOfExceptionAsync(completionService, document, selectedItem, cancellationToken).ConfigureAwait(false);
         var completionChangeSpan = completionChange.TextChange.Span;
         var newText = completionChange.TextChange.NewText;
         Contract.ThrowIfNull(newText);

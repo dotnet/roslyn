@@ -76,7 +76,7 @@ internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider,
         => text[insertedCharacterPosition] == '.';
 
     public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
-        => base.GetChangeAsync(document, item, CompletionOptions.Default, commitKey, cancellationToken);
+        => base.GetChangeAsync(document, item, commitKey, cancellationToken);
 
     public virtual Task NotifyCommittingItemAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         => Task.CompletedTask;

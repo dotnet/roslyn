@@ -103,7 +103,7 @@ internal abstract class AbstractAggregateEmbeddedLanguageCompletionProvider : LS
         }
     }
 
-    internal override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? commitKey, CancellationToken cancellationToken)
+    public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         => GetLanguage(item).CompletionProvider!.GetChangeAsync(document, item, commitKey, cancellationToken);
 
     internal override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)

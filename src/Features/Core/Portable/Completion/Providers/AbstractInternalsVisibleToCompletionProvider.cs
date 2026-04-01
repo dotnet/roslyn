@@ -265,7 +265,7 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
         return result;
     }
 
-    internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? commitKey = null, CancellationToken cancellationToken = default)
+    public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
     {
         var projectIdGuid = item.GetProperty(ProjectGuidKey);
         var projectId = ProjectId.CreateFromSerialized(new Guid(projectIdGuid));

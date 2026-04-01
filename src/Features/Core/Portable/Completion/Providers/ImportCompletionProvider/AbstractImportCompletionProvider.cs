@@ -112,8 +112,8 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
         return usingsBuilder.ToImmutableAndClear();
     }
 
-    internal override async Task<CompletionChange> GetChangeAsync(
-        Document document, CompletionItem completionItem, CompletionOptions options, char? commitKey, CancellationToken cancellationToken)
+    public override async Task<CompletionChange> GetChangeAsync(
+        Document document, CompletionItem completionItem, char? commitKey, CancellationToken cancellationToken)
     {
         var containingNamespace = ImportCompletionItem.GetContainingNamespace(completionItem);
         var provideParenthesisCompletion = await ShouldProvideParenthesisCompletionAsync(

@@ -8259,7 +8259,7 @@ namespace NS
                 Return True
             End Function
 
-            Friend Overrides Function GetChangeAsync(document As Document, item As CompletionItem, options As CompletionOptions, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
                 Dim newText =
 "using NewUsing;
 using System;
@@ -8304,7 +8304,7 @@ class C
                 Return True
             End Function
 
-            Friend Overrides Function GetChangeAsync(document As Document, item As CompletionItem, options As CompletionOptions, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
                 Dim commitText = item.DisplayText
                 If commitText.StartsWith("★") Then
                     ' remove the star and the following space
@@ -10809,7 +10809,7 @@ class MyClass
                 Return True
             End Function
 
-            Friend Overrides Function GetChangeAsync(document As Document, item As CompletionItem, options As CompletionOptions, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
+            Public Overrides Function GetChangeAsync(document As Document, item As CompletionItem, commitKey As Char?, cancellationToken As CancellationToken) As Task(Of CompletionChange)
                 Throw New NotImplementedException()
             End Function
         End Class
@@ -12458,12 +12458,11 @@ public static class Ext
                 ' We should not have ran the generator as part of the calculating completion list
                 Assert.False(generatorRan)
 
-                Dim completionOptions = state.Workspace.GlobalOptions.GetCompletionOptions(document.Project.Language)
                 ' Go through items from each provider and make sure getting change won't run generator
                 Dim seenProvider = New HashSet(Of String)
                 For Each item In list
                     If (seenProvider.Add(item.ProviderName)) Then
-                        Dim change = Await completionService.GetChangeAsync(document, item, completionOptions)
+                        Dim change = Await completionService.GetChangeAsync(document, item)
 
                         ' We should not have ran the generator as part of the GetChangeAsync
                         Assert.False(generatorRan, item.ProviderName)

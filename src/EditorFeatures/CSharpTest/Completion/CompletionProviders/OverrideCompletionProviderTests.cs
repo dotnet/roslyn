@@ -3352,7 +3352,7 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
 
         var oldTree = await document.GetSyntaxTreeAsync();
 
-        var commit = await provider.GetChangeAsync(document, completionList.ItemsList.First(i => i.DisplayText == "ToString()"), CompletionOptions.Default, ' ');
+        var commit = await provider.GetChangeAsync(document, completionList.ItemsList.First(i => i.DisplayText == "ToString()"), ' ');
         var change = commit.TextChange;
 
         // If we left the trailing trivia of the close curly of Main alone,
@@ -3532,7 +3532,7 @@ public sealed class OverrideCompletionProviderTests : AbstractCSharpCompletionPr
         var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
         var completionItem = completionList.ItemsList.Where(c => c.DisplayText == "M(in int x)").Single();
 
-        var commit = await service.GetChangeAsync(document, completionItem, CompletionOptions.Default, commitCharacter: null, CancellationToken.None);
+        var commit = await service.GetChangeAsync(document, completionItem, commitCharacter: null, CancellationToken.None);
 
         var text = await document.GetTextAsync();
         var newText = text.WithChanges(commit.TextChange);

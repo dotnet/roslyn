@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Completion;
 
 /// <summary>
 /// Interface to implement if the provider want to sign up for notification when one of the items it provided
-/// is being committed by the host, since calling <see cref="CompletionProvider.GetChangeAsync(Document, CompletionItem, CompletionOptions, char?, CancellationToken)"/> doesn't necessarily
+/// is being committed by the host, since calling <see cref="CompletionProvider.GetChangeAsync"/> doesn't necessarily
 /// lead to commission.
 /// </summary>
 internal interface INotifyCommittingItemCompletionProvider

@@ -66,7 +66,7 @@ public sealed class CompletionServiceTests
         Assert.Equal(expectedDescriptionText, actualDescriptionText);
 
         var expectedChange = new TextChange(item.Span, nameof(DebugAssertTestCompletionProvider));
-        var actualChange = (await completionService.GetChangeAsync(document, item, CompletionOptions.Default).ConfigureAwait(false)).TextChange;
+        var actualChange = (await completionService.GetChangeAsync(document, item).ConfigureAwait(false)).TextChange;
         Assert.Equal(expectedChange, actualChange);
     }
 

@@ -277,7 +277,7 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
     private static string FormatParameterRefTag(string kind, string name)
         => $"<{kind} {NameAttributeName}=\"{name}\"/>";
 
-    internal override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, CompletionOptions options, char? commitChar = null, CancellationToken cancellationToken = default)
+    public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitChar = null, CancellationToken cancellationToken = default)
     {
         var beforeCaretText = XmlDocCommentCompletionItem.GetBeforeCaretText(item);
         var afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);

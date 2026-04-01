@@ -76,7 +76,7 @@ internal sealed partial class PartialTypeCompletionProvider : AbstractPartialTyp
         => [KeyValuePair.Create(InsertionTextOnLessThan, symbol.Name.EscapeIdentifier())];
 
     public override async Task<TextChange?> GetTextChangeAsync(
-        Document document, CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
+        Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
     {
         if (ch == '<')
         {
@@ -86,6 +86,6 @@ internal sealed partial class PartialTypeCompletionProvider : AbstractPartialTyp
             }
         }
 
-        return await base.GetTextChangeAsync(document, selectedItem, options, ch, cancellationToken).ConfigureAwait(false);
+        return await base.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(false);
     }
 }

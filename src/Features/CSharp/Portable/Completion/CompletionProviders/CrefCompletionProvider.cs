@@ -359,7 +359,7 @@ internal sealed class CrefCompletionProvider(
         }
     }
 
-    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, CompletionOptions options, char? ch, CancellationToken cancellationToken)
+    protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
     {
         if (!SymbolCompletionItem.TryGetInsertionText(selectedItem, out var insertionText))
         {
