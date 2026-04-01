@@ -97,7 +97,7 @@ namespace RunTests
             var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER") ?? "0";
             var workItems = assemblyInfoList.Select(ai => makeHelixWorkItemProject(ai));
 
-            var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } });
+            var globalJson = JsonConvert.DeserializeAnonymousType(File.ReadAllText(getGlobalJsonPath()), new { sdk = new { version = "" } })!;
             var project = @"
 <Project Sdk=""Microsoft.DotNet.Helix.Sdk"" DefaultTargets=""Test"">
     <PropertyGroup>

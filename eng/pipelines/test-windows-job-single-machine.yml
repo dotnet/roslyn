@@ -42,6 +42,14 @@ jobs:
   steps:
     - checkout: none
 
+    # A .NET 8 runtime is needed since our unit tests roll forward from netcoreapp3.1
+    - task: UseDotNet@2
+      displayName: 'Install .NET 8 Runtime'
+      inputs:
+        packageType: runtime
+        version: 8.0.x
+        installationPath: '$(Build.SourcesDirectory)/.dotnet'
+
     - task: DownloadPipelineArtifact@2
       displayName: Download Test Payload
       inputs:
