@@ -408,17 +408,30 @@ darc add-default-channel --repo https://github.com/{owner}/{repo} --branch relea
 
 Note: Adding `main` to the next SDK band (e.g., `.NET 10.0.(N+1)xx SDK`) is a **follow-up** — that channel may not exist yet at snap time.
 
-If subscription changes are also needed (e.g., VMR flows), they use the same config repo and can be batched onto the same branch. When creating a forward-flow subscription (repo → dotnet/dotnet), also create the corresponding **backflow** subscription (dotnet/dotnet → repo):
+If subscription changes are also needed (e.g., VMR flows), they use the same config repo and can be batched onto the same branch. When creating a forward-flow subscription (repo → dotnet/dotnet), also create the corresponding **backflow** subscription (dotnet/dotnet → repo).
+
+**Preferred approach — clone from an existing subscription**: Use `--subscription <GUID>` to copy all settings (excluded assets, merge policies, source-directory, source-enabled, etc.) from an existing subscription for the same repo, then override only what differs. Always use `-q` (quiet mode) to avoid the interactive editor that `darc add-subscription` opens by default:
+```
+# Find an existing subscription to use as template
+darc get-subscriptions --exact --source-repo https://github.com/dotnet/dotnet --target-repo https://github.com/{owner}/{repo}
+
+# Create new subscription by cloning the template, overriding channel and target branch
+darc add-subscription -q --subscription {templateSubscriptionGuid} --target-branch {branch} --channel "{channelName}" --configuration-branch {cfgBranch} --no-pr
+```
+
+**Manual approach** (when no template exists):
 ```
 # Forward flow: repo → VMR
-darc add-subscription --source-repo https://github.com/{owner}/{repo} --target-repo https://github.com/dotnet/dotnet --target-branch {vmrBranch} --channel "{channelName}" --update-frequency EveryDay --source-enabled --target-directory {repoName} --configuration-branch {cfgBranch} --no-pr --ci
+darc add-subscription -q --source-repo https://github.com/{owner}/{repo} --target-repo https://github.com/dotnet/dotnet --target-branch {vmrBranch} --channel "{channelName}" --update-frequency EveryDay --source-enabled --target-directory {repoName} --standard-automerge --configuration-branch {cfgBranch} --no-pr
 
 # Backflow: VMR → repo
-darc add-subscription --source-repo https://github.com/dotnet/dotnet --target-repo https://github.com/{owner}/{repo} --target-branch {branch} --channel "{vmrChannelName}" --update-frequency EveryDay --source-enabled --configuration-branch {cfgBranch} --no-pr --ci
+darc add-subscription -q --source-repo https://github.com/dotnet/dotnet --target-repo https://github.com/{owner}/{repo} --target-branch {branch} --channel "{vmrChannelName}" --update-frequency EveryDay --source-enabled --source-directory {repoName} --standard-automerge --configuration-branch {cfgBranch} --no-pr
 
 # Update existing subscription
 darc update-subscription --id {subscriptionId} --channel "{newChannel}" --configuration-branch {cfgBranch} --no-pr --ci
 ```
+
+> **Note**: `-q` is critical — without it, `darc add-subscription` opens an interactive YAML editor even when all flags are provided. The `--subscription` clone approach is preferred because backflow subscriptions have complex excluded-assets lists that are tedious to specify manually.
 
 After all commands, create one PR with auto-complete enabled and print the URL:
 ```
