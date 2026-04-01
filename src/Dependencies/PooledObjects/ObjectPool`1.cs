@@ -115,8 +115,10 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
 #if DEBUG
             if (_trackLeaks)
-#endif
                 PoolTracker.OnAllocate(inst);
+#else
+            PoolTracker.OnAllocate(inst);
+#endif
             return inst;
         }
 
