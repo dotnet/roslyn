@@ -408,9 +408,15 @@ darc add-default-channel --repo https://github.com/{owner}/{repo} --branch relea
 
 Note: Adding `main` to the next SDK band (e.g., `.NET 10.0.(N+1)xx SDK`) is a **follow-up** — that channel may not exist yet at snap time.
 
-If subscription changes are also needed (e.g., VMR flows), they use the same config repo and can be batched onto the same branch:
+If subscription changes are also needed (e.g., VMR flows), they use the same config repo and can be batched onto the same branch. When creating a forward-flow subscription (repo → dotnet/dotnet), also create the corresponding **backflow** subscription (dotnet/dotnet → repo):
 ```
+# Forward flow: repo → VMR
 darc add-subscription --source-repo https://github.com/{owner}/{repo} --target-repo https://github.com/dotnet/dotnet --target-branch {vmrBranch} --channel "{channelName}" --update-frequency EveryDay --source-enabled --target-directory {repoName} --configuration-branch {cfgBranch} --no-pr --ci
+
+# Backflow: VMR → repo
+darc add-subscription --source-repo https://github.com/dotnet/dotnet --target-repo https://github.com/{owner}/{repo} --target-branch {branch} --channel "{vmrChannelName}" --update-frequency EveryDay --source-enabled --configuration-branch {cfgBranch} --no-pr --ci
+
+# Update existing subscription
 darc update-subscription --id {subscriptionId} --channel "{newChannel}" --configuration-branch {cfgBranch} --no-pr --ci
 ```
 
