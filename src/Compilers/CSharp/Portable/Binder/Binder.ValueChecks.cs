@@ -4841,9 +4841,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                if (element is BoundCollectionExpressionSpreadElement { IteratorBody: BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer } })
+                if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
-                    safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
+                    if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
+                    {
+                        safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
+                    }
+                    else
+                    {
+                        Debug.Assert(spreadElement.HasErrors
+                            || spreadElement.IteratorBody is null
+                            or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                        safeContext = GetValEscape(spreadElement.Expression);
+                    }
+
                     return true;
                 }
 
