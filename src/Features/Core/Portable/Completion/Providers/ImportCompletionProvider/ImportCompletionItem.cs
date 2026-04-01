@@ -214,4 +214,13 @@ internal static class ImportCompletionItem
 
         return (compilation.GetTypeByMetadataName(fullyQualifiedName), 0);
     }
+
+    public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item)
+    {
+        var itemProperties = item.GetProperties();
+        ImmutableArray<KeyValuePair<string, string>> properties = [.. itemProperties, KeyValuePair.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)];
+        return item.WithProperties(properties);
+    }
+
+    public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.TryGetProperty(AlwaysFullyQualifyKey, out var _);
 }
