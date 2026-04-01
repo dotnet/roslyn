@@ -1399,7 +1399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Assert(spreadElement.IteratorBody is null, $"Unexpected spread iterator body {spreadElement.IteratorBody}");
+                            Debug.Assert(spreadElement.IteratorBody is null
+                                or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder },
+                                $"Unexpected spread iterator body {spreadElement.IteratorBody}");
                         }
                     }
                 }
