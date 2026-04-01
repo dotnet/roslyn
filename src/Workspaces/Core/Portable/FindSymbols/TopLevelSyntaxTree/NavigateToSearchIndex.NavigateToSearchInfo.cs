@@ -777,7 +777,7 @@ internal sealed partial class NavigateToSearchIndex
         /// <item><b>Bigram bitset (always)</b>: All adjacent character pairs must be present.
         /// Effective for any literal length >= 2.</item>
         /// <item><b>Sparse n-gram Bloom filter (length >= 3)</b>: The literal's covering n-grams must
-        /// all be present. Because we now index full symbol names (not per-word-part), n-grams that
+        /// all be present. Because we index full symbol names (not per-word-part), n-grams that
         /// span camelCase boundaries (e.g. "adl" from "ReadLine") are captured, making this filter
         /// applicable to regex literals.</item>
         /// </list>
