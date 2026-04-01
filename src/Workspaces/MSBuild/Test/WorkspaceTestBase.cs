@@ -15,6 +15,7 @@ using Roslyn.Test.Utilities;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
+[ValidatePooledObjects(Skip = "Workspaces pool validation is not reliable")]
 public class WorkspaceTestBase : TestBase
 {
     protected readonly TempDirectory SolutionDirectory;
