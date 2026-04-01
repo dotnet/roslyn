@@ -635,4 +635,87 @@ public sealed class TextLineNewLineTests : TestBase
             }
         }
     }
+
+    // =========================================================================
+    // Part 4: TextLine Equals / GetHashCode — verify that the packed _data
+    //         representation correctly distinguishes lines and that equal lines
+    //         produce identical hash codes.
+    // =========================================================================
+
+    [Fact]
+    public void TextLine_SameLineIsEqual()
+    {
+        var text = SourceText.From("abc\ndef");
+        var line0a = text.Lines[0];
+        var line0b = text.Lines[0];
+        Assert.Equal(line0a, line0b);
+        Assert.True(line0a == line0b);
+        Assert.False(line0a != line0b);
+        Assert.Equal(line0a.GetHashCode(), line0b.GetHashCode());
+    }
+
+    [Fact]
+    public void TextLine_DifferentLinesAreNotEqual()
+    {
+        var text = SourceText.From("abc\ndef");
+        var line0 = text.Lines[0];
+        var line1 = text.Lines[1];
+        Assert.NotEqual(line0, line1);
+        Assert.False(line0 == line1);
+        Assert.True(line0 != line1);
+    }
+
+    [Fact]
+    public void TextLine_SamePositionDifferentBreakLengths_AreNotEqual()
+    {
+        // "abc\n" has line 0 with break length 1
+        // "abc\r\n" has line 0 with break length 2
+        // Both lines start at 0 and have text "abc", but the break differs.
+        var textLF = SourceText.From("abc\ndef");
+        var textCRLF = SourceText.From("abc\r\ndef");
+        var lineLF = textLF.Lines[0];
+        var lineCRLF = textCRLF.Lines[0];
+
+        Assert.Equal(lineLF.Start, lineCRLF.Start);
+        Assert.Equal(lineLF.End, lineCRLF.End);
+        Assert.NotEqual(lineLF.EndIncludingLineBreak, lineCRLF.EndIncludingLineBreak);
+        Assert.NotEqual(lineLF, lineCRLF);
+    }
+
+    [Fact]
+    public void TextLine_DifferentTextInstances_AreNotEqual()
+    {
+        var text1 = SourceText.From("abc");
+        var text2 = SourceText.From("abc");
+        var line1 = text1.Lines[0];
+        var line2 = text2.Lines[0];
+
+        Assert.Equal(line1.Start, line2.Start);
+        Assert.Equal(line1.End, line2.End);
+        Assert.NotEqual(line1, line2);
+    }
+
+    [Fact]
+    public void TextLine_EqualsObject()
+    {
+        var text = SourceText.From("abc\ndef");
+        var line = text.Lines[0];
+        Assert.True(line.Equals((object)text.Lines[0]));
+        Assert.False(line.Equals((object)text.Lines[1]));
+        Assert.False(line.Equals("not a TextLine"));
+        Assert.False(line.Equals(null));
+    }
+
+    [Theory, MemberData(nameof(AllTextKinds))]
+    public void TextLine_EqualLines_HaveEqualHashCodes(TextKind kind)
+    {
+        var text = CreateText("abc\ndef\r\nghi", kind);
+        for (var i = 0; i < text.Lines.Count; i++)
+        {
+            var lineA = text.Lines[i];
+            var lineB = text.Lines[i];
+            Assert.Equal(lineA, lineB);
+            Assert.Equal(lineA.GetHashCode(), lineB.GetHashCode());
+        }
+    }
 }
