@@ -60,8 +60,10 @@ public sealed class TextLineNewLineTests : TestBase
         get
         {
             foreach (var (nl, len) in s_newlines)
+            {
                 foreach (var kind in s_allTextKinds)
                     yield return [nl, len, kind];
+            }
         }
     }
 
@@ -71,9 +73,13 @@ public sealed class TextLineNewLineTests : TestBase
         get
         {
             foreach (var (nl1, len1) in s_newlines)
+            {
                 foreach (var (nl2, len2) in s_newlines)
+                {
                     foreach (var kind in s_allTextKinds)
                         yield return [nl1, len1, nl2, len2, kind];
+                }
+            }
         }
     }
 
@@ -116,9 +122,13 @@ public sealed class TextLineNewLineTests : TestBase
         get
         {
             foreach (var contentData in InterestingContents)
+            {
                 foreach (var k1 in s_allTextKinds)
+                {
                     foreach (var k2 in s_allTextKinds)
                         yield return [(string)contentData[0], k1, k2];
+                }
+            }
         }
     }
 
