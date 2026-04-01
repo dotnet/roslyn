@@ -1398,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Debug.Fail($"Unexpected spread iterator body {spreadElement.IteratorBody}");
+                            Debug.Assert(spreadElement.IteratorBody is null, $"Unexpected spread iterator body {spreadElement.IteratorBody}");
                         }
                     }
                 }
