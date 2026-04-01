@@ -424,7 +424,7 @@ public sealed class TextLineNewLineTests : TestBase
     // --- LargeText: chunk boundary tests ---
 
     [Theory, MemberData(nameof(AllNewlines))]
-    public void LargeText_ChunkBoundaryBeforeNewline(string newLine, int newLineLength)
+    public void LargeText_ChunkBoundaryBeforeNewline(string newLine, int _newLineLength)
     {
         AssertLinesMatch(
             SourceText.From("abc" + newLine + "def"),
@@ -432,7 +432,7 @@ public sealed class TextLineNewLineTests : TestBase
     }
 
     [Theory, MemberData(nameof(AllNewlines))]
-    public void LargeText_ChunkBoundaryAfterNewline(string newLine, int newLineLength)
+    public void LargeText_ChunkBoundaryAfterNewline(string newLine, int _newLineLength)
     {
         AssertLinesMatch(
             SourceText.From("abc" + newLine + "def"),
