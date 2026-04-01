@@ -1355,6 +1355,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var elementsScope = SafeContext.CallingMethod;
 
+            // Add node.Placeholder scope once before the loop since it's shared across all spread elements.
+            var nodePlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+            if (node.Placeholder != null)
+            {
+                nodePlaceholders.Add((node.Placeholder, SafeContextAndLocation.Create(receiverScope)));
+            }
+            using var _2 = new PlaceholderRegion(this, nodePlaceholders);
+
             foreach (var element in node.Elements)
             {
                 if (element is BoundCollectionElementInitializer colElement)
@@ -1375,17 +1383,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var spreadPlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
 
-                        if (node.Placeholder != null)
-                        {
-                            spreadPlaceholders.Add((node.Placeholder, SafeContextAndLocation.Create(receiverScope)));
-                        }
-
                         if (spreadElement.ElementPlaceholder != null)
                         {
                             spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
                         }
 
-                        using var _2 = new PlaceholderRegion(this, spreadPlaceholders);
+                        using var _3 = new PlaceholderRegion(this, spreadPlaceholders);
 
                         if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
                         {
