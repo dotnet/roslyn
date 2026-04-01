@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -247,8 +247,8 @@ namespace Microsoft.CodeAnalysis.Text
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
-            // Each entry encodes the start of the line in the low 31 bits and the line break
-            // length of the *prior* line in the top bit (see LineInfo constants).
+            // Each entry encodes the start of the line in the low 31 bits and whether the
+            // *prior* line's break was the 2-char \r\n pair in the top bit (see LineInfo).
             foreach (var chunk in _chunks)
             {
                 foreach (var c in chunk)

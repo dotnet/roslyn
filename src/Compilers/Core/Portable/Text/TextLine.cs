@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly SourceText? _text;
 
         // Encoding (64 bits total):
-        //   Bits 63-62  (2 bits): line break length (0, 1, or 2)
+        //   Bits 63-62  (2 bits): line break length at the end of this line (0 = no break / last line,
+        //                         1 = single-char break like \n, \r, etc., 2 = the \r\n Windows pair)
         //   Bits 61-31  (31 bits): start position
-        //   Bits 30-0   (31 bits): total length = EndIncludingLineBreak - Start
+        //   Bits 30-0   (31 bits): total length including break = EndIncludingLineBreak - Start
         private readonly ulong _data;
 
         private const int BreakLenShift = 62;

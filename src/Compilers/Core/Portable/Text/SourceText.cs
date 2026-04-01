@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -985,20 +985,24 @@ namespace Microsoft.CodeAnalysis.Text
         internal sealed class LineInfo : TextLineCollection
         {
             // Each entry encodes two fields in a uint:
-            //   Bit  31    (1 bit):  prior line break length, bias-encoded: 0 = length 1, 1 = length 2
+            //   Bit  31    (1 bit):  was the prior line break a \r\n (Windows-style) pair?
             //   Bits 30-0  (31 bits): start position of this line
             //
-            // The top bit uses a bias of 1 because every line break is either 1 or 2 characters —
-            // a new line entry is only ever added when a line break is found, so the prior break
-            // length is never 0 for any entry at index > 0. The first entry (_lineStarts[0]) always
-            // has bit 31 == 0, but that bit is never read as a break length: the indexer reads break
-            // lengths from _lineStarts[index + 1], so the minimum index accessed for break length
-            // is 1, which always corresponds to a real prior line break.
+            // Every line break is exactly one character (\n, \r, \u0085, \u2028, \u2029) except for
+            // the Windows \r\n sequence, which is two characters.  So the top bit is really a boolean:
+            // 0 means the prior line break was a single character (length 1), and 1 means it was the
+            // \r\n pair (length 2).  To recover the prior break length: (bit >> 31) + 1.
+            //
+            // The first entry (_lineStarts[0]) always has bit 31 == 0, but that bit is never read as
+            // a break length: the indexer reads break lengths from _lineStarts[index + 1], so the
+            // minimum index accessed for break length is 1, which always corresponds to a real prior
+            // line break.
             internal const int LineBreakLengthShift = 31;
             internal const uint LineStartMask = (1u << LineBreakLengthShift) - 1; // 31 bits
 
             private static int GetLineStart(uint entry) => (int)(entry & LineStartMask);
-            // priorLineBreakLength must be 1 or 2; stored as (priorLineBreakLength - 1) in the top bit.
+            // priorLineBreakLength is 1 (any single-char break) or 2 (\r\n only); the top bit stores
+            // whether this was the 2-char \r\n case: (priorLineBreakLength - 1).
             internal static uint PackEntry(int lineStart, int priorLineBreakLength)
             {
                 Debug.Assert(priorLineBreakLength is 1 or 2);
@@ -1141,8 +1145,8 @@ namespace Microsoft.CodeAnalysis.Text
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
             // and non-line breaks.
-            // Each entry encodes the start of the line in the low 30 bits and the line break
-            // length of the *prior* line in the top 2 bits (see LineInfo constants).
+            // Each entry encodes the start of the line in the low 31 bits and whether the
+            // *prior* line's break was the 2-char \r\n pair in the top bit (see LineInfo).
             EnumerateChars((int position, char[] buffer, int length) =>
             {
                 var index = 0;
