@@ -85,4 +85,6 @@
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\UnifiedSettings\csharpSettings.registration.json" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\PackageRegistration.pkgdef" />
   </ItemGroup>
+  <!-- SourceGear.sqlite3 3.x errors on AnyCPU for net471+ -->
+  <Target Name="CheckForAnyCPU" Condition="'$(TargetFramework)' == 'net472'" />
 </Project>
