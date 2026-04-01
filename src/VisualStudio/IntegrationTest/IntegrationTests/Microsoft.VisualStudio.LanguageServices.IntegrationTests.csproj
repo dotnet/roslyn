@@ -47,6 +47,7 @@
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
     <PackageReference Include="EnvDTE80" Version="$(EnvDTE80Version)" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="$(SQLitePCLRawlibe_sqlite3Version)" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
   </ItemGroup>
 </Project>
