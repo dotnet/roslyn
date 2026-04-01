@@ -229,7 +229,7 @@ internal class ServerCapabilities
     /// <remarks>Since LSP 3.16</remarks>
     [JsonPropertyName("callHierarchyProvider")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SumType<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>? CallHierarchyProvider { get; init; }
+    public SumType<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>? CallHierarchyProvider { get; set; }
 
     /// <summary>
     /// Gets or sets the value which indicates if semantic tokens is supported.

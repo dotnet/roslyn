@@ -15,10 +15,13 @@ using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
+/// <summary>
+/// Wrapper of <see cref="ManagedHotReloadLanguageServiceImpl"/> implementing closed-source debugger contract interfaces.
+/// </summary>
 [ExportBrokeredService(ManagedHotReloadLanguageServiceDescriptor.MonikerName, ManagedHotReloadLanguageServiceDescriptor.ServiceVersion, Audience = ServiceAudience.Local)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalContracts.IManagedHotReloadLanguageService3 service) : IManagedHotReloadLanguageService3, IExportedBrokeredService
+internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageServiceImpl impl) : IManagedHotReloadLanguageService3, IExportedBrokeredService
 {
     ServiceRpcDescriptor IExportedBrokeredService.Descriptor
         => ManagedHotReloadLanguageServiceDescriptor.Descriptor;
@@ -27,19 +30,19 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
         => Task.CompletedTask;
 
     public ValueTask StartSessionAsync(CancellationToken cancellationToken)
-        => service.StartSessionAsync(cancellationToken);
+        => impl.StartSessionAsync(cancellationToken);
 
     public ValueTask EndSessionAsync(CancellationToken cancellationToken)
-        => service.EndSessionAsync(cancellationToken);
+        => impl.EndSessionAsync(cancellationToken);
 
     public ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
-        => service.EnterBreakStateAsync(cancellationToken);
+        => impl.EnterBreakStateAsync(cancellationToken);
 
     public ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
-        => service.ExitBreakStateAsync(cancellationToken);
+        => impl.ExitBreakStateAsync(cancellationToken);
 
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
-        => service.OnCapabilitiesChangedAsync(cancellationToken);
+        => impl.OnCapabilitiesChangedAsync(cancellationToken);
 
     [Obsolete]
     public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
@@ -56,18 +59,18 @@ internal sealed partial class ManagedHotReloadLanguageServiceBridge(InternalCont
     }
 
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
-        => (await service.GetUpdatesAsync(runningProjects.SelectAsArray(static info => info.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
+        => (await impl.GetUpdatesAsync(runningProjects.SelectAsArray(static info => info.ToContract()), cancellationToken).ConfigureAwait(false)).FromContract();
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
-        => service.CommitUpdatesAsync(cancellationToken);
+        => impl.CommitUpdatesAsync(cancellationToken);
 
     [Obsolete]
     public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
         => throw new NotImplementedException();
 
     public ValueTask DiscardUpdatesAsync(CancellationToken cancellationToken)
-        => service.DiscardUpdatesAsync(cancellationToken);
+        => impl.DiscardUpdatesAsync(cancellationToken);
 
     public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
-        => service.HasChangesAsync(sourceFilePath, cancellationToken);
+        => impl.HasChangesAsync(sourceFilePath, cancellationToken);
 }

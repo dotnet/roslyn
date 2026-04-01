@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
-    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynWindowsTests);net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\Features\TestUtilities\Utilities\StringSyntaxAttribute.cs" Link="StringSyntaxAttribute.cs" />

@@ -6,32 +6,34 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
+/// <summary>
+/// Implementation of a brokered service available in Visual Studio in-proc container and in DevKit.
+/// </summary>
 [Shared]
-[Export(typeof(IManagedHotReloadLanguageService3))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
-[Export(typeof(EditAndContinueLanguageService))]
-[ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
+[Export(typeof(ManagedHotReloadLanguageServiceImpl))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class EditAndContinueLanguageService(
+internal sealed class ManagedHotReloadLanguageServiceImpl(
     EditAndContinueSessionState sessionState,
     Lazy<IHostWorkspaceProvider> workspaceProvider,
-    Lazy<IManagedHotReloadService> debuggerService,
+    IManagedHotReloadService debuggerService,
+    ISolutionSnapshotProvider solutionSnapshotProvider,
     PdbMatchingSourceTextProvider sourceTextProvider,
+    IActiveStatementTrackingController activeStatementTrackingController,
     IEditAndContinueLogReporter logReporter,
     IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3, IEditAndContinueSolutionProvider
 {
@@ -46,40 +48,15 @@ internal sealed class EditAndContinueLanguageService(
     }
 
     private bool _disabled;
-    private RemoteDebuggingSessionProxy? _debuggingSession;
+    private DebuggingSessionProxy? _debuggingSession;
 
     private Solution? _pendingUpdatedSolution;
     private Solution? _committedSolution;
 
     public event Action<Solution>? SolutionCommitted;
 
-    public void SetFileLoggingDirectory(string? logDirectory)
-    {
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                var proxy = new RemoteEditAndContinueServiceProxy(Services);
-                await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
-            }
-            catch
-            {
-                // ignore
-            }
-        });
-    }
-
-    private SolutionServices Services
-        => workspaceProvider.Value.Workspace.Services.SolutionServices;
-
-    private Solution GetCurrentSolution()
-        => workspaceProvider.Value.Workspace.CurrentSolution;
-
-    private RemoteDebuggingSessionProxy GetDebuggingSession()
+    private DebuggingSessionProxy GetDebuggingSession()
         => _debuggingSession ?? throw new NoSessionException();
-
-    private IActiveStatementTrackingService GetActiveStatementTrackingService()
-        => Services.GetRequiredService<IActiveStatementTrackingService>();
 
     internal void Disable(Exception e)
     {
@@ -111,16 +88,16 @@ internal sealed class EditAndContinueLanguageService(
             // so that we don't miss any pertinent workspace update events.
             sourceTextProvider.Activate();
 
-            var currentSolution = GetCurrentSolution();
+            var currentSolution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
             _committedSolution = currentSolution;
 
             sourceTextProvider.SetBaseline(currentSolution);
 
-            var proxy = new RemoteEditAndContinueServiceProxy(Services);
+            var proxy = new RemoteEditAndContinueServiceProxy(currentSolution.Services);
 
             _debuggingSession = await proxy.StartDebuggingSessionAsync(
                 currentSolution,
-                new ManagedHotReloadServiceBridge(debuggerService.Value),
+                debuggerService,
                 sourceTextProvider,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
@@ -151,13 +128,13 @@ internal sealed class EditAndContinueLanguageService(
         try
         {
             var session = GetDebuggingSession();
-            var solution = (inBreakState == true) ? GetCurrentSolution() : null;
+            var solution = (inBreakState == true) ? await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false) : null;
 
             await session.BreakStateOrCapabilitiesChangedAsync(inBreakState, cancellationToken).ConfigureAwait(false);
 
             if (inBreakState == false)
             {
-                GetActiveStatementTrackingService().EndTracking();
+                activeStatementTrackingController.EndTracking();
             }
             else if (inBreakState == true)
             {
@@ -168,7 +145,7 @@ internal sealed class EditAndContinueLanguageService(
                 // The tracking session is cancelled when we exit the break state.
 
                 Contract.ThrowIfNull(solution);
-                GetActiveStatementTrackingService().StartTracking(solution, session);
+                activeStatementTrackingController.StartTracking(solution, session);
             }
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -258,12 +235,6 @@ internal sealed class EditAndContinueLanguageService(
         _pendingUpdatedSolution = null;
     }
 
-    private ActiveStatementSpanProvider GetActiveStatementSpanProvider(Solution solution)
-    {
-        var service = GetActiveStatementTrackingService();
-        return new((documentId, filePath, cancellationToken) => service.GetSpansAsync(solution, documentId, filePath, cancellationToken));
-    }
-
     /// <summary>
     /// Returns true if any changes have been made to the source since the last changes had been applied.
     /// For performance reasons it only implements a heuristic and may return both false positives and false negatives.
@@ -288,7 +259,7 @@ internal sealed class EditAndContinueLanguageService(
 
             Contract.ThrowIfNull(_committedSolution);
             var oldSolution = _committedSolution;
-            var newSolution = GetCurrentSolution();
+            var newSolution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             return (sourceFilePath != null)
                 ? await EditSession.HasChangesAsync(oldSolution, newSolution, sourceFilePath, cancellationToken).ConfigureAwait(false)
@@ -319,11 +290,11 @@ internal sealed class EditAndContinueLanguageService(
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates([], []);
+            return new ManagedHotReloadUpdates([], [], [], []);
         }
 
-        var solution = GetCurrentSolution();
-        var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
+        var solution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
+        var activeStatementSpanProvider = activeStatementTrackingController.GetSpanProvider(solution);
         var runningProjectOptions = runningProjects.ToRunningProjectOptions(solution, static info => (info.ProjectInstanceId.ProjectFilePath, info.ProjectInstanceId.TargetFramework, info.RestartAutomatically));
 
         var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectOptions, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
@@ -364,8 +335,8 @@ internal sealed class EditAndContinueLanguageService(
         UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
 
         return new ManagedHotReloadUpdates(
-            result.ModuleUpdates.Updates.FromContract(),
-            result.GetAllDiagnostics().FromContract(),
+            result.ModuleUpdates.Updates,
+            result.GetAllDiagnostics(),
             ToProjectIntanceIds(result.ProjectsToRebuild),
             ToProjectIntanceIds(result.ProjectsToRestart.Keys));
 

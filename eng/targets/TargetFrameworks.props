@@ -9,11 +9,13 @@
     Requirements:
       - NetVSShared must include both NetVS and NetVSCode
       - NetRoslynSourceBuild must include NetRoslyn
-      - NetRoslynAll must include all .NET Core TFMS in any property below
+      - NetRoslynAll must include all .NET Core TFMS in any property below (OS-specific TFMs like
+        NetRoslynWindowsTests are excluded as they are not cross-platform)
   -->
   <PropertyGroup>
     <NetRoslyn>net10.0</NetRoslyn>
     <NetRoslynAll>net8.0;net10.0</NetRoslynAll>
+    <NetRoslynWindowsTests>net10.0-windows</NetRoslynWindowsTests>
     <NetVS>net10.0</NetVS>
     <NetVSCode>net10.0</NetVSCode>
     <NetVSShared>net10.0</NetVSShared>
