@@ -41,6 +41,7 @@ Console.Error.WriteLine($"Scanning .cs files under {rootDir}...");
 
 var docStats = new List<(string file, int identifierCount, int trigramDistinct, int sparseDistinct,
     int trigramBloomBytes, int sparseBloomBytes)>();
+var docFilters = new List<(List<string> identifiers, BloomFilter triFilter, BloomFilter sparseFilter)>();
 var totalFiles = 0;
 
 var globalSparseLengthDist = new Dictionary<int, long>();
@@ -98,6 +99,10 @@ foreach (var file in Directory.EnumerateFiles(rootDir, "*.cs", SearchOption.AllD
 
     var triBloom = ComputeBloomBytes(docTrigramSet.Count);
     var sparseBloom = ComputeBloomBytes(docSparseSet.Count);
+
+    var triFilter = new BloomFilter(NavigateToSearchIndex.FalsePositiveProbability, isCaseSensitive: true, docTrigramSet);
+    var sparseFilter = new BloomFilter(NavigateToSearchIndex.FalsePositiveProbability, isCaseSensitive: true, docSparseSet);
+    docFilters.Add((lowered, triFilter, sparseFilter));
 
     docStats.Add((file, lowered.Count, docTrigramSet.Count, docSparseSet.Count, triBloom, sparseBloom));
 
@@ -228,17 +233,67 @@ sb.AppendLine("41% are length 4+, which are exponentially more selective in the 
 sb.AppendLine("n-gram over a 37-character alphabet has ~37x fewer collisions than a trigram.");
 sb.AppendLine();
 
-sb.AppendLine("## Why the extra storage is worth it");
+// --- Query-time selectivity analysis ---
+
+var queries = new[]
+{
+    "add", "get", "set", "run",
+    "parse", "token", "write", "async",
+    "syntax", "symbol", "stream", "create",
+    "readline", "tostring", "addrange", "serialize",
+    "stringbuilder", "compilationunit", "syntaxtoken",
+};
+
+sb.AppendLine("## Query-time selectivity");
 sb.AppendLine();
-sb.AppendLine("The sparse n-gram approach trades a modest increase in Bloom filter size (~1.8x per document)");
-sb.AppendLine("for dramatically higher selectivity at query time. When checking whether a document could");
-sb.AppendLine("contain a search term, the Bloom filter lookup uses `BuildCoveringNgrams` which produces");
-sb.AppendLine("the **fewest, longest** n-grams that cover the query. These longer n-grams have far fewer");
-sb.AppendLine("false positives, meaning fewer documents need to be loaded and scanned.");
+sb.AppendLine("For each query, we check how many documents pass the Bloom filter (\"probably contains\")");
+sb.AppendLine("under trigrams vs sparse n-grams, compared to the ground truth (documents that actually");
+sb.AppendLine("contain the query as a substring of an identifier). Fewer passes = better selectivity =");
+sb.AppendLine("fewer documents requiring expensive per-symbol matching.");
 sb.AppendLine();
-sb.AppendLine("For example, searching for \"readline\" with trigrams checks {\"rea\", \"ead\", \"adl\", \"dli\",");
-sb.AppendLine("\"lin\", \"ine\"} — 6 lookups, each matching many documents. With sparse n-grams, the covering");
-sb.AppendLine("set might be {\"readl\", \"dline\"} — 2 lookups, each far more selective.");
+sb.AppendLine("| Query | True matches | Trigram passes | Sparse passes | Trigram FP | Sparse FP | Reduction |");
+sb.AppendLine("|---|---|---|---|---|---|---|");
+
+var totalTriPasses = 0L;
+var totalSparsePasses = 0L;
+var totalTrueMatches = 0L;
+
+foreach (var query in queries)
+{
+    var triPasses = 0;
+    var sparsePasses = 0;
+    var trueMatches = 0;
+
+    foreach (var (identifiers, triFilter, sparseFilter) in docFilters)
+    {
+        var trigramHit = TrigramCheckPasses(query, triFilter);
+        var sparseHit = SparseNgramGenerator.CoveringNgramsProbablyContained(query, sparseFilter);
+        var actualHit = identifiers.Any(id => id.Contains(query, StringComparison.Ordinal));
+
+        if (trigramHit) triPasses++;
+        if (sparseHit) sparsePasses++;
+        if (actualHit) trueMatches++;
+    }
+
+    totalTriPasses += triPasses;
+    totalSparsePasses += sparsePasses;
+    totalTrueMatches += trueMatches;
+
+    var triFP = triPasses - trueMatches;
+    var sparseFP = sparsePasses - trueMatches;
+    var reduction = triPasses > 0 ? $"{100.0 * (1.0 - (double)sparsePasses / triPasses):F0}%" : "n/a";
+
+    sb.AppendLine($"| `{query}` | {trueMatches} | {triPasses} | {sparsePasses} | {triFP} | {sparseFP} | {reduction} |");
+}
+
+sb.AppendLine();
+
+var avgReduction = totalTriPasses > 0 ? 100.0 * (1.0 - (double)totalSparsePasses / totalTriPasses) : 0;
+sb.AppendLine($"Across **{queries.Length}** queries, sparse n-grams reduced the total number of documents");
+sb.AppendLine($"passing the filter from **{totalTriPasses:N0}** to **{totalSparsePasses:N0}** (a **{avgReduction:F0}%** reduction),");
+sb.AppendLine($"while true matches totalled **{totalTrueMatches:N0}**. This means **{totalTriPasses - totalTrueMatches:N0}** false positive");
+sb.AppendLine($"document loads with trigrams vs **{totalSparsePasses - totalTrueMatches:N0}** with sparse n-grams — each avoided");
+sb.AppendLine("load saves a `TopLevelSyntaxTreeIndex` deserialization and per-symbol `PatternMatcher` scan.");
 
 Console.Write(sb.ToString());
 
@@ -265,3 +320,17 @@ static string FormatBytes(double bytes)
 static string FormatKB(long bytes) => bytes >= 1024 * 1024
     ? $"{bytes / 1024.0 / 1024.0:F1} MB"
     : $"{bytes / 1024.0:F1} KB";
+
+static bool TrigramCheckPasses(string query, BloomFilter filter)
+{
+    if (query.Length < 3)
+        return true;
+
+    for (var i = 0; i + 3 <= query.Length; i++)
+    {
+        if (!filter.ProbablyContains(query.AsSpan(i, 3)))
+            return false;
+    }
+
+    return true;
+}
