@@ -621,10 +621,7 @@ public sealed class TextLineNewLineTests : TestBase
         }
     }
 
-    [Theory]
-    [InlineData("a\r\nb\r\nc")]
-    [InlineData("ab\r\ncd\r\nef")]
-    [InlineData("\r\n\r\n\r\n")]
+    [Theory, MemberData(nameof(InterestingContents))]
     public void CompositeText_ThreeWaySplit_AllCombinations(string content)
     {
         var reference = SourceText.From(content);
