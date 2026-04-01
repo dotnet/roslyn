@@ -1047,12 +1047,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression collectionCreation;
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
-                        // When withElement is present, we don't push the ParamsCollectionTypeInProgressBinder because
-                        // the with-element arguments are passed directly to the constructor. The inner params collection
-                        // creation (if any) will push its own binder and detect cycles at that level.
-                        var binder = withElement is null
-                            ? new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, bindingCollectionExpressionWithArguments: false, constructor)
-                            : @this._binder;
+                        // When withElement is present, we pass null for the type so that cycle detection
+                        // (HasParamsCollectionTypeInProgress) walks past this binder. The with-element arguments
+                        // are passed directly to the constructor, so this level is not a params expansion cycle.
+                        // The inner params collection creation (if any) will push its own binder with the type
+                        // and detect cycles at that level.
+                        var binder = new ParamsCollectionTypeInProgressBinder(
+                            withElement is null ? namedType : null,
+                            @this._binder,
+                            bindingCollectionExpressionWithArguments: withElement != null,
+                            constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
@@ -1656,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
                 var binder = new ParamsCollectionTypeInProgressBinder(
-                    namedType, this, bindingCollectionExpressionWithArguments: hasWithElement);
+                    namedType, this, bindingCollectionExpressionWithArguments: false);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
