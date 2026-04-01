@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return inputInfo;
                 }
 
-                if (Binder.GetUnionTypeTryGetValueMethod((NamedTypeSymbol)inputInfo.DagTemp.Type, type) is MethodSymbol tryGetValue)
+                if (Binder.GetUnionTypeTryGetValueMethod(_conversions, (NamedTypeSymbol)inputInfo.DagTemp.Type, type) is MethodSymbol tryGetValue)
                 {
                     if (_forLowering)
                     {
@@ -806,8 +806,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // See IsSameEntity/IsEqualEvaluation helpers.
                         var typeEvaluation = new BoundDagTypeEvaluation(syntax, outParameterTemp.Type, outParameterTemp);
                         tests.Add(new Tests.One(typeEvaluation));
+                        BoundDagTemp typeEvaluationTemp = typeEvaluation.MakeResultTemp();
 
-                        return (TestInputOutputInfo)typeEvaluation.MakeResultTemp();
+                        if (!outParameterTemp.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            tests.Add(new Tests.One(new BoundDagTypeTest(syntax, type, typeEvaluationTemp)));
+                            typeEvaluation = new BoundDagTypeEvaluation(syntax, type, typeEvaluationTemp);
+                            tests.Add(new Tests.One(typeEvaluation));
+                            typeEvaluationTemp = typeEvaluation.MakeResultTemp();
+                        }
+
+                        return (TestInputOutputInfo)typeEvaluationTemp;
                     }
                     else
                     {

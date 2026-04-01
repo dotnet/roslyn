@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static MethodSymbol? GetUnionTypeTryGetValueMethod(NamedTypeSymbol inputUnionType, TypeSymbol type)
+        internal static MethodSymbol? GetUnionTypeTryGetValueMethod(ConversionsBase conversions, NamedTypeSymbol inputUnionType, TypeSymbol type)
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
@@ -181,6 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
             ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = declaringType.UnionCaseTypes;
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            MethodSymbol? bestMatch = null;
+            Conversion bestMatchConversion = Conversion.NoConversion;
 
             for (NamedTypeSymbol possiblyConstructedOrSubstitutedType = inputUnionType;
                  possiblyConstructedOrSubstitutedType is not null;
@@ -188,8 +191,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var m in possiblyConstructedOrSubstitutedType.GetMembers(WellKnownMemberNames.TryGetValueMethodName))
                 {
-                    if (m is MethodSymbol candidate && HasTryGetValueSignature(candidate, type))
+                    if (m is MethodSymbol candidate && HasTryGetValueSignature(candidate))
                     {
+                        Conversion conversion = conversions.ClassifyBuiltInConversion(type, candidate.Parameters[0].Type, isChecked: false, ref discardedUseSiteInfo);
+
+                        if (!conversion.Exists || !conversion.IsImplicit || !(conversion.IsIdentity || conversion.IsReference || conversion.IsBoxing))
+                        {
+                            continue;
+                        }
+
                         MethodSymbol declaredMethod = candidate;
 
                         if (!inputUnionType.IsDefinition)
@@ -211,16 +221,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isMatch)
                         {
-                            return candidate;
+                            if (conversion.IsIdentity)
+                            {
+                                return candidate;
+                            }
+                            else
+                            {
+                                Debug.Assert(bestMatch is null || bestMatchConversion.IsReference || bestMatchConversion.IsBoxing);
+                                if (bestMatch is null || (conversion.IsReference && bestMatchConversion.IsBoxing))
+                                {
+                                    bestMatch = candidate;
+                                    bestMatchConversion = conversion;
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            return null;
+            return bestMatch;
         }
 
-        internal static bool HasTryGetValueSignature(MethodSymbol method, TypeSymbol? type = null)
+        internal static bool HasTryGetValueSignature(MethodSymbol method)
         {
             // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
             return method is
@@ -231,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind: RefKind.None,
                 Parameters: [{ RefKind: RefKind.Out, Type: var parameterType }],
                 ReturnType.SpecialType: SpecialType.System_Boolean
-            } && (type is null || parameterType.Equals(type, TypeCompareKind.AllIgnoreOptions));
+            };
         }
 
         internal static bool IsUnionTypeTryGetValueMethod(NamedTypeSymbol unionType, MethodSymbol method)
