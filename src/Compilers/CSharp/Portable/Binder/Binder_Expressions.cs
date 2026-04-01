@@ -9639,7 +9639,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(receiver.Type is not null);
-                var lookupOptions = LookupOptions.MustBeInstance | LookupOptions.AllMethodsOnArityZero;
+                var lookupOptions = LookupOptions.AllMethodsOnArityZero;
+                lookupOptions |= scope.HasValue ? LookupOptions.Default : LookupOptions.MustBeInstance;
+
                 int arity = 0;
                 ArrayBuilder<MethodSymbol>? filteredCandidates = null;
 
@@ -9713,7 +9715,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MethodHasValidSliceSignature(method) &&
                         binder.CheckViability(method, arity, lookupOptions, accessThroughType: null, diagnose: false, useSiteInfo: ref useSiteInfo).Kind == LookupResultKind.Viable)
                     {
-                        Debug.Assert(!candidate.IsStatic);
                         filteredCandidates ??= ArrayBuilder<MethodSymbol>.GetInstance();
                         filteredCandidates.Add(method);
                     }
@@ -11416,11 +11417,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool MethodHasValidSliceSignature(MethodSymbol method)
         {
-            return method.OriginalDefinition is var original &&
-                   !original.ReturnsVoid &&
-                   original.ParameterCount == 2 &&
-                   original.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None } &&
-                   original.Parameters[1] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None };
+            var original = method.OriginalDefinition;
+            if (original.ReturnsVoid)
+            {
+                return false;
+            }
+
+            int parameterOffset = original.IsExtensionMethod ? 1 : 0;
+
+            return original.ParameterCount == 2 + parameterOffset &&
+                original.Parameters[parameterOffset] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None } &&
+                original.Parameters[parameterOffset + 1] is { Type.SpecialType: SpecialType.System_Int32, RefKind: RefKind.None };
         }
 
         /// <summary>
