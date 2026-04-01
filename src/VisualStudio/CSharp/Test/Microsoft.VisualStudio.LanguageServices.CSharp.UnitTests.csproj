@@ -49,7 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xunit.Combinatorial" PrivateAssets="all" />
-    <PackageReference Include="SQLitePCLRaw.config.e_sqlite3" />
+    <PackageReference Include="SQLitePCLRaw.config.e_sqlite3" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" PrivateAssets="all" NoWarn="NU1701" />
     <!-- 
         This is necessary because Microsoft.VisualStudio.LanguageServer.Client.Implementation has transitive dependencies on Microsoft.VisualStudio.Workspace.
@@ -66,12 +66,20 @@
     <PackageReference Include="SourceGear.sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="$(PkgSQLitePCLRaw_config_e_sqlite3)\lib\net471\SQLitePCLRaw.batteries_v2.dll">
+      <Link>SQLitePCLRaw.batteries_v2.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="$(PkgSourceGear_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="$(PkgSQLitePCLRaw_config_e_sqlite3)\lib\net471\SQLitePCLRaw.batteries_v2.dll">
+      <Link>Core\SQLitePCLRaw.batteries_v2.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="$(PkgSourceGear_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>Core\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
