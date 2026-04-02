@@ -264,7 +264,9 @@ dotnet_diagnostic.IDE0060.severity = warning
 dotnet_diagnostic.CA1012.severity = warning
 
 # CA1822: Make member static
-dotnet_diagnostic.CA1822.severity = warning
+# Downgraded from warning to suggestion due to large number of new false positives
+# after upgrading to .NET analyzers 8.0 (from 6.0). See also VisualStudio layer override below.
+dotnet_diagnostic.CA1822.severity = suggestion
 
 # Prefer "var" everywhere
 dotnet_diagnostic.IDE0007.severity = warning

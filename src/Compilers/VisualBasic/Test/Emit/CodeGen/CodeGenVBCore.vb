@@ -2795,9 +2795,9 @@ End Namespace
 references:={SystemCoreRef, SystemXmlLinqRef, SystemXmlRef})
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
-            <errors>BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+            <errors>BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
-BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
+BC30560: Error in project-level import 'Microsoft.VisualBasic' at 'Microsoft.VisualBasic' : 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 BC30560: 'VisualBasic' is ambiguous in the namespace 'Microsoft'.
 Imports Microsoft.VisualBasic
         ~~~~~~~~~~~~~~~~~~~~~
