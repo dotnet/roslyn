@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Public Sub New()
             ShowImportCompletionItemsOptionValue = True
-            ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted
+            ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImport
             ForceExpandedCompletionIndexCreation = True
         End Sub
 

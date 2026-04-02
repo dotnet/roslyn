@@ -205,11 +205,11 @@
     },
     // CompletionOptionsStorage.ImportCompletionCommitBehavior
     "languages.csharp.intellisense.importCompletionCommitBehavior": {
-      "title": "@Commit_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Completion_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
-      "enum": [ "alwaysAddImportWhenCommitted", "neverAddImportWhenCommitted", "onlyAddImportWhenCommittedExplicitly" ],
-      "enumItemLabels": [ "@Always_add_using_when_committed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Never_add_using_when_committed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Only_add_using_when_committed_explicitly;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
-      "default": "alwaysAddImportWhenCommitted",
+      "enum": [ "alwaysAddImport", "neverAddImport", "onlyAddImportIfExplicitlyCompleted" ],
+      "enumItemLabels": [ "@Always_add_using;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Never_add_using;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "@Only_add_using_if_explicitly_completed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll" ],
+      "default": "alwaysAddImport",
       "order": 81,
       "enableWhen": "${config:languages.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces}=='true'",
       "migration": {
@@ -220,15 +220,15 @@
           },
           "map": [
             {
-              "result": "alwaysAddImportWhenCommitted",
+              "result": "alwaysAddImport",
               "match": 0
             },
             {
-              "result": "neverAddImportWhenCommitted",
+              "result": "neverAddImport",
               "match": 1
             },
             {
-              "result": "onlyAddImportWhenCommittedExplicitly",
+              "result": "onlyAddImportIfExplicitlyCompleted",
               "match": 2
             }
           ]

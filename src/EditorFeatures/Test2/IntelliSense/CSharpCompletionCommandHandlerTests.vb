@@ -6983,6 +6983,7 @@ namespace NS2
                         <ProjectReference>RefProj</ProjectReference>
                         <Document FilePath="C.cs"><![CDATA[
 namespace NS1
+{
     public class C1
     {
         void M(int x)
@@ -7018,10 +7019,6 @@ namespace NS2
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
-
-                ' Make sure any background work would be completed.
-                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
-                Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function
 
@@ -13848,12 +13845,12 @@ internal class Program
         End Function
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted, vbTab)>
-        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted, " "c)>
-        <InlineData(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted, vbTab)>
-        <InlineData(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted, " "c)>
-        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly, " "c)>
-        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, vbTab)>
         Friend Async Function OnlyAddMissingImportWithCorrectCombinationOfOptionAndCommitChar(options As ImportCompletionCommitBehavior, commitChar As Char) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -13880,7 +13877,7 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, options)
 
-                Dim addedUsing As String = If(options = ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted OrElse (options = ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly AndAlso commitChar = vbTab),
+                Dim addedUsing As String = If(options = ImportCompletionCommitBehavior.AlwaysAddImport OrElse (options = ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted AndAlso commitChar = vbTab),
                     "using NS2;
 
 ", String.Empty)
@@ -13921,7 +13918,7 @@ namespace NS2
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Friend Async Function TestChangingImportCompletionCommitBehavior() As Task
+        Friend Async Function TestChangingImportCompletionCommitBehaviorForType() As Task
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
@@ -13949,7 +13946,7 @@ namespace NS2
                 </Workspace>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.NeverAddImportWhenCommitted)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.NeverAddImport)
                 Dim documentID = state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id
                 Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
 
@@ -13984,6 +13981,7 @@ namespace NS2
                 ' Even though the initial cache contains items created with default commit behavior (always add using), 
                 ' we should not ad a using with TAB for this option
                 state.SendTab()
+                Await state.AssertNoCompletionSession()
                 Assert.Equal(expectedText1, state.GetDocumentText())
 
                 Dim expectedText2 As String = "
@@ -14007,7 +14005,7 @@ namespace NS2
     }
 }
 "
-                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.AlwaysAddImport)
                 state.SendBackspaces("Bar".Length)
                 state.SendEscape()
 
@@ -14018,9 +14016,143 @@ namespace NS2
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 state.SendTab()
+                Await state.AssertNoCompletionSession()
 
                 Assert.Equal(expectedText2, state.GetDocumentText())
 
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestChangingImportCompletionCommitBehaviorForExtensionMethod() As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+                        <Document FilePath="C.cs"><![CDATA[
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExt$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+]]></Document>
+                    </Project>
+                </Workspace>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.NeverAddImport)
+                Dim documentID = state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id
+
+                Dim completionService = state.Workspace.CurrentSolution.GetDocument(documentID).GetLanguageService(Of CompletionService)()
+                completionService.GetTestAccessor().SuppressPartialSemantics()
+
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(state.Workspace.CurrentSolution.GetDocument(documentID).Project, CancellationToken.None)
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="IntegerExtMethod", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                Dim expectedText1 As String = "
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExtMethod
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+"
+                ' Even though the initial cache contains items created with default commit behavior (always add using), 
+                ' we should not ad a using with TAB for this option
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal(expectedText1, state.GetDocumentText())
+                Dim expectedText2 As String = "
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExt
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+"
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.AlwaysAddImport)
+                state.SendBackspaces("x.IntegerExtMethod".Length)
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("x.IntegerExt")
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                Assert.Equal(expectedText2, state.GetDocumentText())
+
+                Dim expectedText3 As String = "
+using NS2;
+
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExtMethod
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+"
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' Now we changed the option to "always add using"
+                Await state.AssertSelectedCompletionItem(displayText:="IntegerExtMethod", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                Assert.Equal(expectedText3, state.GetDocumentText())
             End Using
         End Function
     End Class

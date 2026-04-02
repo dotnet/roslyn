@@ -28,7 +28,7 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
     {
         ShowImportCompletionItemsOptionValue = true;
         ForceExpandedCompletionIndexCreation = true;
-        ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted;
+        ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImport;
     }
 
     [InlineData(null)]
@@ -42,7 +42,7 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
         var markup = """
             class Bar
             {
-                $$
+                 $$
             }
             """;
 
@@ -1895,8 +1895,7 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
             enum E : $$
             """);
 
-    [WpfTheory]
-    [CombinatorialData]
+    [WpfTheory, CombinatorialData]
     internal async Task TestCommitBehaviorOption(
         ImportCompletionCommitBehavior commitBehavior,
         [CombinatorialValues(' ', null)] char? commitChar,
@@ -1923,8 +1922,8 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
             }
             """;
 
-        var usingStatement = (commitBehavior is ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted ||
-            (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly && commitChar is null))
+        var usingStatement = (commitBehavior is ImportCompletionCommitBehavior.AlwaysAddImport ||
+            (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted && commitChar is null))
             ? $"using Foo;{Environment.NewLine}{Environment.NewLine}"
             : "";
 

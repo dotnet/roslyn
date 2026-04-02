@@ -189,4 +189,4 @@
 [$RootKey$\SettingsManifests\{574fc912-f74f-4b4e-92c3-f695c208a2bb}]
 @="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage"
 "ManifestPath"="$PackageFolder$\UnifiedSettings\visualBasicSettings.registration.json"
-"CacheTag"=qword:4A817476C23C9328
+"CacheTag"=qword:937647FDF4DEB899

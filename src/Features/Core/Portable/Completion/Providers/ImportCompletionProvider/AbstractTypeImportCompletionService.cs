@@ -248,7 +248,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
             Language,
             GenericTypeSuffix,
             editorBrowsableInfo,
-            commitBehavior ?? (cacheEntry is null ? ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted : cacheEntry.CommitBehavior));
+            commitBehavior ?? (cacheEntry is null ? ImportCompletionCommitBehavior.AlwaysAddImport : cacheEntry.CommitBehavior));
 
         GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
         cacheEntry = builder.ToReferenceCacheEntry();

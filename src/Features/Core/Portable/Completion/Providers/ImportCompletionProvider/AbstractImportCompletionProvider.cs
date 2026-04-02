@@ -130,11 +130,11 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
         }
 
         // Decide if we should add import whe this item is committed, based on the option we stored in item property bag.
-        var commitBehavior = ImportCompletionItem.GetCommitBehavior(completionItem);
-        if (commitBehavior is ImportCompletionCommitBehavior.NeverAddImportWhenCommitted ||
-            commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly && commitKey != '\t' && commitKey != null)
+        // TAB and double-click are treated as "committed explicitly".
+        if ((ImportCompletionItem.GetCommitBehavior(completionItem), commitKey) is
+                (ImportCompletionCommitBehavior.NeverAddImport, _) or
+                (ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, not ('\t' or null)))
         {
-            // TAB and double-click are treated as "committed explicitly"
             return CompletionChange.Create(new TextChange(completionItem.Span, insertText));
         }
 

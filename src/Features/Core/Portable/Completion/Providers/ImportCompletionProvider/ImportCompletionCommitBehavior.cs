@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal enum ImportCompletionCommitBehavior
 {
-    AlwaysAddImportWhenCommitted,
-    NeverAddImportWhenCommitted,
-    OnlyAddImportWhenCommittedExplicitly,
+    AlwaysAddImport,
+    NeverAddImport,
+    OnlyAddImportIfExplicitlyCompleted,     // via TAB or explicitly selected in completion list
 }

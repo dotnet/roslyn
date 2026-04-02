@@ -32,9 +32,9 @@
         <target state="translated">Eingebettete Anweisungen in derselben Zeile zulassen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Always_add_using_when_committed">
-        <source>Always add using when committed</source>
-        <target state="new">Always add using when committed</target>
+      <trans-unit id="Always_add_using">
+        <source>Always add using</source>
+        <target state="new">Always add using</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
@@ -127,14 +127,14 @@
         <target state="translated">Innerhalb des Namespaces</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Never_add_using_when_committed">
-        <source>Never add using when committed</source>
-        <target state="new">Never add using when committed</target>
+      <trans-unit id="Never_add_using">
+        <source>Never add using</source>
+        <target state="new">Never add using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Only_add_using_when_committed_explicitly">
-        <source>Only add using when committed explicitly (via TAB or double-click)</source>
-        <target state="new">Only add using when committed explicitly (via TAB or double-click)</target>
+      <trans-unit id="Only_add_using_if_explicitly_completed">
+        <source>Only add using if explicitly completed (via TAB or double-click)</source>
+        <target state="new">Only add using if explicitly completed (via TAB or double-click)</target>
         <note />
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">

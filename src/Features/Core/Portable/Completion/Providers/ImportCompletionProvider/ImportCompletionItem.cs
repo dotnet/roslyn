@@ -28,7 +28,7 @@ internal static class ImportCompletionItem
     private const string OverloadCountKey = nameof(OverloadCountKey);
     private const string AlwaysFullyQualifyKey = nameof(AlwaysFullyQualifyKey);
 
-    // The default behavior is `AlwaysAddImportWhenCommitted`, which is represent by the absence of this property.
+    // The default behavior is `AlwaysAddImport`, which is represent by the absence of this property.
     private const string CommitBehaviorKey = nameof(CommitBehaviorKey);
 
     public static CompletionItem Create(
@@ -40,11 +40,11 @@ internal static class ImportCompletionItem
         CompletionItemFlags flags,
         (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData,
         bool includedInTargetTypeCompletion = false,
-        ImportCompletionCommitBehavior commitBehavior = ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted)
+        ImportCompletionCommitBehavior commitBehavior = ImportCompletionCommitBehavior.AlwaysAddImport)
     {
         ImmutableArray<KeyValuePair<string, string>> properties = default;
 
-        if (extensionMethodData != null || arity > 0 || commitBehavior != ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted)
+        if (extensionMethodData != null || arity > 0 || commitBehavior != ImportCompletionCommitBehavior.AlwaysAddImport)
         {
             using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
 
@@ -66,15 +66,15 @@ internal static class ImportCompletionItem
                 builder.Add(KeyValuePair.Create(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity)));
             }
 
-            if (commitBehavior != ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted)
+            if (commitBehavior != ImportCompletionCommitBehavior.AlwaysAddImport)
             {
                 switch (commitBehavior)
                 {
-                    case ImportCompletionCommitBehavior.NeverAddImportWhenCommitted:
-                        builder.Add(KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted)));
+                    case ImportCompletionCommitBehavior.NeverAddImport:
+                        builder.Add(KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.NeverAddImport)));
                         break;
-                    case ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly:
-                        builder.Add(KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly)));
+                    case ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted:
+                        builder.Add(KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted)));
                         break;
                     default:
                         break;
@@ -249,13 +249,13 @@ internal static class ImportCompletionItem
             return item;
 
         var properties = item.GetProperties().WhereAsArray(pair => pair.Key != CommitBehaviorKey);
-        if (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly)
+        if (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted)
         {
-            properties = [.. properties, KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly))];
+            properties = [.. properties, KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted))];
         }
-        else if (commitBehavior is ImportCompletionCommitBehavior.NeverAddImportWhenCommitted)
+        else if (commitBehavior is ImportCompletionCommitBehavior.NeverAddImport)
         {
-            properties = [.. properties, KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted))];
+            properties = [.. properties, KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.NeverAddImport))];
         }
 
         return item.WithProperties(properties);
@@ -267,12 +267,12 @@ internal static class ImportCompletionItem
         {
             return commitBehavior switch
             {
-                nameof(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted) => ImportCompletionCommitBehavior.NeverAddImportWhenCommitted,
-                nameof(ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly) => ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly,
-                _ => ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted,
+                nameof(ImportCompletionCommitBehavior.NeverAddImport) => ImportCompletionCommitBehavior.NeverAddImport,
+                nameof(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted) => ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted,
+                _ => ImportCompletionCommitBehavior.AlwaysAddImport,
             };
         }
 
-        return ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted;
+        return ImportCompletionCommitBehavior.AlwaysAddImport;
     }
 }

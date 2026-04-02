@@ -287,9 +287,9 @@
         <target state="translated">Commentaires</target>
         <note />
       </trans-unit>
-      <trans-unit id="Commit_behavior_for_items_from_unimported_namespaces">
-        <source>Commit behavior for items from unimported namespaces</source>
-        <target state="new">Commit behavior for items from unimported namespaces</target>
+      <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
+        <source>Completion behavior for items from unimported namespaces</source>
+        <target state="new">Completion behavior for items from unimported namespaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">

@@ -159,11 +159,11 @@
     },
     // CompletionOptionsStorage.ImportCompletionCommitBehavior
     "languages.basic.intellisense.importCompletionCommitBehavior": {
-      "title": "@Commit_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Completion_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
-      "enum": [ "alwaysAddImportWhenCommitted", "neverAddImportWhenCommitted", "onlyAddImportWhenCommittedExplicitly" ],
-      "enumItemLabels": [ "@Always_add_import_when_committed;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Never_add_import_when_committed;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Only_add_import_when_committed_explicitly;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" ],
-      "default": "alwaysAddImportWhenCommitted",
+      "enum": [ "alwaysAddImport", "neverAddImport", "onlyAddImportIfExplicitlyCompleted" ],
+      "enumItemLabels": [ "@Always_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Never_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Only_add_import_if_explicitly_completed;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" ],
+      "default": "alwaysAddImport",
       "order": 51,
       "enableWhen": "${config:languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces}=='true'",
       "migration": {
@@ -174,15 +174,15 @@
           },
           "map": [
             {
-              "result": "alwaysAddImportWhenCommitted",
+              "result": "alwaysAddImport",
               "match": 0
             },
             {
-              "result": "neverAddImportWhenCommitted",
+              "result": "neverAddImport",
               "match": 1
             },
             {
-              "result": "onlyAddImportWhenCommittedExplicitly",
+              "result": "onlyAddImportIfExplicitlyCompleted",
               "match": 2
             }
           ]

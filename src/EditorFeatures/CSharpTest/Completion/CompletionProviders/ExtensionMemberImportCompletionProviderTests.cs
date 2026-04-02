@@ -27,7 +27,7 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
     public ExtensionMemberImportCompletionProviderTests()
     {
         ShowImportCompletionItemsOptionValue = true;
-        ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted;
+        ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImport;
         ForceExpandedCompletionIndexCreation = true;
     }
 
@@ -2759,16 +2759,15 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              inlineDescription: "Goo");
     }
 
-    [WpfTheory]
-    [CombinatorialData]
+    [WpfTheory, CombinatorialData]
     internal async Task TestCommitBehaviorOption(
         ImportCompletionCommitBehavior commitBehavior,
         [CombinatorialValues(' ', null)] char? commitChar)
     {
         ImportCompletionCommitBehaviorValue = commitBehavior;
 
-        var usingStatement = (commitBehavior is ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted ||
-            (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportWhenCommittedExplicitly && commitChar is null))
+        var usingStatement = (commitBehavior is ImportCompletionCommitBehavior.AlwaysAddImport ||
+            (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted && commitChar is null))
             ? $"using AA;{Environment.NewLine}{Environment.NewLine}"
             : "";
 

@@ -20,7 +20,7 @@ internal sealed record class CompletionOptions
     public MemberDisplayOptions MemberDisplayOptions { get; init; } = MemberDisplayOptions.Default;
     public bool ShowNameSuggestions { get; init; } = true;
     public bool? ShowItemsFromUnimportedNamespaces { get; init; } = true;
-    public ImportCompletionCommitBehavior ImportCompletionCommitBehavior { get; init; } = ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted;
+    public ImportCompletionCommitBehavior ImportCompletionCommitBehavior { get; init; } = ImportCompletionCommitBehavior.AlwaysAddImport;
     public bool UnnamedSymbolCompletionDisabled { get; init; } = false;
     public bool TargetTypedCompletionFilter { get; init; } = false;
     public bool ProvideDateAndTimeCompletions { get; init; } = true;
