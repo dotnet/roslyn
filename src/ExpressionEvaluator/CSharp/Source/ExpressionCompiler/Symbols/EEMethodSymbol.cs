@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override RefKind RefKind
         {
-            get { return this.SubstitutedSourceMethod.RefKind; }
+            get { return RefKind.None; }
         }
 
         public override bool ReturnsVoid
