@@ -4728,8 +4728,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _localScopeDepth;
 
                 case BoundKind.ImplicitReceiver:
-                    // binder uses this as a placeholder when binding members inside an object initializer
-                    // just say it does not escape anywhere, so that we do not get false errors.
                     return _localScopeDepth;
 
                 case BoundKind.InterpolatedStringHandlerPlaceholder:
