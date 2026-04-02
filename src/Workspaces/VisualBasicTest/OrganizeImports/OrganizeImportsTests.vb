@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.[Shared].Extensions
@@ -661,7 +662,53 @@ Imports CC
 // If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
 // If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.</content>
 
-            Dim final =
+            Dim final As XElement
+            If GlobalizationUtilities.ICUMode() Then
+                final =
+<content>Imports a
+Imports A
+Imports aa
+Imports aA
+Imports Aa
+Imports AA
+Imports b
+Imports B
+Imports bb
+Imports bB
+Imports Bb
+Imports BB
+Imports bbb
+Imports bbB
+Imports bBb
+Imports bBB
+Imports Bbb
+Imports BbB
+Imports BBb
+Imports BBB
+Imports c
+Imports C
+Imports cc
+Imports cC
+Imports cC
+Imports Cc
+Imports CC
+Imports あ
+Imports ｱ
+Imports ああ
+Imports あｱ
+Imports ｱあ
+Imports ｱｱ
+Imports あア
+Imports ｱア
+Imports ア
+Imports アあ
+Imports アｱ
+Imports アア
+
+// If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
+// If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.</content>
+            Else
+                final =
 <content>Imports a
 Imports A
 Imports aa
@@ -704,6 +751,8 @@ Imports ああ
 
 // If Kana is sensitive あ != ア, if Kana is insensitive あ == ア.
 // If Width is sensitiveア != ｱ, if Width is insensitive ア == ｱ.</content>
+            End If
+
             Await CheckAsync(initial, final)
         End Function
 
@@ -723,7 +772,24 @@ Imports ｱあ
 Imports ｱア
 Imports ｱｱ</content>
 
-            Dim final =
+            Dim final As XElement
+            If GlobalizationUtilities.ICUMode() Then
+                final =
+<content>Imports あ
+Imports ｱ
+Imports ああ
+Imports あｱ
+Imports ｱあ
+Imports ｱｱ
+Imports あア
+Imports ｱア
+Imports ア
+Imports アあ
+Imports アｱ
+Imports アア
+</content>
+            Else
+                final =
 <content>Imports ア
 Imports ｱ
 Imports あ
@@ -737,6 +803,7 @@ Imports あア
 Imports あｱ
 Imports ああ
 </content>
+            End If
 
             Await CheckAsync(initial, final)
         End Function
