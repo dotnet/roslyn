@@ -219,7 +219,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         // Delete the csproj file
         File.Delete(csprojFile.Path);
-        AssertEx.SequenceEqual([appFile.Path, programFile.Path], discovery.FindEntryPoints(tempDir.Path).ToArray());
+        AssertEx.SequenceEqual([appFile.Path, programFile.Path], discovery.FindEntryPoints(tempDir.Path));
 
         // Verify stability
         AssertEx.SequenceEqual([appFile.Path, programFile.Path], discovery.FindEntryPoints(tempDir.Path));
