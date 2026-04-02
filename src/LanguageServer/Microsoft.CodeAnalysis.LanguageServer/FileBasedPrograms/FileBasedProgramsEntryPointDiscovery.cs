@@ -160,8 +160,11 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         Cache? cache = null;
         try
         {
-            using var cacheFile = File.OpenRead(cacheFilePath);
-            cache = JsonSerializer.Deserialize(cacheFile, CacheSerializerContext.Default.Cache);
+            if (File.Exists(cacheFilePath))
+            {
+                using var cacheFile = File.OpenRead(cacheFilePath);
+                cache = JsonSerializer.Deserialize(cacheFile, CacheSerializerContext.Default.Cache);
+            }
 
             // Drop malformed caches
             if (cache != null
@@ -202,6 +205,10 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         var elapsedMilliseconds = stopwatch.Elapsed.Milliseconds;
         _logger.LogInformation("Finished discovery in '{workspaceFolder}' in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
 
+        // Ensure items go into the cache file in a stable order.
+        // This is useful for manual inspection and allows use of 'BinarySearch' to match directories against the cache.
+        newFileBasedAppsBuilder.Sort();
+        directoriesContainingCsprojBuilder.Sort();
         var newCache = new Cache(workspaceFolder, walkStartTimeUtc, newFileBasedAppsBuilder.ToImmutableAndFree(), directoriesContainingCsprojBuilder.ToImmutableAndFree());
         try
         {
@@ -282,7 +289,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger)
     {
         internal void Visit()
-            // Note: 'VisitDirectory' will always stat the directory itself to get its created/modified times out.
+            // Note: passing `DateTimeOffset.MinValue` here will force `VisitDirectory` to stat the directory again to get its created/modified times out.
             => VisitDirectory(cache.WorkspacePath, DateTimeOffset.MinValue);
 
         private void VisitDirectory(string directory, DateTimeOffset createdOrModifiedTimeUtc)
@@ -292,6 +299,9 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
             if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)
             {
+                // On NTFS, the directory timestamps we observe when enumerating can be stale when files are added/deleted from a directory.
+                // If we find the timestamps were old enough (i.e. we entered this block),
+                // we still need to `new DirectoryInfo()` again and force the timestamps to update if needed.
                 var directoryInfo = new DirectoryInfo(directory);
                 var newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
                 if (newCreatedOrModifiedTimeUtc < cache.LastWalkTimeUtc && cache.DirectoriesContainingCsproj.BinarySearch(directory, s_pathComparer) >= 0)
@@ -335,7 +345,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         {
             if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)
             {
-                if (cache.FileBasedAppFullPaths.Contains(file))
+                if (cache.FileBasedAppFullPaths.BinarySearch(file) >= 0)
                 {
                     logger.LogInformation("Discovered file-based app (cache hit): {csFilePath}", file);
                     entryPointsBuilder.Add(file);
