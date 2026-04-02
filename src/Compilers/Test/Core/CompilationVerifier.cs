@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         output = output.Trim();
                     }
 
-                    AssertEx.Equal(expectedOutput, output);
+                    AssertEx.Equal(expectedOutput.ReplaceLineEndings(), output.ReplaceLineEndings());
                     Assert.Empty(errorOutput);
                 }
             }

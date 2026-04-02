@@ -741,7 +741,7 @@ End Class
 
         Shared Sub VerifyDiagnosticsWithSource(source As String, diag As Diagnostic, location As TextSpan, ParamArray expected As DiagnosticDescription())
             Dim parseOptions = TestOptions.Regular
-            source = source.Replace(Environment.NewLine, vbCrLf)
+            source = source.ReplaceLineEndings(vbCrLf)
             Dim compilation As Compilation = CreateCompilation(source)
             compilation.VerifyDiagnostics()
             Assert.Single(compilation.SyntaxTrees)
@@ -768,7 +768,7 @@ End Class
 
         Shared Sub VerifyDiagnosticsWithLocation(source As String, reportDiagnostics As IReadOnlyList(Of (Diagnostic As Diagnostic, Location As String)), ParamArray expected As DiagnosticDescription())
             Dim parseOptions = TestOptions.Regular
-            source = source.Replace(Environment.NewLine, vbCrLf)
+            source = source.ReplaceLineEndings(vbCrLf)
             Dim compilation = CreateCompilation(source, parseOptions:=parseOptions)
             compilation.VerifyDiagnostics()
             Dim syntaxTree = compilation.SyntaxTrees.Single()

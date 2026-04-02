@@ -168,7 +168,7 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
                 """"
             """"", mutatingLspWorkspace);
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
     public Task OnAutoInsert_RawString_GrowDelimitersWhenEndExists_Interpolated(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpectedRawString("\"",
             """""
@@ -234,6 +234,6 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
 
         MarkupTestFile.GetPositionAndSpans(expected, out var massaged, out int? caretPosition, out var spans);
 
-        Assert.Equal(massaged, actualText);
+        AssertEx.Equal(massaged, actualText);
     }
 }

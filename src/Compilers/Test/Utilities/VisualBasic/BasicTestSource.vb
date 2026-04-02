@@ -4,6 +4,7 @@
 
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
+Imports Roslyn.Test.Utilities
 
 Public Structure BasicTestSource
 

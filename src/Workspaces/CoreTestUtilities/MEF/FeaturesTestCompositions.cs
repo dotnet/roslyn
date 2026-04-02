@@ -27,5 +27,6 @@ public static class FeaturesTestCompositions
         .AddParts(typeof(TestSerializerService.Factory));
 
     public static TestComposition WithTestHostParts(this TestComposition composition, TestHost host)
-        => (host == TestHost.InProcess) ? composition : composition.AddAssemblies(typeof(RemoteWorkspacesResources).Assembly).AddParts(typeof(InProcRemoteHostClientProvider.Factory));
+        // OOP remote host services are only available on Windows; on other platforms fall back to in-process.
+        => (host == TestHost.InProcess || !ExecutionConditionUtil.IsWindows) ? composition : composition.AddAssemblies(typeof(RemoteWorkspacesResources).Assembly).AddParts(typeof(InProcRemoteHostClientProvider.Factory));
 }

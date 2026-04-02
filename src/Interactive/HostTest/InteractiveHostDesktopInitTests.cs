@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop32;
         internal override bool UseDefaultInitializationFile => true;
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task SearchPaths1()
         {
             var fxDir = await GetHostRuntimeDirectoryAsync();
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             Assert.Equal("[Metadata.ICSProp]\r\n", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_AssemblyAlreadyLoaded()
         {
             var result = await LoadReference("System.Core");

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Desktop64;
         internal override bool UseDefaultInitializationFile => false;
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task OutputRedirection()
         {
             await Execute(@"
@@ -40,7 +40,7 @@ System.Console.Error.WriteLine(""error-\u7890!"");
             Assert.Equal("error-\u7890!\r\n", error);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task OutputRedirection2()
         {
             await Execute(@"System.Console.WriteLine(1);");
@@ -107,7 +107,7 @@ void goo()
 }
 ";
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AsyncExecute_InfiniteLoop()
         {
             var mayTerminate = new ManualResetEvent(false);
@@ -177,7 +177,7 @@ while(true) {}
             Assert.Equal(0, process.ExitCode);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AsyncExecuteFile_InfiniteLoop()
         {
             var file = Temp.CreateFile().WriteAllText(MethodWithInfiniteLoop + "\r\nfoo();").Path;
@@ -196,7 +196,7 @@ while(true) {}
             Assert.Equal("2\r\n", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AsyncExecuteFile_SourceKind()
         {
             var file = Temp.CreateFile().WriteAllText("1 1").Path;
@@ -208,7 +208,7 @@ while(true) {}
             Assert.True(errorOut.Contains("CS1002"), "Error output should include error CS1002");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AsyncExecuteFile_NonExistingFile()
         {
             var result = await Host.ExecuteFileAsync("non existing file");
@@ -219,7 +219,7 @@ while(true) {}
             Assert.Contains(InteractiveHostResources.Searched_in_directory_colon, errorOut, StringComparison.Ordinal);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AsyncExecuteFile()
         {
             var file = Temp.CreateFile().WriteAllText(@"
@@ -254,7 +254,7 @@ WriteLine(5);
             Assert.Equal("4", output.Trim());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AsyncExecuteFile_InvalidFileContent()
         {
             await Host.ExecuteFileAsync(typeof(Process).Assembly.Location);
@@ -265,7 +265,7 @@ WriteLine(5);
             Assert.True(errorOut.Contains("CS1002"), "Error output should include error CS1002");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AsyncExecuteFile_ScriptFileWithBuildErrors()
         {
             var file = Temp.CreateFile().WriteAllText("#load blah.csx" + "\r\n" + "class C {}");
@@ -297,7 +297,7 @@ WriteLine(5);
             Assert.Equal("2\r\n", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_Path()
         {
             var fxDir = await GetHostRuntimeDirectoryAsync();
@@ -306,7 +306,7 @@ WriteLine(5);
             Assert.True(await Execute("new System.Data.DataSet()"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_PartialName()
         {
             Assert.False(await Execute("new System.Data.DataSet()"));
@@ -314,7 +314,7 @@ WriteLine(5);
             Assert.True(await Execute("new System.Data.DataSet()"));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_PartialName_LatestVersion()
         {
             // there might be two versions of System.Data - v2 and v4, we should get the latter:
@@ -326,7 +326,7 @@ WriteLine(5);
             Assert.Equal("[4.0.0.0]\r\n", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_FullName()
         {
             Assert.False(await Execute("new System.Data.DataSet()"));
@@ -428,7 +428,7 @@ WriteLine(5);
         /// <summary>
         /// When two files of the same version are in the same directory, prefer .dll over .exe.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_Dependencies_DllExe()
         {
             var dir = Temp.CreateDirectory();
@@ -448,7 +448,7 @@ WriteLine(5);
             Assert.Equal("1", output.Trim());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_Dependencies_Versions()
         {
             var dir1 = Temp.CreateDirectory();
@@ -476,7 +476,7 @@ WriteLine(5);
             Assert.Equal("2", output.Trim());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task AddReference_AlreadyLoadedDependencies()
         {
             var dir = Temp.CreateDirectory();
@@ -600,7 +600,7 @@ new D().Y
         }
 
         //// TODO (987032):
-        ////        [Fact]
+        ////        [ConditionalFact(typeof(WindowsDesktopOnly))]
         ////        public void AsyncInitializeContextWithDotNETLibraries()
         ////        {
         ////            var rspFile = Temp.CreateFile();
@@ -645,7 +645,7 @@ new D().Y
         ////            Assert.Equal("", errorOutput);
         ////        }
 
-        ////        [Fact]
+        ////        [ConditionalFact(typeof(WindowsDesktopOnly))]
         ////        public void AsyncInitializeContextWithBothUserDefinedAndDotNETLibraries()
         ////        {
         ////            var dir = Temp.CreateDirectory();
@@ -681,7 +681,7 @@ new D().Y
         ////            Assert.Equal("13", output[3]);
         ////        }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task ReferencePathsRsp()
         {
             var directory1 = Temp.CreateDirectory();
@@ -729,7 +729,7 @@ Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     ", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task ReferencePathsRsp_Error()
         {
             var initDirectory = Temp.CreateDirectory();
@@ -749,7 +749,7 @@ Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
                 @$"{initFile.Path}(1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, "Assembly.dll")}", error);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task DefaultUsings()
         {
             var rspFile = Temp.CreateFile();
@@ -805,7 +805,7 @@ OK
 ", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task InitialScript_Error()
         {
             var initFile = Temp.CreateFile(extension: ".csx").WriteAllText("1 1");
@@ -833,7 +833,7 @@ OK
 ", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task ScriptAndArguments()
         {
             var scriptFile = Temp.CreateFile(extension: ".csx").WriteAllText("foreach (var arg in Args) Print(arg);");
@@ -857,7 +857,7 @@ $@"{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileN
 ", await ReadOutputToEnd());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task Script_NoHostNamespaces()
         {
             await Execute("nameof(Microsoft.Missing)");
@@ -869,7 +869,7 @@ $@"{string.Format(InteractiveHostResources.Loading_context_from_0, Path.GetFileN
             Assert.Equal("", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task ExecutesOnStaThread()
         {
             await Execute(@"
@@ -892,7 +892,7 @@ System.Console.WriteLine(""OK"");
         /// Execution of expressions should be
         /// sequential, even await expressions.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task ExecuteSequentially()
         {
             await Execute(@"using System;
@@ -904,7 +904,7 @@ using System.Threading.Tasks;");
             Assert.Equal("1\r\n2\r\n3\r\n", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task MultiModuleAssembly()
         {
             var dir = Temp.CreateDirectory();
@@ -924,7 +924,7 @@ new object[] { new Class1(), new Class2(), new Class3() }
             Assert.Equal("object[3] { Class1 { }, Class2 { }, Class3 { } }\r\n", output);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6457")]
+        [ConditionalFact(typeof(WindowsDesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/6457")]
         public async Task MissingReferencesReuse()
         {
             var source = @"
@@ -952,7 +952,7 @@ new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             AssertEx.AssertEqualToleratingWhitespaceDifferences("C { P=null }", output);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7280")]
+        [ConditionalFact(typeof(WindowsDesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/7280")]
         public async Task AsyncContinueOnDifferentThread()
         {
             await Execute(@"
@@ -968,7 +968,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             Assert.Empty(error);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task Exception()
         {
             await Execute(@"throw new System.Exception();");
@@ -980,7 +980,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             Assert.True(error.StartsWith($"{new Exception().GetType()}: {new Exception().Message}"));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
+        [ConditionalFact(typeof(WindowsDesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException()
         {
             await Execute(@"int i = 100;");
@@ -993,7 +993,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             AssertEx.AssertEqualToleratingWhitespaceDifferences("System.Exception: Bang!", error);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task Bitness()
         {
             await Host.ExecuteAsync(@"System.IntPtr.Size");
@@ -1017,7 +1017,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             AssertEx.AssertEqualToleratingWhitespaceDifferences("8\r\n", await ReadOutputToEnd());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task Culture()
         {
             var rspFile = Temp.CreateFile();
@@ -1042,7 +1042,7 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
 
         #region Submission result printing - null/void/value.
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task SubmissionResult_PrintingNull()
         {
             await Execute(@"
@@ -1055,7 +1055,7 @@ s
             Assert.Equal("null\r\n", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         public async Task SubmissionResult_PrintingVoid()
         {
             await Execute(@"System.Console.WriteLine(2)");
@@ -1073,7 +1073,7 @@ goo()
         }
 
         // TODO (https://github.com/dotnet/roslyn/issues/7976): delete this
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7976")]
+        [ConditionalFact(typeof(WindowsDesktopOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/7976")]
         public void Workaround7976()
         {
             Thread.Sleep(TimeSpan.FromSeconds(10));

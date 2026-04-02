@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -61,7 +61,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -90,7 +90,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -115,7 +115,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -144,7 +144,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -173,7 +173,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -202,7 +202,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -231,7 +231,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -260,7 +260,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -293,7 +293,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Single-line style
@@ -322,7 +322,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -347,7 +347,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -372,7 +372,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -399,7 +399,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -429,7 +429,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -459,7 +459,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -490,7 +490,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -521,7 +521,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -552,7 +552,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -583,7 +583,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -658,7 +658,7 @@ class A
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(547164, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547164")]
@@ -707,7 +707,7 @@ public class Point
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Multi-line style
@@ -740,7 +740,7 @@ public partial class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -776,7 +776,7 @@ public partial class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expectedA, actualA);
+            AssertEx.Equal(expectedA, actualA);
 
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
@@ -795,7 +795,7 @@ public partial class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expectedB, actualB);
+            AssertEx.Equal(expectedB, actualB);
         }
 
         [Fact]
@@ -824,7 +824,7 @@ public partial class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Partial types
@@ -862,7 +862,7 @@ partial class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -903,12 +903,12 @@ partial class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actualA);
+            AssertEx.Equal(expected, actualA);
 
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         [Fact]
@@ -992,7 +992,7 @@ public partial class C
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         [Fact]
@@ -1043,7 +1043,7 @@ public partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics();
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         [Fact]
@@ -1094,7 +1094,7 @@ public partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics();
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         [Fact]
@@ -1148,7 +1148,7 @@ public partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics(expectedDiagnostics);
             var actualB = GetDocumentationCommentText(compB, expectedDiagnostics);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         [Fact]
@@ -1196,7 +1196,7 @@ partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics();
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         [Fact]
@@ -1252,7 +1252,7 @@ partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics(expectedDiagnostics);
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         [Fact]
@@ -1579,7 +1579,7 @@ public partial class C
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles"/>.</summary>
@@ -1630,7 +1630,7 @@ public partial class C
             // Files passed in reverse order.
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         /// <summary>Counterpart to <see cref="PartialMethod_NoImplementation"/>.</summary>
@@ -1719,7 +1719,7 @@ public partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics();
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_ImplementationComment"/>.</summary>
@@ -1771,7 +1771,7 @@ public partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics();
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_NoComment"/>.</summary>
@@ -1826,7 +1826,7 @@ public partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics(expectedDiagnostics);
             var actualB = GetDocumentationCommentText(compB, expectedDiagnostics);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_Overlap"/>.</summary>
@@ -1875,7 +1875,7 @@ partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics();
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         /// <summary>Counterpart to <see cref="ExtendedPartialMethods_MultipleFiles_ImplComment_Invalid"/>.</summary>
@@ -1932,7 +1932,7 @@ partial class C
             var compB = CreateCompilation(new[] { tree2, tree1 }, assemblyName: "Test");
             compB.VerifyDiagnostics(expectedDiagnostics);
             var actualB = GetDocumentationCommentText(compB);
-            Assert.Equal(expected, actualB);
+            AssertEx.Equal(expected, actualB);
         }
 
         /// <summary>Counterpart to <see cref="PartialMethod_Paramref_01"/>.</summary>
@@ -3267,7 +3267,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -3312,7 +3312,7 @@ public class D { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Crefs
@@ -3344,7 +3344,7 @@ public class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -3372,7 +3372,7 @@ public class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Output name
@@ -4320,7 +4320,7 @@ class C4 { }
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -4350,7 +4350,7 @@ partial class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -4393,7 +4393,7 @@ partial class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -4433,7 +4433,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -4517,7 +4517,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [Fact]
@@ -4552,7 +4552,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [Fact]
@@ -4590,7 +4590,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [Fact]
@@ -4627,7 +4627,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [Fact]
@@ -4665,7 +4665,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -4728,7 +4728,7 @@ class C { }
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -4771,7 +4771,7 @@ class C { }
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -4817,7 +4817,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -4845,7 +4845,7 @@ class C { }
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -4882,7 +4882,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Unknown)]
@@ -4918,7 +4918,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-                Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+                AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
             }
         }
 
@@ -4954,7 +4954,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-                Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
+                AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
             }
         }
 
@@ -4989,7 +4989,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [Fact]
@@ -5022,7 +5022,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
         [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
@@ -5055,7 +5055,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -5089,7 +5089,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath2), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath2), actual);
         }
 
         [Fact]
@@ -5121,7 +5121,7 @@ class C {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [Fact]
@@ -5155,7 +5155,7 @@ class C {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         [Fact]
@@ -5208,7 +5208,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
         // It should be legal to include the same acyclic element along multiple paths - that isn't a cycle.
@@ -5247,7 +5247,7 @@ class C {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         // As in dev11, the xpath is evaluated *before* includes are expanded.
@@ -5286,7 +5286,7 @@ class C {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
         [WorkItem(554196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/554196")]
@@ -5362,7 +5362,7 @@ enum D {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #region Included crefs
@@ -5399,7 +5399,7 @@ class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5434,7 +5434,7 @@ class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5481,7 +5481,7 @@ namespace N
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5522,7 +5522,7 @@ class C {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5557,7 +5557,7 @@ class C {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(552495, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552495")]
@@ -5619,7 +5619,7 @@ class X
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(586815, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/586815")]
@@ -5661,7 +5661,7 @@ class A<T>
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Included crefs
@@ -5765,7 +5765,7 @@ class C<T>
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5838,7 +5838,7 @@ delegate void D<U, V>(U u, V v);
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5893,7 +5893,7 @@ delegate void D<U, V>(U u, V v);
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5931,7 +5931,7 @@ class C<T> {{ }}
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -5972,7 +5972,7 @@ class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -6008,7 +6008,7 @@ class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [ClrOnlyFact(ClrOnlyReason.DocumentationComment, Skip = "https://github.com/dotnet/roslyn/issues/8807")]
@@ -6045,7 +6045,7 @@ class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
         [Fact]
@@ -6094,7 +6094,7 @@ partial class C
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
         [Fact]
@@ -6255,7 +6255,7 @@ class OuterClass<X>
     </members>
 </doc>
         ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Included names
@@ -6289,7 +6289,7 @@ class C { }
     </summary>
 </member>
 ";
-            Assert.Equal(expectedText, actualText);
+            AssertEx.Equal(expectedText, actualText);
         }
 
         [Fact]
@@ -6328,7 +6328,7 @@ class C
     </summary>
 </member>
 ";
-                Assert.Equal(expectedText, actualText);
+                AssertEx.Equal(expectedText, actualText);
             }
 
             // Do not expand includes.
@@ -6343,7 +6343,7 @@ class C
     </summary>
 </member>
 ";
-                Assert.Equal(string.Format(expectedTextTemplate, xmlFilePath), actualText);
+                AssertEx.Equal(string.Format(expectedTextTemplate, xmlFilePath), actualText);
             }
         }
 
@@ -6393,7 +6393,7 @@ partial class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected1, actual1);
+            AssertEx.Equal(expected1, actual1);
 
             var actual2 = GetDocumentationCommentText(comp, null, filterTree: tree2, expectedDiagnostics: new[] {
                 // (4,20): warning CS1574: XML comment has cref attribute 'Bogus2' that could not be resolved
@@ -6412,7 +6412,7 @@ partial class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected2, actual2);
+            AssertEx.Equal(expected2, actual2);
         }
 
         [Fact]
@@ -6440,7 +6440,7 @@ public class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact, WorkItem(921838, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/921838")]
@@ -6474,7 +6474,7 @@ class C
         </member>
     </members>
 </doc>").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(531144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
@@ -6503,7 +6503,7 @@ public class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(531144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531144")]
@@ -6622,7 +6622,7 @@ class Generic<T>
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(530695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
@@ -6673,7 +6673,7 @@ class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(530695, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530695")]
@@ -6743,7 +6743,7 @@ class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(531187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531187")]
@@ -6801,7 +6801,7 @@ delegate void D<T, U>(T t, U u);
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -6829,7 +6829,7 @@ public class C { }
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(531233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
@@ -6862,7 +6862,7 @@ class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(531233, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531233")]
@@ -6895,7 +6895,7 @@ class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -6972,7 +6972,7 @@ class C<T> : I<T>
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -7002,7 +7002,7 @@ class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         // As in dev11, the pragma has no effect.
@@ -7034,7 +7034,7 @@ class C {{ }}
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFile.Path)), actual);
+            AssertEx.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFile.Path)), actual);
         }
 
         [Fact]
@@ -7086,7 +7086,7 @@ class C<T>
         </member>
     </members>
 </doc>".Trim();
-            Assert.Equal(expectedText, actualText);
+            AssertEx.Equal(expectedText, actualText);
         }
 
         [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
@@ -7149,7 +7149,7 @@ class C
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
@@ -7218,7 +7218,7 @@ class C
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(546989, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546989")]
@@ -7266,7 +7266,7 @@ class C
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(547163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547163")]
@@ -7305,7 +7305,7 @@ class A<TA1, TA2>
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -7332,7 +7332,7 @@ class A { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -7393,7 +7393,7 @@ class A<T>
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(527260, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527260")]
@@ -7419,7 +7419,7 @@ class A { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(547311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547311")]
@@ -7471,7 +7471,7 @@ class A { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(551323, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/551323")]
@@ -7500,7 +7500,7 @@ class C { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(577385, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577385")]
@@ -7567,7 +7567,7 @@ class C { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
@@ -7595,7 +7595,7 @@ class C { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
@@ -7628,7 +7628,7 @@ class C<T>
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(587126, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/587126")]
@@ -7671,7 +7671,7 @@ class B<U>
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
@@ -7727,7 +7727,7 @@ public partial class C { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
@@ -7804,7 +7804,7 @@ public class E { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(552379, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552379")]
@@ -7833,7 +7833,7 @@ public class A { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(689497, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689497")]
@@ -7869,7 +7869,7 @@ public class A { }
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(703368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703368")]
@@ -7901,7 +7901,7 @@ public class C
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(703587, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/703587")]
@@ -7944,7 +7944,7 @@ public class C : IEquatable<C>
     </members>
 </doc>".Trim();
 
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(531505, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531505")]
@@ -7987,7 +7987,7 @@ public class C { }
                 var reference = TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(false);
                 var comp = CreateCompilationUtil(source, new[] { reference });
                 var actual = GetDocumentationCommentText(comp);
-                Assert.Equal(expected, actual);
+                AssertEx.Equal(expected, actual);
 
                 CompileAndVerify(comp, symbolValidator: validator);
             }
@@ -7997,7 +7997,7 @@ public class C { }
                 var reference = TestReferences.SymbolsTests.NoPia.GeneralPia.WithEmbedInteropTypes(true);
                 var comp = CreateCompilationUtil(source, new[] { reference });
                 var actual = GetDocumentationCommentText(comp);
-                Assert.Equal(expected, actual);
+                AssertEx.Equal(expected, actual);
 
                 CompileAndVerify(comp, symbolValidator: validator);
             }
@@ -8023,7 +8023,7 @@ public class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
@@ -8070,7 +8070,7 @@ class C<T>
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
@@ -8111,7 +8111,7 @@ class C<T>
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [WorkItem(743425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/743425")]
@@ -8152,7 +8152,7 @@ class C<T>
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Misc
@@ -8203,7 +8203,7 @@ class C { }
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -8239,7 +8239,7 @@ class Program
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -8305,7 +8305,7 @@ public class C {{ }}
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -8344,7 +8344,7 @@ namespace Demo
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -8426,7 +8426,7 @@ class C { }
         </member>
     </members>
 </doc>";
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
@@ -8544,7 +8544,7 @@ class C
     </members>
 </doc>
 ").Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -8577,7 +8577,7 @@ class C
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]
@@ -8611,7 +8611,7 @@ class Module1
     </members>
 </doc>
 ".Trim();
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         #endregion Dev10 bugs
@@ -8673,7 +8673,7 @@ $@"<?xml version=""1.0""?>
         </member>
     </members>
 </doc>";
-            Assert.Equal(expected, actual);
+            AssertEx.Equal(expected, actual);
         }
 
         [Fact]

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1162,7 +1162,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 public void X()
@@ -1200,7 +1200,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace NS1
             {
                 public class C1
@@ -1228,7 +1228,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace NS1
             {
                     public class C1
@@ -1268,7 +1268,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace NS1
             {
                     public class C1
@@ -1349,7 +1349,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 void M(string[] args)
@@ -1752,7 +1752,7 @@ public sealed class AutomaticBraceCompletionTests : AbstractAutomaticBraceComple
         Assert.NotNull(session);
 
         CheckStart(session.Session);
-        Assert.Equal("""
+        AssertEx.Equal("""
             namespace NS1
             {}
             """, session.Session.SubjectBuffer.CurrentSnapshot.GetText());

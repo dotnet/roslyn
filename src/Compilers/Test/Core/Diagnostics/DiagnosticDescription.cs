@@ -324,12 +324,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var args2 = d.GetArgumentsAsStrings();
                 if (_argumentOrderDoesNotMatter || d._argumentOrderDoesNotMatter)
                 {
-                    if (args1.Count() != args2.Count() || !args1.SetEquals(args2))
+                    var normalizedArgs1 = args1.Select(a => a?.ReplaceLineEndings("\n"));
+                    var normalizedArgs2 = args2.Select(a => a?.ReplaceLineEndings("\n"));
+                    if (normalizedArgs1.Count() != normalizedArgs2.Count() || !normalizedArgs1.SetEquals(normalizedArgs2))
                         return false;
                 }
                 else
                 {
-                    if (!args1.SequenceEqual(args2))
+                    if (!args1.Select(a => a?.ReplaceLineEndings("\n")).SequenceEqual(args2.Select(a => a?.ReplaceLineEndings("\n"))))
                         return false;
                 }
             }

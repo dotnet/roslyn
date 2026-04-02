@@ -4119,7 +4119,7 @@ enum VirtualKey
                 new TextChange(new TextSpan(position2, 0), "n"),
                 new TextChange(new TextSpan(position3, 0), "n"));
 
-            Assert.Equal("""
+            AssertEx.Equal("""
                 void Main()
                 {
                     for (int in = 0; in < n; in++)

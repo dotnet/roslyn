@@ -34,9 +34,9 @@ public abstract class AbstractSolutionExplorerSymbolTreeItemProviderTests
 
         var items = service.GetItems(document.Id, node, returnNamespaces, CancellationToken.None);
 
-        var actual = string.Join("\r\n", items);
+        var actual = string.Join(Environment.NewLine, items);
         AssertEx.SequenceEqual(
-            expected.Trim().Split(["\r\n"], StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()),
+            expected.Trim().Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()),
             items.Select(i => i.ToString()));
 
         AssertEx.SequenceEqual(

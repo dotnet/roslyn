@@ -38,6 +38,6 @@ public abstract class AbstractNewDocumentFormattingServiceTests
         var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
 
         var actual = await formattedDocument.GetTextAsync();
-        AssertEx.EqualOrDiff(expected, actual.ToString());
+        AssertEx.EqualOrDiff(expected.ReplaceLineEndings(), actual.ToString().ReplaceLineEndings());
     }
 }

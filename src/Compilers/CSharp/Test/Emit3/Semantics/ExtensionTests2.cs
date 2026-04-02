@@ -27347,6 +27347,8 @@ class MyAttribute : System.Attribute
     public void MarkerTypeRawName_55()
     {
         // attribute with string with escaped strings
+        // Normalize source to CRLF so the literal newline in the attribute string is
+        // consistently \r\n across platforms, making the expected output deterministic.
         var src = """
 static class E
 {
@@ -27360,19 +27362,15 @@ class MyAttribute : System.Attribute
 { 
     public MyAttribute(string s) { }
 }
-""";
+""".ReplaceLineEndings("\r\n");
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics();
 
         var extension = (SourceNamedTypeSymbol)comp.GetMember<NamedTypeSymbol>("E").GetTypeMembers().Single();
-        var escapedNewline = Environment.NewLine switch
-        {
-            "\r\n" => "\\r\\n",
-            "\n" => "\\n",
-            _ => throw ExceptionUtilities.Unreachable()
-        };
 
-        AssertEx.Equal($$"""extension([MyAttribute/*(System.String)*/("\\r\\n\\t\\0\\a\\b\\f\\v\\U0001D11E{{escapedNewline}}end")] System.Int32)""", extension.ComputeExtensionMarkerRawName());
+        Assert.Equal(
+            """extension([MyAttribute/*(System.String)*/("\\r\\n\\t\\0\\a\\b\\f\\v\\U0001D11E\r\nend")] System.Int32)""",
+            extension.ComputeExtensionMarkerRawName());
     }
 
     [Fact]

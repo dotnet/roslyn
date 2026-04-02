@@ -1439,7 +1439,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [SupportedOSPlatform("windows")]
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
     internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
         SourceGeneratorExecutionPreference executionPreference)
     {

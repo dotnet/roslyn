@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1655,7 +1655,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
             {
                 string s;
             }
-            """;
+            """.ReplaceLineEndings();
         var tree = SyntaxFactory.ParseCompilationUnit(code);
         var newLine = Environment.NewLine;
 
@@ -1674,7 +1674,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
         var formatted = Formatter.Format(tree, workspace.Services.SolutionServices, options, CancellationToken.None);
 
         var actual = formatted.ToFullString();
-        Assert.Equal("""
+        AssertEx.Equal("""
             #region Assembly mscorlib
             // C:\
             #endregion
@@ -1685,7 +1685,7 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
             {
             	string s;
             }
-            """, actual);
+            """.ReplaceLineEndings(), actual);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39351")]

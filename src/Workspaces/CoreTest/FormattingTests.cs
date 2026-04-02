@@ -59,18 +59,20 @@ public sealed partial class FormattingTests : TestBase
 
     private static void AssertFormatCSharp(string expected, string input)
     {
-        var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
+        var tree = CS.SyntaxFactory.ParseSyntaxTree(input.ReplaceLineEndings());
         AssertFormat(expected, tree, CSharpSyntaxFormattingOptions.Default);
     }
 
     private static void AssertFormatVB(string expected, string input)
     {
-        var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
+        var tree = VB.SyntaxFactory.ParseSyntaxTree(input.ReplaceLineEndings());
         AssertFormat(expected, tree, VisualBasicSyntaxFormattingOptions.Default);
     }
 
     private static void AssertFormat(string expected, SyntaxTree tree, SyntaxFormattingOptions options)
     {
+        expected = expected.ReplaceLineEndings();
+
         using var workspace = new AdhocWorkspace();
 
         var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services.SolutionServices, options, CancellationToken.None);

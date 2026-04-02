@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -570,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 ";
 
             string resultOutput = visitor.ToString();
-            Assert.Equal(expectedOutput, resultOutput);
+            AssertEx.Equal(expectedOutput, resultOutput);
         }
 
         [Fact]
@@ -621,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 ";
 
             string resultOutput = visitor.ToString();
-            Assert.Equal(expectedOutput, resultOutput);
+            AssertEx.Equal(expectedOutput, resultOutput);
         }
 
         [Fact]
@@ -673,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 ";
 
             string resultOutput = sb.ToString();
-            Assert.Equal(expectedOutput, resultOutput);
+            AssertEx.Equal(expectedOutput, resultOutput);
         }
 
         [Fact]
@@ -718,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 ";
 
             string resultOutput = visitor.ToString();
-            Assert.Equal(expectedOutput, resultOutput);
+            AssertEx.Equal(expectedOutput, resultOutput);
         }
         [Fact]
         public void TypeMembers_LoggingSymbolVisitorWithReturnValue()
@@ -762,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 ";
 
             string resultOutput = visitor.ToString();
-            Assert.Equal(expectedOutput, resultOutput);
+            AssertEx.Equal(expectedOutput, resultOutput);
         }
         [Fact]
         public void TypeMembers_LoggingSymbolVisitorWithReturnValueAndContext()
@@ -807,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 ";
 
             string resultOutput = sb.ToString();
-            Assert.Equal(expectedOutput, resultOutput);
+            AssertEx.Equal(expectedOutput, resultOutput);
         }
     }
 }

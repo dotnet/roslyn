@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -96,7 +97,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
         var position = new LSP.Position { Line = 2, Character = 9 };
         var results = await RunFindImplementationAsync(testLspServer, new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(Path.GetTempPath(), TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = position, End = position }
         });
         AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);

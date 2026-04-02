@@ -206,7 +206,7 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
         // We're now combining the signature and documentation to make classification work.
         if (!string.IsNullOrEmpty(expectedTestItem.MethodDocumentation))
         {
-            Assert.Equal(expectedTestItem.Signature + "\r\n" + expectedTestItem.MethodDocumentation, signature.Content);
+            AssertEx.Equal(expectedTestItem.Signature + "\r\n" + expectedTestItem.MethodDocumentation, signature.Content);
         }
         else
         {

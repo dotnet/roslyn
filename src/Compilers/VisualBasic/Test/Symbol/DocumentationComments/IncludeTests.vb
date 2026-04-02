@@ -51,19 +51,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
                 Dim symbol = widgetClass.GetMembers(symbolName).Single()
                 Assert.Equal(documentationId, symbol.GetDocumentationCommentId())
-                Assert.Equal(
+                AssertEx.Equal(
 $"<member name=""{documentationId}"">
  <!--warning BC42310: XML comment tag 'include' must have a 'path' attribute. XML comment will be ignored.-->
 </member>", symbol.GetDocumentationCommentXml(expandIncludes:=True))
-                Assert.Equal(
+                AssertEx.Equal(
 $"<member name=""{documentationId}"">
  <include file=""NonExistent.xml"" />
 </member>", symbol.GetDocumentationCommentXml(expandIncludes:=False))
-                Assert.Equal(
+                AssertEx.Equal(
 $"<member name=""{documentationId}"">
  <!--warning BC42310: XML comment tag 'include' must have a 'path' attribute. XML comment will be ignored.-->
 </member>", symbol.GetDocumentationCommentXml(expandIncludes:=True))
-                Assert.Equal(
+                AssertEx.Equal(
 $"<member name=""{documentationId}"">
  <include file=""NonExistent.xml"" />
 </member>", symbol.GetDocumentationCommentXml(expandIncludes:=False))

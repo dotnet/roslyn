@@ -244,7 +244,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);
         var edits = textDocumentEdit[0].Edits.Select(e => (LSP.TextEdit)e.Value!).ToArray();
         var updatedText = ApplyTextEdits(edits, originalText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 private static readonly int value = 10;

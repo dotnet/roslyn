@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 warning CS9057: Analyzer assembly '{_testFixture.AnalyzerWithLaterFakeCompilerDependency}' cannot be used because it references version '100.0.0.0' of the compiler, which is newer than the currently running version '42.42.42.42'.
                 in.cs(1,5): warning CS0219: The variable 'x' is assigned but its value is never used
 
-                """, writer.ToString());
+                """.ReplaceLineEndings(), writer.ToString().ReplaceLineEndings());
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/63856")]

@@ -3,7 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 
 #if !CODE_STYLE
 using Microsoft.CodeAnalysis.CodeActions;
@@ -23,6 +27,13 @@ internal sealed class SharedVerifierState
     /// file has been generated yet.
     /// </summary>
     private int? _analyzerConfigIndex;
+
+    /// <summary>
+    /// The index in <see cref="Testing.ProjectState.AnalyzerConfigFiles"/> of the additional
+    /// regular editorconfig added when <see cref="EditorConfig"/> is a global config, or
+    /// <see langword="null"/> if not applicable.
+    /// </summary>
+    private int? _regularEditorConfigIndex;
 
     /// <summary>
     /// The index in <see cref="AnalyzerTest{TVerifier}.SolutionTransforms"/> of the options transformation for
@@ -47,23 +58,65 @@ internal sealed class SharedVerifierState
 
     internal void Apply()
     {
+        var isGlobalConfig = EditorConfig?.TrimStart().StartsWith("is_global", StringComparison.OrdinalIgnoreCase) == true;
         var analyzerConfigSource = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultFileExt, EditorConfig, Options);
+
+        // When EditorConfig is a global analyzer config (is_global=true), we must place it at
+        // /.globalconfig rather than /.editorconfig. This frees /.editorconfig for a regular
+        // editorconfig with end_of_line=crlf, which global configs cannot express (they don't
+        // support file-glob sections like [*.cs]).
+        var analyzerConfigPath = isGlobalConfig ? "/.globalconfig" : "/.editorconfig";
+
         if (analyzerConfigSource is not null)
         {
             if (_analyzerConfigIndex is null)
             {
                 _analyzerConfigIndex = _test.TestState.AnalyzerConfigFiles.Count;
-                _test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", analyzerConfigSource));
+                _test.TestState.AnalyzerConfigFiles.Add((analyzerConfigPath, analyzerConfigSource));
             }
             else
             {
-                _test.TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = ("/.editorconfig", analyzerConfigSource);
+                _test.TestState.AnalyzerConfigFiles[_analyzerConfigIndex.Value] = (analyzerConfigPath, analyzerConfigSource);
             }
         }
         else if (_analyzerConfigIndex is { } index)
         {
             _analyzerConfigIndex = null;
             _test.TestState.AnalyzerConfigFiles.RemoveAt(index);
+        }
+
+        // When EditorConfig is a global config, add a separate regular editorconfig at the root
+        // to ensure end_of_line is properly applied to all test source files.
+        // If the test explicitly sets FormattingOptions2.NewLine (to opt out of CRLF normalization),
+        // use that value for end_of_line instead of hardcoding crlf.
+        if (isGlobalConfig)
+        {
+            var endOfLine = "crlf";
+            foreach (var kvp in Options)
+            {
+                if (ReferenceEquals(kvp.Key.Option, FormattingOptions2.NewLine))
+                {
+                    endOfLine = kvp.Value?.ToString() == "\n" ? "lf" : "crlf";
+                    break;
+                }
+            }
+
+            var regularConfig = SourceText.From(
+                $"root = true\r\n\r\n[*.{_defaultFileExt}]\r\nend_of_line = {endOfLine}\r\n", Encoding.UTF8);
+            if (_regularEditorConfigIndex is null)
+            {
+                _regularEditorConfigIndex = _test.TestState.AnalyzerConfigFiles.Count;
+                _test.TestState.AnalyzerConfigFiles.Add(("/.editorconfig", regularConfig));
+            }
+            else
+            {
+                _test.TestState.AnalyzerConfigFiles[_regularEditorConfigIndex.Value] = ("/.editorconfig", regularConfig);
+            }
+        }
+        else if (_regularEditorConfigIndex is { } regIndex)
+        {
+            _regularEditorConfigIndex = null;
+            _test.TestState.AnalyzerConfigFiles.RemoveAt(regIndex);
         }
 
         var solutionTransformIndex = _remainingOptionsSolutionTransform is not null ? _test.SolutionTransforms.IndexOf(_remainingOptionsSolutionTransform) : -1;

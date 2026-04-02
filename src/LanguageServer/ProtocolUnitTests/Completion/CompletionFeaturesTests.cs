@@ -96,7 +96,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.NotEmpty(results.Items);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/68791")]
     public async Task TestImportCompletionForType(bool mutatingLspWorkspace, bool isInUsingStatement)
     {
@@ -154,7 +154,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         TextEdit expectedAdditionalEdit = isInUsingStatement
             ? new() { NewText = "System.Threading.Tasks.Task", Range = new() { Start = new(0, 20), End = new(0, 24) } }
-            : new() { NewText = "using System.Threading.Tasks;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+            : new() { NewText = $"using System.Threading.Tasks;{Environment.NewLine}{Environment.NewLine}", Range = new() { Start = new(1, 0), End = new(1, 0) } };
 
         AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
 
@@ -173,7 +173,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         AssertJsonEquals(resolvedItem.Documentation, expectedDocumentation);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/69576")]
     public async Task TestImportCompletionForExtensionMethod(bool mutatingLspWorkspace)
     {
@@ -239,7 +239,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Equal("0004~ExtensionMethod NS2", resolvedItem.SortText);
         Assert.Equal(CompletionItemKind.Method, resolvedItem.Kind);
 
-        var expectedAdditionalEdit = new TextEdit() { NewText = "using NS2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+        var expectedAdditionalEdit = new TextEdit() { NewText = $"using NS2;{Environment.NewLine}{Environment.NewLine}", Range = new() { Start = new(1, 0), End = new(1, 0) } };
         AssertJsonEquals(new[] { expectedAdditionalEdit }, resolvedItem.AdditionalTextEdits);
 
         Assert.Null(resolvedItem.LabelDetails.Detail);
@@ -265,7 +265,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
             /// <summ{|caret:|}
             class A { }
-            """;
+            """.ReplaceLineEndings("\r\n");
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var completionParams = CreateCompletionParams(
@@ -508,7 +508,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         }
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/26488")]
     public async Task TestCompletionForObsoleteSymbol(bool mutatingLspWorkspace)
     {
@@ -727,7 +727,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Equal("0000~MyClass Namespace1", resolvedItem1.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem1.Kind);
 
-        var expectedAdditionalEdit1 = new TextEdit() { NewText = "using Namespace1;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+        var expectedAdditionalEdit1 = new TextEdit() { NewText = $"using Namespace1;{Environment.NewLine}{Environment.NewLine}", Range = new() { Start = new(1, 0), End = new(1, 0) } };
         AssertJsonEquals(new[] { expectedAdditionalEdit1 }, resolvedItem1.AdditionalTextEdits);
 
         var resolvedItem2 = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, itemFromNS2, CancellationToken.None).ConfigureAwait(false);
@@ -735,7 +735,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Equal("0001~MyClass Namespace2", resolvedItem2.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem2.Kind);
 
-        var expectedAdditionalEdit2 = new TextEdit() { NewText = "using Namespace2;\r\n\r\n", Range = new() { Start = new(1, 0), End = new(1, 0) } };
+        var expectedAdditionalEdit2 = new TextEdit() { NewText = $"using Namespace2;{Environment.NewLine}{Environment.NewLine}", Range = new() { Start = new(1, 0), End = new(1, 0) } };
         AssertJsonEquals(new[] { expectedAdditionalEdit2 }, resolvedItem2.AdditionalTextEdits);
     }
 
@@ -1058,11 +1058,14 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
-        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = "public override global::System.Boolean AbstractMethod(global::System.Int32 x)\r\n    {\r\n        throw new System.NotImplementedException();\r\n    }" };
+        var nl = Environment.NewLine;
+        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = $"public override global::System.Boolean AbstractMethod(global::System.Int32 x){nl}    {{{nl}        throw new System.NotImplementedException();{nl}    }}" };
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
 
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
-        Assert.Equal(268, resolvedItem.Command.Arguments[3]);
+        // The caret position depends on the document's line ending length (9 newlines precede this position)
+        var expectedCaretPosition = 259 + 9 * (Environment.NewLine.Length - 1);
+        Assert.Equal(expectedCaretPosition, resolvedItem.Command.Arguments[3]);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6495")]

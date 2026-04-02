@@ -54,7 +54,7 @@ public static class ToolTipAssert
         {
             var renderedExpected = ContainerToString(expected);
             var renderedActual = ContainerToString(actual!);
-            AssertEx.EqualOrDiff(renderedExpected, renderedActual);
+            AssertEx.EqualOrDiff(renderedExpected.ReplaceLineEndings(), renderedActual.ReplaceLineEndings());
 
             // This is not expected to be hit, but it will be hit if the difference cannot be detected within the diff
             throw;

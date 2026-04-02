@@ -160,6 +160,8 @@ public sealed class FormattingEngineMultiSpanTests : CSharpFormattingTestBase
 
     private Task AssertFormatAsync(string content, string expected, OptionsCollection changedOptionSet = null)
     {
+        content = content.ReplaceLineEndings();
+        expected = expected.ReplaceLineEndings();
         var tuple = PreprocessMarkers(content);
 
         return AssertFormatAsync(expected, tuple.Item1, tuple.Item2, changedOptionSet: changedOptionSet);

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -343,7 +343,7 @@ public sealed class FormattingEngineTests(ITestOutputHelper output) : CSharpForm
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
         var options = CSharpSyntaxFormattingOptions.Default;
         var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: default, CancellationToken.None);
-        Assert.Equal("""
+        AssertEx.Equal("""
                 class C
                 {
                     public void M()

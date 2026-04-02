@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal override InteractiveHostPlatform DefaultPlatform => InteractiveHostPlatform.Core;
         internal override bool UseDefaultInitializationFile => true;
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task DefaultReferencesAndImports()
         {
             await Execute(@"
@@ -38,7 +38,7 @@ WriteLine(d.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($"(home, {dir}, 1)", output);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task InteractiveHostImplAssemblies()
         {
             var scriptingAssemblyName = typeof(CSharpScript).Assembly.GetName().Name;
@@ -50,7 +50,7 @@ WriteLine(d.ToString());
 (1,1): error CS0006: {string.Format(CSharpResources.ERR_NoMetadataFile, scriptingAssemblyName)}", error);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public async Task SearchPaths1()
         {
             var dll = Temp.CreateFile(extension: ".dll").WriteAllBytes(TestResources.MetadataTests.InterfaceAndClass.CSInterfaces01);

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle;
@@ -21,7 +22,7 @@ public sealed class NamingStylePreferencesTests
     }
 
     private static void AssertTrimmedEqual(string expected, string actual)
-        => Assert.Equal(expected.Trim(), actual.Trim());
+        => Assert.Equal(expected.Trim().ReplaceLineEndings(), actual.Trim().ReplaceLineEndings());
 
     [Fact]
     public void Equality()

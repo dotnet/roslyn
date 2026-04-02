@@ -247,7 +247,7 @@ function BuildSolution {
   local toolset_build_proj=$_InitializeToolset
 
   local bl=""
-  if [[ "$binary_log" = true ]]; then
+  if [[ "$binary_log" == true ]]; then
     bl="/bl:\"$log_dir/Build.binlog\""
     export RoslynCommandLineLogFile="$log_dir/vbcscompiler.log"
   fi

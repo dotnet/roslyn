@@ -87,12 +87,12 @@ public abstract class AbstractAutomaticBraceCompletionTests
 
         if (result != null)
         {
-            AssertEx.EqualOrDiff(result, session.SubjectBuffer.CurrentSnapshot.GetText());
+            AssertEx.EqualOrDiff(result.ReplaceLineEndings(), session.SubjectBuffer.CurrentSnapshot.GetText().ReplaceLineEndings());
         }
     }
 
     internal static void CheckText(IBraceCompletionSession session, string result)
-        => Assert.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
+        => AssertEx.Equal(result, session.SubjectBuffer.CurrentSnapshot.GetText());
 
     internal static void CheckReturnOnNonEmptyLine(IBraceCompletionSession session, int expectedVirtualSpace)
     {

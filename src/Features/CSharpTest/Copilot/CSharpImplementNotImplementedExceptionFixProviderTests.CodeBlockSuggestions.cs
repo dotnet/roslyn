@@ -29,7 +29,11 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
     [Theory]
     [MemberData(nameof(TestMethodCodeBlockSuggestions))]
     public Task FixerResponse_ReplacesCodeBlockCorrectly(string notImplementedCodeBlock, string replacementCodeBlock)
-        => new CustomCompositionCSharpTest
+    {
+        // Normalize to CRLF for cross-platform consistency. The replacement node must have the same
+        // line endings as the document (which is normalized to CRLF in RunImplAsync).
+        replacementCodeBlock = replacementCodeBlock.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        return new CustomCompositionCSharpTest
         {
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipLocalDiagnosticCheck,
             TestCode = $$"""
@@ -61,6 +65,7 @@ public class TestService
             };
         })
         .RunAsync();
+    }
 
     private static readonly Dictionary<string, object[]> s_codeBlockSuggestions = new()
     {

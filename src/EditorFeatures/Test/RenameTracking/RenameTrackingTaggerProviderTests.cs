@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -629,7 +629,7 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomAttribute", "CustomAttribute", invokeAction: true);
-        Assert.Equal("""
+        AssertEx.Equal("""
             using System;
 
             class CustomAttribute : Attribute
@@ -651,7 +651,7 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomAttribute", "CustomAttribute", invokeAction: true);
-        Assert.Equal("""
+        AssertEx.Equal("""
             Import System;
 
             Public Class CustomAttribute 
@@ -673,7 +673,7 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomATTRIBUTE", "CustomATTRIBUTE", invokeAction: true);
-        Assert.Equal("""
+        AssertEx.Equal("""
             Import System;
 
             Public Class CustomATTRIBUTE 
@@ -695,7 +695,7 @@ public sealed class RenameTrackingTaggerProviderTests
         using var state = RenameTrackingTestState.Create(code, LanguageNames.VisualBasic);
         state.EditorOperations.InsertText("C");
         await state.AssertTag("ustomattribute", "Customattribute", invokeAction: true);
-        Assert.Equal("""
+        AssertEx.Equal("""
             Import System;
 
             Public Class Customattribute 
@@ -720,7 +720,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("Cat", "Cats", invokeAction: true);
         Assert.Equal(1, state.RefactorNotifyService.OnBeforeSymbolRenamedCount);
         Assert.Equal(1, state.RefactorNotifyService.OnAfterSymbolRenamedCount);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class Cats
             {
                 public Cats()
@@ -752,7 +752,7 @@ public sealed class RenameTrackingTaggerProviderTests
         // Make sure the rename didn't proceed
         Assert.Equal(0, state.RefactorNotifyService.OnAfterSymbolRenamedCount);
         await state.AssertNoTag();
-        Assert.Equal("""
+        AssertEx.Equal("""
             class Cat
             {
                 public Cat()
@@ -784,7 +784,7 @@ public sealed class RenameTrackingTaggerProviderTests
         state.AssertNotificationMessage();
 
         // Make sure the rename completed            
-        Assert.Equal("""
+        AssertEx.Equal("""
             class Cats
             {
                 public Cats()
@@ -999,7 +999,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("M", "Mat", invokeAction: true);
 
         // Make sure the rename completed            
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 void Mat()
@@ -1033,7 +1033,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("M", "Mat", invokeAction: true);
 
         // Make sure the rename completed            
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 void Mat()
@@ -1067,7 +1067,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("M", "Mat", invokeAction: true);
 
         // Make sure the rename completed            
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 void Mat()
@@ -1503,7 +1503,7 @@ public sealed class RenameTrackingTaggerProviderTests
         await state.AssertTag("unmanaged", "myunmanaged", invokeAction: true);
 
         // Make sure the rename completed            
-        Assert.Equal("""
+        AssertEx.Equal("""
             interface myunmanaged
             {
             }

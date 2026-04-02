@@ -148,7 +148,7 @@ Dim a = <x>Text2</x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x>Text1</x>]@14 -> [a = <x>Text2</x>]@14")
+                "Update [a = <x>Text1</x>]@13 -> [a = <x>Text2</x>]@13")
         End Sub
 
         <Fact>
@@ -162,7 +162,7 @@ Dim a = <y>Text</y>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x>Text</x>]@14 -> [a = <y>Text</y>]@14")
+                "Update [a = <x>Text</x>]@13 -> [a = <y>Text</y>]@13")
         End Sub
 
         <Fact>
@@ -176,7 +176,7 @@ Dim a = <x a=""attr2"">Text</x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x a=""attr1"">Text</x>]@14 -> [a = <x a=""attr2"">Text</x>]@14")
+                "Update [a = <x a=""attr1"">Text</x>]@13 -> [a = <x a=""attr2"">Text</x>]@13")
         End Sub
 
         <Fact>
@@ -190,7 +190,7 @@ Dim a = <x b=""attr"">Text</x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x a=""attr"">Text</x>]@14 -> [a = <x b=""attr"">Text</x>]@14")
+                "Update [a = <x a=""attr"">Text</x>]@13 -> [a = <x b=""attr"">Text</x>]@13")
         End Sub
 
         <Fact>
@@ -204,7 +204,7 @@ Dim a = <x><![CDATA[Text2]]></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x><![CDATA[Text1]]></x>]@14 -> [a = <x><![CDATA[Text2]]></x>]@14")
+                "Update [a = <x><![CDATA[Text1]]></x>]@13 -> [a = <x><![CDATA[Text2]]></x>]@13")
         End Sub
 
         <Fact>
@@ -218,7 +218,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x><!--Text1--></x>]@14 -> [a = <x><!--Text2--></x>]@14")
+                "Update [a = <x><!--Text1--></x>]@13 -> [a = <x><!--Text2--></x>]@13")
         End Sub
 
 #End Region
@@ -5536,8 +5536,8 @@ Await F(3)"
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
-                "Insert [G(1, G(Await F(2)))]@53",
-                "Insert [Await F(2)]@60")
+                "Insert [G(1, G(Await F(2)))]@51",
+                "Insert [Await F(2)]@58")
         End Sub
 
         <Fact>
@@ -5552,8 +5552,8 @@ Await F(3)"
             Dim edits = GetMethodEdits(src1, src2, methodKind:=MethodKind.Async)
 
             edits.VerifyEdits(
-                "Delete [G(1, G(Await F(2)))]@53",
-                "Delete [Await F(2)]@60")
+                "Delete [G(1, G(Await F(2)))]@51",
+                "Delete [Await F(2)]@58")
         End Sub
 
         <Fact>

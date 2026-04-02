@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.MatchFolderAndNamespace;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -57,6 +59,12 @@ public sealed class CSharpMatchFolderAndNamespaceTests
             CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck,
             LanguageVersion = LanguageVersion.CSharp10,
         };
+
+        // The ChangeNamespace code fix generates new using directives with Environment.NewLine
+        // rather than going through the formatter. Setting this option causes the verifier to
+        // skip CRLF normalization and use platform-native line endings so the code fix output
+        // matches the expected text on all platforms.
+        testState.Options.Add(FormattingOptions2.NewLine, Environment.NewLine);
 
         foreach (var (fileName, content) in originalSources)
             testState.TestState.Sources.Add((fileName, content));

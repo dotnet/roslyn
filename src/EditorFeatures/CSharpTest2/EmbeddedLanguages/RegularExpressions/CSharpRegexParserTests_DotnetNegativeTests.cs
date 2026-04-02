@@ -1288,7 +1288,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest41()
         => Test("""
             @"(?(?i))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1314,8 +1314,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?i))" />
@@ -1360,7 +1360,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest43()
         => Test("""
             @"(?(?I))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1386,8 +1386,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?I))" />
@@ -1399,7 +1399,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest44()
         => Test("""
             @"(?(?M))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1425,8 +1425,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?M))" />
@@ -1438,7 +1438,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest45()
         => Test("""
             @"(?(?s))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1464,8 +1464,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?s))" />
@@ -1477,7 +1477,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest46()
         => Test("""
             @"(?(?S))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1503,8 +1503,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?S))" />
@@ -1516,7 +1516,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest47()
         => Test("""
             @"(?(?x))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1542,8 +1542,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?x))" />
@@ -1555,7 +1555,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest48()
         => Test("""
             @"(?(?X))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1581,8 +1581,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?X))" />
@@ -1594,7 +1594,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest49()
         => Test("""
             @"(?(?n))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1620,8 +1620,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?n))" />
@@ -1633,7 +1633,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest50()
         => Test("""
             @"(?(?m))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -1659,8 +1659,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?m))" />
@@ -2323,7 +2323,7 @@ public sealed partial class CSharpRegexParserTests
     public void NegativeTest69()
         => Test("""
             @"(?(?N))"
-            """, """
+            """, $"""
             <Tree>
               <CompilationUnit>
                 <Sequence>
@@ -2349,8 +2349,8 @@ public sealed partial class CSharpRegexParserTests
                 <EndOfFile />
               </CompilationUnit>
               <Diagnostics>
-                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
-                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+                <Diagnostic Message="{FeaturesResources.Unrecognized_grouping_construct}" Span="[12..13)" Text="(" />
+                <Diagnostic Message="{string.Format(FeaturesResources.Quantifier_0_following_nothing, "?")}" Span="[13..14)" Text="?" />
               </Diagnostics>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="(?(?N))" />

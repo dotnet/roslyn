@@ -76,7 +76,7 @@ namespace Acme
         {
             var classSymbol = _widgetClass.GetTypeMembers("NestedClass").Single();
             Assert.Equal("T:Acme.Widget.NestedClass", classSymbol.GetDocumentationCommentId());
-            Assert.Equal(
+            AssertEx.Equal(
 @"<member name=""T:Acme.Widget.NestedClass"">
     <summary>
     Hello! Nested Class.

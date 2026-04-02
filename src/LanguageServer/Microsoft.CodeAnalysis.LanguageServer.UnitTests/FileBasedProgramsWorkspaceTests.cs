@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -381,7 +381,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await Task.Delay(100);
         await WaitForProjectLoad(looseFileUriOne, testLspServer);
         var (workspace, canonicalDocumentTwo) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
-        Assert.Equal("""
+        AssertEx.Equal("""
             Console.WriteLine("Hello World!");
             class C { }
             """,

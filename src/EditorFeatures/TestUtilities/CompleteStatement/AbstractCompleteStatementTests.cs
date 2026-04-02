@@ -121,7 +121,7 @@ public abstract class AbstractCompleteStatementTests
         execute(view, workspace);
         TestFileMarkupParser.GetPosition(expectedMarkup, out var expectedCode, out var expectedPosition);
 
-        AssertEx.EqualOrDiff(expectedCode, view.TextSnapshot.GetText());
+        AssertEx.EqualOrDiff(expectedCode.ReplaceLineEndings(), view.TextSnapshot.GetText().ReplaceLineEndings());
 
         var endCaretPosition = view.Caret.Position.BufferPosition.Position;
         Assert.True(expectedPosition == endCaretPosition,

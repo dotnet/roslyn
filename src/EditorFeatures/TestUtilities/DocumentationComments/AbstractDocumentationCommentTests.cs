@@ -167,6 +167,6 @@ public abstract class AbstractDocumentationCommentTests
         var endCaretPosition = view.Caret.Position.BufferPosition.Position;
         var actualWithCaret = actual.Insert(endCaretPosition, "$$");
 
-        Assert.Equal(expectedMarkup, actualWithCaret);
+        AssertEx.Equal(expectedMarkup, actualWithCaret);
     }
 }

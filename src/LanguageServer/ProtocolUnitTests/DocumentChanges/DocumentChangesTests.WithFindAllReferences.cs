@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
@@ -44,7 +45,7 @@ public sealed partial class DocumentChangesTests
             Assert.Equal("A", findResults[0].ContainingType);
 
             // Declare a local inside A.M()
-            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, "var i = someInt + 1;\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, $"var i = someInt + 1;{Environment.NewLine}"));
 
             findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
             Assert.Equal(2, findResults.Length);
@@ -53,7 +54,7 @@ public sealed partial class DocumentChangesTests
             Assert.Equal("M", findResults[1].ContainingMember);
 
             // Declare a field in B
-            await DidChange(testLspServer, locationTyped.DocumentUri, (10, 0, "int someInt = A.someInt + 1;\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (10, 0, $"int someInt = A.someInt + 1;{Environment.NewLine}"));
 
             findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
             Assert.Equal(3, findResults.Length);
@@ -63,7 +64,7 @@ public sealed partial class DocumentChangesTests
             Assert.Equal("M", findResults[1].ContainingMember);
 
             // Declare a local inside B.M2()
-            await DidChange(testLspServer, locationTyped.DocumentUri, (13, 0, "var j = someInt + A.someInt;\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (13, 0, $"var j = someInt + A.someInt;{Environment.NewLine}"));
 
             findResults = await FindAllReferencesHandlerTests.RunFindAllReferencesAsync(testLspServer, locationTyped);
             Assert.Equal(4, findResults.Length);

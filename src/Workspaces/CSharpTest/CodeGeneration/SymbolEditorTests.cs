@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -77,7 +77,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 void m()
@@ -110,7 +110,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 void m()
@@ -147,7 +147,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 void m()
@@ -188,7 +188,7 @@ public sealed class SymbolEditorTests
         Assert.Equal(1, newSymbolB.GetMembers("mb").Length);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class A
             {
                 void ma()
@@ -238,7 +238,7 @@ public sealed class SymbolEditorTests
         var actual1 = await GetActualAsync(docs[0]);
         var actual2 = await GetActualAsync(docs[1]);
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             class A
             {
                 void ma()
@@ -246,7 +246,7 @@ public sealed class SymbolEditorTests
                 }
             }
             """, actual1);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class B
             {
                 void mb()
@@ -277,7 +277,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             internal partial class C
             {
             }
@@ -316,12 +316,12 @@ public sealed class SymbolEditorTests
         var actual1 = await GetActualAsync(docs[0]);
         var actual2 = await GetActualAsync(docs[1]);
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             public class C
             {
             }
             """, actual1);
-        Assert.Equal("""
+        AssertEx.Equal("""
             public class C
             {
                 void M() {}
@@ -352,7 +352,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             partial class C
             {
             }
@@ -389,7 +389,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             partial class C
             {
                 void m()
@@ -431,7 +431,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             partial class C
             {
             }
@@ -478,7 +478,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             partial class C
             {
             }
@@ -522,7 +522,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             partial class C
             {
             }
@@ -563,7 +563,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             class X
             {
             }
@@ -597,7 +597,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
             partial class X
             {
             }
@@ -652,7 +652,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
 
             partial class C
             {
@@ -682,7 +682,7 @@ public sealed class SymbolEditorTests
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
 
-        Assert.Equal("""
+        AssertEx.Equal("""
 
 
             """, actual);
@@ -710,7 +710,7 @@ public sealed class SymbolEditorTests
         Assert.Null(newSymbolX);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
                 public int Y;
@@ -722,7 +722,7 @@ public sealed class SymbolEditorTests
         Assert.Null(newSymbolY);
 
         actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
             }
@@ -755,7 +755,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C : A
             {
             }
@@ -796,7 +796,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C : A, I
             {
             }
@@ -833,7 +833,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C : A
             {
             }
@@ -866,7 +866,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C : A
             {
             }
@@ -899,7 +899,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
             }
@@ -936,7 +936,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C : I
             {
             }
@@ -973,7 +973,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C : I
             {
             }
@@ -1002,7 +1002,7 @@ public sealed class SymbolEditorTests
         var newSymbolC = await editor.SetBaseTypeAsync(symbol, g => null);
 
         var actual = await GetActualAsync(editor.GetChangedDocuments().First());
-        Assert.Equal("""
+        AssertEx.Equal("""
             class C
             {
             }

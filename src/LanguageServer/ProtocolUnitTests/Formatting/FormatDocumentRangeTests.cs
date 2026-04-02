@@ -39,7 +39,7 @@ public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTes
 
         var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
         var actualText = ApplyTextEdits(results, documentText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class A
             {
                 void M()
@@ -69,7 +69,7 @@ public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTes
 
         var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
         var actualText = ApplyTextEdits(results, documentText);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class A
             {
             	void M()

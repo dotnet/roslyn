@@ -69,7 +69,7 @@ public abstract class AbstractToggleCommentTestBase
     {
         MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out var expectedSpans);
 
-        Assert.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
+        AssertEx.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
 
         if (!expectedSpans.IsEmpty)
         {

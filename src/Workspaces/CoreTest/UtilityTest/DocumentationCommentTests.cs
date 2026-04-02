@@ -321,13 +321,13 @@ public sealed class DocumentationCommentTests
 
         var comment = DocumentationComment.FromXmlFragment(fullXml);
 
-        Assert.Equal(expected, comment.SummaryText);
-        Assert.Equal(expected, comment.ReturnsText);
-        Assert.Equal(expected, comment.ValueText);
-        Assert.Equal(expected, comment.ExampleText);
-        Assert.Equal(expected, comment.GetParameterText("goo"));
-        Assert.Equal(expected, comment.GetTypeParameterText("T"));
-        Assert.Equal(expected, comment.RemarksText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.SummaryText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.ReturnsText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.ValueText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.ExampleText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.GetParameterText("goo"));
+        AssertEx.EqualIgnoringLineEndings(expected, comment.GetTypeParameterText("T"));
+        AssertEx.EqualIgnoringLineEndings(expected, comment.RemarksText);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/18901")]
@@ -374,12 +374,12 @@ public sealed class DocumentationCommentTests
 
         var comment = DocumentationComment.FromXmlFragment(fullXml);
 
-        Assert.Equal(expected, comment.SummaryText);
-        Assert.Equal(expected, comment.ReturnsText);
-        Assert.Equal(expected, comment.ValueText);
-        Assert.Equal(expected, comment.ExampleText);
-        Assert.Equal(expected, comment.GetParameterText("goo"));
-        Assert.Equal(expected, comment.GetTypeParameterText("T"));
-        Assert.Equal(expected, comment.RemarksText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.SummaryText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.ReturnsText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.ValueText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.ExampleText);
+        AssertEx.EqualIgnoringLineEndings(expected, comment.GetParameterText("goo"));
+        AssertEx.EqualIgnoringLineEndings(expected, comment.GetTypeParameterText("T"));
+        AssertEx.EqualIgnoringLineEndings(expected, comment.RemarksText);
     }
 }

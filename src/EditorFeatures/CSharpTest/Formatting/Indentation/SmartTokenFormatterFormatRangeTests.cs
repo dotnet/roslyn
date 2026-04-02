@@ -3082,7 +3082,7 @@ public sealed class SmartTokenFormatterFormatRangeTests
 
         var newSnapshot = textBuffer.CurrentSnapshot;
 
-        Assert.Equal(expected, newSnapshot.GetText());
+        AssertEx.Equal(expected, newSnapshot.GetText());
     }
 
     private static Task AutoFormatOnColonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)

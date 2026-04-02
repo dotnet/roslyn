@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -69,7 +69,7 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
 
         using var workspace = new AdhocWorkspace();
         var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
-        Assert.Equal("""
+        AssertEx.Equal("""
             extern alias A1;
 
             #line 99
@@ -104,7 +104,7 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
             }
 
             public class SomeAttribute : System.Attribute { }
-            """;
+            """.ReplaceLineEndings();
 
         var workspace = new AdhocWorkspace();
         var generator = SyntaxGenerator.GetGenerator(workspace, LanguageNames.CSharp);
@@ -125,7 +125,7 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
             }
 
             public class SomeAttribute : System.Attribute { }
-            """;
+            """.ReplaceLineEndings();
 
         var formatted = Formatter.Format(newRoot, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString();
         Assert.Equal(expected, formatted);
@@ -178,13 +178,13 @@ public sealed class FormattingEngineElasticTriviaTests : CSharpFormattingTestBas
 
         using var workspace = new AdhocWorkspace();
         var newCompilation = Formatter.Format(compilation, workspace.Services.SolutionServices, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
-        Assert.Equal("""
+        AssertEx.Equal("""
             class PropertyTest
             {
                 string MyProperty => "42";
 
                 string MyProperty => "42";
             }
-            """, newCompilation.ToFullString());
+            """.ReplaceLineEndings(), newCompilation.ToFullString());
     }
 }

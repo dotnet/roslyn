@@ -592,7 +592,7 @@ public sealed class SyntacticQuickInfoSourceTests : AbstractQuickInfoSourceTests
 
         var textElement = textElements.First();
         var actualText = string.Concat(textElement.Runs.Select(r => r.Text));
-        Assert.Equal(expectedContent, actualText);
+        Assert.Equal(expectedContent.ReplaceLineEndings(), actualText.ReplaceLineEndings());
     }
 
     protected override Task TestInMethodAsync(string code, string expectedContent, string expectedDocumentationComment = null)

@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = tokens[2];
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal("""
+            AssertEx.Equal("""
                 // Regular comment
                 SecondIdentifier
                 """, token.ToFullString());

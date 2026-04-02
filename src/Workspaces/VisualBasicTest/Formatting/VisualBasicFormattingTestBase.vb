@@ -51,6 +51,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         End Function
 
         Protected Async Function AssertFormatUsingAllEntryPointsAsync(code As String, expected As String) As Task
+            code = code.ReplaceLineEndings()
+            expected = expected.ReplaceLineEndings()
             Using workspace = New AdhocWorkspace()
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)

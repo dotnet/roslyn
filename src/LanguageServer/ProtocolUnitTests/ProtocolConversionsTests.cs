@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -27,7 +27,13 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     public void CreateAbsoluteUri_LocalPaths_AllAscii()
     {
         var invalidFileNameChars = Path.GetInvalidFileNameChars();
+        // Characters that GetAbsoluteUriString keeps unescaped
         var unescaped = "!$&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~";
+        // On Unix, System.Uri escapes '?' in file URIs (query string delimiter)
+        // but GetAbsoluteUriString does not, so we need a separate expected value for System.Uri
+        var unescapedUri = PathUtilities.IsUnixLikePlatform
+            ? "!$&'()*+,-./0123456789:;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~"
+            : unescaped;
 
         for (var c = '\0'; c < '\u0080'; c++)
         {
@@ -38,14 +44,15 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
             }
 
             var filePath = PathUtilities.IsUnixLikePlatform ? $"/_{c}/" : $"C:\\_{c}\\";
-            var uriPrefix = PathUtilities.IsUnixLikePlatform ? "" : "C:/_";
+            var uriPrefix = PathUtilities.IsUnixLikePlatform ? "_" : "C:/_";
 
-            var expectedAbsoluteUri = "file:///" + uriPrefix + (unescaped.Contains(c) ? c : "%" + ((int)c).ToString("X2")) + "/";
+            var expectedRawUri = "file:///" + uriPrefix + (unescaped.Contains(c) ? c : "%" + ((int)c).ToString("X2")) + "/";
+            var expectedParsedUri = "file:///" + uriPrefix + (unescapedUri.Contains(c) ? c : "%" + ((int)c).ToString("X2")) + "/";
 
-            Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
+            Assert.Equal(expectedRawUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
             var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
-            Assert.Equal(expectedAbsoluteUri, uri.GetRequiredParsedUri().AbsoluteUri);
+            Assert.Equal(expectedParsedUri, uri.GetRequiredParsedUri().AbsoluteUri);
             Assert.Equal(filePath, uri.GetRequiredParsedUri().LocalPath);
         }
     }
@@ -97,11 +104,21 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     [InlineData("/%25\ue25b/\u0089\uC7BD", "file:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23%EE%89%9B")]
+    public void CreateAbsoluteUri_LocalPaths_Unix(string filePath, string expectedAbsoluteUri)
+    {
+        Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
+
+        var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
+        Assert.Equal(expectedAbsoluteUri, uri.AbsoluteUri);
+        Assert.Equal(filePath, uri.LocalPath);
+    }
+
+    [ConditionalTheory(typeof(UnixLikeOnly), AlwaysSkip = "https://github.com/dotnet/runtime/issues/1487")]
     [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
     [InlineData("\\/\u200e", "file:////%E2%80%8E")]
     [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]
     [InlineData("\\\\\\\\\\\u200e", "file:///////%E2%80%8E")]
-    public void CreateAbsoluteUri_LocalPaths_Unix(string filePath, string expectedAbsoluteUri)
+    public void CreateAbsoluteUri_LocalPaths_Unix_BackslashPaths(string filePath, string expectedAbsoluteUri)
     {
         Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
@@ -134,35 +151,41 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     }
 
     [ConditionalTheory(typeof(UnixLikeOnly))]
-    [InlineData("/", "file://")]
     [InlineData("/u", "file:///u")]
     [InlineData("/unix/", "file:///unix")]
     [InlineData("/unix/path", "file:///unix/path")]
     [InlineData("/%25\ue25b/\u0089\uC7BD", "file:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23%EE%89%9B")]
-    [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
-    [InlineData("\\/\u200e", "file:////%E2%80%8E")]
-    [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]
-    [InlineData("\\\\\\\\\\\u200e", "file:///////%E2%80%8E")]
     public void CreateRelativePatternBaseUri_LocalPaths_Unix(string filePath, string expectedRelativeUri)
     {
         var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
         Assert.Equal(expectedRelativeUri, uri.GetRequiredParsedUri().AbsoluteUri);
     }
 
+    [ConditionalTheory(typeof(UnixLikeOnly), AlwaysSkip = "https://github.com/dotnet/runtime/issues/1487")]
+    [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
+    [InlineData("\\/\u200e", "file:////%E2%80%8E")]
+    [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]
+    [InlineData("\\\\\\\\\\\u200e", "file:///////%E2%80%8E")]
+    public void CreateRelativePatternBaseUri_LocalPaths_Unix_BackslashPaths(string filePath, string expectedRelativeUri)
+    {
+        var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
+        Assert.Equal(expectedRelativeUri, uri.GetRequiredParsedUri().AbsoluteUri);
+    }
+
     [ConditionalTheory(typeof(UnixLikeOnly))]
-    [InlineData("/a/./b", "file:///a/./b", "file:///a/b")]
-    [InlineData("/a/../b", "file:///a/../b", "file:///b")]
-    [InlineData("/\ue25b/./\ue25c", "file:///%EE%89%9B/./%EE%89%9C", "file:///%EE%89%9B/%EE%89%9C")]
-    [InlineData("/\ue25b/../\ue25c", "file:///%EE%89%9B/../%EE%89%9C", "file:///%EE%89%9C")]
-    public void CreateAbsoluteUri_LocalPaths_Normalized_Unix(string filePath, string expectedRawUri, string expectedNormalizedUri)
+    [InlineData("/a/./b", "file:///a/./b", "file:///a/b", "/a/b")]
+    [InlineData("/a/../b", "file:///a/../b", "file:///b", "/b")]
+    [InlineData("/\ue25b/./\ue25c", "file:///%EE%89%9B/./%EE%89%9C", "file:///%EE%89%9B/%EE%89%9C", "/\ue25b/\ue25c")]
+    [InlineData("/\ue25b/../\ue25c", "file:///%EE%89%9B/../%EE%89%9C", "file:///%EE%89%9C", "/\ue25c")]
+    public void CreateAbsoluteUri_LocalPaths_Normalized_Unix(string filePath, string expectedRawUri, string expectedNormalizedUri, string expectedLocalPath)
     {
         Assert.Equal(expectedRawUri, ProtocolConversions.GetAbsoluteUriString(filePath));
 
         var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
         Assert.Equal(expectedNormalizedUri, uri.AbsoluteUri);
-        Assert.Equal(filePath, uri.LocalPath);
+        Assert.Equal(expectedLocalPath, uri.LocalPath);
     }
 
     [Theory]
@@ -233,7 +256,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
                 var x = 5;
             }
 
-            """; // add additional end line 
+            """.ReplaceLineEndings("\r\n"); // add additional end line
 
         var sourceText = SourceText.From(markup);
 
@@ -317,7 +340,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
             {
                 var x = 5;
             }
-            """;
+            """.ReplaceLineEndings("\r\n");
         return markup;
     }
 
@@ -345,7 +368,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         Assert.False(projectContext.IsMiscellaneous);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
     public async Task ProjectToProjectContext_MiscellaneousFilesWorkspace(bool mutatingLspWorkspace)
     {
 

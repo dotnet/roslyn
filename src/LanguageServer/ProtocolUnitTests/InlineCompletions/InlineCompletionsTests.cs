@@ -250,7 +250,7 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         var item = result.Items.Single();
         AssertEx.NotNull(item.Range);
         Assert.Equal(LSP.InsertTextFormat.Snippet, item.TextFormat);
-        Assert.Equal(expected, item.Text);
+        AssertEx.Equal(expected, item.Text);
     }
 
     private static async Task<LSP.VSInternalInlineCompletionList> GetInlineCompletionsAsync(

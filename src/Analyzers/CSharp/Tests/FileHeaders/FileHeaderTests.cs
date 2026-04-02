@@ -74,10 +74,12 @@ public sealed class FileHeaderTests
             }
             """;
 
+        // Use TestState/FixedState.Sources directly to bypass the verifier's CRLF normalization
+        // setters, since this test explicitly tests both LF and CRLF line endings.
         await new VerifyCS.Test
         {
-            TestCode = testCode.ReplaceLineEndings(lineEnding),
-            FixedCode = fixedCode.ReplaceLineEndings(lineEnding),
+            TestState = { Sources = { testCode.ReplaceLineEndings(lineEnding) } },
+            FixedState = { Sources = { fixedCode.ReplaceLineEndings(lineEnding) } },
             EditorConfig = TestSettings,
             Options =
             {

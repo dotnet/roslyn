@@ -355,7 +355,7 @@ partial class Partial {{ }}
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
-            Assert.Equal(expectedText, actualText);
+            AssertEx.Equal(expectedText, actualText);
         }
 
         private void TestIncluded(string xml, string xpath, string expectedTextTemplate, bool fallbackToErrorCodeOnlyForNonEnglish, params DiagnosticDescription[] expectedDiagnostics)
@@ -389,7 +389,7 @@ partial class Partial {{ }}
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
             var expectedText = string.Format(expectedTextTemplate, TestHelpers.AsXmlCommentText(xmlFilePath));
-            Assert.Equal(expectedText, actualText);
+            AssertEx.Equal(expectedText, actualText);
         }
 
         private static CSharpParseOptions GetOptions(DocumentationMode mode)

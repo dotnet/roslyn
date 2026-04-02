@@ -184,12 +184,12 @@ $@"{LogoAndHelpPrompt}
 {exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
 «Gray»
-> ", runner.Console.Out.ToString());
+> ".ReplaceLineEndings(), runner.Console.Out.ToString().ReplaceLineEndings());
 
             Assert.Equal(
 $@"{exception.GetType()}: {exception.Message}
   + Submission#0.div(int, int)
-", runner.Console.Error.ToString());
+".ReplaceLineEndings(), runner.Console.Error.ToString().ReplaceLineEndings());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30303")]
@@ -213,12 +213,12 @@ $@"{LogoAndHelpPrompt}
 {exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
 «Gray»
-> ", runner.Console.Out.ToString());
+> ".ReplaceLineEndings(), runner.Console.Out.ToString().ReplaceLineEndings());
 
             Assert.Equal(
 $@"{exception.GetType()}: {exception.Message}
   + Submission#0.C<T>.div<U>(int, int)
-", runner.Console.Error.ToString());
+".ReplaceLineEndings(), runner.Console.Error.ToString().ReplaceLineEndings());
         }
 
         [Fact]
@@ -234,7 +234,7 @@ $@"{exception.GetType()}: {exception.Message}
 $@"{LogoAndHelpPrompt}
 > 1+1
 2
-> ", runner.Console.Out.ToString());
+> ".ReplaceLineEndings(), runner.Console.Out.ToString().ReplaceLineEndings());
         }
 
         [Fact]

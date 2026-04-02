@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets;
@@ -38,17 +39,26 @@ public abstract class AbstractSnippetProviderTests
             AddProject("TestProject", "TestAssembly", LanguageName)
             .WithMetadataReferences(metadataReferences);
 
+        // NormalizeWhitespace() used by snippet providers always produces \r\n line endings (DefaultEOL),
+        // so normalize markup to \r\n for consistent positions and text comparison.
+        markupBeforeCommit = markupBeforeCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        markupAfterCommit = markupAfterCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+
         TestFileMarkupParser.GetPosition(markupBeforeCommit, out markupBeforeCommit, out var snippetRequestPosition);
         var document = project.AddDocument(
             "TestDocument",
             SourceText.From(markupBeforeCommit, Encoding.UTF8, SourceHashAlgorithms.Default),
             filePath: Path.Combine(TempRoot.Root, "TestDocument"));
 
+        // Always set end_of_line = crlf so the Formatter produces \r\n consistent with NormalizeWhitespace.
+        var fullEditorConfig = "root = true\n\n[*]\nend_of_line = crlf\n";
         if (editorconfig is not null)
+            fullEditorConfig += editorconfig;
+
         {
             var editorConfigDoc = document.Project.AddAnalyzerConfigDocument(
                 ".editorconfig",
-                SourceText.From(editorconfig, Encoding.UTF8, SourceHashAlgorithms.Default),
+                SourceText.From(fullEditorConfig, Encoding.UTF8, SourceHashAlgorithms.Default),
                 filePath: Path.Combine(TempRoot.Root, ".editorconfig"));
 
             document = editorConfigDoc.Project.GetDocument(document.Id)!;
@@ -73,7 +83,7 @@ public abstract class AbstractSnippetProviderTests
         var documentTextAfterSnippet = documentSourceText.WithChanges(snippetChange.TextChanges);
 
         TestFileMarkupParser.GetPositionAndSpans(markupAfterCommit, out markupAfterCommit, out int finalCaretPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> placeholderLocations);
-        Assert.Equal(markupAfterCommit, documentTextAfterSnippet.ToString());
+        AssertEx.Equal(markupAfterCommit, documentTextAfterSnippet.ToString());
 
         var placeholderLocationsArray = new ImmutableArray<TextSpan>[placeholderLocations.Count];
         var snippetPlaceholders = snippetChange.Placeholders;

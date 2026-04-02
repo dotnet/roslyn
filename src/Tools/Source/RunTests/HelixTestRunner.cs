@@ -290,7 +290,10 @@ internal sealed class HelixTestRunner
 
             command.AppendLine(isUnix ? "env | sort" : "set");
 
-            command.AppendLine("powershell -ExecutionPolicy ByPass -NoProfile -File ./eng/enable-preview-sdks.ps1");
+            if (!isUnix)
+            {
+                command.AppendLine("powershell -ExecutionPolicy ByPass -NoProfile -File ./eng/enable-preview-sdks.ps1");
+            }
 
             // Rehydrate assemblies that we need to run as part of this work item.
             foreach (var assemblyRelativeFilePath in assemblyRelativeFilePaths)

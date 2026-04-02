@@ -213,7 +213,7 @@ public abstract class CoreFormatterTestsBase
     {
         var newRootNode = Formatter.Format(root, spans, workspace.Services.SolutionServices, options, rules, CancellationToken.None);
 
-        Assert.Equal(expected, newRootNode.ToFullString());
+        AssertEx.Equal(expected, newRootNode.ToFullString());
 
         // test doesn't use parsing option. add one if needed later
         var newRootNodeFromString = ParseCompilationUnit(expected);
@@ -227,10 +227,10 @@ public abstract class CoreFormatterTestsBase
         var result = Formatter.GetFormattedTextChanges(root, spans, workspace.Services.SolutionServices, options, rules, CancellationToken.None);
         var actual = ApplyResultAndGetFormattedText(clonedBuffer, result);
 
-        if (actual != expected)
+        if (actual.ReplaceLineEndings() != expected.ReplaceLineEndings())
         {
             _output.WriteLine(actual);
-            AssertEx.EqualOrDiff(expected, actual);
+            AssertEx.EqualOrDiff(expected.ReplaceLineEndings(), actual.ReplaceLineEndings());
         }
     }
 
@@ -263,7 +263,7 @@ public abstract class CoreFormatterTestsBase
 
         MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
 
-        Assert.Equal(expected, view.TextSnapshot.GetText());
+        AssertEx.Equal(expected, view.TextSnapshot.GetText());
 
         var caretPosition = view.Caret.Position.BufferPosition.Position;
         Assert.True(expectedPosition == caretPosition,
@@ -289,6 +289,6 @@ public abstract class CoreFormatterTestsBase
         var result = Formatter.Format(node, workspace.Services.SolutionServices, options, CancellationToken.None);
         var actual = result.GetText().ToString();
 
-        Assert.Equal(expected, actual);
+        AssertEx.Equal(expected, actual);
     }
 }

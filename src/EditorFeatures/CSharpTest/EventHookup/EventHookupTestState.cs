@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Suggestions;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -88,7 +89,7 @@ internal sealed class EventHookupTestState : AbstractCommandHandlerTestState
 
     internal void AssertCodeIs(string expectedCode)
     {
-        Assert.Equal(expectedCode, TextView.TextSnapshot.GetText());
+        AssertEx.Equal(expectedCode, TextView.TextSnapshot.GetText());
     }
 
     internal void AssertSuggestionServiceWasDismissed()

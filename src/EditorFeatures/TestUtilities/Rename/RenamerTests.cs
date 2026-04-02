@@ -98,7 +98,7 @@ public abstract class RenamerTests : TestBase
                 AssertEx.SetEqual(endDocument.DocumentFolders, updatedDocument.Folders);
             }
 
-            AssertEx.EqualOrDiff(endDocument.Text, (await updatedDocument.GetTextAsync()).ToString());
+            AssertEx.EqualOrDiff(endDocument.Text.ReplaceLineEndings(), (await updatedDocument.GetTextAsync()).ToString().ReplaceLineEndings());
             Assert.Empty(remainingErrors);
         }
     }

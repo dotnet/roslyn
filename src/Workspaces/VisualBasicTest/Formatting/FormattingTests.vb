@@ -3785,7 +3785,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
 
             Using workspace = New AdhocWorkspace()
                 Dim result = Formatter.Format(root, goo, workspace.Services.SolutionServices, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
-                Assert.Equal(expected, result)
+                Assert.Equal(expected.ReplaceLineEndings(), result.ReplaceLineEndings())
             End Using
         End Sub
 

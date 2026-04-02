@@ -63,13 +63,15 @@ Namespace N
 End Namespace
 "
 
+            ' Use TestState/FixedState.Sources directly to bypass the verifier's CRLF
+            ' normalization setters, since this test explicitly tests both LF and CRLF.
             Dim test As VerifyVB.Test = New VerifyVB.Test With
             {
-                .TestCode = testCode.ReplaceLineEndings(lineEnding),
-                .FixedCode = fixedCode.ReplaceLineEndings(lineEnding),
                 .EditorConfig = TestSettings
             }
 
+            test.TestState.Sources.Add(testCode.ReplaceLineEndings(lineEnding))
+            test.FixedState.Sources.Add(fixedCode.ReplaceLineEndings(lineEnding))
             test.Options.Add(FormattingOptions2.NewLine, lineEnding)
             Await test.RunAsync()
         End Function

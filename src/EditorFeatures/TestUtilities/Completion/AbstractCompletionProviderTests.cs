@@ -376,6 +376,11 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
 
     protected async Task VerifyCustomCommitProviderAsync(string markupBeforeCommit, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind? sourceCodeKind = null, char? commitChar = null)
     {
+        // NormalizeWhitespace() used by completion providers always produces \r\n line endings,
+        // so normalize markup to \r\n for consistent positions and text comparison.
+        markupBeforeCommit = markupBeforeCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        expectedCodeAfterCommit = expectedCodeAfterCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
         using (workspaceFixture.Target.GetWorkspace(markupBeforeCommit, GetComposition()))
         {
@@ -401,6 +406,11 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         char? commitChar,
         SourceCodeKind? sourceCodeKind = null)
     {
+        // NormalizeWhitespace() used by completion providers always produces \r\n line endings,
+        // so normalize markup to \r\n for consistent positions and text comparison.
+        markupBeforeCommit = markupBeforeCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+        expectedCodeAfterCommit = expectedCodeAfterCommit.Replace("\r\n", "\n").Replace("\n", "\r\n");
+
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
         workspaceFixture.Target.GetWorkspace(markupBeforeCommit, GetComposition());
@@ -408,7 +418,6 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         var code = workspaceFixture.Target.Code;
         var position = workspaceFixture.Target.Position;
 
-        expectedCodeAfterCommit = expectedCodeAfterCommit.NormalizeLineEndings();
         if (sourceCodeKind.HasValue)
         {
             await VerifyProviderCommitWorkerAsync(code, position, itemToCommit, expectedCodeAfterCommit, commitChar, sourceCodeKind.Value);
@@ -654,7 +663,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         var selectionSpan = commit.NewSelection ?? textView.Selection.StreamSelectionSpan.SnapshotSpan.Span.ToTextSpan();
         var caretPosition = commit.NewPosition ?? textView.Caret.Position.BufferPosition.Position;
 
-        AssertEx.EqualOrDiff(actualExpectedCode, actualCodeAfterCommit);
+        AssertEx.EqualOrDiff(actualExpectedCode.ReplaceLineEndings(), actualCodeAfterCommit.ReplaceLineEndings());
 
         if (expectedSelectionSpan != null)
             Assert.Equal(expectedSelectionSpan, selectionSpan);
@@ -695,7 +704,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
         var actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
         var caretPosition = textView.Caret.Position.BufferPosition.Position;
 
-        Assert.Equal(actualExpectedCode, actualCodeAfterCommit);
+        AssertEx.Equal(actualExpectedCode, actualCodeAfterCommit);
         Assert.Equal(expectedCaretPosition, caretPosition);
     }
 
@@ -759,7 +768,7 @@ public abstract class AbstractCompletionProviderTests<TWorkspaceFixture> : TestB
             text = text.WithChanges(textChange);
         }
 
-        Assert.Equal(expectedCodeAfterCommit, text.ToString());
+        AssertEx.Equal(expectedCodeAfterCommit, text.ToString());
     }
 
     protected async Task VerifyItemInEditorBrowsableContextsAsync(

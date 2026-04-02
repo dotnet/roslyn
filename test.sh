@@ -13,4 +13,4 @@ while [[ -h $source ]]; do
 done
 
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
-"$scriptroot/eng/build.sh" --test $@
+"$scriptroot/eng/build.sh" --test --solution Roslyn.slnx $@

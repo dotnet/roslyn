@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
