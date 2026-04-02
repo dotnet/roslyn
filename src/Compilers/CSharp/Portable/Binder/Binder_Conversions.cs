@@ -1662,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : AnalyzedArguments.GetInstance(withElement.Arguments, withElement.ArgumentRefKindsOpt, withElement.ArgumentNamesOpt);
 
                 var binder = new ParamsCollectionTypeInProgressBinder(
-                    namedType, this, bindingCollectionExpressionWithArguments: false);
+                    namedType, this, bindingCollectionExpressionWithArguments: hasWithElement);
 
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                     namedType,
