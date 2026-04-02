@@ -26,5 +26,5 @@ internal sealed class RemoteAnalyzerPathResolver(string baseDirectory) : IAnalyz
         => GetFixedPath(originalAnalyzerPath);
 
     public string? GetResolvedSatellitePath(string originalAnalyzerPath, CultureInfo cultureInfo)
-        => AnalyzerAssemblyLoader.GetSatelliteAssemblyPath(GetFixedPath(originalAnalyzerPath), cultureInfo);
+        => AnalyzerAssemblyLoader.RucSpacer.GetSatelliteAssemblyPath(GetFixedPath(originalAnalyzerPath), cultureInfo);
 }
