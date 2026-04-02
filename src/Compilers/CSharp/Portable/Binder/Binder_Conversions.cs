@@ -979,6 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_targetType is NamedTypeSymbol namedType &&
                     _binder.HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
                 {
+                    Debug.Assert(_node.WithElement is null);
                     Debug.Assert(inProgressConstructor is not null);
                     _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
                     return null;
@@ -1624,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (HasParamsCollectionTypeInProgress(namedType, out _, out _))
                 {
+                    Debug.Assert(!hasWithElement);
                     // We are in a cycle. Optimistically assume we have the right constructor to break the cycle
                     return true;
                 }
