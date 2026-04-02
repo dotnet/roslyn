@@ -62,6 +62,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     {
         _tempRoot.Dispose();
         _loggerProvider.Dispose();
+        _loggerFactory.Dispose();
 
         foreach (var directory in _additionalDirectoriesToDelete)
         {
@@ -75,8 +76,15 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         _additionalDirectoriesToDelete.Add(VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspacePath));
     }
 
+    /// <summary>Verify that multiple invocations of 'actualFactory' result in the same 'expected' sequence.</summary>
+    private void AssertSequenceEqualAndStable<T>(IEnumerable<T> expected, Func<IEnumerable<T>> actualFactory)
+    {
+        AssertEx.SequenceEqual(expected, actualFactory());
+        AssertEx.SequenceEqual(expected, actualFactory());
+    }
+
     [Fact]
-    public async Task TestDiscovery_01()
+    public async Task TestDiscovery_Simple()
     {
         // Simple case
         // tempDir/
@@ -109,10 +117,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         });
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
-
-        // Verify stability
-        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
+        AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
 
         // Changed but still has '#!'
         appFile.WriteAllText(appText + """
@@ -141,7 +146,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task TestDiscovery_02()
+    public async Task TestDiscovery_IgnoredFolders()
     {
         // Demonstrate ignored folders behavior
         // tempDir/
@@ -172,14 +177,11 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         });
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        AssertEx.SequenceEqual([app2File.Path], discovery.FindEntryPoints(tempDir.Path));
-
-        // Verify stability
-        AssertEx.SequenceEqual([app2File.Path], discovery.FindEntryPoints(tempDir.Path));
+        AssertSequenceEqualAndStable([app2File.Path], () => discovery.FindEntryPoints(tempDir.Path));
     }
 
     [Fact]
-    public async Task TestDiscovery_03()
+    public async Task TestDiscovery_CsprojInCone()
     {
         // Demonstrate csproj-in-cone behavior
         // tempDir/
@@ -212,21 +214,15 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         });
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
-
-        // Verify stability
-        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
+        AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
 
         // Delete the csproj file
         File.Delete(csprojFile.Path);
-        AssertEx.SequenceEqual([appFile.Path, programFile.Path], discovery.FindEntryPoints(tempDir.Path));
-
-        // Verify stability
-        AssertEx.SequenceEqual([appFile.Path, programFile.Path], discovery.FindEntryPoints(tempDir.Path));
+        AssertSequenceEqualAndStable([appFile.Path, programFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
     }
 
     [Fact]
-    public async Task TestDiscovery_04()
+    public async Task TestDiscovery_Option_EnableFileBasedPrograms_True()
     {
         // Ensure discovery occurs when relevant options are enabled
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
@@ -259,7 +255,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task TestDiscovery_05()
+    public async Task TestDiscovery_Option_EnableFileBasedPrograms_False()
     {
         // Ensure discovery doesn't occur when 'dotnet.projects.enableFileBasedPrograms: false' is set
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
@@ -292,7 +288,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task TestDiscovery_06()
+    public async Task TestDiscovery_Option_EnableAutomaticDiscovery_False()
     {
         // Ensure discovery doesn't occur when 'dotnet.fileBasedApps.enableAutomaticDiscovery: false' is set
         // Note: the option is checked in the higher level API, so we need to verify the effects in project system.
@@ -325,7 +321,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task TestDiscovery_07()
+    public async Task TestDiscovery_UTF8_BOM()
     {
         // File starting with UTF-8 BOM followed by '#!' should be discovered
         var tempDir = _tempRoot.CreateDirectory();
@@ -369,7 +365,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task Swap_01()
+    public async Task Swap_ReplaceFBAWithNonFBA()
     {
         // Swap an FBA out for non-FBA at the same path 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
@@ -410,7 +406,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task Swap_02()
+    public async Task Swap_ReplaceNonFBAWithFBA()
     {
         // Swap a non-FBA out for FBA at the same path 'sub/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
@@ -451,7 +447,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task Swap_03()
+    public async Task Swap_ReplaceFBADirectoryWithNonFBADirectory()
     {
         // Swap a directory containing FBA out for a directory containing non-FBA at 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
@@ -493,9 +489,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [Fact]
-    public async Task Swap_04()
+    public async Task Swap_ReplaceNonFBADirectoryWithFBADirectory()
     {
-        // Swap a directory containing non-FBA out for a diretory containing FBA at the same path 'sub1/File1.cs'.
+        // Swap a directory containing non-FBA out for a directory containing FBA at the same path 'sub1/File1.cs'.
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
@@ -958,45 +954,55 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     private void DumpFuzzReproCase(int iteration, List<FuzzOp> setupOps, List<FuzzOp> editOps)
     {
         var sb = new System.Text.StringBuilder();
-        sb.AppendLine();
-        sb.AppendLine("    [Fact]");
-        sb.AppendLine($"    public async Task Fuzz_{iteration}()");
-        sb.AppendLine("    {");
-        sb.AppendLine("        var tempDir = _tempRoot.CreateDirectory();");
-        sb.AppendLine("        DeferDeleteCacheDirectory(tempDir.Path);");
-        sb.AppendLine();
-        sb.AppendLine("        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions");
-        sb.AppendLine("        {");
-        sb.AppendLine("            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,");
-        sb.AppendLine("            WorkspaceFolders =");
-        sb.AppendLine("            [");
-        sb.AppendLine("                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = \"workspace1\" }");
-        sb.AppendLine("            ]");
-        sb.AppendLine("        });");
-        sb.AppendLine("        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();");
-        sb.AppendLine();
-        sb.AppendLine("        // Setup");
+        sb.AppendLine($$"""
+
+                [Fact]
+                public async Task Fuzz_{{iteration}}()
+                {
+                    var tempDir = _tempRoot.CreateDirectory();
+                    DeferDeleteCacheDirectory(tempDir.Path);
+                    sb.AppendLine();
+
+                    await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+                    {
+                        ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+                        WorkspaceFolders =
+                        [
+                            new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = \"workspace1\" }
+                        ]
+                    });
+                    var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+                    sb.AppendLine();
+
+                    // Setup
+            """);
         foreach (var op in setupOps)
             sb.AppendLine($"        {op.ToCSharp("tempDir")}");
-        sb.AppendLine();
-        sb.AppendLine("        // First discovery (no cache)");
-        sb.AppendLine("        var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();");
-        sb.AppendLine();
-        sb.AppendLine("        // Edits");
+
+        sb.AppendLine("""
+
+                    // First discovery (no cache)
+                    var firstResult = discovery.FindEntryPoints(tempDir.Path).ToArray();
+
+                    // Edits
+            """);
         foreach (var op in editOps)
             sb.AppendLine($"        {op.ToCSharp("tempDir")}");
-        sb.AppendLine();
-        sb.AppendLine("        // Discovery with cache");
-        sb.AppendLine("        var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();");
-        sb.AppendLine();
-        sb.AppendLine("        // Delete cache");
-        sb.AppendLine("        var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);");
-        sb.AppendLine("        Directory.Delete(cacheDirectory, recursive: true);");
-        sb.AppendLine();
-        sb.AppendLine("        // Discovery without cache — should match");
-        sb.AppendLine("        var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();");
-        sb.AppendLine("        AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase);");
-        sb.AppendLine("    }");
+
+        sb.AppendLine("""
+
+                    // Discovery with cache
+                    var cachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+
+                    // Delete cache
+                    var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(tempDir.Path);
+                    Directory.Delete(cacheDirectory, recursive: true);
+
+                    // Discovery without cache — should match
+                    var uncachedResult = discovery.FindEntryPoints(tempDir.Path).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+                    AssertEx.SequenceEqual(uncachedResult, cachedResult, StringComparer.OrdinalIgnoreCase);
+                }
+            """);
 
         _testOutputHelper.WriteLine(sb.ToString());
     }

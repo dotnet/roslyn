@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -30,16 +31,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [ExportLspServiceFactory(typeof(FileBasedProgramsEntryPointDiscovery), ProtocolConstants.RoslynLspLanguagesContract)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, ILoggerFactory loggerFactory) : ILspServiceFactory
+internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider, ILoggerFactory loggerFactory) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
-        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, loggerFactory, lspServices);
+        return new FileBasedProgramsEntryPointDiscovery(globalOptionService, listenerProvider.GetListener(FeatureAttribute.Workspace), loggerFactory, lspServices);
     }
 }
 
 internal sealed partial class FileBasedProgramsEntryPointDiscovery(
-    IGlobalOptionService globalOptionService, ILoggerFactory loggerFactory, LspServices lspServices) : ILspService, IOnInitialized
+    IGlobalOptionService globalOptionService, IAsynchronousOperationListener listener, ILoggerFactory loggerFactory, LspServices lspServices) : ILspService, IOnInitialized
 {
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
@@ -58,13 +59,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         var initializeManager = context.GetRequiredService<IInitializeManager>();
-        var initializeParams = initializeManager.TryGetInitializeParams();
-        Contract.ThrowIfNull(initializeParams);
-        _workspaceFolders = initializeParams.WorkspaceFolders is [_, ..] workspaceFolders ? GetFolderPaths(workspaceFolders) : [];
+        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
         Task.Run(async () =>
         {
             try
             {
+                using var token = listener.BeginAsyncOperation(nameof(FindAndLoadEntryPointsAsync));
                 await FindAndLoadEntryPointsAsync();
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
@@ -74,21 +74,6 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }, cancellationToken);
 
         return Task.CompletedTask;
-
-        static ImmutableArray<string> GetFolderPaths(WorkspaceFolder[] workspaceFolders)
-        {
-            var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
-            foreach (var workspaceFolder in workspaceFolders)
-            {
-                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
-                    continue;
-
-                var workspaceFolderPath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
-                builder.Add(workspaceFolderPath);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
     }
 
     internal async Task FindAndLoadEntryPointsAsync()
@@ -97,19 +82,19 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         if (_workspaceFolders.IsEmpty)
         {
-            _logger.LogDebug("No workspace folders to search for file-based apps.");
+            _logger.LogTrace("No workspace folders to search for file-based apps.");
             return;
         }
 
         if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms))
         {
-            _logger.LogDebug(@"""enableFileBasedPrograms"" is false. Not discovering entry points.");
+            _logger.LogTrace(@"""dotnet.projects.enableFileBasedPrograms"" is false. Not discovering entry points.");
             return;
         }
 
         if (!globalOptionService.GetOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery))
         {
-            _logger.LogDebug(@"""dotnet.fileBasedApps.enableAutomaticDiscovery"" is false. Not discovering entry points.");
+            _logger.LogTrace(@"""dotnet.fileBasedApps.enableAutomaticDiscovery"" is false. Not discovering entry points.");
             return;
         }
 
@@ -129,10 +114,10 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         // Discovery pass done. Find and delete old caches.
         IOUtilities.PerformIO(() =>
         {
-            var enumerator = new OldCacheEnumerator();
+            using var enumerator = new OldCacheEnumerator();
             while (enumerator.MoveNext())
             {
-                Directory.Delete(enumerator.Current, recursive: true);
+                IOUtilities.PerformIO(() => Directory.Delete(enumerator.Current, recursive: true));
             }
         });
     }
@@ -212,9 +197,13 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         var newCache = new Cache(workspaceFolder, walkStartTimeUtc, newFileBasedAppsBuilder.ToImmutableAndFree(), directoriesContainingCsprojBuilder.ToImmutableAndFree());
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(cacheFilePath)!);
-            using var file = File.Create(cacheFilePath);
-            JsonSerializer.Serialize(file, newCache, CacheSerializerContext.Default.Cache);
+            Directory.CreateDirectory(cacheDirectory);
+            var cacheStagingFilePath = Path.Join(cacheDirectory, "cache.staging.json");
+            using (var stagingFile = File.Create(cacheStagingFilePath))
+            {
+                JsonSerializer.Serialize(stagingFile, newCache, CacheSerializerContext.Default.Cache);
+            }
+            File.Replace(cacheStagingFilePath, cacheFilePath, destinationBackupFileName: null);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
@@ -354,7 +343,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 return;
             }
 
-            if (IsFileBasedApp(file))
+            if (IOUtilities.PerformIO(() => IsFileBasedApp(file)))
             {
                 logger.LogInformation("Discovered file-based app (cache miss): {csFilePath}", file);
                 entryPointsBuilder.Add(file);
@@ -365,122 +354,6 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     /// <summary>Get the later of two DateTimeOffsets.</summary>
     private static DateTimeOffset Max(DateTimeOffset lhs, DateTimeOffset rhs)
         => lhs < rhs ? rhs : lhs;
-
-    private class IncrementalEntryPointEnumerator : FileSystemEnumerator<string>
-    {
-        private readonly Cache _cache;
-        private readonly ArrayBuilder<string> _directoriesContainingCsprojBuilder;
-
-        /// <summary>
-        /// Directories under the workspace folder which have a newer create/modify timestamp than the last walk time, and their subdirectories, as they are encountered.
-        /// In this case, items may have been moved into the directory since the last walk.
-        /// Therefore we need to crack '.cs' files under these directories, even if the '.cs' files themselves are older than the last walk.
-        /// </summary>
-        private readonly HashSet<string> _newerDirectories = new HashSet<string>(s_pathComparer);
-
-        public IncrementalEntryPointEnumerator(Cache cache, ArrayBuilder<string> directoriesContainingCsprojBuilder)
-            : base(cache.WorkspacePath, options: new EnumerationOptions { RecurseSubdirectories = true })
-        {
-            _cache = cache;
-            _directoriesContainingCsprojBuilder = directoriesContainingCsprojBuilder;
-
-            // Note: a creation time can be newer than the last write time when a file is copied or moved.
-            var workspaceDirectoryInfo = new DirectoryInfo(_cache.WorkspacePath);
-            if (workspaceDirectoryInfo.CreationTimeUtc >= cache.LastWalkTimeUtc
-                || workspaceDirectoryInfo.LastWriteTimeUtc >= cache.LastWalkTimeUtc)
-            {
-                _newerDirectories.Add(workspaceDirectoryInfo.FullName);
-            }
-        }
-
-        protected override string TransformEntry(ref FileSystemEntry entry)
-            => entry.ToFullPath();
-
-        private bool IsCacheUpToDate(ref FileSystemEntry entry)
-        {
-            if (_newerDirectories.GetAlternateLookup<ReadOnlySpan<char>>().Contains(entry.Directory))
-                return false;
-
-            if (entry.CreationTimeUtc >= _cache.LastWalkTimeUtc
-                || entry.LastWriteTimeUtc >= _cache.LastWalkTimeUtc)
-            {
-                return false;
-            }
-
-            // On NTFS, the directory timestamps we observe when enumerating can be stale when files are added/deleted from a directory.
-            // If we find the timestamps were old enough (i.e. we fell thru the above check),
-            // we still need to `new DirectoryInfo()` again and force the timestamps to update if needed.
-            if (entry.IsDirectory)
-            {
-                var directoryInfo = new DirectoryInfo(entry.ToFullPath());
-                if (directoryInfo.CreationTimeUtc >= _cache.LastWalkTimeUtc
-                    || directoryInfo.LastWriteTimeUtc >= _cache.LastWalkTimeUtc)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
-        {
-            if (entry.IsDirectory || !Path.GetExtension(entry.FileName).Equals(".cs", StringComparison.OrdinalIgnoreCase))
-            {
-                // Cheap check indicates this is not a discoverable file-based app.
-                return false;
-            }
-
-            if (IsCacheUpToDate(ref entry))
-            {
-                // Already up to date. If it is an FBA, it was visited by the initial cache loop.
-                return false;
-            }
-
-            var fullPath = entry.ToFullPath();
-            if (_cache.FileBasedAppFullPaths.BinarySearch(fullPath, s_pathComparer) >= 0)
-            {
-                // File has changed since our last walk, but it's under a cached file-based app path.
-                // The initial cache loop already handled it.
-                return false;
-            }
-
-            return IsFileBasedApp(fullPath);
-        }
-
-        protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
-        {
-            if (entry.FileName.ContainsAny(s_ignoredDirectories))
-                return false;
-
-            var fullPath = entry.ToFullPath();
-            if (IsCacheUpToDate(ref entry))
-            {
-                if (_cache.DirectoriesContainingCsproj.BinarySearch(fullPath, s_pathComparer) >= 0)
-                {
-                    // Still contains a csproj. Do not recurse.
-                    _directoriesContainingCsprojBuilder.Add(fullPath);
-                    return false;
-                }
-
-                return true;
-            }
-
-            // Directory contents changed since last walk.
-            // Check again if it contains a csproj file.
-            var containsCsproj = Directory.EnumerateFiles(fullPath, "*.csproj").Any();
-            if (containsCsproj)
-            {
-                _directoriesContainingCsprojBuilder.Add(fullPath);
-                return false;
-            }
-
-            // Changed since last walk, and doesn't contain a csproj file.
-            // User may have moved new folders or files into this directory since last walk.
-            _newerDirectories.Add(fullPath);
-            return true;
-        }
-    }
 
     internal sealed record Cache(string WorkspacePath, DateTimeOffset LastWalkTimeUtc, ImmutableArray<string> FileBasedAppFullPaths, ImmutableArray<string> DirectoriesContainingCsproj);
 
