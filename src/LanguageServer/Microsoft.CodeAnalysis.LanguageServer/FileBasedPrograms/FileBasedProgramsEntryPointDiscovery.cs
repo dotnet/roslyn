@@ -184,6 +184,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         // can result in the UtcNow that we accessed earlier, having a "later" value than the LastWriteTimeUtc.
         //
         // To deal with this accurately, we write a timestamp file to the filesystem, then get a walkStartTimeUtc from its LastWriteTimeUtc.
+        // We assume that file writes in the workspace folder which occur after this write, will have equal or later timestamps.
         // Timestamps we encounter which compare equal to the walkStartTimeUtc timestamp, must be treated as possibly being newer than the walkStartTimeUtc timestamp.
         var walkStartTimeUtc = IOUtilities.PerformIO(() =>
         {
@@ -194,51 +195,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             return lastWriteTime;
         }, defaultValue: cache.LastWalkTimeUtc);
 
-        // Initial cache loop: load known file-based apps
-        var csprojInConeChecker = lspServices.GetRequiredService<CsprojInConeChecker>();
         var newFileBasedAppsBuilder = ArrayBuilder<string>.GetInstance(cache.FileBasedAppFullPaths.Length);
-        foreach (var fileBasedAppPath in cache.FileBasedAppFullPaths)
-        {
-            if (!File.Exists(fileBasedAppPath))
-            {
-                // Deleted since our last walk.
-                continue;
-            }
-
-            if (csprojInConeChecker.IsContainedInCsprojCone(fileBasedAppPath))
-            {
-                // A csproj has appeared in the file's directory cone since our last walk.
-                continue;
-            }
-
-            if (!IsFileBasedApp(fileBasedAppPath))
-            {
-                // Changed to stop being a file-based app since our last walk.
-                continue;
-            }
-
-            newFileBasedAppsBuilder.Add(fileBasedAppPath);
-            _logger.LogInformation("Discovered file-based app (cache hit): {fileBasedAppPath}", fileBasedAppPath);
-        }
-
-        // Search for changes since our last walk.
-        // Note: if the workspace root itself contains a csproj (rare case), we don't even want to create an enumerator.
         var directoriesContainingCsprojBuilder = ArrayBuilder<string>.GetInstance(cache.DirectoriesContainingCsproj.Length);
-        if (!Directory.EnumerateFiles(cache.WorkspacePath, "*.csproj").Any())
-        {
-            var enumerator = new IncrementalEntryPointEnumerator(cache, directoriesContainingCsprojBuilder);
-            while (enumerator.MoveNext())
-            {
-                var fileBasedAppPath = enumerator.Current;
-                newFileBasedAppsBuilder.Add(fileBasedAppPath);
-                _logger.LogInformation("Discovered file-based app (cache miss): {csFilePath}", fileBasedAppPath);
-            }
-
-            var elapsedMilliseconds = stopwatch.Elapsed.Milliseconds;
-            _logger.LogInformation("Finished discovery in {workspaceFolder} in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
-            newFileBasedAppsBuilder.Sort(s_pathComparer);
-            directoriesContainingCsprojBuilder.Sort(s_pathComparer);
-        }
+        var visitor = new WorkspaceFolderVisitor(cache, newFileBasedAppsBuilder, directoriesContainingCsprojBuilder, _logger);
+        visitor.Visit();
+        var elapsedMilliseconds = stopwatch.Elapsed.Milliseconds;
+        _logger.LogInformation("Finished discovery in '{workspaceFolder}' in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
 
         var newCache = new Cache(workspaceFolder, walkStartTimeUtc, newFileBasedAppsBuilder.ToImmutableAndFree(), directoriesContainingCsprojBuilder.ToImmutableAndFree());
         try
@@ -266,6 +228,133 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         // Discovery only considers a file to be file-based app, if it starts with either "#!", or UTF-8 BOM followed by "#!".
         return bytesSpan is [(byte)'#', (byte)'!', ..] or [0xEF, 0xBB, 0xBF, (byte)'#', (byte)'!'];
     }
+
+    private enum CsFileKind
+    {
+        None, // Denotes a file that is irrelevant for discovery. Shouldn't appear on a valid 'CsFileInfo' instance.
+        Directory,
+        Cs,
+        Csproj,
+    }
+
+    private readonly struct CsFileInfo(CsFileKind kind, string path, DateTimeOffset createdOrModifiedTimeUtc)
+    {
+        public CsFileKind Kind { get; } = kind;
+        public string Path { get; } = path;
+        public DateTimeOffset CreatedOrModifiedTimeUtc { get; } = createdOrModifiedTimeUtc;
+    }
+
+    private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory)
+    {
+        private CsFileKind GetKind(ref FileSystemEntry entry)
+        {
+            if (entry.IsDirectory)
+                return CsFileKind.Directory;
+
+            var extension = Path.GetExtension(entry.FileName);
+            if (extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
+                return CsFileKind.Cs;
+
+            if (extension.Equals(".csproj", StringComparison.OrdinalIgnoreCase))
+                return CsFileKind.Csproj;
+
+            return CsFileKind.None;
+        }
+
+        protected override CsFileInfo TransformEntry(ref FileSystemEntry entry)
+        {
+            var kind = GetKind(ref entry);
+            Contract.ThrowIfTrue(kind == CsFileKind.None);
+            return new CsFileInfo(kind, entry.ToFullPath(), Max(entry.CreationTimeUtc, entry.LastWriteTimeUtc));
+        }
+
+        protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
+        {
+            return GetKind(ref entry) != CsFileKind.None;
+        }
+
+        protected override bool ShouldRecurseIntoEntry(ref FileSystemEntry entry)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
+    }
+
+    private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger)
+    {
+        internal void Visit()
+            // Note: 'VisitDirectory' will always stat the directory itself to get its created/modified times out.
+            => VisitDirectory(cache.WorkspacePath, DateTimeOffset.MinValue);
+
+        private void VisitDirectory(string directory, DateTimeOffset createdOrModifiedTimeUtc)
+        {
+            if (Path.GetFileName(directory.AsSpan()).ContainsAny(s_ignoredDirectories))
+                return;
+
+            if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)
+            {
+                var directoryInfo = new DirectoryInfo(directory);
+                var newCreatedOrModifiedTimeUtc = Max(directoryInfo.CreationTimeUtc, directoryInfo.LastWriteTimeUtc);
+                if (newCreatedOrModifiedTimeUtc < cache.LastWalkTimeUtc && cache.DirectoriesContainingCsproj.BinarySearch(directory, s_pathComparer) >= 0)
+                {
+                    // Our info about this directory is up to date, and we know it contains a csproj, so bail out before enumerating its files.
+                    directoriesContainingCsprojBuilder.Add(directory);
+                    return;
+                }
+
+                createdOrModifiedTimeUtc = Max(createdOrModifiedTimeUtc, newCreatedOrModifiedTimeUtc);
+            }
+
+            using var currentDirectoryItems = TemporaryArray<CsFileInfo>.Empty;
+            using var enumerator = new DirectoryEnumerator(directory);
+            while (enumerator.MoveNext())
+            {
+                var fileInfo = enumerator.Current;
+                if (fileInfo.Kind == CsFileKind.Csproj)
+                {
+                    // Found a csproj. Return without visiting any of the files.
+                    directoriesContainingCsprojBuilder.Add(directory);
+                    return;
+                }
+
+                currentDirectoryItems.Add(fileInfo);
+            }
+
+            // Did not find a csproj. Continue searching this subtree for entry points.
+            foreach (var fileInfo in currentDirectoryItems)
+            {
+                if (fileInfo.Kind == CsFileKind.Directory)
+                    VisitDirectory(fileInfo.Path, Max(createdOrModifiedTimeUtc, fileInfo.CreatedOrModifiedTimeUtc));
+                else if (fileInfo.Kind == CsFileKind.Cs)
+                    VisitCsFile(fileInfo.Path, Max(createdOrModifiedTimeUtc, fileInfo.CreatedOrModifiedTimeUtc));
+                else
+                    throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        private void VisitCsFile(string file, DateTimeOffset createdOrModifiedTimeUtc)
+        {
+            if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)
+            {
+                if (cache.FileBasedAppFullPaths.Contains(file))
+                {
+                    logger.LogInformation("Discovered file-based app (cache hit): {csFilePath}", file);
+                    entryPointsBuilder.Add(file);
+                }
+
+                return;
+            }
+
+            if (IsFileBasedApp(file))
+            {
+                logger.LogInformation("Discovered file-based app (cache miss): {csFilePath}", file);
+                entryPointsBuilder.Add(file);
+            }
+        }
+    }
+
+    /// <summary>Get the later of two DateTimeOffsets.</summary>
+    private static DateTimeOffset Max(DateTimeOffset lhs, DateTimeOffset rhs)
+        => lhs < rhs ? rhs : lhs;
 
     private class IncrementalEntryPointEnumerator : FileSystemEnumerator<string>
     {
