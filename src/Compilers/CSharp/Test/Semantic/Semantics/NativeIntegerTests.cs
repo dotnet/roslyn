@@ -13122,7 +13122,7 @@ class Program
             binaryOperator("nuint", ">>", "nuint", "0", "int", "1", "0");
             binaryOperator("nuint", ">>", "nuint", uintMaxValue, "int", "1", intMaxValue);
             binaryOperator("nuint", ">>", "nuint", "1", "int", "31", "0");
-            binaryOperator("nuint", ">>", "nuint", "1", "int", "32", "1");
+            binaryOperatorNotConstant("nuint", ">>", "nuint", "1", "int", "32", IntPtr.Size == 4 ? "1" : "0");
 
             binaryOperator("nint", "&", "nint", intMinValue, "nint", "0", "0");
             binaryOperator("nint", "&", "nint", intMinValue, "nint", "-1", intMinValue);
@@ -13452,6 +13452,100 @@ class Program
 }";
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "-2147483648" : "2147483648").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72904")]
+        public void ConstantFolding_NativeIntRightShiftPlatformDependent()
+        {
+            // nuint >> 32: shift amount has bit 5 set, result differs between 32-bit and 64-bit
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nuint x = 0xFFFF_FFFFu;
+                        nuint y = unchecked(x >> 32);
+                        System.Console.WriteLine($"{(ulong)y:x}");
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "ffffffff" : "0");
+
+            // nuint >>> 32
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nuint x = 0xFFFF_FFFFu;
+                        nuint y = unchecked(x >>> 32);
+                        System.Console.WriteLine($"{(ulong)y:x}");
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "ffffffff" : "0");
+
+            // nint >> 32 with positive value that differs between platforms
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nint x = 0x7FFF_FFFF;
+                        nint y = unchecked(x >> 32);
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "2147483647" : "0");
+
+            // nint >>> 32 with positive value
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nint x = 0x7FFF_FFFF;
+                        nint y = unchecked(x >>> 32);
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: IntPtr.Size == 4 ? "2147483647" : "0");
+
+            // nint >> 32 with -1: same result on both platforms (still folds)
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nint x = -1;
+                        const nint y = x >> 32;
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "-1");
+
+            // nuint >> 1: small shift amount, same on both platforms (still folds)
+            source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        const nuint x = 0xFFFF_FFFFu;
+                        const nuint y = x >> 1;
+                        System.Console.WriteLine(y);
+                    }
+                }
+                """;
+            comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "2147483647");
         }
 
         // OverflowException behavior is consistent with unchecked int division.
