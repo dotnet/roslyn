@@ -113,12 +113,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             return;
         }
 
-        if (lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>()
-            is not FileBasedProgramsProjectSystem fileBasedProgramsProjectSystem)
-        {
-            _logger.LogWarning($"Did not find {nameof(FileBasedProgramsProjectSystem)}. Not discovering entry points.");
-            return;
-        }
+        var fileBasedProgramsProjectSystem = (FileBasedProgramsProjectSystem?)lspServices.GetService<ILspMiscellaneousFilesWorkspaceProvider>();
+        Contract.ThrowIfNull(fileBasedProgramsProjectSystem);
 
         // Note: the overwhelmingly common case is when there is just one workspace folder.
         // For simplicity we orient our search around one workspace folder at a time.
@@ -158,7 +154,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     internal IEnumerable<string> FindEntryPoints(string workspaceFolder)
     {
-        var stopwatch = Stopwatch.StartNew();
+        var stopwatch = SharedStopwatch.StartNew();
         var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspaceFolder);
         var cacheFilePath = Path.Join(cacheDirectory, "cache.json");
         Cache? cache = null;
@@ -168,8 +164,10 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             cache = JsonSerializer.Deserialize(cacheFile, CacheSerializerContext.Default.Cache);
 
             // Drop malformed caches
-            if (cache?.WorkspacePath.Equals(workspaceFolder, StringComparison.OrdinalIgnoreCase) == false
-                || cache is { FileBasedAppFullPaths.IsDefault: true } or { DirectoriesContainingCsproj.IsDefault: true })
+            if (cache != null
+                && (!cache.WorkspacePath.Equals(workspaceFolder, StringComparison.OrdinalIgnoreCase)
+                    || cache.FileBasedAppFullPaths.IsDefault
+                    || cache.DirectoriesContainingCsproj.IsDefault))
             {
                 cache = null;
             }
@@ -238,8 +236,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 yield return fileBasedAppPath;
             }
 
-            stopwatch.Stop();
-            _logger.LogInformation("Finished discovery in {workspaceFolder} in {stopwatch.ElapsedMilliseconds} milliseconds", workspaceFolder, stopwatch.ElapsedMilliseconds);
+            var elapsedMilliseconds = stopwatch.Elapsed.Milliseconds;
+            _logger.LogInformation("Finished discovery in {workspaceFolder} in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
             newFileBasedAppsBuilder.Sort(s_pathComparer);
             directoriesContainingCsprojBuilder.Sort(s_pathComparer);
         }
