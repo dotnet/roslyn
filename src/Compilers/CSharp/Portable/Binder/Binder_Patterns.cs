@@ -177,8 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            // https://github.com/dotnet/roslyn/issues/82636: Allow conversions per spec
-
             NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
             ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = declaringType.UnionCaseTypes;
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
