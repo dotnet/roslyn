@@ -1504,7 +1504,7 @@ End Module
             Next
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        <ConditionalFact(GetType(NoIOperationValidation), AlwaysSkip:="https://github.com/dotnet/roslyn/issues/57806"), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
         Public Sub TestLargeStringConcatenation()
 
             Dim mid = New StringBuilder()

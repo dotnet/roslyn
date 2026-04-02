@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var serializer = JsonSerializer.Create(new JsonSerializerSettings() { Converters = new[] { AggregateJsonConverter.Instance }, DateParseHandling = DateParseHandling.None });
             var pinnedSolutionInfo = serializer.Deserialize<PinnedSolutionInfo>(reader);
 
-            return GetSolutionAsync(pinnedSolutionInfo, cancellationToken);
+            return GetSolutionAsync(pinnedSolutionInfo!, cancellationToken);
         }
 
         protected async Task<T> RunServiceAsync<T>(Func<Task<T>> callAsync, CancellationToken cancellationToken)
