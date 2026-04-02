@@ -12,10 +12,6 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 #endif
 
-#if !NET9_0_OR_GREATER
-using STATSTG = System.Runtime.InteropServices.ComTypes.STATSTG;
-#endif
-
 namespace Microsoft.DiaSymReader
 {
     /// <summary>
