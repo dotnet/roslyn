@@ -152,7 +152,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
     }
 
-    internal IEnumerable<string> FindEntryPoints(string workspaceFolder)
+    internal ImmutableArray<string> FindEntryPoints(string workspaceFolder)
     {
         var stopwatch = SharedStopwatch.StartNew();
         var cacheDirectory = VirtualProjectXmlProvider.GetDiscoveryCacheDirectory(workspaceFolder);
@@ -219,7 +219,6 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
             newFileBasedAppsBuilder.Add(fileBasedAppPath);
             _logger.LogInformation("Discovered file-based app (cache hit): {fileBasedAppPath}", fileBasedAppPath);
-            yield return fileBasedAppPath;
         }
 
         // Search for changes since our last walk.
@@ -233,7 +232,6 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 var fileBasedAppPath = enumerator.Current;
                 newFileBasedAppsBuilder.Add(fileBasedAppPath);
                 _logger.LogInformation("Discovered file-based app (cache miss): {csFilePath}", fileBasedAppPath);
-                yield return fileBasedAppPath;
             }
 
             var elapsedMilliseconds = stopwatch.Elapsed.Milliseconds;
@@ -252,6 +250,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
         }
+
+        return newCache.FileBasedAppFullPaths;
     }
 
     /// <summary>Check if discovery should consider this a file-based app.</summary>
