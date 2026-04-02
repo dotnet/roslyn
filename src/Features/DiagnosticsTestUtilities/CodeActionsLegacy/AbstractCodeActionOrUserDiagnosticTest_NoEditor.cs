@@ -101,7 +101,10 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             this.retainNonFixableDiagnostics = retainNonFixableDiagnostics;
             this.includeDiagnosticsOutsideSelection = includeDiagnosticsOutsideSelection;
             this.title = title;
-            this.testHost = testHost;
+            // OOP tests require TemporaryStorageService which uses memory-mapped files only available on Windows
+            this.testHost = testHost == TestHost.OutOfProcess && !System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)
+                ? TestHost.InProcess
+                : testHost;
             this.workspaceKind = workspaceKind;
             this.treatPositionIndicatorsAsCode = treatPositionIndicatorsAsCode;
         }
@@ -617,6 +620,14 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
         }
         else
         {
+            // On non-Windows, Roslyn code generation uses \r\n but test markup has \n.
+            // Normalize both to \n for comparison.
+            if (Path.DirectorySeparatorChar != '\\')
+            {
+                expectedText = expectedText.Replace("\r\n", "\n");
+                actualText = actualText.Replace("\r\n", "\n");
+            }
+
             AssertEx.EqualOrDiff(expectedText, actualText);
         }
 
@@ -730,6 +741,12 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             }
             else
             {
+                if (Path.DirectorySeparatorChar != '\\')
+                {
+                    expected = expected.Replace("\r\n", "\n");
+                    actual = actual.Replace("\r\n", "\n");
+                }
+
                 AssertEx.EqualOrDiff(expected, actual);
             }
         }

@@ -51,6 +51,8 @@ public sealed class SyntaxGeneratorTests
     {
         Assert.IsAssignableFrom<TSyntax>(node);
         var normalized = node.NormalizeWhitespace().ToFullString();
+        // Normalize expected text to \r\n to match NormalizeWhitespace() default
+        expectedText = expectedText.Replace("\r\n", "\n").Replace("\n", "\r\n");
         AssertEx.Equal(expectedText, normalized);
     }
 
