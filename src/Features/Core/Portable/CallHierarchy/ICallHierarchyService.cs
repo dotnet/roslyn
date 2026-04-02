@@ -13,9 +13,15 @@ internal interface ICallHierarchyService : ILanguageService
 {
     Task<CallHierarchyItemDescriptor?> CreateItemAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
-    Task<ImmutableArray<CallHierarchySearchResult>> SearchAsync(
+    Task<ImmutableArray<CallHierarchySearchResult>> SearchIncomingCallsAsync(
         Solution solution,
         CallHierarchySearchDescriptor searchDescriptor,
+        IImmutableSet<Document>? documents,
+        CancellationToken cancellationToken);
+
+    Task<ImmutableArray<CallHierarchySearchResult>> SearchOutgoingCallsAsync(
+        Solution solution,
+        CallHierarchyItemId itemId,
         IImmutableSet<Document>? documents,
         CancellationToken cancellationToken);
 }

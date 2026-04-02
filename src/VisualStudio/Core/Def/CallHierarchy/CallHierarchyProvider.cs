@@ -101,7 +101,7 @@ internal sealed partial class CallHierarchyProvider
 
         documents ??= IncludeDocuments(searchScope, project);
         var service = project.GetRequiredLanguageService<ICallHierarchyService>();
-        return await service.SearchAsync(workspace.CurrentSolution, searchDescriptor, documents, cancellationToken).ConfigureAwait(false);
+        return await service.SearchIncomingCallsAsync(workspace.CurrentSolution, searchDescriptor, documents, cancellationToken).ConfigureAwait(false);
     }
 
     private static IImmutableSet<Document>? IncludeDocuments(CallHierarchySearchScope scope, Project project)

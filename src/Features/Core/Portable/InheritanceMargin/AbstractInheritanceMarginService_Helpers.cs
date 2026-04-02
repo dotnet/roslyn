@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TypeHierarchy;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin;
@@ -56,12 +56,19 @@ internal abstract partial class AbstractInheritanceMarginService
         }
 
         var solution = project.Solution;
+        var typeHierarchyService = project.GetRequiredLanguageService<ITypeHierarchyService>();
         using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
         foreach (var (symbol, lineNumber) in symbolAndLineNumbers)
         {
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
+                await AddInheritanceMemberItemsForNamedTypeAsync(
+                    solution,
+                    typeHierarchyService,
+                    namedTypeSymbol,
+                    lineNumber,
+                    builder,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             if (symbol is IEventSymbol or IPropertySymbol or IMethodSymbol)
@@ -280,13 +287,14 @@ internal abstract partial class AbstractInheritanceMarginService
 
     private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
         Solution solution,
+        ITypeHierarchyService typeHierarchyService,
         INamedTypeSymbol memberSymbol,
         int lineNumber,
         ArrayBuilder<InheritanceMarginItem> builder,
         CancellationToken cancellationToken)
     {
         // Get all base types.
-        var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
+        var allBaseSymbols = typeHierarchyService.GetBaseTypesAndInterfaces(memberSymbol);
 
         // Filter out
         // 1. System.Object. (otherwise margin would be shown for all classes)
@@ -300,9 +308,10 @@ internal abstract partial class AbstractInheritanceMarginService
             .WhereAsArray(symbol => !symbol.IsErrorType() && symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
 
         // Get all derived types
-        var allDerivedSymbols = await GetDerivedTypesAndImplementationsAsync(
+        var allDerivedSymbols = await typeHierarchyService.GetDerivedTypesAndImplementationsAsync(
             solution,
             memberSymbol,
+            transitive: true,
             cancellationToken).ConfigureAwait(false);
 
         // Ensure the user won't be able to see symbol outside the solution for derived symbols.
@@ -670,38 +679,6 @@ internal abstract partial class AbstractInheritanceMarginService
         }
 
         return builder.ToImmutableAndClear();
-    }
-
-    /// <summary>
-    /// Get the derived interfaces and derived classes for <param name="typeSymbol"/>.
-    /// </summary>
-    private static async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
-        Solution solution,
-        INamedTypeSymbol typeSymbol,
-        CancellationToken cancellationToken)
-    {
-        if (typeSymbol.IsInterfaceType())
-        {
-            var allDerivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            var allImplementations = await SymbolFinder.FindImplementationsArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            return [.. allDerivedInterfaces, .. allImplementations];
-        }
-        else
-        {
-            return await SymbolFinder.FindDerivedClassesArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
     }
 
     /// <summary>

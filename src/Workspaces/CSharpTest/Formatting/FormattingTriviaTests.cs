@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +53,32 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
                 #line 1000
             #error
             """);
+
+    [Fact]
+    public Task FileBasedAppDirective()
+    {
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("FileBasedProgram", "true")]);
+        return AssertNoFormattingChangesAsync("""
+            #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, parseOptions: parseOptions);
+    }
+
+    [Fact]
+    public Task FileBasedAppDirective_WithLeadingWhitespace()
+    {
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("FileBasedProgram", "true")]);
+        return AssertFormatAsync("""
+            #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, """
+             #:package Newtonsoft.Json@13.0.3
+
+            Console.WriteLine("Hello");
+            """, parseOptions: parseOptions);
+    }
 
     [Fact]
     public Task Comment1()

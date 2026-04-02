@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDisposable? connection, DebuggingSessionId sessionId) : IActiveStatementSpanFactory, IDisposable
+internal sealed class DebuggingSessionProxy(SolutionServices services, IDisposable? connection, DebuggingSessionId sessionId) : IActiveStatementSpanFactory, IDisposable
 {
     public void Dispose()
         => connection?.Dispose();

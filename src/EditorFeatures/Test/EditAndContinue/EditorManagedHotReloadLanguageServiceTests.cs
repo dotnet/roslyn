@@ -34,19 +34,19 @@ using DebuggerContracts = Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditAndContinue;
 
 [UseExportProvider]
-public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestBase
+public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinueWorkspaceTestBase
 {
     private static string Inspect(DiagnosticData d)
         => $"{d.Severity} {d.Id}:" +
             (!string.IsNullOrWhiteSpace(d.DataLocation.UnmappedFileSpan.Path) ? $" {d.DataLocation.UnmappedFileSpan.Path}({d.DataLocation.UnmappedFileSpan.StartLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.StartLinePosition.Character}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Line}, {d.DataLocation.UnmappedFileSpan.EndLinePosition.Character}):" : "") +
             $" {d.Message}";
 
-    private static string Inspect(DebuggerContracts.ManagedHotReloadDiagnostic d)
+    private static string Inspect(ManagedHotReloadDiagnostic d)
         => $"{d.Severity} {d.Id}:" +
             (!string.IsNullOrWhiteSpace(d.FilePath) ? $" {d.FilePath}({d.Span.StartLine}, {d.Span.StartColumn}, {d.Span.EndLine}, {d.Span.EndColumn}):" : "") +
             $" {d.Message}";
 
-    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
+    private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out ManagedHotReloadLanguageServiceImpl languageService, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
             .AddExcludedPartTypes(typeof(ServiceBrokerProvider))
@@ -72,19 +72,8 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         solution = workspace.CurrentSolution;
         service = GetEditAndContinueService(workspace);
-        languageService = workspace.GetService<EditAndContinueLanguageService>();
+        languageService = workspace.GetService<ManagedHotReloadLanguageServiceImpl>();
         return workspace;
-    }
-
-    private sealed class TestSourceTextContainer : SourceTextContainer
-    {
-        public SourceText Text { get; set; }
-
-        public override SourceText CurrentText => Text;
-
-#pragma warning disable CS0067
-        public override event EventHandler<TextChangeEventArgs> TextChanged;
-#pragma warning restore
     }
 
     [Theory, CombinatorialData]
@@ -116,7 +105,7 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
 
         mockEncService = (MockEditAndContinueService)localWorkspace.GetService<IEditAndContinueService>();
 
-        var localService = localWorkspace.GetService<EditAndContinueLanguageService>();
+        var localService = localWorkspace.GetService<ManagedHotReloadLanguageServiceImpl>();
 
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
             .AddTestProject("proj", out var projectId)
@@ -216,11 +205,9 @@ public sealed class EditAndContinueLanguageServiceTests : EditAndContinueWorkspa
             };
         };
 
-        var runningProjectInfo = new DebuggerContracts.RunningProjectInfo()
-        {
-            ProjectInstanceId = new DebuggerContracts.ProjectInstanceId(project.FilePath, "net10.0"),
-            RestartAutomatically = false,
-        };
+        var runningProjectInfo = new RunningProjectInfo(
+            new ProjectInstanceId(project.FilePath, "net10.0"),
+            restartAutomatically: false);
 
         var updates = await localService.GetUpdatesAsync(runningProjects: [runningProjectInfo], CancellationToken.None);
 

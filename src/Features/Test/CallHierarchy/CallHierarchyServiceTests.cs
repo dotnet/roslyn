@@ -57,7 +57,7 @@ public sealed class CallHierarchyServiceTests
     }
 
     [Fact]
-    public async Task SearchAsync_Callers_RespectsDocumentFilter()
+    public async Task SearchIncomingCallsAsync_Callers_RespectsDocumentFilter()
     {
         using var workspace = TestWorkspace.Create("""
 <Workspace>
@@ -124,7 +124,7 @@ public class DSSS
     }
 
     [Fact]
-    public async Task SearchAsync_Implementations_FindsCrossProjectImplementations()
+    public async Task SearchIncomingCallsAsync_Implementations_FindsCrossProjectImplementations()
     {
         using var workspace = TestWorkspace.Create("""
 <Workspace>
@@ -177,7 +177,7 @@ public class D : I
     }
 
     [Fact]
-    public async Task SearchAsync_FieldReferences_ProducesInitializerResult()
+    public async Task SearchIncomingCallsAsync_FieldReferences_ProducesInitializerResult()
     {
         using var workspace = TestWorkspace.CreateCSharp("""
             class C
@@ -201,6 +201,196 @@ public class D : I
         Assert.Equal(2, locationResult.ReferenceLocations.Length);
     }
 
+    [Fact]
+    public async Task SearchOutgoingCallsAsync_ReturnsDirectTargetsFromSelectedDocument()
+    {
+        using var workspace = TestWorkspace.Create("""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+        <Document>
+class C
+{
+    void $$M()
+    {
+        N();
+        var value = P;
+    }
+
+    void N()
+    {
+    }
+
+    int P => 1;
+}
+        </Document>
+        <Document>
+class D
+{
+    void M()
+    {
+        var c = new C();
+        c.M();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+""");
+
+        var (document, service, item) = await GetItemAsync(workspace);
+        var results = await service.SearchOutgoingCallsAsync(
+            document.Project.Solution,
+            item.ItemId,
+            ImmutableHashSet.Create(document),
+            CancellationToken.None);
+
+        AssertEx.SetEqual(["C.N()", "C.P"], GetItemDisplayNames(results.Cast<CallHierarchySearchResult>().ToImmutableArray()));
+        Assert.All(results, static result => Assert.Single(result.ReferenceLocations));
+    }
+
+    [Fact]
+    public async Task SearchOutgoingCallsAsync_IncludesImplicitConstructors()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("""
+            class C
+            {
+            }
+
+            class Caller
+            {
+                void $$M()
+                {
+                    var c = new C();
+                }
+            }
+            """);
+
+        var (document, service, item) = await GetItemAsync(workspace);
+        var results = await service.SearchOutgoingCallsAsync(
+            document.Project.Solution,
+            item.ItemId,
+            ImmutableHashSet.Create(document),
+            CancellationToken.None);
+
+        var constructorCall = Assert.Single(results);
+        Assert.NotNull(constructorCall.Item);
+        Assert.Equal("C()", constructorCall.Item.MemberName);
+        Assert.Equal("C", constructorCall.Item.ContainingTypeName);
+        Assert.Single(constructorCall.ReferenceLocations);
+    }
+
+    [Fact]
+    public async Task SearchOutgoingCallsAsync_RespectsDocumentFilter()
+    {
+        using var workspace = TestWorkspace.Create("""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+        <Document>
+class C
+{
+    void $$M()
+    {
+        N();
+        var value = P;
+    }
+
+    void N()
+    {
+    }
+
+    int P => 1;
+}
+        </Document>
+        <Document>
+class D
+{
+    void M()
+    {
+        var c = new C();
+        c.M();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+""");
+
+        var declarationDocument = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single(d => d.Name == "Test1.cs").Id);
+        var otherDocument = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single(d => d.Name == "Test2.cs").Id);
+
+        var resultsFromDeclaration = await GetOutgoingSearchResultsAsync(
+            workspace,
+            documents: ImmutableHashSet.Create(declarationDocument));
+        var resultsFromOtherDocument = await GetOutgoingSearchResultsAsync(
+            workspace,
+            documents: ImmutableHashSet.Create(otherDocument));
+
+        AssertEx.SetEqual(["C.N()", "C.P"], GetItemDisplayNames(resultsFromDeclaration));
+        Assert.Empty(resultsFromOtherDocument);
+    }
+
+    [Fact]
+    public async Task SearchOutgoingCallsAsync_FindsCrossProjectTargets()
+    {
+        using var workspace = TestWorkspace.Create("""
+<Workspace>
+    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+        <Document>
+namespace C
+{
+    public class CC
+    {
+        public int GetFive() { return 5; }
+    }
+}
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+using C;
+public class D
+{
+    public int $$M()
+    {
+        var c = new CC();
+        return c.GetFive();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+""");
+
+        var results = await GetOutgoingSearchResultsAsync(workspace);
+
+        AssertEx.SetEqual(["CC.CC()", "CC.GetFive()"], GetItemDisplayNames(results));
+    }
+
+    [Fact]
+    public async Task SearchOutgoingCallsAsync_FieldInitializer_ProducesResult()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("""
+            class C
+            {
+                int $$f = GetValue();
+
+                static int GetValue()
+                {
+                    return 0;
+                }
+            }
+            """);
+
+        var results = await GetOutgoingSearchResultsAsync(workspace);
+
+        var call = Assert.Single(results);
+        Assert.NotNull(call.Item);
+        Assert.Equal("GetValue()", call.Item.MemberName);
+        Assert.Equal("C", call.Item.ContainingTypeName);
+        Assert.Single(call.ReferenceLocations);
+    }
+
     private static IEnumerable<string> GetItemDisplayNames(ImmutableArray<CallHierarchySearchResult> results)
         => results.Where(static r => r.Item is not null).Select(static r => GetDisplayName(r.Item!));
 
@@ -216,7 +406,15 @@ public class D : I
     {
         var (document, service, item) = await GetItemAsync(workspace);
         var searchDescriptor = Assert.Single(item.SupportedSearchDescriptors.Where(d => d.Relationship == relationship));
-        return await service.SearchAsync(document.Project.Solution, searchDescriptor, documents, CancellationToken.None);
+        return await service.SearchIncomingCallsAsync(document.Project.Solution, searchDescriptor, documents, CancellationToken.None);
+    }
+
+    private static async Task<ImmutableArray<CallHierarchySearchResult>> GetOutgoingSearchResultsAsync(
+        TestWorkspace workspace,
+        IImmutableSet<Document>? documents = null)
+    {
+        var (document, service, item) = await GetItemAsync(workspace);
+        return await service.SearchOutgoingCallsAsync(document.Project.Solution, item.ItemId, documents, CancellationToken.None);
     }
 
     private static async Task<(Document Document, ICallHierarchyService Service, CallHierarchyItemDescriptor Item)> GetItemAsync(TestWorkspace workspace)

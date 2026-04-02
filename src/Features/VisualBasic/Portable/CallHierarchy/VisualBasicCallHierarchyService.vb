@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CallHierarchy
 Imports Microsoft.CodeAnalysis.Host.Mef
 
@@ -15,5 +16,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CallHierarchy
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Protected Overrides Async Function GetOperationRootSyntaxAsync(syntaxReference As SyntaxReference, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+            Dim syntax = Await MyBase.GetOperationRootSyntaxAsync(syntaxReference, cancellationToken).ConfigureAwait(False)
+
+            ' In VB, declaration syntax references point at statement nodes (for example,
+            ' MethodStatement/PropertyStatement) instead of the enclosing block node. GetOperation
+            ' returns null for the statement but non-null for the block, so we step to the parent.
+            If syntax.Parent IsNot Nothing Then
+                syntax = syntax.Parent
+            End If
+
+            Return syntax
+        End Function
     End Class
 End Namespace
