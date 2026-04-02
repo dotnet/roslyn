@@ -1123,6 +1123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' the second interpretation applies so just visit the node for that.
                         Dim boundTypeOrValue = DirectCast(boundNodes.LowestBoundNode, BoundTypeOrValueExpression)
                         Dim valueBoundNodes = New BoundNodeSummary(boundTypeOrValue.Data.ValueExpression, boundNodes.HighestBoundNode, boundNodes.LowestBoundNodeOfSyntacticParent)
+                        symbolsBuilder.Free()
+                        memberGroupBuilder.Free()
                         Return GetSemanticSymbols(valueBoundNodes, binderOpt, options, resultKind, memberGroup)
 
                     Case Else
