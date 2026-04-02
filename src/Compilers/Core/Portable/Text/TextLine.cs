@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Start
         {
-            get { return (int)((_data >> StartShift) & PositionMask); }
+            get { return (int)((_data >>> StartShift) & PositionMask); }
         }
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal int LineBreakLength
         {
-            get { return (int)(_data >> BreakLenShift); }
+            get { return (int)(_data >>> BreakLenShift); }
         }
 
         /// <summary>
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_text, Hash.Combine((int)_data, (int)(_data >> 32)));
+            return Hash.Combine(_text, Hash.Combine((int)_data, (int)(_data >>> 32)));
         }
     }
 }

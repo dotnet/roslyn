@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -169,12 +169,12 @@ namespace Microsoft.CodeAnalysis.Text
                     var startInSubText = startInUnderlyingText - _subText.UnderlyingSpan.Start;
 
                     var length = endInUnderlyingText - startInUnderlyingText;
-                    // The line break portion included in this subtext is the overlap of the underlying
-                    // line's break region [underlyingTextLine.End, EndIncludingLineBreak) with our
-                    // clipped window [startInUnderlyingText, endInUnderlyingText). The inner Max guards
-                    // against startInUnderlyingText falling inside the break region (e.g. the \n half
-                    // of a split \r\n, where this subtext begins after the \r).
-                    var lineBreakLen = Math.Max(0, endInUnderlyingText - Math.Max(underlyingTextLine.End, startInUnderlyingText));
+
+                    // How much of the underlying line's break region is visible in this subtext?
+                    // The break region in underlying coordinates is [underlyingTextLine.End .. endInUnderlyingText).
+                    // If our subtext starts inside the break (e.g. the \n half of a split \r\n), clamp the start.
+                    var breakRegionStart = Math.Max(underlyingTextLine.End, startInUnderlyingText);
+                    var lineBreakLen = Math.Max(0, endInUnderlyingText - breakRegionStart);
                     var resultLine = TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length), lineBreakLen);
 
                     var shouldContainLineBreak = (lineNumber != _lineCount - 1);

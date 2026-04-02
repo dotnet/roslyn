@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.Text
             // Every line break is exactly one character (\n, \r, \u0085, \u2028, \u2029) except for
             // the Windows \r\n sequence, which is two characters.  So the top bit is really a boolean:
             // 0 means the prior line break was a single character (length 1), and 1 means it was the
-            // \r\n pair (length 2).  To recover the prior break length: (bit >> 31) + 1.
+            // \r\n pair (length 2).  To recover the prior break length: (bit >>> 31) + 1.
             //
             // The first entry (_lineStarts[0]) always has bit 31 == 0, but that bit is never read as
             // a break length: the indexer reads break lengths from _lineStarts[index + 1], so the
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.Text
                     {
                         var nextEntry = _lineStarts[index + 1];
                         var end = GetLineStart(nextEntry);
-                        var lineBreakLen = (int)(nextEntry >> LineBreakLengthShift) + 1; // reverse the bias-1 encoding
+                        var lineBreakLen = (int)(nextEntry >>> LineBreakLengthShift) + 1; // reverse the bias-1 encoding
                         return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end), lineBreakLen);
                     }
                 }
