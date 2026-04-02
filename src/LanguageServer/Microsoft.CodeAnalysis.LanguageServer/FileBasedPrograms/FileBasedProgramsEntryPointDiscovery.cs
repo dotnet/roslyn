@@ -328,7 +328,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         {
             if (entry.IsDirectory || !Path.GetExtension(entry.FileName).Equals(".cs", StringComparison.OrdinalIgnoreCase))
             {
-                // Cheap check indicates this is not a file-based app.
+                // Cheap check indicates this is not a discoverable file-based app.
                 return false;
             }
 
