@@ -13847,7 +13847,7 @@ internal class Program
             End Using
         End Function
 
-        <WpfTheory>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         <InlineData(ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted, vbTab)>
         <InlineData(ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted, " "c)>
         <InlineData(ImportCompletionCommitBehavior.NeverAddImportWhenCommitted, vbTab)>
@@ -13917,6 +13917,110 @@ namespace NS2
                     state.SendTypeChars(commitChar)
                 End If
                 Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Friend Async Function TestChangingImportCompletionCommitBehavior() As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                        <Document FilePath="C.cs"><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            bar$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>
+                    </Project>
+                </Workspace>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.NeverAddImportWhenCommitted)
+                Dim documentID = state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id
+                Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
+
+                Dim expectedText1 As String = "
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+
+                service.QueueCacheWarmUpTask(state.Workspace.CurrentSolution.GetDocument(documentID).Project)
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' Even though the initial cache contains items created with default commit behavior (always add using), 
+                ' we should not ad a using with TAB for this option
+                state.SendTab()
+                Assert.Equal(expectedText1, state.GetDocumentText())
+
+                Dim expectedText2 As String = "
+using NS2;
+
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.AlwaysAddImportWhenCommitted)
+                state.SendBackspaces("Bar".Length)
+                state.SendEscape()
+
+                state.SendTypeChars("bar")
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' Now we changed the option to "always add using"
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                state.SendTab()
+
+                Assert.Equal(expectedText2, state.GetDocumentText())
+
             End Using
         End Function
     End Class
