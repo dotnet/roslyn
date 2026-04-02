@@ -78,4 +78,6 @@
   <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" PkgDefEntry="CodeBase" />
   </ItemGroup>
+  <!-- SourceGear.sqlite3 3.x errors on AnyCPU for net471+ --><!--
+  <Target Name="CheckForAnyCPU" Condition="'$(TargetFramework)' == 'net472'" />-->
 </Project>
