@@ -329,7 +329,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Elfie" IncludeInVsix="true" PkgDefEntry="BindingRedirect" />
     <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" />
     <PackageReference Include="SQLitePCLRaw.core" IncludeInVsix="true" PkgDefEntry="CodeBase" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" IncludeInVsix="true" PkgDefEntry="CodeBase" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" IncludeInVsix="true" PkgDefEntry="CodeBase" />
     <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" IncludeInVsix="true" PkgDefEntry="CodeBase" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SourceGear.Sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
