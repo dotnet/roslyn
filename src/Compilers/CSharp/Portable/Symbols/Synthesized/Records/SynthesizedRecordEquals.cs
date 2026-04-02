@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            ArrayBuilder<FieldSymbol>? fields = null;
+
             try
             {
                 var other = F.Parameter(Parameters[0]);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // field1 == other.field1 && ... && fieldN == other.fieldN
-                fields = ArrayBuilder<FieldSymbol>.GetInstance();
+                var fields = ArrayBuilder<FieldSymbol>.GetInstance();
                 bool foundBadField = false;
                 foreach (var f in ContainingType.GetFieldsToEmit())
                 {
@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                fields?.Free();
                 F.CloseMethod(F.ThrowNull());
             }
         }

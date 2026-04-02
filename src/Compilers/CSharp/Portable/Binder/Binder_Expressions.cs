@@ -8817,16 +8817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                     actualReceiverArguments?.Free();
 
-                    // Free firstResult but keep its AnalyzedArguments - they may be the same
-                    // object as actualMethodArguments which is handled below.
-                    if (firstResult.AnalyzedArguments != null && firstResult.AnalyzedArguments != actualMethodArguments)
-                    {
-                        firstResult.Free();
-                    }
-                    else
-                    {
-                        firstResult.Free(keepArguments: true);
-                    }
+                    firstResult.Free(keepArguments: firstResult.AnalyzedArguments == actualMethodArguments);
 
                     if (result.AnalyzedArguments != actualMethodArguments)
                     {

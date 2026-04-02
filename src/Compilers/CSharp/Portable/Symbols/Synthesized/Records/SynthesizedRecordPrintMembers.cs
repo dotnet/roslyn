@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, ContainingType.GetNonNullSyntaxNode(), compilationState, diagnostics);
-            ArrayBuilder<BoundStatement>? block = null;
             try
             {
                 ImmutableArray<Symbol> printableMembers = ContainingType.GetMembers().WhereAsArray(m => isPrintable(m));
@@ -128,6 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return;
                 }
 
+                ArrayBuilder<BoundStatement> block;
                 BoundParameter builder = F.Parameter(this.Parameters[0]);
                 if (ContainingType.BaseTypeNoUseSiteDiagnostics.IsObjectType() || ContainingType.IsRecordStruct)
                 {
@@ -234,7 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                block?.Free();
                 F.CloseMethod(F.ThrowNull());
             }
 

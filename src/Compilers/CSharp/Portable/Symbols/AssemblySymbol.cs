@@ -900,6 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++]);
                 if (argSymbol is null)
                 {
+                    typeArgumentSymbols.Free();
                     return null;
                 }
                 typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));

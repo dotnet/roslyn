@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly FieldSymbol SingletonCache;
         internal readonly MethodSymbol StaticConstructor;
 
-        private List<Symbol> _membersBuilder = new List<Symbol>();
+        private ArrayBuilder<Symbol> _membersBuilder = ArrayBuilder<Symbol>.GetInstance();
         private ImmutableArray<Symbol> _members;
 
         public override TypeKind TypeKind { get; }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(SingletonCache);
                 }
                 builder.AddRange(base.GetMembers());
-                _members = builder.ToImmutableArray();
+                _members = builder.ToImmutableAndFree();
                 _membersBuilder = null;
             }
 

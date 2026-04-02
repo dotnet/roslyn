@@ -113,7 +113,6 @@ namespace System
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
-        [ValidatePooledObjects(LeakReason = "Reflection type resolution leaks ArrayBuilder<TypeWithAnnotations>")]
         public void TypeSymbolFromReflectionType()
         {
             var c = CSharpCompilation.Create("TypeSymbolFromReflectionType",

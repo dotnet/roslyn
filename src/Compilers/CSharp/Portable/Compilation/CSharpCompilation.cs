@@ -1008,6 +1008,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var removeSet = PooledHashSet<SyntaxTree>.GetInstance();
+            // This HashSet is needed so that we don't allow adding the same tree twice
+            // with a single call to AddSyntaxTrees.  Rather than using a separate HashSet,
+            // ReplaceSyntaxTrees can just check against ExternalSyntaxTrees, because we
+            // only allow replacing a single tree at a time.
             var externalSyntaxTrees = PooledHashSet<SyntaxTree>.GetInstance();
             var syntaxAndDeclarations = _syntaxAndDeclarations;
             externalSyntaxTrees.AddAll(syntaxAndDeclarations.ExternalSyntaxTrees);

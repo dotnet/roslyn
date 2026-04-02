@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var F = new SyntheticBoundNodeFactory(this, this.SyntaxNode, compilationState, diagnostics);
-            ArrayBuilder<BoundStatement>? block = null;
+
             try
             {
                 CSharpCompilation compilation = ContainingType.DeclaringCompilation;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var builderLocalSymbol = F.SynthesizedLocal(stringBuilder);
                 BoundLocal builderLocal = F.Local(builderLocalSymbol);
-                block = ArrayBuilder<BoundStatement>.GetInstance();
+                var block = ArrayBuilder<BoundStatement>.GetInstance();
                 // var builder = new StringBuilder();
                 block.Add(F.Assignment(builderLocal, F.New(stringBuilderCtor)));
 
@@ -82,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                block?.Free();
                 F.CloseMethod(F.ThrowNull());
             }
 
