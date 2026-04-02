@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -592,7 +592,9 @@ internal static class CSharpCollectionExpressionRewriter
             }
             else if (node is ArgumentListSyntax argumentList)
             {
-                yield return WithElement(argumentList.WithoutTrivia());
+                var indentedArgumentList = IndentExpression(parentStatement: null, argumentList, preferredIndentation);
+                yield return WithElement(indentedArgumentList.WithoutTrivia())
+                    .WithLeadingTrivia(indentedArgumentList.GetLeadingTrivia());
             }
             else
             {
@@ -600,34 +602,34 @@ internal static class CSharpCollectionExpressionRewriter
             }
         }
 
-        ExpressionSyntax IndentExpression(
+        TNode IndentExpression<TNode>(
             StatementSyntax? parentStatement,
-            ExpressionSyntax expression,
-            string? preferredIndentation)
+            TNode node,
+            string? preferredIndentation) where TNode : SyntaxNode
         {
             // This must be called from an expression from the original tree.  Not something we're already transforming.
             // Otherwise, we'll have no idea how to apply the preferredIndentation if present.
-            Contract.ThrowIfNull(expression.Parent);
+            Contract.ThrowIfNull(node.Parent);
             if (preferredIndentation is null)
-                return expression.WithoutLeadingTrivia();
+                return node.WithoutLeadingTrivia();
 
-            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(expression).SpanStart);
+            var startLine = document.Text.Lines.GetLineFromPosition(GetAnchorNode(node).SpanStart);
             var firstTokenOnLineIndentationString = GetIndentationStringForToken(document.Root.FindToken(startLine.Start));
 
-            var expressionFirstToken = expression.GetFirstToken();
-            var updatedExpression = expression.ReplaceTokens(
-                expression.DescendantTokens(),
+            var nodeFirstToken = node.GetFirstToken();
+            var updatedNode = node.ReplaceTokens(
+                node.DescendantTokens(),
                 (currentToken, _) =>
                 {
                     // Ensure the first token has the indentation we're moving the entire node to
-                    if (currentToken == expressionFirstToken)
+                    if (currentToken == nodeFirstToken)
                         return currentToken.WithLeadingTrivia(Whitespace(preferredIndentation));
 
                     return IndentToken(currentToken, preferredIndentation, firstTokenOnLineIndentationString);
                 });
 
-            // Now, once we've indented the expression, attempt to move comments on its containing statement to it.
-            return TransferParentStatementComments(parentStatement, updatedExpression, preferredIndentation);
+            // Now, once we've indented the node, attempt to move comments on its containing statement to it.
+            return TransferParentStatementComments(parentStatement, updatedNode, preferredIndentation);
 
             SyntaxNode GetAnchorNode(SyntaxNode node)
             {
@@ -711,13 +713,13 @@ internal static class CSharpCollectionExpressionRewriter
                 : preferredIndentation);
         }
 
-        static ExpressionSyntax TransferParentStatementComments(
+        static TNode TransferParentStatementComments<TNode>(
             StatementSyntax? parentStatement,
-            ExpressionSyntax expression,
-            string preferredIndentation)
+            TNode node,
+            string preferredIndentation) where TNode : SyntaxNode
         {
             if (parentStatement is null)
-                return expression;
+                return node;
 
             using var _1 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newLeadingTrivia);
             using var _2 = ArrayBuilder<SyntaxTrivia>.GetInstance(out var newTrailingTrivia);
@@ -768,11 +770,11 @@ internal static class CSharpCollectionExpressionRewriter
                 }
             }
 
-            expression = expression
+            node = node
                 .WithPrependedLeadingTrivia(newLeadingTrivia)
                 .WithAppendedTrailingTrivia(newTrailingTrivia);
 
-            return expression;
+            return node;
         }
 
         string GetIndentationStringForToken(SyntaxToken token)
