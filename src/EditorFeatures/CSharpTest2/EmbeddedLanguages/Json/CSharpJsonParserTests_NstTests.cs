@@ -1463,7 +1463,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """);
 
-    [ConditionalFact(typeof(WindowsOnly))] // Diagnostic offsets differ due to \r\n vs \n line endings
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void n_array_newlines_unclosed_json()
         => TestNST("""
             @"[""a"",
@@ -1684,7 +1684,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """);
 
-    [ConditionalFact(typeof(WindowsOnly))] // Diagnostic offsets differ due to \r\n vs \n line endings
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void n_array_unclosed_with_new_lines_json()
         => TestNST("""
             @"[1,
