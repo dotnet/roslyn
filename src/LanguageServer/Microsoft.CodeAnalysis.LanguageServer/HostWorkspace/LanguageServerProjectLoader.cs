@@ -406,7 +406,7 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    protected async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, Project> createPrimordialProject, bool doDesignTimeBuild)
+    protected async ValueTask<Project?> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -414,44 +414,34 @@ internal abstract class LanguageServerProjectLoader
             {
                 // Note: this generally only happens if we fall through to the "add to misc workspace" path,
                 // and we lose a race to begin loading the miscellaneous file project.
-                return LookupExistingDocument(existingState);
+                return LookupExistingProject(existingState);
             }
 
-            var primordialProject = createPrimordialProject(primordialProjectFactory);
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProject.Id));
+            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory);
+            primordialProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(primordialProjectInfo));
+            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectInfo.Id));
             if (doDesignTimeBuild)
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
 
-            return GetPrimordialDocument(primordialProject);
+            return primordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordialProjectInfo.Id);
         }
 
-        TextDocument GetPrimordialDocument(Project primordialProject) =>
-            primordialProject.Documents.SingleOrDefault() ?? primordialProject.AdditionalDocuments.Single();
-
-        TextDocument? LookupExistingDocument(ProjectLoadState loadState)
+        Project? LookupExistingProject(ProjectLoadState loadState)
         {
             if (loadState is ProjectLoadState.Primordial primordial)
             {
-                var project = primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
-                return GetPrimordialDocument(project);
+                return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
             }
             else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
             {
                 var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
                 if (target is null)
                 {
-                    _logger.LogWarning("Could not get a document for '{projectPath}' because its project loaded with no targets", projectPath);
+                    _logger.LogWarning("Could not get a project for '{projectPath}' because it loaded with no targets", projectPath);
                     return null;
                 }
 
-                var solution = target.ProjectFactory.Workspace.CurrentSolution;
-                var document = solution.GetDocument(solution.GetDocumentIdsWithFilePath(projectPath).FirstOrDefault());
-                if (document is null)
-                {
-                    _logger.LogWarning("Could not get a document for '{projectPath}' because its project doesn't contain a document for it", projectPath);
-                }
-
-                return document;
+                return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
             }
             else
             {

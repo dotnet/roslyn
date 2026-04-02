@@ -231,15 +231,26 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
-        return await base.GetOrLoadEntryPointDocumentAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProject, doDesignTimeBuild);
+        var project = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
+        return project is null ? null : LookupExistingDocument(project);
 
-        Project CreatePrimordialProject(ProjectSystemProjectFactory projectFactory)
+        TextDocument? LookupExistingDocument(Project project)
+        {
+            var document = project.Documents.FirstOrDefault(document => document.FilePath == documentFilePath)
+                ?? project.AdditionalDocuments.FirstOrDefault(document => document.FilePath == documentFilePath);
+            if (document is null)
+            {
+                _logger.LogWarning("Could not get a document for '{documentFilePath}' because its project doesn't contain a document for it", documentFilePath);
+            }
+
+            return document;
+        }
+
+        ProjectInfo CreatePrimordialProjectInfo(ProjectSystemProjectFactory projectFactory)
         {
             var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
                 projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
-            projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
-            return projectFactory.Workspace.CurrentSolution.GetRequiredProject(projectInfo.Id);
         }
     }
 
