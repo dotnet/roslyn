@@ -374,7 +374,8 @@ internal abstract class LanguageServerProjectLoader
                 projectSystemName,
                 loadedProjectInfo.Language,
                 projectCreationInfo,
-                _workspaceFactory.ProjectSystemHostInfo);
+                _workspaceFactory.ProjectSystemHostInfo,
+                cancellationToken).ConfigureAwait(false);
 
             var loadedProject = new LoadedProject(projectSystemProject, projectFactory, _fileChangeWatcher, _workspaceFactory.TargetFrameworkManager);
             loadedProject.NeedsReload += (_, _) =>

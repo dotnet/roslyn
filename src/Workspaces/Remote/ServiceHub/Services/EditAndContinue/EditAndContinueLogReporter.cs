@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable CS0436 // Type conflicts with imported type (workaround for https://github.com/dotnet/roslyn/issues/76674)
-
 using System;
 using System.Composition;
 using System.Threading;

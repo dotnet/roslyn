@@ -176,6 +176,7 @@ steps:
         "--create-draft-pr", "$(Template.CreateDraftPR)"
         "--set-auto-complete", "$(Template.AutoComplete)"
         "--insert-toolset", "$(Template.InsertToolset)"
+        "--update-assembly-versions", "true"
         "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
         "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
         "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"

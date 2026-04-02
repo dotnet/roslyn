@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -41,11 +41,12 @@ public sealed partial class CSharpRegexParserTests
     }
 
     private void Test(
-        string stringText, string expected, RegexOptions options)
+        string stringText, string expected, RegexOptions options,
+        bool runtimeHasBug = false)
     {
-        var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false);
+        var (tree, sourceText) = TryParseTree(stringText, options, conversionFailureOk: false, runtimeHasBug);
 
-        TryParseSubTrees(stringText, options);
+        TryParseSubTrees(stringText, options, runtimeHasBug);
 
         var actual = TreeToText(sourceText, tree)
             .Replace("&quot;", """
@@ -54,7 +55,7 @@ public sealed partial class CSharpRegexParserTests
         AssertEx.Equal(expected, actual);
     }
 
-    private void TryParseSubTrees(string stringText, RegexOptions options)
+    private void TryParseSubTrees(string stringText, RegexOptions options, bool runtimeHasBug = false)
     {
         // Trim the input from the right and make sure tree invariants hold
         var current = stringText;
@@ -67,7 +68,7 @@ public sealed partial class CSharpRegexParserTests
             current = current[..^2] + """
                 "
                 """;
-            TryParseTree(current, options, conversionFailureOk: true);
+            TryParseTree(current, options, conversionFailureOk: true, runtimeHasBug);
         }
 
         // Trim the input from the left and make sure tree invariants hold
@@ -91,7 +92,7 @@ public sealed partial class CSharpRegexParserTests
                     """ + current[2..];
             }
 
-            TryParseTree(current, options, conversionFailureOk: true);
+            TryParseTree(current, options, conversionFailureOk: true, runtimeHasBug);
         }
 
         for (var start = stringText[0] == '@' ? 2 : 1; start < stringText.Length - 1; start++)
@@ -100,7 +101,8 @@ public sealed partial class CSharpRegexParserTests
                 stringText[..start] +
                 stringText[(start + 1)..],
                 options,
-                conversionFailureOk: true);
+                conversionFailureOk: true,
+                runtimeHasBug);
         }
     }
 
@@ -120,7 +122,8 @@ public sealed partial class CSharpRegexParserTests
     }
 
     private (RegexTree, SourceText) TryParseTree(
-        string stringText, RegexOptions options, bool conversionFailureOk)
+        string stringText, RegexOptions options, bool conversionFailureOk,
+        bool runtimeHasBug = false)
     {
         var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
         if (tree == null)
@@ -140,6 +143,13 @@ public sealed partial class CSharpRegexParserTests
         }
         catch (ArgumentException ex)
         {
+            if (runtimeHasBug)
+            {
+                // The .NET runtime has a bug where it rejects this pattern. Our parser correctly
+                // accepts it. Skip runtime validation. See https://github.com/dotnet/runtime/issues/111633
+                return treeAndText;
+            }
+
             Assert.NotEmpty(tree.Diagnostics);
 
             // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
@@ -332,7 +342,7 @@ public sealed partial class CSharpRegexParserTests
     private static string Not(string regex)
         => $"(?({regex})[0-[0]]|.*)";
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Deep recursion test relies on Windows stack size (~1MB) to trigger stack overflow; Linux has 8MB stack")]
     public void TestDeepRecursion()
     {
         var (token, tree, chars) =

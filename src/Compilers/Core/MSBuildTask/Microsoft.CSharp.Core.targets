@@ -59,6 +59,14 @@
                    @(CustomAdditionalCompileOutputs)"
           Returns="@(CscCommandLineArgs)"
           DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile">
+
+    <!-- Embed EditorConfigFiles into the binary log. This is done here (inside CoreCompile rather than
+         a static ItemGroup) to ensure EditorConfigFiles added by analyzer packages in
+         BeforeTargets="CoreCompile" targets (e.g. NetAnalyzers, CodeStyle) are captured. -->
+    <ItemGroup>
+      <EmbedInBinlog Include="@(EditorConfigFiles)" />
+    </ItemGroup>
+
     <!-- These two compiler warnings are raised when a reference is bound to a different version
              than specified in the assembly reference version number.  MSBuild raises the same warning in this case,
              so the compiler warning would be redundant. -->
