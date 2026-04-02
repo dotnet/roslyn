@@ -9265,6 +9265,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(left.Type is not null);
             Debug.Assert(!left.Type.IsDynamic());
+            Debug.Assert(!left.Type.IsArray());
+
+            if (left.Type.SpecialType == SpecialType.System_String)
+            {
+                extensionIndexerAccess = null;
+                return false;
+            }
 
             AnalyzedArguments? analyzedIntIndexerOrSliceArguments = null;
             ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders = default;
