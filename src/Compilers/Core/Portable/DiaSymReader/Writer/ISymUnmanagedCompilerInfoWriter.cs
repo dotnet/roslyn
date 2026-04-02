@@ -11,7 +11,7 @@ namespace Microsoft.DiaSymReader
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     [ComVisible(false)]
     [GeneratedWhenPossibleComInterface]
-    public partial interface ISymUnmanagedCompilerInfoWriter
+    internal partial interface ISymUnmanagedCompilerInfoWriter
     {
         /// <summary>
         /// Adds compiler version number and name.

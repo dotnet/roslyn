@@ -12,7 +12,9 @@ namespace Roslyn.Test.PdbUtilities
     internal class SymUnmanagedWriterWithoutSourceLinkSupport : DelegatingSymUnmanagedWriter
     {
         public SymUnmanagedWriterWithoutSourceLinkSupport(ISymWriterMetadataProvider metadataProvider)
+#pragma warning disable CA1416 // Windows-only API used in test utilities
             : base(SymUnmanagedWriterFactory.CreateWriter(metadataProvider))
+#pragma warning restore CA1416
         {
         }
 

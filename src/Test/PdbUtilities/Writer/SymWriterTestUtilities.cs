@@ -16,7 +16,9 @@ namespace Roslyn.Test.PdbUtilities
 
         public static SymUnmanagedWriter CreateUnmanagedWriter(ISymWriterMetadataProvider metadataProvider)
         {
+#pragma warning disable CA1416 // Windows-only API used in test utilities
             return SymUnmanagedWriterFactory.CreateWriter(metadataProvider);
+#pragma warning restore CA1416
         }
     }
 }

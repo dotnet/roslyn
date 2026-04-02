@@ -44,7 +44,7 @@ namespace Microsoft.DiaSymReader
 
 #if NET9_0_OR_GREATER
     [NativeMarshalling(typeof(STATSTGMarshaller))]
-    public struct STATSTG
+    internal struct STATSTG
     {
         public string pwcsName;
         public int type;
@@ -61,7 +61,7 @@ namespace Microsoft.DiaSymReader
 
     [CustomMarshaller(typeof(STATSTG), MarshalMode.ManagedToUnmanagedOut, typeof(STATSTGMarshaller))]
     [CustomMarshaller(typeof(STATSTG), MarshalMode.UnmanagedToManagedOut, typeof(STATSTGMarshaller))]
-    public static unsafe class STATSTGMarshaller
+    internal static unsafe class STATSTGMarshaller
     {
         public struct Native
         {
