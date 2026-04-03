@@ -6,9 +6,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-#if NET
-using System.Runtime.InteropServices.Marshalling;
-#endif
 using System.Security;
 
 #pragma warning disable CS0436 // Type conflicts with imported type: SuppressUnmanagedCodeSecurity
@@ -16,11 +13,7 @@ using System.Security;
 namespace Microsoft.CodeAnalysis.Interop
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("D332DB9E-B9B3-4125-8207-A14884F53216"), SuppressUnmanagedCodeSecurity]
-#if NET
-    [GeneratedComInterface]
-#else
-    [ComImport]
-#endif
+    [GeneratedWhenPossibleComInterface]
     internal partial interface IClrMetaHost
     {
         [return: MarshalAs(UnmanagedType.Interface)]
@@ -44,4 +37,3 @@ namespace Microsoft.CodeAnalysis.Interop
         int __ExitProcess(/*int exitCode*/);
     }
 }
-

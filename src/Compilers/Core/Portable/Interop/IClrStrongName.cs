@@ -6,9 +6,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-#if NET
-using System.Runtime.InteropServices.Marshalling;
-#endif
 using System.Security;
 
 #pragma warning disable CS0436 // Type conflicts with imported type: SuppressUnmanagedCodeSecurity
@@ -16,11 +13,7 @@ using System.Security;
 namespace Microsoft.CodeAnalysis.Interop
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("9FD93CCF-3280-4391-B3A9-96E1CDE77C8D"), SuppressUnmanagedCodeSecurity]
-#if NET
-    [GeneratedComInterface]
-#else
-    [ComImport]
-#endif
+    [GeneratedWhenPossibleComInterface]
     internal partial interface IClrStrongName
     {
         void GetHashFromAssemblyFile(
@@ -171,4 +164,3 @@ namespace Microsoft.CodeAnalysis.Interop
             out int pcbStrongNameToken);
     }
 }
-

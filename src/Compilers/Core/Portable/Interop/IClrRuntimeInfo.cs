@@ -6,9 +6,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-#if NET
-using System.Runtime.InteropServices.Marshalling;
-#endif
 using System.Security;
 
 #pragma warning disable CS0436 // Type conflicts with imported type: SuppressUnmanagedCodeSecurity
@@ -16,11 +13,7 @@ using System.Security;
 namespace Microsoft.CodeAnalysis.Interop
 {
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("BD39D1D2-BA2F-486A-89B0-B4B0CB466891"), SuppressUnmanagedCodeSecurity]
-#if NET
-    [GeneratedComInterface]
-#else
-    [ComImport]
-#endif
+    [GeneratedWhenPossibleComInterface]
     internal partial interface IClrRuntimeInfo
     {
         // Unused methods stubbed to preserve vtable layout.
@@ -44,4 +37,3 @@ namespace Microsoft.CodeAnalysis.Interop
             in Guid interfaceId);
     }
 }
-

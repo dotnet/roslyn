@@ -8,9 +8,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-#if NET9_0_OR_GREATER
-using System.Runtime.InteropServices.Marshalling;
-#endif
 using System.Security;
 
 namespace Microsoft.DiaSymReader
@@ -31,33 +28,29 @@ namespace Microsoft.DiaSymReader
     /// The highest version of the interface available on Desktop FX 4.0+.
     /// </summary>
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("DCF7780D-BDE9-45DF-ACFE-21731A32000C"), SuppressUnmanagedCodeSecurity]
-#if NET9_0_OR_GREATER
-    [GeneratedComInterface(StringMarshalling = StringMarshalling.Utf16)]
-#else
-    [ComImport]
-#endif
+    [GeneratedWhenPossibleComInterface]
     internal unsafe partial interface ISymUnmanagedWriter5
     {
         #region ISymUnmanagedWriter
 
-        ISymUnmanagedDocumentWriter DefineDocument(string url, ref Guid language, ref Guid languageVendor, ref Guid documentType);
+        ISymUnmanagedDocumentWriter DefineDocument([MarshalAs(UnmanagedType.LPWStr)] string url, ref Guid language, ref Guid languageVendor, ref Guid documentType);
         void SetUserEntryPoint(int entryMethodToken);
         void OpenMethod(uint methodToken);
         void CloseMethod();
         uint OpenScope(int startOffset);
         void CloseScope(int endOffset);
         void SetScopeRange(uint scopeID, uint startOffset, uint endOffset);
-        void DefineLocalVariable(string name, uint attributes, uint sig, byte* signature, uint addrKind, uint addr1, uint addr2, uint startOffset, uint endOffset);
-        void DefineParameter(string name, uint attributes, uint sequence, uint addrKind, uint addr1, uint addr2, uint addr3);
-        void DefineField(uint parent, string name, uint attributes, uint sig, byte* signature, uint addrKind, uint addr1, uint addr2, uint addr3);
-        void DefineGlobalVariable(string name, uint attributes, uint sig, byte* signature, uint addrKind, uint addr1, uint addr2, uint addr3);
+        void DefineLocalVariable([MarshalAs(UnmanagedType.LPWStr)] string name, uint attributes, uint sig, byte* signature, uint addrKind, uint addr1, uint addr2, uint startOffset, uint endOffset);
+        void DefineParameter([MarshalAs(UnmanagedType.LPWStr)] string name, uint attributes, uint sequence, uint addrKind, uint addr1, uint addr2, uint addr3);
+        void DefineField(uint parent, [MarshalAs(UnmanagedType.LPWStr)] string name, uint attributes, uint sig, byte* signature, uint addrKind, uint addr1, uint addr2, uint addr3);
+        void DefineGlobalVariable([MarshalAs(UnmanagedType.LPWStr)] string name, uint attributes, uint sig, byte* signature, uint addrKind, uint addr1, uint addr2, uint addr3);
         void Close();
-        void SetSymAttribute(uint parent, string name, int length, byte* data);
-        void OpenNamespace(string name);
+        void SetSymAttribute(uint parent, [MarshalAs(UnmanagedType.LPWStr)] string name, int length, byte* data);
+        void OpenNamespace([MarshalAs(UnmanagedType.LPWStr)] string name);
         void CloseNamespace();
-        void UsingNamespace(string fullName);
+        void UsingNamespace([MarshalAs(UnmanagedType.LPWStr)] string fullName);
         void SetMethodSourceRange(ISymUnmanagedDocumentWriter startDoc, uint startLine, uint startColumn, ISymUnmanagedDocumentWriter endDoc, uint endLine, uint endColumn);
-        void Initialize([MarshalAs(UnmanagedType.Interface)] object emitter, string filename, [MarshalAs(UnmanagedType.Interface)] object ptrIStream, [MarshalAs(UnmanagedType.Bool)] bool fullBuild);
+        void Initialize([MarshalAs(UnmanagedType.Interface)] object emitter, [MarshalAs(UnmanagedType.LPWStr)] string filename, [MarshalAs(UnmanagedType.Interface)] object ptrIStream, [MarshalAs(UnmanagedType.Bool)] bool fullBuild);
         void GetDebugInfo(ref ImageDebugDirectory debugDirectory, uint dataCount, out uint dataCountPtr, byte* data);
         void DefineSequencePoints(ISymUnmanagedDocumentWriter document, int count,
           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] offsets,
@@ -66,16 +59,16 @@ namespace Microsoft.DiaSymReader
           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] endLines,
           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] endColumns);
         void RemapToken(uint oldToken, uint newToken);
-        void Initialize2([MarshalAs(UnmanagedType.Interface)] object emitter, string tempfilename, [MarshalAs(UnmanagedType.Interface)] object ptrIStream, [MarshalAs(UnmanagedType.Bool)] bool fullBuild, string finalfilename);
-        void DefineConstant(string name, [MarshalAs(UnmanagedType.Struct)] object value, uint sig, byte* signature);
+        void Initialize2([MarshalAs(UnmanagedType.Interface)] object emitter, [MarshalAs(UnmanagedType.LPWStr)] string tempfilename, [MarshalAs(UnmanagedType.Interface)] object ptrIStream, [MarshalAs(UnmanagedType.Bool)] bool fullBuild, [MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
+        void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] string name, [MarshalAs(UnmanagedType.Struct)] object value, uint sig, byte* signature);
         void Abort();
 
         #endregion
 
         #region ISymUnmanagedWriter2
 
-        void DefineLocalVariable2(string name, int attributes, int localSignatureToken, uint addrKind, int index, uint addr2, uint addr3, uint startOffset, uint endOffset);
-        void DefineGlobalVariable2(string name, int attributes, int sigToken, uint addrKind, uint addr1, uint addr2, uint addr3);
+        void DefineLocalVariable2([MarshalAs(UnmanagedType.LPWStr)] string name, int attributes, int localSignatureToken, uint addrKind, int index, uint addr2, uint addr3, uint startOffset, uint endOffset);
+        void DefineGlobalVariable2([MarshalAs(UnmanagedType.LPWStr)] string name, int attributes, int sigToken, uint addrKind, uint addr1, uint addr2, uint addr3);
 
         /// <remarks>
         /// <paramref name="value"/> has type <see cref="VariantStructure"/>, rather than <see cref="object"/>,
@@ -127,11 +120,7 @@ namespace Microsoft.DiaSymReader
     /// The highest version of the interface available in Microsoft.DiaSymReader.Native.
     /// </summary>
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("5ba52f3b-6bf8-40fc-b476-d39c529b331e"), SuppressUnmanagedCodeSecurity]
-#if NET9_0_OR_GREATER
-    [GeneratedComInterface(StringMarshalling = StringMarshalling.Utf16)]
-#else
-    [ComImport]
-#endif
+    [GeneratedWhenPossibleComInterface]
     internal unsafe partial interface ISymUnmanagedWriter8 : ISymUnmanagedWriter5
     {
         // .NET 8+ COM source generators respect COM interface inheritance
