@@ -187,7 +187,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         var directoriesContainingCsprojBuilder = ArrayBuilder<string>.GetInstance(cache.DirectoriesContainingCsproj.Length);
         var visitor = new WorkspaceFolderVisitor(cache, newFileBasedAppsBuilder, directoriesContainingCsprojBuilder, _logger);
         visitor.Visit();
-        var elapsedMilliseconds = stopwatch.Elapsed.Milliseconds;
+        var elapsedMilliseconds = Math.Round(stopwatch.Elapsed.TotalMilliseconds);
         _logger.LogInformation("Finished discovery in '{workspaceFolder}' in {elapsedMilliseconds} milliseconds", workspaceFolder, elapsedMilliseconds);
 
         // Ensure items go into the cache file in a stable order.
@@ -321,6 +321,9 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
             // Did not find a csproj. Continue searching this subtree for entry points.
             foreach (var fileInfo in currentDirectoryItems)
             {
+                // When a subdirectory is moved in to a parent directory between two discovery passes, the timestamps of the subdirectory's files are not updated.
+                // Only the "modified" timestamp of the parent directory, and the "created" timestamp of the subdirectory, are updated.
+                // This means: even if a .cs file we encounter within a "new" subdirectory has old timestamps, we don't know whether we've seen it before or not, so we need to crack it.
                 if (fileInfo.Kind == CsFileKind.Directory)
                     VisitDirectory(fileInfo.Path, Max(createdOrModifiedTimeUtc, fileInfo.CreatedOrModifiedTimeUtc));
                 else if (fileInfo.Kind == CsFileKind.Cs)
