@@ -30,6 +30,11 @@ internal sealed class BuildHost : IBuildHost
     private ImmutableDictionary<string, string>? _globalMSBuildProperties;
 
     /// <summary>
+    /// Should not be changed once the <see cref="_buildManager"/> is initialized.
+    /// </summary>
+    private ImmutableArray<string> _knownCommandLineParserLanguages;
+
+    /// <summary>
     /// The binary log path to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
     /// </summary>
     private string? _binaryLogPath;
@@ -141,7 +146,7 @@ internal sealed class BuildHost : IBuildHost
                 _logger.LogInformation($"Logging builds to {_binaryLogPath}");
             }
 
-            _buildManager = new ProjectBuildManager(_globalMSBuildProperties, logger);
+            _buildManager = new ProjectBuildManager(_knownCommandLineParserLanguages, _globalMSBuildProperties, logger);
             _buildManager.StartBatchBuild(_globalMSBuildProperties);
         }
     }
@@ -161,7 +166,7 @@ internal sealed class BuildHost : IBuildHost
         Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
     }
 
-    public void ConfigureGlobalState(ImmutableDictionary<string, string> globalProperties, string? binlogPath)
+    public void ConfigureGlobalState(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath)
     {
         lock (_gate)
         {
@@ -170,6 +175,7 @@ internal sealed class BuildHost : IBuildHost
 
             _globalMSBuildProperties = globalProperties;
             _binaryLogPath = binlogPath;
+            _knownCommandLineParserLanguages = knownCommandLineParserLanguages;
         }
     }
 
@@ -230,15 +236,7 @@ internal sealed class BuildHost : IBuildHost
     private int AddProjectFileTarget(Build.Evaluation.Project? project, string languageName, DiagnosticLog log)
     {
         Contract.ThrowIfNull(_buildManager);
-
-        var projectFile = new ProjectFile(
-            languageName,
-            project,
-            ProjectCommandLineProvider.Create(languageName),
-            _buildManager,
-            log);
-
-        return _server.AddTarget(projectFile);
+        return _server.AddTarget(new ProjectFile(languageName, project, _buildManager, log));
     }
 
     public Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken)

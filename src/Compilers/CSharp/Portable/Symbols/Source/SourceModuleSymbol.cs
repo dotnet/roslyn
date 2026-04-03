@@ -253,6 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 _ = Binder.GetWellKnownTypeMember(this.DeclaringCompilation, WellKnownMember.System_Text_Encoding__GetString, diagnostics, NoLocation.Singleton);
                             }
 
+                            AddMemorySafetyRulesAttributeIfNeeded(ref diagnostics);
+
                             if (_state.NotePartComplete(CompletionPart.StartValidatingReferencedAssemblies))
                             {
                                 if (diagnostics != null)
@@ -305,6 +307,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 _state.SpinWaitComplete(incompletePart, cancellationToken);
+            }
+        }
+
+        private void AddMemorySafetyRulesAttributeIfNeeded(ref BindingDiagnosticBag? diagnostics)
+        {
+            if (UseUpdatedMemorySafetyRules)
+            {
+                var needsDiagnostics = DeclaringCompilation.Options.OutputKind == OutputKind.NetModule;
+
+                if (needsDiagnostics)
+                {
+                    diagnostics ??= BindingDiagnosticBag.GetInstance();
+                }
+
+                DeclaringCompilation.EnsureMemorySafetyRulesAttributeExists(
+                    needsDiagnostics ? diagnostics : null,
+                    Location.None,
+                    modifyCompilation: true);
             }
         }
 
@@ -578,6 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
+<<<<<<< HEAD
                 permitted: ReservedAttributes.DynamicAttribute
                     | ReservedAttributes.IsReadOnlyAttribute
                     | ReservedAttributes.IsUnmanagedAttribute
@@ -589,6 +610,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | ReservedAttributes.RequiredMemberAttribute
                     | ReservedAttributes.ScopedRefAttribute
                     | ReservedAttributes.RequiresLocationAttribute))
+||||||| 0cc7353161d
+                ReservedAttributes.NullableContextAttribute
+                | ReservedAttributes.NullablePublicOnlyAttribute
+                | ReservedAttributes.RefSafetyRulesAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
+=======
+                ReservedAttributes.NullableContextAttribute
+                | ReservedAttributes.NullablePublicOnlyAttribute
+                | ReservedAttributes.RefSafetyRulesAttribute
+                | ReservedAttributes.MemorySafetyRulesAttribute
+                | ReservedAttributes.ExtensionMarkerAttribute))
+>>>>>>> upstream/main
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))
@@ -661,6 +694,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeRefSafetyRulesAttribute(version));
             }
 
+            if (UseUpdatedMemorySafetyRules)
+            {
+                var version = ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeMemorySafetyRulesAttribute(version));
+            }
+
             if (moduleBuilder.ShouldEmitNullablePublicOnlyAttribute())
             {
                 var includesInternals = ImmutableArray.Create(
@@ -718,6 +757,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyUseUpdatedEscapeRules = value.ToThreeState();
                 }
                 return _lazyUseUpdatedEscapeRules == ThreeState.True;
+            }
+        }
+
+        internal override bool UseUpdatedMemorySafetyRules
+        {
+            get
+            {
+                return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules ||
+                    // https://github.com/dotnet/roslyn/issues/82546: temporary way to opt in
+                    _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null;
             }
         }
 

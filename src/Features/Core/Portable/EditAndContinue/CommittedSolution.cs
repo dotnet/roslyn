@@ -223,7 +223,7 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
             return (null, DocumentState.DesignTimeOnly);
         }
 
-        if (!document.DocumentState.SupportsEditAndContinue())
+        if (document.DocumentState.IgnoreForEditAndContinue())
         {
             return (null, DocumentState.DesignTimeOnly);
         }
@@ -344,6 +344,24 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         return (maybeMatchingSourceText, maybePdbHasDocument);
     }
 
+    /// <summary>
+    /// Try to get ahold of source code snapshot that matches the content of the source file when the compiler read it during build.
+    /// This is not always possible since the file on disk can be changed from outside of the IDE at any point in time, before we have 
+    /// the opportunity to capture it.
+    /// 
+    /// Possible improvements:
+    /// 1) check if the PDB contains embedded source for the document (https://github.com/dotnet/roslyn/issues/82879)
+    /// 2) send request to VBCSCompiler for the content of the file; if the project was just built it might still be loaded in the server (https://github.com/dotnet/sdk/issues/53550)
+    /// </summary>
+    /// <remarks>
+    /// dotnet-watch captures the content of all source files when the session starts. Such approach would be too slow for the IDE.
+    /// It's necessary for dotnet-watch since watch is entirely dependent on watching file system changes and it does not have any other way to find 
+    /// the baseline content of a modified source file. Although it could use [1] and [2] above, these are not always available.
+    /// 
+    /// In the IDE we prefer to not block project launching on hydrating the content of all source files since we don't even know
+    /// whether the user intends to use Hot Reload or not. In fact, in most cases the user does not make any changes and just wants to run or debug an app.
+    /// Unlike dotnet-watch, which is explicitly used for Hot Reload and capturing the source content is part of project loading.
+    /// </remarks>
     private static async ValueTask<Optional<SourceText?>> TryGetMatchingSourceTextAsync(
         TraceLog log,
         SourceText sourceText,
@@ -372,6 +390,11 @@ internal sealed class CommittedSolution(DebuggingSession debuggingSession, Solut
         var text = await sourceTextProvider.TryGetMatchingSourceTextAsync(filePath, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false);
         if (text != null)
         {
+            // Note: the encoding and the checksum of the resulting text does not need to be correct,
+            // since the provider already verified that the decoded text string matches the checksum in the PDB.
+            // If we needed it to be exact for some reason we would need to update TryGetMatchingSourceTextAsync
+            // to return SourceText (tracked https://github.com/dotnet/roslyn/issues/64504). We might want do that 
+            // for perf reasons to avoid transfering large strings OOP.
             return SourceText.From(text, defaultEncoding, checksumAlgorithm);
         }
 

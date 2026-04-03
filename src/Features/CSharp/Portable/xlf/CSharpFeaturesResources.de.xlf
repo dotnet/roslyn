@@ -32,6 +32,11 @@
         <target state="translated">Fügt einen NuGet-Paketverweis hinzu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Adds_a_file_reference">
+        <source>Adds a file reference.</source>
+        <target state="translated">Fügt einen Dateiverweis hinzu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adds_a_project_reference">
         <source>Adds a project reference.</source>
         <target state="translated">Fügt einen Projektverweis hinzu.</target>
@@ -246,6 +251,11 @@
         <source>Global 'using' directives</source>
         <target state="translated">Globale "Using"-Anweisungen</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Include_directive_file_path">
+        <source>path</source>
+        <target state="translated">Pfad</target>
+        <note>'path' is a placeholder for a file path or glob in a directive like '#:include path'.</note>
       </trans-unit>
       <trans-unit id="Make_private_field_readonly_when_possible">
         <source>Make private fields readonly when possible</source>
@@ -516,6 +526,11 @@
         <source>fixed statement</source>
         <target state="translated">fixed-Anweisung</target>
         <note>{Locked="fixed"} "fixed" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="unsafe_block">
+        <source>unsafe block</source>
+        <target state="translated">unsicherer Block</target>
+        <note />
       </trans-unit>
       <trans-unit id="using_declaration">
         <source>using declaration</source>

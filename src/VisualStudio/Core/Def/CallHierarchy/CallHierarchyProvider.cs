@@ -6,18 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CallHierarchy;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
@@ -53,39 +51,33 @@ internal sealed partial class CallHierarchyProvider
     public async Task<CallHierarchyItem?> CreateItemAsync(
         ISymbol symbol, Project project, ImmutableArray<Location> callsites, CancellationToken cancellationToken)
     {
-        if (symbol.Kind is SymbolKind.Method or
-                           SymbolKind.Property or
-                           SymbolKind.Event or
-                           SymbolKind.Field)
-        {
-            symbol = GetTargetSymbol(symbol);
-
-            var finders = await CreateFindersAsync(symbol, project, cancellationToken).ConfigureAwait(false);
-            var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
-                symbol, project.Solution, this.ThreadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
-            return new CallHierarchyItem(
-                this,
-                symbol,
-                location,
-                finders,
-                () => symbol.GetGlyph().GetImageSource(GlyphService),
-                callsites,
-                project);
-        }
-
-        return null;
+        var service = project.GetRequiredLanguageService<ICallHierarchyService>();
+        var descriptor = await service.CreateItemAsync(symbol, project, cancellationToken).ConfigureAwait(false);
+        return descriptor != null
+            ? await CreateItemAsync(descriptor, project.Solution.Workspace, callsites, cancellationToken).ConfigureAwait(false)
+            : null;
     }
 
-    private static ISymbol GetTargetSymbol(ISymbol symbol)
+    public async Task<CallHierarchyItem?> CreateItemAsync(
+        CallHierarchyItemDescriptor descriptor, Workspace workspace, ImmutableArray<Location> callsites, CancellationToken cancellationToken)
     {
-        if (symbol is IMethodSymbol methodSymbol)
-        {
-            methodSymbol = methodSymbol.ReducedFrom ?? methodSymbol;
-            methodSymbol = methodSymbol.ConstructedFrom ?? methodSymbol;
-            return methodSymbol;
-        }
+        var resolved = await descriptor.ItemId.TryResolveAsync(workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+        if (resolved == null)
+            return null;
 
-        return symbol;
+        var (symbol, project) = resolved.Value;
+        var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
+            symbol, project.Solution, this.ThreadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+        return new CallHierarchyItem(
+            this,
+            descriptor,
+            location,
+            await CreateSearchCategoryEntriesAsync(descriptor, symbol, workspace.CurrentSolution, cancellationToken).ConfigureAwait(false),
+            () => descriptor.Glyph.GetImageSource(GlyphService),
+            symbol.ToDisplayString(),
+            project.Name,
+            callsites,
+            project);
     }
 
     public FieldInitializerItem CreateInitializerItem(IEnumerable<CallHierarchyDetail> details)
@@ -96,50 +88,98 @@ internal sealed partial class CallHierarchyProvider
                                         details);
     }
 
-    public async Task<ImmutableArray<AbstractCallFinder>> CreateFindersAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<CallHierarchySearchResult>> SearchAsync(
+        Workspace workspace,
+        CallHierarchySearchDescriptor searchDescriptor,
+        CallHierarchySearchScope searchScope,
+        IImmutableSet<Document>? documents,
+        CancellationToken cancellationToken)
     {
-        if (symbol.Kind is SymbolKind.Property or
-                           SymbolKind.Event or
-                           SymbolKind.Method)
+        var project = workspace.CurrentSolution.GetProject(searchDescriptor.ItemId.ProjectId);
+        if (project == null)
+            return [];
+
+        documents ??= IncludeDocuments(searchScope, project);
+        var service = project.GetRequiredLanguageService<ICallHierarchyService>();
+        return await service.SearchIncomingCallsAsync(workspace.CurrentSolution, searchDescriptor, documents, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static IImmutableSet<Document>? IncludeDocuments(CallHierarchySearchScope scope, Project project)
+    {
+        if (scope is CallHierarchySearchScope.CurrentDocument or CallHierarchySearchScope.CurrentProject)
         {
-            var finders = new List<AbstractCallFinder>
+            var documentTrackingService = project.Solution.Services.GetRequiredService<IDocumentTrackingService>();
+            var activeDocument = documentTrackingService.TryGetActiveDocument();
+            if (activeDocument != null)
             {
-                new MethodCallFinder(symbol, project.Id, AsyncListener, this)
-            };
+                if (scope == CallHierarchySearchScope.CurrentProject)
+                {
+                    var currentProject = project.Solution.GetProject(activeDocument.ProjectId);
+                    if (currentProject != null)
+                        return ImmutableHashSet.CreateRange(currentProject.Documents);
+                }
+                else
+                {
+                    var currentDocument = project.Solution.GetDocument(activeDocument);
+                    if (currentDocument != null)
+                        return ImmutableHashSet.Create(currentDocument);
+                }
 
-            if (symbol.IsVirtual || symbol.IsAbstract)
-            {
-                finders.Add(new OverridingMemberFinder(symbol, project.Id, AsyncListener, this));
+                return ImmutableHashSet<Document>.Empty;
             }
-
-            var @overrides = await SymbolFinder.FindOverridesAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (overrides.Any())
-            {
-                finders.Add(new CallToOverrideFinder(symbol, project.Id, AsyncListener, this));
-            }
-
-            if (symbol.GetOverriddenMember() is ISymbol overridenMember)
-            {
-                finders.Add(new BaseMemberFinder(overridenMember, project.Id, AsyncListener, this));
-            }
-
-            var implementedInterfaceMembers = await SymbolFinder.FindImplementedInterfaceMembersAsync(symbol, project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
-            foreach (var implementedInterfaceMember in implementedInterfaceMembers)
-            {
-                finders.Add(new InterfaceImplementationCallFinder(implementedInterfaceMember, project.Id, AsyncListener, this));
-            }
-
-            if (symbol.IsImplementableMember())
-            {
-                finders.Add(new ImplementerFinder(symbol, project.Id, AsyncListener, this));
-            }
-
-            return finders.ToImmutableArray();
         }
 
-        if (symbol.Kind == SymbolKind.Field)
-            return [new FieldReferenceFinder(symbol, project.Id, AsyncListener, this)];
+        return null;
+    }
 
-        return [];
+    private static async Task<ImmutableArray<CallHierarchySearchCategoryEntry>> CreateSearchCategoryEntriesAsync(
+        CallHierarchyItemDescriptor descriptor,
+        ISymbol symbol,
+        Solution solution,
+        CancellationToken cancellationToken)
+    {
+        var builder = ImmutableArray.CreateBuilder<CallHierarchySearchCategoryEntry>(descriptor.SupportedSearchDescriptors.Length);
+        foreach (var searchDescriptor in descriptor.SupportedSearchDescriptors)
+        {
+            builder.Add(await CreateSearchCategoryEntryAsync(searchDescriptor, symbol, solution, cancellationToken).ConfigureAwait(false));
+        }
+
+        return builder.MoveToImmutable();
+    }
+
+    private static async Task<CallHierarchySearchCategoryEntry> CreateSearchCategoryEntryAsync(
+        CallHierarchySearchDescriptor descriptor,
+        ISymbol symbol,
+        Solution solution,
+        CancellationToken cancellationToken)
+    {
+        var relatedSymbol = descriptor.Relationship switch
+        {
+            CallHierarchyRelationshipKind.BaseMember or CallHierarchyRelationshipKind.InterfaceImplementations
+                => (await descriptor.ItemId.TryResolveAsync(solution, cancellationToken).ConfigureAwait(false))?.Symbol,
+            _ => null,
+        };
+
+        var displayName = descriptor.Relationship switch
+        {
+            CallHierarchyRelationshipKind.Callers => string.Format(EditorFeaturesResources.Calls_To_0, symbol.Name),
+            CallHierarchyRelationshipKind.CallsToOverrides => EditorFeaturesResources.Calls_To_Overrides,
+            CallHierarchyRelationshipKind.BaseMember => string.Format(EditorFeaturesResources.Calls_To_Base_Member_0, relatedSymbol?.ToDisplayString() ?? symbol.ToDisplayString()),
+            CallHierarchyRelationshipKind.InterfaceImplementations => string.Format(EditorFeaturesResources.Calls_To_Interface_Implementation_0, relatedSymbol?.ToDisplayString() ?? symbol.ToDisplayString()),
+            CallHierarchyRelationshipKind.Implementations => string.Format(EditorFeaturesResources.Implements_0, symbol.Name),
+            CallHierarchyRelationshipKind.Overrides => EditorFeaturesResources.Overrides_,
+            CallHierarchyRelationshipKind.FieldReferences => string.Format(EditorFeaturesResources.References_To_Field_0, symbol.Name),
+            _ => throw new InvalidOperationException(),
+        };
+
+        var searchCategory = descriptor.Relationship switch
+        {
+            CallHierarchyRelationshipKind.Callers => CallHierarchyPredefinedSearchCategoryNames.Callers,
+            CallHierarchyRelationshipKind.InterfaceImplementations => CallHierarchyPredefinedSearchCategoryNames.InterfaceImplementations,
+            CallHierarchyRelationshipKind.Overrides => CallHierarchyPredefinedSearchCategoryNames.Overrides,
+            _ => displayName,
+        };
+
+        return new CallHierarchySearchCategoryEntry(descriptor, searchCategory, displayName);
     }
 }

@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -618,6 +617,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return false; }
         }
+
+        // https://github.com/dotnet/roslyn/issues/82546: add a public API for this (probably just expose a bool)
+        /// <summary>
+        /// Whether this member is considered unsafe under the updated memory safety rules.
+        /// See <see cref="CSharp.CallerUnsafeMode"/> for more details.
+        /// </summary>
+        internal abstract CallerUnsafeMode CallerUnsafeMode { get; }
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
@@ -1531,7 +1537,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefSafetyRulesAttribute = 1 << 13,
             RequiresLocationAttribute = 1 << 14,
             ExtensionMarkerAttribute = 1 << 15,
+<<<<<<< HEAD
             ClosedAttribute = 1 << 16,
+||||||| 0cc7353161d
+=======
+            MemorySafetyRulesAttribute = 1 << 16,
+>>>>>>> upstream/main
         }
 
         // PROTOTYPE(cc): Remove unnecessary 'permitted' flags from call sites of this method
@@ -1609,7 +1620,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
             {
             }
+<<<<<<< HEAD
             else if ((permitted & ReservedAttributes.ExtensionMarkerAttribute) == 0 &&
+||||||| 0cc7353161d
+            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
+=======
+            else if ((reserved & ReservedAttributes.MemorySafetyRulesAttribute) != 0 &&
+                reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.MemorySafetyRulesAttribute))
+            {
+            }
+            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
+>>>>>>> upstream/main
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerAttribute))
             {
             }
@@ -1690,13 +1711,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.AddValue(((ParameterSymbol)this).TypeWithAnnotations);
                     break;
                 case SymbolKind.TypeParameter:
-                    if (this is SourceTypeParameterSymbol typeParameter)
+                    var typeParameter = (TypeParameterSymbol)this;
+                    builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
+                    foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
                     {
-                        builder.AddValue(typeParameter.GetSynthesizedNullableAttributeValue());
-                        foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
-                        {
-                            builder.AddValue(constraintType);
-                        }
+                        builder.AddValue(constraintType);
                     }
                     break;
             }

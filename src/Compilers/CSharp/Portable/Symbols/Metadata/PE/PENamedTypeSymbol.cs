@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ImmutableArray<string> lazyConditionalAttributeSymbols;
             internal ObsoleteAttributeData lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             internal AttributeUsageInfo lazyAttributeUsageInfo = AttributeUsageInfo.Null;
-            internal ThreeState lazyContainsExtensionMethods;
+            internal ThreeState lazyContainsExtensions;
             internal ThreeState lazyIsByRefLike;
             internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
@@ -150,7 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
+<<<<<<< HEAD
             internal ThreeState lazyIsClosed = ThreeState.Unknown;
+||||||| 0cc7353161d
+=======
+            internal ThreeState lazyHasUnionAttribute = ThreeState.Unknown;
+>>>>>>> upstream/main
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -165,13 +170,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyConditionalAttributeSymbols.IsDefault &&
                     lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized &&
                     lazyAttributeUsageInfo.IsNull &&
-                    !lazyContainsExtensionMethods.HasValue() &&
+                    !lazyContainsExtensions.HasValue() &&
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
+                    !lazyHasCompilerLoweringPreserveAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
+<<<<<<< HEAD
                     !lazyIsClosed.HasValue() &&
+||||||| 0cc7353161d
+=======
+                    !lazyHasUnionAttribute.HasValue() &&
+>>>>>>> upstream/main
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -694,6 +705,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool IsUnionTypeCore
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasUnionAttribute.HasValue())
+                {
+                    uncommon.lazyHasUnionAttribute = ContainingPEModule.Module.FindTargetAttribute(_handle, AttributeDescription.UnionAttribute).HasValue.ToThreeState();
+                }
+
+                return uncommon.lazyHasUnionAttribute.Value();
+            }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
@@ -969,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return [];
                 }
 
-                var filterExtensionAttribute = MightContainExtensionMethods;
+                var filterExtensionAttribute = MightContainExtensions;
                 var filterObsoleteAttribute = IsRefLikeType && ObsoleteAttributeData is null;
                 var filterIsReadOnlyAttribute = IsReadOnly;
                 var filterIsByRefLikeAttribute = IsRefLikeType;
@@ -2031,7 +2061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { throw ExceptionUtilities.Unreachable(); }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
@@ -2041,7 +2071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
                 }
 
-                if (!uncommon.lazyContainsExtensionMethods.HasValue())
+                if (!uncommon.lazyContainsExtensions.HasValue())
                 {
                     var contains = ThreeState.False;
                     // Dev11 supports extension methods defined on non-static
@@ -2059,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             if ((object)containingAssembly != null)
                             {
                                 contains = (moduleHasExtension
-                                    && containingAssembly.MightContainExtensionMethods).ToThreeState();
+                                    && containingAssembly.MightContainExtensions).ToThreeState();
                             }
                             else
                             {
@@ -2068,10 +2098,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             break;
                     }
 
-                    uncommon.lazyContainsExtensionMethods = contains;
+                    uncommon.lazyContainsExtensions = contains;
                 }
 
-                return uncommon.lazyContainsExtensionMethods.Value();
+                return uncommon.lazyContainsExtensions.Value();
             }
         }
 

@@ -17,7 +17,7 @@ resources:
     name: DartLab.Templates
     ref: main
   - repository: RoslynMirror
-    endpoint: dnceng/internal
+    endpoint: dnceng-internal-code-access
     type: git
     name: internal/dotnet-roslyn
     ref: $(Build.SourceBranch)

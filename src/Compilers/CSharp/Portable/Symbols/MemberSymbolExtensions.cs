@@ -361,6 +361,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (member.TryGetInstanceExtensionParameter(out var extensionParameter) &&
+                extensionParameter.Type.ContainsPointerOrFunctionPointer())
+            {
+                return true;
+            }
+
             return false;
         }
 

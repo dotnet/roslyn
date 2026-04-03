@@ -3,7 +3,6 @@
 #nullable enable
 using System.Reflection;
 
-
 namespace NS1.NS2
 {
     /// <summary>

@@ -573,6 +573,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
         System_Runtime_CompilerServices_ClosedAttribute__ctor,
 
+        System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor,
+        System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor,
+
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
         System_MemoryExtensions__AsSpan_String,
@@ -720,6 +723,15 @@ namespace Microsoft.CodeAnalysis
 
         System_Text_Encoding__get_UTF8,
         System_Text_Encoding__GetString,
+
+        System_Span_T__Slice_Int,
+        System_ReadOnlySpan_T__Slice_Int,
+        System_Memory_T__Slice_Int_Int,
+        System_Memory_T__Slice_Int,
+        System_ReadOnlyMemory_T__Slice_Int_Int,
+        System_ReadOnlyMemory_T__Slice_Int,
+
+        System_Runtime_CompilerServices_UnionAttribute__ctor,
 
         Count,
 

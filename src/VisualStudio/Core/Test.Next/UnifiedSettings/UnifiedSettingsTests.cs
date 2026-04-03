@@ -269,6 +269,14 @@ public sealed class UnifiedSettingsTests
 
     #endregion
 
+    [Fact]
+    public async Task VerifyRoslynSettings()
+    {
+        using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.roslynSettings.registration.json");
+        using var streamReader = new StreamReader(registrationFileStream);
+        await VerifyTagAsync(streamReader.ReadToEnd(), "Roslyn.VisualStudio.Next.UnitTests.roslynPackageRegistration.pkgdef");
+    }
+
     #region Helpers
 
     private static async Task VerifyTagAsync(string registrationFile, string pkgdefFileName)

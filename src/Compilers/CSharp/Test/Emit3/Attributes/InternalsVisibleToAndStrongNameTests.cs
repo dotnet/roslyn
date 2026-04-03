@@ -185,7 +185,7 @@ public class Test
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, comp.Assembly.Identity.PublicKey));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void PubKeyFromKeyFileAttribute_SigningTempPathNotAvailable()
         {
             string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", s_keyPairFile, @""")] public class C {}");

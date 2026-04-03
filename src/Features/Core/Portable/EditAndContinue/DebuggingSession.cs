@@ -274,7 +274,8 @@ internal sealed class DebuggingSession : IDisposable
     /// </returns>
     internal Task<(Guid Mvid, Diagnostic? Error)> GetProjectModuleIdAsync(Project project, CancellationToken cancellationToken)
     {
-        Debug.Assert(project.SupportsEditAndContinue());
+        Debug.Assert(!project.IgnoreForEditAndContinue());
+
         // Note: Does not cache the result as the project may be rebuilt at any point in time.
         return Task.Run(ReadMvid, cancellationToken);
 

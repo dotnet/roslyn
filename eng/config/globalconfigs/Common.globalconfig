@@ -74,6 +74,9 @@ dotnet_diagnostic.RS2008.severity = none
 
 dotnet_diagnostic.AD0001.severity = error
 
+# RS0006: Roslyn experimental language API
+dotnet_diagnostic.RSEXPERIMENTAL006.severity = none
+
 dotnet_diagnostic.RS0001.severity = warning
 dotnet_diagnostic.RS0002.severity = warning
 dotnet_diagnostic.RS0006.severity = error

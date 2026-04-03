@@ -76,15 +76,36 @@ internal struct WordSimilarityChecker : IDisposable
         return result;
     }
 
+    /// <summary>
+    /// Maximum allowed edit distance for a fuzzy match given the source length. These tiers
+    /// match Elasticsearch/Lucene's widely-deployed <c>fuzziness: AUTO</c> setting
+    /// (<see href="https://www.elastic.co/guide/en/elasticsearch/reference/current/common-options.html#fuzziness"/>),
+    /// which is grounded in Damerau's finding that ~80% of human misspellings are edit distance 1:
+    /// <list type="bullet">
+    /// <item>Length 1–2: no fuzzy matching (see <see cref="MinFuzzyLength"/>)</item>
+    /// <item>Length 3–5: threshold 1</item>
+    /// <item>Length 6+: threshold 2</item>
+    /// </list>
+    /// </summary>
     internal static int GetThreshold(string value)
-        => value.Length <= 4 ? 1 : 2;
+        => GetThreshold(value.Length);
+
+    /// <inheritdoc cref="GetThreshold(string)"/>
+    internal static int GetThreshold(int length)
+        => length <= 5 ? 1 : 2;
+
+    /// <summary>
+    /// Minimum source length for fuzzy matching to be attempted. Patterns shorter than this
+    /// produce too many spurious hits. See <see cref="AreSimilar(string, out double)"/>.
+    /// </summary>
+    internal const int MinFuzzyLength = 3;
 
     public bool AreSimilar(string candidateText)
         => AreSimilar(candidateText, out _);
 
     public bool AreSimilar(string candidateText, out double similarityWeight)
     {
-        if (_source.Length < 3)
+        if (_source.Length < MinFuzzyLength)
         {
             // If we're comparing strings that are too short, we'll find 
             // far too many spurious hits.  Don't even bother in this case.

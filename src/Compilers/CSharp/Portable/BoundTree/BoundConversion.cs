@@ -87,24 +87,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       (InConversionGroupFlags & InConversionGroupFlags.UserDefinedFromConversionAdjustment) != 0));
                     }
 
-                    const InConversionGroupFlags all =
-                        InConversionGroupFlags.UserDefinedOperator |
-                        InConversionGroupFlags.UserDefinedFromConversion |
-                        InConversionGroupFlags.UserDefinedFromConversionAdjustment |
-                        InConversionGroupFlags.UserDefinedReturnTypeAdjustment |
-                        InConversionGroupFlags.UserDefinedFinal |
-                        InConversionGroupFlags.UserDefinedErroneous;
-
                     if ((InConversionGroupFlags & InConversionGroupFlags.UserDefinedFromConversion) != 0)
                     {
-                        Debug.Assert((InConversionGroupFlags & all) == InConversionGroupFlags.UserDefinedFromConversion);
+                        Debug.Assert((InConversionGroupFlags & InConversionGroupFlags.UserDefinedAllFlags) == InConversionGroupFlags.UserDefinedFromConversion);
                         Debug.Assert(Operand is not BoundConversion operandAsConversion ||
                                      operandAsConversion.ConversionGroupOpt != ConversionGroupOpt);
                         Debug.Assert(Conversion == ConversionGroupOpt.Conversion.UserDefinedFromConversion);
                     }
                     else if ((InConversionGroupFlags & InConversionGroupFlags.UserDefinedFromConversionAdjustment) != 0)
                     {
-                        Debug.Assert((InConversionGroupFlags & all) == InConversionGroupFlags.UserDefinedFromConversionAdjustment);
+                        Debug.Assert((InConversionGroupFlags & InConversionGroupFlags.UserDefinedAllFlags) == InConversionGroupFlags.UserDefinedFromConversionAdjustment);
                         Debug.Assert(Conversion.IsNullable);
                         Debug.Assert(Conversion.IsExplicit);
                         Debug.Assert(Conversion.UnderlyingConversions[0].IsIdentity);
@@ -122,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if ((InConversionGroupFlags & InConversionGroupFlags.UserDefinedReturnTypeAdjustment) != 0)
                     {
-                        Debug.Assert((InConversionGroupFlags & all) == InConversionGroupFlags.UserDefinedReturnTypeAdjustment);
+                        Debug.Assert((InConversionGroupFlags & InConversionGroupFlags.UserDefinedAllFlags) == InConversionGroupFlags.UserDefinedReturnTypeAdjustment);
                         Debug.Assert(Conversion.IsNullable);
                         Debug.Assert(Conversion.IsImplicit);
                         Debug.Assert(!Conversion.UnderlyingConversions[0].IsIdentity);
@@ -132,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if ((InConversionGroupFlags & InConversionGroupFlags.UserDefinedFinal) != 0)
                     {
-                        Debug.Assert((InConversionGroupFlags & all) == InConversionGroupFlags.UserDefinedFinal);
+                        Debug.Assert(InConversionGroupFlags == InConversionGroupFlags.UserDefinedFinal);
 
                         Debug.Assert(Operand is BoundConversion operandAsConversion &&
                                      operandAsConversion.ConversionGroupOpt == ConversionGroupOpt &&
@@ -145,6 +137,104 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ExceptionUtilities.UnexpectedValue(InConversionGroupFlags);
                     }
                 }
+            }
+
+            // Assert the shape of the conversion tree for union conversions.
+            Debug.Assert((InConversionGroupFlags & InConversionGroupFlags.UserDefinedAllFlags) == 0 || (InConversionGroupFlags & InConversionGroupFlags.UnionAllFlags) == 0);
+
+            if (Conversion.IsUnion)
+            {
+                if (InConversionGroupFlags is InConversionGroupFlags.TupleBinaryOperatorPendingLowering)
+                {
+                    Debug.Assert(ConversionGroupOpt is null);
+                }
+                else
+                {
+                    Debug.Assert(ConversionGroupOpt?.Conversion.IsUnion == true);
+                }
+            }
+
+            if (ConversionGroupOpt?.Conversion.IsUnion == true)
+            {
+                if (Conversion.IsUnion)
+                {
+                    Debug.Assert(Conversion == ConversionGroupOpt.Conversion);
+
+                    Debug.Assert(InConversionGroupFlags == InConversionGroupFlags.UnionConstructor);
+
+                    if (Operand is BoundConversion operandAsConversion && operandAsConversion.ConversionGroupOpt == ConversionGroupOpt)
+                    {
+                        Debug.Assert((operandAsConversion.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) != 0);
+                    }
+                    else
+                    {
+                        var sourceConversion = ConversionGroupOpt.Conversion.BestUnionConversionAnalysis.SourceConversion;
+                        Debug.Assert(sourceConversion.IsIdentity ||
+                                        (sourceConversion.IsTupleLiteralConversion &&
+                                        Operand is BoundConvertedTupleLiteral));
+                    }
+                }
+                else
+                {
+                    Debug.Assert(!ExplicitCastInCode);
+                    Debug.Assert(ConversionsBase.IsEncompassingImplicitConversionKind(Conversion.Kind));
+
+                    if ((InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) != 0)
+                    {
+                        Debug.Assert((InConversionGroupFlags & InConversionGroupFlags.UnionAllFlags) == InConversionGroupFlags.UnionSourceConversion);
+                        Debug.Assert(Operand is not BoundConversion operandAsConversion ||
+                                     operandAsConversion.ConversionGroupOpt != ConversionGroupOpt);
+                        Debug.Assert(Conversion == ConversionGroupOpt.Conversion.BestUnionConversionAnalysis.SourceConversion);
+                    }
+                    else if ((InConversionGroupFlags & InConversionGroupFlags.UnionFinal) != 0)
+                    {
+                        Debug.Assert(InConversionGroupFlags == InConversionGroupFlags.UnionFinal);
+                        Debug.Assert(Conversion.IsNullable);
+                        Debug.Assert(Conversion.IsImplicit);
+                        Debug.Assert(Conversion.UnderlyingConversions[0].IsIdentity);
+                        Debug.Assert(Operand is BoundConversion operandAsConversion &&
+                                     operandAsConversion.ConversionGroupOpt == ConversionGroupOpt &&
+                                     operandAsConversion.Conversion.IsUnion);
+                        Debug.Assert(Conversion == ConversionGroupOpt.Conversion.BestUnionConversionAnalysis.TargetConversion);
+                    }
+                    else
+                    {
+                        ExceptionUtilities.UnexpectedValue(InConversionGroupFlags);
+                    }
+                }
+            }
+        }
+
+        public void TryGetUnionConversionParts(out BoundConversion? sourceConversion, out BoundConversion? constructor, out BoundConversion? final)
+        {
+            Debug.Assert(ConversionGroupOpt?.Conversion.IsUnion == true);
+
+            sourceConversion = null;
+            constructor = null;
+            final = null;
+
+            if (ConversionGroupOpt?.Conversion.IsUnion != true)
+            {
+                return;
+            }
+
+            BoundConversion? current = this;
+            if ((current.InConversionGroupFlags & InConversionGroupFlags.UnionFinal) != 0)
+            {
+                final = current;
+                current = current.Operand as BoundConversion;
+            }
+
+            if (current?.ConversionGroupOpt == ConversionGroupOpt && current.Conversion.IsUnion)
+            {
+                Debug.Assert(current.InConversionGroupFlags == InConversionGroupFlags.UnionConstructor);
+                constructor = current;
+                current = current.Operand as BoundConversion;
+            }
+
+            if (current?.ConversionGroupOpt == ConversionGroupOpt && (current.InConversionGroupFlags & InConversionGroupFlags.UnionSourceConversion) != 0)
+            {
+                sourceConversion = current;
             }
         }
     }

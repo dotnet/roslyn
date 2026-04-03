@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -134,6 +134,10 @@
     <value>The property directive needs to have two parts separated by '=' like '#:property PropertyName=PropertyValue'.</value>
     <comment>{Locked="#:property"}</comment>
   </data>
+  <data name="IncludeOrExcludeDirectiveUnknownFileType" xml:space="preserve">
+    <value>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</value>
+    <comment>{0} is the directive - '#:include' or '#:exclude'. {1} is a comma-separated list of file extensions, like: '.cs', '.resx'</comment>
+  </data>
   <data name="StaticGraphRestoreNotSupported" xml:space="preserve">
     <value>Static graph restore is not supported for file-based apps. Remove the '#:property'.</value>
     <comment>{Locked="#:property"}</comment>
@@ -169,7 +173,16 @@
     <value>Unrecognized directive '{0}'.</value>
     <comment>{0} is the directive name like 'package' or 'sdk'.</comment>
   </data>
-  <data name="EmptyTempPath" xml:space="preserve">
-    <value>Unable to determine a temporary directory path. Consider configuring the TEMP environment variable on Windows or local app data folder on Unix.</value>
+  <data name="InvalidIncludeExcludeMappingEntry" xml:space="preserve">
+    <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</value>
+    <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</comment>
+  </data>
+  <data name="InvalidIncludeExcludeMappingExtension" xml:space="preserve">
+    <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</value>
+    <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</comment>
+  </data>
+  <data name="InvalidIncludeExcludeMappingItemType" xml:space="preserve">
+    <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</value>
+    <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</comment>
   </data>
 </root>

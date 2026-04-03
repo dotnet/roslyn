@@ -44,6 +44,7 @@ public class MyTests : CSharpTestBase
 ## Build & Test Workflows
 
 ### Essential Build Commands
+
 ```powershell
 # Full build (use VS Code tasks when available)
 ./build.sh
