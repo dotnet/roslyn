@@ -13504,11 +13504,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            var result = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
+            var annotation = (node.Syntax.Parent is RefExpressionSyntax)
+                ? node.NullableAnnotation
+                : (node.IsInferred ? node.NullableAnnotation : NullableAnnotation.NotAnnotated); 
+
+            var result = TypeWithAnnotations.Create(node.Type, annotation);
             var rValueType = TypeWithState.ForType(node.Type);
+
             SetResult(node, rValueType, result);
             return null;
         }
+
 
         public override BoundNode? VisitThrowExpression(BoundThrowExpression node)
         {

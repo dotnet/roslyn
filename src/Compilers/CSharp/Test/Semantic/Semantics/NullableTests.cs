@@ -2325,13 +2325,14 @@ public class Test
 {
     public void M(string? nullableString)
     {
-        (string _) = (nullableString); 
+        (string _, var _) = (nullableString, 1); 
     }
 }";
             var compilation = CreateCompilation(source);
-    
+
             compilation.VerifyDiagnostics(
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "nullableString").WithArguments("string")
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "nullableString")
+                    .WithLocation(7, 30)
             );
         }
     }
