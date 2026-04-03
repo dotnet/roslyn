@@ -598,7 +598,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-<<<<<<< HEAD
                 permitted: ReservedAttributes.DynamicAttribute
                     | ReservedAttributes.IsReadOnlyAttribute
                     | ReservedAttributes.IsUnmanagedAttribute
@@ -610,18 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     | ReservedAttributes.RequiredMemberAttribute
                     | ReservedAttributes.ScopedRefAttribute
                     | ReservedAttributes.RequiresLocationAttribute))
-||||||| 0cc7353161d
-                ReservedAttributes.NullableContextAttribute
-                | ReservedAttributes.NullablePublicOnlyAttribute
-                | ReservedAttributes.RefSafetyRulesAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
-=======
-                ReservedAttributes.NullableContextAttribute
-                | ReservedAttributes.NullablePublicOnlyAttribute
-                | ReservedAttributes.RefSafetyRulesAttribute
-                | ReservedAttributes.MemorySafetyRulesAttribute
-                | ReservedAttributes.ExtensionMarkerAttribute))
->>>>>>> upstream/main
             {
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute))

@@ -1537,12 +1537,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefSafetyRulesAttribute = 1 << 13,
             RequiresLocationAttribute = 1 << 14,
             ExtensionMarkerAttribute = 1 << 15,
-<<<<<<< HEAD
-            ClosedAttribute = 1 << 16,
-||||||| 0cc7353161d
-=======
             MemorySafetyRulesAttribute = 1 << 16,
->>>>>>> upstream/main
+            ClosedAttribute = 1 << 17,
         }
 
         // PROTOTYPE(cc): Remove unnecessary 'permitted' flags from call sites of this method
@@ -1620,17 +1616,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.RefSafetyRulesAttribute))
             {
             }
-<<<<<<< HEAD
-            else if ((permitted & ReservedAttributes.ExtensionMarkerAttribute) == 0 &&
-||||||| 0cc7353161d
-            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
-=======
-            else if ((reserved & ReservedAttributes.MemorySafetyRulesAttribute) != 0 &&
+            else if ((permitted & ReservedAttributes.MemorySafetyRulesAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.MemorySafetyRulesAttribute))
             {
             }
-            else if ((reserved & ReservedAttributes.ExtensionMarkerAttribute) != 0 &&
->>>>>>> upstream/main
+            else if ((permitted & ReservedAttributes.ExtensionMarkerAttribute) == 0 &&
                 reportExplicitUseOfReservedAttribute(attribute, arguments, AttributeDescription.ExtensionMarkerAttribute))
             {
             }

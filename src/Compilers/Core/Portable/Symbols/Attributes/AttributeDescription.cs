@@ -502,11 +502,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription RuntimeAsyncMethodGenerationAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeAsyncMethodGenerationAttribute", s_signatures_HasThis_Void_Boolean_Only);
         internal static readonly AttributeDescription MetadataUpdateDeletedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MetadataUpdateDeletedAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ExtendedLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "ExtendedLayoutAttribute", s_signaturesOfExtendedLayoutAttribute);
-<<<<<<< HEAD
-        internal static readonly AttributeDescription ClosedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ClosedAttribute", s_signatures_HasThis_Void_Only);
-||||||| 0cc7353161d
-=======
         internal static readonly AttributeDescription UnionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "UnionAttribute", s_signatures_HasThis_Void_Only);
->>>>>>> upstream/main
+        internal static readonly AttributeDescription ClosedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ClosedAttribute", s_signatures_HasThis_Void_Only);
     }
 }

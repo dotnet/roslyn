@@ -426,15 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         AllowsKeyword = 8450,
         /// <summary>Represents <see langword="extension"/>.</summary>
         ExtensionKeyword = 8451,
-<<<<<<< HEAD
-        /// <summary>Represents <see langword="closed"/>.</summary>
-        ClosedKeyword = 8452,
-||||||| 0cc7353161d
-=======
         /// <summary>Represents <see langword="union"/>.</summary>
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         UnionKeyword = 8452,
->>>>>>> upstream/main
+        /// <summary>Represents <see langword="closed"/>.</summary>
+        ClosedKeyword = 8453,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>

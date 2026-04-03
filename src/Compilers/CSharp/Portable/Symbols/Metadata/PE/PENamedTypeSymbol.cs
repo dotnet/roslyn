@@ -150,12 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasCompilerLoweringPreserveAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
-<<<<<<< HEAD
-            internal ThreeState lazyIsClosed = ThreeState.Unknown;
-||||||| 0cc7353161d
-=======
             internal ThreeState lazyHasUnionAttribute = ThreeState.Unknown;
->>>>>>> upstream/main
+            internal ThreeState lazyIsClosed = ThreeState.Unknown;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -177,12 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasCompilerLoweringPreserveAttribute.HasValue() &&
                     !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
                     !lazyHasRequiredMembers.HasValue() &&
-<<<<<<< HEAD
-                    !lazyIsClosed.HasValue() &&
-||||||| 0cc7353161d
-=======
                     !lazyHasUnionAttribute.HasValue() &&
->>>>>>> upstream/main
+                    !lazyIsClosed.HasValue() &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&

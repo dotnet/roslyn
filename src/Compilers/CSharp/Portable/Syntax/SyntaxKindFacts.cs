@@ -1237,13 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-<<<<<<< HEAD
             for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ClosedKeyword; i++)
-||||||| 0cc7353161d
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.ExtensionKeyword; i++)
-=======
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnionKeyword; i++)
->>>>>>> upstream/main
             {
                 // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
                 if (i != 8441)
@@ -1306,12 +1300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FileKeyword:
                 case SyntaxKind.AllowsKeyword:
                 case SyntaxKind.ExtensionKeyword:
-<<<<<<< HEAD
-                case SyntaxKind.ClosedKeyword:
-||||||| 0cc7353161d
-=======
                 case SyntaxKind.UnionKeyword:
->>>>>>> upstream/main
+                case SyntaxKind.ClosedKeyword:
                     return true;
                 default:
                     return false;
@@ -1441,14 +1431,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.AllowsKeyword;
                 case "extension":
                     return SyntaxKind.ExtensionKeyword;
-<<<<<<< HEAD
-                case "closed":
-                    return SyntaxKind.ClosedKeyword;
-||||||| 0cc7353161d
-=======
                 case "union":
                     return SyntaxKind.UnionKeyword;
->>>>>>> upstream/main
+                case "closed":
+                    return SyntaxKind.ClosedKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1898,14 +1884,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "allows";
                 case SyntaxKind.ExtensionKeyword:
                     return "extension";
-<<<<<<< HEAD
-                case SyntaxKind.ClosedKeyword:
-                    return "closed";
-||||||| 0cc7353161d
-=======
                 case SyntaxKind.UnionKeyword:
                     return "union";
->>>>>>> upstream/main
+                case SyntaxKind.ClosedKeyword:
+                    return "closed";
                 default:
                     return string.Empty;
             }

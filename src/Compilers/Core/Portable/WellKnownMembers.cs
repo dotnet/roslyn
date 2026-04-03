@@ -5801,13 +5801,9 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_ScopedRefAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor
-<<<<<<< HEAD
-                ".ctor",                                    // System_Runtime_CompilerServices_ClosedAttribute__ctor
-||||||| 0cc7353161d
-=======
                 ".ctor",                                    // System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor
                 ".ctor",                                    // System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor
->>>>>>> upstream/main
+                ".ctor",                                    // System_Runtime_CompilerServices_ClosedAttribute__ctor
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_Span_T
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
                 "AsSpan",                                   // System_MemoryExtensions__AsSpan_String

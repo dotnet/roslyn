@@ -2463,14 +2463,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CollectionRefLikeElementType = 9358,
         ERR_BadCollectionArgumentsArgCount = 9359,
 
-<<<<<<< HEAD
-        ERR_ClosedTypeNameDisallowed = 9365, // PROTOTYPE(cc): pack
-        ERR_ClosedSealedStatic = 9366,
-        ERR_ClosedBaseTypeBaseFromOtherAssembly = 9367,
-        ERR_UnderspecifiedClosedSubtype = 9368,
-
-||||||| 0cc7353161d
-=======
         ERR_UnsafeOperation = 9360,
         ERR_UnsafeUninitializedStackAlloc = 9361,
         ERR_UnsafeMemberOperation = 9362,
@@ -2492,7 +2484,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsafeConstructorConstraint = 9376,
         WRN_UnsafeMeaningless = 9377,
 
->>>>>>> upstream/main
+        ERR_ClosedTypeNameDisallowed = 9600, // PROTOTYPE(cc): pack and renumber test baseline comments
+        ERR_ClosedSealedStatic = 9601,
+        ERR_ClosedBaseTypeBaseFromOtherAssembly = 9602,
+        ERR_UnderspecifiedClosedSubtype = 9603,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

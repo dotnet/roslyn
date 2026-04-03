@@ -1475,7 +1475,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 tokens.Add(modTok);
             }
 
-<<<<<<< HEAD
             bool parseAsModifier(MessageID requiredFeature, [NotNullWhen(true)] out SyntaxToken? modTok)
             {
                 // When 'requiredFeature' is enabled, the associated contextual keyword is always a keyword if not escaped. Otherwise, we reuse the async detection
@@ -1493,12 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return true;
             }
 
-            bool isStructOrRecordKeyword(SyntaxToken token)
-||||||| 0cc7353161d
-            bool isStructOrRecordKeyword(SyntaxToken token)
-=======
             bool isStructOrRecordOrUnionKeyword(SyntaxToken token)
->>>>>>> upstream/main
             {
                 if (token.Kind == SyntaxKind.StructKeyword)
                 {

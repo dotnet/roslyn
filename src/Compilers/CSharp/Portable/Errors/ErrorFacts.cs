@@ -2571,13 +2571,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_StructLayoutAndExtendedLayout
                 or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                 or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
-<<<<<<< HEAD
-                or ErrorCode.ERR_ClosedTypeNameDisallowed
-                or ErrorCode.ERR_ClosedSealedStatic
-                or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
-                or ErrorCode.ERR_UnderspecifiedClosedSubtype
-||||||| 0cc7353161d
-=======
                 or ErrorCode.ERR_UnsafeOperation
                 or ErrorCode.ERR_UnsafeUninitializedStackAlloc
                 or ErrorCode.ERR_UnsafeMemberOperation
@@ -2596,7 +2589,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
->>>>>>> upstream/main
+                or ErrorCode.ERR_ClosedTypeNameDisallowed
+                or ErrorCode.ERR_ClosedSealedStatic
+                or ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly
+                or ErrorCode.ERR_UnderspecifiedClosedSubtype
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

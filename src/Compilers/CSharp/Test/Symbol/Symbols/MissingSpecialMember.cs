@@ -1057,15 +1057,11 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor:
-<<<<<<< HEAD
-                    case WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor:
-||||||| 0cc7353161d
-=======
                     case WellKnownMember.System_Memory_T__Slice_Int:
                     case WellKnownMember.System_Memory_T__Slice_Int_Int:
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int:
                     case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int:
->>>>>>> upstream/main
+                    case WellKnownMember.System_Runtime_CompilerServices_ClosedAttribute__ctor:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
