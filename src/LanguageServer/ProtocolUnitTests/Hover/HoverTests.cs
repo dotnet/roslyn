@@ -324,7 +324,7 @@ Remarks are cool too.
 
 {WorkspacesResources.Exceptions_colon}
   System.NullReferenceException
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -448,7 +448,7 @@ if (true) {
     Console.WriteLine(""hello"");
 }
 ```  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1499")]
