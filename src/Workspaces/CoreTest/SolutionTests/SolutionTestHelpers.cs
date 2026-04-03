@@ -16,6 +16,7 @@ internal static class SolutionTestHelpers
 {
     public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
     {
+        // https://github.com/dotnet/roslyn/issues/83054
         if (!ExecutionConditionUtil.IsWindows)
             testHost = TestHost.InProcess;
 
@@ -24,6 +25,7 @@ internal static class SolutionTestHelpers
 
     public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
     {
+        // https://github.com/dotnet/roslyn/issues/83054
         if (!ExecutionConditionUtil.IsWindows)
             testHost = TestHost.InProcess;
 

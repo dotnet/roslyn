@@ -75,6 +75,7 @@ public sealed partial class FindAllDeclarationsTests
     private Workspace CreateWorkspace(TestHost testHost = TestHost.OutOfProcess)
     {
         // OOP tests fail on Linux due to TemporaryStorageService cast; downgrade to InProcess.
+        // https://github.com/dotnet/roslyn/issues/83054
         if (!ExecutionConditionUtil.IsWindows)
             testHost = TestHost.InProcess;
 
