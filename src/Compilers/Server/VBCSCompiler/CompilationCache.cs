@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     internal readonly struct CompilationOutputFiles
     {
         /// <summary>The absolute path of the main output assembly. Always set.</summary>
-        public string AssemblyPath { get; init; }
+        public required string AssemblyPath { get; init; }
 
         /// <summary>The absolute path of the PDB file, or <see langword="null"/> if no standalone PDB file is emitted (including embedded PDBs).</summary>
         public string? PdbPath { get; init; }
