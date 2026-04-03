@@ -2002,7 +2002,7 @@ class C
             {
                 var invocation = (InvocationExpressionSyntax)context.Node;
                 // Only report on invocations of TestMethod
-                if (invocation.Expression is IdentifierNameSyntax identifier && 
+                if (invocation.Expression is IdentifierNameSyntax identifier &&
                     identifier.Identifier.ValueText == "TestMethod")
                 {
                     context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(s_descriptor, invocation.GetLocation()));
