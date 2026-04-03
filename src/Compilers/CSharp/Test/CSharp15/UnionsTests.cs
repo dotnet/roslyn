@@ -240,7 +240,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("S2");
@@ -364,7 +364,7 @@ struct S2 : S2.IUnionMembers
     public static S2 Create(long x) => throw null;
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Int32", "System.String", "System.Int64"]);
@@ -419,7 +419,7 @@ class C5 : C5.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S1", []);
@@ -460,7 +460,7 @@ struct S3 : S3.IUnionMembers
     public interface IUnionMembers<T, S>;  
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Byte"]);
@@ -483,7 +483,7 @@ struct S2<T> : S2<T>.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2`1", ["System.Int32", "T"]);
@@ -506,7 +506,7 @@ struct S2<T> : S2<string>.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2`1", ["System.Byte"]);
@@ -530,7 +530,7 @@ class S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Byte"]);
@@ -552,7 +552,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", []);
@@ -574,7 +574,7 @@ struct S2<T> : S2<T>.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2`1", ["System.Int32"]);
@@ -597,7 +597,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", []);
@@ -622,7 +622,7 @@ struct S2 : S2.IUnionMembers
     public S2 Create(byte x) => throw null;
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", []);
@@ -643,7 +643,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
                 // struct S2 : S2.IUnionMembers
@@ -668,7 +668,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
                 // struct S2 : S2.IUnionMembers
@@ -692,7 +692,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
                 // struct S2 : S2.IUnionMembers
@@ -714,7 +714,7 @@ struct S2 : S2.IUnionMembers
     public delegate void IUnionMembers();
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
                 // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
                 // struct S2 : S2.IUnionMembers
@@ -739,7 +739,7 @@ struct S2
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Byte"]);
@@ -766,7 +766,7 @@ struct S2 : I1
 
 interface I1 : S2.IUnionMembers;
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Int32", "System.String", "System.Byte"]);
@@ -794,7 +794,7 @@ class S1 : S2.IUnionMembers
     public static S2 Create(byte x) => throw null;
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Int32", "System.String", "System.Byte"]);
@@ -815,7 +815,7 @@ public interface IUnionMembers
     public static S2 Create(int x) => throw null;
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Byte"]);
@@ -839,7 +839,7 @@ class S1 : S1.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Byte"]);
@@ -863,7 +863,7 @@ struct S2 : S2.C.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Byte"]);
@@ -918,7 +918,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Int32", "System.Int64", "System.String"]);
@@ -942,7 +942,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Int32"]);
@@ -968,7 +968,7 @@ struct S2 : S2.IUnionMembers
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
             // PROTOTYPE: Confirm whether we want to include members from base interfaces.
