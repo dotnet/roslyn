@@ -2266,5 +2266,73 @@ class C
                 //     X<Y?> M2() => new();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
         }
+        
+        [Fact]
+        public void DiscardRefNotnullShouldNotWarn_82919()
+        {
+            var source = @"
+#nullable enable
+class Gen<T> where T : notnull
+{
+    public static void Func(ref T t)
+    {
+        _ = ref t;
+    }
+}";
+        
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DiscardAssignmentShouldStayNullable_82919()
+        {
+            var source = @"
+#nullable enable
+public class Test
+{
+    public void M(string? s)
+    {
+        _ = s; 
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+        }
+    
+        [Fact]
+        public void DiscardExplicitCastShouldBeNullable_82919()
+        {
+            var source = @"
+#nullable enable
+public class Test
+{
+    public void M()
+    {
+        _ = (string?)null; 
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(); 
+        }
+    
+        [Fact]
+        public void DiscardWithExplicitNotnullShouldWarnOnNull_82919()
+        {
+            var source = @"
+#nullable enable
+public class Test
+{
+    public void M(string? nullableString)
+    {
+        (string _) = (nullableString); 
+    }
+}";
+            var compilation = CreateCompilation(source);
+    
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "nullableString").WithArguments("string")
+            );
+        }
     }
 }
