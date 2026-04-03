@@ -40,6 +40,9 @@ public sealed class RemoteEditAndContinueServiceTests
     [Theory, CombinatorialData]
     public async Task Proxy(TestHost testHost)
     {
+        if (!ExecutionConditionUtil.IsWindows && testHost == TestHost.OutOfProcess)
+            testHost = TestHost.InProcess;
+
         var localComposition = FeaturesTestCompositions.Features.WithTestHostParts(testHost)
             .AddParts(typeof(NoCompilationLanguageService));
 
