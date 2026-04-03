@@ -55,7 +55,7 @@ public sealed class EditAndContinueMethodDebugInfoReaderTests
         DebugInfoImpl(DebugInformationFormat.Pdb, useSymReader: true);
     }
 
-    private void DebugInfoImpl(DebugInformationFormat format, bool useSymReader)
+    private static void DebugInfoImpl(DebugInformationFormat format, bool useSymReader)
     {
         var source = ("""
 
