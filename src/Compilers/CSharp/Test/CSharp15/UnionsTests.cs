@@ -182,7 +182,19 @@ class C5
 
         private static void VerifyCaseTypes(CSharpCompilation comp, string typeName, string[] caseTypes)
         {
+            VerifyCaseTypes(comp, typeName, [], caseTypes);
+        }
+
+        private static void VerifyCaseTypes(CSharpCompilation comp, string typeName, string[] typeArguments, string[] caseTypes)
+        {
             var type = comp.GetTypeByMetadataName(typeName);
+
+            if (typeArguments is [_, ..])
+            {
+                var typeArgs = typeArguments.Select(t => comp.GetTypeByMetadataName(t)).ToArray();
+                type = type.Construct(typeArgs);
+            }
+
             Assert.True(type.IsUnionType);
             AssertEx.SequenceEqual(caseTypes, type.UnionCaseTypes.ToTestDisplayStrings());
         }
@@ -216,14 +228,19 @@ struct S2
         public void CaseTypes_03()
         {
             var src = @"
-struct S2
+struct S2 : S2.IUnionMembers
 {
     public S2(int x){}
     public S2(string x){}
     public object Value => null;
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(long x) => throw null;
+    }
 }
 ";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest);
             comp.VerifyEmitDiagnostics();
 
             var type = comp.GetTypeByMetadataName("S2");
@@ -326,6 +343,636 @@ struct S1
             comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S1", ["System.Int32", "System.String"]);
+        }
+
+        [Fact]
+        public void CaseTypes_07_MemberProvider()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+        public static virtual S2 Create(string x) => throw null;
+        public static abstract S2 Create(long x);
+    }
+
+    public static S2 Create(long x) => throw null;
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Int32", "System.String", "System.Int64"]);
+        }
+
+        [Fact]
+        public void CaseTypes_08_MemberProvider()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    public S1(byte x){}
+
+    public interface IUnionMembers  
+    {}
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S3 : S3.IUnionMembers
+{
+    public S3(byte x){}
+
+    public interface IUnionMembers  
+    {
+        private static S3 Create(int x) => throw null;
+        internal static S3 Create(string x) => throw null;
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S4 : S4.IUnionMembers
+{
+    public S4(byte y){}
+
+    public interface IUnionMembers  
+    {
+        public static S4 Create(int x, string y) => throw null;
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+class C5 : C5.IUnionMembers
+{
+    public C5(int x){}
+
+    public interface IUnionMembers  
+    {
+        protected static C5 Create(int x) => throw null;
+        protected internal static C5 Create(string x) => throw null;
+        private protected static C5 Create(decimal x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S1", []);
+            VerifyCaseTypes(comp, "S3", []);
+            VerifyCaseTypes(comp, "S4", []);
+            VerifyCaseTypes(comp, "C5", []);
+        }
+
+        [Fact]
+        public void CaseTypes_09_MemberProvider_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers<string>
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers<T>  
+    {
+        public static S2 Create(int x) => throw null;
+        public static S2 Create(T x) => throw null;
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+struct S3 : S3.IUnionMembers
+{
+    public S3(byte x){}
+
+    public interface IUnionMembers<T>;  
+
+    public interface IUnionMembers  
+    {
+        public static S3 Create(int x) => throw null;
+        public static S3 Create(string x) => throw null;
+    }
+
+    public interface IUnionMembers<T, S>;  
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+            VerifyCaseTypes(comp, "S3", ["System.Int32", "System.String"]);
+        }
+
+        [Fact]
+        public void CaseTypes_10_MemberProvider_InGenericUnion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2<T> : S2<T>.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2<T> Create(int x) => throw null;
+        public static S2<T> Create(T x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2`1", ["System.Int32", "T"]);
+            VerifyCaseTypes(comp, "S2`1", ["System.String"], ["System.Int32", "System.String"]);
+        }
+
+        [Fact]
+        public void CaseTypes_11_MemberProvider_WrongGenericSubstitution()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2<T> : S2<string>.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2<T> Create(int x) => throw null;
+        public static S2<T> Create(T x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2`1", ["System.Byte"]);
+            VerifyCaseTypes(comp, "S2`1", ["System.String"], ["System.Byte"]);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void CaseTypes_12_MemberProvider_NotPublic([CombinatorialValues("", "private", "internal", "protected", "internal protected", "private protected")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    " + accessibility + @" interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+        public static S2 Create(string x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_13_MemberProvider_WrongReturnType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static int Create(int x) => throw null;
+        public static void Create(string x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", []);
+        }
+
+        [Fact]
+        public void CaseTypes_14_MemberProvider_WrongReturnType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2<T> : S2<T>.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2<T> Create(int x) => throw null;
+        public static S2<string> Create(T x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2`1", ["System.Int32"]);
+            VerifyCaseTypes(comp, "S2`1", ["System.String"], ["System.Int32"]);
+        }
+
+        [Fact]
+        public void CaseTypes_15_MemberProvider_WrongReturnRefKind()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static ref S2 Create(int x) => throw null;
+        public static ref S2 Create(string x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", []);
+        }
+
+        [Fact]
+        public void CaseTypes_16_MemberProvider_NotStatic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public S2 Create(int x) => throw null;
+        public virtual S2 Create(string x) => throw null;
+        public abstract S2 Create(byte x);
+    }
+
+    public S2 Create(byte x) => throw null;
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", []);
+        }
+
+        [Fact]
+        public void CaseTypes_17_MemberProvider_NotInterface()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public class IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics(
+                // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
+                // struct S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "S2.IUnionMembers").WithArguments("S2.IUnionMembers").WithLocation(3, 13)
+                );
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_18_MemberProvider_NotInterface()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public struct IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics(
+                // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
+                // struct S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "S2.IUnionMembers").WithArguments("S2.IUnionMembers").WithLocation(3, 13)
+                );
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_19_MemberProvider_NotInterface()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public enum IUnionMembers  
+    {
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics(
+                // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
+                // struct S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "S2.IUnionMembers").WithArguments("S2.IUnionMembers").WithLocation(3, 13)
+                );
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_20_MemberProvider_NotInterface()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public delegate void IUnionMembers();
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics(
+                // (3,13): error CS0527: Type 'S2.IUnionMembers' in interface list is not an interface
+                // struct S2 : S2.IUnionMembers
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "S2.IUnionMembers").WithArguments("S2.IUnionMembers").WithLocation(3, 13)
+                );
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_21_MemberProvider_NotImplemented()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_22_MemberProvider_ImplementedIndirectly()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : I1
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+        public static virtual S2 Create(string x) => throw null;
+        public static abstract S2 Create(byte x);
+    }
+
+    public static S2 Create(byte x) => throw null;
+}
+
+interface I1 : S2.IUnionMembers;
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Int32", "System.String", "System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_23_MemberProvider_ImplementedIndirectly()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S2 : S1
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+        public static virtual S2 Create(string x) => throw null;
+        public static abstract S2 Create(byte x);
+    }
+}
+
+class S1 : S2.IUnionMembers
+{
+    public static S2 Create(byte x) => throw null;
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Int32", "System.String", "System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_24_MemberProvider_NotNested()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+public struct S2 : IUnionMembers
+{
+    public S2(byte x){}
+}
+
+public interface IUnionMembers  
+{
+    public static S2 Create(int x) => throw null;
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_25_MemberProvider_NotNested()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S2 : S1, S1.IUnionMembers
+{
+    public S2(byte x){}
+}
+
+class S1 : S1.IUnionMembers
+{
+    public interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_26_MemberProvider_NotNested()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.C.IUnionMembers
+{
+    public S2(byte x){}
+
+    public class C
+    {
+        public interface IUnionMembers  
+        {
+            public static S2 Create(int x) => throw null;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Byte"]);
+        }
+
+        [Fact]
+        public void CaseTypes_27_MemberProvider_NoDefaultInterfaceMembersSupport()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null;
+    }
+
+    public static S2 Create(long x) => throw null;
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetFramework);
+
+            // PROTOTYPE: We plan to enable this scenario.
+            comp.VerifyEmitDiagnostics(
+                // (9,26): error CS8701: Target runtime doesn't support default interface implementation.
+                //         public static S2 Create(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "Create").WithLocation(9, 26)
+                );
+
+            VerifyCaseTypes(comp, "S2", ["System.Int32"]);
+        }
+
+        [Fact]
+        public void CaseTypes_28_MemberProvider()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(int x) => throw null!;
+        public static S2 Create(int? x) => throw null!;
+        public static S2 Create(long? x) => throw null!;
+        public static S2 Create(string? x) => throw null!;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Int32", "System.Int64", "System.String"]);
+        }
+
+        [Fact]
+        public void CaseTypes_29_MemberProvider_ParameterRefKind()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers  
+    {
+        public static S2 Create(in int x) => throw null;
+        public static S2 Create(ref readonly string x) => throw null;
+        public static S2 Create(ref long x) => throw null;
+        public static S2 Create(out char x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            VerifyCaseTypes(comp, "S2", ["System.Int32"]);
+        }
+
+        [Fact]
+        public void CaseTypes_30_MemberProvider_MembersNotInherited()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S2 : S2.IUnionMembers
+{
+    public S2(byte x){}
+
+    public interface IUnionMembers : IUnionMembersBase 
+    {
+        public static S2 Create(int x) => throw null;
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public static S2 Create(char x) => throw null;
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetLatest);
+            comp.VerifyEmitDiagnostics();
+
+            // PROTOTYPE: Confirm whether we want to include members from base interfaces.
+            VerifyCaseTypes(comp, "S2", ["System.Int32"]);
         }
 
         [Fact]

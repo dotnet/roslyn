@@ -530,5 +530,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         public const string TryGetValueMethodName = "TryGetValue";
+
+        internal const string UnionMembersInterfaceName = "IUnionMembers";
     }
 }
