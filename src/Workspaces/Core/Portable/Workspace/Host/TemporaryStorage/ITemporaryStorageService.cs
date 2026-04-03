@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -55,4 +57,18 @@ internal interface ITemporaryStorageServiceInternal : IWorkspaceService
 
     /// <inheritdoc cref="WriteToTemporaryStorage(SourceText, CancellationToken)"/>"/>
     Task<ITemporaryStorageTextHandle> WriteToTemporaryStorageAsync(SourceText text, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Retrieves a previously written stream handle by its <see cref="TemporaryStorageIdentifier"/>.
+    /// </summary>
+    ITemporaryStorageStreamHandle GetStreamHandle(TemporaryStorageIdentifier storageIdentifier);
+
+    /// <summary>
+    /// Retrieves a previously written text handle by its <see cref="TemporaryStorageIdentifier"/>.
+    /// </summary>
+    ITemporaryStorageTextHandle GetTextHandle(
+        TemporaryStorageIdentifier storageIdentifier,
+        SourceHashAlgorithm checksumAlgorithm,
+        Encoding? encoding,
+        ImmutableArray<byte> contentHash);
 }
