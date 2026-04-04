@@ -2279,9 +2279,12 @@ class Gen<T> where T : notnull
         _ = ref t;
     }
 }";
-        
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t")
+                    .WithArguments("T", "T?")
+                    .WithLocation(7, 17)
+            );
         }
 
         [Fact]
