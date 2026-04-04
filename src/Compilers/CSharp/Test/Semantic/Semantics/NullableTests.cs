@@ -2266,8 +2266,8 @@ class C
                 //     X<Y?> M2() => new();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
         }
-        
-        [Fact]
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
         public void DiscardRefNotnullShouldNotWarn_82919()
         {
             var source = @"
@@ -2287,7 +2287,7 @@ class Gen<T> where T : notnull
             );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
         public void DiscardAssignmentShouldStayNullable_82919()
         {
             var source = @"
@@ -2302,8 +2302,8 @@ public class Test
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
-    
-        [Fact]
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
         public void DiscardExplicitCastShouldBeNullable_82919()
         {
             var source = @"
@@ -2316,10 +2316,10 @@ public class Test
     }
 }";
             var compilation = CreateCompilation(source);
-            compilation.VerifyDiagnostics(); 
+            compilation.VerifyDiagnostics();
         }
-    
-        [Fact]
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
         public void DiscardWithExplicitNotnullShouldWarnOnNull_82919()
         {
             var source = @"
