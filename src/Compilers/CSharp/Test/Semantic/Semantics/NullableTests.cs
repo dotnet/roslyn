@@ -2332,7 +2332,6 @@ public class Test
     }
 }";
             var compilation = CreateCompilation(source);
-
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "nullableString")
                     .WithLocation(7, 30)
