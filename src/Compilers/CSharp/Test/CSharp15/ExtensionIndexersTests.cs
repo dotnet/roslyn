@@ -2136,7 +2136,10 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.Skipped).VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,25): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            // System.Console.Write(""[""]);
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int").WithLocation(1, 25));
     }
 
     [Fact]
@@ -7460,20 +7463,10 @@ public static class E
 """;
 
         var comp = CreateEmptyCompilation(src, references: [corlibRef]);
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
-{
-  // Code size       15 (0xf)
-  .maxstack  3
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  ldc.i4.1
-  IL_0003:  newobj     "System.Index..ctor(int, bool)"
-  IL_0008:  call       "char E.get_Item(string, System.Index)"
-  IL_000d:  pop
-  IL_000e:  ret
-}
-""");
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[^1]").WithArguments("string").WithLocation(5, 13));
 
         // extension this[int] and Length on string
         src = """
@@ -7521,7 +7514,7 @@ public static class E
 """;
 
         comp = CreateEmptyCompilation(src, references: [corlibRef]);
-        verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
 {
   // Code size        9 (0x9)
@@ -7893,35 +7886,13 @@ public static class E
 }
 """;
 
-        var comp = CreateEmptyCompilation(src, references: [corlibRef]);
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
-{
-  // Code size       44 (0x2c)
-  .maxstack  4
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0029
-  IL_0003:  ldarg.0
-  IL_0004:  call       "int E.get_Length(string)"
-  IL_0009:  ldc.i4.1
-  IL_000a:  blt.s      IL_0029
-  IL_000c:  ldarg.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  ldc.i4.0
-  IL_000f:  newobj     "System.Index..ctor(int, bool)"
-  IL_0014:  ldc.i4.0
-  IL_0015:  ldc.i4.1
-  IL_0016:  newobj     "System.Index..ctor(int, bool)"
-  IL_001b:  newobj     "System.Range..ctor(System.Index, System.Index)"
-  IL_0020:  call       "string E.get_Item(string, System.Range)"
-  IL_0025:  pop
-  IL_0026:  ldc.i4.1
-  IL_0027:  br.s       IL_002a
-  IL_0029:  ldc.i4.0
-  IL_002a:  pop
-  IL_002b:  ret
-}
-""");
+        CreateEmptyCompilation(src, references: [corlibRef]).VerifyEmitDiagnostics(
+            // (5,18): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[_, .. var x]").WithArguments("string").WithLocation(5, 18),
+            // (5,22): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var x").WithArguments("string").WithLocation(5, 22));
 
         // spread pattern on string with extension indexers (implicit)
         src = """
@@ -8099,23 +8070,10 @@ public static class E
 """;
 
         comp = CreateEmptyCompilation(src, references: [corlibRef]);
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
-{
-  // Code size       26 (0x1a)
-  .maxstack  4
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       "System.Index System.Index.op_Implicit(int)"
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     "System.Index..ctor(int, bool)"
-  IL_000e:  newobj     "System.Range..ctor(System.Index, System.Index)"
-  IL_0013:  call       "string E.get_Item(string, System.Range)"
-  IL_0018:  pop
-  IL_0019:  ret
-}
-""");
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
 
         // extension(string).GetSubstring and Length
         src = """
@@ -8425,23 +8383,10 @@ public static class E
 """;
 
         comp = CreateEmptyCompilation(src, references: [corlibRef]);
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
-{
-  // Code size       26 (0x1a)
-  .maxstack  4
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       "System.Index System.Index.op_Implicit(int)"
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     "System.Index..ctor(int, bool)"
-  IL_000e:  newobj     "System.Range..ctor(System.Index, System.Index)"
-  IL_0013:  call       "string E.get_Item(string, System.Range)"
-  IL_0018:  pop
-  IL_0019:  ret
-}
-""");
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
 
         // extension(string).GetSubstring
         src = """
@@ -8670,23 +8615,10 @@ public static class E
 """;
 
         comp = CreateEmptyCompilation(src, references: [corlibRef]);
-        var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
-        verifier.VerifyIL("C.M", """
-{
-  // Code size       26 (0x1a)
-  .maxstack  4
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.1
-  IL_0002:  call       "System.Index System.Index.op_Implicit(int)"
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     "System.Index..ctor(int, bool)"
-  IL_000e:  newobj     "System.Range..ctor(System.Index, System.Index)"
-  IL_0013:  call       "string E.get_Item(string, System.Range)"
-  IL_0018:  pop
-  IL_0019:  ret
-}
-""");
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
 
         // extension(string).Length
         src = """
@@ -12451,12 +12383,16 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (4,7): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
+            // _ = s[null];
+            Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(4, 7));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "s[null]");
-        AssertEx.Equal("E.extension<string?>(string?).this[string?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        Assert.Equal(["string.this[int]"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToDisplayStrings());
     }
 
     [Fact]
@@ -12478,12 +12414,15 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        CompileAndVerify(comp, expectedOutput: "(True, True)").VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (4,7): error CS1739: The best overload for 'this' does not have a parameter named 't3'
+            // _ = s[t3: null, t2: null];
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "t3").WithArguments("this", "t3").WithLocation(4, 7));
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "s[t3: null, t2: null]");
-        AssertEx.Equal("E.extension<string?>(string?).this[string?, string?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
     }
 
     [Fact]

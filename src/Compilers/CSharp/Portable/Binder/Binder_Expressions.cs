@@ -9170,6 +9170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(left.Type is not null);
             Debug.Assert(!left.Type.IsDynamic());
+            Debug.Assert(!left.Type.IsArray());
+            Debug.Assert(left.Type.SpecialType != SpecialType.System_String);
 
             var lookupResult = LookupResult.GetInstance();
             AnalyzedArguments? actualExtensionArguments = null;
@@ -9266,12 +9268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type is not null);
             Debug.Assert(!left.Type.IsDynamic());
             Debug.Assert(!left.Type.IsArray());
-
-            if (left.Type.SpecialType == SpecialType.System_String)
-            {
-                extensionIndexerAccess = null;
-                return false;
-            }
+            Debug.Assert(left.Type.SpecialType != SpecialType.System_String);
 
             AnalyzedArguments? analyzedIntIndexerOrSliceArguments = null;
             ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders = default;
@@ -10928,7 +10925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     indexerAccessExpression = fallbackIndexerAccess;
                     diagnostics.AddRange(instanceImplicitIndexerDiagnostics);
                 }
-                else
+                else if (expr.Type.SpecialType != SpecialType.System_String)
                 {
                     // Now start consider extensions
                     var fallbackIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
