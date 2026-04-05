@@ -13522,10 +13522,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitDiscardExpression(BoundDiscardExpression node)
         {
-            // For ref discard (`_ = ref x`), preserve the exact annotation from the node so that
-            // ref-nullability mismatch checks in VisitRefExpression work correctly.
-            // For inferred discard (`var _` or `_`), use Annotated so the type is not constrained.
-            // For explicit typed discard (`string _`), use the declared annotation (e.g. NotAnnotated for string).
             var annotation = node.Syntax.Parent is RefExpressionSyntax
                 ? node.NullableAnnotation
                 : (node.IsInferred ? NullableAnnotation.Annotated : node.NullableAnnotation);
