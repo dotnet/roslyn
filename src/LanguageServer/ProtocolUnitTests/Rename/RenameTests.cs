@@ -331,11 +331,12 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "RENAME";
+        // When the mapping service can't map spans, only the regular document edits should be returned.
+        // Source-generated document edits are dropped since the client can't open source-generated URIs.
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
-        var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
 
         Assert.False(service.DidMapEdits);
     }
