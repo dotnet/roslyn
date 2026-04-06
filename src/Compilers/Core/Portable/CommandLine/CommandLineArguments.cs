@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis
             bool shouldIncludeAnalyzer(DiagnosticAnalyzer analyzer) => !skipAnalyzers || analyzer is DiagnosticSuppressor;
         }
 
-        [RequiresUnreferencedCode("Uses refletion to load analyzer assemblies.")]
+        [RequiresUnreferencedCode("Uses reflection to load analyzer assemblies.")]
         private AnalyzerFileReference? ResolveAnalyzerReference(CommandLineAnalyzerReference reference, IAnalyzerAssemblyLoader analyzerLoader)
         {
             string? resolvedPath = FileUtilities.ResolveRelativePath(reference.FilePath, basePath: null, baseDirectory: BaseDirectory, searchPaths: ReferencePaths, fileExists: File.Exists);
