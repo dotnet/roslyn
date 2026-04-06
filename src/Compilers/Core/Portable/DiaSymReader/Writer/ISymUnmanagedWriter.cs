@@ -60,7 +60,7 @@ namespace Microsoft.DiaSymReader
           [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] int[] endColumns);
         void RemapToken(uint oldToken, uint newToken);
         void Initialize2([MarshalAs(UnmanagedType.Interface)] object emitter, [MarshalAs(UnmanagedType.LPWStr)] string tempfilename, [MarshalAs(UnmanagedType.Interface)] object ptrIStream, [MarshalAs(UnmanagedType.Bool)] bool fullBuild, [MarshalAs(UnmanagedType.LPWStr)] string finalfilename);
-        void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] string name, [MarshalAs(UnmanagedType.Struct)] object value, uint sig, byte* signature);
+        void DefineConstant([MarshalAs(UnmanagedType.LPWStr)] string name, VariantStructure value, uint sig, byte* signature);
         void Abort();
 
         #endregion

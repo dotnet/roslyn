@@ -2,7 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET9_0_OR_GREATER
+// COM interop is traditionally handled as a built-in part of the .NET Framework. It requires generating interop
+// stubs at runtime that bridge the gap between the native signature and the managed signature. This is not compatible
+// with trimming, as some of the dependencies of the generated stubs are not statically discoverable. .NET 8 includes
+// a source generator and compile-time generated stubs called "ComWrappers" that can be used instead of the built-in COM interop support.
+// To achieve trim-compatibility, we use generated ComWrappers whenever possible and only fall back to built-in COM interop when necessary.
+#if NET
 global using GeneratedWhenPossibleComInterfaceAttribute = System.Runtime.InteropServices.Marshalling.GeneratedComInterfaceAttribute;
 #else
 global using GeneratedWhenPossibleComInterfaceAttribute = System.Runtime.InteropServices.ComImportAttribute;
@@ -17,7 +22,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 #endif
 
-#if NET9_0_OR_GREATER
+#if NET
 [assembly: System.Runtime.CompilerServices.DisableRuntimeMarshalling]
 #endif
 
@@ -234,7 +239,7 @@ namespace Microsoft.DiaSymReader
 
                         if (rawInstance != default)
                         {
-#if NET9_0_OR_GREATER
+#if NET
                             instance = ComInterfaceMarshaller<ISymUnmanagedWriter5>.ConvertToManaged(rawInstance.ToPointer());
 #else
                             instance = (ISymUnmanagedWriter5)Marshal.GetObjectForIUnknown(rawInstance);

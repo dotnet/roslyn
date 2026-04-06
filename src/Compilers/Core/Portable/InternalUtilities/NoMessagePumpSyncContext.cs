@@ -80,6 +80,6 @@ internal sealed class NoMessagePumpSyncContext : SynchronizationContext
     /// <param name="waitHandles">The handles to wait for.</param>
     /// <param name="waitAll">A flag indicating whether all handles must be signaled before returning.</param>
     /// <param name="millisecondsTimeout">A timeout that will cause this method to return.</param>
-    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-    private static unsafe extern int WaitForMultipleObjects(uint handleCount, IntPtr* waitHandles, int waitAll, uint millisecondsTimeout);
+    [DllImport("kernel32.dll", ExactSpelling = true)]
+    private static extern unsafe int WaitForMultipleObjects(uint handleCount, IntPtr* waitHandles, int waitAll, uint millisecondsTimeout);
 }
