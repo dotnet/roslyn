@@ -7683,7 +7683,7 @@ public class C
     [Fact]
     public void SpecialImplicitRangeIndexer_02()
     {
-        // spread pattern, string and Array lack GetSubArray/GetSubstring but define Length, this[int], and this[Range]
+        // slice pattern, string and Array lack GetSubArray/GetSubstring but define Length, this[int], and this[Range]
         var corlibSource = """
 namespace System
 {
@@ -7748,7 +7748,7 @@ namespace System.Runtime.CompilerServices
         corlib.VerifyDiagnostics();
         var corlibRef = corlib.EmitToImageReference();
 
-        // spread pattern on string
+        // slice pattern on string
         var src1 = """
 public class C
 {
@@ -7788,7 +7788,7 @@ public class C
   IL_002b:  ret
 }
 """);
-        // spread pattern on array
+        // slice pattern on array
         var src2 = """
 public class C
 {
@@ -7809,7 +7809,7 @@ public class C
     [Fact]
     public void SpecialImplicitRangeIndexer_03()
     {
-        // spread pattern, string and Array lack GetSubArray/GetSubstring, but various extensions are available
+        // slice pattern, string and Array lack GetSubArray/GetSubstring, but various extensions are available
         var corlibSource = """
 namespace System
 {
@@ -7865,7 +7865,7 @@ namespace System.Runtime.CompilerServices
         corlib.VerifyDiagnostics();
         var corlibRef = corlib.EmitToImageReference();
 
-        // spread pattern on string with extension indexers (real)
+        // slice pattern on string with extension indexers (real)
         var src = """
 public class C
 {
@@ -7894,7 +7894,7 @@ public static class E
             //         _ = s is [_, .. var x];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var x").WithArguments("string").WithLocation(5, 22));
 
-        // spread pattern on string with extension indexers (implicit)
+        // slice pattern on string with extension indexers (implicit)
         src = """
 public class C
 {
@@ -7923,7 +7923,7 @@ public static class E
             //         _ = s is [_, .. var x];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var x").WithArguments("string").WithLocation(5, 22));
 
-        // spread pattern on array, extension indexers (real)
+        // slice pattern on array, extension indexers (real)
         src = """
 public class C
 {
@@ -7943,13 +7943,12 @@ public static class E
 }
 """;
 
-        // PROTOTYPE should extension indexers work on arrays?
         CreateEmptyCompilation(src, references: [corlibRef]).VerifyEmitDiagnostics(
             // (5,24): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
             //         _ = arr is [_, .. var x];
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var x").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 24));
 
-        // spread pattern on array, extension indexers (implicit)
+        // slice pattern on array, extension indexers (implicit)
         src = """
 public class C
 {
@@ -12371,8 +12370,10 @@ catch (System.NullReferenceException)
         string source = """
 #nullable enable
 
-string s = "";
-_ = s[null];
+C c = new C();
+_ = c[null];
+
+class C { }
 
 static class E
 {
@@ -12383,16 +12384,12 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyDiagnostics(
-            // (4,7): error CS1503: Argument 1: cannot convert from '<null>' to 'int'
-            // _ = s[null];
-            Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "int").WithLocation(4, 7));
+        CompileAndVerify(comp, expectedOutput: "True").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "s[null]");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        Assert.Equal(["string.this[int]"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToDisplayStrings());
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[null]");
+        AssertEx.Equal("E.extension<C?>(C?).this[C?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
     [Fact]
@@ -12402,8 +12399,10 @@ static class E
         string source = """
 #nullable enable
 
-string s = "";
-_ = s[t3: null, t2: null];
+C c = new C();
+_ = c[t3: null, t2: null];
+
+class C { }
 
 static class E
 {
@@ -12414,15 +12413,12 @@ static class E
 }
 """;
         var comp = CreateCompilation(source);
-        comp.VerifyEmitDiagnostics(
-            // (4,7): error CS1739: The best overload for 'this' does not have a parameter named 't3'
-            // _ = s[t3: null, t2: null];
-            Diagnostic(ErrorCode.ERR_BadNamedArgument, "t3").WithArguments("this", "t3").WithLocation(4, 7));
+        CompileAndVerify(comp, expectedOutput: "(True, True)").VerifyDiagnostics();
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "s[t3: null, t2: null]");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[t3: null, t2: null]");
+        AssertEx.Equal("E.extension<C?>(C?).this[C?, C?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
     [Fact]
@@ -22397,7 +22393,6 @@ public static class E
 }
 """;
 
-        // PROTOTYPE should extension indexers work on arrays?
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
             // (5,15): error CS0029: Cannot implicitly convert type 'C' to 'int'
