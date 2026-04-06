@@ -73,6 +73,10 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
 
     public override bool Execute()
     {
+        // Ensure that debug assertion failures throw an exception instead of crashing the process
+        Trace.Listeners.Clear();
+        Trace.Listeners.Add(new ThrowingTraceListener());
+
 #if !NET
         // https://github.com/dotnet/roslyn/issues/82006
         AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
@@ -98,6 +102,24 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         }
 
         return !Log.HasLoggedErrors;
+    }
+
+    private sealed class ThrowingTraceListener : TraceListener
+    {
+        public override void Fail(string? message, string? detailMessage)
+        {
+            throw new InvalidOperationException(
+                (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
+                (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));
+        }
+
+        public override void Write(string? message)
+        {
+        }
+
+        public override void WriteLine(string? message)
+        {
+        }
     }
 
     private void ExecuteImpl()
