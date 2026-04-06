@@ -494,6 +494,8 @@ function Invoke-ArtifactAnalysis {
 #region Main Execution
 
 try {
+    $pipelineTimeoutMinutes = 150
+
     Write-Header "Integration Test Analysis — Build $BuildId"
     $buildUrl = "https://dev.azure.com/$Organization/$Project/_build/results?buildId=$BuildId&view=results"
     Write-Detail "URL" $buildUrl
@@ -534,8 +536,8 @@ try {
         }
 
         if ($job.name -match 'VS_Integration') {
-            # Check if this was a timeout (canceled after running > 140 min)
-            if ($job.result -eq 'canceled' -and $durationMin -ne 'N/A' -and $durationMin -gt 140) {
+            # Check if this was a timeout (canceled after running close to the pipeline timeout)
+            if ($job.result -eq 'canceled' -and $durationMin -ne 'N/A' -and $durationMin -gt ($pipelineTimeoutMinutes - 10)) {
                 $jobInfo.timedOut = $true
             }
             $integrationJobs += $jobInfo
@@ -682,161 +684,7 @@ try {
         }
     }
 
-    # Step 5: Determine root cause
-    Write-Header "Root Cause Analysis"
-
-    $rootCause = @{
-        category         = $null
-        summary          = $null
-        affectedServices = @()
-        errorCount       = 0
-        primaryError     = $null
-    }
-    $recommendationHint = "INVESTIGATE_ARTIFACTS"
-
-    # Collect signals from all sources, then merge them into a single root cause.
-
-    # Signal A: Exception Activity XMLs from artifacts (highest detail — contain actual error info)
-    $exceptionSignal = $null
-    if ($artifactAnalysis.parsedExceptions.Count -gt 0) {
-        $firstException = $artifactAnalysis.parsedExceptions[0]
-        if ($firstException.rootCausePattern) {
-            $exceptionSignal = $firstException
-        }
-    }
-
-    # Signal B: Timeout / hung-test detection from job logs
-    $hungTests = @($jobAnalyses | Where-Object {
-        $_.timedOut -and $_.testRunnerStatus -and $_.testRunnerStatus -match '0 completed'
-    })
-    $timedOutWithProgress = @($jobAnalyses | Where-Object {
-        $_.timedOut -and $_.testRunnerStatus -and $_.testRunnerStatus -notmatch '0 completed'
-    })
-
-    # Signal C: VSIX install failure from job logs
-    $vsixFailedJobs = @($jobAnalyses | Where-Object { $_.vsixInstallSuccess -eq $false })
-
-    # Signal D: VSIX install failure from artifacts
-    $vsixFailedArtifacts = @($artifactAnalysis.parsedVsixLogs | Where-Object { -not $_.success })
-
-    # Signal E: MEF composition errors from artifacts
-    $hasMefErrors = $artifactAnalysis.parsedMefErrors.Count -gt 0
-
-    # --- Merge signals into root cause ---
-
-    # Best case: Exception XML explains WHY tests hung (e.g., assembly load failure causing timeout)
-    if ($exceptionSignal -and $hungTests.Count -gt 0) {
-        # Both an exception root cause AND a timeout — the exception explains the hang
-        if ($exceptionSignal.rootCausePattern -in 'assembly-load-failure', 'service-activation-failure') {
-            $rootCause.category = "assembly-load-failure"
-            $rootCause.summary = "Tests hung due to runtime mismatch: $($exceptionSignal.primaryError). All remote Roslyn services failed to activate, causing the test to wait indefinitely ($($hungTests[0].durationMinutes) min until timeout)."
-            $rootCause.affectedServices = $exceptionSignal.affectedFeatures
-            $rootCause.errorCount = $exceptionSignal.totalErrors
-            $rootCause.primaryError = $exceptionSignal.primaryError
-            $recommendationHint = "ASSEMBLY_MISMATCH"
-        }
-        else {
-            $rootCause.category = $exceptionSignal.rootCausePattern
-            $rootCause.summary = "Tests hung ($($hungTests[0].durationMinutes) min): $($exceptionSignal.primaryError)"
-            $rootCause.errorCount = $exceptionSignal.totalErrors
-            $rootCause.primaryError = $exceptionSignal.primaryError
-            $recommendationHint = "TEST_FAILURE"
-        }
-    }
-    # Exception XML without timeout
-    elseif ($exceptionSignal) {
-        if ($exceptionSignal.rootCausePattern -in 'assembly-load-failure', 'service-activation-failure') {
-            $rootCause.category = "assembly-load-failure"
-            $rootCause.summary = $exceptionSignal.primaryError
-            $rootCause.affectedServices = $exceptionSignal.affectedFeatures
-            $rootCause.errorCount = $exceptionSignal.totalErrors
-            $rootCause.primaryError = $exceptionSignal.primaryError
-            $recommendationHint = "ASSEMBLY_MISMATCH"
-        }
-        else {
-            $rootCause.category = $exceptionSignal.rootCausePattern
-            $rootCause.summary = $exceptionSignal.primaryError
-            $rootCause.errorCount = $exceptionSignal.totalErrors
-            $rootCause.primaryError = $exceptionSignal.primaryError
-            $recommendationHint = "TEST_FAILURE"
-        }
-    }
-    # Timeout without exception XML — check if we should hint at likely causes
-    elseif ($hungTests.Count -gt 0) {
-        $rootCause.category = "timeout-hung-test"
-        $rootCause.primaryError = "Test runner stuck at '$($hungTests[0].testRunnerStatus)' for $($hungTests[0].durationMinutes) minutes"
-
-        # Enrich with context: VSIX installed OK but tests hung → likely a runtime/service issue
-        $allVsixOk = ($jobAnalyses | Where-Object { $_.vsixInstallSuccess -eq $true }).Count -eq $jobAnalyses.Count
-        $dotnetSdk = ($jobAnalyses | Where-Object { $_.dotnetSdkVersion } | Select-Object -First 1).dotnetSdkVersion
-        $vsVer = ($jobAnalyses | Where-Object { $_.vsVersion } | Select-Object -First 1).vsVersion
-
-        if ($allVsixOk -and $dotnetSdk) {
-            $rootCause.summary = "Integration tests hung — first test assembly never completed. VSIX installed OK into VS $vsVer, but tests hung immediately. Built with .NET SDK $dotnetSdk — check that the VS ServiceHub process on this queue can load the matching System.Runtime assembly (the published test artifacts likely contain Activity XML exception logs with the specific assembly load failure)."
-            $recommendationHint = "TIMEOUT_HUNG_TEST"
-        }
-        else {
-            $rootCause.summary = "Integration tests hung — first test assembly never completed"
-            $recommendationHint = "TIMEOUT_HUNG_TEST"
-        }
-    }
-    # VSIX install failure from job logs
-    elseif ($vsixFailedJobs.Count -gt 0) {
-        $rootCause.category = "vsix-install-failure"
-        $rootCause.summary = "VSIX installation failed for $($vsixFailedJobs[0].name)"
-        $recommendationHint = "VSIX_INSTALL_FAILURE"
-    }
-    # VSIX install failure from artifacts
-    elseif ($vsixFailedArtifacts.Count -gt 0) {
-        $rootCause.category = "vsix-install-failure"
-        $firstError = if ($vsixFailedArtifacts[0].errors -and $vsixFailedArtifacts[0].errors.Count -gt 0) { $vsixFailedArtifacts[0].errors[0] } else { "Unknown VSIX install error" }
-        $rootCause.summary = "VSIX installation failed: $firstError"
-        $rootCause.primaryError = $firstError
-        $recommendationHint = "VSIX_INSTALL_FAILURE"
-    }
-    # MEF composition errors
-    elseif ($hasMefErrors) {
-        $rootCause.category = "mef-composition-error"
-        $totalMefErrors = ($artifactAnalysis.parsedMefErrors | Measure-Object -Property errorCount -Sum).Sum
-        $rootCause.summary = "$totalMefErrors MEF composition errors found"
-        $rootCause.errorCount = $totalMefErrors
-        $firstMefError = if ($artifactAnalysis.parsedMefErrors[0].errors -and $artifactAnalysis.parsedMefErrors[0].errors.Count -gt 0) { $artifactAnalysis.parsedMefErrors[0].errors[0] } else { "Unknown MEF error" }
-        $rootCause.primaryError = $firstMefError
-        $recommendationHint = "MEF_COMPOSITION_ERROR"
-    }
-    # Timeout with progress
-    elseif ($timedOutWithProgress.Count -gt 0) {
-        $rootCause.category = "timeout-slow-tests"
-        $rootCause.summary = "Tests were making progress but timed out"
-        $rootCause.primaryError = "Test runner was at '$($timedOutWithProgress[0].testRunnerStatus)' when canceled"
-        $recommendationHint = "TIMEOUT_TESTS_RUNNING"
-    }
-
-    # Display root cause
-    if ($rootCause.category) {
-        Write-Host "  Category: $($rootCause.category)" -ForegroundColor Red
-        Write-Host "  Summary: $($rootCause.summary)"
-        if ($rootCause.affectedServices.Count -gt 0) {
-            Write-Host "  Affected Services ($($rootCause.affectedServices.Count)):"
-            foreach ($svc in $rootCause.affectedServices | Select-Object -First 10) {
-                Write-Host "    - $svc" -ForegroundColor Yellow
-            }
-            if ($rootCause.affectedServices.Count -gt 10) {
-                Write-Host "    ... and $($rootCause.affectedServices.Count - 10) more" -ForegroundColor Gray
-            }
-        }
-        if ($rootCause.errorCount -gt 0) {
-            Write-Host "  Total Errors: $($rootCause.errorCount)"
-        }
-    }
-    else {
-        Write-WarningLine "Could not determine root cause automatically"
-        if (-not $DownloadArtifacts) {
-            Write-Host "  Tip: Re-run with -DownloadArtifacts to download and parse test artifacts" -ForegroundColor Gray
-        }
-    }
-
-    # Emit exception details
+    # Step 5: Emit parsed artifact details
     if ($artifactAnalysis.parsedExceptions.Count -gt 0) {
         Write-Header "Exception Details"
         foreach ($exc in $artifactAnalysis.parsedExceptions) {
@@ -866,7 +714,7 @@ try {
         buildResult      = $build.result
         pipeline         = $build.definition.name
         sourceBranch     = $build.sourceBranch
-        pipelineTimeout  = 150
+        pipelineTimeout  = $pipelineTimeoutMinutes
         jobs             = @($jobAnalyses | ForEach-Object {
                 [ordered]@{
                     name              = $_.name
@@ -888,15 +736,34 @@ try {
             mefErrorFiles    = $artifactAnalysis.mefErrorFiles
             vsixLogFiles     = $artifactAnalysis.vsixLogFiles
             skippedArtifacts = $artifactAnalysis.skippedArtifacts
+            parsedExceptions = @($artifactAnalysis.parsedExceptions | ForEach-Object {
+                    [ordered]@{
+                        fileName         = $_.fileName
+                        testName         = $_.testName
+                        exceptionType    = $_.exceptionType
+                        rootCausePattern = $_.rootCausePattern
+                        primaryError     = $_.primaryError
+                        totalErrors      = $_.totalErrors
+                        affectedFeatures = $_.affectedFeatures
+                        errorSources     = $_.errorSources
+                        vsVersion        = $_.vsVersion
+                    }
+                })
+            parsedMefErrors  = @($artifactAnalysis.parsedMefErrors | ForEach-Object {
+                    [ordered]@{
+                        fileName   = $_.fileName
+                        errorCount = $_.errorCount
+                        errors     = $_.errors
+                    }
+                })
+            parsedVsixLogs   = @($artifactAnalysis.parsedVsixLogs | ForEach-Object {
+                    [ordered]@{
+                        fileName = $_.fileName
+                        success  = $_.success
+                        errors   = $_.errors
+                    }
+                })
         }
-        rootCause = [ordered]@{
-            category         = $rootCause.category
-            summary          = $rootCause.summary
-            affectedServices = $rootCause.affectedServices
-            errorCount       = $rootCause.errorCount
-            primaryError     = $rootCause.primaryError
-        }
-        recommendationHint = $recommendationHint
     }
 
     Write-Host ""

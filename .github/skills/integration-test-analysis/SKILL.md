@@ -134,31 +134,28 @@ The script outputs human-readable console text followed by a structured JSON blo
     "exceptionFiles": ["01.15.40-CSharpTyping.TypingInPartialType-AggregateException.Activity.xml"],
     "screenshotFiles": ["StartingBuild.png", "01.15.40-Timeout.png"],
     "mefErrorFiles": [],
-    "vsixLogFiles": ["VSIXInstaller-xxx.log"]
-  },
-  "rootCause": {
-    "category": "assembly-load-failure",
-    "summary": "System.Runtime v10.0.0.0 not found in ServiceHub process",
-    "affectedServices": ["Solution Events", "Asset synchronization", "..."],
-    "errorCount": 147,
-    "primaryError": "Could not load file or assembly 'System.Runtime, Version=10.0.0.0'"
-  },
-  "recommendationHint": "ASSEMBLY_MISMATCH" | "TIMEOUT_HUNG_TEST" | "VSIX_INSTALL_FAILURE" | "MEF_COMPOSITION_ERROR" | "TEST_FAILURE" | "INVESTIGATE_ARTIFACTS"
+    "vsixLogFiles": ["VSIXInstaller-xxx.log"],
+    "parsedExceptions": [
+      {
+        "fileName": "01.15.40-CSharpTyping.TypingInPartialType-AggregateException.Activity.xml",
+        "testName": "CSharpTyping.TypingInPartialType",
+        "exceptionType": "AggregateException",
+        "rootCausePattern": "assembly-load-failure",
+        "primaryError": "Could not load file or assembly 'System.Runtime, Version=10.0.0.0'",
+        "totalErrors": 147,
+        "affectedFeatures": ["Solution Events", "Asset synchronization", "..."],
+        "errorSources": { "GlobalBrokeredServiceContainer": 80, "VisualStudioErrorReportingService": 67 },
+        "vsVersion": "17.14.0"
+      }
+    ],
+    "parsedMefErrors": [],
+    "parsedVsixLogs": [
+      { "fileName": "VSIXInstaller-xxx.log", "success": true, "errors": [] }
+    ]
+  }
 }
 [/INTEGRATION_TEST_SUMMARY]
 ```
-
-## Recommendation Hints
-
-| Hint | Meaning | Suggested Action |
-|------|---------|-----------------|
-| `ASSEMBLY_MISMATCH` | Assembly version not found in ServiceHub/VS process | Check TFM changes, verify .NET runtime on CI queue |
-| `TIMEOUT_HUNG_TEST` | Tests hung — first assembly never completed | Investigate which test assembly ran first, check for deadlocks |
-| `VSIX_INSTALL_FAILURE` | VSIX sideloading failed | Check VSIX installer log, verify VS instance state |
-| `MEF_COMPOSITION_ERROR` | MEF exports missing or failed | Check VSIX packaging, verify all assemblies are included |
-| `TEST_FAILURE` | Tests ran but some failed | Look at exception XMLs and screenshots for specific test failures |
-| `TIMEOUT_TESTS_RUNNING` | Tests were making progress but timed out | May need to increase timeout or investigate slow tests |
-| `INVESTIGATE_ARTIFACTS` | Couldn't determine root cause automatically | Download artifacts manually and inspect |
 
 ## Analysis Workflow for the Agent
 
@@ -175,7 +172,8 @@ pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestS
 ### Step 2: Analyze the Output
 - Read the human-readable output for the timeline and job status
 - Parse the `[INTEGRATION_TEST_SUMMARY]` JSON for structured data
-- If `rootCause` is populated, use it to explain the failure
+- Examine `artifacts.parsedExceptions`, `artifacts.parsedMefErrors`, and `artifacts.parsedVsixLogs` to understand what went wrong
+- Cross-reference job-level signals (e.g., `timedOut`, `testRunnerStatus`, `vsixInstallSuccess`) with the parsed artifact data to synthesize a root cause
 - If artifacts were too large to download, inform the user and suggest manual inspection
 
 ### Step 3: Cross-Reference
