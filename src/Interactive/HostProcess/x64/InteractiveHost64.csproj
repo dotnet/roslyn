@@ -27,6 +27,10 @@
     <Compile Include="..\InteractiveHostEntryPoint.cs" />
   </ItemGroup>
   
+  <!--
+    BuildOnlySettings forces BuildingProject=true.
+    Workaround for https://github.com/dotnet/msbuild/issues/10901
+  -->  
   <Target Name="PublishedProjectOutputGroup" DependsOnTargets="BuildOnlySettings;PublishItemsOutputGroup" Returns="@(_VsixItem)">
     <!-- Workaround for https://github.com/dotnet/sdk/issues/42255 -->
     <PropertyGroup>
