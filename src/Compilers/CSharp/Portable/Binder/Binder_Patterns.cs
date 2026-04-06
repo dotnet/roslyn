@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DeclaredAccessibility: Accessibility.Public,
                 Arity: 0,
                 RefKind: RefKind.None,
-                Parameters: [{ RefKind: RefKind.Out, Type: var parameterType }],
+                Parameters: [{ RefKind: RefKind.Out }],
                 ReturnType.SpecialType: SpecialType.System_Boolean
             };
         }
