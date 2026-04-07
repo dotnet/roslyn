@@ -570,6 +570,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_Declared1()
     {
         var source = """
@@ -603,6 +604,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_Declared2()
     {
         var source = """
@@ -636,6 +638,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_Primary1()
     {
         var source = """
@@ -666,6 +669,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_Primary2()
     {
         var source = """
@@ -696,6 +700,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_PartialDeclared1()
     {
         var source = """
@@ -734,6 +739,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_PartialDeclared2()
     {
         var source = """
@@ -772,6 +778,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_PartialPrimary1()
     {
         var source = """
@@ -807,6 +814,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_PartialPrimary2()
     {
         var source = """
@@ -842,6 +850,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_PartialWithIgnored1()
     {
         var source = """
@@ -877,6 +886,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void FindConstructorAttribute_PartialWithMultipleParameterLists1()
     {
         var source = """
@@ -912,6 +922,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void DoNotFindAttributeOnConstructor_WhenSearchingForClassDeclaration1()
     {
         var source = """
@@ -953,6 +964,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void DoNotFindAttributeOnConstructor_WhenSearchingForClassDeclaration2()
     {
         var source = """
@@ -999,6 +1011,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void DoNotFindAttributeOnConstructor_WhenPartialDeclarationNotPrimary1()
     {
         var source = """
@@ -1033,6 +1046,7 @@ public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpT
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79575")]
     public void DoNotFindAttributeOnConstructor_WhenPartialDeclarationNotPrimary2()
     {
         var source = """
