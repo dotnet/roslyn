@@ -16,6 +16,14 @@ This can be done by:
   </ItemGroup>
   ```
 
+Generated code is analyzed by default. To exclude generated code from banned API analysis, add the following to an analyzer config file such as `.globalconfig`:
+
+```ini
+is_global = true
+
+dotnet_banned_api_analyzer.exclude_generated_code = true
+```
+
 To add a symbol to the banned list, just add an entry in the format below to one of the configuration files (Description Text will be displayed as description in diagnostics, which is optional):
 
 ```txt

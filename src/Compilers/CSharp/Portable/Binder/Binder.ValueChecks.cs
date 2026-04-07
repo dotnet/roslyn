@@ -1912,7 +1912,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool CheckIsValidReceiverForVariable(SyntaxNode node, BoundExpression receiver, BindValueKind kind, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver != null);
-            return Flags.Includes(BinderFlags.ObjectInitializerMember) && receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder ||
+            // Binding object initializer field/property access needs object initializer specific diagnostics:
+            //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
+            //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
+            //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
+            // These only apply on the left side of an object initializer member assignment, not the RHS.
+            return (receiver.Kind == BoundKind.ObjectOrCollectionValuePlaceholder && IsObjectInitializerMemberTarget(node)) ||
                 CheckValueKind(node, receiver, kind, true, diagnostics);
         }
 

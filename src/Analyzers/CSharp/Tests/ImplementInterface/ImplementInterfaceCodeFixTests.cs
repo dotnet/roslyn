@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -11887,5 +11888,55 @@ class Goo : [|IComparable|]
              ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
              LanguageVersion = LanguageVersion.CSharp14,
              Options = { { FormattingOptions2.NewLine, "\n" } },
+         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82787")]
+    public Task FileLevelDirective_AddUsings()
+         => new VerifyCS.Test
+         {
+             TestCode = """
+                #:property Configuration=Release
+
+                using System.Collections;
+
+                class A : {|CS0535:I|}
+                {
+                }
+
+                interface I
+                {
+                    void M(System.DateTime dt, System.IO.FileInfo f);
+                }
+                """,
+             FixedCode = """
+                #:property Configuration=Release
+
+                using System;
+                using System.Collections;
+                using System.IO;
+
+                class A : I
+                {
+                    public void M(DateTime dt, FileInfo f)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                interface I
+                {
+                    void M(System.DateTime dt, System.IO.FileInfo f);
+                }
+                """,
+             SolutionTransforms =
+             {
+                static (solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+                    return solution.WithProjectParseOptions(projectId,
+                        parseOptions.WithFeatures(parseOptions.Features.Append(new("FileBasedProgram", ""))));
+                },
+            },
          }.RunAsync();
 }

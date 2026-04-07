@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -539,6 +539,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Memory_T,
+                         WellKnownType.System_ReadOnlyMemory_T,
                          WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
@@ -568,7 +570,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                          WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
                          WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute,
+                         WellKnownType.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute,
                          WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
                          WellKnownType.System_MemoryExtensions,
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
@@ -644,6 +646,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                          WellKnownType.System_Span_T,
                          WellKnownType.System_ReadOnlySpan_T,
+                         WellKnownType.System_Memory_T,
+                         WellKnownType.System_ReadOnlyMemory_T,
                          WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
@@ -673,7 +677,7 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute,
                          WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute,
                          WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute,
+                         WellKnownType.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute,
                          WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
                          WellKnownType.System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
                          WellKnownType.System_Runtime_InteropServices_MemoryMarshal,
@@ -756,12 +760,14 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
+                         WellKnownMember.System_Span_T__Slice_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
                          WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
+                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
@@ -798,7 +804,7 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
                          WellKnownMember.System_MemoryExtensions__AsSpan_String,
@@ -882,7 +888,11 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor,
                          WellKnownMember.System_Text_Encoding__get_UTF8,
-                         WellKnownMember.System_Text_Encoding__GetString
+                         WellKnownMember.System_Text_Encoding__GetString,
+                         WellKnownMember.System_Memory_T__Slice_Int,
+                         WellKnownMember.System_Memory_T__Slice_Int_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int
                         ' Not always available.
                         Continue For
                 End Select
@@ -971,12 +981,14 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor_Array,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_Span_T__Slice_Int,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int,
                          WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
@@ -1013,7 +1025,7 @@ End Namespace
                          WellKnownMember.System_Diagnostics_CodeAnalysis_SetsRequiredMembersAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor,
+                         WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
                          WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
@@ -1098,7 +1110,11 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
                          WellKnownMember.System_Runtime_CompilerServices_MetadataUpdateDeletedAttribute__ctor,
                          WellKnownMember.System_Text_Encoding__get_UTF8,
-                         WellKnownMember.System_Text_Encoding__GetString
+                         WellKnownMember.System_Text_Encoding__GetString,
+                         WellKnownMember.System_Memory_T__Slice_Int,
+                         WellKnownMember.System_Memory_T__Slice_Int_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int
                         ' Not always available.
                         Continue For
                 End Select
