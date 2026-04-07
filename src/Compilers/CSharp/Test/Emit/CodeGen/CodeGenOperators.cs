@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -3518,7 +3519,7 @@ True
  -IL_0032:  nop
  -IL_0033:  ret
 }
-", sequencePoints: "MyClass.Test1");
+", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [WorkItem(543893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543893")]
@@ -5365,14 +5366,14 @@ class Test
             int i;
             for (i = 0; i < count; i++)
             {
-                builder.Append(i + 1);
+                builder.Append((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append(" * ");
                 builder.Append("f[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append("] + ");
             }
 
-            builder.Append(i + 1);
+            builder.Append((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
             return builder.ToString();
         }
@@ -5458,16 +5459,16 @@ class Test
             for (i = 0; i < count; i++)
             {
                 builder.Append("a[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append(']');
                 builder.Append(" & ");
                 builder.Append("f[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append("] | ");
             }
 
             builder.Append("a[");
-            builder.Append(i);
+            builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
             builder.Append(']');
 
             return builder.ToString();
@@ -5622,16 +5623,16 @@ struct S1
             for (i = 0; i < count; i++)
             {
                 builder.Append("a[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append(']');
                 builder.Append(" && ");
                 builder.Append("f[");
-                builder.Append(i);
+                builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 builder.Append("] || ");
             }
 
             builder.Append("a[");
-            builder.Append(i);
+            builder.Append(i.ToString(System.Globalization.CultureInfo.InvariantCulture));
             builder.Append(']');
 
             return builder.ToString();

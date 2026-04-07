@@ -6,10 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-
-#if CODEANALYSIS_V3_OR_BETTER
 using System.Linq;
-#endif
 
 namespace Analyzer.Utilities
 {
@@ -38,9 +35,7 @@ namespace Analyzer.Utilities
         [Conditional("DEBUG")]
         public static void VerifySupportedItemOptionName(string itemOptionName)
         {
-#if CODEANALYSIS_V3_OR_BETTER
             Debug.Assert(typeof(MSBuildItemOptionNames).GetFields().Single(f => f.Name == itemOptionName) != null);
-#endif
         }
 
         public static ImmutableArray<string> ParseItemOptionValue(string? itemOptionValue)

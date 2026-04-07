@@ -30,21 +30,17 @@ using static GenerateFromMembersHelpers;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider()
-        : CodeRefactoringProvider, IIntentProvider
+    : CodeRefactoringProvider, IIntentProvider
 {
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var (document, textSpan, cancellationToken) = context;
         if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
-        {
             return;
-        }
 
         var result = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         if (result == null)
-        {
             return;
-        }
 
         var actions = GetGroupedActions(result.Value);
         context.RegisterRefactorings(actions);
@@ -119,15 +115,10 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             if (CanHaveRequiredParameters(constructorCandidate.Constructor.Parameters))
             {
                 requiredParametersActions.Add(new AddConstructorParametersCodeAction(
-                    document,
-                    info,
-                    constructorCandidate,
-                    containingType,
-                    constructorCandidate.MissingParameters,
-                    useSubMenuName: useSubMenu));
+                    document, info, constructorCandidate, useSubMenuName: useSubMenu));
             }
 
-            optionalParametersActions.Add(GetOptionalContructorParametersCodeAction(
+            optionalParametersActions.Add(GetOptionalConstructorParametersCodeAction(
                 document,
                 info,
                 constructorCandidate,
@@ -139,22 +130,23 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
 
         // local functions
         static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
-               => parameters.Length == 0 || !parameters.Last().IsOptional;
+            => parameters.Length == 0 || !parameters.Last().IsOptional;
 
-        static AddConstructorParametersCodeAction GetOptionalContructorParametersCodeAction(Document document, CodeGenerationContextInfo info, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
+        static AddConstructorParametersCodeAction GetOptionalConstructorParametersCodeAction(
+            Document document, CodeGenerationContextInfo info, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
         {
-            var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(
-                p => CodeGenerationSymbolFactory.CreateParameterSymbol(
+            var missingOptionalParameters = constructorCandidate.MissingParametersAndMembers.SelectAsArray(
+                t => (CodeGenerationSymbolFactory.CreateParameterSymbol(
                     attributes: default,
-                    refKind: p.RefKind,
-                    isParams: p.IsParams,
-                    type: p.Type,
-                    name: p.Name,
+                    refKind: t.parameter.RefKind,
+                    isParams: t.parameter.IsParams,
+                    type: t.parameter.Type,
+                    name: t.parameter.Name,
                     isOptional: true,
-                    hasDefaultValue: true));
+                    hasDefaultValue: true), t.fieldOrProperty));
 
             return new AddConstructorParametersCodeAction(
-                document, info, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
+                document, info, constructorCandidate with { MissingParametersAndMembers = missingOptionalParameters }, useSubMenuName);
         }
     }
 
@@ -167,15 +159,11 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
     {
         var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
         if (addConstructorParametersResult == null)
-        {
             return [];
-        }
 
         var actions = addConstructorParametersResult.Value.RequiredParameterActions.Concat(addConstructorParametersResult.Value.OptionalParameterActions);
         if (actions.IsEmpty)
-        {
             return [];
-        }
 
         var results = new FixedSizeArrayBuilder<IntentProcessorResult>(actions.Length);
         foreach (var action in actions)

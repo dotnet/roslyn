@@ -105,6 +105,7 @@ public abstract class EditingTestBase : CSharpTestBase
             "top-level statement" => CSharpFeaturesResources.top_level_statement,
             "top-level code" => CSharpFeaturesResources.top_level_code,
             "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
+            "extension block" => FeaturesResources.extension_block,
             _ => null
         };
 

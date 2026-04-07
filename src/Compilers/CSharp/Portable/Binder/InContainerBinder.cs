@@ -72,26 +72,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return true; }
         }
 
-        internal override void GetCandidateExtensionMethods(
-            ArrayBuilder<MethodSymbol> methods,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
-        {
-            if (_container.Kind == SymbolKind.Namespace)
-            {
-                ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
-            }
-        }
-
-        internal override void GetExtensionDeclarations(ArrayBuilder<NamedTypeSymbol> extensions, Binder originalBinder)
+#nullable enable
+        internal override void GetAllExtensionCandidatesInSingleBinder(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, Binder originalBinder)
         {
             if (_container is NamespaceSymbol ns)
             {
-                ns.GetExtensionContainers(extensions);
+                ns.GetAllExtensionMembers(members, name, alternativeName, arity, options, originalBinder.FieldsBeingBound);
             }
         }
+#nullable disable
 
         internal override TypeWithAnnotations GetIteratorElementType()
         {

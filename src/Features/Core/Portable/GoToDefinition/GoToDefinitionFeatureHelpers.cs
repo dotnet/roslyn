@@ -80,7 +80,8 @@ internal static class GoToDefinitionFeatureHelpers
         // So, if we only have a single location to go to, this does no unnecessary work.  And,
         // if we do have multiple locations to show, it will just be done in the BG, unblocking
         // this command thread so it can return the user faster.
-        var definitionItem = symbol.ToNonClassifiedDefinitionItem(solution, includeHiddenLocations: true);
+        var definitionItem = await symbol.ToNonClassifiedDefinitionItemAsync(
+            solution, includeHiddenLocations: true, cancellationToken).ConfigureAwait(false);
 
         if (thirdPartyNavigationAllowed)
         {

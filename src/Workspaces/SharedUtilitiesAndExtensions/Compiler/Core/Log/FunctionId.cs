@@ -578,6 +578,11 @@ internal enum FunctionId
     SourceGenerator_SolutionStatistics = 620,
     SourceGenerator_OtherWorkspaceSessionStatistics = 621,
 
+    /// <summary>
+    /// Telemetry for source generators that were ran in-process; this is only expected to be fired if calling into OOP failed.
+    /// </summary>
+    SourceGenerator_SolutionInProcStatistics = 622,
+
     // 630-650 for sqlite errors.
     SQLite_SqlException = 630,
     SQLite_StorageDisabled = 631,
@@ -646,6 +651,7 @@ internal enum FunctionId
     Copilot_Implement_NotImplementedException_Completed = 832,
 
     Copilot_AnalyzeChange = 840,
+    Copilot_AdjustProposal = 841,
 
     Copilot_Rename = 851,
 

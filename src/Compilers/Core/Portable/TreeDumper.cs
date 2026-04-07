@@ -128,6 +128,12 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
 
+                if (node.Text is "aliasOpt" or "boundContainingTypeOpt" or "boundDimensionsOpt" or "deconstructMethod"
+                    && node.Value is null)
+                {
+                    return true;
+                }
+
                 return false;
             }
         }

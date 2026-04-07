@@ -36,7 +36,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public abstract class CSharpTestBase : CommonTestBase
     {
-        public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersionFacts.CSharpNext]);
+        public static readonly TheoryData<LanguageVersion> LanguageVersions13AndNewer = new TheoryData<LanguageVersion>([LanguageVersion.CSharp13, LanguageVersion.Preview, LanguageVersion.CSharp14]);
+
+        protected static readonly string IUnionSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public interface IUnion
+    {
+#nullable enable
+#line 100000
+        object? Value { get; }
+#nullable disable
+    }
+}
+";
+        protected static readonly string UnionAttributeSource = @"
+namespace System.Runtime.CompilerServices
+{
+    public class UnionAttribute : System.Attribute
+    {
+    }
+}
+";
 
         protected static readonly string NullableAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
@@ -679,6 +700,26 @@ namespace System.Runtime.CompilerServices
         protected static MetadataReference RefSafetyRulesAttributeLib =>
             CreateCompilation(RefSafetyRulesAttributeDefinition).EmitToImageReference();
 
+        protected static readonly string MemorySafetyRulesAttributeDefinition = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.Module, Inherited = false, AllowMultiple = false)] 
+                public sealed class MemorySafetyRulesAttribute : Attribute
+                {
+                    public MemorySafetyRulesAttribute(int version) { Version = version; }
+                    public int Version { get; }
+                }
+            }
+            """;
+
+        protected static readonly string RequiresUnsafeAttributeDefinition = """
+            namespace System.Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Event | AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
+                public sealed class RequiresUnsafeAttribute : Attribute { }
+            }
+            """;
+
         protected static readonly string RequiredMemberAttribute = @"
 namespace System.Runtime.CompilerServices
 {
@@ -875,6 +916,46 @@ namespace System.Diagnostics.CodeAnalysis
                 }
             }
             """;
+
+        internal static readonly string ExtensionMarkerAttributeDefinition = """
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, Inherited = false)]
+    public sealed class ExtensionMarkerAttribute : Attribute
+    {
+        public ExtensionMarkerAttribute(string name)
+            => Name = name;
+
+        public string Name { get; }
+    }
+}
+""";
+
+        internal static readonly string ExtensionMarkerAttributeIL = """
+
+.class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.ExtensionMarkerAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 ff 7f 00 00 01 00 54 02 09 49 6e 68 65 72
+        69 74 65 64 00
+    )
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor (
+            string name
+        ) cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ret
+    }
+}
+""";
 
         #region A string containing expression-tree dumping utilities
         protected static readonly string ExpressionTestLibrary = """
@@ -1230,16 +1311,44 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
 """;
         #endregion A string containing expression-tree dumping utilities
 
-        protected static T GetSyntax<T>(SyntaxTree tree, string text)
+        internal const string RuntimeAsyncAwaitHelpers = """
+            namespace System.Runtime.CompilerServices
+            {
+                public static class AsyncHelpers
+                {
+                    public static void AwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
+                    {}
+                    public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+                    {}
+
+                    public static void Await(System.Threading.Tasks.Task task) => task.GetAwaiter().GetResult();
+                    public static void Await(System.Threading.Tasks.ValueTask task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.Task<T> task) => task.GetAwaiter().GetResult();
+                    public static T Await<T>(System.Threading.Tasks.ValueTask<T> task) => task.GetAwaiter().GetResult();
+                }
+            }
+            """;
+
+        internal const string RuntimeAsyncMethodGenerationAttributeDefinition = """
+            namespace System.Runtime.CompilerServices;
+
+            #pragma warning disable CS9113 // Unread primary constructor parameter
+
+            [AttributeUsage(AttributeTargets.Method)]
+            public class RuntimeAsyncMethodGenerationAttribute(bool runtimeAsync) : Attribute();
+            #pragma warning restore CS9113 // Unread primary constructor parameter
+            """;
+
+        protected static T GetSyntax<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
             where T : notnull
         {
-            return GetSyntaxes<T>(tree, text).Single();
+            return GetSyntaxes<T>(tree, text, descendIntoTrivia).Single();
         }
 
-        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text)
+        protected static IEnumerable<T> GetSyntaxes<T>(SyntaxTree tree, string text, bool descendIntoTrivia = false)
             where T : notnull
         {
-            return tree.GetRoot().DescendantNodes().OfType<T>().Where(e => e.ToString() == text);
+            return tree.GetRoot().DescendantNodes(descendIntoTrivia: descendIntoTrivia).OfType<T>().Where(e => e.ToString() == text);
         }
 
         protected static CSharpCompilationOptions WithNullableEnable(CSharpCompilationOptions? options = null)
@@ -1800,7 +1909,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             return compilation;
         }
 
-        private static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
+        protected static CSharpCompilationOptions CheckForTopLevelStatements(SyntaxTree[] syntaxTrees)
         {
             bool hasTopLevelStatements = syntaxTrees.Any(s => s.GetRoot().ChildNodes().OfType<GlobalStatementSyntax>().Any());
 
@@ -2599,7 +2708,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
         {
             var tree = compilation.SyntaxTrees[0];
             SyntaxNode? syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
-            Debug.Assert(syntaxNode is not null, "Did you forget to place /*<bind>*/ comments in your source?");
+            Debug.Assert(syntaxNode is not null, $"Ensure a /*<bind>*/ comment is used around syntax matching the type argument for '{nameof(TSyntaxNode)}'.");
             VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
         }
 
@@ -3137,6 +3246,29 @@ namespace System.Runtime.CompilerServices
         }
         #endregion
 
+        #region Runtime Async
+
+        internal static CSharpParseOptions WithRuntimeAsync(CSharpParseOptions options) => options.WithFeature(Feature.RuntimeAsync, "on");
+
+        internal static CSharpCompilation CreateRuntimeAsyncCompilation(CSharpTestSource source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, bool includeSuppression = true)
+        {
+            parseOptions ??= WithRuntimeAsync(TestOptions.RegularPreview);
+            var syntaxTrees = source.GetSyntaxTrees(parseOptions, sourceFileName: "");
+            if (options == null)
+            {
+                options = CheckForTopLevelStatements(syntaxTrees);
+            }
+
+            if (includeSuppression)
+            {
+                options = options.WithSpecificDiagnosticOptions("SYSLIB5007", ReportDiagnostic.Suppress);
+            }
+
+            return CreateCompilation(source, options: options, parseOptions: parseOptions, targetFramework: TargetFramework.Net100);
+        }
+
+        #endregion
+
         protected static readonly string s_IAsyncEnumerable = @"
 namespace System.Collections.Generic
 {
@@ -3159,5 +3291,46 @@ namespace System
     }
 }
 ";
+
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0, bool forLowering = false)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            BoundDecisionDag decisionDag;
+
+            switch (node)
+            {
+                case SwitchStatementSyntax n:
+                    {
+                        var b = (BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case SwitchExpressionSyntax n:
+                    {
+                        var b = (BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                case IsPatternExpressionSyntax n:
+                    {
+                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                    }
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
     }
 }

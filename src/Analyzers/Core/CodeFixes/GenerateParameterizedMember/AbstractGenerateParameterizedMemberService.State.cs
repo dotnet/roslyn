@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -69,7 +68,11 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 return false;
             }
 
-            if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, cancellationToken))
+            var codeGenerationContext = new CodeGenerationContext(
+                afterThisLocation: Location,
+                generateMethodBodies: TypeToGenerateIn.TypeKind != TypeKind.Interface,
+                allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument);
+            if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken))
             {
                 return false;
             }
@@ -82,7 +85,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 .GetMembers(IdentifierToken.ValueText)
                 .OfType<IMethodSymbol>();
 
-            var destinationProvider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
+            var destinationProvider = document.Project.Solution.GetExtendedLanguageServices(TypeToGenerateIn.Language);
 
             var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
             var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();

@@ -492,6 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasCompilerLoweringPreserveAttribute => _underlyingType.HasCompilerLoweringPreserveAttribute;
 
+        internal override bool IsUnionTypeCore => _underlyingType.IsUnionTypeCore;
+
 #nullable enable
         internal sealed override ParameterSymbol? ExtensionParameter
         {
@@ -521,5 +523,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
         }
+
+        internal sealed override string? ExtensionGroupingName
+            => _underlyingType.ExtensionGroupingName;
+
+        internal sealed override string? ExtensionMarkerName
+            => _underlyingType.ExtensionMarkerName;
     }
 }

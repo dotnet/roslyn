@@ -2125,7 +2125,6 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
                     throw new System.NotImplementedException();
                 }
             }
-
             """, parseOptions: TestOptions.RegularPreview);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48742")]

@@ -26,13 +26,10 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     private readonly IRemoteHostClientShutdownCancellationService? _shutdownCancellationService;
     private readonly IRemoteServiceCallbackDispatcherProvider _callbackDispatcherProvider;
 
-    public readonly RemoteProcessConfiguration Configuration;
-
     private Process? _remoteProcess;
 
     private ServiceHubRemoteHostClient(
         SolutionServices services,
-        RemoteProcessConfiguration configuration,
         ServiceBrokerClient serviceBrokerClient,
         HubClient hubClient,
         IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
@@ -48,12 +45,10 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
         _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
         _errorReportingService = services.GetService<IErrorReportingService>();
         _shutdownCancellationService = services.GetService<IRemoteHostClientShutdownCancellationService>();
-        Configuration = configuration;
     }
 
     public static async Task<RemoteHostClient> CreateAsync(
         SolutionServices services,
-        RemoteProcessConfiguration configuration,
         string localSettingsDirectory,
         AsynchronousOperationListenerProvider listenerProvider,
         IServiceBroker serviceBroker,
@@ -69,7 +64,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 
             var hubClient = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
 
-            var client = new ServiceHubRemoteHostClient(services, configuration, serviceBrokerClient, hubClient, callbackDispatchers);
+            var client = new ServiceHubRemoteHostClient(services, serviceBrokerClient, hubClient, callbackDispatchers);
 
             var workspaceConfigurationService = services.GetRequiredService<IWorkspaceConfigurationService>();
 
@@ -77,10 +72,12 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
                 (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, localSettingsDirectory, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
+            string? errorMessage = null;
+
             if (remoteProcessIdAndErrorMessage.HasValue)
             {
                 if (remoteProcessIdAndErrorMessage.Value.errorMessage != null)
-                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"ServiceHub initialization error: {remoteProcessIdAndErrorMessage.Value.errorMessage}");
+                    errorMessage = $"ServiceHub initialization error: {remoteProcessIdAndErrorMessage.Value.errorMessage}";
 
                 try
                 {
@@ -88,12 +85,24 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
                 }
                 catch (Exception e)
                 {
-                    hubClient.Logger.TraceEvent(TraceEventType.Error, 1, $"Unable to find Roslyn ServiceHub process: {e.Message}");
+                    errorMessage = $"Unable to find Roslyn ServiceHub process: {e.Message}";
                 }
             }
             else
             {
-                hubClient.Logger.TraceEvent(TraceEventType.Error, 1, "Roslyn ServiceHub process initialization failed.");
+                errorMessage = "Roslyn ServiceHub process initialization failed.";
+            }
+
+            if (errorMessage != null)
+            {
+                hubClient.Logger.TraceEvent(TraceEventType.Error, 1, errorMessage);
+
+                var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(IRemoteInitializationService));
+
+                services.GetRequiredService<IErrorReportingService>().ShowGlobalErrorInfo(
+                    errorMessage,
+                    TelemetryFeatureName.GetRemoteFeatureName(descriptor.ComponentName, descriptor.SimpleName),
+                    exception: null);
             }
 
             await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
@@ -115,7 +124,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
     /// </summary>
     internal RemoteServiceConnection<T> CreateConnection<T>(ServiceDescriptors descriptors, IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider, object? callbackTarget) where T : class
     {
-        var descriptor = descriptors.GetServiceDescriptor(typeof(T), Configuration);
+        var descriptor = descriptors.GetServiceDescriptor(typeof(T));
         var callbackDispatcher = (descriptor.ClientInterface != null) ? callbackDispatcherProvider.GetDispatcher(typeof(T)) : null;
 
         return new BrokeredServiceConnection<T>(

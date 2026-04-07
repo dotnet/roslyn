@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim bestLocation As Location = Nothing
                         For Each symbol In labels
                             Debug.Assert(symbol.Locations.Length = 1)
-                            Dim sourceLocation As Location = symbol.Locations(0)
+                            Dim sourceLocation As Location = symbol.GetFirstLocation()
                             If bestSymbol Is Nothing OrElse Me.Compilation.CompareSourceLocations(bestLocation, sourceLocation) > 0 Then
                                 bestSymbol = symbol
                                 bestLocation = sourceLocation

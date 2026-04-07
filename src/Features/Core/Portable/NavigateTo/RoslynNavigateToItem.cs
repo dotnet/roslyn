@@ -188,6 +188,7 @@ internal readonly struct RoslynNavigateToItem(
                 case DeclaredSymbolInfoKind.Module:
                 case DeclaredSymbolInfoKind.Struct:
                 case DeclaredSymbolInfoKind.RecordStruct:
+                case DeclaredSymbolInfoKind.Union:
                     return true;
                 default:
                     return false;

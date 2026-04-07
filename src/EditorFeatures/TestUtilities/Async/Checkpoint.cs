@@ -10,7 +10,7 @@ namespace Roslyn.Test.Utilities;
 
 public class Checkpoint
 {
-    private readonly TaskCompletionSource<object> _tcs = new TaskCompletionSource<object>();
+    private readonly TaskCompletionSource<object> _tcs = new();
 
     public Task Task => _tcs.Task;
 

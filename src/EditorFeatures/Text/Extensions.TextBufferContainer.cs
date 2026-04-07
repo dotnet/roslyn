@@ -19,7 +19,7 @@ public static partial class Extensions
     internal sealed class TextBufferContainer : SourceTextContainer
     {
         private readonly WeakReference<ITextBuffer> _weakEditorBuffer;
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly ITextBufferCloneService? _textBufferCloneService;
 
         private event EventHandler<TextChangeEventArgs>? EtextChanged;

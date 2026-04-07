@@ -16,7 +16,7 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
 {
     internal const string MonikerName = "Microsoft.VisualStudio.Server.IBrokeredServiceBridgeManifest";
     internal const string MonikerVersion = "0.1";
-    private static readonly ServiceMoniker s_serviceMoniker = new ServiceMoniker(MonikerName, new Version(MonikerVersion));
+    private static readonly ServiceMoniker s_serviceMoniker = new(MonikerName, new Version(MonikerVersion));
     private static readonly ServiceRpcDescriptor s_serviceDescriptor = new ServiceJsonRpcDescriptor(
         s_serviceMoniker,
         ServiceJsonRpcDescriptor.Formatters.UTF8,
@@ -38,7 +38,7 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
     /// <summary>
     /// Returns a subset of services registered to Microsoft.VisualStudio.Code.Server container that are proferred by the Language Server process.
     /// </summary>
-    public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
         var services = (IReadOnlyCollection<ServiceMoniker>)[.. _serviceBrokerFactory.GetRequiredServiceBrokerContainer().GetRegisteredServices()
             .Select(s => s.Key)
@@ -46,12 +46,11 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))];
         _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
-        return ValueTask.FromResult(services);
+        return services;
     }
 
-    public Task InitializeAsync(CancellationToken cancellationToken)
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
     }
 }
 #pragma warning restore RS0030 // Do not used banned APIs

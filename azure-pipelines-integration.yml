@@ -4,6 +4,7 @@ trigger:
     include:
     - main
     - main-vs-deps
+    - community
     - release/*
     - features/*
     - demos/*
@@ -20,6 +21,7 @@ pr:
     include:
     - main
     - main-vs-deps
+    - community
     - release/*
     - features/*
     - demos/*
@@ -68,12 +70,17 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.scout.amd64.open
+  default: windows.vs2022.amd64.open
   values:
   - windows.vs2022.amd64.open
-  - windows.vs2022.scout.amd64.open
-  - windows.vs2022preview.amd64.open
-  - windows.vs2022preview.scout.amd64.open
+  - windows.vs2026preview.scout.amd64.open
+- name: buildQueueName
+  displayName: Build Queue Name
+  type: string
+  default: windows.vs2026preview.scout.amd64.open
+  values:
+  - windows.vs2022.amd64.open
+  - windows.vs2026preview.scout.amd64.open
 - name: timeout
   displayName: Timeout in Minutes
   type: number
@@ -84,6 +91,7 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
     testRuns:
@@ -99,6 +107,7 @@ stages:
   parameters:
     poolName: ${{ parameters.poolName }}
     queueName: ${{ parameters.queueName }}
+    buildQueueName: ${{ parameters.buildQueueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Release
     testRuns:

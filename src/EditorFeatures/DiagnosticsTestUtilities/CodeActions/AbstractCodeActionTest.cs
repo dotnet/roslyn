@@ -35,7 +35,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
     {
         parameters ??= TestParameters.Default;
 
-        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+        var (document, span, annotation) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
 
         var refactoring = await GetCodeRefactoringAsync(workspace, parameters);
         var actions = refactoring == null
@@ -61,7 +61,7 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
             return (actions, actionToInvoke);
 
         var fixAllCodeAction = await GetFixAllFixAsync(actionToInvoke,
-            refactoring.Provider, document, span, fixAllScope.Value).ConfigureAwait(false);
+            refactoring.Provider, document, span, fixAllScope.Value.ToRefactorAllScope()).ConfigureAwait(false);
         if (fixAllCodeAction == null)
             return ([], null);
 
@@ -73,24 +73,24 @@ public abstract partial class AbstractCodeActionTest : AbstractCodeActionOrUserD
         CodeRefactoringProvider provider,
         Document document,
         TextSpan selectionSpan,
-        FixAllScope scope)
+        RefactorAllScope scope)
     {
-        var fixAllProvider = provider.GetFixAllProvider();
-        if (fixAllProvider == null || !fixAllProvider.GetSupportedFixAllScopes().Contains(scope))
+        var refactorAllProvider = provider.GetRefactorAllProvider();
+        if (refactorAllProvider == null || !refactorAllProvider.GetSupportedRefactorAllScopes().Contains(scope))
             return null;
 
-        var fixAllState = new FixAllState(fixAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
-        var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
-        return await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
+        var refactorAllState = new RefactorAllState(refactorAllProvider, document, selectionSpan, provider, scope, originalCodeAction);
+        var refactorAllContext = new RefactorAllContext(refactorAllState, CodeAnalysisProgress.None, CancellationToken.None);
+        return await refactorAllProvider.GetRefactoringAsync(refactorAllContext).ConfigureAwait(false);
     }
 
-    protected override Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(EditorTestWorkspace workspace, TestParameters parameters)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    protected override async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWorkerAsync(EditorTestWorkspace workspace, TestParameters parameters)
+        => [];
 
     internal override async Task<CodeRefactoring> GetCodeRefactoringAsync(
         EditorTestWorkspace workspace, TestParameters parameters)
     {
-        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out _);
+        var (document, span, _) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
         return await GetCodeRefactoringAsync(document, span, workspace, parameters).ConfigureAwait(false);
     }
 

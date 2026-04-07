@@ -27,6 +27,15 @@ internal abstract class EditAndContinueTestVerifier
 {
     public const EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
 
+    public const EditAndContinueCapabilities NetFrameworkCapabilities =
+        EditAndContinueCapabilities.Baseline |
+        EditAndContinueCapabilities.AddInstanceFieldToExistingType |
+        EditAndContinueCapabilities.AddStaticFieldToExistingType |
+        EditAndContinueCapabilities.AddMethodToExistingType |
+        EditAndContinueCapabilities.NewTypeDefinition |
+        EditAndContinueCapabilities.ChangeCustomAttributes |
+        EditAndContinueCapabilities.UpdateParameters;
+
     public const EditAndContinueCapabilities Net5RuntimeCapabilities =
         EditAndContinueCapabilities.Baseline |
         EditAndContinueCapabilities.AddInstanceFieldToExistingType |
@@ -267,7 +276,7 @@ internal abstract class EditAndContinueTestVerifier
         }
 
         var duplicateNonPartial = allEdits
-            .Where(e => e.PartialType == null && e.DeletedSymbolContainer is null)
+            .Where(e => e is { PartialType: null, DeletedSymbolContainer: null })
             .GroupBy(e => e.Symbol, SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true))
             .Where(g => g.Count() > 1)
             .Select(g => g.Key);
@@ -275,7 +284,13 @@ internal abstract class EditAndContinueTestVerifier
         AssertEx.Empty(duplicateNonPartial, "Duplicate non-partial symbols");
 
         // check if we can merge edits without throwing:
-        EditSession.MergePartialEdits(oldProject.GetCompilationAsync().Result!, newProject.GetCompilationAsync().Result!, allEdits, out var mergedEdits, out _, CancellationToken.None);
+        var (mergedEdits, _) = EditSession.MergePartialEditsAsync(
+            oldProject.GetCompilationAsync().Result!,
+            newProject.GetCompilationAsync().Result!,
+            oldProject,
+            newProject,
+            allEdits,
+            CancellationToken.None).AsTask().Result;
 
         // merging is where we fill in NewSymbol for deletes, so make sure that happened too
         foreach (var edit in mergedEdits)
@@ -284,6 +299,26 @@ internal abstract class EditAndContinueTestVerifier
                 edit.OldSymbol is IMethodSymbol)
             {
                 Assert.True(edit.NewSymbol is not null);
+            }
+
+            // Validate that the syntax mapping function provides mapping for all lambdas and closures within the changed syntax,
+            // so the compiler is able to determine the mapping.
+            if (edit.SyntaxMap != null)
+            {
+                Assert.NotNull(edit.NewSymbol);
+
+                foreach (var newSyntaxRef in edit.NewSymbol.DeclaringSyntaxReferences)
+                {
+                    var newSyntax = newSyntaxRef.GetSyntax(CancellationToken.None);
+
+                    foreach (var newNode in newSyntax.DescendantNodesAndSelf())
+                    {
+                        if (Analyzer.IsLambda(newNode) || Analyzer.IsClosureScope(newNode))
+                        {
+                            _ = edit.SyntaxMap(newNode);
+                        }
+                    }
+                }
             }
         }
     }
@@ -342,8 +377,8 @@ internal abstract class EditAndContinueTestVerifier
                     expectedOldSymbol = expectedSemanticEdit.SymbolProvider(oldCompilation);
                     expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
 
-                    Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation).Symbol);
+                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
                     break;
 
                 case SemanticEditKind.Delete:
@@ -352,25 +387,25 @@ internal abstract class EditAndContinueTestVerifier
                     // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
                     // differently
                     if (expectedOldSymbol.IsPartialDefinition() &&
-                        symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is ISymbol resolvedSymbol)
+                        symbolKey.Resolve(oldCompilation).Symbol is ISymbol resolvedSymbol)
                     {
                         Assert.Equal(expectedOldSymbol, resolvedSymbol.PartialDefinitionPart());
                         Assert.Equal(null, resolvedSymbol.PartialImplementationPart());
                     }
                     else
                     {
-                        Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol);
+                        Assert.Equal(expectedOldSymbol, symbolKey.Resolve(oldCompilation).Symbol);
 
                         // When we're deleting a symbol, and have a deleted symbol container, it means the symbol wasn't really deleted,
                         // but rather had its signature changed in some way. Some of those ways, like changing the return type, are not
                         // represented in the symbol key, so the check below would fail, so we skip it.
                         if (expectedSemanticEdit.DeletedSymbolContainerProvider is null)
                         {
-                            Assert.Equal(null, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                            Assert.Equal(null, symbolKey.Resolve(newCompilation).Symbol);
                         }
                     }
 
-                    var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol;
+                    var deletedSymbolContainer = actualSemanticEdit.DeletedSymbolContainer?.Resolve(newCompilation).Symbol;
                     AssertEx.AreEqual(
                         deletedSymbolContainer,
                         expectedSemanticEdit.DeletedSymbolContainerProvider?.Invoke(newCompilation),
@@ -380,7 +415,7 @@ internal abstract class EditAndContinueTestVerifier
 
                 case SemanticEditKind.Insert or SemanticEditKind.Replace:
                     expectedNewSymbol = expectedSemanticEdit.SymbolProvider(newCompilation);
-                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol);
+                    Assert.Equal(expectedNewSymbol, symbolKey.Resolve(newCompilation).Symbol);
                     break;
 
                 default:
@@ -390,7 +425,7 @@ internal abstract class EditAndContinueTestVerifier
             // Partial types must match:
             AssertEx.AreEqual(
                 expectedSemanticEdit.PartialType?.Invoke(newCompilation),
-                actualSemanticEdit.PartialType?.Resolve(newCompilation, ignoreAssemblyKey: true).Symbol,
+                actualSemanticEdit.PartialType?.Resolve(newCompilation).Symbol,
                 message: $"{message}, {editKind}({expectedNewSymbol ?? expectedOldSymbol}): Partial types do not match");
 
             var expectedSyntaxMap = expectedSemanticEdit.GetSyntaxMap();
@@ -412,7 +447,7 @@ internal abstract class EditAndContinueTestVerifier
 
     public static SyntaxNode FindNode(SyntaxNode root, TextSpan span)
     {
-        var result = root.FindToken(span.Start).Parent!;
+        var result = root.FindToken(span.Start).Parent;
         while (result != null)
         {
             if (result.Span == span)
@@ -420,7 +455,7 @@ internal abstract class EditAndContinueTestVerifier
                 return result;
             }
 
-            result = result.Parent!;
+            result = result.Parent;
         }
 
         throw new Exception($"Unable to find node with span {span} `{root.GetText().GetSubText(span)}` in:{Environment.NewLine}{root}");

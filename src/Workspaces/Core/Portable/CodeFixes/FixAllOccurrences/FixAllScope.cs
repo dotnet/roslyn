@@ -10,22 +10,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 public enum FixAllScope
 {
     /// <summary>
-    /// Scope to fix all occurences of diagnostic(s) in the entire document.
+    /// Scope to fix all occurrences of diagnostic(s) in the entire document.
     /// </summary>
     Document,
 
     /// <summary>
-    /// Scope to fix all occurences of diagnostic(s) in the entire project.
+    /// Scope to fix all occurrences of diagnostic(s) in the entire project.
     /// </summary>
     Project,
 
     /// <summary>
-    /// Scope to fix all occurences of diagnostic(s) in the entire solution.
+    /// Scope to fix all occurrences of diagnostic(s) in the entire solution.
     /// </summary>
     Solution,
 
     /// <summary>
-    /// Custom scope to fix all occurences of diagnostic(s). This scope can
+    /// Custom scope to fix all occurrences of diagnostic(s). This scope can
     /// be used by custom <see cref="FixAllProvider"/>s and custom code fix engines.
     /// </summary>
     Custom,

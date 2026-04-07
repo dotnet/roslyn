@@ -300,8 +300,29 @@ function GetDotNetInstallScript {
   local root=$1
   local install_script="$root/dotnet-install.sh"
   local install_script_url="https://builds.dotnet.microsoft.com/dotnet/scripts/$dotnetInstallScriptVersion/dotnet-install.sh"
+  local timestamp_file="$root/.dotnet-install.timestamp"
+  local should_download=false
 
   if [[ ! -a "$install_script" ]]; then
+    should_download=true
+  elif [[ -f "$timestamp_file" ]]; then
+    # Check if the script is older than 30 days using timestamp file
+    local download_time=$(cat "$timestamp_file" 2>/dev/null || echo "0")
+    local current_time=$(date +%s)
+    local age_seconds=$((current_time - download_time))
+    
+    # 30 days = 30 * 24 * 60 * 60 = 2592000 seconds
+    if [[ $age_seconds -gt 2592000 ]]; then
+      echo "Existing install script is too old, re-downloading..."
+      should_download=true
+    fi
+  else
+    # No timestamp file exists, assume script is old and re-download
+    echo "No timestamp found for existing install script, re-downloading..."
+    should_download=true
+  fi
+
+  if [[ "$should_download" == true ]]; then
     mkdir -p "$root"
 
     echo "Downloading '$install_script_url'"
@@ -328,6 +349,9 @@ function GetDotNetInstallScript {
         ExitWithExitCode $exit_code
       }
     fi
+    
+    # Create timestamp file to track download time in seconds from epoch
+    date +%s > "$timestamp_file"
   fi
   # return value
   _GetDotNetInstallScript="$install_script"
@@ -502,7 +526,13 @@ function MSBuild-Core {
     }
   }
 
-  RunBuildTool "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@"
+  # Add -mt flag for MSBuild multithreaded mode if enabled via environment variable
+  local mt_switch=""
+  if [[ "${MSBUILD_MT_ENABLED:-}" == "1" ]]; then
+    mt_switch="-mt"
+  fi
+
+  RunBuildTool "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch $mt_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@"
 }
 
 function GetDarc {

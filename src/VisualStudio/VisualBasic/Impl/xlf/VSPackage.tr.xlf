@@ -18,36 +18,124 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
-Regex;
-regular expressions;
-related components under cursor;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression;
+Highlight related components under cursor;
 Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
+Import directives;
+Place System directives first when sorting imports;
+Separate import directive groups;
+Suggest imports for types in reference assemblies;
+Suggest imports for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused imports;
+Fade out unused members;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ''';
+Insert ' at the start of new lines when writing ' comments;
+Show preview for rename tracking;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
 JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
-Collapse #regions on file open;
-Collapse Imports on file open;
-Collapse metadata implementations on file open;
-Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Yeniden atanan değişkenlerin altını çiz;Satır içi ipuçlarını görüntüle;Bitiş yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Interface ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;
-Normal ifade;
-normal ifadeler;
-imlecin altındaki ilgili bileşenler; 
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Yeniden atanan değişkenlerin altını çiz;
+Satır içi ipuçlarını görüntüle;
+Kapatılan dosyalara ilişkin tanılamaları göster;
+Normal ifadeyi renklendir;
+İmleç altındaki ilgili bileşenleri vurgula;
 Geçersiz normal ifadeleri bildir;
+Tam çözüm analizini etkinleştir;
+Dış işlemde düzenleyici özellik analizi gerçekleştir;
+Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
+Gezinti için her zaman varsayılan sembol sunucularını kullan;
+İçeri aktarma yönergeleri;
+İçeri aktarmaları sıralarken önce 'System' yönergelerini yerleştir;
+İçeri aktarma yönerge gruplarını ayır;
+Başvuru bütünleştirilmiş kodlarındaki türler için içeri aktarmalar öner;
+NuGet paketlerindeki türler için içeri aktarmalar öner;
+Vurgulama;
+İmlecin altındaki sembole yönelik başvuruları vurgula;
+İmlecin altındaki ilgili anahtar sözcükleri vurgula;
+Ana hat oluşturma;
+Dosyalar açılırken ana hat oluşturma moduna gir;
+Dosya açılırken #regions öğesini daralt;
+Dosya açılırken İçeri Aktarmaları daralt;
+Dosya açılırken meta veri uygulamalarını daralt;
+Yordam satır ayırıcılarını göster;
+Bildirim düzeyinde yapılar için ana hattı göster;
+Kod düzeyinde yapılar için ana hattı göster;
+Açıklamalar ve ön işlemci bölgeleri için ana hattı göster;
+Tanımlara daraltırken bölgeleri daralt;
+Soluklaştırma;
+Kullanılmayan içeri aktarmaları soluklaştır;
+Kullanılmayan üyeleri soluklaştır;
+Blok Yapısı Kılavuzları;
+Bildirim düzeyinde yapılar için kılavuzları göster;
+Kod düzeyinde yapılar için kılavuzları göster;
+Düzenleyici Yardımı;
+''' için XML belge açıklamaları oluştur;
+' açıklamaları yazarken her yeni satırın başına ' ekle;
+Yeniden adlandırma izlemesi için önizleme göster;
+string.Format çağrılarındaki geçersiz yer tutucuları bildir;
+Ayıklama Yöntemi;
+Arabirim veya Soyut Sınıfı uygula;
+Özellik, olay ve yöntem eklerken bunları;
+aynı türdeki başka üyelerle birlikte;
+sona yerleştir;
+Özellik oluştururken;
+oluşturma özelliklerini tercih et;
+otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
+Normal ifadeleri renklendir;
+İmleç altındaki ilgili bileşenleri vurgula;
+Geçersiz normal ifadeleri bildir;
 JSON;
 JSON dizelerini renklendir;
 Geçersiz JSON dizelerini bildir;
-JSON dizeleri için düzenleyici özelliklerini algıla ve öner;
-Dosya açılırken #regions daralt;
-Dosya açılırken İçeri Aktarmaları daralt;
-Dosya açılırken meta veri uygulamalarını daralt;
-Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İçeri Aktarma Yönergeleri;</target>
+JSON dizeleri için düzenleyici özelliklerini algıla ve sun;
+Gelişmiş renkleri kullan;
+Düzenleyici Renk Düzeni;
+Devralma Marjı;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -114,11 +202,6 @@ Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İ
         <source>IntelliSense</source>
         <target state="translated">IntelliSense</target>
         <note />
-      </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Tamamlanma listesi ayarlarını değiştir;en son kullanılan üyeyi önceden seç</target>
-        <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>

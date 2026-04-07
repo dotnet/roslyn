@@ -146,15 +146,11 @@ public abstract partial class CompletionService : ILanguageService
             return false;
 
         // Enter does not trigger completion.
-        if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == '\n')
-        {
+        if (trigger is { Kind: CompletionTriggerKind.Insertion, Character: '\n' })
             return false;
-        }
 
         if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
-        {
             return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
-        }
 
         var extensionManager = languageServices.SolutionServices.GetRequiredService<IExtensionManager>();
 
@@ -187,7 +183,6 @@ public abstract partial class CompletionService : ILanguageService
     /// <param name="document">This will be the  original document that
     /// <paramref name="item"/> was created against.</param>
     /// <param name="item">The item to get the description for.</param>
-    /// <param name="cancellationToken"></param>
     public Task<CompletionDescription?> GetDescriptionAsync(
         Document document,
         CompletionItem item,
@@ -205,7 +200,6 @@ public abstract partial class CompletionService : ILanguageService
     /// <param name="item">The item to get the description for.</param>
     /// <param name="options">Completion options</param>
     /// <param name="displayOptions">Display options</param>
-    /// <param name="cancellationToken"></param>
     internal virtual async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
     {
         var provider = GetProvider(item, document.Project);
@@ -234,7 +228,6 @@ public abstract partial class CompletionService : ILanguageService
     /// <param name="commitCharacter">The typed character that caused the item to be committed. 
     /// This character may be used as part of the change. 
     /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
-    /// <param name="cancellationToken"></param>
     public virtual async Task<CompletionChange> GetChangeAsync(
         Document document,
         CompletionItem item,
@@ -376,6 +369,11 @@ public abstract partial class CompletionService : ILanguageService
         }
 
         return true;
+    }
+
+    internal virtual Task<bool> IsSpeculativeTypeParameterContextAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        return SpecializedTasks.False;
     }
 
     /// <summary>

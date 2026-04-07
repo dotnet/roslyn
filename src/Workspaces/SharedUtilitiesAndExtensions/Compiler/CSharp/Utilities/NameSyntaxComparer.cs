@@ -40,12 +40,10 @@ internal sealed class NameSyntaxComparer : IComparer<NameSyntax?>
             (IdentifierNameSyntax identifierX, IdentifierNameSyntax identifierY) => _tokenComparer.Compare(identifierX.Identifier, identifierY.Identifier),
             (GenericNameSyntax genericX, GenericNameSyntax genericY) => Compare(genericX, genericY),
             (IdentifierNameSyntax identifierX, GenericNameSyntax genericY) =>
-                _tokenComparer.Compare(identifierX.Identifier, genericY.Identifier) is var diff && diff != 0
-                    ? diff
+ _tokenComparer.Compare(identifierX.Identifier, genericY.Identifier) is var diff and not 0 ? diff
                     : -1, // Goo goes before Goo<T>
             (GenericNameSyntax genericX, IdentifierNameSyntax identifierY) =>
-                _tokenComparer.Compare(genericX.Identifier, identifierY.Identifier) is var diff && diff != 0
-                    ? diff
+ _tokenComparer.Compare(genericX.Identifier, identifierY.Identifier) is var diff and not 0 ? diff
                     : -1, // Goo<T> goes after Goo
             (_, _) => DecomposeCompare(x, y),
         };

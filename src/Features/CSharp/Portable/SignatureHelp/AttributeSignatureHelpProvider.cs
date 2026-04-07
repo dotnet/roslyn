@@ -176,7 +176,7 @@ internal sealed partial class AttributeSignatureHelpProvider : AbstractCSharpSig
 
             var displayParts = new List<SymbolDisplayPart>
             {
-                new SymbolDisplayPart(
+                new(
                 namedParameter is IFieldSymbol ? SymbolDisplayPartKind.FieldName : SymbolDisplayPartKind.PropertyName,
                 namedParameter, namedParameter.Name.ToIdentifierToken().ToString()),
                 Space(),

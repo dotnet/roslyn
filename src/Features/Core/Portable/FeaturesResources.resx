@@ -204,8 +204,8 @@
   <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
     <value>Generate Equals and GetHashCode</value>
   </data>
-  <data name="Generate_Equals_object" xml:space="preserve">
-    <value>Generate Equals(object)</value>
+  <data name="Generate_Equals" xml:space="preserve">
+    <value>Generate Equals(...)</value>
   </data>
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>
@@ -379,7 +379,7 @@
     <value>Project references mutliple assemblies of the same simple name '{0}': {1}. Changing a reference to such an assembly requires restarting the application.</value>
   </data>
   <data name="default" xml:space="preserve">
-    <value>default></value>
+    <value>default&gt;</value>
   </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>
@@ -548,6 +548,7 @@ Do you want to continue?</value>
   </data>
   <data name="Change_signature" xml:space="preserve">
     <value>Change signature...</value>
+    <comment>Here 'signature' refers to a programming signature (e.g., a method signature), not a legal signature</comment>
   </data>
   <data name="Generate_new_type" xml:space="preserve">
     <value>Generate new type...</value>
@@ -2681,17 +2682,32 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Move_static_members_to_another_type" xml:space="preserve">
     <value>Move static members to another type...</value>
   </data>
-  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_th_application" xml:space="preserve">
+  <data name="Changing_pseudo_custom_attribute_0_of_1_requires_restarting_the_application" xml:space="preserve">
     <value>Changing pseudo-custom attribute '{0}' of {1} requires restarting the application</value>
   </data>
-  <data name="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_th_application" xml:space="preserve">
+  <data name="Changing_the_containing_namespace_of_0_from_1_to_2_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the containing namespace of '{0}' from '{1}' to '{2}' requires restarting the application</value>
   </data>
   <data name="ChangesRequiredSynthesizedType" xml:space="preserve">
     <value>One or more changes result in a new type being created by the compiler, which requires restarting the application because it is not supported by the runtime</value>
   </data>
-  <data name="Changing_source_file_0_in_a_stale_project_has_no_effect_until_the_project_is_rebuit" xml:space="preserve">
-    <value>Changing source file '{0}' in a stale project has no effect until the project is rebuit.</value>
+  <data name="Changing_source_file_0_in_a_stale_project_1_has_no_effect_until_the_project_is_rebuilt_2" xml:space="preserve">
+    <value>Changing source file '{0}' in a stale project '{1}' has no effect until the project is rebuit; {2}</value>
+  </data>
+  <data name="Changing_source_file_0_in_a_project_1_that_does_not_support_hot_reload_requires_restarting_the_application_2" xml:space="preserve">
+    <value>Changing source file '{0}' in a project '{1}' that does not support Hot Reload requires restarting the application; {2}</value>
+  </data>
+  <data name="_0_does_not_support_Hot_Reload" xml:space="preserve">
+    <value>{0} does not support Hot Reload.</value>
+  </data>
+  <data name="the_content_of_the_document_is_stale" xml:space="preserve">
+    <value>the content of the document is stale.</value>
+  </data>
+  <data name="the_project_contains_stale_document_0" xml:space="preserve">
+    <value>the project contains stale document '{0}'.</value>
+  </data>
+  <data name="the_project_has_not_been_built" xml:space="preserve">
+    <value>the project has not been built.</value>
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
@@ -3039,9 +3055,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Please_resolve_errors_in_your_code_before_renaming_this_element" xml:space="preserve">
     <value>Please resolve errors in your code before renaming this element.</value>
   </data>
-  <data name="Renaming_anonymous_type_members_is_not_yet_supported" xml:space="preserve">
-    <value>Renaming anonymous type members is not yet supported.</value>
-  </data>
   <data name="You_cannot_rename_elements_from_previous_submissions" xml:space="preserve">
     <value>You cannot rename elements from previous submissions.</value>
   </data>
@@ -3144,39 +3157,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="SemanticSearch" xml:space="preserve">
     <value>Semantic Search</value>
   </data>
-  <data name="Query" xml:space="preserve">
-    <value>Query</value>
-  </data>
-  <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
-    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</value>
-  </data>
-  <data name="Semantic_search_query_terminated_with_exception" xml:space="preserve">
-    <value>Semantic search query terminated with exception</value>
-  </data>
-  <data name="Semantic_search_query_failed_to_compile" xml:space="preserve">
-    <value>Semantic search query failed to compile</value>
-  </data>
-  <data name="The_query_does_not_specify_0_top_level_function" xml:space="preserve">
-    <value>The query does not specify '{0}' top-level function</value>
-  </data>
-  <data name="Method_0_must_be_static_and_non_generic" xml:space="preserve">
-    <value>Method '{0}' must be static and non-generic</value>
-  </data>
-  <data name="The_query_specifies_multiple_top_level_functions_1" xml:space="preserve">
-    <value>The query specifies multiple top-level functions '{1}'</value>
-  </data>
-  <data name="Top_level_function_0_must_have_a_single_parameter" xml:space="preserve">
-    <value>Top-level function '{0}' must have a single parameter</value>
-  </data>
-  <data name="Parameter_type_0_is_not_among_supported_types_1" xml:space="preserve">
-    <value>Parameter type '{0}' is not among supported types: {1}</value>
-  </data>
-  <data name="Return_type_0_is_not_among_supported_types_1" xml:space="preserve">
-    <value>Return type '{0}' is not among supported types: {1}</value>
-  </data>
-  <data name="Unable_to_load_type_0_1" xml:space="preserve">
-    <value>Unable to load type '{0}': '{1}'</value>
-  </data>
   <data name="NET_Code_Actions" xml:space="preserve">
     <value>.NET Code Actions</value>
   </data>
@@ -3252,5 +3232,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="_0_cannot_be_negative_or_zero" xml:space="preserve">
     <value>'{0}' cannot be negative or zero</value>
+  </data>
+  <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
+    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</value>
+  </data>
+  <data name="extension_block" xml:space="preserve">
+    <value>extension block</value>
   </data>
 </root>

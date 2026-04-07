@@ -24,7 +24,7 @@ internal static class DefaultFixAllProviderHelpers
         string title,
         TFixAllContext fixAllContext,
         Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
-        where TFixAllContext : IFixAllContext
+        where TFixAllContext : IRefactorOrFixAllContext
     {
         // We're about to do a lot of computation to compute all the diagnostics needed and to perform the
         // changes.  Keep this solution alive on the OOP side so that we never drop it and then resync it
@@ -44,25 +44,25 @@ internal static class DefaultFixAllProviderHelpers
             return null;
 
         return CodeAction.Create(
-            title, (_, _) => Task.FromResult(solution), equivalenceKey: null, CodeActionPriority.Default, fixAllContext.State.FixAllProvider.Cleanup);
+            title, async (_, _) => solution, equivalenceKey: null, CodeActionPriority.Default, fixAllContext.State.FixAllProvider.Cleanup);
     }
 
     private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(
         TFixAllContext fixAllContext,
         Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
-        where TFixAllContext : IFixAllContext
+        where TFixAllContext : IRefactorOrFixAllContext
         => fixAllContextsAsync(fixAllContext, [fixAllContext]);
 
     private static Task<Solution?> GetProjectFixesAsync<TFixAllContext>(
         TFixAllContext fixAllContext,
         Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
-        where TFixAllContext : IFixAllContext
+        where TFixAllContext : IRefactorOrFixAllContext
         => fixAllContextsAsync(fixAllContext, [(TFixAllContext)fixAllContext.With((document: null, fixAllContext.State.Project))]);
 
     private static Task<Solution?> GetSolutionFixesAsync<TFixAllContext>(
         TFixAllContext fixAllContext,
         Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
-        where TFixAllContext : IFixAllContext
+        where TFixAllContext : IRefactorOrFixAllContext
     {
         var solution = fixAllContext.State.Solution;
         var dependencyGraph = solution.GetProjectDependencyGraph();

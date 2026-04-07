@@ -206,7 +206,7 @@ public sealed class ExtensionOrdererTests
     #region Helpers
 
     private static Lazy<Extension, OrderableMetadata> CreateExtension(string? name = null, IEnumerable<string>? before = null, IEnumerable<string>? after = null)
-        => new Lazy<Extension, OrderableMetadata>(new OrderableMetadata(name, before: before, after: after));
+        => new(new OrderableMetadata(name, before: before, after: after));
 
     private static IEnumerable<string?> GetNames(IEnumerable<Lazy<Extension, OrderableMetadata>> actual)
         => actual.Select(i => i.Metadata.Name);

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -38,6 +39,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SymbolEqualityComparer(TypeCompareKind comparison)
         {
             _comparison = comparison;
+        }
+
+        internal static EqualityComparer<Symbol> Create(TypeCompareKind comparison)
+        {
+            switch (comparison)
+            {
+                case TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes:
+                    return IgnoringDynamicTupleNamesAndNullability;
+                case TypeCompareKind.ConsiderEverything:
+                    return ConsiderEverything;
+                case TypeCompareKind.AllIgnoreOptionsPlusNullableWithObliviousMatchesAny:
+                    return AllIgnoreOptionsPlusNullableWithUnknownMatchesAny;
+                case TypeCompareKind.CLRSignatureCompareOptions:
+                    return CLRSignature;
+                default:
+                    Debug.Assert(false, "Consider optimizing as above when we need to handle a new type comparison kind.");
+                    return new SymbolEqualityComparer(comparison);
+            }
         }
 
         public override int GetHashCode(Symbol obj)

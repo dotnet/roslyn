@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol _topLevelMethod;
 
         public SynthesizedLambdaCacheFieldSymbol(NamedTypeSymbol containingType, TypeSymbol type, string name, MethodSymbol topLevelMethod, bool isReadOnly, bool isStatic)
-            : base(containingType, name, isPublic: true, isReadOnly: isReadOnly, isStatic: isStatic)
+            : base(containingType, name, DeclarationModifiers.Public, isReadOnly: isReadOnly, isStatic: isStatic)
         {
             Debug.Assert((object)type != null);
             Debug.Assert((object)topLevelMethod != null);

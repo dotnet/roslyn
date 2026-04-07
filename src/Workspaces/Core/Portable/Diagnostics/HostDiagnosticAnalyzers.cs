@@ -75,18 +75,53 @@ internal sealed class HostDiagnosticAnalyzers
     public ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> GetOrCreateHostDiagnosticAnalyzersPerReference(string language)
         => _hostDiagnosticAnalyzersPerLanguageMap.GetOrAdd(language, CreateHostDiagnosticAnalyzersAndBuildMap);
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache)
+    /// <summary>
+    /// Returns all the DiagnosticIds producible by the referenced DiagnosticAnalyzers.
+    /// </summary>
+    public ImmutableDictionary<ProjectId, ImmutableHashSet<string>> GetAllDiagnosticIds(
+        DiagnosticAnalyzerInfoCache infoCache,
+        ImmutableArray<Project> projects)
     {
-        return ConvertReferenceIdentityToName(
-            CreateDiagnosticDescriptorsPerReference(infoCache, _lazyHostDiagnosticAnalyzersPerReferenceMap.Value),
-            _hostAnalyzerReferencesMap);
+        var builder = ImmutableDictionary.CreateBuilder<ProjectId, ImmutableHashSet<string>>();
+
+        foreach (var project in projects)
+        {
+            var diagnosticIds = GetAllDiagnosticIds(infoCache, project);
+            builder.Add(project.Id, diagnosticIds);
+        }
+
+        return builder.ToImmutable();
+
+        ImmutableHashSet<string> GetAllDiagnosticIds(DiagnosticAnalyzerInfoCache infoCache, Project project)
+        {
+            var descriptorsPerReference = GetDiagnosticDescriptorsPerReference(infoCache, project);
+
+            var diagnosticIdBuilder = ImmutableHashSet.CreateBuilder<string>();
+            foreach (var descriptors in descriptorsPerReference.Values)
+            {
+                foreach (var descriptor in descriptors)
+                {
+                    diagnosticIdBuilder.Add(descriptor.Id);
+                }
+            }
+
+            return diagnosticIdBuilder.ToImmutable();
+        }
     }
 
-    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(DiagnosticAnalyzerInfoCache infoCache, Project project)
+    public ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> GetDiagnosticDescriptorsPerReference(
+        DiagnosticAnalyzerInfoCache infoCache,
+        Project? project)
     {
-        var descriptorPerReference = CreateDiagnosticDescriptorsPerReference(infoCache, CreateDiagnosticAnalyzersPerReference(project));
-        var map = _hostAnalyzerReferencesMap.AddRange(CreateProjectAnalyzerReferencesMap(project.AnalyzerReferences));
-        return ConvertReferenceIdentityToName(descriptorPerReference, map);
+        var descriptorsPerReference = project is null
+            ? CreateDiagnosticDescriptorsPerReference(infoCache, _lazyHostDiagnosticAnalyzersPerReferenceMap.Value)
+            : CreateDiagnosticDescriptorsPerReference(infoCache, CreateDiagnosticAnalyzersPerReference(project));
+
+        var map = project is null
+            ? _hostAnalyzerReferencesMap
+            : _hostAnalyzerReferencesMap.AddRange(CreateProjectAnalyzerReferencesMap(project.AnalyzerReferences));
+
+        return ConvertReferenceIdentityToName(descriptorsPerReference, map);
     }
 
     private static ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> ConvertReferenceIdentityToName(

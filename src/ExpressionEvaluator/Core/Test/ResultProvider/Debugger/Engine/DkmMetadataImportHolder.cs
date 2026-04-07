@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.MetadataReader;
+using Microsoft.MetadataReader.PortableInterop;
 
 #nullable enable
 
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         /// <summary>
         /// The underlying IMetaDataImport interface reference
         /// </summary>
-        public IMetadataImport Value { get; }
+        public IMetadataImport PortableValue { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="DkmMetadataImportHolder"/>.
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         /// <param name="value">[In] Implementation of IMetadataImport to wrap</param>
         public DkmMetadataImportHolder(IMetadataImport value)
         {
-            this.Value = value ?? throw new ArgumentNullException(nameof(value));
+            this.PortableValue = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         void IDisposable.Dispose()

@@ -322,7 +322,7 @@ internal sealed partial class CSharpIntroduceVariableService
         foreach (var match in matches)
             editor.ReplaceNode(match, replacement);
 
-        if (scope is BlockSyntax block)
+        if (matches.FindInnermostCommonBlock() is BlockSyntax block)
         {
             var firstAffectedStatement = block.Statements.Single(s => firstAffectedExpression.GetAncestorOrThis<StatementSyntax>()!.Contains(s));
             var firstAffectedStatementIndex = block.Statements.IndexOf(firstAffectedStatement);

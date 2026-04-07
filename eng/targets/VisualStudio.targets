@@ -142,7 +142,7 @@
            Condition="$([MSBuild]::ValueOrDefault('$(ExtensionsPath)', '').Contains('16.0'))"/>
   </Target>
 
-  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
+  <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 
   <!-- Import workarounds for the fast up to date check, but only if VsSdkTargetsImported is set which is set in the VS SDK targets themselves;
        if we don't have that condition, we might try to include it when we don't have some targets we depend on, and things will break -->

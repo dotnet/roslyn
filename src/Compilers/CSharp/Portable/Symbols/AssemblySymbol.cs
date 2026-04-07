@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         /// <summary>
+        /// Separate pool for assembly symbols as these collections commonly exceed ArrayBuilder's size threshold.
+        /// </summary>
+        private static readonly ObjectPool<ArrayBuilder<AssemblySymbol>> s_symbolPool = new ObjectPool<ArrayBuilder<AssemblySymbol>>(() => new ArrayBuilder<AssemblySymbol>());
+
+        /// <summary>
         /// The system assembly, which provides primitive types like Object, String, etc., e.g. mscorlib.dll. 
         /// The value is provided by ReferenceManager and must not be modified. For SourceAssemblySymbol, non-missing 
         /// coreLibrary must match one of the referenced assemblies returned by GetReferencedAssemblySymbols() method of 
@@ -305,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         internal abstract bool HasImportedFromTypeLibAttribute { get; }
 
         internal abstract bool HasPrimaryInteropAssemblyAttribute { get; }
@@ -429,6 +436,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.RuntimeSupportsInlineArrayTypes;
                 case RuntimeCapability.ByRefLikeGenerics:
                     return this.RuntimeSupportsByRefLikeGenerics;
+                case RuntimeCapability.RuntimeAsyncMethods:
+                    return this.RuntimeSupportsAsyncMethods;
             }
 
             return false;
@@ -480,6 +489,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Figure out if the target runtime supports extended layout types.
+        /// </summary>
+        internal bool RuntimeSupportsExtendedLayout
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsExtendedLayout
+            get
+            {
+                return GetSpecialTypeMember(SpecialMember.System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor) is object;
+            }
+        }
+
+        /// <summary>
         /// Figure out if the target runtime supports inline array types.
         /// </summary>
         internal bool RuntimeSupportsByRefLikeGenerics
@@ -493,6 +514,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics);
             }
         }
+
+#nullable enable
+        // Keep in sync with VB's AssemblySymbol.RuntimeSupportsAsyncMethods
+        internal bool RuntimeSupportsAsyncMethods
+            => GetSpecialType(InternalSpecialType.System_Runtime_CompilerServices_AsyncHelpers) is { TypeKind: TypeKind.Class, IsStatic: true };
+#nullable disable
 
         protected bool RuntimeSupportsFeature(SpecialMember feature)
         {
@@ -589,13 +616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ICollection<string> NamespaceNames { get; }
 
         /// <summary>
-        /// Returns true if this assembly might contain extension methods. If this property
-        /// returns false, there are no extension methods in this assembly.
+        /// Returns true if this assembly might contain extension members or methods. If this property
+        /// returns false, there are no extension members or methods in this assembly.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
+        /// This property allows the search for extension members or methods to be narrowed quickly.
         /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        public abstract bool MightContainExtensions { get; }
 
         /// <summary>
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.
@@ -940,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this is SourceAssemblySymbol,
                 "Never include references for a non-source assembly, because they don't know about aliases.");
 
-            var assemblies = ArrayBuilder<AssemblySymbol>.GetInstance();
+            var assemblies = s_symbolPool.Allocate();
 
             // ignore reference aliases if searching for a type from a specific assembly:
             if (assemblyOpt != null)
@@ -1007,7 +1034,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = candidate;
             }
 
-            assemblies.Free();
+            assemblies.Clear();
+
+            // Do not call assemblies.Free, as the ArrayBuilder isn't associated with our pool and even if it were, we don't
+            // want the default freeing behavior of limiting pooled array size to ArrayBuilder.PooledArrayLengthLimitExclusive.
+            // Instead, we need to explicitly add this item back to our pool.
+            s_symbolPool.Free(assemblies);
+
             Debug.Assert(result?.IsErrorType() != true);
             return result;
 

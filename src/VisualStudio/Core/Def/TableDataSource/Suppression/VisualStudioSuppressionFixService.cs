@@ -483,8 +483,8 @@ internal sealed class VisualStudioSuppressionFixService(
 
                 var uniqueDiagnosticIds = group.SelectMany(kvp => kvp.Value.Select(d => d.Id)).ToImmutableHashSet();
                 var diagnosticService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                var latestProjectDiagnostics = (await diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var latestProjectDiagnostics = (await diagnosticService.GetDiagnosticsForIdsAsync(
+                    project, documentIds: default, diagnosticIds: uniqueDiagnosticIds, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false)).Where(IsDocumentDiagnostic);
 
                 latestDocumentDiagnosticsMap.Clear();
@@ -562,8 +562,8 @@ internal sealed class VisualStudioSuppressionFixService(
 
                 var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
                 var diagnosticService = _workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                var latestDiagnosticsFromDiagnosticService = (await diagnosticService.GetDiagnosticsForIdsAsync(project, documentId: null,
-                    diagnosticIds: uniqueDiagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, cancellationToken)
+                var latestDiagnosticsFromDiagnosticService = (await diagnosticService.GetDiagnosticsForIdsAsync(
+                    project, documentIds: default, diagnosticIds: uniqueDiagnosticIds, AnalyzerFilter.All, includeLocalDocumentDiagnostics: true, cancellationToken)
                     .ConfigureAwait(false));
 
                 latestDiagnosticsToFix.Clear();

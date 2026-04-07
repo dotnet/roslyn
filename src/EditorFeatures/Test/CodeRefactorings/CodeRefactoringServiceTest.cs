@@ -63,11 +63,9 @@ public sealed class CodeRefactoringServiceTest
         {
         }
 
-        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             context.RegisterRefactoring(CodeAction.Create($"Blocking=false", _ => Task.FromResult<Document>(null)));
-
-            return Task.CompletedTask;
         }
     }
 
@@ -117,14 +115,12 @@ public sealed class CodeRefactoringServiceTest
 
     internal sealed class StubRefactoring : CodeRefactoringProvider
     {
-        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             context.RegisterRefactoring(CodeAction.Create(
                 nameof(StubRefactoring),
-                cancellationToken => Task.FromResult(context.Document),
+                async cancellationToken => context.Document,
                 equivalenceKey: nameof(StubRefactoring)));
-
-            return Task.CompletedTask;
         }
     }
 
@@ -173,7 +169,7 @@ public sealed class CodeRefactoringServiceTest
         var txtAdditionalDocument = project.AdditionalDocuments.Single(t => t.Name == "test.txt");
         var txtRefactorings = await refactoringService.GetRefactoringsAsync(txtAdditionalDocument, TextSpan.FromBounds(0, 0), CancellationToken.None);
         Assert.Equal(2, txtRefactorings.Length);
-        var txtRefactoringTitles = txtRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
+        var txtRefactoringTitles = txtRefactorings.SelectAsArray(s => s.CodeActions.Single().action.Title);
         Assert.Contains(refactoring1.Title, txtRefactoringTitles);
         Assert.Contains(refactoring2.Title, txtRefactoringTitles);
 
@@ -212,7 +208,7 @@ public sealed class CodeRefactoringServiceTest
         var editorConfig = project.AnalyzerConfigDocuments.Single(t => t.Name == ".editorconfig");
         var editorConfigRefactorings = await refactoringService.GetRefactoringsAsync(editorConfig, TextSpan.FromBounds(0, 0), CancellationToken.None);
         Assert.Equal(2, editorConfigRefactorings.Length);
-        var editorConfigRefactoringTitles = editorConfigRefactorings.Select(s => s.CodeActions.Single().action.Title).ToImmutableArray();
+        var editorConfigRefactoringTitles = editorConfigRefactorings.SelectAsArray(s => s.CodeActions.Single().action.Title);
         Assert.Contains(refactoring1.Title, editorConfigRefactoringTitles);
         Assert.Contains(refactoring2.Title, editorConfigRefactoringTitles);
 
@@ -295,7 +291,7 @@ public sealed class CodeRefactoringServiceTest
         protected AbstractNonSourceFileRefactoring(string title)
             => Title = title;
 
-        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             context.RegisterRefactoring(CodeAction.Create(Title,
                 createChangedSolution: async ct =>
@@ -307,8 +303,6 @@ public sealed class CodeRefactoringServiceTest
                         return document.Project.Solution.WithAdditionalDocumentText(document.Id, newText);
                     return document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, newText);
                 }));
-
-            return Task.CompletedTask;
         }
     }
 

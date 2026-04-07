@@ -55,6 +55,8 @@ configuration:
             branch: main
         - targetsBranch:
             branch: main-vs-deps
+        - targetsBranch:
+            branch: community
       - and:
         - isAction:
             action: Closed
@@ -277,34 +279,6 @@ configuration:
       then:
       - closeIssue
 
-    - description: Add "untriaged" label on new issues
-      triggerOnOwnActions: false
-      if:
-      - payloadType: Issues
-      - not:
-          hasLabel:
-            label: untriaged
-      - and:
-          - isAction:
-              action: Opened
-      then:
-      - addLabel:
-          label: untriaged
-
-    - description: Remove "untriaged" label from issues when closed or added to a milestone
-      triggerOnOwnActions: false
-      if:
-      - payloadType: Issues
-      - or:
-        - isAction:
-            action: Closed
-        - isPartOfAnyMilestone
-      - hasLabel:
-          label: untriaged
-      then:
-      - removeLabel:
-          label: untriaged
-          
     - description: Add breaking change doc instructions to issue
       if:
       - payloadType: Issues
@@ -337,6 +311,15 @@ configuration:
 
 
             You can refer to the [.NET SDK breaking change guidelines](https://github.com/dotnet/sdk/blob/main/documentation/project-docs/breaking-change-guidelines.md)
-      
+
+    - description: Add a CodeFlow link to new pull requests
+      if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Opened
+      then:
+      - addCodeFlowLink
+
 onFailure: 
 onSuccess:
+

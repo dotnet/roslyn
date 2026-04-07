@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
+[Export(typeof(KeywordCompletionProvider))]
 [ExportCompletionProvider(nameof(KeywordCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(NamedParameterCompletionProvider))]
 [method: ImportingConstructor]
@@ -152,6 +153,7 @@ internal sealed class KeywordCompletionProvider() : AbstractKeywordCompletionPro
         new ULongKeywordRecommender(),
         new UncheckedKeywordRecommender(),
         new UndefKeywordRecommender(),
+        new UnionKeywordRecommender(),
         new UnmanagedKeywordRecommender(),
         new UnsafeKeywordRecommender(),
         new UShortKeywordRecommender(),

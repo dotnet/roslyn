@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
@@ -20,11 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceExtensionImplementationMethodSymbol(MethodSymbol sourceMethod)
             : base(sourceMethod, TypeMap.Empty, sourceMethod.ContainingType.TypeParameters.Concat(sourceMethod.TypeParameters))
         {
-            Debug.Assert(sourceMethod.GetIsNewExtensionMember());
+            Debug.Assert(sourceMethod.IsExtensionBlockMember());
             Debug.Assert(sourceMethod.IsStatic || sourceMethod.ContainingType.ExtensionParameter is not null);
-
-            // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Are we creating type parameters with the right emit behavior? Attributes, etc.
-            //            Also, they should be IsImplicitlyDeclared
         }
 
         public override int Arity => TypeParameters.Length;
@@ -67,12 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            // Copy ORPA from the property onto the implementation accessors
+            // Copy some attributes from the property onto the implementation accessors
             if (_originalMethod is SourcePropertyAccessorSymbol { AssociatedSymbol: SourcePropertySymbolBase extensionProperty })
             {
                 foreach (CSharpAttributeData attr in extensionProperty.GetAttributes())
                 {
-                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+                    if (attr.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute) ||
+                        attr.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
                     {
                         AddSynthesizedAttribute(ref attributes, attr);
                     }
@@ -124,8 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!_originalMethod.IsStatic)
             {
-                // Tracked by https://github.com/dotnet/roslyn/issues/78962 : Need to confirm if this rewrite going to break LocalStateTracingInstrumenter
-                //            Specifically BoundParameterId, etc.   
                 parameters.Add(new ExtensionMetadataMethodParameterSymbol(this, ((SourceNamedTypeSymbol)_originalMethod.ContainingType).ExtensionParameter!));
             }
 
@@ -136,6 +133,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(parameters.Count == ParameterCount);
             return parameters.ToImmutableAndFree();
+        }
+
+        internal static int GetImplementationParameterOrdinal(ParameterSymbol underlyingParameter)
+        {
+            if (underlyingParameter.ContainingSymbol is NamedTypeSymbol)
+            {
+                return 0;
+            }
+
+            var ordinal = underlyingParameter.Ordinal;
+
+            if (underlyingParameter.ContainingSymbol.IsStatic)
+            {
+                return ordinal;
+            }
+
+            return ordinal + 1;
         }
 
         internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
@@ -168,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbol
+        private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbolBase
         {
             public ExtensionMetadataMethodParameterSymbol(SourceExtensionImplementationMethodSymbol containingMethod, ParameterSymbol sourceParameter) :
                 base(containingMethod, sourceParameter)
@@ -181,19 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    if (this._underlyingParameter.ContainingSymbol is NamedTypeSymbol)
-                    {
-                        return 0;
-                    }
-
-                    var ordinal = this._underlyingParameter.Ordinal;
-
-                    if (this._underlyingParameter.ContainingSymbol.IsStatic)
-                    {
-                        return ordinal;
-                    }
-
-                    return ordinal + 1;
+                    return GetImplementationParameterOrdinal(this._underlyingParameter);
                 }
             }
 
@@ -204,8 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     valueParameter.AddSynthesizedFlowAnalysisAttributes(ref attributes);
                 }
 
-                // Synthesized nullability attributes are context-dependent, so we intentionally do not call base.AddSynthesizedAttributes here
-                // as that would delegate to underlying parameter symbol
                 SourceParameterSymbolBase.AddSynthesizedAttributes(this, moduleBuilder, ref attributes);
             }
 

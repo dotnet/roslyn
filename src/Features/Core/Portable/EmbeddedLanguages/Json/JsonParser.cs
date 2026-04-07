@@ -106,7 +106,7 @@ internal partial struct JsonParser
     {
         try
         {
-            if (text.IsDefaultOrEmpty)
+            if (text.IsDefaultOrEmpty())
                 return null;
 
             return new JsonParser(text).ParseTree(options);
@@ -394,12 +394,12 @@ internal partial struct JsonParser
     {
         minusToken = CreateToken(
             JsonKind.MinusToken, literalToken.LeadingTrivia,
-            literalToken.VirtualChars.GetSubSequence(new TextSpan(0, 1)),
+            literalToken.VirtualChars[0..1],
             []);
         newLiteralToken = CreateToken(
             literalToken.Kind,
             [],
-            literalToken.VirtualChars.GetSubSequence(TextSpan.FromBounds(1, literalToken.VirtualChars.Length)),
+            literalToken.VirtualChars[1..],
             literalToken.TrailingTrivia,
             literalToken.Diagnostics);
     }
@@ -588,6 +588,6 @@ internal partial struct JsonParser
 
     private readonly TextSpan GetTokenStartPositionSpan(JsonToken token)
         => token.Kind == JsonKind.EndOfFile
-            ? new TextSpan(_lexer.Text.Last().Span.End, 0)
+            ? new TextSpan(_lexer.Text[^1].Span.End, 0)
             : new TextSpan(token.VirtualChars[0].Span.Start, 0);
 }

@@ -60,7 +60,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -87,7 +87,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_IllegalStatement, "() => new()").WithLocation(2, 10)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -126,7 +126,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "F").WithArguments("C", "F").WithLocation(6, 38)
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -144,18 +144,18 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (3,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial F() { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(3, 5),
-            // (3,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (3,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial F() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(3, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(3, 5),
             // (3,13): error CS0161: 'C.F()': not all code paths return a value
             //     partial F() { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("C.F()").WithLocation(3, 13),
             // (4,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(4, 5),
-            // (4,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial C() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(4, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(4, 5),
             // (4,13): error CS0542: 'C': member names cannot be the same as their enclosing type
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(4, 13),
@@ -195,7 +195,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
@@ -213,15 +213,15 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             """;
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 13.0. Please use language version 'preview' or greater.
+            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 13.0. Please use language version '14.0' or greater.
             //     partial event System.Action E;
-            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "13.0", "preview").WithLocation(3, 33),
+            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "13.0", "14.0").WithLocation(3, 33),
             // (5,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial C();
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 5),
-            // (5,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial C();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(5, 5),
             // (5,13): error CS0501: 'C.C()' must declare a body because it is not marked abstract, extern, or partial
             //     partial C();
             Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.C()").WithLocation(5, 13),
@@ -231,9 +231,9 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (6,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(6, 5),
-            // (6,5): error CS8652: The feature 'partial events and constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,5): error CS9260: Feature 'partial events and constructors' is not available in C# 13.0. Please use language version 14.0 or greater.
             //     partial C() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("partial events and constructors").WithLocation(6, 5),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "partial").WithArguments("partial events and constructors", "14.0").WithLocation(6, 5),
             // (6,13): error CS0542: 'C': member names cannot be the same as their enclosing type
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(6, 13),
@@ -244,7 +244,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             //     partial C() { }
             Diagnostic(ErrorCode.ERR_ReturnExpected, "C").WithArguments("C.C()").WithLocation(6, 13));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics();
         CreateCompilation(source).VerifyDiagnostics();
     }
 
@@ -566,6 +566,64 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         Assert.True(e2.IsPartialImplementation);
         AssertEx.Equal("event System.Action C.E", e2.ToTestDisplayString());
         Assert.Null(e2.PartialDefinitionPart);
+    }
+
+    [Fact]
+    public void DuplicateDeclarations_05()
+    {
+        var source = """
+            partial class C
+            {
+                partial event System.Action E;
+                partial void add_E(System.Action value) { }
+                partial void remove_E(System.Action value) { }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,33): error CS9275: Partial member 'C.E' must have an implementation part.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(3, 33),
+            // (3,33): error CS0082: Type 'C' already reserves a member called 'add_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("add_E", "C").WithLocation(3, 33),
+            // (3,33): error CS0082: Type 'C' already reserves a member called 'remove_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("remove_E", "C").WithLocation(3, 33),
+            // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.add_E(Action)'
+            //     partial void add_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "add_E").WithArguments("C.add_E(System.Action)").WithLocation(4, 18),
+            // (5,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.remove_E(Action)'
+            //     partial void remove_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "remove_E").WithArguments("C.remove_E(System.Action)").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void DuplicateDeclarations_06()
+    {
+        var source = """
+            partial class C
+            {
+                partial void add_E(System.Action value) { }
+                partial void remove_E(System.Action value) { }
+                partial event System.Action E;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.add_E(Action)'
+            //     partial void add_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "add_E").WithArguments("C.add_E(System.Action)").WithLocation(3, 18),
+            // (4,18): error CS0759: No defining declaration found for implementing declaration of partial method 'C.remove_E(Action)'
+            //     partial void remove_E(System.Action value) { }
+            Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "remove_E").WithArguments("C.remove_E(System.Action)").WithLocation(4, 18),
+            // (5,33): error CS9275: Partial member 'C.E' must have an implementation part.
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "E").WithArguments("C.E").WithLocation(5, 33),
+            // (5,33): error CS0082: Type 'C' already reserves a member called 'add_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("add_E", "C").WithLocation(5, 33),
+            // (5,33): error CS0082: Type 'C' already reserves a member called 'remove_E' with the same parameter types
+            //     partial event System.Action E;
+            Diagnostic(ErrorCode.ERR_MemberReserved, "E").WithArguments("remove_E", "C").WithLocation(5, 33));
     }
 
     [Fact]
@@ -920,9 +978,9 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         CreateCompilation(source, targetFramework: TargetFramework.Net60).VerifyDiagnostics();
 
         CreateCompilation(source, targetFramework: TargetFramework.Net60, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
-            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version 'preview' or greater.
+            // (3,33): error CS8703: The modifier 'partial' is not valid for this item in C# 7.0. Please use language version '14.0' or greater.
             //     partial event System.Action E;
-            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "7.0", "preview").WithLocation(3, 33),
+            Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "E").WithArguments("partial", "7.0", "14.0").WithLocation(3, 33),
             // (4,37): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
             //     partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(4, 37),
@@ -1299,6 +1357,128 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (4,49): error CS0106: The modifier 'required' is not valid for this item
             //     public required partial event System.Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("required").WithLocation(4, 49));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80986")]
+    public void InterfaceImplementation(bool first, bool second)
+    {
+        if (!first && !second)
+        {
+            return;
+        }
+
+        var source = $$"""
+            using System;
+
+            interface I
+            {
+                event EventHandler E;
+            }
+
+            partial class C {{(first ? ": I" : "")}}
+            {
+                public partial event EventHandler E;
+            }
+
+            partial class C {{(second ? ": I" : "")}}
+            {
+                public partial event EventHandler E { add { } remove { } }
+            }
+            """;
+        CompileAndVerify(source,
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: validate,
+            sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            Assert.False(e.IsWindowsRuntimeEvent);
+
+            var ie = module.GlobalNamespace.GetMember<EventSymbol>("I.E");
+            Assert.False(ie.IsWindowsRuntimeEvent);
+
+            Assert.Same(e, e.ContainingType.FindImplementationForInterfaceMember(ie));
+
+            if (module is SourceModuleSymbol)
+            {
+                Assert.True(e.IsPartialDefinition);
+                Assert.False(((SourceEventSymbol)e).PartialImplementationPart!.IsWindowsRuntimeEvent);
+            }
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/80986")]
+    public void InterfaceImplementation_WinRt(bool first, bool second)
+    {
+        if (!first && !second)
+        {
+            return;
+        }
+
+        var source1 = """
+            using System;
+
+            public interface I
+            {
+                event EventHandler E;
+            }
+            """;
+
+        var source2 = $$"""
+            using System;
+
+            partial class C {{(first ? ": I" : "")}}
+            {
+                public partial event EventHandler E;
+            }
+
+            partial class C {{(second ? ": I" : "")}}
+            {
+                public partial event EventHandler E { add { return default; } remove { } }
+            }
+            """;
+
+        CompileAndVerifyWithWinRt([source1, source2],
+            options: TestOptions.DebugWinMD.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: static m => validate(m, true),
+            sourceSymbolValidator: static m => validate(m, true)).VerifyDiagnostics();
+
+        // If the interface is WinMD and the class is not WinMD, the event is WinRt
+        CompileAndVerifyWithWinRt(source2,
+            references: [
+                CompileAndVerifyWithWinRt(source1, options: TestOptions.DebugWinMD).VerifyDiagnostics().GetImageReference()
+            ],
+            options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: static m => validate(m, true),
+            sourceSymbolValidator: static m => validate(m, true)).VerifyDiagnostics();
+
+        // If the interface is not WinMD and the class is WinMD, the event is not WinRt
+        CompileAndVerifyWithWinRt(source2.Replace("add { return default; }", "add { }"),
+            references: [
+                CompileAndVerifyWithWinRt(source1, options: TestOptions.DebugDll).VerifyDiagnostics().GetImageReference()
+            ],
+            options: TestOptions.DebugWinMD.WithMetadataImportOptions(MetadataImportOptions.All),
+            symbolValidator: static m => validate(m, false),
+            sourceSymbolValidator: static m => validate(m, false)).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module, bool isWinRtEvent)
+        {
+            var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
+            Assert.Equal(isWinRtEvent, e.IsWindowsRuntimeEvent);
+
+            var i = e.ContainingType.Interfaces().Single();
+            var ie = i.GetMember<EventSymbol>("E");
+            Assert.Equal(isWinRtEvent, ie.IsWindowsRuntimeEvent);
+
+            Assert.Same(e, e.ContainingType.FindImplementationForInterfaceMember(ie));
+
+            if (module is SourceModuleSymbol)
+            {
+                Assert.True(e.IsPartialDefinition);
+                Assert.Equal(isWinRtEvent, ((SourceEventSymbol)e).PartialImplementationPart!.IsWindowsRuntimeEvent);
+            }
+        }
     }
 
     [Fact]

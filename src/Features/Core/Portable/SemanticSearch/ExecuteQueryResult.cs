@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SemanticSearch;
 
@@ -38,26 +39,11 @@ internal readonly record struct CompileQueryResult(
     [property: DataMember(Order = 2)] TimeSpan EmitTime = default);
 
 [DataContract]
-internal readonly record struct CompiledQueryId
-{
-    private static int s_id;
+internal readonly record struct QueryCompilationError(
+    [property: DataMember(Order = 0)] string Id,
+    [property: DataMember(Order = 1)] string Message,
+    [property: DataMember(Order = 2)] TextSpan Span);
 
-    [DataMember(Order = 0)]
-#pragma warning disable IDE0052 // Remove unread private members (https://github.com/dotnet/roslyn/issues/77907)
-    private readonly int _id;
-#pragma warning restore IDE0052
-
-    [DataMember(Order = 1)]
-#pragma warning disable IDE0052 // Remove unread private members (https://github.com/dotnet/roslyn/issues/77907)
-    public readonly string Language;
-#pragma warning restore IDE0052
-
-    private CompiledQueryId(int id, string language)
-    {
-        _id = id;
-        Language = language;
-    }
-
-    public static CompiledQueryId Create(string language)
-        => new(Interlocked.Increment(ref s_id), language);
-}
+[DataContract]
+internal readonly record struct CompiledQueryId(
+    [property: DataMember(Order = 0)] int Id);

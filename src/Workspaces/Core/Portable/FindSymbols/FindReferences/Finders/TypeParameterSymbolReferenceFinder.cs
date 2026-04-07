@@ -12,8 +12,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
 internal sealed class TypeParameterSymbolReferenceFinder : AbstractTypeParameterSymbolReferenceFinder
 {
+    public static readonly TypeParameterSymbolReferenceFinder Instance = new();
+
+    private TypeParameterSymbolReferenceFinder()
+    {
+    }
+
     protected override bool CanFind(ITypeParameterSymbol symbol)
-        => symbol.TypeParameterKind != TypeParameterKind.Method;
+        => symbol.TypeParameterKind == TypeParameterKind.Type;
 
     protected override Task DetermineDocumentsToSearchAsync<TData>(
         ITypeParameterSymbol symbol,

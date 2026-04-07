@@ -34306,8 +34306,118 @@ class Program
 }
 """;
 
+            var expectedOutput = "123123125:123123125:123123125";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [Test1]: Return value missing on the stack. { Offset = 0x77 }
+                    [Test2]: Return value missing on the stack. { Offset = 0x2b }
+                    [Test3]: Return value missing on the stack. { Offset = 0x21 }
+                    [Get0]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("Program.Test1<T>()", """
+                {
+                  // Code size      120 (0x78)
+                  .maxstack  3
+                  .locals init (T V_0,
+                                int V_1,
+                                int V_2,
+                                T V_3)
+                  IL_0000:  ldloca.s   V_3
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.3
+                  IL_0009:  box        "T"
+                  IL_000e:  brtrue.s   IL_0018
+                  IL_0010:  ldsfld     "T Program<T>.F"
+                  IL_0015:  stloc.0
+                  IL_0016:  br.s       IL_001e
+                  IL_0018:  ldsfld     "T Program<T>.F"
+                  IL_001d:  pop
+                  IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0028:  stloc.1
+                  IL_0029:  ldloca.s   V_3
+                  IL_002b:  initobj    "T"
+                  IL_0031:  ldloc.3
+                  IL_0032:  box        "T"
+                  IL_0037:  brtrue.s   IL_003d
+                  IL_0039:  ldloca.s   V_0
+                  IL_003b:  br.s       IL_0042
+                  IL_003d:  ldsflda    "T Program<T>.F"
+                  IL_0042:  ldloc.1
+                  IL_0043:  constrained. "T"
+                  IL_0049:  callvirt   "int I1.this[int].get"
+                  IL_004e:  ldc.i4.1
+                  IL_004f:  add
+                  IL_0050:  stloc.2
+                  IL_0051:  ldloca.s   V_3
+                  IL_0053:  initobj    "T"
+                  IL_0059:  ldloc.3
+                  IL_005a:  box        "T"
+                  IL_005f:  brtrue.s   IL_0065
+                  IL_0061:  ldloca.s   V_0
+                  IL_0063:  br.s       IL_006a
+                  IL_0065:  ldsflda    "T Program<T>.F"
+                  IL_006a:  ldloc.1
+                  IL_006b:  ldloc.2
+                  IL_006c:  constrained. "T"
+                  IL_0072:  callvirt   "void I1.this[int].set"
+                  IL_0077:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2<T>()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldsfld     "T Program<T>.F"
+                  IL_0005:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  box        "T"
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "int I1.this[int].get"
+                  IL_001c:  ldc.i4.1
+                  IL_001d:  add
+                  IL_001e:  stloc.1
+                  IL_001f:  box        "T"
+                  IL_0024:  ldloc.0
+                  IL_0025:  ldloc.1
+                  IL_0026:  callvirt   "void I1.this[int].set"
+                  IL_002b:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test3()", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldsfld     "C1 Program<C1>.F"
+                  IL_0005:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  ldloc.0
+                  IL_0012:  callvirt   "int C1.this[int].get"
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  add
+                  IL_0019:  stloc.1
+                  IL_001a:  ldloc.0
+                  IL_001b:  ldloc.1
+                  IL_001c:  callvirt   "void C1.this[int].set"
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -34601,8 +34711,118 @@ class Program
 }
 """;
 
+            var expectedOutput = "123123125:123123125:123123125";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [Test1]: Return value missing on the stack. { Offset = 0x77 }
+                    [Test2]: Return value missing on the stack. { Offset = 0x2b }
+                    [Test3]: Return value missing on the stack. { Offset = 0x21 }
+                    [Get0]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("Program.Test1<T>()", """
+                {
+                  // Code size      120 (0x78)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1,
+                                int V_2,
+                                T V_3)
+                  IL_0000:  ldloca.s   V_3
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.3
+                  IL_0009:  box        "T"
+                  IL_000e:  brtrue.s   IL_0018
+                  IL_0010:  ldsfld     "T Program<T>.F"
+                  IL_0015:  stloc.0
+                  IL_0016:  br.s       IL_001e
+                  IL_0018:  ldsfld     "T Program<T>.F"
+                  IL_001d:  pop
+                  IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0028:  stloc.1
+                  IL_0029:  ldloca.s   V_3
+                  IL_002b:  initobj    "T"
+                  IL_0031:  ldloc.3
+                  IL_0032:  box        "T"
+                  IL_0037:  brtrue.s   IL_003d
+                  IL_0039:  ldloca.s   V_0
+                  IL_003b:  br.s       IL_0042
+                  IL_003d:  ldsflda    "T Program<T>.F"
+                  IL_0042:  ldloc.1
+                  IL_0043:  constrained. "T"
+                  IL_0049:  callvirt   "int I1.this[int].get"
+                  IL_004e:  stloc.2
+                  IL_004f:  ldloca.s   V_3
+                  IL_0051:  initobj    "T"
+                  IL_0057:  ldloc.3
+                  IL_0058:  box        "T"
+                  IL_005d:  brtrue.s   IL_0063
+                  IL_005f:  ldloca.s   V_0
+                  IL_0061:  br.s       IL_0068
+                  IL_0063:  ldsflda    "T Program<T>.F"
+                  IL_0068:  ldloc.1
+                  IL_0069:  ldloc.2
+                  IL_006a:  ldc.i4.1
+                  IL_006b:  add
+                  IL_006c:  constrained. "T"
+                  IL_0072:  callvirt   "void I1.this[int].set"
+                  IL_0077:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2<T>()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldsfld     "T Program<T>.F"
+                  IL_0005:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  box        "T"
+                  IL_0016:  ldloc.0
+                  IL_0017:  callvirt   "int I1.this[int].get"
+                  IL_001c:  stloc.1
+                  IL_001d:  box        "T"
+                  IL_0022:  ldloc.0
+                  IL_0023:  ldloc.1
+                  IL_0024:  ldc.i4.1
+                  IL_0025:  add
+                  IL_0026:  callvirt   "void I1.this[int].set"
+                  IL_002b:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test3()", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                int V_1)
+                  IL_0000:  ldsfld     "C1 Program<C1>.F"
+                  IL_0005:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  ldloc.0
+                  IL_0012:  callvirt   "int C1.this[int].get"
+                  IL_0017:  stloc.1
+                  IL_0018:  ldloc.0
+                  IL_0019:  ldloc.1
+                  IL_001a:  ldc.i4.1
+                  IL_001b:  add
+                  IL_001c:  callvirt   "void C1.this[int].set"
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -34973,8 +35193,115 @@ class Program
 }
 """;
 
+            var expectedOutput = "123123125:123123125:123123125";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [Test1]: Return value missing on the stack. { Offset = 0x75 }
+                    [Test2]: Return value missing on the stack. { Offset = 0x2b }
+                    [Test3]: Return value missing on the stack. { Offset = 0x21 }
+                    [Get0]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("Program.Test1<T>()", """
+                {
+                  // Code size      118 (0x76)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1,
+                                T V_2)
+                  IL_0000:  ldloca.s   V_2
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.2
+                  IL_0009:  box        "T"
+                  IL_000e:  brtrue.s   IL_0018
+                  IL_0010:  ldsfld     "T Program<T>.F"
+                  IL_0015:  stloc.0
+                  IL_0016:  br.s       IL_001e
+                  IL_0018:  ldsfld     "T Program<T>.F"
+                  IL_001d:  pop
+                  IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0028:  stloc.1
+                  IL_0029:  ldloca.s   V_2
+                  IL_002b:  initobj    "T"
+                  IL_0031:  ldloc.2
+                  IL_0032:  box        "T"
+                  IL_0037:  brtrue.s   IL_003d
+                  IL_0039:  ldloca.s   V_0
+                  IL_003b:  br.s       IL_0042
+                  IL_003d:  ldsflda    "T Program<T>.F"
+                  IL_0042:  ldloc.1
+                  IL_0043:  ldloca.s   V_2
+                  IL_0045:  initobj    "T"
+                  IL_004b:  ldloc.2
+                  IL_004c:  box        "T"
+                  IL_0051:  brtrue.s   IL_0057
+                  IL_0053:  ldloca.s   V_0
+                  IL_0055:  br.s       IL_005c
+                  IL_0057:  ldsflda    "T Program<T>.F"
+                  IL_005c:  ldloc.1
+                  IL_005d:  constrained. "T"
+                  IL_0063:  callvirt   "int I1.this[int].get"
+                  IL_0068:  ldc.i4.1
+                  IL_0069:  add
+                  IL_006a:  constrained. "T"
+                  IL_0070:  callvirt   "void I1.this[int].set"
+                  IL_0075:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2<T>()", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1)
+                  IL_0000:  ldsfld     "T Program<T>.F"
+                  IL_0005:  stloc.0
+                  IL_0006:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0010:  stloc.1
+                  IL_0011:  ldloc.0
+                  IL_0012:  box        "T"
+                  IL_0017:  ldloc.1
+                  IL_0018:  ldloc.0
+                  IL_0019:  box        "T"
+                  IL_001e:  ldloc.1
+                  IL_001f:  callvirt   "int I1.this[int].get"
+                  IL_0024:  ldc.i4.1
+                  IL_0025:  add
+                  IL_0026:  callvirt   "void I1.this[int].set"
+                  IL_002b:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test3()", """
+                {
+                  // Code size       34 (0x22)
+                  .maxstack  4
+                  .locals init (C1 V_0,
+                                int V_1)
+                  IL_0000:  ldsfld     "C1 Program<C1>.F"
+                  IL_0005:  stloc.0
+                  IL_0006:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0010:  stloc.1
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldloc.1
+                  IL_0013:  ldloc.0
+                  IL_0014:  ldloc.1
+                  IL_0015:  callvirt   "int C1.this[int].get"
+                  IL_001a:  ldc.i4.1
+                  IL_001b:  add
+                  IL_001c:  callvirt   "void C1.this[int].set"
+                  IL_0021:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -35057,8 +35384,128 @@ class Program
 }
 """;
 
+            var expectedOutput = "123123125:123123125:123123125";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "123123125:123123125:123123125").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [Test1]: Return value missing on the stack. { Offset = 0x77 }
+                    [Test2]: Return value missing on the stack. { Offset = 0x36 }
+                    [Test3]: Return value missing on the stack. { Offset = 0x23 }
+                    [Get1]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("Program.Test1<T>()", """
+                {
+                  // Code size      120 (0x78)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1,
+                                int V_2,
+                                T V_3)
+                  IL_0000:  ldloca.s   V_3
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.3
+                  IL_0009:  box        "T"
+                  IL_000e:  brtrue.s   IL_0018
+                  IL_0010:  ldsfld     "T Program<T>.F"
+                  IL_0015:  stloc.0
+                  IL_0016:  br.s       IL_001e
+                  IL_0018:  ldsfld     "T Program<T>.F"
+                  IL_001d:  pop
+                  IL_001e:  ldloca.s   V_3
+                  IL_0020:  initobj    "T"
+                  IL_0026:  ldloc.3
+                  IL_0027:  box        "T"
+                  IL_002c:  brtrue.s   IL_0032
+                  IL_002e:  ldloca.s   V_0
+                  IL_0030:  br.s       IL_0037
+                  IL_0032:  ldsflda    "T Program<T>.F"
+                  IL_0037:  ldc.i4.0
+                  IL_0038:  constrained. "T"
+                  IL_003e:  callvirt   "int I1.this[int].get"
+                  IL_0043:  stloc.1
+                  IL_0044:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0049:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_004e:  stloc.2
+                  IL_004f:  ldloca.s   V_3
+                  IL_0051:  initobj    "T"
+                  IL_0057:  ldloc.3
+                  IL_0058:  box        "T"
+                  IL_005d:  brtrue.s   IL_0063
+                  IL_005f:  ldloca.s   V_0
+                  IL_0061:  br.s       IL_0068
+                  IL_0063:  ldsflda    "T Program<T>.F"
+                  IL_0068:  ldc.i4.0
+                  IL_0069:  ldloc.1
+                  IL_006a:  ldloc.2
+                  IL_006b:  add
+                  IL_006c:  constrained. "T"
+                  IL_0072:  callvirt   "void I1.this[int].set"
+                  IL_0077:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2<T>()", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                T V_1,
+                                int V_2,
+                                int V_3)
+                  IL_0000:  ldsfld     "T Program<T>.F"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldloca.s   V_0
+                  IL_0008:  dup
+                  IL_0009:  ldobj      "T"
+                  IL_000e:  stloc.1
+                  IL_000f:  ldc.i4.0
+                  IL_0010:  constrained. "T"
+                  IL_0016:  callvirt   "int I1.this[int].get"
+                  IL_001b:  stloc.2
+                  IL_001c:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0021:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0026:  stloc.3
+                  IL_0027:  ldloc.1
+                  IL_0028:  box        "T"
+                  IL_002d:  ldc.i4.0
+                  IL_002e:  ldloc.2
+                  IL_002f:  ldloc.3
+                  IL_0030:  add
+                  IL_0031:  callvirt   "void I1.this[int].set"
+                  IL_0036:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test3()", """
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  4
+                  .locals init (C1 V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldsfld     "C1 Program<C1>.F"
+                  IL_0005:  dup
+                  IL_0006:  stloc.0
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  callvirt   "int C1.this[int].get"
+                  IL_000d:  stloc.1
+                  IL_000e:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloc.0
+                  IL_001a:  ldc.i4.0
+                  IL_001b:  ldloc.1
+                  IL_001c:  ldloc.2
+                  IL_001d:  add
+                  IL_001e:  callvirt   "void C1.this[int].set"
+                  IL_0023:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -35148,8 +35595,146 @@ class Program
 }
 """;
 
+            var expectedOutput = "123123126:123123126:123123126";
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [Test1]: Return value missing on the stack. { Offset = 0x89 }
+                    [Test2]: Return value missing on the stack. { Offset = 0x3c }
+                    [Test3]: Return value missing on the stack. { Offset = 0x32 }
+                    [Get0]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Get1]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("Program.Test1<T>()", """
+                {
+                  // Code size      138 (0x8a)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4,
+                                T V_5)
+                  IL_0000:  ldloca.s   V_5
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.s    V_5
+                  IL_000a:  box        "T"
+                  IL_000f:  brtrue.s   IL_0019
+                  IL_0011:  ldsfld     "T Program<T>.F"
+                  IL_0016:  stloc.0
+                  IL_0017:  br.s       IL_001f
+                  IL_0019:  ldsfld     "T Program<T>.F"
+                  IL_001e:  pop
+                  IL_001f:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_0024:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0029:  stloc.1
+                  IL_002a:  ldloc.1
+                  IL_002b:  stloc.2
+                  IL_002c:  ldloca.s   V_5
+                  IL_002e:  initobj    "T"
+                  IL_0034:  ldloc.s    V_5
+                  IL_0036:  box        "T"
+                  IL_003b:  brtrue.s   IL_0041
+                  IL_003d:  ldloca.s   V_0
+                  IL_003f:  br.s       IL_0046
+                  IL_0041:  ldsflda    "T Program<T>.F"
+                  IL_0046:  ldloc.1
+                  IL_0047:  constrained. "T"
+                  IL_004d:  callvirt   "int I1.this[int].get"
+                  IL_0052:  stloc.3
+                  IL_0053:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0058:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_005d:  stloc.s    V_4
+                  IL_005f:  ldloca.s   V_5
+                  IL_0061:  initobj    "T"
+                  IL_0067:  ldloc.s    V_5
+                  IL_0069:  box        "T"
+                  IL_006e:  brtrue.s   IL_0074
+                  IL_0070:  ldloca.s   V_0
+                  IL_0072:  br.s       IL_0079
+                  IL_0074:  ldsflda    "T Program<T>.F"
+                  IL_0079:  ldloc.2
+                  IL_007a:  ldloc.3
+                  IL_007b:  ldloc.s    V_4
+                  IL_007d:  add
+                  IL_007e:  constrained. "T"
+                  IL_0084:  callvirt   "void I1.this[int].set"
+                  IL_0089:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2<T>()", """
+                {
+                  // Code size       61 (0x3d)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                T V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4)
+                  IL_0000:  ldsfld     "T Program<T>.F"
+                  IL_0005:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  stloc.1
+                  IL_0012:  ldloc.0
+                  IL_0013:  stloc.2
+                  IL_0014:  box        "T"
+                  IL_0019:  ldloc.0
+                  IL_001a:  callvirt   "int I1.this[int].get"
+                  IL_001f:  stloc.3
+                  IL_0020:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0025:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_002a:  stloc.s    V_4
+                  IL_002c:  ldloc.1
+                  IL_002d:  box        "T"
+                  IL_0032:  ldloc.2
+                  IL_0033:  ldloc.3
+                  IL_0034:  ldloc.s    V_4
+                  IL_0036:  add
+                  IL_0037:  callvirt   "void I1.this[int].set"
+                  IL_003c:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test3()", """
+                {
+                  // Code size       51 (0x33)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                C1 V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4)
+                  IL_0000:  ldsfld     "C1 Program<C1>.F"
+                  IL_0005:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000a:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_000f:  stloc.0
+                  IL_0010:  dup
+                  IL_0011:  stloc.1
+                  IL_0012:  ldloc.0
+                  IL_0013:  stloc.2
+                  IL_0014:  ldloc.0
+                  IL_0015:  callvirt   "int C1.this[int].get"
+                  IL_001a:  stloc.3
+                  IL_001b:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0020:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0025:  stloc.s    V_4
+                  IL_0027:  ldloc.1
+                  IL_0028:  ldloc.2
+                  IL_0029:  ldloc.3
+                  IL_002a:  ldloc.s    V_4
+                  IL_002c:  add
+                  IL_002d:  callvirt   "void C1.this[int].set"
+                  IL_0032:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -35480,8 +36065,142 @@ class Program
 }
 """;
 
+            var expectedOutput = "123123126:123123126:123123126";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [Test1]: Return value missing on the stack. { Offset = 0x9c }
+                    [Test2]: Return value missing on the stack. { Offset = 0x39 }
+                    [Test3]: Return value missing on the stack. { Offset = 0x2a }
+                    [Get0]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("Program.Test1<T>()", """
+                {
+                  // Code size      157 (0x9d)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1,
+                                int V_2,
+                                T V_3)
+                  IL_0000:  ldloca.s   V_3
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.3
+                  IL_0009:  box        "T"
+                  IL_000e:  brtrue.s   IL_0018
+                  IL_0010:  ldsfld     "T Program<T>.F"
+                  IL_0015:  stloc.0
+                  IL_0016:  br.s       IL_001e
+                  IL_0018:  ldsfld     "T Program<T>.F"
+                  IL_001d:  pop
+                  IL_001e:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_0023:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0028:  stloc.1
+                  IL_0029:  ldloca.s   V_3
+                  IL_002b:  initobj    "T"
+                  IL_0031:  ldloc.3
+                  IL_0032:  box        "T"
+                  IL_0037:  brtrue.s   IL_003d
+                  IL_0039:  ldloca.s   V_0
+                  IL_003b:  br.s       IL_0042
+                  IL_003d:  ldsflda    "T Program<T>.F"
+                  IL_0042:  constrained. "T"
+                  IL_0048:  callvirt   "int I1.Length.get"
+                  IL_004d:  ldloc.1
+                  IL_004e:  sub
+                  IL_004f:  stloc.2
+                  IL_0050:  ldloca.s   V_3
+                  IL_0052:  initobj    "T"
+                  IL_0058:  ldloc.3
+                  IL_0059:  box        "T"
+                  IL_005e:  brtrue.s   IL_0064
+                  IL_0060:  ldloca.s   V_0
+                  IL_0062:  br.s       IL_0069
+                  IL_0064:  ldsflda    "T Program<T>.F"
+                  IL_0069:  ldloc.2
+                  IL_006a:  ldloca.s   V_3
+                  IL_006c:  initobj    "T"
+                  IL_0072:  ldloc.3
+                  IL_0073:  box        "T"
+                  IL_0078:  brtrue.s   IL_007e
+                  IL_007a:  ldloca.s   V_0
+                  IL_007c:  br.s       IL_0083
+                  IL_007e:  ldsflda    "T Program<T>.F"
+                  IL_0083:  ldloc.2
+                  IL_0084:  constrained. "T"
+                  IL_008a:  callvirt   "int I1.this[int].get"
+                  IL_008f:  ldc.i4.1
+                  IL_0090:  add
+                  IL_0091:  constrained. "T"
+                  IL_0097:  callvirt   "void I1.this[int].set"
+                  IL_009c:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2<T>()", """
+                {
+                  // Code size       58 (0x3a)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldsfld     "T Program<T>.F"
+                  IL_0005:  stloc.0
+                  IL_0006:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0010:  stloc.1
+                  IL_0011:  ldloc.0
+                  IL_0012:  box        "T"
+                  IL_0017:  callvirt   "int I1.Length.get"
+                  IL_001c:  ldloc.1
+                  IL_001d:  sub
+                  IL_001e:  stloc.2
+                  IL_001f:  ldloc.0
+                  IL_0020:  box        "T"
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.0
+                  IL_0027:  box        "T"
+                  IL_002c:  ldloc.2
+                  IL_002d:  callvirt   "int I1.this[int].get"
+                  IL_0032:  ldc.i4.1
+                  IL_0033:  add
+                  IL_0034:  callvirt   "void I1.this[int].set"
+                  IL_0039:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test3()", """
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  4
+                  .locals init (C1 V_0,
+                                int V_1,
+                                int V_2)
+                  IL_0000:  ldsfld     "C1 Program<C1>.F"
+                  IL_0005:  stloc.0
+                  IL_0006:  call       "System.Threading.Tasks.Task<int> Program.Get0()"
+                  IL_000b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0010:  stloc.1
+                  IL_0011:  ldloc.0
+                  IL_0012:  callvirt   "int C1.Length.get"
+                  IL_0017:  ldloc.1
+                  IL_0018:  sub
+                  IL_0019:  stloc.2
+                  IL_001a:  ldloc.0
+                  IL_001b:  ldloc.2
+                  IL_001c:  ldloc.0
+                  IL_001d:  ldloc.2
+                  IL_001e:  callvirt   "int C1.this[int].get"
+                  IL_0023:  ldc.i4.1
+                  IL_0024:  add
+                  IL_0025:  callvirt   "void C1.this[int].set"
+                  IL_002a:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -35574,8 +36293,154 @@ class Program
 }
 """;
 
+            var expectedOutput = "123123126:123123126:123123126";
             var comp = CreateCompilation(src, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateRuntimeAsyncCompilation(src, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x95 }
+                    [Test1]: Return value missing on the stack. { Offset = 0xa4 }
+                    [Test2]: Return value missing on the stack. { Offset = 0x3d }
+                    [Test3]: Return value missing on the stack. { Offset = 0x2e }
+                    [Get1]: Unexpected type on the stack. { Offset = 0x41, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    """
+            });
+
+            verifier.VerifyIL("Program.Test1<T>()", """
+                {
+                  // Code size      165 (0xa5)
+                  .maxstack  4
+                  .locals init (T V_0,
+                                int V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4,
+                                T V_5)
+                  IL_0000:  ldloca.s   V_5
+                  IL_0002:  initobj    "T"
+                  IL_0008:  ldloc.s    V_5
+                  IL_000a:  box        "T"
+                  IL_000f:  brtrue.s   IL_0019
+                  IL_0011:  ldsfld     "T Program<T>.F"
+                  IL_0016:  stloc.0
+                  IL_0017:  br.s       IL_001f
+                  IL_0019:  ldsfld     "T Program<T>.F"
+                  IL_001e:  pop
+                  IL_001f:  ldloca.s   V_5
+                  IL_0021:  initobj    "T"
+                  IL_0027:  ldloc.s    V_5
+                  IL_0029:  box        "T"
+                  IL_002e:  brtrue.s   IL_0034
+                  IL_0030:  ldloca.s   V_0
+                  IL_0032:  br.s       IL_0039
+                  IL_0034:  ldsflda    "T Program<T>.F"
+                  IL_0039:  constrained. "T"
+                  IL_003f:  callvirt   "int I1.Length.get"
+                  IL_0044:  stloc.1
+                  IL_0045:  ldloc.1
+                  IL_0046:  stloc.2
+                  IL_0047:  ldloca.s   V_5
+                  IL_0049:  initobj    "T"
+                  IL_004f:  ldloc.s    V_5
+                  IL_0051:  box        "T"
+                  IL_0056:  brtrue.s   IL_005c
+                  IL_0058:  ldloca.s   V_0
+                  IL_005a:  br.s       IL_0061
+                  IL_005c:  ldsflda    "T Program<T>.F"
+                  IL_0061:  ldloc.1
+                  IL_0062:  constrained. "T"
+                  IL_0068:  callvirt   "int I1.this[int].get"
+                  IL_006d:  stloc.3
+                  IL_006e:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0073:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0078:  stloc.s    V_4
+                  IL_007a:  ldloca.s   V_5
+                  IL_007c:  initobj    "T"
+                  IL_0082:  ldloc.s    V_5
+                  IL_0084:  box        "T"
+                  IL_0089:  brtrue.s   IL_008f
+                  IL_008b:  ldloca.s   V_0
+                  IL_008d:  br.s       IL_0094
+                  IL_008f:  ldsflda    "T Program<T>.F"
+                  IL_0094:  ldloc.2
+                  IL_0095:  ldloc.3
+                  IL_0096:  ldloc.s    V_4
+                  IL_0098:  add
+                  IL_0099:  constrained. "T"
+                  IL_009f:  callvirt   "void I1.this[int].set"
+                  IL_00a4:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test2<T>()", """
+                {
+                  // Code size       62 (0x3e)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                T V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4)
+                  IL_0000:  ldsfld     "T Program<T>.F"
+                  IL_0005:  dup
+                  IL_0006:  box        "T"
+                  IL_000b:  callvirt   "int I1.Length.get"
+                  IL_0010:  stloc.0
+                  IL_0011:  dup
+                  IL_0012:  stloc.1
+                  IL_0013:  ldloc.0
+                  IL_0014:  stloc.2
+                  IL_0015:  box        "T"
+                  IL_001a:  ldloc.0
+                  IL_001b:  callvirt   "int I1.this[int].get"
+                  IL_0020:  stloc.3
+                  IL_0021:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_0026:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_002b:  stloc.s    V_4
+                  IL_002d:  ldloc.1
+                  IL_002e:  box        "T"
+                  IL_0033:  ldloc.2
+                  IL_0034:  ldloc.3
+                  IL_0035:  ldloc.s    V_4
+                  IL_0037:  add
+                  IL_0038:  callvirt   "void I1.this[int].set"
+                  IL_003d:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.Test3()", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  4
+                  .locals init (int V_0,
+                                C1 V_1,
+                                int V_2,
+                                int V_3,
+                                int V_4)
+                  IL_0000:  ldsfld     "C1 Program<C1>.F"
+                  IL_0005:  dup
+                  IL_0006:  callvirt   "int C1.Length.get"
+                  IL_000b:  stloc.0
+                  IL_000c:  dup
+                  IL_000d:  stloc.1
+                  IL_000e:  ldloc.0
+                  IL_000f:  stloc.2
+                  IL_0010:  ldloc.0
+                  IL_0011:  callvirt   "int C1.this[int].get"
+                  IL_0016:  stloc.3
+                  IL_0017:  call       "System.Threading.Tasks.Task<int> Program.Get1()"
+                  IL_001c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0021:  stloc.s    V_4
+                  IL_0023:  ldloc.1
+                  IL_0024:  ldloc.2
+                  IL_0025:  ldloc.3
+                  IL_0026:  ldloc.s    V_4
+                  IL_0028:  add
+                  IL_0029:  callvirt   "void C1.this[int].set"
+                  IL_002e:  ret
+                }
+                """);
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

@@ -720,25 +720,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitExpression(argument, true);
                     break;
 
-                case RefKind.In:
-                    var temp = EmitAddress(argument, AddressKind.ReadOnly);
-                    AddExpressionTemp(temp);
-                    break;
-
                 default:
-                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
-                    // NOTE: passing "ReadOnlyStrict" here. 
-                    //       we should not get an address of a copy if at all possible
-                    var unexpectedTemp = EmitAddress(argument, refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
-                    if (unexpectedTemp != null)
+                    Debug.Assert(refKind is RefKind.In or RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
+                    var temp = EmitAddress(argument, GetArgumentAddressKind(refKind));
+                    if (temp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
                         // receiver of a ref field can be cloned too
-                        Debug.Assert(argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None }, "passing args byref should not clone them into temps");
-                        AddExpressionTemp(unexpectedTemp);
+                        Debug.Assert(refKind is RefKind.In || argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None }, "passing args byref should not clone them into temps");
+                        AddExpressionTemp(temp);
                     }
 
                     break;
+            }
+        }
+
+        internal static AddressKind GetArgumentAddressKind(RefKind refKind)
+        {
+            switch (refKind)
+            {
+                case RefKind.None:
+                    throw ExceptionUtilities.UnexpectedValue(refKind);
+
+                case RefKind.In:
+                    return AddressKind.ReadOnly;
+
+                default:
+                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
+                    // NOTE: returning "ReadOnlyStrict" here. 
+                    //       we should not get an address of a copy if at all possible
+                    return refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
             }
         }
 
@@ -1892,11 +1903,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // calling a method defined in a base class or interface.
 
-                        // When calling a method that is virtual in metadata on a struct receiver, 
+                        // When calling a method that is virtual in metadata on a struct receiver,
                         // we use a constrained virtual call. If possible, it will skip boxing.
                         if (method.IsMetadataVirtual())
                         {
-                            addressKind = AddressKind.Writeable;
+                            // For readonly value type receivers, we only need readonly access since
+                            // readonly structs guarantee non-mutation for all their methods, and the
+                            // constrained call either resolves to a non-mutating method or boxes the
+                            // value (which copies it). Either way, the original receiver is not mutated.
+                            addressKind = receiverType.IsReadOnly ? AddressKind.ReadOnly : AddressKind.Writeable;
                             callKind = CallKind.ConstrainedCallVirt;
                         }
                         else
@@ -2181,8 +2196,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             {
                                 BoundConversion conv = (BoundConversion)current;
                                 Debug.Assert(!conv.ConversionKind.IsUserDefinedConversion());
+                                Debug.Assert(!conv.ConversionKind.IsUnionConversion());
 
-                                if (conv.ConversionKind.IsUserDefinedConversion())
+                                if (conv.ConversionKind.IsUserDefinedConversion() || conv.ConversionKind.IsUnionConversion())
                                 {
                                     return false;
                                 }
@@ -3593,7 +3609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.HoistedField is null)
             {
-                _builder.EmitIntConstant(node.Parameter.Ordinal); // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Follow up
+                _builder.EmitIntConstant(node.Parameter.Ordinal);
             }
             else
             {

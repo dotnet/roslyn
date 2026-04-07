@@ -37,8 +37,15 @@ internal sealed partial class SolutionState
 {
     public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
-    // the version of the workspace this solution is from
-    public int WorkspaceVersion { get; }
+    /// <summary>
+    /// The content version of the workspace this solution is from.  This monotonically increases in the
+    /// workspace whenever the content of its <see cref="SolutionState"/> snapshot changes.  Importantly,
+    /// this does not change when the SolutionState stays the same, but the workspace's <see cref="Solution.CompilationState"/>'s
+    /// <see cref="SourceGeneratorExecutionVersionMap"/> changes.  That ensures that requests from the host
+    /// to rerun source generators do not block subsequent requests to update the solution's content in
+    /// <see cref="Workspace.TryApplyChanges(Solution)"/>.
+    /// </summary>
+    public int ContentVersion { get; }
     public string? WorkspaceKind { get; }
     public SolutionServices Services { get; }
     public SolutionOptionSet Options { get; }
@@ -60,12 +67,14 @@ internal sealed partial class SolutionState
     // holds on data calculated based on the AnalyzerReferences list
     private readonly Lazy<HostDiagnosticAnalyzers> _lazyAnalyzers;
 
-    // Mapping from file path to the set of documents that are related to it.
-    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new ConcurrentDictionary<string, ImmutableArray<DocumentId>>(FilePathComparer);
+    /// <summary>
+    /// Mapping from file path to the set of documents that are related to it. Includes all types of documents.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, ImmutableArray<DocumentId>> _lazyFilePathToRelatedDocumentIds = new(FilePathComparer);
 
     private SolutionState(
         string? workspaceKind,
-        int workspaceVersion,
+        int solutionStateContentVersion,
         SolutionServices services,
         SolutionInfo.SolutionAttributes solutionAttributes,
         IReadOnlyList<ProjectId> projectIds,
@@ -78,7 +87,7 @@ internal sealed partial class SolutionState
         Lazy<HostDiagnosticAnalyzers>? lazyAnalyzers)
     {
         WorkspaceKind = workspaceKind;
-        WorkspaceVersion = workspaceVersion;
+        ContentVersion = solutionStateContentVersion;
         SolutionAttributes = solutionAttributes;
         Services = services;
         ProjectIds = projectIds;
@@ -111,7 +120,7 @@ internal sealed partial class SolutionState
         ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(
             workspaceKind,
-            workspaceVersion: 0,
+            solutionStateContentVersion: 0,
             services,
             solutionAttributes,
             projectIds: SpecializedCollections.EmptyBoxedImmutableArray<ProjectId>(),
@@ -208,7 +217,9 @@ internal sealed partial class SolutionState
 
         return new SolutionState(
             WorkspaceKind,
-            WorkspaceVersion,
+            // Note: we pass along this version for now.  The workspace will actually fork us once more
+            // when it determines the content version it is moving to.
+            ContentVersion,
             Services,
             solutionAttributes,
             projectIds,
@@ -226,13 +237,17 @@ internal sealed partial class SolutionState
     /// This implicitly also changes the value of <see cref="Solution.Workspace"/> for this solution,
     /// since that is extracted from <see cref="SolutionServices"/> for backwards compatibility.
     /// </summary>
-    public SolutionState WithNewWorkspace(
-        string? workspaceKind,
-        int workspaceVersion,
-        SolutionServices services)
+    public SolutionState WithNewWorkspaceFrom(Solution oldSolution)
     {
+        var workspaceKind = oldSolution.WorkspaceKind;
+        var services = oldSolution.Services;
+
+        var solutionStateContentVersion = oldSolution.SolutionState == this
+            ? oldSolution.SolutionStateContentVersion // If the solution state is the same, we can keep the same version.
+            : oldSolution.SolutionStateContentVersion + 1; // Otherwise, increment the version.
+
         if (workspaceKind == WorkspaceKind &&
-            workspaceVersion == WorkspaceVersion &&
+            solutionStateContentVersion == ContentVersion &&
             services == Services)
         {
             return this;
@@ -242,7 +257,7 @@ internal sealed partial class SolutionState
         // get locked-in by document states and project states when first constructed.
         return new SolutionState(
             workspaceKind,
-            workspaceVersion,
+            solutionStateContentVersion,
             services,
             SolutionAttributes,
             ProjectIds,
@@ -387,9 +402,6 @@ internal sealed partial class SolutionState
             CheckNotContainsProject(projectId);
 
             var languageServices = Services.GetLanguageServices(language);
-            if (languageServices == null)
-                throw new ArgumentException(string.Format(WorkspacesResources.The_language_0_is_not_supported, language));
-
             if (!FallbackAnalyzerOptions.TryGetValue(language, out var fallbackAnalyzerOptions))
             {
                 fallbackAnalyzerOptions = StructuredAnalyzerConfigOptions.Empty;
@@ -1259,6 +1271,10 @@ internal sealed partial class SolutionState
         return Branch(analyzerReferences: analyzerReferences);
     }
 
+    /// <summary>
+    /// Returns a <see cref="DocumentId"/> for a document in another project that has the same file path. Only
+    /// works for regular source documents, additional documents or .editorconfig files will return null.
+    /// </summary>
     public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
     {
         Contract.ThrowIfTrue(documentId.ProjectId == relatedProjectIdHint);
@@ -1282,7 +1298,7 @@ internal sealed partial class SolutionState
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
                 // Match the linear search behavior below and do not return documents from the same project.
-                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId)
+                if (relatedDocumentId != documentId && relatedDocumentId.ProjectId != documentId.ProjectId && this.ContainsDocument(relatedDocumentId))
                     return relatedDocumentId;
             }
 
@@ -1293,7 +1309,7 @@ internal sealed partial class SolutionState
         Contract.ThrowIfTrue(relatedProject == projectState);
         if (relatedProject != null)
         {
-            var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
+            var siblingDocumentId = relatedProject.GetFirstSourceDocumentIdWithFilePath(filePath);
             if (siblingDocumentId is not null)
                 return siblingDocumentId;
         }
@@ -1305,7 +1321,7 @@ internal sealed partial class SolutionState
             if (siblingProjectState == projectState || siblingProjectState == relatedProject)
                 continue;
 
-            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
+            var siblingDocumentId = siblingProjectState.GetFirstSourceDocumentIdWithFilePath(filePath);
             if (siblingDocumentId is not null)
                 return siblingDocumentId;
         }

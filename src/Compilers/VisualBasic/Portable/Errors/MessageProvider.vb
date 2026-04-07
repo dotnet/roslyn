@@ -479,6 +479,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_MethodImplAttributeAsyncCannotBeUsed As Integer
+            Get
+                Return ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed
+            End Get
+        End Property
+
         Protected Overrides Sub ReportInvalidAttributeArgument(diagnostics As DiagnosticBag, attributeSyntax As SyntaxNode, parameterIndex As Integer, attribute As AttributeData)
             Dim node = DirectCast(attributeSyntax, AttributeSyntax)
             diagnostics.Add(ERRID.ERR_BadAttribute1, node.ArgumentList.Arguments(parameterIndex).GetLocation(), attribute.AttributeClass)
@@ -603,6 +609,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_DataSectionStringLiteralHashCollision As Integer
             Get
                 Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime As Integer
+            Get
+                Return ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
             End Get
         End Property
 

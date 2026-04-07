@@ -62,6 +62,30 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
         Assert.Null(results2[1].ResultId);
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestWorkspaceDiagnosticsWithRazorSourceGeneratedDocument(bool useVSDiagnostics, bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(string.Empty, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
+
+        var razorGenerator = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator((c) => c.AddSource("generated_file.cs", "this C# file has syntax errors"));
+        var workspace = testLspServer.TestWorkspace;
+        var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(new TestGeneratorReference(razorGenerator));
+        workspace.TryApplyChanges(project.Solution);
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+        var generatedDocument = (await testLspServer.GetCurrentSolution().Projects.First().GetSourceGeneratedDocumentsAsync()).First();
+
+        // Make sure the test is valid
+        Assert.Equal(3, results.Length);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[2].Diagnostics!.Single().Code);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[2].Uri);
+
+        // Generated document should have no diagnostics
+        Assert.Equal(generatedDocument.GetURI(), results[1].Uri);
+        AssertEx.Empty(results[1].Diagnostics);
+    }
+
     protected override TestComposition Composition => base.Composition.AddParts(typeof(MockProjectDiagnosticAnalyzer));
 
     private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()

@@ -676,6 +676,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression? ExtractCastInvocation(BoundCall invocation)
         {
+            if (invocation.IsErroneousNode)
+            {
+                return null;
+            }
+
             int index = invocation.InvokedAsExtensionMethod ? 1 : 0;
             var c1 = invocation.Arguments[index] as BoundConversion;
             var l1 = c1 != null ? c1.Operand as BoundLambda : null;
@@ -811,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                      );
 
             AnonymousTypeManager manager = this.Compilation.AnonymousTypeManager;
-            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor);
+            NamedTypeSymbol anonymousType = manager.ConstructAnonymousTypeSymbol(typeDescriptor, diagnostics);
             return MakeConstruction(node, anonymousType, ImmutableArray.Create(field1Value, field2Value), diagnostics);
 
             AnonymousTypeField createField(string fieldName, BoundExpression fieldValue) =>

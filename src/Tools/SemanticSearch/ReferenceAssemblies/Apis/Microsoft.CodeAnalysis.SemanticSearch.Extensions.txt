@@ -1,0 +1,9 @@
+﻿# Generated, do not update manually
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ProjectModel
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ProjectModel.ReplaceResxFile(Microsoft.CodeAnalysis.SemanticSearch.Extensions.ResxFile)
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ProjectModel.get_FilePath
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ProjectModel.get_ResxFiles
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ResxFile
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ResxFile.AddString(System.String,System.String)
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ResxFile.RemoveString(System.String)
+Microsoft.CodeAnalysis.SemanticSearch.Extensions.ResxFile.get_FilePath

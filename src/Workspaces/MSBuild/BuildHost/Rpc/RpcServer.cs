@@ -8,10 +8,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
@@ -27,13 +26,13 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal sealed class RpcServer
 {
     private readonly TextWriter _streamWriter;
-    private readonly SemaphoreSlim _sendingStreamSemaphore = new SemaphoreSlim(initialCount: 1);
+    private readonly SemaphoreSlim _sendingStreamSemaphore = new(initialCount: 1);
     private readonly TextReader _streamReader;
 
     private readonly ConcurrentDictionary<int, object> _rpcTargets = [];
     private volatile int _nextRpcTargetIndex = -1; // We'll start at -1 so the first value becomes zero
 
-    private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
+    private readonly CancellationTokenSource _shutdownTokenSource = new();
 
     public RpcServer(PipeStream stream)
     {
@@ -68,7 +67,7 @@ internal sealed class RpcServer
 
             try
             {
-                request = JsonConvert.DeserializeObject<Request>(line);
+                request = JsonSerializer.Deserialize<Request>(line, JsonSettings.SingleLineSerializerOptions);
                 Contract.ThrowIfNull(request);
             }
             catch (Exception e)
@@ -133,7 +132,7 @@ internal sealed class RpcServer
                 if (i == methodParameters.Length - 1 && lastParameterIsCancellationToken)
                     arguments[i] = CancellationToken.None;
                 else
-                    arguments[i] = request.Parameters[i].ToObject(methodParameters[i].ParameterType);
+                    arguments[i] = request.Parameters[i].Deserialize(methodParameters[i].ParameterType, JsonSettings.SingleLineSerializerOptions);
             }
 
             var result = method.Invoke(rpcTarget, arguments);
@@ -156,7 +155,7 @@ internal sealed class RpcServer
                 }
             }
 
-            response = new Response { Id = request.Id, Value = result is not null ? JToken.FromObject(result) : null };
+            response = new Response { Id = request.Id, Value = result is not null ? JsonSerializer.SerializeToElement(result, JsonSettings.SingleLineSerializerOptions) : null };
         }
         catch (Exception e)
         {
@@ -166,7 +165,7 @@ internal sealed class RpcServer
             response = new Response { Id = request.Id, Exception = $"An exception of type {e.GetType()} was thrown: {e.Message}" };
         }
 
-        var responseJson = JsonConvert.SerializeObject(response, JsonSettings.SingleLineSerializerSettings);
+        var responseJson = JsonSerializer.Serialize(response, JsonSettings.SingleLineSerializerOptions);
 
 #if DEBUG
         // Assert we didn't put a newline in this, since if we did the receiving side won't know how to parse it

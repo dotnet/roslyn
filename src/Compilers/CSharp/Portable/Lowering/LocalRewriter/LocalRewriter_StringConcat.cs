@@ -218,9 +218,14 @@ fallbackStrings:
                 // need to consider whether to do so. The visiting logic in the parent function here depends on only one argument being added for a compound assignment
                 // left read, so if we ever do introduce optimizations here that result in more than one argument being added to destinationArguments, we'll need to adjust
                 // that logic.
-                Debug.Assert(visitedCompoundAssignmentLeftRead is
-                    not (BoundCall or BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand.Type.SpecialType: SpecialType.System_Char })
-                    and { ConstantValueOpt: null });
+#if DEBUG
+                var followingArgument = destinationArguments.Count > 0 ? destinationArguments[^1] : null;
+                var (singleConcatArgument, nestedConcatArguments) = SimplifyConcatArgument(visitedCompoundAssignmentLeftRead, ref followingArgument, ref concatMethods);
+                // Simplify should have done no work and just returned the original argument
+                Debug.Assert(ReferenceEquals(singleConcatArgument, visitedCompoundAssignmentLeftRead));
+                Debug.Assert((destinationArguments.Count == 0 && followingArgument is null) || (destinationArguments.Count != 0 && ReferenceEquals(followingArgument, destinationArguments[^1])));
+                Debug.Assert(nestedConcatArguments.IsDefault);
+#endif
                 destinationArguments.Add(visitedCompoundAssignmentLeftRead);
             }
             destinationArguments.ReverseContents();
@@ -267,22 +272,20 @@ fallbackStrings:
         }
 
         /// <summary>
-        /// Visits the given argument if necessary and adds it to the final arguments list. It is expected that <paramref name="finalArguments"/> is being in reverse order, due to the left-recursive
-        /// nature of the binary tree that we're traversing.
+        /// Given a visited argument to a string concatenation, attempts to simplify it for inclusion in the final argument list to <code>string.Concat</code>. This includes:
+        /// <list type="bullet">
+        /// <item>Removing null or empty string constants</item>
+        /// <item>Merging consecutive string or char constants into a single string constant</item>
+        /// <item>Deconstructing nested string.Concat calls into their arguments</item>
+        /// <item>Converting char.ToString() calls into the underlying char expression</item>
+        /// <item>Converting `strValue ?? ""` into just `strValue`</item>
+        /// </list>
+        /// If the argument is simplified into a single argument, it is returned as <code>singleConcatArgument</code>. If it is deconstructed into multiple arguments (as in the case of
+        /// nested string.Concat calls), those arguments are returned as <code>nestedConcatArguments</code>. If the argument is optimized away entirely (as in the case of null or empty string constants),
+        /// then both return values will be null/default. If the argument is merged into the following argument, then <paramref name="followingArgument"/> will be updated to reflect that, and both return values will be null/default.
         /// </summary>
-        /// <remarks>
-        /// This method may end up deciding that the passed argument doesn't need to be included in the concat argument list (if, for example, it's a null constant or an empty string), and not add it
-        /// to <paramref name="finalArguments"/>. It will also fold consecutive constant strings or chars into a single string constant, to avoid unnecessary concatenation. It may also do other optimizations,
-        /// such as deconstructing nested string.Concat calls.
-        /// </remarks>
-        private void VisitAndAddConcatArgumentInReverseOrder(BoundExpression argument, bool argumentAlreadyVisited, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
+        private (BoundExpression? singleConcatArgument, ImmutableArray<BoundExpression> nestedConcatArguments) SimplifyConcatArgument(BoundExpression argument, [NotNullIfNotNull(nameof(followingArgument))] ref BoundExpression? followingArgument, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
         {
-            Debug.Assert(argument is not BoundBinaryOperator { InterpolatedStringHandlerData: null } op || !IsBinaryStringConcatenation(op));
-            if (!argumentAlreadyVisited)
-            {
-                argument = VisitExpression(argument);
-            }
-
             if (argument is BoundConversion { ConversionKind: ConversionKind.Boxing, Type.SpecialType: SpecialType.System_Object, Operand: { Type.SpecialType: SpecialType.System_Char } operand })
             {
                 argument = operand;
@@ -291,12 +294,7 @@ fallbackStrings:
             {
                 if (wellKnownConcatOptimizationMethods.IsWellKnownConcatMethod(call, out var concatArguments))
                 {
-                    for (int i = concatArguments.Length - 1; i >= 0; i--)
-                    {
-                        VisitAndAddConcatArgumentInReverseOrder(concatArguments[i], argumentAlreadyVisited: true, finalArguments, ref wellKnownConcatOptimizationMethods);
-                    }
-
-                    return;
+                    return (null, concatArguments);
                 }
                 else if (wellKnownConcatOptimizationMethods.IsCharToString(call, out var charExpression))
                 {
@@ -313,24 +311,23 @@ fallbackStrings:
             {
                 case { IsNull: true } or { IsString: true, RopeValue.IsEmpty: true }:
                     // If this is a null constant or an empty string, then we don't need to include it in the final arguments list
-                    return;
+                    return (null, default);
 
                 case { IsString: true } or { IsChar: true }:
-                    // See if we can merge this argument with the previous one
-                    if (finalArguments.Count > 0 && finalArguments[^1].ConstantValueOpt is { IsString: true } or { IsChar: true })
+                    // See if we can merge this argument with the next one
+                    if (followingArgument is { ConstantValueOpt: { IsString: true } or { IsChar: true } })
                     {
-                        var constantValue = finalArguments[^1].ConstantValueOpt!;
-                        var previous = getRope(constantValue);
-                        var current = getRope(argument.ConstantValueOpt!);
-                        // We're visiting arguments in reverse order, so we need to prepend this constant value, not append
-                        finalArguments[^1] = _factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, previous)));
-                        return;
+                        var constantValue = followingArgument.ConstantValueOpt;
+                        var next = getRope(constantValue);
+                        var current = getRope(argument.ConstantValueOpt);
+                        followingArgument = _factory.StringLiteral(ConstantValue.CreateFromRope(Rope.Concat(current, next)));
+                        return (null, default);
                     }
 
                     break;
             }
 
-            finalArguments.Add(argument);
+            return (argument, default);
 
             static Rope getRope(ConstantValue constantValue)
             {
@@ -342,6 +339,56 @@ fallbackStrings:
                 else
                 {
                     return Rope.ForString(constantValue.CharValue.ToString());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Visits the given argument if necessary and adds it to the final arguments list. It is expected that <paramref name="finalArguments"/> is being built in reverse order, due to the left-recursive
+        /// nature of the binary tree that we're traversing.
+        /// </summary>
+        /// <remarks>
+        /// This method may end up deciding that the passed argument doesn't need to be included in the concat argument list (if, for example, it's a null constant or an empty string), and not add it
+        /// to <paramref name="finalArguments"/>. It will also fold consecutive constant strings or chars into a single string constant, to avoid unnecessary concatenation. It may also do other optimizations,
+        /// such as deconstructing nested string.Concat calls.
+        /// </remarks>
+        private void VisitAndAddConcatArgumentInReverseOrder(BoundExpression argument, bool argumentAlreadyVisited, ArrayBuilder<BoundExpression> finalArguments, ref WellKnownConcatRelatedMethods wellKnownConcatOptimizationMethods)
+        {
+            Debug.Assert(argument is not BoundBinaryOperator { InterpolatedStringHandlerData: null } op || !IsBinaryStringConcatenation(op));
+            if (!argumentAlreadyVisited)
+            {
+                argument = VisitExpression(argument);
+            }
+
+            var followingArgument = finalArguments.Count > 0 ? finalArguments[^1] : null;
+            var (singleConcatArgument, nestedConcatArguments) = SimplifyConcatArgument(argument, ref followingArgument, ref wellKnownConcatOptimizationMethods);
+
+            // We should only get one result from simplification; either a single argument to add, or multiple nested arguments to add, or the current argument was optimized away
+            // This last option can either mean that the argument was truly empty and was dropped entirely, or that it was merged into the following argument, in which case we need to update the builder
+            if (singleConcatArgument is null && nestedConcatArguments.IsDefault)
+            {
+                if (followingArgument is not null)
+                {
+                    // We may have merged the current argument into the following argument, so we need to update that in the final arguments list
+                    // If we didn't do any merging, then this is a no-op
+                    finalArguments[^1] = followingArgument;
+                }
+
+                return;
+            }
+
+            Debug.Assert((finalArguments.Count == 0 && followingArgument is null) || (finalArguments.Count != 0 && ReferenceEquals(followingArgument, finalArguments[^1])));
+            Debug.Assert(singleConcatArgument is null ^ nestedConcatArguments.IsDefault);
+
+            if (singleConcatArgument is not null)
+            {
+                finalArguments.Add(singleConcatArgument);
+            }
+            else
+            {
+                for (int i = nestedConcatArguments.Length - 1; i >= 0; i--)
+                {
+                    VisitAndAddConcatArgumentInReverseOrder(nestedConcatArguments[i], argumentAlreadyVisited: true, finalArguments, ref wellKnownConcatOptimizationMethods);
                 }
             }
         }

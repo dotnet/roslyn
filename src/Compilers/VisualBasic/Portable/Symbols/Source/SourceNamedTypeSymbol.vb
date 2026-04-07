@@ -124,6 +124,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             cancellationToken.ThrowIfCancellationRequested()
             CheckEmbeddedAttributeImplementation()
+
+            cancellationToken.ThrowIfCancellationRequested()
+            CheckLayoutAttributes()
         End Sub
 #End Region
 
@@ -963,10 +966,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         typeParameterSet.Add(s.Name)
 
                         If ShadowsTypeParameter(s) Then
-                            Binder.ReportDiagnostic(diagBag, s.Locations(0), ERRID.WRN_ShadowingGenericParamWithParam1, s.Name)
+                            Binder.ReportDiagnostic(diagBag, s.GetFirstLocation(), ERRID.WRN_ShadowingGenericParamWithParam1, s.Name)
                         End If
                     Else
-                        Binder.ReportDiagnostic(diagBag, s.Locations(0), ERRID.ERR_DuplicateTypeParamName1, s.Name)
+                        Binder.ReportDiagnostic(diagBag, s.GetFirstLocation(), ERRID.ERR_DuplicateTypeParamName1, s.Name)
                     End If
                 Next
             End If
@@ -1447,7 +1450,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' script, submission and implicit classes have no identifier location:
                     location = If(syntax.Kind = SyntaxKind.CompilationUnit OrElse syntax.Kind = SyntaxKind.NamespaceBlock,
-                                  Locations(0),
+                                  GetFirstLocation(),
                                   GetTypeIdentifierToken(syntax).GetLocation())
                 End If
 
@@ -1729,10 +1732,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
+            m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                    StateFlags.ReportedCodeAnalysisEmbeddedAttributeDiagnostics,
                                                                    0,
-                                                                   diagnostics) Then
+                                                                   diagnostics)
+
+            diagnostics?.Free()
+        End Sub
+
+        Private Sub CheckLayoutAttributes()
+            If (m_lazyState And StateFlags.ReportedLayoutAttributeDiagnostics) <> 0 Then
+                Return
+            End If
+
+            Dim diagnostics As BindingDiagnosticBag = Nothing
+
+            If HasExtendedLayoutAttribute And Not ContainingAssembly.RuntimeSupportsExtendedLayout Then
+                diagnostics = BindingDiagnosticBag.GetInstance()
+                diagnostics.Add(ERRID.ERR_RuntimeDoesNotSupportExtendedLayoutTypes, GetFirstLocation(), Me)
+            End If
+
+            If HasStructLayoutAttribute AndAlso HasExtendedLayoutAttribute Then
+                If diagnostics Is Nothing Then
+                    diagnostics = BindingDiagnosticBag.GetInstance()
+                End If
+                diagnostics.Add(ERRID.ERR_StructLayoutAndExtendedLayout, GetFirstLocation())
+            End If
+
+            If m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
+                                                       StateFlags.ReportedLayoutAttributeDiagnostics,
+                                                       0,
+                                                       diagnostics) Then
                 DeclaringCompilation.SymbolDeclaredEvent(Me)
             End If
 
@@ -2236,12 +2266,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case Me.TypeKind
                 Case TypeKind.Class
                     If attrData.IsTargetAttribute(AttributeDescription.CaseInsensitiveExtensionAttribute) Then
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.GetFirstLocation())
                         decoded = True
 
                     ElseIf attrData.IsTargetAttribute(AttributeDescription.VisualBasicComClassAttribute) Then
                         If Me.IsGenericType Then
-                            diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.Locations(0))
+                            diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.GetFirstLocation())
                         Else
                             Interlocked.CompareExchange(_comClassData, New ComClassData(attrData), Nothing)
                         End If
@@ -2289,7 +2319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ElseIf attrData.IsTargetAttribute(AttributeDescription.VisualBasicComClassAttribute) Then
                         ' Can't apply ComClassAttribute to a Module
-                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.Locations(0))
+                        diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.GetFirstLocation())
                         decoded = True
                     End If
             End Select
@@ -2303,7 +2333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim defaultProperty = DefaultPropertyName
                     If Not String.IsNullOrEmpty(defaultProperty) AndAlso
                         Not IdentifierComparison.Equals(defaultProperty, attributeValue) Then
-                        diagnostics.Add(ERRID.ERR_ConflictDefaultPropertyAttribute, Locations(0), Me)
+                        diagnostics.Add(ERRID.ERR_ConflictDefaultPropertyAttribute, GetFirstLocation(), Me)
                     End If
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.SerializableAttribute) Then
@@ -2323,6 +2353,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Me.IsGenericType Then
                         diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                     End If
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.ExtendedLayoutAttribute) Then
+                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExtendedLayoutAttribute = True
 
                 ElseIf attrData.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
@@ -2454,7 +2486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Binder.ReportUseSiteInfoForSynthesizedAttribute(WellKnownMember.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute__ctor,
                                                                  Me.DeclaringCompilation,
-                                                                 Locations(0),
+                                                                 GetFirstLocation(),
                                                                  diagnostics)
             End If
         End Sub
@@ -2495,6 +2527,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property Layout As TypeLayout
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
+
+                If data IsNot Nothing AndAlso data.HasExtendedLayoutAttribute Then
+                    Return New TypeLayout(MetadataHelpers.get_Extended(), 0, alignment:=0)
+                End If
+
                 If data IsNot Nothing AndAlso data.HasStructLayoutAttribute Then
                     Return data.Layout
                 End If
@@ -2516,6 +2553,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasStructLayoutAttribute
+            End Get
+        End Property
+
+        Friend ReadOnly Property HasExtendedLayoutAttribute As Boolean
+            Get
+                Dim data = GetDecodedWellKnownAttributeData()
+                Return data IsNot Nothing AndAlso data.HasExtendedLayoutAttribute
             End Get
         End Property
 

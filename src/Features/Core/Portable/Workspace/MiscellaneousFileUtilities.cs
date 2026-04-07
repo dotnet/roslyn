@@ -15,6 +15,13 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces;
 
 internal static class MiscellaneousFileUtilities
 {
+    internal static bool IsScriptFile(LanguageInformation languageInformation, string filePath)
+    {
+        return languageInformation.ScriptExtension is not null
+            && PathUtilities.GetExtension(filePath) == languageInformation.ScriptExtension;
+    }
+
+    /// <param name="enableFileBasedPrograms">Whether the host has globally enabled the C# file-based programs feature.</param>
     internal static ProjectInfo CreateMiscellaneousProjectInfoForDocument(
         Workspace workspace,
         string filePath,
@@ -22,34 +29,43 @@ internal static class MiscellaneousFileUtilities
         LanguageInformation languageInformation,
         SourceHashAlgorithm checksumAlgorithm,
         SolutionServices services,
-        ImmutableArray<MetadataReference> metadataReferences)
+        ImmutableArray<MetadataReference> metadataReferences,
+        bool enableFileBasedPrograms)
     {
-        var fileExtension = PathUtilities.GetExtension(filePath);
         var fileName = PathUtilities.GetFileName(filePath);
 
-        // For Razor files we need to override the language name to C# as thats what code is generated
-        var isRazor = languageInformation.LanguageName == "Razor";
-        var languageName = isRazor ? LanguageNames.CSharp : languageInformation.LanguageName;
-
+        var languageName = languageInformation.LanguageName;
         var languageServices = services.GetLanguageServices(languageName);
+        var miscellaneousProjectInfoService = languageServices.GetService<IMiscellaneousProjectInfoService>();
+
+        if (miscellaneousProjectInfoService is not null)
+        {
+            // The MiscellaneousProjectInfoService can override the language name to use for the project, and therefore we have to re-get
+            // the right set of language services.
+            languageName = miscellaneousProjectInfoService.ProjectLanguageOverride;
+            languageServices = services.GetLanguageServices(languageName);
+        }
+
         var compilationOptions = languageServices.GetService<ICompilationFactoryService>()?.GetDefaultCompilationOptions();
 
         // Use latest language version which is more permissive, as we cannot find out language version of the project which the file belongs to
         // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/575761
         var parseOptions = languageServices.GetService<ISyntaxTreeFactoryService>()?.GetDefaultParseOptionsWithLatestLanguageVersion();
 
-        if (parseOptions != null &&
-            compilationOptions != null &&
-            fileExtension == languageInformation.ScriptExtension)
+        if (parseOptions != null)
         {
-            parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
-            compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
-        }
-
-        if (parseOptions != null && fileExtension != languageInformation.ScriptExtension)
-        {
-            // Any non-script misc file should not complain about usage of '#:' ignored directives.
-            parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
+            if (compilationOptions != null &&
+                IsScriptFile(languageInformation, filePath))
+            {
+                parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
+                compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
+            }
+            else if (enableFileBasedPrograms)
+            {
+                // The host has enabled the file-based programs feature, so
+                // any non-script misc file should not complain about usage of '#:' ignored directives.
+                parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
+            }
         }
 
         var projectId = ProjectId.CreateNewId(debugName: $"{workspace.GetType().Name} Files Project for {filePath}");
@@ -67,6 +83,7 @@ internal static class MiscellaneousFileUtilities
         // a random GUID can be used.
         var assemblyName = Guid.NewGuid().ToString("N");
 
+        var addAsAdditionalDocument = miscellaneousProjectInfoService?.AddAsAdditionalDocument ?? false;
         var projectInfo = ProjectInfo.Create(
             new ProjectInfo.ProjectAttributes(
                 id: projectId,
@@ -81,9 +98,10 @@ internal static class MiscellaneousFileUtilities
                 hasAllInformation: sourceCodeKind == SourceCodeKind.Script),
             compilationOptions: compilationOptions,
             parseOptions: parseOptions,
-            documents: isRazor ? null : [documentInfo],
-            additionalDocuments: isRazor ? [documentInfo] : null,
-            metadataReferences: metadataReferences);
+            documents: addAsAdditionalDocument ? null : [documentInfo],
+            additionalDocuments: addAsAdditionalDocument ? [documentInfo] : null,
+            metadataReferences: metadataReferences,
+            analyzerReferences: miscellaneousProjectInfoService?.GetAnalyzerReferences(services));
 
         return projectInfo;
     }
@@ -112,9 +130,9 @@ internal static class MiscellaneousFileUtilities
     }
 }
 
-internal sealed class LanguageInformation(string languageName, string scriptExtension)
+internal sealed class LanguageInformation(string languageName, string? scriptExtension)
 {
     public string LanguageName { get; } = languageName;
-    public string ScriptExtension { get; } = scriptExtension;
+    public string? ScriptExtension { get; } = scriptExtension;
 }
 

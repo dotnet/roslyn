@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../FileBasedProgramsResources.resx">
+    <body>
+      <trans-unit id="CannotConvertDirective">
+        <source>Some directives cannot be converted. Run the file to see all compilation errors. Specify '--force' to convert anyway.</source>
+        <target state="translated">一些指令无法转换。运行该文件以查看所有编译错误。请指定 '--force' 以进行转换。</target>
+        <note>{Locked="--force"}</note>
+      </trans-unit>
+      <trans-unit id="CouldNotFindAnyProjectInDirectory">
+        <source>Could not find any project in `{0}`.</source>
+        <target state="translated">“{0}”中找不到任何项目。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CouldNotFindProjectOrDirectory">
+        <source>Could not find project or directory `{0}`.</source>
+        <target state="translated">找不到项目或目录“{0}”。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectiveError">
+        <source>error</source>
+        <target state="translated">错误</target>
+        <note>Used when reporting directive errors like "file(location): error: message".</note>
+      </trans-unit>
+      <trans-unit id="DuplicateDirective">
+        <source>Duplicate directives are not supported: {0}</source>
+        <target state="translated">不支持重复指令: {0}</target>
+        <note>{0} is the directive type and name.</note>
+      </trans-unit>
+      <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
+        <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
+        <target state="translated">'{0}' 指令中的文件扩展名无法识别。当前仅识别以下扩展名: {1}</target>
+        <note>{0} is the directive - '#:include' or '#:exclude'. {1} is a comma-separated list of file extensions, like: '.cs', '.resx'</note>
+      </trans-unit>
+      <trans-unit id="InvalidDirectiveName">
+        <source>The directive should contain a name without special characters and an optional value separated by '{1}' like '#:{0} Name{1}Value'.</source>
+        <target state="translated">该指令应包含一个不带特殊字符的名称，以及一个以 '#:{0} Name{1}Value' 等 ‘{1}’ 分隔的可选值。</target>
+        <note>{0} is the directive type like 'package' or 'sdk'. {1} is the expected separator like '@' or '='.</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingEntry">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must have two parts separated by '='. The entry '{0}' is invalid.</source>
+        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 属性中的每个条目必须包含由 '=' 分隔的两部分。条目 '{0}' 无效。</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="="}</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingExtension">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</source>
+        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map from a non-empty file extension starting with '.'. The extension '{0}' in entry '{1}' is invalid.</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="."}</note>
+      </trans-unit>
+      <trans-unit id="InvalidIncludeExcludeMappingItemType">
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
+        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 属性中的每个条目必须映射到非空项类型。条目 '{1}' 中的项类型 '{0}' 无效。</target>
+        <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
+      </trans-unit>
+      <trans-unit id="InvalidProjectDirective">
+        <source>The '#:project' directive is invalid: {0}</source>
+        <target state="translated">'#:project' 指令无效: {0}</target>
+        <note>{0} is the inner error message.</note>
+      </trans-unit>
+      <trans-unit id="MissingDirectiveName">
+        <source>Missing name of '{0}'.</source>
+        <target state="translated">缺少 '{0}' 的名称。</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+      <trans-unit id="MoreThanOneProjectInDirectory">
+        <source>Found more than one project in `{0}`. Specify which one to use.</source>
+        <target state="translated">在“{0}”中找到多个项目。请指定使用哪一个。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveInvalidName">
+        <source>Invalid property name: {0}</source>
+        <target state="translated">属性名无效: {0}</target>
+        <note>{0} is an inner exception message.</note>
+      </trans-unit>
+      <trans-unit id="PropertyDirectiveMissingParts">
+        <source>The property directive needs to have two parts separated by '=' like '#:property PropertyName=PropertyValue'.</source>
+        <target state="translated">属性指令需要包含两个由 ‘=’ 分隔的部件，例如 '#:property PropertyName=PropertyValue'。</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="QuoteInDirective">
+        <source>Directives currently cannot contain double quotes (").</source>
+        <target state="translated">指令当前不能包含双引号(")。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="StaticGraphRestoreNotSupported">
+        <source>Static graph restore is not supported for file-based apps. Remove the '#:property'.</source>
+        <target state="translated">基于文件的应用不支持静态图形还原。移除 '#:property'。</target>
+        <note>{Locked="#:property"}</note>
+      </trans-unit>
+      <trans-unit id="UnrecognizedDirective">
+        <source>Unrecognized directive '{0}'.</source>
+        <target state="translated">无法识别的指令 ‘{0}’。</target>
+        <note>{0} is the directive name like 'package' or 'sdk'.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

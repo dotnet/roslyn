@@ -505,15 +505,15 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         public override string Language => LanguageNames.CSharp;
 
-        internal override Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(Document document,
+        internal override async Task<CodeAnalysis.Completion.CompletionList> GetCompletionsAsync(Document document,
             int caretPosition,
             CodeAnalysis.Completion.CompletionOptions options,
             OptionSet passThroughOptions,
             CompletionTrigger trigger = default,
             ImmutableHashSet<string> roles = null,
-            CancellationToken cancellationToken = default) => Task.FromResult(CodeAnalysis.Completion.CompletionList.Empty);
+            CancellationToken cancellationToken = default) => CodeAnalysis.Completion.CompletionList.Empty;
 
-        public override Task<CompletionChange> GetChangeAsync(
+        public override async Task<CompletionChange> GetChangeAsync(
             Document document,
             CodeAnalysis.Completion.CompletionItem item,
             char? commitCharacter = null,
@@ -526,7 +526,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
                     }
                 """);
 
-            return Task.FromResult(CompletionChange.Create(textChange, newPosition: 0));
+            return CompletionChange.Create(textChange, newPosition: 0);
         }
 
         internal override bool ShouldTriggerCompletion(Project project, LanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CodeAnalysis.Completion.CompletionOptions options, OptionSet passthroughOptions, ImmutableHashSet<string> roles = null)
@@ -535,7 +535,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
         internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)
             => CompletionRules.Default;
 
-        internal override Task<CompletionDescription> GetDescriptionAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
-            => Task.FromResult(CompletionDescription.Empty);
+        internal override async Task<CompletionDescription> GetDescriptionAsync(Document document, CodeAnalysis.Completion.CompletionItem item, CodeAnalysis.Completion.CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
+            => CompletionDescription.Empty;
     }
 }

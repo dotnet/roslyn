@@ -1039,6 +1039,100 @@ public sealed class ArgumentWrappingTests : AbstractWrappingTests
             }
             """);
 
+    [Fact]
+    public Task TestInPrimaryConstructorInitializer1()
+        => TestAllWrappingCasesAsync(
+            """
+            class C() : B([||]a, b, c) {
+            }
+            """,
+            """
+            class C() : B(a,
+                          b,
+                          c) {
+            }
+            """,
+            """
+            class C() : B(
+                a,
+                b,
+                c) {
+            }
+            """,
+            """
+            class C() : B(a,
+                b,
+                c) {
+            }
+            """,
+            """
+            class C() : B(
+                a, b, c) {
+            }
+            """);
+
+    [Fact]
+    public Task TestInPrimaryConstructorInitializer2()
+        => TestAllWrappingCasesAsync(
+            """
+            class C() : [||]B(a, b, c) {
+            }
+            """,
+            """
+            class C() : B(a,
+                          b,
+                          c) {
+            }
+            """,
+            """
+            class C() : B(
+                a,
+                b,
+                c) {
+            }
+            """,
+            """
+            class C() : B(a,
+                b,
+                c) {
+            }
+            """,
+            """
+            class C() : B(
+                a, b, c) {
+            }
+            """);
+
+    [Fact]
+    public Task TestInPrimaryConstructorInitializer3()
+        => TestAllWrappingCasesAsync(
+            """
+            class C() 
+                : [||]B(a, b, c) {
+            }
+            """,
+            """
+            class C() 
+                : B(a,
+                    b,
+                    c) {
+            }
+            """,
+            """
+            class C() 
+                : B(
+                    a,
+                    b,
+                    c) {
+            }
+            """,
+            """
+            class C() 
+                : B(
+                    a, b, c) {
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63732")]
     public Task TestMissingStartToken1()
         => TestMissingAsync(

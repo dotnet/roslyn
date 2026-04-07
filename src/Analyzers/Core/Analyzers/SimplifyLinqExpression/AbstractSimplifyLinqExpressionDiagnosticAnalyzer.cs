@@ -6,40 +6,45 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression;
 
-internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvocationExpressionSyntax, TMemberAccessExpressionSyntax>()
-    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<
+    TExpressionSyntax,
+    TSimpleNameSyntax,
+    TInvocationExpressionSyntax,
+    TMemberAccessExpressionSyntax>()
+    : AbstractBuiltInUnnecessaryCodeStyleDiagnosticAnalyzer(
         IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId,
         EnforceOnBuildValues.SimplifyLinqExpression,
         option: null,
         title: new LocalizableResourceString(nameof(AnalyzersResources.Simplify_LINQ_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
-    where TInvocationExpressionSyntax : SyntaxNode
-    where TMemberAccessExpressionSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
+    where TSimpleNameSyntax : TExpressionSyntax
+    where TInvocationExpressionSyntax : TExpressionSyntax
+    where TMemberAccessExpressionSyntax : TExpressionSyntax
 {
-    private static readonly ImmutableHashSet<string> s_nonEnumerableReturningLinqPredicateMethodNames =
-        [
-            nameof(Enumerable.First),
-            nameof(Enumerable.Last),
-            nameof(Enumerable.Single),
-            nameof(Enumerable.Any),
-            nameof(Enumerable.Count),
-            nameof(Enumerable.SingleOrDefault),
-            nameof(Enumerable.FirstOrDefault),
-            nameof(Enumerable.LastOrDefault),
-        ];
-    private static readonly ImmutableHashSet<string> s_nonEnumerableReturningLinqSelectorMethodNames =
-        [
-            nameof(Enumerable.Average),
-            nameof(Enumerable.Sum),
-            nameof(Enumerable.Min),
-            nameof(Enumerable.Max),
-        ];
+    private static readonly ImmutableHashSet<string> s_nonEnumerableReturningLinqPredicateMethodNames = [
+        nameof(Enumerable.First),
+        nameof(Enumerable.Last),
+        nameof(Enumerable.Single),
+        nameof(Enumerable.Any),
+        nameof(Enumerable.Count),
+        nameof(Enumerable.SingleOrDefault),
+        nameof(Enumerable.FirstOrDefault),
+        nameof(Enumerable.LastOrDefault)];
+
+    private static readonly ImmutableHashSet<string> s_nonEnumerableReturningLinqSelectorMethodNames = [
+        nameof(Enumerable.Average),
+        nameof(Enumerable.Sum),
+        nameof(Enumerable.Min),
+        nameof(Enumerable.Max)];
 
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
@@ -140,12 +145,16 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
                 return;
             }
 
-            if (TryGetSymbolOfMemberAccess(invocation) is not ITypeSymbol targetTypeSymbol ||
-                TryGetMethodName(nextInvocation) is not string name)
+            if (TryGetSymbolOfMemberAccess(invocation) is not ITypeSymbol targetTypeSymbol)
+                return;
+
+            if (nextInvocation.Syntax is not TInvocationExpressionSyntax nextInvocationNode ||
+                TryGetMethodName(nextInvocationNode) is not TSimpleNameSyntax memberName)
             {
                 return;
             }
 
+            var name = SyntaxFacts.GetIdentifierOfSimpleName(memberName).ValueText;
             if (isWhereMethod && !s_nonEnumerableReturningLinqPredicateMethodNames.Contains(name))
                 return;
 
@@ -170,7 +179,19 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
                 }
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(Descriptor, nextInvocation.Syntax.GetLocation()));
+            // For `Where(x => x is not null).First()` fade out the `First()` portion as we're effectively trimming off
+            // the last unnecessary chunk.
+            using var additionalUnnecessaryLocations = TemporaryArray<Location>.Empty;
+            additionalUnnecessaryLocations.Add(nextInvocationNode.SyntaxTree.GetLocation(
+                TextSpan.FromBounds(memberName.SpanStart, nextInvocationNode.Span.End)));
+
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                Descriptor,
+                nextInvocation.Syntax.GetLocation(),
+                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
+                context.Options,
+                additionalLocations: [],
+                additionalUnnecessaryLocations.ToImmutableAndClear()));
         }
 
         bool IsWhereLinqMethod(IInvocationOperation invocation)
@@ -194,17 +215,13 @@ internal abstract class AbstractSimplifyLinqExpressionDiagnosticAnalyzer<TInvoca
             return invocation.SemanticModel?.GetTypeInfo(expression).Type;
         }
 
-        string? TryGetMethodName(IInvocationOperation invocation)
+        TSimpleNameSyntax? TryGetMethodName(TInvocationExpressionSyntax invocationNode)
         {
-            if (invocation.Syntax is not TInvocationExpressionSyntax invocationNode ||
-                SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is not TMemberAccessExpressionSyntax memberAccess)
-            {
+            if (SyntaxFacts.GetExpressionOfInvocationExpression(invocationNode) is not TMemberAccessExpressionSyntax memberAccess)
                 return null;
-            }
 
             var memberName = SyntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
-            var identifier = SyntaxFacts.GetIdentifierOfSimpleName(memberName);
-            return identifier.ValueText;
+            return memberName as TSimpleNameSyntax;
         }
     }
 }

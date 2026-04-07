@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -38,7 +39,8 @@ public sealed class SyntaxGeneratorTests
     private SyntaxGenerator Generator
         => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
-    public static Compilation Compile(string code)
+    public static Compilation Compile(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
     {
         return CSharpCompilation.Create("test")
             .AddReferences(NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.SystemRuntime, NetFramework.SystemValueTuple)
@@ -344,43 +346,43 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestMathAndLogicExpressions()
     {
-        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.NegateExpression(Generator.IdentifierName("x")), "-(x)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) + (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.SubtractExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) - (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.MultiplyExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) * (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.DivideExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) / (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ModuloExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) % (y)");
+        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.NegateExpression(Generator.IdentifierName("x")), "-x");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x + y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.SubtractExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x - y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.MultiplyExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x * y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.DivideExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x / y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ModuloExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x % y");
 
-        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "~(x)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) & (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) | (y)");
+        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.BitwiseNotExpression(Generator.IdentifierName("x")), "~x");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x & y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.BitwiseOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x | y");
 
-        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.LogicalNotExpression(Generator.IdentifierName("x")), "!(x)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) && (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) || (y)");
+        VerifySyntax<PrefixUnaryExpressionSyntax>(Generator.LogicalNotExpression(Generator.IdentifierName("x")), "!x");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalAndExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x && y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LogicalOrExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x || y");
     }
 
     [Fact]
     public void TestEqualityAndInequalityExpressions()
     {
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ReferenceEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) == (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) == (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ReferenceEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x == y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x == y");
 
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) != (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) != (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ReferenceNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x != y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.ValueNotEqualsExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x != y");
 
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) < (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) <= (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x < y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.LessThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x <= y");
 
-        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) > (y)");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) >= (y)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x > y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.GreaterThanOrEqualExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x >= y");
     }
 
     [Fact]
     public void TestConditionalExpressions()
     {
-        VerifySyntax<BinaryExpressionSyntax>(Generator.CoalesceExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) ?? (y)");
-        VerifySyntax<ConditionalExpressionSyntax>(Generator.ConditionalExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"), Generator.IdentifierName("z")), "(x) ? (y) : (z)");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.CoalesceExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x ?? y");
+        VerifySyntax<ConditionalExpressionSyntax>(Generator.ConditionalExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"), Generator.IdentifierName("z")), "x ? y : z");
     }
 
     [Fact]
@@ -391,8 +393,8 @@ public sealed class SyntaxGeneratorTests
         VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.MemberAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x.y.z");
         VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.InvocationExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x(y).z");
         VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.ElementAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "x[y].z");
-        VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "((x) + (y)).z");
-        VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.NegateExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y")), "(-(x)).y");
+        VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")), "(x + y).z");
+        VerifySyntax<MemberAccessExpressionSyntax>(Generator.MemberAccessExpression(Generator.NegateExpression(Generator.IdentifierName("x")), Generator.IdentifierName("y")), "(-x).y");
     }
 
     [Fact]
@@ -458,21 +460,21 @@ public sealed class SyntaxGeneratorTests
 
         VerifySyntax<ElementAccessExpressionSyntax>(
             Generator.ElementAccessExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), Generator.IdentifierName("z")),
-            "((x) + (y))[z]");
+            "(x + y)[z]");
     }
 
     [Fact]
     public void TestCastAndConvertExpressions()
     {
-        VerifySyntax<CastExpressionSyntax>(Generator.CastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x)(y)");
-        VerifySyntax<CastExpressionSyntax>(Generator.ConvertExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x)(y)");
+        VerifySyntax<CastExpressionSyntax>(Generator.CastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x)y");
+        VerifySyntax<CastExpressionSyntax>(Generator.ConvertExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x)y");
     }
 
     [Fact]
     public void TestIsAndAsExpressions()
     {
-        VerifySyntax<BinaryExpressionSyntax>(Generator.IsTypeExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) is y");
-        VerifySyntax<BinaryExpressionSyntax>(Generator.TryCastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "(x) as y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.IsTypeExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x is y");
+        VerifySyntax<BinaryExpressionSyntax>(Generator.TryCastExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x as y");
         VerifySyntax<TypeOfExpressionSyntax>(Generator.TypeOfExpression(Generator.IdentifierName("x")), "typeof(x)");
     }
 
@@ -493,12 +495,12 @@ public sealed class SyntaxGeneratorTests
         VerifySyntax<InvocationExpressionSyntax>(Generator.InvocationExpression(Generator.MemberAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "x.y()");
         VerifySyntax<InvocationExpressionSyntax>(Generator.InvocationExpression(Generator.ElementAccessExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "x[y]()");
         VerifySyntax<InvocationExpressionSyntax>(Generator.InvocationExpression(Generator.InvocationExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "x(y)()");
-        VerifySyntax<InvocationExpressionSyntax>(Generator.InvocationExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "((x) + (y))()");
+        VerifySyntax<InvocationExpressionSyntax>(Generator.InvocationExpression(Generator.AddExpression(Generator.IdentifierName("x"), Generator.IdentifierName("y"))), "(x + y)()");
     }
 
     [Fact]
     public void TestAssignmentStatement()
-        => VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = (y)");
+        => VerifySyntax<AssignmentExpressionSyntax>(Generator.AssignmentStatement(Generator.IdentifierName("x"), Generator.IdentifierName("y")), "x = y");
 
     [Fact]
     public void TestExpressionStatement()
@@ -523,13 +525,13 @@ public sealed class SyntaxGeneratorTests
     public void TestAddHandlerExpressions()
         => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.AddEventHandler(Generator.IdentifierName("@event"), Generator.IdentifierName("handler")),
-            "@event += (handler)");
+            "@event += handler");
 
     [Fact]
     public void TestSubtractHandlerExpressions()
         => VerifySyntax<AssignmentExpressionSyntax>(
             Generator.RemoveEventHandler(Generator.IdentifierName("@event"),
-            Generator.IdentifierName("handler")), "@event -= (handler)");
+            Generator.IdentifierName("handler")), "@event -= handler");
 
     [Fact]
     public void TestAwaitExpressions()
@@ -3195,7 +3197,7 @@ public sealed class SyntaxGeneratorTests
             Generator.GetModifiers(Generator.WithModifiers(Generator.FieldDeclaration("f", Generator.IdentifierName("t")), allModifiers)));
 
         Assert.Equal(
-            DeclarationModifiers.Static | DeclarationModifiers.Unsafe,
+            DeclarationModifiers.Static | DeclarationModifiers.Unsafe | DeclarationModifiers.Partial,
             Generator.GetModifiers(Generator.WithModifiers(Generator.ConstructorDeclaration("c"), allModifiers)));
 
         Assert.Equal(
@@ -3207,7 +3209,7 @@ public sealed class SyntaxGeneratorTests
             Generator.GetModifiers(Generator.WithModifiers(Generator.MethodDeclaration("m"), allModifiers)));
 
         Assert.Equal(
-            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe,
+            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.Partial,
             Generator.GetModifiers(Generator.WithModifiers(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), allModifiers)));
 
         Assert.Equal(
@@ -3215,11 +3217,11 @@ public sealed class SyntaxGeneratorTests
             Generator.GetModifiers(Generator.WithModifiers(Generator.IndexerDeclaration([Generator.ParameterDeclaration("i")], Generator.IdentifierName("t")), allModifiers)));
 
         Assert.Equal(
-            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
+            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly | DeclarationModifiers.Partial,
             Generator.GetModifiers(Generator.WithModifiers(Generator.EventDeclaration("ef", Generator.IdentifierName("t")), allModifiers)));
 
         Assert.Equal(
-            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly,
+            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual | DeclarationModifiers.Unsafe | DeclarationModifiers.ReadOnly | DeclarationModifiers.Partial,
             Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
         Assert.Equal(
@@ -5288,6 +5290,387 @@ public sealed class SyntaxGeneratorTests
             """);
     }
 
+    [Fact]
+    public void TestExtensionDeclaration_01()
+    {
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(int i)
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::System.Int32 i)
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_02()
+    {
+        // unnamed extension parameter
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(int)
+                {
+                    public static int P { get => 0; set { } }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public static global::System.Int32 P { get; set; }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_03()
+    {
+        // generic
+        var compilation = Compile("""
+            public static class E
+            {
+                extension<T>(int)
+                {
+                    public static int P => 0;
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension<T>(global::System.Int32)
+                {
+                    public static global::System.Int32 P { get; }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_04()
+    {
+        // null extension parameter
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(__arglist)
+                {
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        Assert.Throws<ArgumentException>(() => Generator.Declaration(symbol));
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_05()
+    {
+        // operator
+        var compilation = Compile("""
+            public static class E
+            {
+                extension(C)
+                {
+                    public static C operator +(C c1, C c2) => null;
+                }
+            }
+
+            class C { }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public static class E : global::System.Object
+            {
+                extension(global::C)
+                {
+                    public static global::C operator +(global::C c1, global::C c2)
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_06()
+    {
+        // in struct
+        var compilation = Compile("""
+            public struct E
+            {
+                extension(int)
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<StructDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public struct E
+            {
+                extension(global::System.Int32)
+                {
+                    public void M()
+                    {
+                    }
+                }
+
+                public E()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_07()
+    {
+        // in non-static class
+        var compilation = Compile("""
+            public class E
+            {
+                extension(int)
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            public class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public void M()
+                    {
+                    }
+                }
+
+                public E()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_08()
+    {
+        // top-level
+        var compilation = Compile("""
+            extension(int)
+            {
+                public void M() { }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("").Single();
+        VerifySyntax<ExtensionBlockDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            extension(global::System.Int32)
+            {
+                public void M()
+                {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_09()
+    {
+        // nested in type
+        var compilation = Compile("""
+            static class E1
+            {
+                static class E2
+                {
+                    extension(int)
+                    {
+                        public void M() { }
+                    }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E1").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E1 : global::System.Object
+            {
+                private static class E2 : global::System.Object
+                {
+                    extension(global::System.Int32)
+                    {
+                        public void M()
+                        {
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_10()
+    {
+        // merged extension blocks
+        var compilation = Compile("""
+            static class E
+            {
+                extension(int)
+                {
+                    public void M1() { }
+                }
+                extension(int)
+                {
+                    public void M2() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public void M1()
+                    {
+                    }
+                }
+
+                extension(global::System.Int32)
+                {
+                    public void M2()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_11()
+    {
+        // type parameter constraints
+        var compilation = Compile("""
+            static class E
+            {
+                extension<T>(int) where T : class
+                {
+                    public void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension<T>(global::System.Int32)
+                    where T : class
+                {
+                    public void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestExtensionDeclaration_12()
+    {
+        // static extension method
+        var compilation = Compile("""
+            static class E
+            {
+                extension(int)
+                {
+                    public static void M() { }
+                }
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("E").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal static class E : global::System.Object
+            {
+                extension(global::System.Int32)
+                {
+                    public static void M()
+                    {
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public void Operator_01()
+    {
+        var compilation = Compile("""
+            class C
+            {
+                public static C operator+(C c1, C c2) => throw null;
+            }
+            """);
+
+        var symbol = compilation.GlobalNamespace.GetTypeMembers("C").Single();
+        VerifySyntax<ClassDeclarationSyntax>(Generator.Declaration(symbol),
+            """
+            internal class C : global::System.Object
+            {
+                public static global::C operator +(global::C c1, global::C c2)
+                {
+                }
+
+                public C()
+                {
+                }
+            }
+            """);
+    }
+
     private static void TestModifiersAsync(DeclarationModifiers modifiers, string markup)
     {
         MarkupTestFile.GetSpan(markup, out var code, out var span);
@@ -5307,4 +5690,37 @@ public sealed class SyntaxGeneratorTests
     }
 
     #endregion
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80427")]
+    public void TestAttributeArgument()
+    {
+        var compilation = Compile("""
+            class TestAttribute : System.Attribute { public TestAttribute(object p) { } }
+
+            class ContainingClass { public enum NestedType { A = 1 } }
+
+            class Base
+            {
+                [Test(ContainingClass.NestedType.A)]
+                public int P { get; set; }
+            }
+
+            class Derived : Base
+            {
+                public new int P { get; set; }
+            }
+            """);
+
+        var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+        var syntaxRoot = compilation.SyntaxTrees.Single().GetRoot();
+        var basePropertySymbol = semanticModel.GetDeclaredSymbol(syntaxRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().First())!;
+        var basePropertyAttributeData = basePropertySymbol.GetAttributes().Single();
+
+        var generator = this.Generator;
+        var generatedAttribute = generator.Attribute(basePropertyAttributeData);
+        var attributeArgument = generatedAttribute.DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
+        var enumValueReference = (MemberAccessExpressionSyntax)attributeArgument.Expression;
+        var typeReference = enumValueReference.Expression;
+        Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, typeReference.Kind());
+    }
 }

@@ -252,7 +252,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     var fieldValue = value.GetFieldValue(InternalWellKnownMemberNames.SqlStringValue, inspectionContext);
                     return fieldValue.HostObjectValue as string;
                 }
-                else if (lmrType.IsOrInheritsFrom("System.Xml.Linq", "XNode"))
+                else if (lmrType.IsOrInheritsFrom("System.Xml.Linq", "XNode") ||
+                         lmrType.IsOrInheritsFrom("System.Text", "StringBuilder"))
                 {
                     return value.EvaluateToString(inspectionContext);
                 }

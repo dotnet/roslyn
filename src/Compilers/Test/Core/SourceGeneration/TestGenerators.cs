@@ -199,3 +199,19 @@ namespace Roslyn.Test.Utilities.TestGenerators
         public void Initialize(IncrementalGeneratorInitializationContext context) => _onInit(context);
     }
 }
+
+namespace Microsoft.NET.Sdk.Razor.SourceGenerators
+{
+    /// <summary>
+    /// We check for the presence of the razor SG by full name
+    /// so we have to make sure this is the right name in the right namespace.
+    /// </summary>
+    internal sealed class RazorSourceGenerator(Action<GeneratorExecutionContext> execute) : ISourceGenerator
+    {
+        private readonly Action<GeneratorExecutionContext> _execute = execute;
+
+        public void Initialize(GeneratorInitializationContext context) { }
+
+        public void Execute(GeneratorExecutionContext context) => _execute(context);
+    }
+}

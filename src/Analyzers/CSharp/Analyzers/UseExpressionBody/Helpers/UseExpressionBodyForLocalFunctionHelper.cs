@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -50,16 +51,14 @@ internal sealed class UseExpressionBodyForLocalFunctionHelper :
         => statement.WithBody(body);
 
     protected override bool CreateReturnStatementForExpression(
-        SemanticModel semanticModel, LocalFunctionStatementSyntax statement)
+        SemanticModel semanticModel, LocalFunctionStatementSyntax statement, CancellationToken cancellationToken)
     {
         if (statement.Modifiers.Any(SyntaxKind.AsyncKeyword))
         {
             // if it's 'async TaskLike' (where TaskLike is non-generic) we do *not* want to
             // create a return statement.  This is just the 'async' version of a 'void' local function.
-            var symbol = semanticModel.GetDeclaredSymbol(statement);
-            return symbol is IMethodSymbol methodSymbol &&
-                methodSymbol.ReturnType is INamedTypeSymbol namedType &&
-                namedType.Arity != 0;
+            var symbol = semanticModel.GetDeclaredSymbol(statement, cancellationToken);
+            return symbol is IMethodSymbol { ReturnType: INamedTypeSymbol { Arity: not 0 } };
         }
 
         return !statement.ReturnType.IsVoid();

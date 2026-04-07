@@ -273,7 +273,7 @@ internal static partial class ValueTracker
             // the symbol for that identifier
             if (syntaxFacts.IsArgument(selectedNode))
             {
-                selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode)!;
+                selectedNode = syntaxFacts.GetExpressionOfArgument(selectedNode);
                 selectedSymbol = semanticModel.GetSymbolInfo(selectedNode, cancellationToken).Symbol;
             }
         }

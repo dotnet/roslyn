@@ -8,7 +8,10 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal abstract partial class CommonSemanticQuickInfoProvider
 {
-    public readonly struct TokenInformation(ImmutableArray<ISymbol> symbols, bool showAwaitReturn = false, (NullableAnnotation, NullableFlowState) nullabilityInfo = default)
+    public readonly struct TokenInformation(
+        ImmutableArray<ISymbol> symbols,
+        bool showAwaitReturn = false,
+        string? nullabilityInfo = null)
     {
         public ImmutableArray<ISymbol> Symbols => symbols.NullToEmpty();
 
@@ -21,6 +24,6 @@ internal abstract partial class CommonSemanticQuickInfoProvider
         /// <summary>
         /// The nullability info to show in Quick Info; will have <see cref="NullableFlowState.None"/> to show nothing.
         /// </summary>
-        public readonly (NullableAnnotation, NullableFlowState) NullabilityInfo = nullabilityInfo;
+        public readonly string? NullabilityInfo = nullabilityInfo;
     }
 }

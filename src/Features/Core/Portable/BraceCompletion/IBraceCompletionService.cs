@@ -28,7 +28,6 @@ internal interface IBraceCompletionService
     /// Note that the brace is not yet inserted at this position in the document.
     /// </param>
     /// <param name="document">The document to insert the brace at the position.</param>
-    /// <param name="cancellationToken">A cancellation token.</param>
     bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken);
 
     /// <summary>

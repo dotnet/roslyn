@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Failed_to_load_solution_0">
         <source>Failed to load solution: '{0}'</source>
-        <target state="new">Failed to load solution: '{0}'</target>
+        <target state="translated">Не удалось загрузить решение: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Failed_to_load_solution_filter_0">
@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="The_build_host_could_not_be_found_at_0">
         <source>The build host could not be found at '{0}'</source>
-        <target state="translated">Не удалось найти хост сборки в "{0}"</target>
+        <target state="translated">Не удалось найти узел сборки в "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Unable_to_find_0">
         <source>Unable to find '{0}'</source>
-        <target state="translated">Невозможно найти "{0}"</target>
+        <target state="translated">Не удается найти "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_a_0_for_1">

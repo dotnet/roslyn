@@ -127,13 +127,11 @@ namespace Analyzer.Utilities.Extensions
                 return true;
             }
 
-#if CODEANALYSIS_V3_OR_BETTER
             if (type.IsRefLikeType)
             {
                 return type.GetMembers("Dispose").OfType<IMethodSymbol>()
                     .Any(method => method.HasDisposeSignatureByConvention());
             }
-#endif
 
             return false;
 

@@ -1101,8 +1101,8 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
             """;
         var expectedOrderedItems = new List<SignatureHelpTestItem>
         {
-            new SignatureHelpTestItem("void B.Goo()", string.Empty, null, currentParameterIndex: 0),
-            new SignatureHelpTestItem("void D.Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
+            new("void B.Goo()", string.Empty, null, currentParameterIndex: 0),
+            new("void D.Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0),
         };
 
         await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
@@ -2336,6 +2336,39 @@ public sealed class InvocationExpressionSignatureHelpProviderTests : AbstractCSh
 
             public interface IResourceBuilder<T> where T : IResource { }
             """, [new SignatureHelpTestItem($"({CSharpFeaturesResources.extension}) IResourceBuilder<C> IResourceBuilder<C>.WithServiceBinding<C>(int containerPort, [int? hostPort = null], [string? scheme = null], [string? name = null], [string? env = null])", currentParameterIndex: 0)],
+            sourceCodeKind: SourceCodeKind.Regular);
+
+    [Fact]
+    public Task TestMethodThroughExtensionProperty()
+        => TestAsync("""
+            public enum Foo
+            {
+                Bar
+            }
+
+            public class Description(Foo foo)
+            {
+                public void Baz(int a, string b)
+                {
+                }
+            }
+
+            public static class FooEx
+            {
+                extension(Foo foo)
+                {
+                    public Description Description => new(foo);
+                }
+            }
+
+            class C
+            {
+                void M()
+                {
+                    [|Foo.Bar.Description.Baz($$
+                |]}
+            }
+            """, [new SignatureHelpTestItem("void Description.Baz(int a, string b)", currentParameterIndex: 0)],
             sourceCodeKind: SourceCodeKind.Regular);
 
     [Fact]

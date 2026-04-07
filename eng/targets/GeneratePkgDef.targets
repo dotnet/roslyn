@@ -71,8 +71,8 @@
          (if we used Content items they would get included in the VSIX by VSSDK by default).
   -->
   
-  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
+  <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
   
   <Target Name="_SetGeneratePkgDefInputsOutputs">
     <PropertyGroup>
@@ -86,8 +86,17 @@
       </_FileContentEntries>
 
       <PkgDefFileContent Include="@(_FileContentEntries->'%(FullFilePath)')" />
+
+      <!-- Ensure we add these to the fast-up-to-date-check collections -->
+      <UpToDateCheckInput Include="@(PkgDefFileContent)" Set="PkgdefFiles" />
+      <UpToDateCheckOutput Include="$(_GeneratePkgDefOutputFile)" Set="PkgdefFiles" />
     </ItemGroup>
   </Target>
+
+  <PropertyGroup>
+    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);_SetGeneratePkgDefInputsOutputs</CollectUpToDateCheckInputDesignTimeDependsOn>
+    <CollectUpToDateCheckOutputDesignTimeDependsOn>$(CollectUpToDateCheckOutputDesignTimeDependsOn);_SetGeneratePkgDefInputsOutputs</CollectUpToDateCheckOutputDesignTimeDependsOn>
+  </PropertyGroup>
 
   <!--
     Initializes metadata of PkgDefBrokeredService items.
@@ -293,12 +302,10 @@
     <Error Text="GeneratePkgDefFile is true but the project did not produce any entries (PkgDef* items) to be written to pkgdef file"
            Condition="'@(_PkgDefLines)' == ''"/>
 
-    <!-- Write final pkgdef content. If the CTO file was changed, touch the pkgdef file to cause a re-merge (see VSSDK targets). -->
     <WriteLinesToFile File="$(_GeneratePkgDefOutputFile)"
                       Lines="@(_PkgDefLines)"
                       Overwrite="true"
-                      Encoding="UTF-8"
-                      WriteOnlyWhenDifferent="!$([MSBuild]::ValueOrDefault('$(CTOFileHasChanged)', 'false'))" />
+                      Encoding="UTF-8" />
     <ItemGroup>
       <FileWrites Include="$(_GeneratePkgDefOutputFile)" />
     </ItemGroup>

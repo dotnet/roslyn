@@ -41,6 +41,44 @@ internal static class RenameUtilities
         return token;
     }
 
+    /// <summary>
+    /// Determines if a type symbol is an unrenamable target for an alias.
+    /// Such types include arrays, tuples, pointers, function pointers, and dynamic, which cannot be renamed
+    /// themselves but can be aliased with the "using alias = type" feature.
+    /// </summary>
+    internal static bool IsUnrenamableAliasTarget(ITypeSymbol typeSymbol)
+    {
+        return typeSymbol.IsTupleType ||
+            typeSymbol.TypeKind is TypeKind.Array or TypeKind.Pointer or TypeKind.FunctionPointer or TypeKind.Dynamic;
+    }
+
+    /// <summary>
+    /// Filters symbols to determine which should be used for renaming when both an alias and its target are present.
+    /// For aliases to unrenamable types (like tuples, arrays, pointers, etc.), keeps the alias symbol.
+    /// Otherwise, keeps the non-alias symbols (original behavior).
+    /// </summary>
+    internal static ImmutableArray<ISymbol> FilterAliasSymbols(ImmutableArray<ISymbol> symbols)
+    {
+        if (symbols.Length <= 1)
+            return symbols;
+
+        var aliasSymbol = symbols.FirstOrDefault(s => s.Kind == SymbolKind.Alias);
+        var nonAliasSymbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
+
+        // For aliases to types that cannot be renamed (like tuples, arrays, pointers, function pointers),
+        // we should rename the alias itself, not the target type.
+        if (aliasSymbol != null &&
+            nonAliasSymbols is [ITypeSymbol targetType] &&
+            IsUnrenamableAliasTarget(targetType))
+        {
+            // Keep the alias symbol for renaming
+            return [aliasSymbol];
+        }
+
+        // Original behavior: use the non-alias symbols
+        return nonAliasSymbols;
+    }
+
     internal static ImmutableArray<ISymbol> GetSymbolsTouchingPosition(
         int position, SemanticModel semanticModel, SolutionServices services, CancellationToken cancellationToken)
     {
@@ -55,7 +93,7 @@ internal static class RenameUtilities
         // by GetSymbols
         if (symbols.Length > 1)
         {
-            symbols = symbols.WhereAsArray(s => s.Kind != SymbolKind.Alias);
+            symbols = FilterAliasSymbols(symbols);
         }
 
         if (symbols.Length == 0)
@@ -84,11 +122,11 @@ internal static class RenameUtilities
         if (IsSymbolDefinedInsideMethod(symbol))
         {
             // if the symbol was declared inside of a method, don't check for conflicts in non-renamed documents.
-            return renameLocations.Select(l => solution.GetRequiredDocument(l.DocumentId));
+            return renameLocations.Select(l => solution.GetRequiredDocument(l.Location.SourceTree!));
         }
         else
         {
-            var documentsOfRenameSymbolDeclaration = symbol.Locations.Where(l => l.IsInSource).Select(l => solution.GetRequiredDocument(l.SourceTree!));
+            var documentsOfRenameSymbolDeclaration = symbol.Locations.SelectAsArray(l => l.IsInSource, l => solution.GetRequiredDocument(l.SourceTree!));
             var projectIdsOfRenameSymbolDeclaration =
                 documentsOfRenameSymbolDeclaration.SelectMany(d => d.GetLinkedDocumentIds())
                 .Concat(documentsOfRenameSymbolDeclaration.First().Id)
@@ -299,9 +337,24 @@ internal static class RenameUtilities
     public static async Task<ISymbol?> TryGetRenamableSymbolAsync(
         Document document, int position, CancellationToken cancellationToken)
     {
-        var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticInfo = await SymbolFinder.GetSemanticInfoAtPositionAsync(
+            semanticModel, position, document.Project.Solution.Services, cancellationToken).ConfigureAwait(false);
+
+        var symbol = semanticInfo.GetAnySymbol(includeType: false);
+
         if (symbol == null)
             return null;
+
+        // For conversion operators, GetSemanticInfo returns the conversion operator as DeclaredSymbol when the
+        // position is on the return type (since the operator's location is set to the return type location).
+        // But for rename, we want to rename the type, not the operator. Check if we have a conversion operator
+        // as the declared symbol AND we have a type in the referenced symbols - if so, prefer the type.
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion } &&
+            semanticInfo.ReferencedSymbols.FirstOrDefault() is INamedTypeSymbol referencedType)
+        {
+            symbol = referencedType;
+        }
 
         var definitionSymbol = await FindDefinitionSymbolAsync(symbol, document.Project.Solution, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(definitionSymbol);

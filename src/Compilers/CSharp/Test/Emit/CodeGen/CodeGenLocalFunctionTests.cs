@@ -6129,50 +6129,6 @@ class Program
         }
 
         [Fact]
-        [WorkItem(57325, "https://github.com/dotnet/roslyn/issues/57325")]
-        public void BaseParameterWithDifferentRefKind()
-        {
-            var source = $$"""
-using System;
-
-class Attr : Attribute { }
-
-public class State
-{
-    public bool B;
-}
-
-static class Program
-{
-    static void M()
-    {
-        local(new State());
-
-        static void local([Attr] in State state)
-        {
-        }
-    }
-}
-""";
-            var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var localFunctionSyntax = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
-            var localFunction = model.GetDeclaredSymbol(localFunctionSyntax).GetSymbol<LocalFunctionSymbol>();
-            var param = localFunction.Parameters[0];
-            Assert.True(param.IsMetadataIn);
-            Assert.False(param.IsMetadataOut);
-
-            // Test a scenario where the baseParameterAttributes has a different RefKind than the synthesized parameter.
-            // We expect the RefKind of the base parameter to be ignored here.
-            var synthesizedParam = SynthesizedParameterSymbol.Create(localFunction, param.TypeWithAnnotations, ordinal: 0, RefKind.Out, param.Name, baseParameterForAttributes: (SourceComplexParameterSymbolBase)param);
-            Assert.False(synthesizedParam.IsMetadataIn);
-            Assert.True(synthesizedParam.IsMetadataOut);
-        }
-
-        [Fact]
         [WorkItem(49599, "https://github.com/dotnet/roslyn/issues/49599")]
         public void MultipleLocalFunctionsUsingDynamic_01()
         {
@@ -6296,6 +6252,87 @@ public class Program
 }
 ";
             CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "44");
+        }
+
+        [Theory, CombinatorialData]
+        public void PropagateAttributes_01(bool withPreserve)
+        {
+            // attributes on local function
+            var src = $$"""
+public class C
+{
+    public void M()
+    {
+        local(0);
+
+        [return: A]
+        [B]
+        void local([C] int i) { }
+    }
+}
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class AAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class BAttribute : System.Attribute { }
+
+{{(withPreserve ? "[System.Runtime.CompilerServices.CompilerLoweringPreserve]" : "")}}
+public class CAttribute : System.Attribute { }
+""";
+
+            var verifier = CompileAndVerify([src, CompilerLoweringPreserveAttributeDefinition]).VerifyDiagnostics();
+            verifier.VerifyTypeIL("C", """
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    // Methods
+    .method public hidebysig 
+        instance void M () cil managed 
+    {
+        // Method begins at RVA 0x2067
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldc.i4.0
+        IL_0001: call void C::'<M>g__local|0_0'(int32)
+        IL_0006: ret
+    } // end of method C::M
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        // Method begins at RVA 0x206f
+        // Code size 7 (0x7)
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    } // end of method C::.ctor
+    .method assembly hidebysig static 
+        void '<M>g__local|0_0' (
+            int32 i
+        ) cil managed 
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void BAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [0]
+            .custom instance void AAttribute::.ctor() = (
+                01 00 00 00
+            )
+        .param [1]
+            .custom instance void CAttribute::.ctor() = (
+                01 00 00 00
+            )
+        // Method begins at RVA 0x2077
+        // Code size 1 (0x1)
+        .maxstack 8
+        IL_0000: ret
+    } // end of method C::'<M>g__local|0_0'
+} // end of class C
+""".Replace("[mscorlib]", ExecutionConditionUtil.IsMonoOrCoreClr ? "[netstandard]" : "[mscorlib]"));
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = default)

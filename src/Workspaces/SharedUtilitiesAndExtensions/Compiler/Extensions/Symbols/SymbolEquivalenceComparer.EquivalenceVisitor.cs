@@ -174,6 +174,13 @@ internal sealed partial class SymbolEquivalenceComparer
                 return false;
             }
 
+            // If it's an unconstructed method, then we don't need to check the type arguments.
+            if (!IsConstructedFromSelf(x) &&
+                !TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies))
+            {
+                return false;
+            }
+
             if (x.MethodKind == MethodKind.ReducedExtension)
             {
                 var rx = x.ReducedFrom;
@@ -193,8 +200,7 @@ internal sealed partial class SymbolEquivalenceComparer
             }
             else
             {
-                if (x.MethodKind is MethodKind.AnonymousFunction or
-                    MethodKind.LocalFunction)
+                if (x.MethodKind is MethodKind.AnonymousFunction or MethodKind.LocalFunction)
                 {
                     // Treat local and anonymous functions just like we do ILocalSymbols.  
                     // They're only equivalent if they have the same location.
@@ -237,13 +243,7 @@ internal sealed partial class SymbolEquivalenceComparer
                 }
             }
 
-            // If it's an unconstructed method, then we don't need to check the type arguments.
-            if (IsConstructedFromSelf(x))
-            {
-                return true;
-            }
-
-            return TypeArgumentsAreEquivalent(x.TypeArguments, y.TypeArguments, equivalentTypesWithDifferingAssemblies);
+            return true;
         }
 
         private static bool AreCompatibleMethodKinds(MethodKind kind1, MethodKind kind2)

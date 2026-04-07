@@ -78,7 +78,7 @@ internal sealed partial class XmlSnippetParser
 
             if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippets", StringComparison.OrdinalIgnoreCase))
             {
-                return codeSnippetsElement.Elements().Where(e => e.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase)).ToImmutableArray();
+                return codeSnippetsElement.Elements().WhereAsArray(e => e.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase));
             }
             else if (codeSnippetsElement.Name.LocalName.Equals("CodeSnippet", StringComparison.OrdinalIgnoreCase))
             {

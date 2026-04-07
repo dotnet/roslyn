@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
@@ -21,7 +22,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
-            var languageServices = _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(_state.TypeToGenerateIn.Language);
+            var languageServices = _document.Project.Solution.GetExtendedLanguageServices(_state.TypeToGenerateIn.Language);
             var codeGenerator = languageServices.GetRequiredService<ICodeGenerationService>();
             var semanticFacts = languageServices.GetRequiredService<ISemanticFactsService>();
 

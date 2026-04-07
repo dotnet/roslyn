@@ -71,7 +71,7 @@ public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelp
         AddAnalyzerToWorkspace(workspace, analyzer);
 
         var document = GetDocumentAndSelectSpan(workspace, out var span);
-        var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span, includeNonLocalDocumentDiagnostics: parameters.includeNonLocalDocumentDiagnostics);
+        var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
         return FilterDiagnostics(diagnostics);
     }
 
@@ -81,7 +81,7 @@ public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelp
         var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
         AddAnalyzerToWorkspace(workspace, analyzer);
 
-        GetDocumentAndSelectSpanOrAnnotatedSpan(workspace, out var document, out var span, out var annotation);
+        var (document, span, annotation) = await GetDocumentAndSelectSpanOrAnnotatedSpan(workspace);
 
         var testDriver = new TestDiagnosticAnalyzerDriver(workspace, includeSuppressedDiagnostics: IncludeSuppressedDiagnostics);
         var diagnostics = (await testDriver.GetAllDiagnosticsAsync(document, span))

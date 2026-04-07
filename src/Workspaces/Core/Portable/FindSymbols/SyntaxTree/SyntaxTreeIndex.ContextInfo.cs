@@ -24,7 +24,8 @@ internal sealed partial class SyntaxTreeIndex
             bool containsUsingStatement,
             bool containsQueryExpression,
             bool containsThisConstructorInitializer,
-            bool containsBaseConstructorInitializer,
+            bool containsExplicitBaseConstructorInitializer,
+            bool containsImplicitBaseConstructorInitializer,
             bool containsExplicitOrImplicitElementAccessExpression,
             bool containsIndexerMemberCref,
             bool containsDeconstruction,
@@ -38,7 +39,8 @@ internal sealed partial class SyntaxTreeIndex
             bool containsAttribute,
             bool containsDirective,
             bool containsPrimaryConstructorBaseType,
-            bool containsPartialClass)
+            bool containsPartialClass,
+            bool containsCollectionExpression)
             : this(predefinedTypes, predefinedOperators,
                    ConvertToContainingNodeFlag(
                      containsForEachStatement,
@@ -46,7 +48,8 @@ internal sealed partial class SyntaxTreeIndex
                      containsUsingStatement,
                      containsQueryExpression,
                      containsThisConstructorInitializer,
-                     containsBaseConstructorInitializer,
+                     containsExplicitBaseConstructorInitializer,
+                     containsImplicitBaseConstructorInitializer,
                      containsExplicitOrImplicitElementAccessExpression,
                      containsIndexerMemberCref,
                      containsDeconstruction,
@@ -60,7 +63,8 @@ internal sealed partial class SyntaxTreeIndex
                      containsAttribute,
                      containsDirective,
                      containsPrimaryConstructorBaseType,
-                     containsPartialClass))
+                     containsPartialClass,
+                     containsCollectionExpression))
         {
         }
 
@@ -77,7 +81,8 @@ internal sealed partial class SyntaxTreeIndex
             bool containsUsingStatement,
             bool containsQueryExpression,
             bool containsThisConstructorInitializer,
-            bool containsBaseConstructorInitializer,
+            bool containsExplicitBaseConstructorInitializer,
+            bool containsImplicitBaseConstructorInitializer,
             bool containsExplicitOrImplicitElementAccessExpression,
             bool containsIndexerMemberCref,
             bool containsDeconstruction,
@@ -91,7 +96,8 @@ internal sealed partial class SyntaxTreeIndex
             bool containsAttribute,
             bool containsDirective,
             bool containsPrimaryConstructorBaseType,
-            bool containsPartialClass)
+            bool containsPartialClass,
+            bool containsCollectionExpression)
         {
             var containingNodes = ContainingNodes.None;
 
@@ -100,7 +106,8 @@ internal sealed partial class SyntaxTreeIndex
             containingNodes |= containsUsingStatement ? ContainingNodes.ContainsUsingStatement : 0;
             containingNodes |= containsQueryExpression ? ContainingNodes.ContainsQueryExpression : 0;
             containingNodes |= containsThisConstructorInitializer ? ContainingNodes.ContainsThisConstructorInitializer : 0;
-            containingNodes |= containsBaseConstructorInitializer ? ContainingNodes.ContainsBaseConstructorInitializer : 0;
+            containingNodes |= containsExplicitBaseConstructorInitializer ? ContainingNodes.ContainsExplicitBaseConstructorInitializer : 0;
+            containingNodes |= containsImplicitBaseConstructorInitializer ? ContainingNodes.ContainsImplicitBaseConstructorInitializer : 0;
             containingNodes |= containsExplicitOrImplicitElementAccessExpression ? ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression : 0;
             containingNodes |= containsIndexerMemberCref ? ContainingNodes.ContainsIndexerMemberCref : 0;
             containingNodes |= containsDeconstruction ? ContainingNodes.ContainsDeconstruction : 0;
@@ -115,6 +122,7 @@ internal sealed partial class SyntaxTreeIndex
             containingNodes |= containsDirective ? ContainingNodes.ContainsDirective : 0;
             containingNodes |= containsPrimaryConstructorBaseType ? ContainingNodes.ContainsPrimaryConstructorBaseType : 0;
             containingNodes |= containsPartialClass ? ContainingNodes.ContainsPartialClass : 0;
+            containingNodes |= containsCollectionExpression ? ContainingNodes.ContainsCollectionExpression : 0;
 
             return containingNodes;
         }
@@ -152,8 +160,11 @@ internal sealed partial class SyntaxTreeIndex
         public bool ContainsThisConstructorInitializer
             => (_containingNodes & ContainingNodes.ContainsThisConstructorInitializer) == ContainingNodes.ContainsThisConstructorInitializer;
 
-        public bool ContainsBaseConstructorInitializer
-            => (_containingNodes & ContainingNodes.ContainsBaseConstructorInitializer) == ContainingNodes.ContainsBaseConstructorInitializer;
+        public bool ContainsExplicitBaseConstructorInitializer
+            => (_containingNodes & ContainingNodes.ContainsExplicitBaseConstructorInitializer) == ContainingNodes.ContainsExplicitBaseConstructorInitializer;
+
+        public bool ContainsImplicitBaseConstructorInitializer
+            => (_containingNodes & ContainingNodes.ContainsExplicitBaseConstructorInitializer) == ContainingNodes.ContainsExplicitBaseConstructorInitializer;
 
         public bool ContainsExplicitOrImplicitElementAccessExpression
             => (_containingNodes & ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression) == ContainingNodes.ContainsExplicitOrImplicitElementAccessExpression;
@@ -184,6 +195,9 @@ internal sealed partial class SyntaxTreeIndex
 
         public bool ContainsPrimaryConstructorBaseType
             => (_containingNodes & ContainingNodes.ContainsPrimaryConstructorBaseType) == ContainingNodes.ContainsPrimaryConstructorBaseType;
+
+        public bool ContainsCollectionExpression
+            => (_containingNodes & ContainingNodes.ContainsCollectionExpression) == ContainingNodes.ContainsCollectionExpression;
 
         public void WriteTo(ObjectWriter writer)
         {
@@ -218,21 +232,23 @@ internal sealed partial class SyntaxTreeIndex
             ContainsUsingStatement = 1 << 2,
             ContainsQueryExpression = 1 << 3,
             ContainsThisConstructorInitializer = 1 << 4,
-            ContainsBaseConstructorInitializer = 1 << 5,
-            ContainsExplicitOrImplicitElementAccessExpression = 1 << 6,
-            ContainsIndexerMemberCref = 1 << 7,
-            ContainsDeconstruction = 1 << 8,
-            ContainsAwait = 1 << 9,
-            ContainsTupleExpressionOrTupleType = 1 << 10,
-            ContainsImplicitObjectCreation = 1 << 11,
-            ContainsGlobalSuppressMessageAttribute = 1 << 12,
-            ContainsConversion = 1 << 13,
-            ContainsGlobalKeyword = 1 << 14,
-            ContainsCollectionInitializer = 1 << 15,
-            ContainsAttribute = 1 << 16,
-            ContainsDirective = 1 << 17,
-            ContainsPrimaryConstructorBaseType = 1 << 18,
-            ContainsPartialClass = 1 << 19,
+            ContainsImplicitBaseConstructorInitializer = 1 << 5,
+            ContainsExplicitBaseConstructorInitializer = 1 << 6,
+            ContainsExplicitOrImplicitElementAccessExpression = 1 << 7,
+            ContainsIndexerMemberCref = 1 << 8,
+            ContainsDeconstruction = 1 << 9,
+            ContainsAwait = 1 << 10,
+            ContainsTupleExpressionOrTupleType = 1 << 11,
+            ContainsImplicitObjectCreation = 1 << 12,
+            ContainsGlobalSuppressMessageAttribute = 1 << 13,
+            ContainsConversion = 1 << 14,
+            ContainsGlobalKeyword = 1 << 15,
+            ContainsCollectionInitializer = 1 << 16,
+            ContainsAttribute = 1 << 17,
+            ContainsDirective = 1 << 18,
+            ContainsPrimaryConstructorBaseType = 1 << 19,
+            ContainsPartialClass = 1 << 20,
+            ContainsCollectionExpression = 1 << 21,
         }
     }
 }

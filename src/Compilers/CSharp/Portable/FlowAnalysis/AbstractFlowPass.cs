@@ -374,6 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.Visit(node);
         }
 
+        [DebuggerStepThrough]
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
         {
             return false; // just let the original exception bubble up.
@@ -930,6 +931,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
 
+            // Note that 'IsNegated' helper used above doesn't unwrap a negation utilizing a Union matchig.
+            // A comment in 'IsNegated' explains why.
+            // However, for the purposes of this component we have to do the unwrapping because
+            // 'DefiniteAssignmentPass.VisitPattern' never considers pattern locals under 'NegatedPattern'
+            // as definitely assigned. In this particular situation, when we are dealing with a struct
+            // Union type, they should be considered definitely assigned. Therefore, we perform a semantically
+            // equivalent rewrite, first by rewriting to a recursive pattern, and then by pulling negation out
+            // of the sub-pattern. In this situation a pattern '{Value: not (...) }' is equivalent to a pattern
+            // 'not {Value:  (...) }'  
+            if (node.HasUnionMatching &&
+                pattern is BoundNegatedPattern { IsUnionMatching: true } &&
+                UnionMatchingRewriter.Rewrite(compilation, pattern) is BoundRecursivePattern
+                {
+                    WasCompilerGenerated: true,
+                    DeclaredType: null,
+                    InputType: NamedTypeSymbol { TypeKind: TypeKind.Struct, IsUnionType: true } inputType,
+                    DeconstructMethod: null,
+                    Deconstruction: { IsDefault: true },
+                    Properties:
+                        [
+                        {
+                            Pattern: { } nestedPattern,
+                            Member:
+                            { Type.SpecialType: SpecialType.System_Object, Symbol: var possibleUnionValueSymbol } and
+                            ({ Symbol: PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } } or { Symbol: null, HasErrors: true })
+                        } propertySubpattern
+                        ],
+                    Variable: null,
+                    VariableAccess: null,
+                    IsUnionMatching: false,
+                } rewritten &&
+                (possibleUnionValueSymbol is null || Binder.IsUnionTypeValueProperty(inputType, possibleUnionValueSymbol)))
+            {
+                Debug.Assert(!inputType.IsNullableType());
+                Debug.Assert(!negated);
+
+                negated ^= nestedPattern.IsNegated(out var negatedNestedPattern);
+
+                if (nestedPattern != negatedNestedPattern)
+                {
+                    pattern = rewritten.Update(
+                        rewritten.DeclaredType, rewritten.DeconstructMethod, rewritten.Deconstruction,
+                        [propertySubpattern.Update(propertySubpattern.Member, propertySubpattern.IsLengthOrCount, negatedNestedPattern)],
+                        rewritten.IsExplicitNotNullTest, rewritten.Variable, rewritten.VariableAccess, rewritten.IsUnionMatching,
+                        rewritten.InputType, rewritten.NarrowedType);
+                }
+            }
+
             if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
             {
                 Debug.Assert(!IsConditionalState);
@@ -1403,7 +1452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             bool isCall)
         {
-            if (isCall)
+            // Extern local function bodies are not visited, so ignore their state.
+            if (isCall && !symbol.IsExtern)
             {
                 Join(ref State, ref localFunctionState.StateFromBottom);
 
@@ -1652,10 +1702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
-            // If we're seeing a node of this kind, then we failed to resolve the member access
-            // as either a type or a property/field/event/local/parameter.  In such cases,
-            // the second interpretation applies so just visit the node for that.
-            return this.Visit(node.Data.ValueExpression);
+            Debug.Assert(node is not BoundTypeOrValueExpression, "The Binder is expected to resolve the member access in the most appropriate way, even in an error scenario.");
+            return null;
         }
 
         public override BoundNode VisitLiteral(BoundLiteral node)
@@ -1917,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Optional<TLocalState> oldTryState = NonMonotonicState;
                 NonMonotonicState = ReachableBottomState();
-                VisitTryBlock(tryBlock, node, ref tryState);
+                VisitTryBlock(tryBlock, node);
                 var tempTryStateValue = NonMonotonicState.Value;
                 Join(ref tryState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
@@ -1931,11 +1979,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTryBlock(tryBlock, node, ref tryState);
+                VisitTryBlock(tryBlock, node);
             }
         }
 
-        protected virtual void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node, ref TLocalState tryState)
+        protected virtual void VisitTryBlock(BoundStatement tryBlock, BoundTryStatement node)
         {
             VisitStatement(tryBlock);
         }
@@ -1946,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Optional<TLocalState> oldTryState = NonMonotonicState;
                 NonMonotonicState = ReachableBottomState();
-                VisitCatchBlock(catchBlock, ref finallyState);
+                VisitCatchBlock(catchBlock);
                 var tempTryStateValue = NonMonotonicState.Value;
                 Join(ref finallyState, ref tempTryStateValue);
                 if (oldTryState.HasValue)
@@ -1960,11 +2008,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitCatchBlock(catchBlock, ref finallyState);
+                VisitCatchBlock(catchBlock);
             }
         }
 
-        protected virtual void VisitCatchBlock(BoundCatchBlock catchBlock, ref TLocalState finallyState)
+        public override BoundNode VisitCatchBlock(BoundCatchBlock catchBlock)
         {
             if (catchBlock.ExceptionSourceOpt != null)
             {
@@ -1983,6 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitStatement(catchBlock.Body);
+            return null;
         }
 
         private void VisitFinallyBlockWithAnyTransferFunction(BoundStatement finallyBlock, ref TLocalState stateMovedUp)
@@ -1991,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Optional<TLocalState> oldTryState = NonMonotonicState;
                 NonMonotonicState = ReachableBottomState();
-                VisitFinallyBlock(finallyBlock, ref stateMovedUp);
+                VisitFinallyBlock(finallyBlock);
                 var tempTryStateValue = NonMonotonicState.Value;
                 Join(ref stateMovedUp, ref tempTryStateValue);
                 if (oldTryState.HasValue)
@@ -2005,11 +2054,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitFinallyBlock(finallyBlock, ref stateMovedUp);
+                VisitFinallyBlock(finallyBlock);
             }
         }
 
-        protected virtual void VisitFinallyBlock(BoundStatement finallyBlock, ref TLocalState stateMovedUp)
+        protected virtual void VisitFinallyBlock(BoundStatement finallyBlock)
         {
             VisitStatement(finallyBlock); // this should generate no pending branches
         }
@@ -2073,6 +2122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCollectionExpression(BoundCollectionExpression node)
         {
+            Visit(node.CollectionCreation);
             VisitCollectionExpression(node.Elements);
             return null;
         }
@@ -3034,7 +3084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!conversion.IsUserDefined)
+            if (!conversion.IsUserDefined) // https://github.com/dotnet/roslyn/issues/82636: Follow up
             {
                 return true;
             }
@@ -3698,6 +3748,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitCollectionBuilderElementsPlaceholder(BoundCollectionBuilderElementsPlaceholder node)
         {
             return null;
         }

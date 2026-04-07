@@ -21,6 +21,7 @@ internal sealed partial class WpfBackgroundWorkIndicatorFactory(
     IThreadingContext threadingContext,
     IBackgroundWorkIndicatorService backgroundWorkIndicatorService) : IBackgroundWorkIndicatorFactory
 {
+    private readonly object _gate = new();
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IBackgroundWorkIndicatorService _backgroundWorkIndicatorService = backgroundWorkIndicatorService;
 
@@ -35,18 +36,29 @@ internal sealed partial class WpfBackgroundWorkIndicatorFactory(
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        // If we have an outstanding context in flight, cancel it and create a new one to show the user.
-        _currentContext?.CancelAndDispose();
+        // Note: this lock should be very shortly held.  We just want to ensure consistent state of _currentContext as
+        // we dismiss and old one and create a new one.  This makes sure that if some feature finishes with its context
+        // and disposes it in the BG, that the call into OnContextDisposed sees everything in a consistent state.
+        //
+        // As Create is only called on the UI thread, this can't hold up other Create calls.  So in the worse case, this
+        // will only have to wait for a BG thread to do the check/assignment in the lock in OnContextDisposed, which
+        // should be very fast.
+        lock (_gate)
+        {
+            // If we have an outstanding context in flight, cancel it and create a new one to show the user.
+            _currentContext?.CancelAndDispose();
 
-        _currentContext = new BackgroundWorkIndicatorContext(this, textView, applicableToSpan, description, cancelOnEdit, cancelOnFocusLost);
-        return _currentContext;
+            _currentContext = new BackgroundWorkIndicatorContext(this, textView, applicableToSpan, description, cancelOnEdit, cancelOnFocusLost);
+            return _currentContext;
+        }
     }
 
     private void OnContextDisposed(BackgroundWorkIndicatorContext context)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        if (_currentContext == context)
-            _currentContext = null;
+        lock (_gate)
+        {
+            if (_currentContext == context)
+                _currentContext = null;
+        }
     }
 }

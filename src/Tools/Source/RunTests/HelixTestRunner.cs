@@ -215,6 +215,13 @@ internal sealed class HelixTestRunner
                 Path.Combine(workItemPayloadDir, rspFileName),
                 GetRspFileContent(assemblyRelativeFilePaths, helixWorkItem.TestMethodNames, platform));
 
+            Directory.CreateSymbolicLink(
+                path: Path.Combine(workItemPayloadDir, "eng"),
+                pathToTarget: Path.Combine(artifactsDir, "..", "eng"));
+            File.CreateSymbolicLink(
+                path: Path.Combine(workItemPayloadDir, "global.json"),
+                pathToTarget: Path.Combine(artifactsDir, "..", "global.json"));
+
             var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
 
@@ -251,14 +258,15 @@ internal sealed class HelixTestRunner
             string[] knownEnvironmentVariables =
             [
                 "ROSLYN_TEST_IOPERATION",
-                "ROSLYN_TEST_USEDASSEMBLIES"
+                "ROSLYN_TEST_USEDASSEMBLIES",
+                "DOTNET_RuntimeAsync"
             ];
 
             foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
             {
                 if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
                 {
-                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=\"{value}\"");
+                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}={value}");
                 }
             }
 
@@ -281,6 +289,8 @@ internal sealed class HelixTestRunner
             command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpName=\"{helixDumpFolder}\"");
 
             command.AppendLine(isUnix ? "env | sort" : "set");
+
+            command.AppendLine("powershell -ExecutionPolicy ByPass -NoProfile -File ./eng/enable-preview-sdks.ps1");
 
             // Rehydrate assemblies that we need to run as part of this work item.
             foreach (var assemblyRelativeFilePath in assemblyRelativeFilePaths)

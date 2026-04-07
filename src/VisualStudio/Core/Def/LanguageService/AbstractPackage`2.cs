@@ -24,11 +24,15 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     where TPackage : AbstractPackage<TPackage, TLanguageService>
     where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
 {
-    private TLanguageService? _languageService;
-
     private PackageInstallerService? _packageInstallerService;
     private VisualStudioSymbolSearchService? _symbolSearchService;
-    private IVsShell? _shell;
+
+    /// <summary>
+    /// Set to 1 if we've already preloaded project system components. Should be updated with <see cref="Interlocked.CompareExchange{T}(ref T, T, T)" />
+    /// </summary>
+    private int _projectSystemComponentsPreloaded;
+
+    private bool _objectBrowserLibraryManagerRegistered = false;
 
     protected AbstractPackage()
     {
@@ -38,45 +42,45 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
         base.RegisterInitializeAsyncWork(packageInitializationTasks);
 
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: PackageInitializationMainThreadAsync);
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: PackageInitializationBackgroundThreadAsync);
     }
 
-    private async Task PackageInitializationMainThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
+    private async Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
     {
-        // This code uses various main thread only services, so it must run completely on the main thread
-        // (thus the CA(true) usage throughout)
-        Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
+        // We still need to ensure the RoslynPackage is loaded, since it's OnAfterPackageLoaded will hook up event handlers in RoslynPackage.LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync.
+        // Once that method has been replaced, then this package load can be removed.
+        //
+        // Rather than triggering a package load via IVsShell (which requires a transition to the UI thread), we request an async service that is free-threaded;
+        // this let's us stay on the background and goes through the full background package load path.
+        _ = await GetServiceAsync<RoslynPackageLoadService, RoslynPackageLoadService>(throwOnFailure: true, cancellationToken).ConfigureAwait(false);
 
-        var shell = (IVsShell7?)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        Assumes.Present(shell);
+        AddService(typeof(TLanguageService), async (_, cancellationToken, _) =>
+            {
+                // Ensure we're on the BG when creating the language service.
+                await TaskScheduler.Default;
 
-        _shell = (IVsShell?)shell;
-        Assumes.Present(_shell);
+                var languageService = CreateLanguageService();
+                languageService.Setup(cancellationToken);
 
-        foreach (var editorFactory in CreateEditorFactories())
-        {
-            RegisterEditorFactory(editorFactory);
-        }
+                // DevDiv 753309:
+                // We've redefined some VS interfaces that had incorrect PIAs. When 
+                // we interop with native parts of VS, they always QI, so everything
+                // works. However, Razor is now managed, but assumes that the C#
+                // language service is native. When setting breakpoints, they
+                // get the language service from its GUID and cast it to IVsLanguageDebugInfo.
+                // This would QI the native lang service. Since we're managed and
+                // we've redefined IVsLanguageDebugInfo, the cast
+                // fails. To work around this, we put the LS inside a ComAggregate object,
+                // which always force a QueryInterface and allow their cast to succeed.
+                // 
+                // This also fixes 752331, which is a similar problem with the 
+                // exception assistant.
 
-        // awaiting an IVsTask guarantees to return on the captured context
-        await shell.LoadPackageAsync(Guids.RoslynPackageId);
-    }
-
-    private Task PackageInitializationBackgroundThreadAsync(PackageLoadTasks packageInitializationTasks, CancellationToken cancellationToken)
-    {
-        RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
-        {
-            // Ensure we're on the BG when creating the language service.
-            await TaskScheduler.Default;
-
-            // Create the language service, tell it to set itself up, then store it in a field
-            // so we can notify it that it's time to clean up.
-            _languageService = CreateLanguageService();
-            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
-
-            return _languageService.ComAggregate!;
-        });
+                // Creating the com aggregate has to happen on the UI thread.
+                await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                return Interop.ComAggregate.CreateAggregatedObject(languageService);
+            },
+            promote: true);
 
         // Misc workspace has to be up and running by the time our package is usable so that it can track running
         // doc events and appropriately map files to/from it and other relevant workspaces (like the
@@ -85,7 +89,10 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         RegisterMiscellaneousFilesWorkspaceInformation(miscellaneousFilesWorkspace);
 
-        return Task.CompletedTask;
+        foreach (var editorFactory in CreateEditorFactories())
+        {
+            await RegisterEditorFactoryAsync(editorFactory, cancellationToken).ConfigureAwait(true);
+        }
     }
 
     protected override void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
@@ -94,26 +101,21 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
         afterPackageLoadedTasks.AddTask(
             isMainThreadTask: true,
-            task: (packageLoadedTasks, cancellationToken) =>
+            task: async (packageLoadedTasks, cancellationToken) =>
             {
-                if (_shell != null && !_shell.IsInCommandLineMode())
+                if (!await CommandLineMode.IsInCommandLineModeAsync(AsyncServiceProvider.GlobalProvider, cancellationToken).ConfigureAwait(true))
                 {
                     // not every derived package support object browser and for those languages
                     // this is a no op
                     RegisterObjectBrowserLibraryManager();
+
+                    _objectBrowserLibraryManagerRegistered = true;
                 }
-
-                LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
-                return Task.CompletedTask;
             });
     }
 
-    protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
+    protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
     {
-        // Do the MEF loads and initialization in the BG explicitly.
-        await TaskScheduler.Default;
-
         // Ensure the nuget package services are initialized. This initialization pass will only run
         // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
         // loading us) or through something like the IVsEditorFactory or a debugger service. Right now it's fine
@@ -136,26 +138,16 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
     protected abstract TLanguageService CreateLanguageService();
 
-    // When registering a language service, we need to take its ComAggregate wrapper.
-    protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
-        => AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
-
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
             // Per VS core team, Package.Dispose is called on the UI thread.
             Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread);
-            if (_shell != null && !_shell.IsInCommandLineMode())
+
+            if (_objectBrowserLibraryManagerRegistered)
             {
                 UnregisterObjectBrowserLibraryManager();
-            }
-
-            // If we've created the language service then tell it it's time to clean itself up now.
-            if (_languageService != null)
-            {
-                _languageService.TearDown();
-                _languageService = null;
             }
         }
 
@@ -174,5 +166,27 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
         // it is virtual rather than abstract to not break other languages which derived from our
         // base package implementations
+    }
+
+    protected void PreloadProjectSystemComponents()
+    {
+        if (Interlocked.CompareExchange(ref _projectSystemComponentsPreloaded, value: 1, comparand: 0) == 1)
+            return;
+
+        // Preload some components so later uses don't block. This is specifically to help out csproj and msvbprj project systems. They push changes
+        // to us on the UI thread as fundamental part of their design. This causes blocking on the UI thread as we create MEF components and JIT code
+        // for the first time, even though those components could have been loaded on the background thread first. This method is called from the two places
+        // we expose a service for the project systems to create us; this can be called by VS's preloading support on a background thread to ensure this is ran
+        // on a background thread so the later calls on the UI thread will block less. For CPS projects, we don't need this, as CPS already creates us on
+        // background threads, so we can just let things load as they're pulled in.
+        //
+        // The expectation is no thread switching should happen here; if we're being called on a background thread that means we're being pulled in
+        // by the preloading logic. If we're being called on the UI thread, that means we might be getting created directly by the project systems
+        // and the UI thread is already blocked, so a switch to the background thread won't unblock the UI thread and might delay us even further.
+        //
+        // As long as there's something that's not cheap to load later, and it'll definitely be used in all csproj/msvbprj scenarios, then it's worth
+        // putting here to preload.
+        var workspace = this.ComponentModel.GetService<VisualStudioWorkspaceImpl>();
+        workspace.PreloadProjectSystemComponents(this.RoslynLanguageName);
     }
 }

@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        internal override string ExtensionName
-            => throw ExceptionUtilities.Unreachable();
+        internal sealed override string ExtensionGroupingName => null;
+        internal sealed override string ExtensionMarkerName => null;
 
         public sealed override bool IsReadOnly
         {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {
@@ -270,6 +270,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+
+        internal override bool IsUnionTypeCore => false;
 
         internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
 

@@ -4344,20 +4344,23 @@ unsafe
 
             verify(TestOptions.UnsafeReleaseExe, Verification.Fails, @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
+  // Code size       21 (0x15)
+  .maxstack  2
   .locals init (int V_0, //i1
-                int& V_1) //i2
+                int& V_1, //i2
+                int& V_2) //i3
   IL_0000:  ldc.i4.0
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_0
   IL_0004:  stloc.1
   IL_0005:  ldc.i4.0
   IL_0006:  conv.i
-  IL_0007:  stloc.1
-  IL_0008:  ldstr      ""run""
-  IL_000d:  call       ""void System.Console.WriteLine(string)""
-  IL_0012:  ret
+  IL_0007:  dup
+  IL_0008:  stloc.1
+  IL_0009:  stloc.2
+  IL_000a:  ldstr      ""run""
+  IL_000f:  call       ""void System.Console.WriteLine(string)""
+  IL_0014:  ret
 }
 ");
 
@@ -4780,6 +4783,76 @@ class Program
   .maxstack  0
   IL_0000:  ret
 }");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79867")]
+        public void StackOverflow_01()
+        {
+            var source =
+@"
+public class Parent<T>
+{
+    Child<T>[] _children = new Child<T>[100];
+
+    public void BrokenMethod()
+    {
+        ref var itemRef = ref _children[0];
+    }
+}
+
+public record class Child<T>(Parent<Child<T>> Parent) { }
+";
+            CompileAndVerify(source + IsExternalInitTypeDefinition, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79867")]
+        public void StackOverflow_02()
+        {
+            var source =
+@"
+public struct Parent<T>
+{
+    Child<T>[] _children;
+
+    public void BrokenMethod()
+    {
+        ref var itemRef = ref _children[0];
+    }
+}
+
+public record struct Child<T>(Parent<Child<T>> Parent) { }
+";
+            CompileAndVerify(source + IsExternalInitTypeDefinition, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/79867")]
+        public void StackOverflow_03()
+        {
+            var source =
+@"
+public struct Parent<T>
+{
+    Child<T> _children;
+
+    public void BrokenMethod()
+    {
+        ref var itemRef = ref _children;
+    }
+}
+
+public record struct Child<T>(Parent<Child<T>> Parent) { }
+";
+            CreateCompilation(source + IsExternalInitTypeDefinition).VerifyEmitDiagnostics(
+                // (4,14): error CS0523: Struct member 'Parent<T>._children' of type 'Child<T>' causes a cycle in the struct layout
+                //     Child<T> _children;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "_children").WithArguments("Parent<T>._children", "Child<T>").WithLocation(4, 14),
+                // (12,48): error CS0523: Struct member 'Child<T>.Parent' of type 'Parent<Child<T>>' causes a cycle in the struct layout
+                // public record struct Child<T>(Parent<Child<T>> Parent) { }
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Parent").WithArguments("Child<T>.Parent", "Parent<Child<T>>").WithLocation(12, 48)
+                );
         }
     }
 }

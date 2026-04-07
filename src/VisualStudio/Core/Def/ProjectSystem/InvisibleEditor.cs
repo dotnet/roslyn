@@ -55,7 +55,7 @@ internal sealed partial class InvisibleEditor : IInvisibleEditor
             VsTextLines = RetrieveDocData(_invisibleEditor, needsSave);
 
             var editorAdapterFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
-            TextBuffer = editorAdapterFactoryService.GetDocumentBuffer(VsTextLines)!;
+            TextBuffer = editorAdapterFactoryService.GetDocumentBuffer(VsTextLines);
             if (needsUndoDisabled)
             {
                 Marshal.ThrowExceptionForHR(VsTextLines.GetUndoManager(out _manager));

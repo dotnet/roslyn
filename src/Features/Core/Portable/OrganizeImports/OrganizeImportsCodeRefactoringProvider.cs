@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.OrganizeImports;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes => [FixAllScope.Project, FixAllScope.Solution];
+    protected override ImmutableArray<RefactorAllScope> SupportedRefactorAllScopes => [RefactorAllScope.Project, RefactorAllScope.Solution];
 
     /// <summary>
     /// Matches 'remove unnecessary imports' code fix.  This way we don't show 'sort imports' above it.
@@ -51,7 +51,7 @@ internal sealed class OrganizeImportsCodeRefactoringProvider() : SyntaxEditorBas
         return (oldRoot, newRoot);
     }
 
-    protected override async Task FixAllAsync(
+    protected override async Task RefactorAllAsync(
         Document document, ImmutableArray<TextSpan> fixAllSpans, SyntaxEditor editor, string? equivalenceKey, CancellationToken cancellationToken)
     {
         var (oldRoot, newRoot) = await RemoveImportsAsync(document, cancellationToken).ConfigureAwait(false);

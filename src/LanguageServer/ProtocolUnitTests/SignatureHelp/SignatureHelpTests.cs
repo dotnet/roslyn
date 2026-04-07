@@ -111,7 +111,7 @@ public sealed class SignatureHelpTests : AbstractLanguageServerProtocolTests
     }
 
     private static LSP.SignatureInformation CreateSignatureInformation(string methodLabal, string methodDocumentation, string parameterLabel, string parameterDocumentation)
-        => new LSP.SignatureInformation()
+        => new()
         {
             Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, methodDocumentation),
             Label = methodLabal,
@@ -122,7 +122,7 @@ public sealed class SignatureHelpTests : AbstractLanguageServerProtocolTests
         };
 
     private static LSP.ParameterInformation CreateParameterInformation(string parameter, string documentation)
-        => new LSP.ParameterInformation()
+        => new()
         {
             Documentation = CreateMarkupContent(LSP.MarkupKind.PlainText, documentation),
             Label = parameter

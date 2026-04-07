@@ -52,39 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _cache = cache ?? new Cache(this);
         }
 
-        public DeclarationTable AddRootDeclaration(Lazy<RootSingleNamespaceDeclaration> lazyRootDeclaration)
+        public Builder ToBuilder()
         {
-            // We can only re-use the cache if we don't already have a 'latest' item for the decl
-            // table.
-            if (_latestLazyRootDeclaration == null)
-            {
-                return new DeclarationTable(_allOlderRootDeclarations, lazyRootDeclaration, _cache);
-            }
-            else
-            {
-                // we already had a 'latest' item.  This means we're hearing about a change to a
-                // different tree.  Add old latest item to the 'oldest' collection
-                // and don't reuse the cache.
-                return new DeclarationTable(_allOlderRootDeclarations.Add(_latestLazyRootDeclaration), lazyRootDeclaration, cache: null);
-            }
-        }
-
-        public DeclarationTable RemoveRootDeclaration(Lazy<RootSingleNamespaceDeclaration> lazyRootDeclaration)
-        {
-            // We can only reuse the cache if we're removing the decl that was just added.
-            if (_latestLazyRootDeclaration == lazyRootDeclaration)
-            {
-                return new DeclarationTable(_allOlderRootDeclarations, latestLazyRootDeclaration: null, cache: _cache);
-            }
-            else
-            {
-                // We're removing a different tree than the latest one added.  We need
-                // to remove the passed in root from our 'older' list.  We also can't reuse the
-                // cache.
-                //
-                // Note: we can keep around the 'latestLazyRootDeclaration'.
-                return new DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration), _latestLazyRootDeclaration, cache: null);
-            }
+            return Builder.GetInstance(this);
         }
 
         // The merged-tree-reuse story goes like this. We have a "forest" of old declarations, and

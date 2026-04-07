@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
         internal override bool IsMetadataOut => RefKind == RefKind.Out;
         internal override ConstantValue? ExplicitDefaultConstantValue => null;
+        internal override ConstantValue? DefaultValueFromAttributes => null;
         internal override bool IsIDispatchConstant => false;
         internal override bool IsIUnknownConstant => false;
         internal override bool IsCallerFilePath => false;

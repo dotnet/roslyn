@@ -490,7 +490,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             '   Delegates shall be declared sealed.
             '   The Invoke method shall be virtual.
             ' Dev11 VB uses ldvirtftn for delegate methods, we emit ldftn to be consistent with C#.
-            If method.IsMetadataVirtual AndAlso Not method.ContainingType.IsDelegateType() AndAlso Not receiver.SuppressVirtualCalls Then
+            If Not method.IsShared AndAlso method.IsMetadataVirtual AndAlso Not method.ContainingType.IsDelegateType() AndAlso Not receiver.SuppressVirtualCalls Then
                 _builder.EmitOpCode(ILOpCode.Dup)
                 _builder.EmitOpCode(ILOpCode.Ldvirtftn)
             Else

@@ -322,6 +322,9 @@
   <data name="Remove_unnecessary_suppression" xml:space="preserve">
     <value>Remove unnecessary suppression</value>
   </data>
+  <data name="Suppression_is_unnecessary" xml:space="preserve">
+    <value>Suppression is unnecessary</value>
+  </data>
   <data name="Remove_redundant_equality" xml:space="preserve">
     <value>Remove redundant equality</value>
   </data>
@@ -376,8 +379,8 @@
   <data name="Fix_formatting" xml:space="preserve">
     <value>Fix formatting</value>
   </data>
-  <data name="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime" xml:space="preserve">
-    <value>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</value>
+  <data name="_0_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime" xml:space="preserve">
+    <value>'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</value>
   </data>
   <data name="Add_explicit_cast" xml:space="preserve">
     <value>Add explicit cast</value>
@@ -408,5 +411,17 @@
   </data>
   <data name="Accessibility_modifiers_unnecessary" xml:space="preserve">
     <value>Accessibility modifiers unnecessary</value>
+  </data>
+  <data name="Remove_unnecessary_unsafe_modifier" xml:space="preserve">
+    <value>Remove unnecessary 'unsafe' modifier</value>
+  </data>
+  <data name="unsafe_modifier_is_unnecessary" xml:space="preserve">
+    <value>'unsafe' modifier is unnecessary</value>
+  </data>
+  <data name="Make_method_synchronous" xml:space="preserve">
+    <value>Make method synchronous</value>
+  </data>
+  <data name="Method_can_be_made_synchronous" xml:space="preserve">
+    <value>Method can be made synchronous</value>
   </data>
 </root>

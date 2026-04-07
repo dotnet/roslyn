@@ -92,7 +92,7 @@ internal static class ClipboardHelpers
     }
 
     private static FORMATETC CreateFormatEtc(ushort format)
-        => new FORMATETC
+        => new()
         {
             cfFormat = format,
             ptd = IntPtr.Zero,

@@ -42,7 +42,7 @@ namespace AnalyzerRunner
             // Make sure AD0001 and AD0002 are reported as errors
             foreach (var projectId in solution.ProjectIds)
             {
-                var project = solution.GetProject(projectId)!;
+                var project = solution.GetProject(projectId);
                 if (project.Language is not LanguageNames.CSharp and not LanguageNames.VisualBasic)
                     continue;
 

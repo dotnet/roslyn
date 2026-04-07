@@ -249,6 +249,9 @@ namespace CSharpSyntaxGenerator
         protected static bool IsOptional(Field f)
             => IsTrue(f.Optional);
 
+        protected static bool IsOptionalForTest(Field f)
+            => IsTrue(f.Optional) && !IsTrue(f.RequiredForTest);
+
         protected static bool IsOverride(Field f)
             => IsTrue(f.Override);
 

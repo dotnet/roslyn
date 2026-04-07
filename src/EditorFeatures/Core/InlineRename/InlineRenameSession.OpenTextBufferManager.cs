@@ -163,8 +163,8 @@ internal sealed partial class InlineRenameSession
         internal IEnumerable<RenameTrackingSpan> GetRenameTrackingSpans()
             => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Concat(_conflictResolutionRenameTrackingSpans);
 
-        internal IEnumerable<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
-            => _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan.GetSpan(snapshot));
+        internal ImmutableArray<SnapshotSpan> GetEditableSpansForSnapshot(ITextSnapshot snapshot)
+            => _referenceSpanToLinkedRenameSpanMap.Values.SelectAsArray(r => r.Type != RenameSpanKind.None, r => r.TrackingSpan.GetSpan(snapshot));
 
         internal void SetReferenceSpans(IEnumerable<TextSpan> spans)
         {
@@ -281,7 +281,7 @@ internal sealed partial class InlineRenameSession
             _session.UndoManager.ApplyCurrentState(
                 _subjectBuffer,
                 s_propagateSpansEditTag,
-                _referenceSpanToLinkedRenameSpanMap.Values.Where(r => r.Type != RenameSpanKind.None).Select(r => r.TrackingSpan));
+                _referenceSpanToLinkedRenameSpanMap.Values.SelectAsArray(r => r.Type != RenameSpanKind.None, r => r.TrackingSpan));
 
             if (updateSelection && _activeSpan.HasValue && this.ActiveTextView != null)
             {
@@ -354,8 +354,7 @@ internal sealed partial class InlineRenameSession
                 _conflictResolutionRenameTrackingSpans.Clear();
 
                 var documentReplacements = documents
-                    .Select(document => (document, conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None).ToImmutableArray()))
-                    .ToImmutableArray();
+                    .SelectAsArray(document => (document, conflictResolution.GetReplacements(document.Id).WhereAsArray(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None)));
 
                 var firstDocumentReplacements = documentReplacements.FirstOrDefault(d => !d.Item2.IsEmpty);
                 var bufferContainsLinkedDocuments = documentReplacements.Length > 1 && firstDocumentReplacements.document != null;
@@ -439,8 +438,7 @@ internal sealed partial class InlineRenameSession
                 {
                     var relevantReplacements = conflictResolution
                         .GetReplacements(document.Id)
-                        .Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None)
-                        .ToImmutableArray();
+                        .WhereAsArray(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None);
                     if (!relevantReplacements.Any())
                         continue;
 

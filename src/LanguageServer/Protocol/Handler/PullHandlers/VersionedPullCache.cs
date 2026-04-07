@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// that existing results can be reused, or if new results need to be computed.  Multiple keys can be used,
 /// with different computation costs to determine if the previous cached data is still valid.
 /// </summary>
-internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData>(string uniqueKey)
+internal abstract partial class VersionedPullCache<TVersion, TState, TComputedData>(string uniqueKey)
 {
     /// <summary>
     /// Map of workspace and diagnostic source to the data used to make the last pull report.
@@ -37,19 +37,12 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
     private long _nextDocumentResultId;
 
     /// <summary>
-    /// Computes a cheap version of the current state.  This is compared to the cached version we calculated for the client's previous resultId.
+    /// Computes the version of the current state.  We compare the version of the current state against the
+    /// version we have cached for the client's previous resultId.
     /// 
     /// Note - this will run under the semaphore in <see cref="CacheItem._gate"/>.
     /// </summary>
-    public abstract Task<TCheapVersion> ComputeCheapVersionAsync(TState state, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Computes a more expensive version of the current state.  If the cheap versions are mismatched, we then compare the expensive version of the current state against the
-    /// expensive version we have cached for the client's previous resultId.
-    /// 
-    /// Note - this will run under the semaphore in <see cref="CacheItem._gate"/>.
-    /// </summary>
-    public abstract Task<TExpensiveVersion> ComputeExpensiveVersionAsync(TState state, CancellationToken cancellationToken);
+    public abstract Task<TVersion> ComputeVersionAsync(TState state, CancellationToken cancellationToken);
 
     /// <summary>
     /// Computes new data for this request.  This data must be hashable as it we store the hash with the requestId to determine if

@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Xunit.Abstractions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.Sdk.UnitTests;
 
@@ -25,7 +22,12 @@ public sealed class SdkManagedToolTests
     {
         var taskPath = Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!;
         var task = new Csc();
-        Assert.Equal(Path.Combine(taskPath, "..", "bincore", "csc.dll"), task.PathToBuiltInTool);
+        Assert.Contains(task.PathToBuiltInTool,
+        new[]
+        {
+            Path.Combine(taskPath, "..", "bincore", "csc.dll"),
+            Path.Combine(taskPath, "..", "bincore", "csc.exe"),
+        });
     }
 
     [Fact]

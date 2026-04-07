@@ -521,7 +521,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     }
 
     private static LSP.TextEdit GenerateTextEdit(string newText, LSP.Range range)
-        => new LSP.TextEdit
+        => new()
         {
             NewText = newText,
             Range = range
@@ -530,11 +530,11 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
     private static WorkspaceEdit GenerateWorkspaceEdit(
         IList<LSP.Location> locations,
         SumType<TextEdit, AnnotatedTextEdit>[] edits)
-        => new LSP.WorkspaceEdit
+        => new()
         {
             DocumentChanges = new TextDocumentEdit[]
             {
-                new TextDocumentEdit
+                new()
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {

@@ -21,7 +21,7 @@ public sealed class CSharpDeclareAsNullableCodeFixTests(ITestOutputHelper logger
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpDeclareAsNullableCodeFixProvider());
 
-    private static readonly TestParameters s_nullableFeature = new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+    private static readonly TestParameters s_nullableFeature = new(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
 
     [Fact]
     public Task FixAll()

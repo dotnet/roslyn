@@ -144,14 +144,10 @@ internal sealed class PropertySubpatternCompletionProvider : LSPCompletionProvid
     private static bool IsFieldOrReadableProperty(ISymbol symbol)
     {
         if (symbol.IsKind(SymbolKind.Field))
-        {
             return true;
-        }
 
-        if (symbol.IsKind(SymbolKind.Property) && !((IPropertySymbol)symbol).IsWriteOnly)
-        {
+        if (symbol is IPropertySymbol { IsWriteOnly: false })
             return true;
-        }
 
         return false;
     }

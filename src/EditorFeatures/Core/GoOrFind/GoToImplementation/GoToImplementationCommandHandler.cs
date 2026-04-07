@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.GoToImplementation;
 [Export(typeof(ICommandHandler))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(PredefinedCommandHandlerNames.GoToImplementation)]
+[Order(Before = PredefinedCommandHandlerNames.LspGoToImplementation)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class GoToImplementationCommandHandler(GoToImplementationNavigationService navigationService)

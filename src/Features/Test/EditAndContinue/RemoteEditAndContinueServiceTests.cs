@@ -129,11 +129,9 @@ public sealed class RemoteEditAndContinueServiceTests
 
         IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
-        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
+        var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, sourceTextProvider, reportDiagnostics) =>
         {
             Assert.Equal("proj", solution.GetRequiredProject(projectId).Name);
-            AssertEx.Equal(new[] { documentId }, captureMatchingDocuments);
-            Assert.False(captureAllMatchingDocuments);
             Assert.True(reportDiagnostics);
 
             remoteDebuggeeModuleMetadataProvider = debuggerService;
@@ -148,10 +146,8 @@ public sealed class RemoteEditAndContinueServiceTests
                 GetActiveStatementsImpl = () => [as1]
             },
             sourceTextProvider: NullPdbMatchingSourceTextProvider.Instance,
-            captureMatchingDocuments: [documentId],
-            captureAllMatchingDocuments: false,
             reportDiagnostics: true,
-            CancellationToken.None);
+            cancellationToken: CancellationToken.None);
 
         Contract.ThrowIfNull(sessionProxy);
 
@@ -176,9 +172,9 @@ public sealed class RemoteEditAndContinueServiceTests
 
         var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
-        var runningProjects1 = new Dictionary<ProjectId, RunningProjectInfo>
+        var runningProjects1 = new Dictionary<ProjectId, RunningProjectOptions>
         {
-            { project.Id, new RunningProjectInfo() { RestartWhenChangesHaveNoEffect = true, AllowPartialUpdate = true} }
+            { project.Id, new RunningProjectOptions() { RestartWhenChangesHaveNoEffect = true } }
         }.ToImmutableDictionary();
 
         mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, activeStatementSpanProvider) =>

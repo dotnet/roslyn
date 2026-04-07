@@ -38,7 +38,7 @@ internal sealed class FilterSet(bool supportExpander)
     // to create a filter list covering a completion session.
     private static readonly ImmutableArray<FilterWithMask> s_filters;
 
-    private BitVector32 _vector = new BitVector32();
+    private BitVector32 _vector = new();
     private static readonly int s_expanderMask;
     private readonly bool _supportExpander = supportExpander;
 

@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             verifyCount<ParseOptions>(11);
             verifyCount<CSharpParseOptions>(13);
             verifyCount<CompilationOptions>(63);
-            verifyCount<CSharpCompilationOptions>(9);
+            verifyCount<CSharpCompilationOptions>(12);
 
             static void verifyCount<T>(int expected)
             {
@@ -106,9 +106,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
+      ""memorySafetyRules"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
+    ""parseOptions"": [
+      {
+        ""kind"": ""Regular"",
+        ""specifiedKind"": ""Regular"",
+        ""documentationMode"": ""Parse"",
+        ""language"": ""C#"",
+        ""features"": {},
+        ""languageVersion"": ""Preview"",
+        ""specifiedLanguageVersion"": ""Preview"",
+        ""preprocessorSymbols"": []
+      }
+    ],
     ""syntaxTrees"": [
       {
         ""fileName"": """",
@@ -117,23 +130,15 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": ""Unicode (UTF-8)""
         },
-        ""parseOptions"": {
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""Parse"",
-          ""language"": ""C#"",
-          ""features"": {},
-          ""languageVersion"": ""Preview"",
-          ""specifiedLanguageVersion"": ""Preview"",
-          ""preprocessorSymbols"": []
-        }
+        ""parseOptionsIndex"": 0
       }
     ]
   },
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": null
+  ""emitOptions"": null,
+  ""resources"": []
 }
 ", key);
         }
@@ -164,16 +169,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha1"",
       ""encodingName"": ""Unicode (UTF-8)""
     }},
-    ""parseOptions"": {{
-      ""kind"": ""Regular"",
-      ""specifiedKind"": ""Regular"",
-      ""documentationMode"": ""Parse"",
-      ""language"": ""C#"",
-      ""features"": {{}},
-      ""languageVersion"": ""Preview"",
-      ""specifiedLanguageVersion"": ""Preview"",
-      ""preprocessorSymbols"": []
-    }}
+    ""parseOptionsIndex"": 0
   }}
 ]";
             AssertJsonSection(expected, key, "compilation.syntaxTrees");
@@ -257,6 +253,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
+      ""memorySafetyRules"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     }}
@@ -264,24 +261,30 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""additionalTexts"": [],
   ""analyzers"": [],
   ""generators"": [],
-  ""emitOptions"": null
+  ""emitOptions"": null,
+  ""resources"": []
 }}
-", key, "references", "syntaxTrees", "extensions");
+", key, "references", "syntaxTrees", "extensions", "parseOptions");
         }
 
         [Theory]
         [CombinatorialData]
-        public void CSharpCompilationOptionsCombination(bool @unsafe, NullableContextOptions nullableContextOptions)
+        public void CSharpCompilationOptionsCombination(
+            bool @unsafe,
+            [CombinatorialValues(0, 2)] int memorySafetyRules,
+            NullableContextOptions nullableContextOptions)
         {
             foreach (BinderFlags binderFlags in Enum.GetValues(typeof(BinderFlags)))
             {
                 var options = Options
                     .WithAllowUnsafe(@unsafe)
+                    .WithMemorySafetyRules(memorySafetyRules)
                     .WithTopLevelBinderFlags(binderFlags)
                     .WithNullableContextOptions(nullableContextOptions);
 
                 var value = GetCompilationOptionsValue(options);
                 Assert.Equal(@unsafe, value.Value<bool>("unsafe"));
+                Assert.Equal(memorySafetyRules, value.Value<int>("memorySafetyRules"));
                 Assert.Equal(binderFlags.ToString(), value.Value<string>("topLevelBinderFlags"));
                 Assert.Equal(nullableContextOptions.ToString(), value.Value<string>("nullableContextOptions"));
             }
@@ -387,16 +390,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""checksumAlgorithm"": ""Sha256"",
       ""encodingName"": ""Unicode (UTF-8)""
     },
-    ""parseOptions"": {
-      ""kind"": ""Regular"",
-      ""specifiedKind"": ""Regular"",
-      ""documentationMode"": ""None"",
-      ""language"": ""C#"",
-      ""features"": {},
-      ""languageVersion"": ""CSharp9"",
-      ""specifiedLanguageVersion"": ""CSharp9"",
-      ""preprocessorSymbols"": []
-    }
+    ""parseOptionsIndex"": 0
   }
 ]
 ", compiler);
@@ -457,9 +451,22 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specificDiagnosticOptions"": [],
       ""localtime"": null,
       ""unsafe"": false,
+      ""memorySafetyRules"": 0,
       ""topLevelBinderFlags"": ""None"",
       ""usings"": []
     },
+    ""parseOptions"": [
+      {
+        ""kind"": ""Regular"",
+        ""specifiedKind"": ""Regular"",
+        ""documentationMode"": ""Parse"",
+        ""language"": ""C#"",
+        ""features"": {},
+        ""languageVersion"": ""CSharp10"",
+        ""specifiedLanguageVersion"": ""CSharp10"",
+        ""preprocessorSymbols"": []
+      }
+    ],
     ""syntaxTrees"": [
       {
         ""fileName"": """",
@@ -468,16 +475,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""checksumAlgorithm"": ""Sha1"",
           ""encodingName"": null
         },
-        ""parseOptions"": {
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""Parse"",
-          ""language"": ""C#"",
-          ""features"": {},
-          ""languageVersion"": ""CSharp10"",
-          ""specifiedLanguageVersion"": ""CSharp10"",
-          ""preprocessorSymbols"": []
-        }
+        ""parseOptionsIndex"": 0
       }
     ]
   }
@@ -490,6 +488,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
+            Assert.Equal("debug-determinism", CodeAnalysis.Feature.DebugDeterminism);
             var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable", "-checksumalgorithm:sha256");
             var sourceFile = compiler.AddSourceFile("test.cs", @"// this is a test file");
             compiler.AddOutputFile("test.dll");
@@ -500,83 +499,250 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.Equal(0, result);
 
             var json = Encoding.UTF8.GetString(keyFile.Contents.ToArray());
-            var expected = @$"
-{{
-  ""compilation"": {{
-    ""publicKey"": """",
-    ""options"": {{
-      ""outputKind"": ""DynamicallyLinkedLibrary"",
-      ""moduleName"": ""test.dll"",
-      ""scriptClassName"": ""Script"",
-      ""mainTypeName"": null,
-      ""cryptoPublicKey"": """",
-      ""cryptoKeyFile"": null,
-      ""delaySign"": null,
-      ""publicSign"": false,
-      ""checkOverflow"": false,
-      ""platform"": ""AnyCpu"",
-      ""optimizationLevel"": ""Debug"",
-      ""generalDiagnosticOption"": ""Default"",
-      ""warningLevel"": 4,
-      ""deterministic"": true,
-      ""debugPlusMode"": false,
-      ""referencesSupersedeLowerVersions"": false,
-      ""reportSuppressedDiagnostics"": false,
-      ""nullableContextOptions"": ""Disable"",
-      ""specificDiagnosticOptions"": [],
-      ""localtime"": null,
-      ""unsafe"": false,
-      ""topLevelBinderFlags"": ""None"",
-      ""usings"": []
-    }},
-    ""syntaxTrees"": [
-      {{
-        ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}"",
-        ""text"": {{
-          ""checksum"": ""2326e849c5bb80ded5ef51743244896b812672aa03119ee8788cdc3b356f88"",
-          ""checksumAlgorithm"": ""Sha256"",
-          ""encodingName"": ""Unicode (UTF-8)""
-        }},
-        ""parseOptions"": {{
-          ""kind"": ""Regular"",
-          ""specifiedKind"": ""Regular"",
-          ""documentationMode"": ""None"",
-          ""language"": ""C#"",
-          ""features"": {{
-            ""debug-determinism"": ""true""
-          }},
-          ""languageVersion"": ""CSharp13"",
-          ""specifiedLanguageVersion"": ""Default"",
-          ""preprocessorSymbols"": []
-        }}
-      }}
+            var expected = $$"""
+
+{
+  "compilation": {
+    "publicKey": "",
+    "options": {
+      "outputKind": "DynamicallyLinkedLibrary",
+      "moduleName": "test.dll",
+      "scriptClassName": "Script",
+      "mainTypeName": null,
+      "cryptoPublicKey": "",
+      "cryptoKeyFile": null,
+      "delaySign": null,
+      "publicSign": false,
+      "checkOverflow": false,
+      "platform": "AnyCpu",
+      "optimizationLevel": "Debug",
+      "generalDiagnosticOption": "Default",
+      "warningLevel": 4,
+      "deterministic": true,
+      "debugPlusMode": false,
+      "referencesSupersedeLowerVersions": false,
+      "reportSuppressedDiagnostics": false,
+      "nullableContextOptions": "Disable",
+      "specificDiagnosticOptions": [],
+      "localtime": null,
+      "unsafe": false,
+      "memorySafetyRules": 0,
+      "topLevelBinderFlags": "None",
+      "usings": []
+    },
+    "parseOptions": [
+      {
+        "kind": "Regular",
+        "specifiedKind": "Regular",
+        "documentationMode": "None",
+        "language": "C#",
+        "features": {
+          "debug-determinism": "true"
+        },
+        "languageVersion": "{{LanguageVersionFacts.CurrentVersion}}",
+        "specifiedLanguageVersion": "Default",
+        "preprocessorSymbols": []
+      }
+    ],
+    "syntaxTrees": [
+      {
+        "fileName": "{{Roslyn.Utilities.JsonWriter.EscapeString(sourceFile.FilePath)}}",
+        "text": {
+          "checksum": "2326e849c5bb80ded5ef51743244896b812672aa03119ee8788cdc3b356f88",
+          "checksumAlgorithm": "Sha256",
+          "encodingName": "Unicode (UTF-8)"
+        },
+        "parseOptionsIndex": 0
+      }
     ]
-  }},
-  ""additionalTexts"": [],
-  ""analyzers"": [],
-  ""generators"": [],
-  ""emitOptions"": {{
-    ""emitMetadataOnly"": false,
-    ""tolerateErrors"": false,
-    ""includePrivateMembers"": true,
-    ""instrumentationKinds"": [],
-    ""subsystemVersion"": {{
-      ""major"": 0,
-      ""minor"": 0
-    }},
-    ""fileAlignment"": 0,
-    ""highEntropyVirtualAddressSpace"": false,
-    ""baseAddress"": ""0"",
-    ""debugInformationFormat"": ""PortablePdb"",
-    ""outputNameOverride"": ""test.dll"",
-    ""pdbFilePath"": ""{Roslyn.Utilities.JsonWriter.EscapeString(pdbFile.FilePath)}"",
-    ""pdbChecksumAlgorithm"": ""SHA256"",
-    ""runtimeMetadataVersion"": null,
-    ""defaultSourceFileEncoding"": null,
-    ""fallbackSourceFileEncoding"": null
-  }}
-}}";
+  },
+  "additionalTexts": [],
+  "analyzers": [],
+  "generators": [],
+  "emitOptions": {
+    "emitMetadataOnly": false,
+    "tolerateErrors": false,
+    "includePrivateMembers": true,
+    "instrumentationKinds": [],
+    "subsystemVersion": {
+      "major": 0,
+      "minor": 0
+    },
+    "fileAlignment": 0,
+    "highEntropyVirtualAddressSpace": false,
+    "baseAddress": "0",
+    "debugInformationFormat": "PortablePdb",
+    "outputNameOverride": "test.dll",
+    "pdbFilePath": "{{Roslyn.Utilities.JsonWriter.EscapeString(pdbFile.FilePath)}}",
+    "pdbChecksumAlgorithm": "SHA256",
+    "runtimeMetadataVersion": null,
+    "defaultSourceFileEncoding": null,
+    "fallbackSourceFileEncoding": null,
+    "sourceLink": null
+  },
+  "resources": []
+}
+""";
             AssertJson(expected, json, "toolsVersions", "references", "extensions");
+        }
+
+        [Fact]
+        public void SourceLink()
+        {
+            var syntaxTree = CSharpTestBase.Parse("", filename: "file.cs", checksumAlgorithm: SourceHashAlgorithms.Default);
+            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
+
+            var sourceLinkContent = """
+{
+  "documents": {
+    "/*": "https://raw.githubusercontent.com/test/repo/*"
+  }
+}
+""";
+            var sourceLinkBytes = Encoding.UTF8.GetBytes(sourceLinkContent);
+            string sourceLinkChecksum = GetChecksum(sourceLinkBytes);
+
+            using var sourceLinkStream = new System.IO.MemoryStream(sourceLinkBytes);
+            var key = compilation.GetDeterministicKey(emitOptions: EmitOptions, sourceLinkStream: sourceLinkStream, options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var expected = $$"""
+"sourceLink": {
+  "checksum": "{{sourceLinkChecksum}}",
+  "checksumAlgorithm": "Sha256"
+}
+""";
+            AssertJsonSection(expected, key, "emitOptions.sourceLink");
+        }
+
+        [Fact]
+        public void Resources()
+        {
+            var syntaxTree = CSharpTestBase.Parse(
+                "",
+                filename: "file.cs",
+                checksumAlgorithm: HashAlgorithm);
+            var compilation = CSharpTestBase.CreateCompilation(syntaxTree, options: Options);
+
+            // Embedded public resource
+            var embeddedPublicBytes = Encoding.UTF8.GetBytes("Embedded public resource");
+            string embeddedPublicChecksum = GetChecksum(embeddedPublicBytes);
+
+            // Embedded non-public resource
+            var embeddedPrivateBytes = Encoding.UTF8.GetBytes("Embedded private resource");
+            string embeddedPrivateChecksum = GetChecksum(embeddedPrivateBytes);
+
+            var resources = ImmutableArray.Create(
+                new ResourceDescription(
+                    "EmbeddedPublicResource",
+                    () => new System.IO.MemoryStream(embeddedPublicBytes),
+                    isPublic: true),
+                new ResourceDescription(
+                    "EmbeddedPrivateResource",
+                    () => new System.IO.MemoryStream(embeddedPrivateBytes),
+                    isPublic: false),
+                new ResourceDescription(
+                    "LinkedResource",
+                    "LinkedResource.txt",
+                    () => new System.IO.MemoryStream(Encoding.UTF8.GetBytes("dummy")),
+                    isPublic: true)
+            );
+
+            var key = compilation.GetDeterministicKey(resources: resources, options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var expected = $$"""
+"resources": [
+  {
+    "resourceName": "EmbeddedPublicResource",
+    "fileName": null,
+    "isPublic": true,
+    "content": {
+      "checksum": "{{embeddedPublicChecksum}}",
+      "checksumAlgorithm": "Sha256"
+    }
+  },
+  {
+    "resourceName": "EmbeddedPrivateResource",
+    "fileName": null,
+    "isPublic": false,
+    "content": {
+      "checksum": "{{embeddedPrivateChecksum}}",
+      "checksumAlgorithm": "Sha256"
+    }
+  },
+  {
+    "resourceName": "LinkedResource",
+    "fileName": "LinkedResource.txt",
+    "isPublic": true,
+    "content": null
+  }
+]
+""";
+            AssertJsonSection(expected, key, "resources");
+        }
+
+        [Fact]
+        public void MultipleSyntaxTreesWithDifferentChecksumAlgorithms()
+        {
+            var source1 = "public class Class1 { }";
+            var source2 = "public class Class2 { }";
+
+            var tree1 = CSharpTestBase.Parse(source1, filename: "file1.cs", checksumAlgorithm: SourceHashAlgorithm.Sha1);
+            var tree2 = CSharpTestBase.Parse(source2, filename: "file2.cs", checksumAlgorithm: SourceHashAlgorithm.Sha256);
+
+            var compilation = CSharpTestBase.CreateCompilation([tree1, tree2]);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            var checksum1 = GetChecksum(tree1.GetText());
+            var checksum2 = GetChecksum(tree2.GetText());
+
+            AssertJsonSection($$"""
+"syntaxTrees": [
+  {
+    "fileName": "file1.cs",
+    "text": {
+      "checksum": "{{checksum1}}",
+      "checksumAlgorithm": "Sha1",
+      "encodingName": "Unicode (UTF-8)"
+    },
+    "parseOptionsIndex": 0
+  },
+  {
+    "fileName": "file2.cs",
+    "text": {
+      "checksum": "{{checksum2}}",
+      "checksumAlgorithm": "Sha256",
+      "encodingName": "Unicode (UTF-8)"
+    },
+    "parseOptionsIndex": 0
+  }
+]
+""", key, "compilation.syntaxTrees");
+
+            // Both trees share the same ParseOptions, so the parseOptions array should have exactly one entry.
+            var parseOptionsArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
+            Assert.Equal(1, parseOptionsArray.Count);
+        }
+
+        [Fact]
+        public void ParseOptionsDeduplication()
+        {
+            // Trees with the same ParseOptions produce only one entry in the parseOptions array.
+            // Both trees share the default CSharpParseOptions, so there should be exactly one entry,
+            // and both trees should reference index 0.
+            var tree1 = CSharpTestBase.Parse("class A { }", filename: "a.cs");
+            var tree2 = CSharpTestBase.Parse("class B { }", filename: "b.cs");
+
+            var compilation = CSharpTestBase.CreateCompilation([tree1, tree2], options: Options);
+            var key = compilation.GetDeterministicKey(options: DeterministicKeyOptions.IgnoreToolVersions);
+
+            // One unique set of ParseOptions → one entry in the parseOptions array.
+            var parseOptionsArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
+            Assert.Equal(1, parseOptionsArray.Count);
+
+            // Both syntax trees reference index 0.
+            var syntaxTreesArray = (Newtonsoft.Json.Linq.JArray)GetJsonProperty(key, "compilation.syntaxTrees").Value;
+            Assert.Equal(0, syntaxTreesArray[0].Value<int>("parseOptionsIndex"));
+            Assert.Equal(0, syntaxTreesArray[1].Value<int>("parseOptionsIndex"));
         }
     }
 }

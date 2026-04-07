@@ -9,14 +9,18 @@ using System.Text.Json.Serialization;
 /// <summary>
 /// Class representing range of characters for completion continuation.
 /// </summary>
+[Kind(Type, "_vs_type")]
 internal sealed class VSInternalContinueCharacterRange
 {
+    public const string Type = "charRange";
+
     /// <summary>
     /// Gets the type value.
     /// </summary>
     [JsonPropertyName("_vs_type")]
     [JsonRequired]
-    public const string Type = "charRange";
+    [JsonInclude]
+    internal string TypeDiscriminator = Type;
 
     /// <summary>
     /// Gets or sets the first completion character of the range.

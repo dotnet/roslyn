@@ -18,36 +18,124 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
-Regex;
-regular expressions;
-related components under cursor;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression;
+Highlight related components under cursor;
 Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
+Import directives;
+Place System directives first when sorting imports;
+Separate import directive groups;
+Suggest imports for types in reference assemblies;
+Suggest imports for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused imports;
+Fade out unused members;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ''';
+Insert ' at the start of new lines when writing ' comments;
+Show preview for rename tracking;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
 JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
-Collapse #regions on file open;
-Collapse Imports on file open;
-Collapse metadata implementations on file open;
-Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">Подчеркивать переназначенные переменные;Показывать встроенные подсказки;Автоматическая вставка конечных конструкций;Изменять параметры автоматического форматирования;Изменять режим структуры;Автоматическая вставка интерфейса и элементов MustOverride;Показывать или скрывать разделители строк для процедуры;Включить или отключить предложения по исправлению ошибок;Включить или отключить выделение ссылок и ключевых слов;
-Регулярные выражения;
-регулярные выражения;
-связанные компоненты под курсором;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">Подчеркивать переназначенные переменные;
+Показывать встроенные указания;
+Показывать диагностику для закрытых файлов;
+Выделять регулярные выражения цветом;
+Выделять связанные компоненты под курсором;
 Сообщать о недопустимых регулярных выражениях;
-регулярное выражение;
-регулярное выражение;
-JSON;
-Выделить строки JSON цветом;
-Сообщить о недопустимых строках JSON;
-Найти и предложить функции редактора для строк JSON;
+Включить полный анализ решения;
+Выполнять анализ функций редактора во внешнем процессе;
+Включить переход к декомпилированным источникам;
+Всегда использовать серверы символов по умолчанию для навигации;
+Импортировать директивы;
+Размещать директивы System в начале при сортировке import;
+Разделять группы директив import;
+Предлагать import для типов в эталонных сборках;
+Предлагать import для типов в пакетах NuGet;
+Выделение;
+Выделять ссылки на символ под курсором;
+Выделять связанные ключевые слова под курсором;
+Структурирование;
+Переходить в режим редактирования структуры при открытии файлов;
 Сворачивать #regions при открытии файлов;
-Сворачивать директивы import при открытии файлов;
+Сворачивать import при открытии файлов;
 Сворачивать реализации метаданных при открытии файлов;
-Использовать расширенный набор цветов;Цветовая схема редактора;Поле наследования;Директивы import;</target>
+Показывать разделители строк процедур;
+Показывать структуру для конструкций уровня объявления;
+Показывать структуру для конструкций уровня кода;
+Показывать структуру для комментариев и областей препроцессора;
+Сворачивать области при сворачивании в определения;
+Показывать бледным цветом;
+Показывать неиспользуемые директивы import бледным цветом;
+Показывать неиспользуемые элементы бледным цветом;
+Направляющие для структуры блоков;
+Показывать направляющие для конструкций уровня объявления;
+Показывать направляющие для конструкций уровня кода;
+Справка по редактору;
+Генерировать комментарии XML-документации для ''';
+Вставлять ' в начале новой строки при написании комментариев ';
+Показывать предварительный просмотр для отслеживания переименований;
+Сообщать о недопустимых заполнителях в вызовах string.Format;
+Извлечение метода;
+Реализовать интерфейс или абстрактный класс;
+При вставке свойств, методов и событий помещать их;
+вместе с другими элементами того же типа;
+в конец;
+При создании свойства;
+предпочитать свойства, создающие исключения;
+предпочитать автоматические свойства;
+регулярное выражение;
+регулярное выражение;
+Выделять регулярные выражения цветом;
+Выделять связанные компоненты под курсором;
+Сообщать о недопустимых регулярных выражениях;
+JSON;
+Выделять строки JSON цветом;
+Сообщать о недопустимых строках JSON;
+Находить и предлагать функции редактора для строк JSON;
+Использовать расширенный набор цветов;
+Цветовая схема редактора;
+Поле наследования;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -114,11 +202,6 @@ JSON;
         <source>IntelliSense</source>
         <target state="translated">IntelliSense</target>
         <note />
-      </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">Изменение параметров списка завершения; Предварительный выбор наиболее часто используемого члена</target>
-        <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>

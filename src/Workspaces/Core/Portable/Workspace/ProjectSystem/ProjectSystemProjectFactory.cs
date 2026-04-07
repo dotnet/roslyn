@@ -97,22 +97,10 @@ internal sealed partial class ProjectSystemProjectFactory
     public FileTextLoader CreateFileTextLoader(string fullPath)
         => new WorkspaceFileTextLoader(this.SolutionServices, fullPath, defaultEncoding: null);
 
-    public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo)
+    public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo, CancellationToken cancellationToken = default)
     {
         var projectId = ProjectId.CreateNewId(projectSystemName);
         var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
-
-        // We will use the project system name as the default display name of the project
-        var project = new ProjectSystemProject(
-            this,
-            hostInfo,
-            projectId,
-            displayName: projectSystemName,
-            language,
-            assemblyName,
-            creationInfo.CompilationOptions,
-            creationInfo.FilePath,
-            creationInfo.ParseOptions);
 
         var versionStamp = creationInfo.FilePath != null
             ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -131,7 +119,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
                 telemetryId: creationInfo.TelemetryId,
-                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
+                // Since we don't have any analyzers at this point, we can just set to false.
+                hasSdkCodeStyleAnalyzers: false),
             compilationOptions: creationInfo.CompilationOptions,
             parseOptions: creationInfo.ParseOptions);
 
@@ -174,7 +163,30 @@ internal sealed partial class ProjectSystemProjectFactory
                 },
                 onBeforeUpdate: null,
                 onAfterUpdate: null);
-        }).ConfigureAwait(false);
+
+            // We have now created the project and added it to the solution -- we are committed at this point
+            // to returning a project or else we would never have a way to remove this project we created.
+            cancellationToken = CancellationToken.None;
+
+            _projectUpdateState = _projectUpdateState with
+            {
+                ProjectReferenceInfos = _projectUpdateState.ProjectReferenceInfos.Add(projectId, new ProjectReferenceInformation([], []))
+            };
+        }, cancellationToken).ConfigureAwait(false);
+
+        CodeAnalysisEventSource.Log.ProjectCreated(projectSystemName, creationInfo.FilePath);
+
+        // We will use the project system name as the default display name of the project
+        var project = new ProjectSystemProject(
+            this,
+            hostInfo,
+            projectId,
+            displayName: projectSystemName,
+            language,
+            assemblyName,
+            creationInfo.CompilationOptions,
+            creationInfo.FilePath,
+            creationInfo.ParseOptions);
 
         // Set this value early after solution is created so it is available to Razor.  This will get updated
         // when the command line is set, but we want a non-null value to be available as soon as possible.
@@ -357,21 +369,15 @@ internal sealed partial class ProjectSystemProjectFactory
         ApplyBatchChangeToWorkspaceMaybe_NoLockAsync(useAsync: false, mutation, onAfterUpdateAlways).VerifyCompleted();
     }
 
-    private static ProjectUpdateState GetReferenceInformation(ProjectId projectId, ProjectUpdateState projectUpdateState, out ProjectReferenceInformation projectReference)
+    private static bool TryGetReferenceInformation(ProjectId projectId, ProjectUpdateState projectUpdateState, out ProjectReferenceInformation projectReference)
     {
-        if (projectUpdateState.ProjectReferenceInfos.TryGetValue(projectId, out var referenceInfo))
-        {
-            projectReference = referenceInfo;
-            return projectUpdateState;
-        }
-        else
-        {
-            projectReference = new ProjectReferenceInformation([], []);
-            return projectUpdateState with
-            {
-                ProjectReferenceInfos = projectUpdateState.ProjectReferenceInfos.Add(projectId, projectReference)
-            };
-        }
+        return projectUpdateState.ProjectReferenceInfos.TryGetValue(projectId, out projectReference);
+    }
+
+    private static ProjectReferenceInformation GetRequiredReferenceInformation(ProjectId projectId, ProjectUpdateState projectUpdateState)
+    {
+        Contract.ThrowIfFalse(projectUpdateState.ProjectReferenceInfos.TryGetValue(projectId, out var referenceInfo), $"Expected ProjectReferenceInfos entry for project '{projectId}'");
+        return referenceInfo;
     }
 
     /// <summary>
@@ -494,7 +500,7 @@ internal sealed partial class ProjectSystemProjectFactory
         ProjectUpdateState projectUpdateState,
         SolutionServices solutionServices)
     {
-        projectUpdateState = GetReferenceInformation(projectId, projectUpdateState, out var projectReferenceInformation);
+        var projectReferenceInformation = GetRequiredReferenceInformation(projectId, projectUpdateState);
         projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectId, projectReferenceInformation with
         {
             OutputPaths = projectReferenceInformation.OutputPaths.Add(outputPath)
@@ -560,6 +566,7 @@ internal sealed partial class ProjectSystemProjectFactory
             // but metadata references come in later. CanConvertMetadataReferenceToProjectReference isn't terribly expensive
             // but when called enough times things can start to add up.
             if (projectToRetarget.MetadataReferences.Count > 0 &&
+                TryGetReferenceInformation(projectToRetarget.Id, projectUpdateState, out var projectReferenceInfo) &&
                 CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectToRetarget, candidateProjectState))
             {
                 foreach (var reference in projectToRetarget.MetadataReferences)
@@ -576,9 +583,8 @@ internal sealed partial class ProjectSystemProjectFactory
 
                         solutionChanges.UpdateSolutionForProjectAction(projectToRetarget.Id, newSolution);
 
-                        projectUpdateState = GetReferenceInformation(projectToRetarget.Id, projectUpdateState, out var projectInfo);
-                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectToRetarget.Id,
-                            projectInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference));
+                        projectReferenceInfo = projectReferenceInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference);
+                        projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectToRetarget.Id, projectReferenceInfo);
 
                         // We have converted one, but you could have more than one reference with different aliases that
                         // we need to convert, so we'll keep going
@@ -649,7 +655,8 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         foreach (var projectIdToRetarget in solutionChanges.Solution.ProjectIds)
         {
-            projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo);
+            if (!TryGetReferenceInformation(projectIdToRetarget, projectUpdateState, out var referenceInfo))
+                continue;
 
             // Update ConvertedProjectReferences in place to avoid duplicate list allocations
             for (var i = 0; i < referenceInfo.ConvertedProjectReferences.Length; i++)
@@ -713,7 +720,7 @@ internal sealed partial class ProjectSystemProjectFactory
                     aliases: properties.Aliases,
                     embedInteropTypes: properties.EmbedInteropTypes);
 
-                projectUpdateState = GetReferenceInformation(referencingProjectState.Id, projectUpdateState, out var projectReferenceInfo);
+                var projectReferenceInfo = GetRequiredReferenceInformation(referencingProjectState.Id, projectUpdateState);
                 projectUpdateState = projectUpdateState.WithProjectReferenceInfo(referencingProjectState.Id, projectReferenceInfo.WithConvertedProjectReference(path, projectReference));
                 return projectUpdateState;
             }
@@ -740,7 +747,7 @@ internal sealed partial class ProjectSystemProjectFactory
         ProjectUpdateState projectUpdateState,
         out ProjectReference? projectReference)
     {
-        projectUpdateState = GetReferenceInformation(referencingProject, projectUpdateState, out var projectReferenceInformation);
+        var projectReferenceInformation = GetRequiredReferenceInformation(referencingProject, projectUpdateState);
         foreach (var convertedProject in projectReferenceInformation.ConvertedProjectReferences)
         {
             if (convertedProject.path == path &&
@@ -768,7 +775,7 @@ internal sealed partial class ProjectSystemProjectFactory
         bool solutionClosing,
         SolutionServices solutionServices)
     {
-        projectUpdateState = GetReferenceInformation(projectId, projectUpdateState, out var projectReferenceInformation);
+        var projectReferenceInformation = GetRequiredReferenceInformation(projectId, projectUpdateState);
         if (!projectReferenceInformation.OutputPaths.Contains(outputPath))
         {
             throw new ArgumentException($"Project does not contain output path '{outputPath}'", nameof(outputPath));
@@ -838,6 +845,7 @@ internal sealed partial class ProjectSystemProjectFactory
 
                 return (newSolution, newProjectUpdateState);
             },
+            onAfterUpdateAlways: null,
             cancellationToken);
 
     private Task StartRefreshingAnalyzerReferenceForFileAsync(string fullFilePath, CancellationToken cancellationToken)
@@ -858,6 +866,30 @@ internal sealed partial class ProjectSystemProjectFactory
                     solution, projectId, projectUpdateState, [oldAnalyzerFilePath], [newAnalyzerFilePath]);
                 return (newSolution, newProjectUpdateState);
             },
+            onAfterUpdateAlways: state =>
+            {
+                // Okay, an analyzer changed on disk, and we've now ensured the workspace is updated to point at the
+                // latest version of it.  We need to explicitly treat this as something that should force analyzer
+                // to rerun so that all generated documents from it are accurate.
+                //
+                // If we do not do this, we can end up in a situation where we have an observable race for clients
+                // trying to retrieve SG docs.  If the retrieve after a build, but before we've heard about this change
+                // on disk, we will produce documents based on the versions of the references we were pointing at. When
+                // we then hear about the changes on disk, we'll fork the workspace, but keep the SG version map the
+                // same, meaning clients will not get updated results.  If, however, they had waited a little before
+                // asking for SG docs, then we would have updated the version map *and* incorporated the new analyzer
+                // references, so they would see the updated documents.
+                //
+                // This violates our goal that 'build' or adding/removing/changing analyzer references should result
+                // in correct SG documents for the next client that requests them.
+                //
+                // Note: we could technically attempt to smarter here and try to determine precisely which projects were
+                // impacted by the changed analyzer and only update those.  However, that would involve flowing more
+                // state/snapshots around here, and it's just much clearer and easier to set everything to be
+                // regenerated unconditionally.  Given that analyzer changes should be relatively infrequent, this
+                // should hopefully be ok.
+                this.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+            },
             cancellationToken);
 
     /// <summary>
@@ -870,6 +902,7 @@ internal sealed partial class ProjectSystemProjectFactory
         Func<TReference, string> getFilePath,
         Func<SolutionServices, TReference, TReference> createNewReference,
         Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update,
+        Action<ProjectUpdateState>? onAfterUpdateAlways,
         CancellationToken cancellationToken)
         where TReference : class
     {
@@ -900,7 +933,7 @@ internal sealed partial class ProjectSystemProjectFactory
             }
 
             return projectUpdateState;
-        }, onAfterUpdateAlways: null).ConfigureAwait(false);
+        }, onAfterUpdateAlways).ConfigureAwait(false);
     }
 
     internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)

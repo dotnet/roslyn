@@ -593,7 +593,7 @@ internal static class BreakpointSpans
                 // statement.
                 var declarationStatement = (LocalDeclarationStatementSyntax)statement;
                 return TryCreateSpanForVariableDeclaration(declarationStatement.Declaration, declarationStatement.Modifiers,
-                    declarationStatement.SemicolonToken, position);
+                    declarationStatement.SemicolonToken, position, startNodeOpt: declarationStatement);
 
             case SyntaxKind.LabeledStatement:
                 // Create the breakpoint on the actual statement we are labeling:
@@ -776,14 +776,15 @@ internal static class BreakpointSpans
             // parent node will handle:
             SyntaxKind.LocalDeclarationStatement or SyntaxKind.EventFieldDeclaration or SyntaxKind.FieldDeclaration => null,
 
-            _ => TryCreateSpanForVariableDeclaration(declaration, modifiersOpt: default, semicolonOpt: default, position),
+            _ => TryCreateSpanForVariableDeclaration(declaration, modifiersOpt: default, semicolonOpt: default, position, startNodeOpt: null),
         };
 
     private static TextSpan? TryCreateSpanForVariableDeclaration(
         VariableDeclarationSyntax variableDeclaration,
         SyntaxTokenList modifiersOpt,
         SyntaxToken semicolonOpt,
-        int position)
+        int position,
+        SyntaxNode? startNodeOpt = null)
     {
         if (variableDeclaration.Variables.Count == 0)
         {
@@ -803,6 +804,16 @@ internal static class BreakpointSpans
                 return default(TextSpan);
             }
 
+            // If we have a start node (e.g., LocalDeclarationStatementSyntax with 'using' or 'await'),
+            // use it as the start to include those keywords in the span
+            if (startNodeOpt != null)
+            {
+                return CreateSpan(
+                    startOpt: default,
+                    startFallbackOpt: startNodeOpt,
+                    endOpt: semicolonOpt != default ? semicolonOpt : (SyntaxNodeOrToken)variableDeclaration);
+            }
+
             return CreateSpan(modifiersOpt, variableDeclaration, semicolonOpt);
         }
 
@@ -819,6 +830,16 @@ internal static class BreakpointSpans
 
         if (variableDeclarator == variableDeclaration.Variables[0])
         {
+            // If we have a start node (e.g., LocalDeclarationStatementSyntax with 'using' or 'await'),
+            // use it as the start to include those keywords in the span
+            if (startNodeOpt != null)
+            {
+                return CreateSpan(
+                    startOpt: default,
+                    startFallbackOpt: startNodeOpt,
+                    endOpt: variableDeclarator);
+            }
+
             return CreateSpan(modifiersOpt, variableDeclaration, variableDeclarator);
         }
 

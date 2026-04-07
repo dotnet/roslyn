@@ -937,6 +937,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel? semanticModel, LocalDeclarationStatementSyntax awaitUsingDeclaration)
+        {
+            if (semanticModel is CSharpSemanticModel csmodel)
+            {
+                return csmodel.GetAwaitExpressionInfo(awaitUsingDeclaration);
+            }
+            else
+            {
+                return default(AwaitExpressionInfo);
+            }
+        }
+
+        public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel? semanticModel, UsingStatementSyntax awaitUsingStatement)
+        {
+            if (semanticModel is CSharpSemanticModel csmodel)
+            {
+                return csmodel.GetAwaitExpressionInfo(awaitUsingStatement);
+            }
+            else
+            {
+                return default(AwaitExpressionInfo);
+            }
+        }
+
         public static ImmutableArray<ISymbol> GetMemberGroup(this SemanticModel? semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
         {
             var csmodel = semanticModel as CSharpSemanticModel;

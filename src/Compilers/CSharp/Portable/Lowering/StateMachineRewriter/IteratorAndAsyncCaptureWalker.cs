@@ -29,6 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This set will contain such variables after the bound tree is visited.
         private readonly OrderedSet<Symbol> _variablesToHoist = new OrderedSet<Symbol>();
 
+        // We have a smaller set of rules when runtime async is enabled: we only need to hoist by-refs across
+        // async boundaries in this case
+        private readonly bool _isRuntimeAsync;
+
         // Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
         // The value is a list of all uses of each such variable.
         private MultiDictionary<Symbol, SyntaxNode> _lazyDisallowedCaptures;
@@ -39,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // variables in its initializing expression will need to be hoisted too.
         private readonly Dictionary<LocalSymbol, BoundExpression> _boundRefLocalInitializers = new Dictionary<LocalSymbol, BoundExpression>();
 
-        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, HashSet<Symbol> initiallyAssignedVariables)
+        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, HashSet<Symbol> initiallyAssignedVariables, bool isRuntimeAsync)
             : base(compilation,
                   method,
                   node,
@@ -47,13 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                   trackUnassignments: true,
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
+            _isRuntimeAsync = isRuntimeAsync;
         }
 
         // Returns deterministically ordered list of variables that ought to be hoisted.
-        public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
+        public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, bool isRuntimeAsync, DiagnosticBag diagnostics)
         {
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
-            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, initiallyAssignedVariables);
+            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, initiallyAssignedVariables, isRuntimeAsync);
 
             walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
@@ -61,7 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             walker.Analyze(ref badRegion);
             Debug.Assert(!badRegion);
 
-            if (!method.IsStatic && method.ContainingType.TypeKind == TypeKind.Struct)
+            // When runtime async is enabled, we don't want to blindly hoist `this`. We'll only hoist if the walker
+            // actually encounters it as a ref that should be hoisted
+            if (!method.IsStatic && method.ContainingType.TypeKind == TypeKind.Struct && !isRuntimeAsync)
             {
                 // It is possible that the enclosing method only *writes* to the enclosing struct, but in that
                 // case it should be considered captured anyway so that we have a proxy for it to write to.
@@ -111,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!allVariables.Any((s, method) => s.Symbol is ParameterSymbol { ContainingSymbol: var container } && container != method && container is not SynthesizedPrimaryConstructor, method));
 
             var variablesToHoist = new OrderedSet<Symbol>();
-            if (compilation.Options.OptimizationLevel != OptimizationLevel.Release)
+            if (compilation.Options.OptimizationLevel != OptimizationLevel.Release && !isRuntimeAsync)
             {
                 // In debug build we hoist long-lived locals and parameters
                 foreach (var v in allVariables)
@@ -208,6 +215,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
+            if (_isRuntimeAsync)
+            {
+                switch (variable)
+                {
+                    case ParameterSymbol { RefKind: RefKind.None }:
+                    case LocalSymbol { RefKind: RefKind.None }:
+                    case FieldSymbol { RefKind: RefKind.None }:
+                        // Runtime async only needs to preserve by-ref captures
+                        return;
+                }
+            }
+
             var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType() ||
                 (variable is LocalSymbol { RefKind: not RefKind.None } refLocal && !canRefLocalBeHoisted(refLocal)))
@@ -284,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void TryHoistTopLevelParameter(BoundParameter node)
         {
-            Debug.Assert(!topLevelMethod.GetIsNewExtensionMember()); // extension methods were replaced with implementation methods earlier in the pipeline
+            Debug.Assert(!topLevelMethod.IsExtensionBlockMember()); // extension methods were replaced with implementation methods earlier in the pipeline
 
             if (node.ParameterSymbol.ContainingSymbol == topLevelMethod)
             {
@@ -324,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void VisitFinallyBlock(BoundStatement finallyBlock, ref LocalState unsetInFinally)
+        protected override void VisitFinallyBlock(BoundStatement finallyBlock)
         {
             if (_seenYieldInCurrentTry)
             {
@@ -333,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new OutsideVariablesUsedInside(this, this.topLevelMethod, this).Visit(finallyBlock);
             }
 
-            base.VisitFinallyBlock(finallyBlock, ref unsetInFinally);
+            base.VisitFinallyBlock(finallyBlock);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)

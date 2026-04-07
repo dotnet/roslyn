@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.InlineHints
 Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
@@ -28,8 +29,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
 
                 Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
-                Dim inlineHints = Await tagService.GetInlineHintsAsync(
-                    document, span, options, displayOptions, displayAllOverride:=False, CancellationToken.None)
+                Dim inlineHints = ArrayBuilder(Of InlineHint).GetInstance()
+
+                Await tagService.AddInlineHintsAsync(
+                    document, span, options, displayOptions, displayAllOverride:=False, inlineHints, CancellationToken.None)
 
                 Dim producedTags = From hint In inlineHints
                                    Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
@@ -56,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
             AssertEx.Equal(expectedTags, producedTags)
         End Sub
 
-        Private Shared Async Function ValidateDoubleClick(document As Document, expectedDocument As Document, inlineHints As ImmutableArray(Of InlineHint)) As Task
+        Private Shared Async Function ValidateDoubleClick(document As Document, expectedDocument As Document, inlineHints As ArrayBuilder(Of InlineHint)) As Task
             Dim textChanges = New List(Of TextChange)
             For Each inlineHint In inlineHints
                 If inlineHint.ReplacementTextChange IsNot Nothing Then
@@ -88,8 +91,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
                 Dim tagService = document.GetRequiredLanguageService(Of IInlineTypeHintsService)
 
                 Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
-                Dim typeHints = Await tagService.GetInlineHintsAsync(
-                    document, span, options, displayOptions, displayAllOverride:=ephemeral, CancellationToken.None)
+                Dim typeHints = ArrayBuilder(Of InlineHint).GetInstance()
+
+                Await tagService.AddInlineHintsAsync(
+                    document, span, options, displayOptions, displayAllOverride:=ephemeral, typeHints, CancellationToken.None)
 
                 Dim producedTags = From hint In typeHints
                                    Select hint.DisplayParts.GetFullText() + ":" + hint.Span.ToString()

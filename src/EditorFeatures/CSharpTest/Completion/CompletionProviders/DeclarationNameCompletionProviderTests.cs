@@ -851,6 +851,113 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
         await VerifyItemExistsAsync(markup, "GetItems");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
+    public async Task FuncOfT()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                Func<string> $$
+            }
+            """;
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "Func");
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify new Func-specific suggestions
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "stringFactory");
+        await VerifyItemExistsAsync(markup, "selector");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
+    public async Task FuncOfTwoArguments()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                Func<int, string> $$
+            }
+            """;
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "Func");
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify new Func-specific suggestions
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "stringFactory");
+        await VerifyItemExistsAsync(markup, "selector");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
+    public async Task FuncOfThreeArguments()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                Func<int, bool, Customer> $$
+            }
+
+            public class Customer { }
+            """;
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "Func");
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify new Func-specific suggestions
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "customerFactory");
+        await VerifyItemExistsAsync(markup, "selector");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
+    public async Task FuncAsParameter()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                void M(Func<Item> $$) { }
+            }
+
+            public class Item { }
+            """;
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "func", glyph: Glyph.Parameter);
+        // Verify new Func-specific suggestions
+        await VerifyItemExistsAsync(markup, "factory", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "itemFactory", glyph: Glyph.Parameter);
+        await VerifyItemExistsAsync(markup, "selector", glyph: Glyph.Parameter);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42721")]
+    public async Task FuncAsLocalVariable()
+    {
+        var markup = """
+            using System;
+
+            public class C
+            {
+                void M()
+                {
+                    Func<Result> $$
+                }
+            }
+
+            public class Result { }
+            """;
+        // Verify original Func-based suggestions still work
+        await VerifyItemExistsAsync(markup, "func");
+        // Verify new Func-specific suggestions
+        await VerifyItemExistsAsync(markup, "factory");
+        await VerifyItemExistsAsync(markup, "resultFactory");
+        await VerifyItemExistsAsync(markup, "selector");
+    }
+
     [Fact]
     public Task NoSuggestionsForInt()
         => VerifyNoItemsExistAsync("""
@@ -1328,6 +1435,134 @@ public sealed class DeclarationNameCompletionProviderTests : AbstractCSharpCompl
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple()
+        => VerifyItemExistsAsync("""
+            using System.Collections.Generic;
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (List<Person> $$
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_PredefinedType()
+        => VerifyNoItemsExistAsync("""
+            class Test
+            {
+                void Do()
+                {
+                    (int $$
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_QualifiedName()
+        => VerifyItemExistsAsync("""
+            class Test
+            {
+                void Do()
+                {
+                    (System.Action $$
+                }
+            }
+            """, "action");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_WithCloseParen()
+        => VerifyItemExistsAsync("""
+            using System.Collections.Generic;
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (List<Person> $$)
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_PredefinedType_WithCloseParen()
+        => VerifyNoItemsExistAsync("""
+            class Test
+            {
+                void Do()
+                {
+                    (int $$)
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_QualifiedName_WithCloseParen()
+        => VerifyItemExistsAsync("""
+            class Test
+            {
+                void Do()
+                {
+                    (System.Action $$)
+                }
+            }
+            """, "action");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_FullyQualifiedGenericType()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (System.Collections.Generic.List<Person> $$
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_FullyQualifiedGenericType_WithCloseParen()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (System.Collections.Generic.List<Person> $$)
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_ArrayType()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (Person[] $$
+                }
+            }
+            """, "people");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22342")]
+    public Task TupleElementIncompleteParenthesizedTuple_ArrayType_WithCloseParen()
+        => VerifyItemExistsAsync("""
+            class Person { }
+            class Test
+            {
+                void Do()
+                {
+                    (Person[] $$)
+                }
+            }
+            """, "people");
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17987")]
     public Task Pluralize1()

@@ -94,7 +94,7 @@ namespace BuildBoss
             // Load PublishData.json
             var publishDataPath = Path.Combine(RepositoryDirectory, "eng", "config", "PublishData.json");
             var publishDataRoot = JObject.Parse(File.ReadAllText(publishDataPath));
-            var publishDataPackages = publishDataRoot["packages"]["default"] as JObject;
+            var publishDataPackages = publishDataRoot["packages"] as JObject;
 
             // Check all shipping packages have an entry in PublishData.json
             var regex = new Regex(@"^(.*?)\.\d.*\.nupkg$");
@@ -180,16 +180,19 @@ namespace BuildBoss
                 excludeFunc: relativeFileName =>
                     relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.DiaSymReader.Native", PathComparison) ||
                     relativeFileName.StartsWith(@"tasks\netcore\bincore\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll", PathComparison) ||
-                    (relativeFileName.StartsWith(@"tasks\netcore\binfx\", PathComparison) && relativeFileName.EndsWith(".targets", PathComparison)),
+                    (relativeFileName.StartsWith(@"tasks\netcore\binfx\", PathComparison) && relativeFileName.EndsWith(".targets", PathComparison)) ||
+                    relativeFileName.Equals(@"tasks\netcore\bincore\csc.exe", PathComparison) ||
+                    relativeFileName.Equals(@"tasks\netcore\bincore\vbc.exe", PathComparison) ||
+                    relativeFileName.Equals(@"tasks\netcore\bincore\VBCSCompiler.exe", PathComparison),
                 (@"tasks\net472", GetProjectOutputDirectory("csc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("vbc", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("VBCSCompiler", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net472")),
-                (@"tasks\netcore\bincore", GetProjectPublishDirectory("csc", "net9.0")),
-                (@"tasks\netcore\bincore", GetProjectPublishDirectory("vbc", "net9.0")),
-                (@"tasks\netcore\bincore", GetProjectPublishDirectory("VBCSCompiler", "net9.0")),
-                (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net9.0")),
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("csc", "net10.0")),
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("vbc", "net10.0")),
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("VBCSCompiler", "net10.0")),
+                (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net10.0")),
                 (@"tasks\netcore\binfx", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis.Sdk", "net472")));
 
             foreach (var arch in new[] { "x86", "x64", "arm64" })

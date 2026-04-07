@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
@@ -83,7 +85,7 @@ internal static class HostWorkspaceServicesExtensions
             l => hostWorkspaceServices.GetLanguageServices(l).GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType().TypeName);
     }
 
-    internal static IList<T> SelectMatchingExtensionValues<T, TMetadata>(
+    internal static ImmutableArray<T> SelectMatchingExtensionValues<T, TMetadata>(
         this SolutionServices workspaceServices,
         IEnumerable<Lazy<T, TMetadata>> items,
         IContentType contentType)
@@ -92,7 +94,9 @@ internal static class HostWorkspaceServicesExtensions
         if (items == null)
             return [];
 
-        return [.. items.Where(lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices)).Select(lazy => lazy.Value)];
+        return items.SelectAsArray(
+            lazy => LanguageMatches(lazy.Metadata.Language, contentType, workspaceServices),
+            lazy => lazy.Value);
     }
 
     private static bool LanguageMatches(

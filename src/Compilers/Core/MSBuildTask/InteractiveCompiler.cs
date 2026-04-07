@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class InteractiveCompiler : ManagedToolTask
     {
-        internal readonly PropertyDictionary _store = new PropertyDictionary();
-
         public InteractiveCompiler()
             : base(ErrorString.ResourceManager)
         {

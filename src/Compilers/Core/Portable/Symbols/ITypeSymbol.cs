@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
@@ -26,8 +27,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// and pointer types do not have a base type. The base type of a type parameter
-        /// is its effective base class.
+        /// pointer types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 
@@ -81,15 +81,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool IsNativeIntegerType { get; }
 
-        /// <summary>
-        /// Is this a symbol for an extension declaration.
-        /// </summary>
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         bool IsExtension { get; }
 
-        /// <summary>
-        /// The extension parameter if this is an extension declaration (<see cref="IsExtension"/> is true).
-        /// Note: this may be null even if <see cref="IsExtension"/> is true, in error cases.
-        /// </summary>
+        // 4.14 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [EditorBrowsable(EditorBrowsableState.Never)]
         IParameterSymbol? ExtensionParameter { get; }
 
         /// <summary>
@@ -145,6 +142,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns false for record structs in metadata since they don't have any distinctive marker.
         /// </remarks>
         bool IsRecord { get; }
+
+        // https://github.com/dotnet/roslyn/issues/82636: Add bool IsUnion { get; } ?
 
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.

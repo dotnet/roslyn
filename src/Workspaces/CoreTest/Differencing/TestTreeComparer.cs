@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests;
 
 public sealed class TestTreeComparer : TreeComparer<TestNode>
 {
-    public static readonly TestTreeComparer Instance = new TestTreeComparer();
+    public static readonly TestTreeComparer Instance = new();
 
     private TestTreeComparer()
     {
@@ -50,7 +50,7 @@ public sealed class TestTreeComparer : TreeComparer<TestNode>
         => node.Label;
 
     protected internal override TextSpan GetSpan(TestNode node)
-        => new TextSpan(0, 10);
+        => new(0, 10);
 
     protected internal override int TiedToAncestor(int label)
         => 0;

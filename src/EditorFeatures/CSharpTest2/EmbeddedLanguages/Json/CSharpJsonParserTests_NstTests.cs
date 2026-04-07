@@ -5,6 +5,7 @@
 // tests from: https://github.com/nst/JSONTestSuite
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json;
@@ -17,7 +18,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
         var (_, tree, allChars) = JustParseTree(stringText, JsonOptions.Strict, conversionFailureOk: false);
         Assert.NotNull(tree);
         Contract.ThrowIfNull(tree);
-        var actualTree = TreeToText(tree!).Replace("""
+        var actualTree = TreeToText(tree).Replace("""
             "
             """, """
             ""
@@ -1462,7 +1463,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void n_array_newlines_unclosed_json()
         => TestNST("""
             @"[""a"",
@@ -1683,7 +1684,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void n_array_unclosed_with_new_lines_json()
         => TestNST("""
             @"[1,
@@ -4724,12 +4725,12 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
             """,
     """
     <Diagnostics>
-      <Diagnostic Message="Invalid escape sequence" Start="13" Length="3" />
+      <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """,
     """
     <Diagnostics>
-      <Diagnostic Message="Invalid escape sequence" Start="13" Length="3" />
+      <Diagnostic Message="Invalid escape sequence" Start="13" Length="2" />
     </Diagnostics>
     """);
 

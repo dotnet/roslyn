@@ -22,7 +22,7 @@ public abstract partial class CategoryBasedSeverityConfigurationTests : Abstract
 {
     private sealed class CustomDiagnosticAnalyzer : DiagnosticAnalyzer
     {
-        private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor Rule = new(
             id: "XYZ0001",
             title: "Title",
             messageFormat: "Message",

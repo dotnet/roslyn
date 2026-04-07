@@ -6,11 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -21,10 +24,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     {
         internal sealed class GenerationVerifier(int ordinal, GenerationInfo generationInfo, ImmutableArray<MetadataReader> readers)
         {
+            private readonly Lazy<MetadataVisualizer> _lazyVisualizer = new(() => new MetadataVisualizer(readers, TextWriter.Null, MetadataVisualizerOptions.None));
             public readonly List<Exception> Exceptions = [];
 
             private MetadataReader MetadataReader
                 => generationInfo.MetadataReader;
+
+            private MetadataVisualizer Visualizer
+                => _lazyVisualizer.Value;
 
             private string GetAssertMessage(string message)
             {
@@ -62,8 +69,65 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             internal void VerifyPropertyDefNames(params string[] expected)
                 => Verify(() => AssertEntityNamesEqual("PropertyDefs", expected, MetadataReader.GetPropertyDefNames()));
 
+            internal void VerifyEventDefNames(params string[] expected)
+                => Verify(() => AssertEntityNamesEqual("EventDefs", expected, MetadataReader.GetEventDefNames()));
+
             private void AssertEntityNamesEqual(string entityKinds, string[] expected, StringHandle[] actual)
                 => AssertEx.Equal(expected, readers.GetStrings(actual), message: GetAssertMessage($"{entityKinds} don't match"), itemSeparator: ", ", itemInspector: s => $"\"{s}\"");
+
+            internal void VerifyMethodDefs(params (string name, MethodAttributes attributes)[] expected)
+                => Verify(() =>
+                {
+                    var actual = MetadataReader.MethodDefinitions.Select(handle =>
+                    {
+                        var def = MetadataReader.GetMethodDefinition(handle);
+                        return (name: readers.GetString(def.Name), attributes: def.Attributes);
+                    }).ToArray();
+
+                    AssertEx.Equal(
+                        expected,
+                        actual,
+                        message: GetAssertMessage($"MethodDefs don't match"),
+                        itemSeparator: "," + Environment.NewLine,
+                        itemInspector: s => $"(\"{s.name}\", {Inspect(s.attributes)})");
+                });
+
+            internal void VerifyPropertyDefs(params (string name, PropertyAttributes attributes)[] expected)
+                => Verify(() =>
+                {
+                    var actual = MetadataReader.PropertyDefinitions.Select(handle =>
+                    {
+                        var def = MetadataReader.GetPropertyDefinition(handle);
+                        return (name: readers.GetString(def.Name), attributes: def.Attributes);
+                    }).ToArray();
+
+                    AssertEx.Equal(
+                        expected,
+                        actual,
+                        message: GetAssertMessage($"PropertyDefs don't match"),
+                        itemSeparator: "," + Environment.NewLine,
+                        itemInspector: s => $"(\"{s.name}\", {Inspect(s.attributes)})");
+                });
+
+            internal void VerifyEventDefs(params (string name, EventAttributes attributes)[] expected)
+                => Verify(() =>
+                {
+                    var actual = MetadataReader.EventDefinitions.Select(handle =>
+                    {
+                        var def = MetadataReader.GetEventDefinition(handle);
+                        return (name: readers.GetString(def.Name), attributes: def.Attributes);
+                    }).ToArray();
+
+                    AssertEx.Equal(
+                        expected,
+                        actual,
+                        message: GetAssertMessage($"EventDefs don't match"),
+                        itemSeparator: "," + Environment.NewLine,
+                        itemInspector: s => $"(\"{s.name}\", {Inspect(s.attributes)})");
+                });
+
+            internal static string Inspect<TEnum>(TEnum value) where TEnum : Enum
+                => string.Join(" | ", value.ToString().Split(',').Select(s => $"{typeof(TEnum).Name}.{s.Trim()}"));
 
             internal void VerifyDeletedMembers(params string[] expected)
                 => Verify(() =>
@@ -115,19 +179,57 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 {
                     AssertEx.Equal(
                         expected ?? [],
-                        MetadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
+                        MetadataReader.GetCustomAttributeRows(),
+                        itemInspector: AttributeRowToString);
                 });
 
+            internal void VerifyCustomAttributes(params string[] expected)
+                => VerifyCustomAttributes(expected, includeNil: false);
+
+            internal void VerifyCustomAttributes(string[] expected, bool includeNil)
+                => Verify(() =>
+                {
+                    AssertEx.SequenceEqual(
+                        expected ?? [],
+                        MetadataReader.GetCustomAttributeRows()
+                            // CustomAttribute table entries might be zeroed out in the delta.
+                            .Where(row => includeNil || !row.ParentToken.IsNil || !row.ConstructorToken.IsNil)
+                            .Select(row => row.ParentToken.IsNil && row.ConstructorToken.IsNil
+                                ? "<nil>"
+                                : $"[{Visualizer.GetQualifiedName(row.ConstructorToken)}] {InspectCustomAttributeTarget(row.ParentToken)}"));
+                });
+
+            private string InspectCustomAttributeTarget(EntityHandle handle)
+                => handle.Kind switch
+                {
+                    HandleKind.AssemblyDefinition => "<assembly>",
+                    HandleKind.ModuleDefinition => "<module>",
+                    _ => Visualizer.GetQualifiedName(handle)
+                };
+
             private IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetSynthesizedMembers()
-                => (generationInfo.CompilationVerifier != null)
-                        ? generationInfo.CompilationVerifier.TestData.Module!.GetAllSynthesizedMembers()
-                        : generationInfo.Baseline.SynthesizedMembers;
+                => generationInfo.CompilationVerifier?.TestData.Module!.GetAllSynthesizedMembers() ?? generationInfo.Baseline.SynthesizedMembers;
+
+            public ImmutableArray<ISymbolInternal> GetSynthesizedTypes()
+            {
+                var map = generationInfo.CompilationVerifier?.TestData.Module!.GetAllSynthesizedTypes() ?? generationInfo.Baseline.SynthesizedTypes;
+
+                return
+                [
+                    .. map.AnonymousTypes.Values.Select(t => t.Type.GetInternalSymbol()!),
+                    .. map.AnonymousDelegates.Values.Select(t => t.Delegate.GetInternalSymbol()!),
+                    .. map.AnonymousDelegatesWithIndexedNames.Values.SelectMany(t => t.Select(d => d.Type.GetInternalSymbol()!))
+                ];
+            }
 
             public void VerifySynthesizedMembers(params string[] expected)
                 => VerifySynthesizedMembers(displayTypeKind: false, expected);
 
             public void VerifySynthesizedMembers(bool displayTypeKind, params string[] expected)
                 => Verify(() => CompilationDifference.VerifySynthesizedMembers(GetSynthesizedMembers(), displayTypeKind, expected));
+
+            public void VerifySynthesizedTypes(params string[] expected)
+                => Verify(() => CompilationDifference.VerifySynthesizedSymbols(GetSynthesizedTypes(), expected));
 
             public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
                 => Verify(() =>
@@ -173,10 +275,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                  });
 
             internal void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
-                => Verify(() => generationInfo.CompilationDifference!.VerifyPdb(methodTokens, expectedPdb, expectedIsRawXml: true));
+                => Verify(() => generationInfo.CompilationDifference.VerifyPdb(methodTokens, expectedPdb, expectedIsRawXml: true));
 
             internal void VerifyPdb(string qualifiedMemberName, string expectedPdb, PdbValidationOptions options = default)
-                => Verify(() => generationInfo.CompilationVerifier!.VerifyPdb(qualifiedMemberName, expectedPdb, options: options, expectedIsRawXml: true));
+                => Verify(() => generationInfo.CompilationVerifier.VerifyPdb(qualifiedMemberName, expectedPdb, options: options, expectedIsRawXml: true));
 
             internal void VerifyCustomDebugInformation(string qualifiedMemberName, string expectedPdb)
                 => VerifyPdb(qualifiedMemberName, expectedPdb, PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeScopes);

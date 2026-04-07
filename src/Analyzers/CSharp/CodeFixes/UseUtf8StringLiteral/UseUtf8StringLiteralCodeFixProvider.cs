@@ -33,10 +33,9 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedC
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Use_Utf8_string_literal, nameof(CSharpAnalyzersResources.Use_Utf8_string_literal));
-        return Task.CompletedTask;
     }
 
     protected override async Task FixAllAsync(
@@ -187,13 +186,9 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedC
 
     private static ExpressionSyntax CreateUtf8String(SyntaxTriviaList leadingTrivia, string stringValue, SyntaxTriviaList trailingTrivia, bool isConvertedToReadOnlySpan)
     {
-        var stringLiteral = LiteralExpression(SyntaxKind.Utf8StringLiteralExpression,
-            Token(
-                leading: leadingTrivia,
-                kind: SyntaxKind.Utf8StringLiteralToken,
-                text: QuoteCharacter + stringValue + QuoteCharacter + Suffix,
-                valueText: "",
-                trailing: SyntaxTriviaList.Empty));
+        // Use the actual parser to get the final string literal expression.  That way we ensure the exact same syntax
+        // tree shape it would produce.
+        var stringLiteral = ParseExpression(QuoteCharacter + stringValue + QuoteCharacter + Suffix).WithLeadingTrivia(leadingTrivia);
 
         if (isConvertedToReadOnlySpan)
         {

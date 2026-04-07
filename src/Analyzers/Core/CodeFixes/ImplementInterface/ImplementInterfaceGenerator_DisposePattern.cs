@@ -44,7 +44,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var disposedValueField = await CreateDisposedValueFieldAsync(
-                document, this.Service.SyntaxFormatting, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
+                document, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
 
             var disposeMethod = TryGetIDisposableDispose(compilation)!;
             var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, disposeMethod, disposedValueField);
@@ -185,6 +185,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var statements);
 
             var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var gi = this.Service.SyntaxGeneratorInternal;
             var syntaxFacts = this.Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // // Do not change...
@@ -203,7 +204,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 statements.Add(g.ExpressionStatement(
                     g.InvocationExpression(
                         g.MemberAccessExpression(
-                            g.TypeExpression(gcType),
+                            gi.Type(gcType, typeContext: false),
                             nameof(GC.SuppressFinalize)),
                         g.ThisExpression())));
             }
@@ -226,14 +227,13 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
 
         private static async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
             Document document,
-            ISyntaxFormatting syntaxFormatting,
             INamedTypeSymbol containingType,
             CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
                 SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
 
-            var options = await document.GetSyntaxFormattingOptionsAsync(syntaxFormatting, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
             var accessibilityLevel = options.AccessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault

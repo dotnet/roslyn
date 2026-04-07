@@ -40,7 +40,7 @@ internal sealed class ElasticTriviaFormattingRule : BaseFormattingRule
 
     private static void AddPropertyDeclarationSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
-        if (node is BasePropertyDeclarationSyntax basePropertyDeclaration && basePropertyDeclaration.AccessorList != null &&
+        if (node is BasePropertyDeclarationSyntax { AccessorList: not null } basePropertyDeclaration &&
             basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
             basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
         {

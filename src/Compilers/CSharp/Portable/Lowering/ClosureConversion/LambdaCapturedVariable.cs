@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected LambdaCapturedVariable(SynthesizedClosureEnvironment frame, TypeWithAnnotations type, string fieldName, bool isThisParameter)
             : base(frame,
                    fieldName,
-                   isPublic: true,
+                   DeclarationModifiers.Public,
                    isReadOnly: false,
                    isStatic: false)
         {
@@ -184,8 +184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
         {
-            if (_parameter.OriginalDefinition is SourceParameterSymbolBase definition &&
-                ContainingModule == definition.ContainingModule)
+            ParameterSymbol definition = _parameter.OriginalDefinition;
+
+            if (ContainingModule == definition.ContainingModule)
             {
                 foreach (CSharpAttributeData attr in definition.GetAttributes())
                 {

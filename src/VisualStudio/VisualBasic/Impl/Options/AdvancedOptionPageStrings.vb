@@ -3,7 +3,6 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.ColorSchemes
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -179,6 +178,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_GenerateXmlDocCommentsForTripleApostrophes As String =
             BasicVSResources.Generate_XML_documentation_comments_for
 
+        Public ReadOnly Property Option_GenerateXmlDocCommentsOnSingleLine As String =
+            ServicesVSResources.Generate_summary_on_single_line
+
+        Public ReadOnly Property Option_GenerateOnlySummaryTag As String =
+            ServicesVSResources.Generate_only_summary_tag
+
         Public ReadOnly Property Option_InsertApostropheAtTheStartOfNewLinesWhenWritingApostropheComments As String =
             BasicVSResources.Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments
 
@@ -294,21 +299,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_completion_list As String =
             ServicesVSResources.Show_completion_list
-
-        Public ReadOnly Property Option_Editor_Color_Scheme As String =
-            ServicesVSResources.Editor_Color_Scheme
-
-        Public ReadOnly Property Option_Color_Scheme_VisualStudio2019 As String =
-            ServicesVSResources.Visual_Studio_2019
-
-        Public ReadOnly Property Option_Color_Scheme_VisualStudio2017 As String =
-            ServicesVSResources.Visual_Studio_2017
-
-        Public ReadOnly Property Color_Scheme_VisualStudio2019_Tag As ColorSchemeName =
-            ColorSchemeName.VisualStudio2019
-
-        Public ReadOnly Property Color_Scheme_VisualStudio2017_Tag As ColorSchemeName =
-            ColorSchemeName.VisualStudio2017
 
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer

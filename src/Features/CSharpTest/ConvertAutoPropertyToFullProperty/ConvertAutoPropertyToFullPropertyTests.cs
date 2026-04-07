@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
 [Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
 public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    private static readonly CSharpParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext);
+    private static readonly CSharpParseOptions CSharp14 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp14);
 
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider();
@@ -1284,4 +1283,18 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
                 } = 0;
             }
             """, new(options: DoNotPreferExpressionBodiedAccessors, index: 1, parseOptions: CSharp14));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80771")]
+    public Task ProduceFieldBackedProperty_WithRecord()
+        => TestInRegularAndScriptAsync($$"""
+            record C(int P)
+            {
+                public int [||]P { get; } = P;
+            }
+            """, $$"""
+            record C(int P)
+            {
+                public int P { get => field; } = P;
+            }
+            """, new(index: 1, parseOptions: CSharp14));
 }

@@ -18,36 +18,124 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
-Regex;
-regular expressions;
-related components under cursor;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression;
+Highlight related components under cursor;
 Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
+Import directives;
+Place System directives first when sorting imports;
+Separate import directive groups;
+Suggest imports for types in reference assemblies;
+Suggest imports for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused imports;
+Fade out unused members;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ''';
+Insert ' at the start of new lines when writing ' comments;
+Show preview for rename tracking;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
 JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
-Collapse #regions on file open;
-Collapse Imports on file open;
-Collapse metadata implementations on file open;
-Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">再割り当てされる変数に下線を引く; インラインのヒントを表示する; コンストラクトの終端の自動挿入; 再フォーマット設定の変更; アウトライン モードの変更; Interface と MustOverride メンバーの自動挿入; プロシージャ行の区切り記号の表示/非表示; エラー修正候補のオン/オフの切り替え; 参照とキーワードの強調表示のオン/オフの切り替え; 
-Regex; 
-正規表現; 
-カーソルの下の関連コンポーネント; 
-無効な正規表現の報告; 
-RegEx; 
-正規表現; 
-JSON; 
-JSON 文字列の色付け; 
-無効な JSON 文字列の報告; 
-JSON 文字列のエディター機能の検出と提供; 
-ファイルを開くときに #regions を折りたたむ; 
-ファイルを開くときに imports を折りたたむ; 
-ファイルを開くときにメタデータを折りたたむ; 
-拡張された色を使用する; エディターの配色; 継承余白; インポート ディレクティブ;</target>
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">再割り当てされた変数に下線を引く;
+インラインのヒントを表示する;
+閉じているファイルの診断結果を表示する;
+正規表現をカラー化する;
+カーソルの下の関連コンポーネントの強調表示;
+無効な正規表現の報告;
+完全ソリューション解析を有効にする;
+外部プロセスでエディター機能解析を実行する;
+逆コンパイルされたソースへのナビゲーションを有効にする;
+ナビゲーションには常に既定のシンボル サーバーを使用する;
+Import ディレクティブ;
+Imports の並び替えのとき、最初に System ディレクティブを配置する;
+Import ディレクティブのグループを分離します;
+参照アセンブリの型に imports を提案する;
+NuGet パッケージの型に imports を提案する;
+強調表示;
+カーソルの下にあるシンボルへの参照を強調表示する;
+カーソルの下にある関連キーワードを強調表示する;
+アウトライン表示;
+ファイルを開くときにアウトライン モードを入力する;
+ファイルを開くときに #regionsを折りたたむ;
+ファイルを開くときに imports を折りたたむ;
+ファイルを開くときにメタデータを折りたたむ;
+プロシージャ行の区切り記号を表示する;
+宣言レベルのコンストラクトのアウトラインを表示する;
+コード レベルのコンストラクトのアウトラインを表示する;
+コメントとプリプロセッサ リージョンのアウトラインを表示する;
+定義を折りたたむときにリージョンを折りたたむ;
+フェード中;
+未使用の imports をフェードアウトする;
+未使用のメンバーをフェードアウトする;
+ブロック構造のガイド;
+宣言レベルのコンストラクトのガイドを表示する;
+コード レベルのコンストラクトのガイドを表示する;
+エディターのヘルプ;
+''' の XML ドキュメント コメントを生成する;
+' コメントを記述する際、新しい行の先頭に ' を挿入する;
+名前変更追跡のプレビューを表示する;
+string.Format の呼び出しで無効なプレースホルダーをレポートする;
+メソッドを抽出する;
+インターフェイスまたは抽象クラスを実装する;
+プロパティ、イベント、メソッドを挿入する際には、次の場所に挿入する;
+同じ種類の他のメンバーと共に;
+末尾に;
+プロパティの生成時;
+スロー プロパティを優先する;
+自動プロパティを優先する;
+正規表現;
+正規表現;
+正規表現の色付け;
+カーソルの下の関連コンポーネントの強調表示;
+無効な正規表現の報告;
+JSON;
+JSON 文字列の色付け;
+無効な JSON 文字列の報告;
+JSON 文字列のエディター機能の検出と提供;
+拡張された色を使用する;
+エディターの配色;
+継承余白;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -114,11 +202,6 @@ JSON 文字列のエディター機能の検出と提供;
         <source>IntelliSense</source>
         <target state="translated">IntelliSense</target>
         <note />
-      </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する</target>
-        <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>

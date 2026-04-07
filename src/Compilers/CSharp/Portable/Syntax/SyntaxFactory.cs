@@ -294,6 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="text">The raw text of the identifier name, including any escapes or leading '@' character.</param>        
         public static SyntaxToken Identifier(string text)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(ElasticMarker.UnderlyingNode, text, ElasticMarker.UnderlyingNode));
         }
 
@@ -306,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, string text, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.Identifier(leading.Node, text, trailing.Node));
         }
 
@@ -319,6 +329,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="trailing">A list of trivia immediately following the token.</param>
         public static SyntaxToken VerbatimIdentifier(SyntaxTriviaList leading, string text, string valueText, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (valueText == null)
+            {
+                throw new ArgumentNullException(nameof(valueText));
+            }
+
             if (text.StartsWith("@", StringComparison.Ordinal))
             {
                 throw new ArgumentException("text should not start with an @ character.");
@@ -340,6 +360,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxToken Identifier(SyntaxTriviaList leading, SyntaxKind contextualKind, string text, string valueText, SyntaxTriviaList trailing)
         {
+            if (text == null)
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+
+            if (valueText == null)
+            {
+                throw new ArgumentNullException(nameof(valueText));
+            }
+
             return new SyntaxToken(InternalSyntax.SyntaxFactory.Identifier(contextualKind, leading.Node, text, valueText, trailing.Node));
         }
 
@@ -1815,7 +1845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions?)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList(forExtension: false);
+                var node = parser.ParseParenthesizedParameterList(forExtensionOrUnion: false);
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return CreateRed<ParameterListSyntax>(node, lexer.Options);
             }
@@ -2139,6 +2169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerMemberCref:
                 case SyntaxKind.OperatorMemberCref:
                 case SyntaxKind.ConversionOperatorMemberCref:
+                case SyntaxKind.ExtensionMemberCref:
                 case SyntaxKind.ArrayType:
                 case SyntaxKind.NullableType:
                     // Adjustment may be required.
@@ -2195,8 +2226,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (((NameMemberCrefSyntax)parent).Name == node)
                     {
                         CSharpSyntaxNode? grandparent = parent.Parent;
-                        return grandparent != null && grandparent.Kind() == SyntaxKind.QualifiedCref
-                            ? grandparent
+                        return grandparent != null && grandparent is CrefSyntax
+                            ? GetStandaloneNode(grandparent)
                             : parent;
                     }
 
@@ -2206,6 +2237,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (((QualifiedCrefSyntax)parent).Member == node)
                     {
                         return parent;
+                    }
+
+                    break;
+
+                case SyntaxKind.ExtensionMemberCref:
+                    if (((ExtensionMemberCrefSyntax)parent).Member == node)
+                    {
+                        return GetStandaloneNode(parent);
                     }
 
                     break;
@@ -2945,5 +2984,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new EnumDeclarationSyntax instance.</summary>
         public static EnumDeclarationSyntax EnumDeclaration(string identifier)
             => SyntaxFactory.EnumDeclaration(default, default(SyntaxTokenList), SyntaxFactory.Token(SyntaxKind.EnumKeyword), SyntaxFactory.Identifier(identifier), null, SyntaxFactory.Token(SyntaxKind.OpenBraceToken), default, SyntaxFactory.Token(SyntaxKind.CloseBraceToken), default);
+
+        /// <summary>Creates a new StructDeclarationSyntax instance.</summary>
+        public static StructDeclarationSyntax StructDeclaration(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
+            => StructDeclaration(
+                keyword.Kind() is SyntaxKind.UnionKeyword ? SyntaxKind.UnionDeclaration : SyntaxKind.StructDeclaration,
+                attributeLists, modifiers, keyword, identifier, typeParameterList, parameterList, baseList, constraintClauses, openBraceToken, members, closeBraceToken, semicolonToken);
     }
 }

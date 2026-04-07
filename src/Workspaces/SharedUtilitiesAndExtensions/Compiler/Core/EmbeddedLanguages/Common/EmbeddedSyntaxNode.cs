@@ -116,7 +116,7 @@ internal abstract class EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
                 if (!token.IsMissing)
                 {
                     start = Math.Min(token.VirtualChars[0].Span.Start, start);
-                    end = Math.Max(token.VirtualChars.Last().Span.End, end);
+                    end = Math.Max(token.VirtualChars[^1].Span.End, end);
                 }
             }
         }

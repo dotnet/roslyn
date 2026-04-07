@@ -298,11 +298,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_factory.TopLevelMethod is not null);
             Debug.Assert(_factory.CurrentFunction is not null);
 
-            var isStateMachine = _factory.CurrentFunction.IsAsync || _factory.CurrentFunction.IsIterator;
+            var currentFunction = _factory.CurrentFunction;
+            var isStateMachine = (currentFunction.IsAsync && !_factory.Compilation.IsRuntimeAsyncEnabledIn(currentFunction))
+                                 || currentFunction.IsIterator;
 
             var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance(_factory.CurrentFunction.ParameterCount);
 
-            foreach (var parameter in _factory.CurrentFunction.Parameters)
+            foreach (var parameter in _factory.CurrentFunction.GetParametersIncludingExtensionParameter(skipExtensionIfStatic: true))
             {
                 if (parameter.RefKind == RefKind.Out || parameter.IsDiscard)
                 {
@@ -312,8 +314,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameterLogger = GetLocalOrParameterStoreLogger(parameter.Type, parameter, refAssignmentSourceIsLocal: null, _factory.Syntax);
                 if (parameterLogger != null)
                 {
+                    int ordinal = parameter.ContainingSymbol.IsExtensionBlockMember()
+                        ? SourceExtensionImplementationMethodSymbol.GetImplementationParameterOrdinal(parameter)
+                        : parameter.Ordinal;
+
                     prologueBuilder.Add(_factory.ExpressionStatement(_factory.Call(receiver: _factory.Local(_scope.ContextVariable), parameterLogger,
-                        MakeStoreLoggerArguments(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null, _factory.Literal((ushort)parameter.Ordinal)))));
+                        MakeStoreLoggerArguments(parameterLogger.Parameters[0], parameter, parameter.Type, _factory.Parameter(parameter), refAssignmentSourceIndex: null, _factory.Literal((ushort)ordinal)))));
                 }
             }
 
@@ -440,6 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? refAssignmentSourceIndex,
             BoundExpression index)
         {
+            Debug.Assert(index is BoundParameterId or BoundLocalId or BoundLiteral);
             if (refAssignmentSourceIndex != null)
             {
                 return ImmutableArray.Create(_factory.Sequence(new[] { value }, refAssignmentSourceIndex), index);
@@ -479,7 +486,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray.Create(toString, index);
             }
 
-            return ImmutableArray.Create(_factory.Convert(parameter.Type, value), index);
+            Conversion c = _factory.ClassifyEmitConversion(value, parameter.Type);
+            Debug.Assert(c.IsNumeric || c.IsReference || c.IsIdentity || c.IsPointer || c.IsBoxing || c.IsEnumeration);
+            return ImmutableArray.Create(_factory.Convert(parameter.Type, value, c), index);
         }
 
         private BoundExpression VariableRead(Symbol localOrParameterSymbol)
@@ -541,7 +550,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundExpression InstrumentCall(BoundCall original, BoundExpression rewritten)
-            => InstrumentCall(base.InstrumentCall(original, rewritten), original.Arguments, original.ArgumentRefKindsOpt);
+        {
+            ImmutableArray<BoundExpression> arguments = original.Arguments;
+            MethodSymbol method = original.Method;
+            bool adjustForExtensionBlockMethod = method.IsExtensionBlockMember() && !method.IsStatic;
+            ImmutableArray<RefKind> argumentRefKindsOpt = NullableWalker.AdjustArgumentRefKindsIfNeeded(original.ArgumentRefKindsOpt, adjustForExtensionBlockMethod, method, arguments.Length);
+
+            if (adjustForExtensionBlockMethod)
+            {
+                Debug.Assert(original.ReceiverOpt is not null);
+                arguments = [original.ReceiverOpt, .. arguments];
+            }
+
+            return InstrumentCall(base.InstrumentCall(original, rewritten), arguments, argumentRefKindsOpt);
+        }
 
         public override BoundExpression InstrumentObjectCreationExpression(BoundObjectCreationExpression original, BoundExpression rewritten)
             => InstrumentCall(base.InstrumentObjectCreationExpression(original, rewritten), original.Arguments, original.ArgumentRefKindsOpt);
@@ -572,6 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(invocation);
             }
 
+            // Record outbound assignments
             for (int i = 0; i < arguments.Length; i++)
             {
                 if (refKinds[i] is not (RefKind.Ref or RefKind.Out))

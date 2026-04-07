@@ -105,7 +105,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 attributes: default,
                 accessibility: DetermineAccessibility(isAbstract),
                 modifiers: DeclarationModifiers.None
-                    .WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract).WithIsUnsafe(isUnsafe).WithAsync(knownTypes.IsTaskLike(returnType)),
+                    .WithIsStatic(State.IsStatic).WithIsAbstract(isAbstract).WithIsUnsafe(isUnsafe).WithAsync(!isAbstract && knownTypes.IsTaskLike(returnType)),
                 returnType: returnType,
                 refKind: DetermineRefKind(cancellationToken),
                 explicitInterfaceImplementations: default,
@@ -118,9 +118,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 methodKind: State.MethodKind);
 
             // Ensure no conflicts between type parameter names and parameter names.
-            var languageServiceProvider = Document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(State.TypeToGenerateIn.Language);
-
-            var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
+            var syntaxFacts = Document.Project.Solution.GetLanguageService<ISyntaxFactsService>(State.TypeToGenerateIn.Language);
 
             var equalityComparer = syntaxFacts.StringComparer;
             var reservedParameterNames = DetermineParameterNames(cancellationToken)

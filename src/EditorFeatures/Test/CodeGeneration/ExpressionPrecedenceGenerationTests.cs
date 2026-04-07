@@ -190,7 +190,7 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                     f.IdentifierName("E2")),
                 f.IdentifierName("T"),
                 f.IdentifierName("F")),
-            cs: "(E1 = (E2)) ? (T) : (F)",
+            cs: "(E1 = E2) ? T : F",
             csSimple: "(E1 = E2) ? T : F",
             vb: null,
             vbSimple: null);
@@ -207,7 +207,7 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                         f.IdentifierName("E2"),
                         f.IdentifierName("T2"),
                         f.IdentifierName("F2"))),
-            cs: "((E1) ? (T1) : (F1)) + ((E2) ? (T2) : (F2))",
+            cs: "(E1 ? T1 : F1) + (E2 ? T2 : F2)",
             csSimple: "(E1 ? T1 : F1) + (E2 ? T2 : F2)",
             vb: null,
             vbSimple: null);
@@ -233,9 +233,9 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                     f.IdentifierName("a"),
                     CreateClass("SomeType")),
                 f.IdentifierName("M")),
-            cs: "((a) is SomeType).M",
+            cs: "(a is SomeType).M",
             csSimple: "(a is SomeType).M",
-            vb: "(TypeOf (a) Is SomeType).M",
+            vb: "(TypeOf a Is SomeType).M",
             vbSimple: "(TypeOf a Is SomeType).M");
 
     [Fact]
@@ -259,7 +259,7 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                     f.IdentifierName("a"),
                     CreateClass("SomeType")),
                 f.IdentifierName("M")),
-            cs: "((a) as SomeType).M",
+            cs: "(a as SomeType).M",
             csSimple: "(a as SomeType).M",
             vb: "(TryCast(a, SomeType)).M",
             vbSimple: "TryCast(a, SomeType).M");
@@ -284,9 +284,9 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                 f.LogicalNotExpression(
                     f.IdentifierName("a")),
                 f.IdentifierName("M")),
-            cs: "(!(a)).M",
+            cs: "(!a).M",
             csSimple: "(!a).M",
-            vb: "(Not (a)).M",
+            vb: "(Not a).M",
             vbSimple: "(Not a).M");
 
     [Fact]
@@ -309,7 +309,7 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                     CreateClass("SomeType"),
                     f.IdentifierName("a")),
                 f.IdentifierName("M")),
-            cs: "((SomeType)(a)).M",
+            cs: "((SomeType)a).M",
             csSimple: "((SomeType)a).M",
             vb: "(DirectCast(a, SomeType)).M",
             vbSimple: "DirectCast(a, SomeType).M");
@@ -322,9 +322,9 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                 f.AddExpression(
                     f.IdentifierName("a"),
                     f.IdentifierName("b"))),
-            cs: "(SomeType)((a) + (b))",
+            cs: "(SomeType)(a + b)",
             csSimple: "(SomeType)(a + b)",
-            vb: "DirectCast((a) + (b), SomeType)",
+            vb: "DirectCast(a + b, SomeType)",
             vbSimple: "DirectCast(a + b, SomeType)");
 
     [Fact]
@@ -334,9 +334,9 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                 f.AddExpression(
                     f.IdentifierName("a"),
                     f.IdentifierName("b"))),
-            cs: "-((a) + (b))",
+            cs: "-(a + b)",
             csSimple: "-(a + b)",
-            vb: "-((a) + (b))",
+            vb: "-(a + b)",
             vbSimple: "-(a + b)");
 
     [Fact]
@@ -346,9 +346,9 @@ public sealed class ExpressionPrecedenceGenerationTests : AbstractCodeGeneration
                 f.NegateExpression(
                     f.IdentifierName("a")),
                 f.IdentifierName("M")),
-            cs: "(-(a)).M",
+            cs: "(-a).M",
             csSimple: "(-a).M",
-            vb: "(-(a)).M",
+            vb: "(-a).M",
             vbSimple: "(-a).M");
 
     [Fact]

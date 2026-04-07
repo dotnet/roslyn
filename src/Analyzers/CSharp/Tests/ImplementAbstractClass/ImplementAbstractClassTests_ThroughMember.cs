@@ -24,7 +24,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHe
         => (null, new CSharpImplementAbstractClassCodeFixProvider());
 
     private OptionsCollection AllOptionsOff
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
              { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
              { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },

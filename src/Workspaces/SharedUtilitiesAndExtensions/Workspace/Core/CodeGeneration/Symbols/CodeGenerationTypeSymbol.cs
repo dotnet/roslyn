@@ -42,10 +42,10 @@ internal abstract class CodeGenerationTypeSymbol(
 
     public bool IsNativeIntegerType => false;
 
-#if !ROSLYN_4_12_OR_LOWER
-    public bool IsExtension => false;
+#if !OLDER_ROSLYN
+    bool ITypeSymbol.IsExtension => false;
 
-    public IParameterSymbol ExtensionParameter => null;
+    IParameterSymbol ITypeSymbol.ExtensionParameter => null;
 #endif
 
     public static ImmutableArray<ITypeSymbol> TupleElementTypes => default;

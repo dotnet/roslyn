@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -33,7 +34,6 @@ public abstract partial class CompletionService
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
     /// <param name="options">Optional options that override the default options.</param>
-    /// <param name="cancellationToken"></param>
     public Task<CompletionList> GetCompletionsAsync(
         Document document,
         int caretPosition,
@@ -58,7 +58,6 @@ public abstract partial class CompletionService
     /// <param name="options">The CompletionOptions that override the default options.</param>
     /// <param name="trigger">The triggering action.</param>
     /// <param name="roles">Optional set of roles associated with the editor state.</param>
-    /// <param name="cancellationToken"></param>
     internal virtual async Task<CompletionList> GetCompletionsAsync(
          Document document,
          int caretPosition,
@@ -103,7 +102,7 @@ public abstract partial class CompletionService
 
         // See if there were completion contexts provided that were exclusive. If so, then
         // that's all we'll return.
-        var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+        var exclusiveContexts = triggeredContexts.WhereAsArray(t => t.IsExclusive);
         if (!exclusiveContexts.IsEmpty)
             return MergeAndPruneCompletionLists(exclusiveContexts, options, isExclusive: true);
 
@@ -289,8 +288,11 @@ public abstract partial class CompletionService
     /// </summary>
     protected virtual bool ItemsMatch(CompletionItem item, CompletionItem existingItem)
     {
+        // If both items is marked as `DoNotMerge`, we will keep them separated in the list.
+        // If only one of them is marked as `DoNotMerge`, the one with `DoNotMerge` is considered "better" item and will be merged into.
         return item.Span == existingItem.Span
-            && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription;
+            && item.SortText == existingItem.SortText && item.InlineDescription == existingItem.InlineDescription
+            && !(item.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _) && existingItem.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _));
     }
 
     /// <summary>
@@ -298,6 +300,15 @@ public abstract partial class CompletionService
     /// </summary>
     protected virtual CompletionItem GetBetterItem(CompletionItem item, CompletionItem existingItem)
     {
+        if (item.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _))
+        {
+            return item;
+        }
+        else if (existingItem.TryGetProperty(CommonCompletionItem.DoNotMergeProperty, out _))
+        {
+            return existingItem;
+        }
+
         // the item later in the sort order (determined by provider order) wins?
         return item;
     }

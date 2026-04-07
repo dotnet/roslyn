@@ -141,7 +141,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             }
         }
 
-        if (!symbol.MatchesKind(SymbolKind.Method, SymbolKind.Property))
+        if (symbol is not IMethodSymbol and not IPropertySymbol)
         {
             return new CannotChangeSignatureAnalyzedContext(ChangeSignatureFailureKind.IncorrectKind);
         }
@@ -942,12 +942,12 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         // we do not have to worry about filtering out inaccessible locals.
         // TODO: Support range variables here as well: https://github.com/dotnet/roslyn/issues/44689
         var orderedLocalAndParameterSymbols = sourceSymbols
-            .Where(s => s.IsKind(SymbolKind.Local) || s.IsKind(SymbolKind.Parameter))
+            .Where(s => s is ILocalSymbol or IParameterSymbol)
             .OrderByDescending(s => s.Locations.First().SourceSpan.Start);
 
         // No particular ordering preference for properties/fields.
         var orderedPropertiesAndFields = sourceSymbols
-            .Where(s => s.IsKind(SymbolKind.Property) || s.IsKind(SymbolKind.Field));
+            .Where(s => s is IPropertySymbol or IFieldSymbol);
 
         var fullyOrderedSymbols = orderedLocalAndParameterSymbols.Concat(orderedPropertiesAndFields);
 

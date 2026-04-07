@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the arity of this method, or the number of type parameters it takes.
+        /// Returns the arity of this method. Arity is the number of type parameters a method declares.
         /// A non-generic method has zero arity.
         /// </summary>
         public abstract int Arity { get; }
@@ -97,6 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
 
         internal abstract bool HasSpecialNameAttribute { get; }
+
+        /// <summary>
+        /// Returns the method-level runtime async setting from
+        /// <c>RuntimeAsyncMethodGenerationAttribute</c>, or <see cref="ThreeState.Unknown"/>
+        /// if no setting was specified.
+        /// </summary>
+        internal abstract ThreeState RuntimeAsyncMethodGenerationAttributeSetting { get; }
 
         /// <summary>
         /// If a method is annotated with `[MemberNotNull(...)]` attributes, returns the list of members
@@ -275,14 +282,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return TypeMap.TypeParametersAsTypeSymbolsWithAnnotations(TypeParameters);
         }
 
+#nullable enable
+
         /// <summary>
         /// Call <see cref="TryGetThisParameter"/> and throw if it returns false.
         /// </summary>
-        internal ParameterSymbol ThisParameter
+        internal ParameterSymbol? ThisParameter
         {
             get
             {
-                ParameterSymbol thisParameter;
+                ParameterSymbol? thisParameter;
                 if (!TryGetThisParameter(out thisParameter))
                 {
                     throw ExceptionUtilities.Unreachable();
@@ -296,11 +305,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// and false otherwise.  Note that a return value of true does not guarantee a non-null
         /// <paramref name="thisParameter"/> (e.g. fails for static methods).
         /// </returns>
-        internal virtual bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        internal virtual bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
             thisParameter = null;
             return false;
         }
+
+#nullable disable
 
         /// <summary>
         /// Optimization: in many cases, the parameter count (fast) is sufficient and we
@@ -712,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!this.GetIsNewExtensionMember());
+                Debug.Assert(!this.IsExtensionBlockMember());
 
                 if (this.IsPartialDefinition() &&
                     this.PartialImplementationPart is null)
@@ -739,7 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitMethod(this);
         }
 
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+#nullable enable
+        public MethodSymbol? ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation? compilation)
         {
             return ReduceExtensionMethod(receiverType, compilation, wasFullyInferred: out _);
         }
@@ -751,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="compilation">The compilation in which constraints should be checked.
         /// Should not be null, but if it is null we treat constraints as we would in the latest
         /// language version.</param>
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation, out bool wasFullyInferred)
+        public MethodSymbol? ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation? compilation, out bool wasFullyInferred)
         {
             if ((object)receiverType == null)
             {
@@ -766,6 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation, out wasFullyInferred);
         }
+#nullable disable
 
         /// <summary>
         /// If this is an extension method, returns a reduced extension method
@@ -1296,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public MethodSymbol? TryGetCorrespondingExtensionImplementationMethod()
         {
             Debug.Assert(this.IsDefinition);
-            Debug.Assert(this.GetIsNewExtensionMember());
+            Debug.Assert(this.IsExtensionBlockMember());
             return this.ContainingType.TryGetCorrespondingExtensionImplementationMethod(this);
         }
     }

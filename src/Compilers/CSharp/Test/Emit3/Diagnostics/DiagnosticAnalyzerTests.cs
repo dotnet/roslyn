@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -4440,6 +4441,216 @@ partial class B
                 new AnalyzerOptions([]));
             var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
             diagnostics.Verify(Diagnostic("ID0001", "B").WithLocation(1, 8));
+        }
+
+        private sealed class OptionsOverrideDiagnosticAnalyzer(AnalyzerConfigOptionsProvider customOptions) : DiagnosticAnalyzer
+        {
+            private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(
+                id: "ID0001",
+                title: "Title",
+                messageFormat: "Message",
+                category: "Category",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            private readonly AnalyzerConfigOptionsProvider _customOptions = customOptions;
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_descriptor];
+
+            public bool RegisterAdditionalFileActionInvoked { get; private set; }
+            public bool RegisterCodeBlockActionInvoked { get; private set; }
+            public bool RegisterCodeBlockStartActionInvoked { get; private set; }
+            public bool RegisterCompilationActionInvoked { get; private set; }
+            public bool RegisterOperationActionInvoked { get; private set; }
+            public bool RegisterOperationBlockActionInvoked { get; private set; }
+            public bool RegisterSemanticModelActionInvoked { get; private set; }
+            public bool RegisterSymbolActionInvoked { get; private set; }
+            public bool RegisterSyntaxNodeActionInvoked { get; private set; }
+            public bool RegisterSyntaxTreeActionInvoked { get; private set; }
+
+            public bool RegisterOperationBlockStartActionInvoked { get; private set; }
+            public bool RegisterOperationBlockEndActionInvoked { get; private set; }
+            public bool RegisterCompilationStartActionInvoked { get; private set; }
+            public bool RegisterCompilationEndActionInvoked { get; private set; }
+            public bool RegisterSymbolStartActionInvoked { get; private set; }
+            public bool RegisterSymbolEndActionInvoked { get; private set; }
+
+            public AnalyzerOptions SeenOptions;
+
+            private void AssertSame(AnalyzerOptions options)
+            {
+                // First, assert that the options provider we see is the custom one the test sets.
+                Assert.Same(options.AnalyzerConfigOptionsProvider, _customOptions);
+
+                if (SeenOptions is null)
+                    SeenOptions = options;
+
+                // Also ensure that the compiler actually passes the same AnalyzerOptions wrapper around
+                // the options provider.  That ensures we're not accidentally creating new instances unnecessarily.
+                Assert.Same(SeenOptions, options);
+            }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterAdditionalFileAction(context => { AssertSame(context.Options); RegisterAdditionalFileActionInvoked = true; });
+                context.RegisterCodeBlockAction(context => { AssertSame(context.Options); RegisterCodeBlockActionInvoked = true; });
+                context.RegisterCodeBlockStartAction<SyntaxKind>(context => { AssertSame(context.Options); RegisterCodeBlockStartActionInvoked = true; });
+                context.RegisterCompilationAction(context => { AssertSame(context.Options); RegisterCompilationActionInvoked = true; });
+                context.RegisterOperationAction(context => { AssertSame(context.Options); RegisterOperationActionInvoked = true; }, OperationKind.Block);
+                context.RegisterOperationBlockAction(context => { AssertSame(context.Options); RegisterOperationBlockActionInvoked = true; });
+                context.RegisterSemanticModelAction(context => { AssertSame(context.Options); RegisterSemanticModelActionInvoked = true; });
+                context.RegisterSymbolAction(context => { AssertSame(context.Options); RegisterSymbolActionInvoked = true; }, SymbolKind.NamedType);
+                context.RegisterSyntaxNodeAction(context => { AssertSame(context.Options); RegisterSyntaxNodeActionInvoked = true; }, SyntaxKind.ClassDeclaration);
+                context.RegisterSyntaxTreeAction(context => { AssertSame(context.Options); RegisterSyntaxTreeActionInvoked = true; });
+
+                context.RegisterOperationBlockStartAction(context =>
+                {
+                    AssertSame(context.Options);
+                    RegisterOperationBlockStartActionInvoked = true;
+                    context.RegisterOperationBlockEndAction(context =>
+                    {
+                        AssertSame(context.Options);
+                        RegisterOperationBlockEndActionInvoked = true;
+                    });
+                });
+
+                context.RegisterCompilationStartAction(context =>
+                {
+                    AssertSame(context.Options);
+                    RegisterCompilationStartActionInvoked = true;
+                    context.RegisterCompilationEndAction(context =>
+                    {
+                        AssertSame(context.Options);
+                        RegisterCompilationEndActionInvoked = true;
+                    });
+                });
+                context.RegisterSymbolStartAction(context =>
+                {
+                    AssertSame(context.Options);
+                    RegisterSymbolStartActionInvoked = true;
+                    context.RegisterSymbolEndAction(context =>
+                    {
+                        AssertSame(context.Options);
+                        RegisterSymbolEndActionInvoked = true;
+                    });
+                }, SymbolKind.NamedType);
+            }
+
+            public void AssertAllCallbacksInvoked()
+            {
+                Assert.NotNull(SeenOptions);
+
+                Assert.True(RegisterAdditionalFileActionInvoked);
+
+                Assert.True(RegisterAdditionalFileActionInvoked);
+                Assert.True(RegisterCodeBlockActionInvoked);
+                Assert.True(RegisterCodeBlockStartActionInvoked);
+                Assert.True(RegisterCompilationActionInvoked);
+                Assert.True(RegisterOperationActionInvoked);
+                Assert.True(RegisterOperationBlockActionInvoked);
+                Assert.True(RegisterSemanticModelActionInvoked);
+                Assert.True(RegisterSymbolActionInvoked);
+                Assert.True(RegisterSyntaxNodeActionInvoked);
+                Assert.True(RegisterSyntaxTreeActionInvoked);
+
+                Assert.True(RegisterOperationBlockStartActionInvoked);
+                Assert.True(RegisterOperationBlockEndActionInvoked);
+                Assert.True(RegisterCompilationStartActionInvoked);
+                Assert.True(RegisterCompilationEndActionInvoked);
+                Assert.True(RegisterSymbolStartActionInvoked);
+                Assert.True(RegisterSymbolEndActionInvoked);
+            }
+        }
+
+        [Fact]
+        public async Task TestAnalyzerSpecificOptionsFactory()
+        {
+            // lang=C#-Test
+            string source = """
+                class C
+                {
+                    void M()
+                    {
+                        int x = 0;
+                    }
+                }
+                """;
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithCSharp(new[] { tree, CSharpSyntaxTree.ParseText(IsExternalInitTypeDefinition) });
+            compilation.VerifyDiagnostics(
+                // (5,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(5, 13));
+
+            var additionalText = new InMemoryAdditionalText("path", "content");
+
+            // Ensure that the analyzer only sees the custom options passed to the callbacks, and never the shared options.
+            var sharedOptions = new AnalyzerOptions([additionalText]);
+
+            // Test1.  Just a single analyzer.  Ensure all callbacks get the custom options.
+            {
+                var customOptions = new CompilerAnalyzerConfigOptionsProvider(
+                    ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                    new DictionaryAnalyzerConfigOptions(
+                        ImmutableDictionary<string, string>.Empty));
+                Assert.NotSame(sharedOptions, customOptions);
+
+                var analyzer = new OptionsOverrideDiagnosticAnalyzer(customOptions);
+
+                var compWithAnalyzers = new CompilationWithAnalyzers(
+                    compilation,
+                    [analyzer],
+                    new CompilationWithAnalyzersOptions(
+                        sharedOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false, analyzerExceptionFilter: null,
+                        _ => customOptions));
+
+                var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
+                Assert.Single(diagnostics);
+
+                analyzer.AssertAllCallbacksInvoked();
+            }
+
+            // Test2. Two analyzers.  Ensure both gets the custom options across all callbacks.
+            // Also, ensure that across the analyzers we're getting the exact same AnalyzerOptions instance.
+            {
+                var customOptions = new CompilerAnalyzerConfigOptionsProvider(
+                    ImmutableDictionary<object, AnalyzerConfigOptions>.Empty,
+                    new DictionaryAnalyzerConfigOptions(
+                        ImmutableDictionary<string, string>.Empty));
+                Assert.NotSame(sharedOptions, customOptions);
+
+                var analyzer1 = new OptionsOverrideDiagnosticAnalyzer(customOptions);
+                var analyzer2 = new OptionsOverrideDiagnosticAnalyzer(customOptions);
+
+                var compWithAnalyzers = new CompilationWithAnalyzers(
+                    compilation,
+                    [analyzer1, analyzer2],
+                    new CompilationWithAnalyzersOptions(
+                        sharedOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: false, analyzerExceptionFilter: null,
+                        _ => customOptions));
+
+                var diagnostics = await compWithAnalyzers.GetAllDiagnosticsAsync();
+                Assert.Single(diagnostics);
+
+                analyzer1.AssertAllCallbacksInvoked();
+                analyzer2.AssertAllCallbacksInvoked();
+
+                // Both analyzers should get the exact same AnalyzerOptions instance since they used the same customOptions.
+                Assert.Same(analyzer1.SeenOptions, analyzer2.SeenOptions);
+            }
+        }
+
+        [Fact]
+        public async Task TestGetAnalysisResultAsyncWithUnknownAnalyzerThrows()
+        {
+            var compilation = CreateCompilation("").VerifyDiagnostics();
+
+            var compilationWithAnalyzers = compilation.WithAnalyzers([new CSharpCompilerDiagnosticAnalyzer()]);
+
+            // Calling with a DiagnosticAnalyzer that was not specified in 'WithAnalyzers' should throw.
+            await Assert.ThrowsAnyAsync<ArgumentException>(() =>
+                compilationWithAnalyzers.GetAnalysisResultAsync([new CSharpCompilerDiagnosticAnalyzer()], CancellationToken.None));
         }
     }
 }

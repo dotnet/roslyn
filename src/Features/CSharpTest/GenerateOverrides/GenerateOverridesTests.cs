@@ -74,7 +74,6 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                     return base.ToString();
                 }
             }
-
             """, ["Equals", "GetHashCode", "ToString"]);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
@@ -95,7 +94,6 @@ public sealed class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEdit
                     return base.ToString();
                 }
             }
-
             """, ["GetHashCode", "ToString"]);
 
     [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]

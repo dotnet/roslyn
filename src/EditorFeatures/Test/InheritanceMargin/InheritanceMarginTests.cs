@@ -167,6 +167,7 @@ public sealed class InheritanceMarginTests
             for (var i = 0; i < actualDocumentSpans.Length; i++)
             {
                 var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(workspace.CurrentSolution, CancellationToken.None);
+                Assert.NotNull(docSpan);
                 Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.Value.SourceSpan);
                 Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Value.Document.FilePath);
             }
@@ -2427,6 +2428,67 @@ public sealed class InheritanceMarginTests
             """, LanguageNames.CSharp),
             [itemForBarInMarkup1],
             [itemForIBar, itemForBarInMarkup2],
+            testHost);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/67397")]
+    public Task TestMembersWithPunctuationDifferencesShowLanguageGlyph(TestHost testHost)
+    {
+        // Simulates the scenario described in the issue where members like
+        // "AliasSymbol.IAliasSymbol.Target" (VB) and "AliasSymbol.IAliasSymbolTarget" (C#)
+        // differ only in punctuation and should show language glyphs to disambiguate.
+        var itemForTarget = new TestInheritanceMemberItem(
+            lineNumber: 6,
+            memberName: "ReadOnly Property IAliasSymbol.Target As ISymbol",
+            targets:
+            [
+                new TargetInfo(
+                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbol.Target",
+                    locationTag: "target2",
+                    relationship: InheritanceRelationship.ImplementingMember,
+                    languageGlyph: Glyph.CSharpFile),
+                new TargetInfo(
+                    targetSymbolDisplayName: "AliasSymbol.IAliasSymbol_Target",
+                    locationTag: "target3",
+                    relationship: InheritanceRelationship.ImplementingMember,
+                    languageGlyph: Glyph.BasicFile),
+            ]);
+
+        return VerifyInDifferentProjectsAsync(
+            ("""
+            {|SearchAreaTag:|}
+            using MyNamespace;
+            namespace CSharpNs
+            {
+                public class AliasSymbol : IAliasSymbol
+                {
+                    ISymbol IAliasSymbol.{|target2:Target|} { get; }
+                }
+            }
+            """, LanguageNames.CSharp),
+            ("""
+            Namespace MyNamespace
+                Public Interface ISymbol
+                End Interface
+
+                Public Interface IAliasSymbol
+                    {|SearchAreaTag:ReadOnly Property {|target1:Target|} As ISymbol|}
+                End Interface
+
+                Public Class AliasSymbol
+                    Implements IAliasSymbol
+
+                    Public ReadOnly Property {|target3:IAliasSymbol_Target|} As ISymbol Implements IAliasSymbol.Target
+                        Get
+                            Throw New System.NotImplementedException()
+                        End Get
+                    End Property
+                End Class
+            End Namespace
+            """, LanguageNames.VisualBasic),
+            [],
+            [itemForTarget],
             testHost);
     }
 

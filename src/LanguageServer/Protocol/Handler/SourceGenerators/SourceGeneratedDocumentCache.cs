@@ -14,20 +14,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 
 internal record struct SourceGeneratedDocumentGetTextState(Document Document);
 
-internal sealed class SourceGeneratedDocumentCache(string uniqueKey) : VersionedPullCache<(SourceGeneratorExecutionVersion, VersionStamp), object?, SourceGeneratedDocumentGetTextState, SourceText?>(uniqueKey), ILspService
+internal sealed class SourceGeneratedDocumentCache(string uniqueKey) : VersionedPullCache<(SourceGeneratorExecutionVersion, VersionStamp), SourceGeneratedDocumentGetTextState, SourceText?>(uniqueKey), ILspService
 {
-    public override async Task<(SourceGeneratorExecutionVersion, VersionStamp)> ComputeCheapVersionAsync(SourceGeneratedDocumentGetTextState state, CancellationToken cancellationToken)
+    public override async Task<(SourceGeneratorExecutionVersion, VersionStamp)> ComputeVersionAsync(SourceGeneratedDocumentGetTextState state, CancellationToken cancellationToken)
     {
         // The execution version and the dependent version must be considered as one version cached together -
         // it is not correct to say that if the execution version is the same then we can re-use results (as in automatic mode the execution version never changes).
         var executionVersion = state.Document.Project.Solution.GetSourceGeneratorExecutionVersion(state.Document.Project.Id);
         var dependentVersion = await state.Document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
         return (executionVersion, dependentVersion);
-    }
-
-    public override Task<object?> ComputeExpensiveVersionAsync(SourceGeneratedDocumentGetTextState state, CancellationToken cancellationToken)
-    {
-        return SpecializedTasks.Null<object>();
     }
 
     public override Checksum ComputeChecksum(SourceText? data, string language)

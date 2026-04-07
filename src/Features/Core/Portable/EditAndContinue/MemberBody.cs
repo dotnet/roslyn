@@ -9,6 +9,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
+/// <summary>
+/// Represents a declaration of a member with executable code directly inside.
+/// </summary>
+/// <remarks>
+/// Executable code here is code that a user might set breakpoints in. For example, a normal type with no primary constructor would not have any directly-nested
+/// executable code, but a record with a primary constructor might.
+/// </remarks>
 internal abstract class MemberBody : DeclarationBody
 {
     /// <summary>

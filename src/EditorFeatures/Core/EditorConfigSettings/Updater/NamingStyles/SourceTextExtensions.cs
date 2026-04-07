@@ -171,7 +171,7 @@ internal static class SourceTextExtensions
                     return false;
                 }
 
-                return StringComparer.OrdinalIgnoreCase.Equals(left!.Name, right!.Name) &&
+                return StringComparer.OrdinalIgnoreCase.Equals(left.Name, right.Name) &&
                        left.RequiredModifierList.SequenceEqual(right.RequiredModifierList) &&
                        left.ApplicableAccessibilityList.SequenceEqual(right.ApplicableAccessibilityList) &&
                        left.ApplicableSymbolKindList.SequenceEqual(right.ApplicableSymbolKindList);

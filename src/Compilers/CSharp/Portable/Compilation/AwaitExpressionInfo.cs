@@ -20,11 +20,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsDynamic { get; }
 
-        internal AwaitExpressionInfo(IMethodSymbol getAwaiter, IPropertySymbol isCompleted, IMethodSymbol getResult, bool isDynamic)
+        /// <summary>
+        /// When runtime async is enabled for this await expression, this represents either:
+        /// <list type="bullet">
+        /// <item>
+        /// A call to <c>System.Runtime.CompilerServices.AsyncHelpers.Await</c>, if this is a
+        /// supported task type. In such cases, <see cref="GetAwaiterMethod" />,
+        /// <see cref="IsCompletedProperty" />, and <see cref="GetResultMethod" /> will be
+        /// <see langword="null" />.
+        /// </item>
+        /// <item>
+        /// A call to <c>System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter|UnsafeAwaitAwaiter</c>.
+        /// In these cases, the other properties may be non-<see langword="null" /> if the
+        /// the rest of the await expression is successfully bound.
+        /// </item>
+        /// </list>
+        /// </summary>
+        public IMethodSymbol? RuntimeAwaitMethod { get; }
+
+        internal AwaitExpressionInfo(IMethodSymbol? getAwaiter, IPropertySymbol? isCompleted, IMethodSymbol? getResult, IMethodSymbol? runtimeAwaitMethod, bool isDynamic)
         {
             GetAwaiterMethod = getAwaiter;
             IsCompletedProperty = isCompleted;
             GetResultMethod = getResult;
+            RuntimeAwaitMethod = runtimeAwaitMethod;
             IsDynamic = isDynamic;
         }
 
@@ -38,12 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return object.Equals(this.GetAwaiterMethod, other.GetAwaiterMethod)
                 && object.Equals(this.IsCompletedProperty, other.IsCompletedProperty)
                 && object.Equals(this.GetResultMethod, other.GetResultMethod)
+                && object.Equals(this.RuntimeAwaitMethod, other.RuntimeAwaitMethod)
                 && IsDynamic == other.IsDynamic;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(GetAwaiterMethod, Hash.Combine(IsCompletedProperty, Hash.Combine(GetResultMethod, IsDynamic.GetHashCode())));
+            return Hash.Combine(GetAwaiterMethod, Hash.Combine(IsCompletedProperty, Hash.Combine(GetResultMethod, Hash.Combine(RuntimeAwaitMethod, IsDynamic.GetHashCode()))));
         }
     }
 }

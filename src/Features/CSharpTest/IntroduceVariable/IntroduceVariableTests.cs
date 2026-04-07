@@ -28,7 +28,7 @@ public sealed class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEdit
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
         => GetNestedActions(actions);
 
-    private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
 
     // specify all options explicitly to override defaults.
     private OptionsCollection ImplicitTypingEverywhere()
@@ -8455,4 +8455,168 @@ namespace ConsoleApp1
             
             [||]Console.WriteLine();
             """);
+
+    [Fact]
+    public Task TestInTopLevelLoop1()
+        => TestAsync(
+            """
+            for (var i = 0; i < 10; i++)
+            {
+                Console.Write([|args[i]|]);
+            }
+            """,
+            """
+            for (var i = 0; i < 10; i++)
+            {
+                string {|Rename:v|} = args[i];
+                Console.Write(v);
+            }
+            """,
+            new(parseOptions: TestOptions.Regular));
+
+    [Fact]
+    public Task TestInTopLevelLoop2()
+        => TestAsync(
+            """
+            void M(object[] p)
+            {
+                for (var i = 0; i < 10; i++)
+                {
+                    Console.Write([|p[i]|]);
+                }
+            }
+            """,
+            """
+            void M(object[] p)
+            {
+                for (var i = 0; i < 10; i++)
+                {
+                    object {|Rename:v|} = p[i];
+                    Console.Write(v);
+                }
+            }
+            """,
+            new(parseOptions: TestOptions.Regular));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80982")]
+    public Task TestFunctionPointerType()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class C
+            {
+                public delegate* managed<void> D
+                {
+                    get
+                    {
+                        return [|field|];
+                    }
+                }
+            }
+            """,
+            """
+            unsafe class C
+            {
+                public delegate* managed<void> D
+                {
+                    get
+                    {
+                        delegate*<void> {|Rename:value|} = field;
+                        return value;
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80982")]
+    public Task TestPointerType()
+        => TestInRegularAndScriptAsync(
+            """
+            unsafe class C
+            {
+                class Customer { }
+
+                public Customer* D
+                {
+                    get
+                    {
+                        return [|field|];
+                    }
+                }
+            }
+            """,
+            """
+            unsafe class C
+            {
+                class Customer { }
+
+                public Customer* D
+                {
+                    get
+                    {
+                        Customer* {|Rename:customer|} = field;
+                        return customer;
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81337")]
+    public Task TestExtensionBlockIntroduceConstant()
+        => TestInRegularAndScriptAsync(
+            """
+            public static class CEx
+            {
+                extension(C c)
+                {
+                    public string P => c[[|"P"|]];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            """
+            public static class CEx
+            {
+                private const string {|Rename:V|} = "P";
+
+                extension(C c)
+                {
+                    public string P => c[V];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14)));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81337")]
+    public Task TestExtensionBlockIntroduceConstant_AllOccurrences()
+        => TestInRegularAndScriptAsync(
+            """
+            public static class CEx
+            {
+                extension(C c)
+                {
+                    public string P => c[[|"P"|]];
+                    public string P2 => c["P"];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            """
+            public static class CEx
+            {
+                private const string {|Rename:V|} = "P";
+
+                extension(C c)
+                {
+                    public string P => c[V];
+                    public string P2 => c[V];
+                }
+            }
+
+            public class C { public string this[string k] => ""; }
+            """,
+            new(parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp14), index: 1));
 }

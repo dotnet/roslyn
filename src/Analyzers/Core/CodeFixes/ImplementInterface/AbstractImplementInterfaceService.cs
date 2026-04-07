@@ -28,7 +28,6 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
 {
     protected const string DisposingName = "disposing";
 
-    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
     protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
     protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
@@ -157,7 +156,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             return [];
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
-        await foreach (var implementOptions in GetImplementOptionsAsync(document, info, cancellationToken))
+        await foreach (var implementOptions in GetImplementOptionsAsync(document, info, cancellationToken).ConfigureAwait(false))
         {
             var title = GetTitle(implementOptions);
             var equivalenceKey = GetEquivalenceKey(info, implementOptions);

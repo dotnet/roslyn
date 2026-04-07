@@ -86,4 +86,7 @@ internal sealed class CodeGenerationPropertySymbol(
     public IPropertySymbol PartialDefinitionPart => null;
 
     public bool IsPartialDefinition => false;
+
+    public IPropertySymbol ReduceExtensionMember(ITypeSymbol receiverType)
+        => throw new System.NotImplementedException();
 }

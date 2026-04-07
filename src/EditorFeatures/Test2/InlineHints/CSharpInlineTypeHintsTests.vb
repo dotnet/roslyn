@@ -939,8 +939,9 @@ class C
         Public Async Function TestNoDoubleClickWithCollectionExpression() As Task
             Dim input =
             <Workspace>
-                <Project Language="C#" CommonReferences="true">
+                <Project Language="C#" CommonReferencesNet6="true">
                     <Document>
+using System.Collections.Immutable;
 class A
 {
     private static readonly ImmutableHashSet&lt;string?&gt; Hashes = {| ImmutableHashSet&lt;string?&gt;:|}[];
@@ -951,8 +952,9 @@ class A
 
             Dim output =
             <Workspace>
-                <Project Language="C#" CommonReferences="true">
+                <Project Language="C#" CommonReferencesNet6="true">
                     <Document>
+using System.Collections.Immutable;
 class A
 {
     private static readonly ImmutableHashSet&lt;string?&gt; Hashes = [];

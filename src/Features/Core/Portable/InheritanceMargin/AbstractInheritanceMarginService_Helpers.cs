@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.TypeHierarchy;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin;
@@ -56,12 +56,19 @@ internal abstract partial class AbstractInheritanceMarginService
         }
 
         var solution = project.Solution;
+        var typeHierarchyService = project.GetRequiredLanguageService<ITypeHierarchyService>();
         using var _ = ArrayBuilder<InheritanceMarginItem>.GetInstance(out var builder);
         foreach (var (symbol, lineNumber) in symbolAndLineNumbers)
         {
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                await AddInheritanceMemberItemsForNamedTypeAsync(solution, namedTypeSymbol, lineNumber, builder, cancellationToken).ConfigureAwait(false);
+                await AddInheritanceMemberItemsForNamedTypeAsync(
+                    solution,
+                    typeHierarchyService,
+                    namedTypeSymbol,
+                    lineNumber,
+                    builder,
+                    cancellationToken).ConfigureAwait(false);
             }
 
             if (symbol is IEventSymbol or IPropertySymbol or IMethodSymbol)
@@ -132,7 +139,7 @@ internal abstract partial class AbstractInheritanceMarginService
         var (remappedProject, symbolAndLineNumbers) = await GetMemberSymbolsAsync(document, spanToSearch, cancellationToken).ConfigureAwait(false);
 
         // if we didn't remap the symbol to another project (e.g. remapping from a metadata-as-source symbol back to
-        // the originating project), then we're in teh same project and we should try to get global import
+        // the originating project), then we're in the same project and we should try to get global import
         // information to display.
         var remapped = remappedProject != document.Project;
 
@@ -280,13 +287,14 @@ internal abstract partial class AbstractInheritanceMarginService
 
     private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
         Solution solution,
+        ITypeHierarchyService typeHierarchyService,
         INamedTypeSymbol memberSymbol,
         int lineNumber,
         ArrayBuilder<InheritanceMarginItem> builder,
         CancellationToken cancellationToken)
     {
         // Get all base types.
-        var allBaseSymbols = BaseTypeFinder.FindBaseTypesAndInterfaces(memberSymbol);
+        var allBaseSymbols = typeHierarchyService.GetBaseTypesAndInterfaces(memberSymbol, transitive: true);
 
         // Filter out
         // 1. System.Object. (otherwise margin would be shown for all classes)
@@ -300,9 +308,10 @@ internal abstract partial class AbstractInheritanceMarginService
             .WhereAsArray(symbol => !symbol.IsErrorType() && symbol.SpecialType is not (SpecialType.System_Object or SpecialType.System_ValueType or SpecialType.System_Enum));
 
         // Get all derived types
-        var allDerivedSymbols = await GetDerivedTypesAndImplementationsAsync(
+        var allDerivedSymbols = await typeHierarchyService.GetDerivedTypesAndImplementationsAsync(
             solution,
             memberSymbol,
+            transitive: true,
             cancellationToken).ConfigureAwait(false);
 
         // Ensure the user won't be able to see symbol outside the solution for derived symbols.
@@ -563,7 +572,7 @@ internal abstract partial class AbstractInheritanceMarginService
         targetSymbol = symbolInSource ?? targetSymbol;
 
         // Right now the targets are not shown in a classified way.
-        var definition = ToSlimDefinitionItem(targetSymbol, solution);
+        var definition = await ToSlimDefinitionItemAsync(solution, targetSymbol, cancellationToken).ConfigureAwait(false);
         if (definition == null)
             return null;
 
@@ -673,53 +682,23 @@ internal abstract partial class AbstractInheritanceMarginService
     }
 
     /// <summary>
-    /// Get the derived interfaces and derived classes for <param name="typeSymbol"/>.
-    /// </summary>
-    private static async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
-        Solution solution,
-        INamedTypeSymbol typeSymbol,
-        CancellationToken cancellationToken)
-    {
-        if (typeSymbol.IsInterfaceType())
-        {
-            var allDerivedInterfaces = await SymbolFinder.FindDerivedInterfacesArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            var allImplementations = await SymbolFinder.FindImplementationsArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-            return [.. allDerivedInterfaces, .. allImplementations];
-        }
-        else
-        {
-            return await SymbolFinder.FindDerivedClassesArrayAsync(
-                typeSymbol,
-                solution,
-                transitive: true,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    /// <summary>
     /// Create the DefinitionItem based on the numbers of locations for <paramref name="symbol"/>.
     /// If there is only one location, create the DefinitionItem contains only the documentSpan or symbolKey to save memory.
     /// Because in such case, when clicking InheritanceMarginGlpph, it will directly navigate to the symbol.
     /// Otherwise, create the full non-classified DefinitionItem. Because in such case we want to display all the locations to the user
     /// by reusing the FAR window.
     /// </summary>
-    private static DefinitionItem? ToSlimDefinitionItem(ISymbol symbol, Solution solution)
+    private static async Task<DefinitionItem?> ToSlimDefinitionItemAsync(
+        Solution solution, ISymbol symbol, CancellationToken cancellation)
     {
         var locations = symbol.Locations;
         if (locations.Length > 1)
         {
-            return symbol.ToNonClassifiedDefinitionItem(
+            return await symbol.ToNonClassifiedDefinitionItemAsync(
                 solution,
                 FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true },
-                includeHiddenLocations: false);
+                includeHiddenLocations: false,
+                cancellation).ConfigureAwait(false);
         }
 
         if (locations is [var location])

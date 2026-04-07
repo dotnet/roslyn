@@ -19,20 +19,16 @@ internal static partial class EditAndContinueDiagnosticSource
 {
     private sealed class ProjectSource(Project project, ImmutableArray<DiagnosticData> diagnostics) : AbstractProjectDiagnosticSource(project)
     {
-        public override bool IsLiveSource()
-            => true;
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-            => Task.FromResult(diagnostics);
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            => diagnostics;
     }
 
     private sealed class ClosedDocumentSource(TextDocument document, ImmutableArray<DiagnosticData> diagnostics) : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
-        public override bool IsLiveSource()
-            => true;
 
-        public override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
-            => Task.FromResult(diagnostics);
+        public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
+            => diagnostics;
     }
 
     public static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(Solution solution, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)

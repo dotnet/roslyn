@@ -81,7 +81,7 @@ internal abstract class SettingsUpdaterBase<TOption, TValue> : ISettingUpdater<T
             return null;
         }
 
-        var originalText = await analyzerConfigDocument!.GetValueTextAsync(token).ConfigureAwait(false);
+        var originalText = await analyzerConfigDocument.GetValueTextAsync(token).ConfigureAwait(false);
         return newText.GetTextChanges(originalText);
     }
 

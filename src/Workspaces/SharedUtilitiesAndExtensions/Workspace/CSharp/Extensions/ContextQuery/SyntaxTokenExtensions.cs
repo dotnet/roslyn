@@ -462,8 +462,7 @@ internal static partial class SyntaxTokenExtensions
             }
         }
 
-        if (targetToken.Kind() is SyntaxKind.OpenParenToken or
-            SyntaxKind.CommaToken)
+        if (targetToken.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
         {
             if (targetToken.Parent.IsKind(SyntaxKind.ArgumentList))
             {
@@ -635,13 +634,13 @@ internal static partial class SyntaxTokenExtensions
         // delegate X D<A,|
         // delegate X D<[Bar]|
         if (targetToken.Kind() == SyntaxKind.LessThanToken &&
-            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent!))
+            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
         {
             return true;
         }
 
         if (targetToken.Kind() == SyntaxKind.CommaToken &&
-            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent!))
+            IsGenericInterfaceOrDelegateTypeParameterList(targetToken.Parent))
         {
             return true;
         }

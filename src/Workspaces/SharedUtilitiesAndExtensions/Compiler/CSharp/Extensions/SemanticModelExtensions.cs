@@ -204,8 +204,7 @@ internal static partial class SemanticModelExtensions
         //    as the interface type itself.
         if (type != null)
         {
-            if (type.Parent is BaseTypeSyntax baseType &&
-                baseType.Parent is BaseListSyntax baseList &&
+            if (type.Parent is BaseTypeSyntax { Parent: BaseListSyntax baseList } baseType &&
                 baseType.Type == type)
             {
                 var containingType = semanticModel.GetDeclaredSymbol(type.GetAncestor<BaseTypeDeclarationSyntax>(), cancellationToken);

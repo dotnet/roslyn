@@ -182,7 +182,7 @@ internal sealed class SumConverter : JsonConverterFactory
 internal sealed class SumConverter<T> : JsonConverter<T>
     where T : struct, ISumType
 {
-    private static readonly ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache> SumTypeCache = new ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache>();
+    private static readonly ConcurrentDictionary<Type, SumConverter.SumTypeInfoCache> SumTypeCache = new();
 
     /// <inheritdoc/>
     public override T Read(ref Utf8JsonReader reader, Type objectType, JsonSerializerOptions options)

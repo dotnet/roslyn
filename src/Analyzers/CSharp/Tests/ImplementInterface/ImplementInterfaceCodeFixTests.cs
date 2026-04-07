@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
@@ -76,13 +78,13 @@ public sealed class ImplementInterfaceCodeFixTests
     internal static Task TestWithAllCodeStyleOptionsOffAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
-        (string equivalenceKey, int index)? codeAction = null)
+        int? index = null)
         => new VerifyCS.Test
         {
             TestCode = initialMarkup,
             FixedCode = expectedMarkup,
             Options = { AllOptionsOff },
-            CodeActionIndex = codeAction?.index,
+            CodeActionIndex = index,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 
@@ -109,12 +111,12 @@ public sealed class ImplementInterfaceCodeFixTests
     private static Task TestInRegularAndScriptAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
-        (string equivalenceKey, int index)? codeAction = null)
+        int? index = null)
         => new VerifyCS.Test
         {
             TestCode = initialMarkup,
             FixedCode = expectedMarkup,
-            CodeActionIndex = codeAction?.index,
+            CodeActionIndex = index,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 
@@ -372,7 +374,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task TupleWithNamesInProperty()
@@ -578,7 +580,6 @@ public sealed class ImplementInterfaceCodeFixTests
                     throw new System.NotImplementedException();
                 }
             }
-
             """);
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
@@ -1024,7 +1025,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
+            index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
     public Task TestImplementThroughPrimaryConstructorParameter1()
@@ -1053,7 +1054,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
+            index: 1);
 
     [Fact]
     public Task TestImplementThroughFieldMember_FixAll_SameMemberInDifferentType()
@@ -1100,7 +1101,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
+            index: 1);
 
     [Fact]
     public Task TestImplementThroughFieldMember_FixAll_FieldInOnePropInAnother()
@@ -1147,7 +1148,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;i", 1));
+            index: 1);
 
     [Fact]
     public async Task TestImplementThroughFieldMember_FixAll_FieldInOneNonViableInAnother()
@@ -1244,7 +1245,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;f", 1));
+            index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/472")]
     public Task TestImplementThroughFieldMemberRemoveUnnecessaryCast()
@@ -1270,7 +1271,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::System.Collections.IComparer;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;x", 1));
+            index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/472")]
     public Task TestImplementThroughFieldMemberRemoveUnnecessaryCastAndThis()
@@ -1296,7 +1297,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::System.Collections.IComparer;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a", 1));
+            index: 1);
 
     [Fact]
     public Task TestImplementAbstract()
@@ -1322,7 +1323,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 public abstract void Method1();
             }
             """,
-            codeAction: ("False;True;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact]
     public Task TestImplementInterfaceWithRefOutParameters()
@@ -1361,7 +1362,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 int Method2();
             }
             """,
-            codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;goo", 1));
+            index: 1);
 
     [Fact]
     public Task TestConflictingMethods1()
@@ -2087,7 +2088,6 @@ public sealed class ImplementInterfaceCodeFixTests
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
@@ -2147,7 +2147,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("True;False;False:global::i1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541981")]
     public async Task TestNoDelegateThroughField1()
@@ -2283,7 +2283,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::System.Collections.Generic.IReadOnlyList<int>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;field", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
     public Task TestImplementIReadOnlyListThroughProperty()
@@ -2331,7 +2331,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::System.Collections.Generic.IReadOnlyList<int>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;field", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
     public Task TestImplementInterfaceThroughField()
@@ -2379,7 +2379,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """,
-            codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;a", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
     public async Task TestImplementInterfaceThroughField_FieldImplementsMultipleInterfaces()
@@ -3055,7 +3055,7 @@ public sealed class ImplementInterfaceCodeFixTests
                     }
                 }
             }
-            """, codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;canGoo", 1));
+            """, index: 1);
 
     [Fact]
     public Task TestImplementEventThroughExplicitMember()
@@ -3080,7 +3080,7 @@ interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event S
     }
 }
 """,
-codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;canGoo", 1));
+index: 1);
 
     [Fact]
     public Task TestImplementEvent()
@@ -3107,8 +3107,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
             {
                 public event EventHandler E;
             }
-            """,
-            codeAction: ("False;False;True:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 0));
+            """);
 
     [Fact]
     public Task TestImplementEventAbstractly()
@@ -3136,7 +3135,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 public abstract event EventHandler E;
             }
             """,
-            codeAction: ("False;True;True:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact]
     public Task TestImplementEventExplicitly()
@@ -3175,7 +3174,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
+            index: 2);
 
     [Fact]
     public Task TestFaultToleranceInStaticMembers_01()
@@ -3355,7 +3354,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::ISomeInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact]
     public Task TestIndexersWithASingleAccessor()
@@ -3443,7 +3442,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542357")]
     public Task TestUsingAddedForConstraint()
@@ -3574,7 +3573,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
     public Task TestUnexpressibleConstraint1()
@@ -3659,7 +3658,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::I<object>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542587")]
     public Task TestUnexpressibleConstraint4()
@@ -4102,7 +4101,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::I<S>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542505")]
     public Task TestRenameConflictingTypeParameters3()
@@ -4181,7 +4180,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::I<A, B>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542506")]
     public Task TestNameSimplification()
@@ -4337,7 +4336,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 public abstract int Gibberish { get; set; }
             }
             """,
-            codeAction: ("False;True;True:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544210")]
     public async Task TestMissingOnWrongArity()
@@ -4412,7 +4411,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact]
     public async Task TestMissingInHiddenType()
@@ -4555,9 +4554,6 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
             }
             """,
             Options = { AllOptionsOff },
-
-            // 🐛 one value is generated with 100L instead of 100
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
@@ -4595,7 +4591,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545477")]
     public Task TestIUnknownIDispatchAttributes1()
@@ -4678,7 +4674,7 @@ codeAction: ("False;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInt
                 }
             }
             """,
-            codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545464")]
     public Task TestTypeNameConflict()
@@ -4793,7 +4789,7 @@ class B : IGoo
                     throw new System.NotImplementedException();
                 }
             }
-            """, codeAction: ("True;False;False:global::d;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916114")]
     public Task TestOptionalNullableIntParameter()
@@ -5045,9 +5041,6 @@ class B : IGoo
             }
             """,
             Options = { AllOptionsOff },
-
-            // 🐛 one value is generated with 0U instead of 0
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact]
@@ -5567,8 +5560,6 @@ class B : IGoo
                 }
             }
             """,
-            // 🐛 the DateTimeConstant attribute is generated with 100L instead of 100
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.Options.AddRange(AllOptionsOff);
@@ -5687,7 +5678,6 @@ class B : IGoo
                     throw new System.NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545922")]
@@ -5775,7 +5765,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529920")]
@@ -5821,7 +5810,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529947")]
@@ -5863,8 +5851,7 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
-            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 0));
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5882,8 +5869,7 @@ class B : IGoo
 
             {{DisposePattern("protected virtual ", "C", "public void ")}}
             }
-
-            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5902,8 +5888,7 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
-            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
+            """, index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5930,7 +5915,7 @@ class B : IGoo
 
             {{DisposePattern("protected virtual ", "C", "void System.IDisposable.")}}
             }
-            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            """, index: 3);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5946,8 +5931,7 @@ class B : IGoo
             {
                 public abstract void Dispose();
             }
-
-            """, codeAction: ("False;True;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
+            """, index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/958699")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994456")]
@@ -5971,7 +5955,7 @@ class B : IGoo
                     goo.Dispose();
                 }
             }
-            """, codeAction: ("False;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;goo", 2));
+            """, index: 2);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     public Task TestImplementIDisposableExplicitly_NoNamespaceImportForSystem()
@@ -5985,12 +5969,8 @@ class B : IGoo
 
             {{DisposePattern("protected virtual ", "C", "void System.IDisposable.", gcPrefix: "System.")}}
             }
-
             """,
             CodeActionIndex = 3,
-
-            // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
-            CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
@@ -6024,7 +6004,7 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-            """, codeAction: ("False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 0));
+            """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
     public Task TestImplementIDisposableViaBaseInterface()
@@ -6056,7 +6036,7 @@ class B : IGoo
 
             {{DisposePattern("protected virtual ", "C", "public void ")}}
             }
-            """, codeAction: ("False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/951968")]
     public Task TestImplementIDisposableExplicitlyViaBaseInterface()
@@ -6088,7 +6068,7 @@ class B : IGoo
 
             {{DisposePattern("protected virtual ", "C", "void IDisposable.")}}
             }
-            """, codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            """, index: 3);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     public Task TestDoNotImplementDisposePatternForLocallyDefinedIDisposable()
@@ -6120,7 +6100,7 @@ class B : IGoo
                     }
                 }
             }
-            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact]
     public Task TestDoNotImplementDisposePatternForStructures1()
@@ -6138,7 +6118,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact]
@@ -6157,8 +6136,7 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
-            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545924")]
     public async Task TestEnumNestedInGeneric()
@@ -6205,8 +6183,6 @@ class B : IGoo
                 }
             }
             """,
-            // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.Options.AddRange(AllOptionsOff);
@@ -6230,7 +6206,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -6250,7 +6225,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -6270,7 +6244,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545939")]
@@ -6290,7 +6263,6 @@ class B : IGoo
                     throw new NotImplementedException();
                 }
             }
-
             """);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545940")]
@@ -6387,8 +6359,6 @@ class B : IGoo
                 }
             }
             """,
-            // 🐛 generated QualifiedName where SimpleMemberAccessExpression was expected
-            CodeActionValidationMode = CodeActionValidationMode.None,
         };
 
         test.Options.AddRange(AllOptionsOff);
@@ -6491,7 +6461,7 @@ class B : IGoo
                 }
             }
             """,
-            codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546443")]
     public Task TestParameterNameWithTypeName()
@@ -6630,7 +6600,7 @@ class B : IGoo
                     throw new System.NotImplementedException();
                 }
             }
-            """, codeAction: ("True;False;False:global::N.I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")]
     public Task TestImplementInterfaceForPartialType()
@@ -6666,7 +6636,7 @@ class B : IGoo
                     throw new System.NotImplementedException();
                 }
             }
-            """, codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")]
     public Task TestImplementInterfaceForPartialType2()
@@ -6702,7 +6672,7 @@ class B : IGoo
             partial class C
             {
             }
-            """, codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/847464")]
     public Task TestImplementInterfaceForPartialType3()
@@ -6982,7 +6952,7 @@ class Goo : [|IComparable|]
 
             {{DisposePattern("protected virtual ", "Program", "public void ")}}
             }
-            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            """, index: 1);
 
     [Fact]
     public Task TestImplementInterfaceForExplicitIDisposable()
@@ -7005,7 +6975,7 @@ class Goo : [|IComparable|]
 
             {{DisposePattern("protected virtual ", "Program", "void IDisposable.")}}
             }
-            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            """, index: 3);
 
     [Fact]
     public Task TestImplementInterfaceForIDisposableNonApplicable1()
@@ -7030,7 +7000,7 @@ class Goo : [|IComparable|]
                     throw new NotImplementedException();
                 }
             }
-            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 0));
+            """);
 
     [Fact]
     public Task TestImplementInterfaceForIDisposableNonApplicable2()
@@ -7059,7 +7029,7 @@ class Goo : [|IComparable|]
                     throw new NotImplementedException();
                 }
             }
-            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 0));
+            """);
 
     [Fact]
     public Task TestImplementInterfaceForExplicitIDisposableWithSealedClass()
@@ -7080,7 +7050,7 @@ class Goo : [|IComparable|]
 
             {{DisposePattern("private ", "Program", "void IDisposable.")}}
             }
-            """, codeAction: ("True;False;False:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            """, index: 3);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9760")]
     public Task TestImplementInterfaceForExplicitIDisposableWithExistingField()
@@ -7103,7 +7073,7 @@ class Goo : [|IComparable|]
 
             {{DisposePattern("protected virtual ", "Program", "public void ", disposeField: "disposedValue1")}}
             }
-            """, codeAction: ("False;False;True:global::System.IDisposable;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/9760")]
     public Task TestImplementInterfaceUnderscoreNameForFields()
@@ -7339,7 +7309,7 @@ class Goo : [|IComparable|]
 
             {{DisposePattern("protected virtual ", "C", "public void ")}}
             }
-            """, codeAction: ("False;False;True:global::I<global::System.Exception, global::System.AggregateException>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            """, index: 1);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
@@ -7395,7 +7365,7 @@ class Goo : [|IComparable|]
             partial class C
             {
             }
-            """, codeAction: ("True;False;False:global::I<global::System.Exception, global::System.AggregateException>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 3));
+            """, index: 3);
 
     private static string DisposePattern(
         string disposeVisibility,
@@ -7587,7 +7557,7 @@ class Goo : [|IComparable|]
                 }
             }
             """,
-            codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;innerList", 1));
+            index: 1);
 
     [Fact, CompilerTrait(CompilerFeature.Tuples)]
     public Task LongTuple()
@@ -9908,7 +9878,7 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-            """, codeAction: ("True;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 2));
+            """, index: 2);
 
     [Fact]
     public Task ImplementInitOnlyProperty()
@@ -10025,7 +9995,7 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-            """, codeAction: ("True;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48295")]
     public Task TestImplementOnRecord_WithSemiColon()
@@ -10054,7 +10024,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -10085,7 +10054,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -10116,7 +10084,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -10185,7 +10152,6 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-
             """,
         }.RunAsync();
 
@@ -10447,7 +10413,7 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-            """, codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53012")]
     public Task TestNullableTypeParameter_ExplicitInterfaceImplementationWithClassConstraint()
@@ -10481,7 +10447,7 @@ class Goo : [|IComparable|]
                     throw new System.NotImplementedException();
                 }
             }
-            """, codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            """, index: 1);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51779")]
     public Task TestImplementTwoPropertiesOfCSharp5()
@@ -11856,7 +11822,7 @@ class Goo : [|IComparable|]
                 }
                 """,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78281")]
@@ -11898,6 +11864,79 @@ class Goo : [|IComparable|]
                 """,
             CodeActionIndex = 1,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
-            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79584")]
+    public Task TestImplementIDisposable_DisposePattern_LF_EndOfLine()
+         => new VerifyCS.Test
+         {
+             TestCode = """
+                using System;
+                class C : {|CS0535:IDisposable|}{|CS1513:|}{|CS1514:|}
+                """.Replace("\r\n", "\n"),
+             FixedCode = $$"""
+                using System;
+                class C : IDisposable
+                {
+                    private bool disposedValue;
+
+                {{DisposePattern("protected virtual ", "C", "public void ")}}
+                }
+                """.Replace("\r\n", "\n"),
+             CodeActionIndex = 1,
+             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+             LanguageVersion = LanguageVersion.CSharp14,
+             Options = { { FormattingOptions2.NewLine, "\n" } },
+         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82787")]
+    public Task FileLevelDirective_AddUsings()
+         => new VerifyCS.Test
+         {
+             TestCode = """
+                #:property Configuration=Release
+
+                using System.Collections;
+
+                class A : {|CS0535:I|}
+                {
+                }
+
+                interface I
+                {
+                    void M(System.DateTime dt, System.IO.FileInfo f);
+                }
+                """,
+             FixedCode = """
+                #:property Configuration=Release
+
+                using System;
+                using System.Collections;
+                using System.IO;
+
+                class A : I
+                {
+                    public void M(DateTime dt, FileInfo f)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+
+                interface I
+                {
+                    void M(System.DateTime dt, System.IO.FileInfo f);
+                }
+                """,
+             SolutionTransforms =
+             {
+                static (solution, projectId) =>
+                {
+                    var project = solution.GetProject(projectId)!;
+                    var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+                    return solution.WithProjectParseOptions(projectId,
+                        parseOptions.WithFeatures(parseOptions.Features.Append(new("FileBasedProgram", ""))));
+                },
+            },
+         }.RunAsync();
 }

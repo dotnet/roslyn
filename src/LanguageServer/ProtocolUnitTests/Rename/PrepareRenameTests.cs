@@ -93,7 +93,7 @@ public sealed class PrepareRenameTests(ITestOutputHelper testOutputHelper) : Abs
     }
 
     private static LSP.PrepareRenameParams CreatePrepareRenameParams(LSP.Location location)
-        => new LSP.PrepareRenameParams()
+        => new()
         {
             Position = location.Range.Start,
             TextDocument = CreateTextDocumentIdentifier(location.DocumentUri)

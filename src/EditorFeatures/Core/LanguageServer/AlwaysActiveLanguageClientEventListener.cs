@@ -68,7 +68,7 @@ internal sealed class AlwaysActiveLanguageClientEventListener(
 
     private void LoadLanguageClient()
     {
-        using var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadLanguageClient));
+        var token = _asynchronousOperationListener.BeginAsyncOperation(nameof(LoadLanguageClient));
         LoadAsync().ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
 
         async Task LoadAsync()

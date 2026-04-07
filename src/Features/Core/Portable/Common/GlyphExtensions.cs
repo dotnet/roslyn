@@ -218,6 +218,9 @@ internal static class GlyphExtensions
 
             case WellKnownTags.StatusInformation:
                 return Glyph.StatusInformation;
+
+            case WellKnownTags.Copilot:
+                return Glyph.Copilot;
         }
 
         return Glyph.None;
@@ -294,6 +297,7 @@ internal static class GlyphExtensions
             DeclaredSymbolInfoKind.Property => Glyph.PropertyPublic,
             DeclaredSymbolInfoKind.Struct => Glyph.StructurePublic,
             DeclaredSymbolInfoKind.RecordStruct => Glyph.StructurePublic,
+            DeclaredSymbolInfoKind.Union => Glyph.StructurePublic,
             _ => Glyph.ClassPublic,
         };
 }

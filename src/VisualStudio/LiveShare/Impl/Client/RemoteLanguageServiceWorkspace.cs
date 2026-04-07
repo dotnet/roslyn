@@ -44,7 +44,7 @@ internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, I
     /// </summary>
     // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
 #pragma warning disable RS0030 // Do not use banned APIs
-    private static readonly SemaphoreSlim s_RemotePathsGate = new SemaphoreSlim(initialCount: 1);
+    private static readonly SemaphoreSlim s_RemotePathsGate = new(initialCount: 1);
 #pragma warning restore RS0030 // Do not use banned APIs
 
     private readonly IServiceProvider _serviceProvider;
@@ -166,7 +166,7 @@ internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, I
     private static async Task<(ImmutableHashSet<string> remoteRootPaths, ImmutableHashSet<string> externalPaths)> GetLocalPathsOfRemoteRootsAsync(CollaborationSession session)
     {
         var roots = await session.ListRootsAsync(CancellationToken.None).ConfigureAwait(false);
-        var localPathsOfRemoteRoots = roots.Select(root => session.ConvertSharedUriToLocalPath(root)).ToImmutableArray();
+        var localPathsOfRemoteRoots = roots.SelectAsArray(root => session.ConvertSharedUriToLocalPath(root));
 
         var remoteRootPaths = ImmutableHashSet.CreateBuilder<string>();
         var externalPaths = ImmutableHashSet.CreateBuilder<string>();

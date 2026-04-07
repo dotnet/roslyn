@@ -134,12 +134,9 @@ internal abstract class AbstractAddImportsPasteCommandHandler(
         _threadingContext.ThrowIfNotOnUIThread();
 
         var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+
         using var backgroundWorkContext = indicatorFactory.Create(
-            textView,
-            snapshotSpan,
-            DialogText,
-            cancelOnEdit: true,
-            cancelOnFocusLost: true);
+            textView, snapshotSpan, DialogText, cancelOnEdit: true, cancelOnFocusLost: true);
 
         var cancellationToken = backgroundWorkContext.UserCancellationToken;
 

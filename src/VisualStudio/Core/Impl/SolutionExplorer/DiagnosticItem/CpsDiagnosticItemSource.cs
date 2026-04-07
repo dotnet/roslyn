@@ -19,6 +19,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 {
     private readonly IVsHierarchyItem _item;
     private readonly string _projectDirectoryPath;
+    private readonly string? _analyzerFilePath;
 
     private WorkspaceEventRegistration? _workspaceChangedDisposer;
 
@@ -37,6 +38,8 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
         _item = item;
         _projectDirectoryPath = Path.GetDirectoryName(projectPath);
 
+        _analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, _item.CanonicalName);
+
         this.AnalyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
         if (this.AnalyzerReference == null)
         {
@@ -47,9 +50,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
             // then connect to it.
             if (workspace.CurrentSolution.ContainsProject(projectId))
             {
-                // Main thread dependency as OnWorkspaceChangedLookForAnalyzer accesses the IVsHierarchy
-                // and fires the PropertyChanged event 
-                _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChangedLookForAnalyzer, WorkspaceEventOptions.RequiresMainThreadOptions);
+                _workspaceChangedDisposer = Workspace.RegisterWorkspaceChangedHandler(OnWorkspaceChangedLookForAnalyzer);
                 item.PropertyChanged += IVsHierarchyItem_PropertyChanged;
 
                 // Now that we've subscribed, check once more in case we missed the event
@@ -118,14 +119,11 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
             return null;
         }
 
-        var canonicalName = _item.CanonicalName;
-        var analyzerFilePath = CpsUtilities.ExtractAnalyzerFilePath(_projectDirectoryPath, canonicalName);
-
-        if (string.IsNullOrEmpty(analyzerFilePath))
+        if (string.IsNullOrEmpty(_analyzerFilePath))
         {
             return null;
         }
 
-        return project.AnalyzerReferences.FirstOrDefault(r => string.Equals(r.FullPath, analyzerFilePath, StringComparison.OrdinalIgnoreCase));
+        return project.AnalyzerReferences.FirstOrDefault(r => string.Equals(r.FullPath, _analyzerFilePath, StringComparison.OrdinalIgnoreCase));
     }
 }

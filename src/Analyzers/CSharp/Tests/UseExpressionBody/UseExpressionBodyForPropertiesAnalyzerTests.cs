@@ -542,7 +542,7 @@ public sealed class UseExpressionBodyForPropertiesAnalyzerTests
                 } = new();
             }
             """;
-        await TestWithUseExpressionBody(code, code, LanguageVersionExtensions.CSharpNext);
+        await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp14);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77473")]
@@ -560,6 +560,6 @@ public sealed class UseExpressionBodyForPropertiesAnalyzerTests
                 } = new();
             }
             """;
-        await TestWithUseExpressionBody(code, code, LanguageVersionExtensions.CSharpNext);
+        await TestWithUseExpressionBody(code, code, LanguageVersion.CSharp14);
     }
 }

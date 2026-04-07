@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 public sealed class CSharpCommandLineParserServiceTests
 {
     private static readonly string s_directory = Path.GetTempPath();
-    private readonly CSharpCommandLineParserService _parser = new CSharpCommandLineParserService();
+    private readonly CSharpCommandLineParserService _parser = new();
 
     private CSharpCommandLineArguments GetArguments(params string[] args)
         => (CSharpCommandLineArguments)_parser.Parse(args, baseDirectory: s_directory, isInteractive: false, sdkDirectory: s_directory);

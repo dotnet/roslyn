@@ -46,7 +46,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
 
             Contract.ThrowIfNull(_state.DelegatedConstructor);
             var thisConstructorArguments = factory.CreateArguments(
-                [.. _state.Parameters.Take(_state.DelegatedConstructor.Parameters.Length)]);
+                [.. _state.Parameters.Select(t => t.parameter).Take(_state.DelegatedConstructor.Parameters.Length)]);
 
             using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
             using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
@@ -55,8 +55,8 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
 
             for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
             {
-                var symbolName = _state.SelectedMembers[i].Name;
-                var parameter = _state.Parameters[i];
+                var (parameter, fieldOrProperty) = _state.Parameters[i];
+                var symbolName = fieldOrProperty.Name;
 
                 var fieldAccess = factory.MemberAccessExpression(
                     factory.ThisExpression(),
@@ -92,7 +92,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                     accessibility: _state.ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
                     modifiers: DeclarationModifiers.None,
                     typeName: _state.ContainingType.Name,
-                    parameters: _state.Parameters,
+                    parameters: _state.Parameters.SelectAsArray(t => t.parameter),
                     statements: statements,
                     thisConstructorArguments: thisConstructorArguments),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -104,7 +104,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
         {
             get
             {
-                var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p, SimpleFormat));
+                var parameters = _state.Parameters.Select(p => _service.ToDisplayString(p.parameter, SimpleFormat));
                 var parameterString = string.Join(", ", parameters);
 
                 return string.Format(FeaturesResources.Generate_delegating_constructor_0_1,

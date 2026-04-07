@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.GetFirstLocation());
 
                 stateMachineType = null;
-                return bodyWithAwaitLifted;
+                return (BoundStatement)bodyWithAwaitLifted.WithHasErrors();
             }
 
             // The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
-                return bodyWithAwaitLifted;
+                return (BoundStatement)bodyWithAwaitLifted.WithHasErrors();
             }
 
             try

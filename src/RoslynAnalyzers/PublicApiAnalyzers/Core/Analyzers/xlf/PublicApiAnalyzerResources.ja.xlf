@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesDescription">
         <source>InternalAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, InternalAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">InternalAPI.txt ファイルでは、NULL 値の許容情報を追跡するために '#nullable enable' を指定する必要があります。指定されていない場合は、この診断を中止する必要があります。NULL 値の許容を有効にすると、InternalAPI.txt は、どの型が null 許容 (型にサフィックス '?' を含む) または null 非許容 (サフィックス '!') かを記録します。また、oblivious 参照型 (行にプレフィックス '~' を含む) を使用している API を追跡します。</target>
+        <target state="translated">InternalAPI.txt ファイルでは、NULL 値の許容情報を追跡するために `#nullable enable` を指定する必要があります。指定されていない場合は、この診断を中止する必要があります。NULL 値の許容を有効にすると、InternalAPI.txt は、どの型が null 許容 (型にサフィックス `?` を含む) または null 非許容 (サフィックス '!') かを記録します。また、oblivious 参照型 (行にプレフィックス `~` を含む) を使用している API を追跡します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotateInternalApiFilesMessage">
@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">PublicAPI.txt ファイルでは、NULL 値の許容情報を追跡するために '#nullable enable' を指定する必要があります。指定されていない場合は、この診断を中止する必要があります。NULL 値の許容を有効にすると、PublicAPI.txt は、どの型が null 許容 (型にサフィックス '?' を含む) または null 非許容 (サフィックス '!') かを記録します。また、oblivious 参照型 (行にプレフィックス '~' を含む) を使用している API を追跡します。</target>
+        <target state="translated">PublicAPI.txt ファイルでは、NULL 値の許容情報を追跡するために `#nullable enable` を指定する必要があります。指定されていない場合は、この診断を中止する必要があります。NULL 値の許容を有効にすると、PublicAPI.txt は、どの型が null 許容 (型にサフィックス `?` を含む) または null 非許容 (サフィックス `!`) かを記録します。また、oblivious 参照型 (行にプレフィックス `~` を含む) を使用している API を追跡します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

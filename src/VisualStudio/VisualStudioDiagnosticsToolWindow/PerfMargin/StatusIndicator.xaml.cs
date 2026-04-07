@@ -45,8 +45,8 @@ public partial class StatusIndicator : UserControl
     }
 
     private const double MinimumScale = 0.2;
-    private static readonly DoubleAnimation s_growAnimation = new DoubleAnimation(1.0, new Duration(TimeSpan.FromSeconds(1.0)), FillBehavior.HoldEnd);
-    private static readonly DoubleAnimation s_shrinkAnimation = new DoubleAnimation(0.0, new Duration(TimeSpan.FromSeconds(0.33333)), FillBehavior.HoldEnd);
+    private static readonly DoubleAnimation s_growAnimation = new(1.0, new Duration(TimeSpan.FromSeconds(1.0)), FillBehavior.HoldEnd);
+    private static readonly DoubleAnimation s_shrinkAnimation = new(0.0, new Duration(TimeSpan.FromSeconds(0.33333)), FillBehavior.HoldEnd);
 
     public void UpdateOnUIThread()
     {

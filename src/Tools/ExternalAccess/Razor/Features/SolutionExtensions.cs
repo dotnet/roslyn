@@ -16,5 +16,5 @@ internal static class SolutionExtensions
         => LanguageServer.Extensions.GetDocumentIds(solution, new(documentUri));
 
     public static int GetWorkspaceVersion(this Solution solution)
-        => solution.WorkspaceVersion;
+        => solution.SolutionStateContentVersion;
 }

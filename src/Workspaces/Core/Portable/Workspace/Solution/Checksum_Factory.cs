@@ -44,6 +44,9 @@ internal readonly partial record struct Checksum
     }
 
     public static Checksum Create(ImmutableArray<string> values)
+        => Create(ImmutableCollectionsMarshal.AsArray(values).AsSpan());
+
+    public static Checksum Create(ReadOnlySpan<string> values)
     {
         using var pooledHash = s_incrementalHashPool.GetPooledObject();
 
@@ -159,11 +162,12 @@ internal readonly partial record struct Checksum
     }
 
     public static Checksum Create(ImmutableArray<byte> bytes)
-    {
-        var source = ImmutableCollectionsMarshal.AsArray(bytes).AsSpan();
+        => Create(ImmutableCollectionsMarshal.AsArray(bytes).AsSpan());
 
+    public static Checksum Create(ReadOnlySpan<byte> bytes)
+    {
         Span<byte> destination = stackalloc byte[XXHash128SizeBytes];
-        XxHash128.Hash(source, destination);
+        XxHash128.Hash(bytes, destination);
         return From(destination);
     }
 

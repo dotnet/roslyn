@@ -1224,19 +1224,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_03()
         {
             UsingDeclaration("required Prop { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,15): error CS1001: Identifier expected
                 // required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required Prop").WithArguments("{").WithLocation(1, 1),
-                // (1,15): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                // required Prop { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 15)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 15)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "Prop");
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
@@ -1272,17 +1280,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_05()
         {
             UsingDeclaration("required required { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,19): error CS1031: Type expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments("{").WithLocation(1, 1),
-                // (1,19): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 19),
+                // (1,19): error CS1001: Identifier expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 19)
-                );
-            N(SyntaxKind.IncompleteMember);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 19));
+
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -1291,20 +1314,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_06()
         {
             UsingDeclaration("required required Prop { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,24): error CS1001: Identifier expected
                 // required required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required Prop").WithArguments("{").WithLocation(1, 1),
-                // (1,24): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                // required required Prop { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 24)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 24)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "Prop");
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
@@ -12391,7 +12422,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_01(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x) => x;", options);
 
@@ -12444,7 +12475,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_02(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator checked " + op + "(C x) => x;", options);
 
@@ -12498,7 +12529,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_03(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C I.operator " + op + "(C x) => x;", options);
 
@@ -12559,7 +12590,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_04(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C I.operator checked " + op + "(C x) => x;", options);
 
@@ -12610,7 +12641,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_05()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > >=(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -12695,7 +12726,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_06()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >> =(C x) => x;", options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -12780,7 +12811,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_07()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > > =(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -12865,7 +12896,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_08()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > >>=(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -12950,7 +12981,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_09()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > > >=(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -13035,7 +13066,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_10()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator > > > =(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -13120,7 +13151,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_11()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >> >=(C x) => x;", options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -13205,7 +13236,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_12()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >> > =(C x) => x;", options,
                     // (1,15): error CS1003: Syntax error, '(' expected
@@ -13290,7 +13321,7 @@ public class Class
         [Fact]
         public void CompoundAssignmentDeclaration_13()
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator >>> =(C x) => x;", options,
                     // (1,16): error CS1003: Syntax error, '(' expected
@@ -13384,7 +13415,7 @@ public class Class
         [InlineData("<<", SyntaxKind.LessThanLessThanToken)]
         public void CompoundAssignmentDeclaration_14(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + " =(C x) => x;", options,
                     // (1,14): error CS1003: Syntax error, '(' expected
@@ -13480,7 +13511,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_15(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x1, C x2) => x;", options,
                     // (1,12): error CS1020: Overloadable binary operator expected
@@ -13546,7 +13577,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_16(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "(C x1, C x2, C x3) => x;", options,
                     // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
@@ -13621,7 +13652,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_17(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator " + op + "() => x;", options,
                     // (1,12): error CS9313: Overloaded compound assignment operator '+=' takes one parameter
@@ -13670,7 +13701,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_18(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("C operator unchecked " + op + "(C x) => x;", options,
                     // (1,12): error CS9027: Unexpected keyword 'unchecked'
@@ -13727,7 +13758,7 @@ public class Class
         [InlineData(">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         public void CompoundAssignmentDeclaration_19_Partial(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial C operator " + op + "(C x) => x;", options,
                     // (1,11): error CS1003: Syntax error, '.' expected
@@ -13782,7 +13813,7 @@ public class Class
         [CombinatorialData]
         public void CompoundAssignmentDeclaration_20_Partial([CombinatorialValues("+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=", ">>>=")] string op)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial void operator " + op + "(C x) {}", options,
                     // (1,1): error CS1073: Unexpected token 'void'
@@ -13809,7 +13840,7 @@ public class Class
         [InlineData("--", SyntaxKind.MinusMinusToken)]
         public void IncrementDeclaration_01_Partial(string op, SyntaxKind opToken)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial C operator " + op + "() => x;", options,
                     // (1,11): error CS1003: Syntax error, '.' expected
@@ -13856,7 +13887,7 @@ public class Class
         [CombinatorialData]
         public void IncrementDeclaration_02_Partial([CombinatorialValues("++", "--")] string op)
         {
-            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular13 })
+            foreach (var options in new[] { TestOptions.RegularPreview, TestOptions.Regular14, TestOptions.Regular13 })
             {
                 UsingDeclaration("partial void operator " + op + "() {}", options,
                     // (1,1): error CS1073: Unexpected token 'void'
@@ -20731,6 +20762,212 @@ public class Class
                 }
                 EOF();
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72354")]
+        public void PropertyWithMissingIdentifier_WithAccessors()
+        {
+            const string source = """
+                public class Stuff
+                {
+                    public required string Name { get; set; }
+                    public required Value { get; set; }
+                    public string? SecondaryName { get; set; }
+                    public SecondaryValue { get; set; }
+                }
+                """;
+
+            UsingTree(source,
+                // (4,27): error CS1001: Identifier expected
+                //     public required Value { get; set; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(4, 27),
+                // (6,27): error CS1001: Identifier expected
+                //     public SecondaryValue { get; set; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(6, 27));
+
+            // Validate all members were parsed as properties (not incomplete members)
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Stuff");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RequiredKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Name");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RequiredKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Value");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "SecondaryName");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "SecondaryValue");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72354")]
+        public void PropertyWithMissingIdentifier_ExpressionBody()
+        {
+            const string source = """
+                public class C
+                {
+                    public int Prop => 42;
+                    public Value => null;
+                }
+                """;
+
+            UsingTree(source,
+                // (4,18): error CS1001: Identifier expected
+                //     public Value => null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(4, 18));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Prop");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "42");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Value");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         #endregion

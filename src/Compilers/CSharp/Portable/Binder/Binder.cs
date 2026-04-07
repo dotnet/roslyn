@@ -78,6 +78,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual bool IsInsideNameof => NextRequired.IsInsideNameof;
 
+        internal static bool IsObjectInitializerMemberTarget(SyntaxNode node)
+        {
+            while (node.Parent is { } parent)
+            {
+                switch (parent)
+                {
+                    case AssignmentExpressionSyntax assignment:
+                        return assignment.Left == node &&
+                            assignment.Parent?.Kind() == SyntaxKind.ObjectInitializerExpression;
+
+                    case InitializerExpressionSyntax initializer
+                        when node is IdentifierNameSyntax &&
+                             initializer.Kind() == SyntaxKind.ObjectInitializerExpression:
+                        return true;
+
+                    case BracketedArgumentListSyntax:
+                        // We cut off inside the indexer argument list of an object initializer so
+                        // things like "new C().StaticProp" get standard error messages, rather than
+                        // the object initializer specific error CS1914.
+                        return false;
+
+                    case StatementSyntax:
+                        return false;
+                }
+
+                node = parent;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Get the next binder in which to look up a name, if not found by this binder.
         /// </summary>
@@ -485,6 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual bool BindingCollectionExpressionWithArguments => false;
+
         internal virtual NamedTypeSymbol? ParamsCollectionTypeInProgress => null;
 
         internal virtual MethodSymbol? ParamsCollectionConstructorInProgress => null;
@@ -751,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool IsDisallowedExtensionInOlderLangVer(MethodSymbol symbol)
         {
-            return symbol.GetIsNewExtensionMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
+            return symbol.IsExtensionBlockMember() && (symbol.IsStatic || symbol.MethodKind != MethodKind.Ordinary);
         }
 
         internal static void ReportDiagnosticsIfDisallowedExtension(BindingDiagnosticBag diagnostics, MethodSymbol method, SyntaxNode syntax)

@@ -52,15 +52,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            var delegateInvoke = (containingType.CreatedActionField.Type as NamedTypeSymbol)?.DelegateInvokeMethod;
+            if (delegateInvoke is null ||
+                delegateInvoke.ReturnType.SpecialType != SpecialType.System_Void ||
+                delegateInvoke.GetParameters() is not [{ RefKind: RefKind.None } parameter] ||
+                !parameter.Type.Equals(exceptionConstructor.ContainingType))
+            {
+                diagnostics.Add(ErrorCode.ERR_EncUpdateFailedMissingSymbol,
+                    Location.None,
+                    CodeAnalysisResources.Method,
+                    "void System.Action<T>.Invoke(T arg)");
+
+                factory.CloseMethod(factory.Block());
+                return;
+            }
+
+            var actionTemp = factory.StoreToTemp(
+                factory.Field(receiver: null, containingType.CreatedActionField),
+                out var storeAction);
+
             var block = factory.Block(
-                ImmutableArray.Create<BoundStatement>(
-                    factory.ExpressionStatement(factory.Call(
-                        factory.This(),
-                        exceptionConstructor,
-                        factory.Parameter(MessageParameter))),
-                    factory.Assignment(factory.Field(factory.This(), containingType.CodeField), factory.Parameter(CodeParameter)),
-                    factory.Return()
-                ));
+                [actionTemp.LocalSymbol],
+
+                // base(message)
+                factory.ExpressionStatement(factory.Call(
+                    factory.This(),
+                    exceptionConstructor,
+                    factory.Parameter(MessageParameter))),
+
+                // this.CodeField = code;
+                factory.Assignment(factory.Field(factory.This(), containingType.CodeField), factory.Parameter(CodeParameter)),
+
+                // s_created?.Invoke(this);
+                factory.If(
+                    factory.IsNotNullReference(storeAction),
+                    factory.ExpressionStatement(
+                        factory.Call(
+                            actionTemp,
+                            delegateInvoke,
+                            factory.This()))),
+
+                factory.Return());
 
             factory.CloseMethod(block);
         }

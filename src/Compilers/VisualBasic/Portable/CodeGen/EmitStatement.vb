@@ -957,7 +957,7 @@ OtherExpressions:
 
             For Each caseBlock In caseBlocks
                 cur = cur + 1
-                caseBlockLabels.Add(New GeneratedLabelSymbol("Case Block " + cur.ToString()))
+                caseBlockLabels.Add(New GeneratedLabelSymbol("Case Block " + cur.ToString(Globalization.CultureInfo.InvariantCulture)))
             Next
 
             Return caseBlockLabels.ToImmutableAndFree()

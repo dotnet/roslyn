@@ -160,7 +160,7 @@ public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
 
     private static string GetSignatureDescriptionString(Document document, AddedParameterOrExistingIndex[] signature, int? totalParameters)
     {
-        var existingParametersKept = signature.Where(p => p.IsExisting).Select(p => p.OldIndex).ToArray();
+        var existingParametersKept = signature.SelectAsArray(p => p.IsExisting, p => p.OldIndex);
         var removeDescription = string.Empty;
         if (totalParameters.HasValue)
         {
@@ -176,7 +176,7 @@ public abstract class AbstractChangeSignatureTests : AbstractCodeActionTest
             removeDescription = removed.Any() ? string.Format(", Removed: {{{0}}}", string.Join(", ", removed)) : string.Empty;
         }
 
-        var newParametersString = string.Join(",", signature.Where(p => !p.IsExisting).Select(p => p.GetAddedParameter(document)));
+        var newParametersString = string.Join(",", signature.SelectAsArray(p => !p.IsExisting, p => p.GetAddedParameter(document)));
         var addDescription = !newParametersString.IsEmpty() ? string.Format(", Added {{{0}}}", newParametersString) : string.Empty;
 
         return string.Format("Parameters: <{0}>{1}{2}", string.Join(", ", signature.Select(item => item.ToString())), removeDescription, addDescription);

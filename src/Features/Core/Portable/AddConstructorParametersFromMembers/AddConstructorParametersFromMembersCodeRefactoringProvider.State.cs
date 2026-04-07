@@ -60,7 +60,7 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             }
 
             ConstructorCandidates = await GetConstructorCandidatesInfoAsync(
-                ContainingType, selectedMembers, document, parametersForSelectedMembers, cancellationToken).ConfigureAwait(false);
+                ContainingType, document, parametersForSelectedMembers, cancellationToken).ConfigureAwait(false);
 
             return !ConstructorCandidates.IsEmpty;
         }
@@ -76,9 +76,8 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         /// </summary>
         private static async Task<ImmutableArray<ConstructorCandidate>> GetConstructorCandidatesInfoAsync(
             INamedTypeSymbol containingType,
-            ImmutableArray<ISymbol> selectedMembers,
             Document document,
-            ImmutableArray<IParameterSymbol> parametersForSelectedMembers,
+            ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> parametersForSelectedMembers,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<ConstructorCandidate>.GetInstance(out var applicableConstructors);
@@ -86,9 +85,11 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
             foreach (var constructor in containingType.InstanceConstructors)
             {
                 if (await IsApplicableConstructorAsync(
-                    constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.Name), cancellationToken).ConfigureAwait(false))
+                        constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.parameter.Name), cancellationToken).ConfigureAwait(false))
                 {
-                    applicableConstructors.Add(CreateConstructorCandidate(parametersForSelectedMembers, selectedMembers, constructor));
+                    applicableConstructors.Add(new(
+                        constructor,
+                        parametersForSelectedMembers.WhereAsArray(t => !constructor.Parameters.Any(p => t.parameter.Name == p.Name))));
                 }
             }
 
@@ -118,27 +119,5 @@ internal sealed partial class AddConstructorParametersFromMembersCodeRefactoring
         private static bool SelectedMembersAlreadyExistAsParameters(ImmutableArray<string> parameterNamesForSelectedMembers, ImmutableArray<IParameterSymbol> constructorParams)
             => constructorParams.Length != 0 &&
             !parameterNamesForSelectedMembers.Except(constructorParams.Select(p => p.Name)).Any();
-
-        private static ConstructorCandidate CreateConstructorCandidate(ImmutableArray<IParameterSymbol> parametersForSelectedMembers, ImmutableArray<ISymbol> selectedMembers, IMethodSymbol constructor)
-        {
-            using var _0 = ArrayBuilder<IParameterSymbol>.GetInstance(out var missingParametersBuilder);
-            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var missingMembersBuilder);
-
-            var constructorParamNames = constructor.Parameters.SelectAsArray(p => p.Name);
-            var zippedParametersAndSelectedMembers =
-                parametersForSelectedMembers.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
-
-            foreach (var (parameter, selectedMember) in zippedParametersAndSelectedMembers)
-            {
-                if (!constructorParamNames.Contains(parameter.Name))
-                {
-                    missingParametersBuilder.Add(parameter);
-                    missingMembersBuilder.Add(selectedMember);
-                }
-            }
-
-            return new ConstructorCandidate(
-                constructor, missingMembersBuilder.ToImmutable(), missingParametersBuilder.ToImmutable());
-        }
     }
 }

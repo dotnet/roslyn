@@ -114,6 +114,48 @@ public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSh
             """, "c", "code", "list", "para", "paramref", "typeparamref");
 
     [Fact]
+    public Task CodeStyleElements_InsideSummary()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <summary> $$ </summary>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_NotAtTopLevel()
+        => VerifyItemsAbsentAsync("""
+            public class goo
+            {
+                /// $$ 
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_InsidePara()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <summary>
+                /// <para> $$ </para>
+                /// </summary>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
+    public Task CodeStyleElements_InsideRemarks()
+        => VerifyItemsExistAsync("""
+            public class goo
+            {
+                /// <remarks> $$ </remarks>
+                public void bar() { }
+            }
+            """, "b", "em", "i", "strong", "tt");
+
+    [Fact]
     public Task AlwaysVisibleTopLevelOnlyItems1()
         => VerifyItemsExistAsync("""
             public class goo
@@ -1087,4 +1129,52 @@ public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSh
             "see",
             deletedCharTrigger: 'b');
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public Task ExtensionBlock_01()
+        => VerifyItemsExistAsync("""
+            public static class E
+            {
+                /// $$ 
+                extension<T>(int i) { }
+            }
+            """, """
+            typeparam name="T"
+            """, """
+            param name="i"
+            """,
+            "summary");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public Task ExtensionBlock_02()
+        => VerifyItemsExistAsync("""
+            public static class E
+            {
+                /// <summary> $$ </summary>
+                extension<T>(int i)
+                {
+                } 
+            }
+            """, """
+            paramref name="i"
+            """, """
+            typeparamref name="T"
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78770")]
+    public Task ExtensionBlock_03()
+        => VerifyItemsExistAsync("""
+            public static class E
+            {
+                extension<T>(int i)
+                {
+                    /// <summary> $$ </summary>
+                    void M() { }
+                } 
+            }
+            """, """
+            paramref name="i"
+            """, """
+            typeparamref name="T"
+            """);
 }

@@ -3717,7 +3717,7 @@ static class Extensions
 }
 ";
             string expectedOperationTree = @"
-IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: CustomType Extensions.<>E__0.op_UnaryNegation(CustomType x)) (OperationKind.Unary, Type: CustomType) (Syntax: '-Method()')
+IUnaryOperation (UnaryOperatorKind.Minus) (OperatorMethod: CustomType Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_UnaryNegation(CustomType x)) (OperationKind.Unary, Type: CustomType) (Syntax: '-Method()')
   Operand: 
     IInvocationOperation ( CustomType A.Method()) (OperationKind.Invocation, Type: CustomType) (Syntax: 'Method()')
       Instance Receiver: 
@@ -3764,7 +3764,7 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
     Next (Return) Block[B2]
-        IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: CustomType Extensions.<>E__0.op_LogicalNot(CustomType x)) (OperationKind.Unary, Type: CustomType) (Syntax: '!f')
+        IUnaryOperation (UnaryOperatorKind.Not) (OperatorMethod: CustomType Extensions.<G>$9F7826FAF592F1266BEA2CA4AC24ECDD.op_LogicalNot(CustomType x)) (OperationKind.Unary, Type: CustomType) (Syntax: '!f')
           Operand: 
             IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: CustomType) (Syntax: 'f')
 Block[B2] - Exit

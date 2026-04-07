@@ -23,11 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
-        Friend Overrides ReadOnly Property Language As String
-            Get
-                Return LanguageNames.VisualBasic
-            End Get
-        End Property
+        Friend Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
 
         Protected Overrides Function GetInitializedMembers(tree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As HashSet(Of String)
             Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
@@ -54,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 document As Document,
                 semanticModel As SemanticModel,
                 position As Integer,
-                cancellationToken As CancellationToken) As Tuple(Of ITypeSymbol, Location)
+                cancellationToken As CancellationToken) As (Type As ITypeSymbol, location As Location, isObjectInitializer As Boolean)?
             Dim tree = semanticModel.SyntaxTree
             If tree.IsInNonUserCode(position, cancellationToken) Then
                 Return Nothing
@@ -92,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim initializerLocation As Location = token.GetLocation()
             Dim symbolInfo = semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken)
             Dim symbol = TryCast(symbolInfo.Symbol, ITypeSymbol)
-            Return Tuple.Create(symbol, initializerLocation)
+            Return (symbol, initializerLocation, isObjectInitializer:=True)
         End Function
 
         Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean

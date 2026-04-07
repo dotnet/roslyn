@@ -18,7 +18,7 @@ internal partial class CodeStyleNoticeTextBlock : TextBlock
     public CodeStyleNoticeTextBlock()
         => InitializeComponent();
 
-    public static readonly Uri CodeStylePageHeaderLearnMoreUri = new Uri(UseEditorConfigUrl);
+    public static readonly Uri CodeStylePageHeaderLearnMoreUri = new(UseEditorConfigUrl);
     public static string CodeStylePageHeader => ServicesVSResources.Code_style_header_use_editor_config;
     public static string CodeStylePageHeaderLearnMoreText => ServicesVSResources.Learn_more;
 

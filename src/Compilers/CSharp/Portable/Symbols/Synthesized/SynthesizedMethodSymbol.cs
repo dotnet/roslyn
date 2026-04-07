@@ -44,8 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract override bool IsStatic { get; }
 
-        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+#nullable enable
+
+        internal override bool TryGetThisParameter(out ParameterSymbol? thisParameter)
         {
+            Debug.Assert(!this.IsExtensionBlockMember());
+
             if (IsStatic)
             {
                 thisParameter = null;
@@ -60,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             thisParameter = _lazyThisParameter;
             return true;
         }
+
+#nullable disable
 
         /// <summary>
         /// Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
@@ -85,11 +91,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
+
         internal override bool IsNullableAnalysisEnabled() => false;
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

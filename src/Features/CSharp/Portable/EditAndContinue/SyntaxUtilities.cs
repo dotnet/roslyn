@@ -56,7 +56,7 @@ internal static partial class SyntaxUtilities
                 when !fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword)
                 => new FieldWithInitializerDeclarationBody(variableDeclarator),
 
-            ParameterListSyntax { Parent: TypeDeclarationSyntax typeDeclaration }
+            ParameterListSyntax { Parent: TypeDeclarationSyntax typeDeclaration and not ExtensionBlockDeclarationSyntax }
                 => typeDeclaration is { BaseList.Types: [PrimaryConstructorBaseTypeSyntax { }, ..] }
                     ? new PrimaryConstructorWithExplicitInitializerDeclarationBody(typeDeclaration)
                     : new PrimaryConstructorWithImplicitInitializerDeclarationBody(typeDeclaration),
@@ -197,7 +197,7 @@ internal static partial class SyntaxUtilities
         }
 
         return property.ExpressionBody == null
-            && property.AccessorList!.Accessors.Any(e => e.Body == null && e.ExpressionBody == null);
+            && property.AccessorList!.Accessors.Any(e => e is { Body: null, ExpressionBody: null });
     }
 
     /// <summary>

@@ -40,30 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return _errors != null; }
         }
 
-        protected SyntaxDiagnosticInfo[]? GetErrors(int leadingTriviaWidth)
+        protected SyntaxDiagnosticInfo[]? GetErrors()
         {
-            if (_errors != null)
-            {
-                if (leadingTriviaWidth > 0)
-                {
-                    var array = new SyntaxDiagnosticInfo[_errors.Count];
-                    for (int i = 0; i < _errors.Count; i++)
-                    {
-                        // fixup error positioning to account for leading trivia
-                        array[i] = _errors[i].WithOffset(_errors[i].Offset + leadingTriviaWidth);
-                    }
-
-                    return array;
-                }
-                else
-                {
-                    return _errors.ToArray();
-                }
-            }
-            else
-            {
-                return null;
-            }
+            return _errors?.ToArray();
         }
 
         protected void AddError(int position, int width, ErrorCode code)
@@ -72,11 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         protected void AddError(int position, int width, ErrorCode code, params object[] args)
-        {
-            this.AddError(this.MakeError(position, width, code, args));
-        }
-
-        protected void AddError(int position, int width, XmlParseErrorCode code, params object[] args)
         {
             this.AddError(this.MakeError(position, width, code, args));
         }
@@ -124,12 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             int offset = GetLexemeOffsetFromPosition(position);
             return new SyntaxDiagnosticInfo(offset, width, code, args);
-        }
-
-        protected XmlSyntaxDiagnosticInfo MakeError(int position, int width, XmlParseErrorCode code, params object[] args)
-        {
-            int offset = GetLexemeOffsetFromPosition(position);
-            return new XmlSyntaxDiagnosticInfo(offset, width, code, args);
         }
 
         private int GetLexemeOffsetFromPosition(int position)

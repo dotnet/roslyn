@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -11,28 +12,22 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 internal static class Completion
 {
-    private static CompletionListCache? s_completionListCache;
-
-    private static CompletionListCache GetCache()
-        => s_completionListCache ??= InterlockedOperations.Initialize(ref s_completionListCache, () => new());
-
     public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
         Document document,
         LinePosition linePosition,
         LSP.CompletionContext? completionContext,
         bool supportsVSExtensions,
         LSP.CompletionSetting completionCapabilities,
+        CompletionListCacheWrapper cacheWrapper,
         CancellationToken cancellationToken)
     {
-        var cache = GetCache();
-
+        var cache = cacheWrapper.GetCache();
         var position = await document
             .GetPositionFromLinePositionAsync(linePosition, cancellationToken)
             .ConfigureAwait(false);
@@ -55,9 +50,10 @@ internal static class Completion
         Document document,
         bool supportsVSExtensions,
         LSP.CompletionSetting completionCapabilities,
+        CompletionListCacheWrapper cacheWrapper,
         CancellationToken cancellationToken)
     {
-        var cache = GetCache();
+        var cache = cacheWrapper.GetCache();
 
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var capabilityHelper = new CompletionCapabilityHelper(supportsVSExtensions, completionCapabilities);

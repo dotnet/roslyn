@@ -120,18 +120,18 @@ stages:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
           name: AzurePipelines-EO
-          image: 1ESPT-Windows2022
+          image: 1ESPT-Windows2025
           demands: Cmd
           os: windows
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           ${{ if eq(parameters.is1ESPipeline, true) }}:
             name: $(DncEngInternalBuildPool)
-            image: windows.vs2022.amd64
+            image: windows.vs2026preview.scout.amd64
             os: windows
           ${{ else }}:
             name: $(DncEngInternalBuildPool)
-            demands: ImageOverride -equals windows.vs2022.amd64
+            demands: ImageOverride -equals windows.vs2026preview.scout.amd64
 
       steps:
         - template: /eng/common/core-templates/post-build/setup-maestro-vars.yml
@@ -154,7 +154,7 @@ stages:
         - task: PowerShell@2
           displayName: Validate
           inputs:
-            filePath: $(Build.SourcesDirectory)/eng/common/post-build/nuget-validation.ps1
+            filePath: $(System.DefaultWorkingDirectory)/eng/common/post-build/nuget-validation.ps1
             arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/
 
     - job:
@@ -164,18 +164,18 @@ stages:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
           name: AzurePipelines-EO
-          image: 1ESPT-Windows2022
+          image: 1ESPT-Windows2025
           demands: Cmd
           os: windows
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           ${{ if eq(parameters.is1ESPipeline, true) }}:        
             name: $(DncEngInternalBuildPool)
-            image: 1es-windows-2022
+            image: windows.vs2026.amd64
             os: windows
           ${{ else }}:
             name: $(DncEngInternalBuildPool)
-            demands: ImageOverride -equals windows.vs2022.amd64          
+            demands: ImageOverride -equals windows.vs2026preview.scout.amd64
       steps:
         - template: /eng/common/core-templates/post-build/setup-maestro-vars.yml
           parameters:
@@ -208,7 +208,7 @@ stages:
             filePath: eng\common\sdk-task.ps1
             arguments: -task SigningValidation -restore -msbuildEngine vs
               /p:PackageBasePath='$(Build.ArtifactStagingDirectory)/PackageArtifacts'
-              /p:SignCheckExclusionsFile='$(Build.SourcesDirectory)/eng/SignCheckExclusionsFile.txt'
+              /p:SignCheckExclusionsFile='$(System.DefaultWorkingDirectory)/eng/SignCheckExclusionsFile.txt'
               ${{ parameters.signingValidationAdditionalParameters }}
 
         - template: /eng/common/core-templates/steps/publish-logs.yml
@@ -225,18 +225,18 @@ stages:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
           name: AzurePipelines-EO
-          image: 1ESPT-Windows2022
+          image: 1ESPT-Windows2025
           demands: Cmd
           os: windows
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           ${{ if eq(parameters.is1ESPipeline, true) }}:          
             name: $(DncEngInternalBuildPool)
-            image: 1es-windows-2022
+            image: windows.vs2026.amd64
             os: windows
           ${{ else }}:
             name: $(DncEngInternalBuildPool)
-            demands: ImageOverride -equals windows.vs2022.amd64          
+            demands: ImageOverride -equals windows.vs2026preview.scout.amd64
       steps:
         - template: /eng/common/core-templates/post-build/setup-maestro-vars.yml
           parameters:
@@ -258,7 +258,7 @@ stages:
         - task: PowerShell@2
           displayName: Validate
           inputs:
-            filePath: $(Build.SourcesDirectory)/eng/common/post-build/sourcelink-validation.ps1
+            filePath: $(System.DefaultWorkingDirectory)/eng/common/post-build/sourcelink-validation.ps1
             arguments: -InputPath $(Build.ArtifactStagingDirectory)/BlobArtifacts/ 
               -ExtractPath $(Agent.BuildDirectory)/Extract/ 
               -GHRepoName $(Build.Repository.Name) 
@@ -286,18 +286,18 @@ stages:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
           name: AzurePipelines-EO
-          image: 1ESPT-Windows2022
+          image: 1ESPT-Windows2025
           demands: Cmd
           os: windows
         # If it's not devdiv, it's dnceng
         ${{ else }}:
           ${{ if eq(parameters.is1ESPipeline, true) }}:          
             name: NetCore1ESPool-Publishing-Internal
-            image: windows.vs2019.amd64
+            image: windows.vs2026.amd64
             os: windows
           ${{ else }}:
             name: NetCore1ESPool-Publishing-Internal
-            demands: ImageOverride -equals windows.vs2019.amd64          
+            demands: ImageOverride -equals windows.vs2026.amd64
       steps:
         - template: /eng/common/core-templates/post-build/setup-maestro-vars.yml
           parameters:
@@ -307,13 +307,25 @@ stages:
 
         - task: NuGetAuthenticate@1
 
+        # Populate internal runtime variables.
+        - template: /eng/common/templates/steps/enable-internal-sources.yml
+          parameters:
+            legacyCredential: $(dn-bot-dnceng-artifact-feeds-rw)
+
+        - template: /eng/common/templates/steps/enable-internal-runtimes.yml
+
+        # Darc is targeting 8.0, so make sure it's installed
+        - task: UseDotNet@2
+          inputs:
+            version: 8.0.x
+
         - task: AzureCLI@2
           displayName: Publish Using Darc
           inputs:
             azureSubscription: "Darc: Maestro Production"
             scriptType: ps
             scriptLocation: scriptPath
-            scriptPath: $(Build.SourcesDirectory)/eng/common/post-build/publish-using-darc.ps1
+            scriptPath: $(System.DefaultWorkingDirectory)/eng/common/post-build/publish-using-darc.ps1
             arguments: >
               -BuildId $(BARBuildId)
               -PublishingInfraVersion ${{ parameters.publishingInfraVersion }}
@@ -323,3 +335,5 @@ stages:
               -ArtifactsPublishingAdditionalParameters '${{ parameters.artifactsPublishingAdditionalParameters }}'
               -SymbolPublishingAdditionalParameters '${{ parameters.symbolPublishingAdditionalParameters }}'
               -SkipAssetsPublishing '${{ parameters.isAssetlessBuild }}'
+              -runtimeSourceFeed https://ci.dot.net/internal 
+              -runtimeSourceFeedKey '$(dotnetbuilds-internal-container-read-token-base64)'

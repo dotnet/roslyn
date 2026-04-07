@@ -29,7 +29,6 @@ internal sealed class CSharpVisualBasicLanguageServerFactory : ILanguageServerFa
     public AbstractLanguageServer<RequestContext> Create(
         JsonRpc jsonRpc,
         JsonSerializerOptions options,
-        ICapabilitiesProvider capabilitiesProvider,
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
         HostServices hostServices,
@@ -39,7 +38,6 @@ internal sealed class CSharpVisualBasicLanguageServerFactory : ILanguageServerFa
             _lspServiceProvider,
             jsonRpc,
             options,
-            capabilitiesProvider,
             logger,
             hostServices,
             ProtocolConstants.RoslynLspLanguages,

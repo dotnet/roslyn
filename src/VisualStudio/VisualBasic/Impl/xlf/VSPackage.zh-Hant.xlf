@@ -18,36 +18,124 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
-Regex;
-regular expressions;
-related components under cursor;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
+Colorize regular expression;
+Highlight related components under cursor;
 Report invalid regular expressions;
+Enable full solution analysis;
+Perform editor feature analysis in external process;
+Enable navigation to decompiled sources;
+Always use default symbol servers for navigation;
+Import directives;
+Place System directives first when sorting imports;
+Separate import directive groups;
+Suggest imports for types in reference assemblies;
+Suggest imports for types in NuGet packages;
+Highlighting;
+Highlight references to symbol under cursor;
+Highlight related keywords under cursor;
+Outlining;
+Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
+Show procedure line separators;
+Show outlining for declaration level constructs;
+Show outlining for code level constructs;
+Show outlining for comments and preprocessor regions;
+Collapse regions when collapsing to definitions;
+Fading;
+Fade out unused imports;
+Fade out unused members;
+Block Structure Guides;
+Show guides for declaration level constructs;
+Show guides for code level constructs;
+Editor Help;
+Generate XML documentation comments for ''';
+Insert ' at the start of new lines when writing ' comments;
+Show preview for rename tracking;
+Report invalid placeholders in string.Format calls;
+Extract Method;
+Implement Interface or Abstract Class;
+When inserting properties, events and methods, place them;
+with other members of the same kind;
+at the end;
+When generating property;
+prefer throwing properties;
+prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
 JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
-Collapse #regions on file open;
-Collapse Imports on file open;
-Collapse metadata implementations on file open;
-Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">為重新指派的變數加上底線;顯示內嵌提示;自動插入結束建構;變更美化排列設定;變更大綱模式;自動插入介面和 MustOverride 成員;顯示或隱藏程序行分隔符號;開啟或關閉錯誤校正建議;開啟或關閉參考及關鍵字的醒目提示;
-Regex;
-規則運算式;
-游標下的相關元件;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="translated">為重新指派的變數加上底線;
+顯示內嵌提示;
+顯示已關閉檔案的診斷;
+為規則運算式上色;
+醒目提示游標下的相關元件;
 回報無效的規則運算式;
+啟用完整解決方案分析;
+執行在外部處理序中編輯器的功能分析;
+啟用瀏覽至解編譯的來源;
+一律使用指示詞;
+匯入指示詞;
+排序匯入時，先放置 'System' 指示詞;
+分隔匯入指示詞群組;
+為參考組件中的類型建議匯入;
+為 NuGet 套件中的類型建議匯入;
+醒目提示;
+醒目提示游標下的符號參考;
+醒目提示游標下的符號參考;
+大綱;
+在檔案開啟時進入大綱模式;
+在開啟檔案時折疊 #regions;
+在檔案開啟時摺疊匯入;
+開啟檔案時折疊中繼資料實作;
+顯示程序行分隔符號;
+顯示宣告層級建構的大綱;
+顯示程式碼層級建構的大綱;
+顯示註解與前置處理器區域的大綱;
+在摺疊到定義時摺疊區域;
+淡出;
+淡出未使用的匯入;
+淡出未使用的成員;
+區塊結構指南;
+顯示建構宣示層級的輔助線;
+顯示程式碼層級建構的輔助線;
+編輯器說明;
+產生 ''' 的 XML 文件註解;
+在撰寫 ' 註解時，於新行開頭插入 ';
+顯示重新命名追蹤的預覽;
+回報 string.Format 呼叫中無效的預留位置;
+擷取方法;
+實作介面或抽象類別;
+在插入屬性、事件和方法時，放置它們;
+隨同其他同種類的成員;
+結尾處;
+產生屬性時;
+建議使用擲回屬性;
+建議使用自動屬性;
 regex;
 規則運算式;
+為規則運算式上色;
+醒目提示游標下的相關元件;
+回報無效的規則運算式;
 JSON;
 為 JSON 字串上色;
 回報無效的 JSON 字串;
 偵測並提供 JSON 字串的編輯器功能;
-在開啟檔案時折疊 #regions;
-開啟檔案時折疊匯入;
-開啟檔案時折疊中繼資料實作;
-使用進階色彩;編輯器色彩配置;繼承頁面邊界;匯入指示詞;</target>
+使用進階色彩;
+色彩配置編輯器;
+繼承頁面邊界;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -114,11 +202,6 @@ JSON;
         <source>IntelliSense</source>
         <target state="translated">IntelliSense</target>
         <note />
-      </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member</source>
-        <target state="translated">變更完成清單設定;預先選取最近使用的成員</target>
-        <note>IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="114">
         <source>Visual Basic components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>

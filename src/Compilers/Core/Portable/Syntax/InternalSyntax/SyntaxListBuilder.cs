@@ -95,9 +95,10 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             }
         }
 
-        public void AddRange(SyntaxList<GreenNode> list)
+        public SyntaxListBuilder AddRange(SyntaxList<GreenNode> list)
         {
             this.AddRange(list, 0, list.Count);
+            return this;
         }
 
         public void AddRange(SyntaxList<GreenNode> list, int offset, int length)

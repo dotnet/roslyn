@@ -173,6 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool IsUnionTypeCore => false;
+
         internal override bool IsInterpolatedStringHandlerType => false;
 
         internal sealed override ParameterSymbol ExtensionParameter => null;
@@ -195,7 +197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override string ExtensionName
-            => throw ExceptionUtilities.Unreachable();
+        internal sealed override string? ExtensionGroupingName => null;
+
+        internal sealed override string? ExtensionMarkerName => null;
     }
 }

@@ -48,9 +48,9 @@ internal sealed class OutputWindowLogger : ILogger
 
     private sealed class OutputPane
     {
-        private static readonly Guid s_outputPaneGuid = new Guid("BBAFF416-4AF5-41F2-9F93-91F283E43C3B");
+        private static readonly Guid s_outputPaneGuid = new("BBAFF416-4AF5-41F2-9F93-91F283E43C3B");
 
-        public static readonly OutputPane s_instance = new OutputPane();
+        public static readonly OutputPane s_instance = new();
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;

@@ -35,9 +35,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override SyntaxList<AttributeListSyntax> ParameterAttributes(int index) => default;
             public override bool HasSignature { get { return true; } }
 
-            public override bool HasExplicitReturnType(out RefKind refKind, out TypeWithAnnotations returnType)
+            public override bool HasExplicitReturnType(out RefKind refKind, out ImmutableArray<CustomModifier> refCustomModifiers, out TypeWithAnnotations returnType)
             {
                 refKind = default;
+                refCustomModifiers = [];
                 returnType = default;
                 return false;
             }

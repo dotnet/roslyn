@@ -33,8 +33,12 @@ internal static partial class ClassifierHelper
         bool includeAdditiveSpans,
         CancellationToken cancellationToken)
     {
-        return await GetClassifiedSpansAsync(document, [span], options, includeAdditiveSpans, cancellationToken)
+        using var _ = Classifier.GetPooledList(out var classifiedSpans);
+
+        await AddClassifiedSpansAsync(classifiedSpans, document, [span], options, includeAdditiveSpans, cancellationToken)
             .ConfigureAwait(false);
+
+        return [.. classifiedSpans];
     }
 
     /// <summary>
@@ -49,7 +53,8 @@ internal static partial class ClassifierHelper
     /// results or not.  'Additive' spans are things like 'this variable is static' or 'this variable is
     /// overwritten'.  i.e. they add additional information to a previous classification.</param>
     /// <param name="cancellationToken">A cancellation token.</param>
-    public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
+    public static async Task AddClassifiedSpansAsync(
+        SegmentedList<ClassifiedSpan> classifiedSpans,
         Document document,
         ImmutableArray<TextSpan> spans,
         ClassificationOptions options,
@@ -58,7 +63,7 @@ internal static partial class ClassifierHelper
     {
         var classificationService = document.GetLanguageService<IClassificationService>();
         if (classificationService == null)
-            return default;
+            return;
 
         // Call out to the individual language to classify the chunk of text around the
         // reference. We'll get both the syntactic and semantic spans for this region.
@@ -90,8 +95,7 @@ internal static partial class ClassifierHelper
         }
 
         var widenedSpan = new TextSpan(spans[0].Start, spans[^1].End);
-        var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, widenedSpan);
-        return classifiedSpans;
+        MergeClassifiedSpans(syntaxSpans, semanticSpans, widenedSpan, classifiedSpans);
     }
 
     private static void RemoveAdditiveSpans(SegmentedList<ClassifiedSpan> spans)
@@ -104,10 +108,11 @@ internal static partial class ClassifierHelper
         }
     }
 
-    private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
+    private static void MergeClassifiedSpans(
         SegmentedList<ClassifiedSpan> syntaxSpans,
         SegmentedList<ClassifiedSpan> semanticSpans,
-        TextSpan widenedSpan)
+        TextSpan widenedSpan,
+        SegmentedList<ClassifiedSpan> classifiedSpans)
     {
         // The spans produced by the language services may not be ordered
         // (indeed, this happens with semantic classification as different
@@ -130,16 +135,14 @@ internal static partial class ClassifierHelper
         AdjustSpans(syntaxSpans, widenedSpan);
         AdjustSpans(semanticSpans, widenedSpan);
 
-        using var _1 = Classifier.GetPooledList(out var mergedSpans);
+        using var _ = Classifier.GetPooledList(out var mergedSpans);
 
         MergeParts(syntaxSpans, semanticSpans, mergedSpans);
         Order(mergedSpans);
 
         // The classification service will only produce classifications for things it knows about.  i.e. there will
         // be gaps in what it produces. Fill in those gaps so we have *all* parts of the span classified properly.
-        using var _2 = Classifier.GetPooledList(out var filledInSpans);
-        FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, filledInSpans);
-        return [.. filledInSpans];
+        FillInClassifiedSpanGaps(widenedSpan.Start, mergedSpans, classifiedSpans);
     }
 
     private static readonly Comparison<ClassifiedSpan> s_spanComparison = static (s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start;

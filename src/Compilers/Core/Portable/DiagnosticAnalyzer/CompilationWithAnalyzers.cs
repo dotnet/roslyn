@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _suppressors = analyzers.OfType<DiagnosticSuppressor>().ToImmutableArrayOrEmpty();
             _analysisOptions = analysisOptions;
 
-            _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers, _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty);
+            _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers, _analysisOptions.Options.GetAdditionalFiles());
             _compilationAnalysisScope = AnalysisScope.Create(_compilation, _analyzers, this);
         }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         #endregion
 
-        private ImmutableArray<AdditionalText> AdditionalFiles => _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty;
+        private ImmutableArray<AdditionalText> AdditionalFiles => _analysisOptions.Options.GetAdditionalFiles();
 
         /// <summary>
         /// Returns diagnostics produced by all <see cref="Analyzers"/>.

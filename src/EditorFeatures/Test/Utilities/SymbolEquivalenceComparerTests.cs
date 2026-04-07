@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 [UseExportProvider]
 public sealed class SymbolEquivalenceComparerTests
 {
-    public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+    public static readonly CS.CSharpCompilationOptions CSharpDllOptions = new(OutputKind.DynamicallyLinkedLibrary);
     public static readonly CS.CSharpCompilationOptions CSharpSignedDllOptions = new CS.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
         WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
         WithStrongNameProvider(DefaultDesktopStrongNameProvider);

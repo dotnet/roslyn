@@ -87,10 +87,25 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
         => expression is null ? null : WhenClause(expression);
 
     public override SyntaxNode AsSwitchLabelSyntax(AnalyzedSwitchLabel label, Feature feature)
-        => CasePatternSwitchLabel(
+    {
+        if (label.Guards.IsEmpty)
+        {
+            if (label.Pattern is AnalyzedPattern.Constant constant)
+                return CaseSwitchLabel(constant.ExpressionSyntax);
+
+            if (label.Pattern is AnalyzedPattern.Source { PatternSyntax: ConstantPatternSyntax { Expression: LiteralExpressionSyntax literal } })
+                return CaseSwitchLabel(literal);
+
+            if (feature.HasFlag(Feature.TypePattern) && label.Pattern is AnalyzedPattern.Type { IsExpressionSyntax: BinaryExpressionSyntax { Right: IdentifierNameSyntax name } })
+                return CaseSwitchLabel(name);
+        }
+
+        return CasePatternSwitchLabel(
+            CaseKeyword.WithTrailingTrivia(Space),
             AsPatternSyntax(label.Pattern, feature),
             AsWhenClause(label),
-            ColonToken);
+            ColonToken.WithTrailingTrivia(ElasticCarriageReturnLineFeed));
+    }
 
     private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern, Feature feature)
         => pattern switch

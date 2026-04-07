@@ -24,9 +24,9 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
         private readonly ReferenceAssemblyResult _referenceAssemblyWithType = referenceAssemblyWithType;
 
         public override async Task<AddImportFixData> TryGetFixDataAsync(
-            Document document, SyntaxNode node, CodeCleanupOptions options, CancellationToken cancellationToken)
+            Document document, SyntaxNode node, bool cleanDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
         {
-            var textChanges = await GetTextChangesAsync(document, node, options, cancellationToken).ConfigureAwait(false);
+            var textChanges = await GetTextChangesAsync(document, node, cleanDocument, options, cancellationToken).ConfigureAwait(false);
 
             var title = $"{provider.GetDescription(SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
             var fullyQualifiedTypeName = string.Join(

@@ -183,7 +183,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
 
         if (indexers.Any() && expression is MemberAccessExpressionSyntax memberAccessExpression)
         {
-            expressionType = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type!;
+            expressionType = semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type;
             return true;
         }
 

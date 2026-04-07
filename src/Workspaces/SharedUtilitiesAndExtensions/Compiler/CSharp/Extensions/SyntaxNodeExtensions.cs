@@ -823,9 +823,8 @@ internal static partial class SyntaxNodeExtensions
         {
             foreach (var symbol in info.GetAllSymbols())
             {
-                if (symbol is IMethodSymbol method &&
-                    method.Parameters.Length > 0 &&
-                    expressionType.Equals(method.Parameters[0].Type?.OriginalDefinition))
+                if (symbol is IMethodSymbol { Parameters: [{ Type.OriginalDefinition: var parameterType }, ..] } &&
+                    expressionType.Equals(parameterType))
                 {
                     return true;
                 }

@@ -23,19 +23,13 @@ internal sealed partial class CSharpIntroduceParameterCodeRefactoringProvider()
     ArgumentSyntax>
 {
     protected override SyntaxNode GenerateExpressionFromOptionalParameter(IParameterSymbol parameterSymbol)
-    {
-        return ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
-    }
+        => ExpressionGenerator.GenerateExpression(parameterSymbol.Type, parameterSymbol.ExplicitDefaultValue, canUseFieldReference: true);
 
     protected override SyntaxNode? GetLocalDeclarationFromDeclarator(SyntaxNode variableDecl)
-    {
-        return variableDecl.Parent?.Parent as LocalDeclarationStatementSyntax;
-    }
+        => variableDecl.Parent?.Parent as LocalDeclarationStatementSyntax;
 
     protected override bool IsDestructor(IMethodSymbol methodSymbol)
-    {
-        return false;
-    }
+        => false;
 
     protected override SyntaxNode UpdateArgumentListSyntax(SyntaxNode argumentList, SeparatedSyntaxList<ArgumentSyntax> arguments)
         => ((ArgumentListSyntax)argumentList).WithArguments(arguments);

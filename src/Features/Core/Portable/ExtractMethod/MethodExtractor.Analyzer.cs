@@ -227,7 +227,7 @@ internal abstract partial class AbstractExtractMethodService<
             {
                 var readonlyFieldStatus = CheckReadOnlyFields(symbolMap);
 
-                var namesWithAnonymousTypes = variables.Where(v => v.OriginalTypeHadAnonymousTypeOrDelegate).Select(v => v.Name ?? string.Empty);
+                var namesWithAnonymousTypes = variables.SelectAsArray(v => v.OriginalTypeHadAnonymousTypeOrDelegate, v => v.Name ?? string.Empty);
                 if (returnTypeHasAnonymousType)
                 {
                     namesWithAnonymousTypes = namesWithAnonymousTypes.Concat("return type");
@@ -859,6 +859,10 @@ internal abstract partial class AbstractExtractMethodService<
 
             private ImmutableArray<ITypeParameterSymbol> GetMethodTypeParametersInDeclaration(ITypeSymbol returnType, SortedDictionary<int, ITypeParameterSymbol> sortedMap)
             {
+                // No need to pass generic type args to a local function.  They are already implicitly referenceable.
+                if (this.LocalFunction)
+                    return [];
+
                 // add return type to the map
                 AddTypeParametersToMap(TypeParameterCollector.Collect(returnType), sortedMap);
 

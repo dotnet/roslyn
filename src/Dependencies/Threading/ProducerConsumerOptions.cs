@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if !MICROSOFT_CODEANALYSIS_THREADING_NO_CHANNELS
+
 #nullable enable
 
 using System.Threading.Channels;
@@ -32,3 +34,5 @@ internal readonly record struct ProducerConsumerOptions
 #endif
     public bool SingleReader { get; init; }
 }
+
+#endif

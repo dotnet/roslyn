@@ -298,43 +298,6 @@ for 문의 세미콜론 앞에 공백 삽입;
         <target state="translated">래핑 서식 옵션 변경;블록 한 줄에 두기;문과 멤버 선언을 같은 줄에 두기</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
-      <trans-unit id="312">
-        <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
-Show completion list after a character is typed;
-Show completion list after a character is deleted;
-Automatically show completion list in argument lists (experimental);
-Highlight matching portions of completion list items;
-Show completion item filters;
-Automatically complete statement on semicolon;
-Snippets behavior;
-Never include snippets;
-Always include snippets;
-Include snippets when ?-Tab is typed after an identifier;
-Enter key behavior;
-Never add new line on enter;
-Only add new line on enter after end of fully typed word;
-Always add new line on enter;
-Show name suggestions;
-Show items from unimported namespaces (experimental);</source>
-        <target state="translated">완성 목록 설정 변경;가장 최근에 사용한 멤버 미리 선택; 완성 목록;
-문자를 입력하면 완성 목록 표시;
-문자를 삭제하면 완성 목록 표시;
-인수 목록에 자동으로 완성 목록 표시(실험적);
-완성 목록 항목에서 일치하는 부분 강조 표시;
-완성 항목 필터 표시;
-세미콜론 입력 시 자동으로 문 완성;
-코드 조각 동작;
-코드 조각 포함 안 함;
-코드 조각 항상 포함;
-식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함;
-&lt;Enter&gt; 키 동작;
-&lt;Enter&gt; 키를 누를 때 새 줄 추가 안 함;
-단어를 모두 입력한 후 &lt;Enter&gt; 키를 누를 때만 새 줄 추가;
-&lt;Enter&gt; 키를 누를 때 항상 새 줄 추가;
-이름 제안 표시;
-가져오지 않은 네임스페이스의 항목 표시(실험적);</target>
-        <note>C# IntelliSense options page keywords</note>
-      </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
         <target state="translated">서식</target>

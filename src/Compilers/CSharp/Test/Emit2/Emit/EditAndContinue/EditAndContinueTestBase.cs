@@ -29,6 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
     public abstract class EditAndContinueTestBase : EmitMetadataTestBase
     {
+        public static readonly string MetadataUpdateDeletedAttributeSource = """
+            namespace System.Runtime.CompilerServices
+            {
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = false, Inherited = false)]
+                public sealed class MetadataUpdateDeletedAttribute : Attribute; 
+            }
+            """;
+
         // PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
         internal static readonly CSharpCompilationOptions ComSafeDebugDll = TestOptions.DebugDll.WithConcurrentBuild(false);
 

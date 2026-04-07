@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 ' Make sure we don't crash
                 Dim unused = Await codefixService.GetMostSevereFixAsync(
-                    document, Text.TextSpan.FromBounds(0, 0), New DefaultCodeActionRequestPriorityProvider(), CancellationToken.None)
+                    document, Text.TextSpan.FromBounds(0, 0), priority:=Nothing, CancellationToken.None)
             End Using
         End Function
 

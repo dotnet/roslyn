@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SyntaxNode _syntax;
         private readonly ImmutableArray<ParameterSymbol> _parameters;
         private RefKind _refKind;
+        private ImmutableArray<CustomModifier> _refCustomModifiers;
         private TypeWithAnnotations _returnType;
+        private bool _runtimeAsyncEnabledChangedDuringInference;
         private readonly bool _isSynthesized;
         private readonly bool _isAsync;
         private readonly bool _isStatic;
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<TypeWithAnnotations> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             RefKind refKind,
+            ImmutableArray<CustomModifier> refCustomModifiers,
             TypeWithAnnotations returnType) :
             base(unboundLambda.Syntax.GetReference())
         {
@@ -57,9 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingSymbol = containingSymbol;
             _messageID = unboundLambda.Data.MessageID;
             _syntax = unboundLambda.Syntax;
-            if (!unboundLambda.HasExplicitReturnType(out _refKind, out _returnType))
+            if (!unboundLambda.HasExplicitReturnType(out _refKind, out _refCustomModifiers, out _returnType))
             {
                 _refKind = refKind;
+                _refCustomModifiers = refCustomModifiers;
                 _returnType = !returnType.HasType ? TypeWithAnnotations.Create(ReturnTypeIsBeingInferred) : returnType;
             }
             _isSynthesized = unboundLambda.WasCompilerGenerated;
@@ -148,6 +152,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
+        public override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return _refCustomModifiers; }
+        }
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get { return _returnType; }
@@ -160,15 +169,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetInferredReturnType(RefKind refKind, TypeWithAnnotations inferredReturnType)
         {
             Debug.Assert(inferredReturnType.HasType);
-            Debug.Assert(_returnType.Type.IsErrorType());
+            Debug.Assert((object)_returnType.Type == ReturnTypeIsBeingInferred);
+            Debug.Assert(refKind != RefKind.RefReadOnly);
+
+            var runtimeAsyncEnabledDuringInference = IsAsync && _binder.Compilation.IsRuntimeAsyncEnabledIn(this);
             _refKind = refKind;
+            _refCustomModifiers = [];
             _returnType = inferredReturnType;
+            _runtimeAsyncEnabledChangedDuringInference = IsAsync && runtimeAsyncEnabledDuringInference != _binder.Compilation.IsRuntimeAsyncEnabledIn(this);
         }
 
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
+        /// <summary>
+        /// True if <see cref="SetInferredReturnType(RefKind, TypeWithAnnotations)"/> changed whether <see cref="CSharpCompilation.IsRuntimeAsyncEnabledIn(Symbol?)"/> returns true for this method.
+        /// In such cases, the lambda body needs to be re-bound to ensure correct handling of await expressions.
+        /// </summary>
+        public bool RuntimeAsyncEnabledChangedDuringInference => _runtimeAsyncEnabledChangedDuringInference;
 
         internal override bool IsExplicitInterfaceImplementation
         {
@@ -382,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol is LambdaSymbol lambda
                 && lambda._syntax == _syntax
                 && lambda._refKind == _refKind
+                && lambda._refCustomModifiers.SequenceEqual(_refCustomModifiers)
                 && TypeSymbol.Equals(lambda.ReturnType, this.ReturnType, compareKind)
                 && ParameterTypesWithAnnotations.SequenceEqual(lambda.ParameterTypesWithAnnotations, compareKind,
                                                                (p1, p2, compareKind) => p1.Equals(p2, compareKind))
@@ -409,6 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsDeclaredReadOnly => false;
 
         internal override bool IsInitOnly => false;
+
+        internal override bool IsUnsafe => false;
 
         public override ImmutableArray<ImmutableArray<TypeWithAnnotations>> GetTypeParameterConstraintTypes() => ImmutableArray<ImmutableArray<TypeWithAnnotations>>.Empty;
 

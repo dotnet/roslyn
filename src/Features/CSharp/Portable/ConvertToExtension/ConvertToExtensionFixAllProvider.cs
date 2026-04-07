@@ -21,16 +21,16 @@ using FixAllScope = CodeAnalysis.CodeFixes.FixAllScope;
 
 internal sealed partial class ConvertToExtensionCodeRefactoringProvider
 {
-    private sealed class ConvertToExtensionFixAllProvider()
-        : DocumentBasedFixAllProvider(
-            [FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution, FixAllScope.ContainingType])
+    private sealed class ConvertToExtensionRefactorAllProvider()
+        : DocumentBasedRefactorAllProvider(
+            [RefactorAllScope.Document, RefactorAllScope.Project, RefactorAllScope.Solution, RefactorAllScope.ContainingType])
     {
-        protected override async Task<Document?> FixAllAsync(
-            FixAllContext fixAllContext,
+        protected override async Task<Document?> RefactorAllAsync(
+            RefactorAllContext refactorAllContext,
             Document document,
-            Optional<ImmutableArray<TextSpan>> fixAllSpans)
+            Optional<ImmutableArray<TextSpan>> refactorAllSpans)
         {
-            var cancellationToken = fixAllContext.CancellationToken;
+            var cancellationToken = refactorAllContext.CancellationToken;
 
             var codeGenerationService = (CSharpCodeGenerationService)document.GetRequiredLanguageService<ICodeGenerationService>();
 
@@ -38,7 +38,7 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var editor = new SyntaxEditor(root, document.Project.Solution.Services);
-            foreach (var declaration in GetTopLevelClassDeclarations(root, fixAllSpans))
+            foreach (var declaration in GetTopLevelClassDeclarations(root, refactorAllSpans))
             {
                 // We might hit partial parts that have no extension methods in them.  Just skip those.
                 var extensionMethods = GetAllExtensionMethods(semanticModel, declaration, cancellationToken);

@@ -24,7 +24,7 @@ public sealed class GlobalOptionsTest : AbstractIntegrationTest
     {
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/79886")]
     public async Task ValidateAllOptions()
     {
         var globalOptions = (GlobalOptionService)await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);

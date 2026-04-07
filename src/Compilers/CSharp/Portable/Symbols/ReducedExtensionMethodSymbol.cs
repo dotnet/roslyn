@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(reducedFrom.ParameterCount > 0);
 
             _reducedFrom = reducedFrom;
-            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, out _typeParameters);
+            _typeMap = TypeMap.Empty.WithAlphaRename(reducedFrom, this, propagateAttributes: false, out _typeParameters);
             _typeArguments = _typeMap.SubstituteTypes(reducedFrom.TypeArgumentsWithAnnotations);
         }
 
@@ -502,6 +503,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => _reducedFrom.FlowAnalysisAnnotations;
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get { return _typeMap.SubstituteCustomModifiers(_reducedFrom.RefCustomModifiers); }
@@ -600,6 +603,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => throw ExceptionUtilities.Unreachable();
 
         internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
 
@@ -702,6 +707,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
             }
+
+            internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+                => throw ExceptionUtilities.Unreachable();
         }
     }
 }

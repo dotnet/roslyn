@@ -17,9 +17,20 @@ There are a few ways to tell:
 3. If you're using Visual Studio 2015 Update 2 or later, look for warning IDE0006 in the error list:
     ![IDE0006 error example](images/design-time-build-errors/ide0006.png)
 
-## How do I get log files to diagnose what is happening in Visual Studio 2022?
+## How do I get log files to diagnose what is happening in Visual Studio 2026?
 
-1. Install the [Project System Tools 2022 Extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools2022)
+1. Go under the View menu, choose Other Windows, and then Command Window.
+2. The Command Window opens up. In it, type `Project.LogRoslynWorkspaceStructure`:
+
+    ![Example screenshot of the Command Window](images/design-time-build-errors//typing-in-command-window.png)
+
+3. Press enter. A prompt will appear asking you to save an XML file. This will prompt to save an XML file, and the process may take some time. Attach this item privately to your problem report if you have one.
+
+## How do I get log files to diagnose what is happening in Visual Studio 2017, 2019, or 2022?
+
+1. Install the Project System Tools Extension from the Visual Studio Marketplace:
+   - [Version for Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools2022)
+   - [Version for Visual Studio 2017 and 2019](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools)
 2. Restart Visual Studio as a part of installing the extension.
 3. Close Visual Studio again, find your solution file on disk, and delete the .vs hidden folder that is alongside your solution. You'll have to show hidden files if you don't see it.
 4. Open Visual Studio. Don't open your Solution yet.
@@ -58,7 +69,7 @@ you'll see a bunch of files that end in `.designtime.log`.
 
   `Project "c:\Projects\ConsoleApplication53\ConsoleApplication53\ConsoleApplication53.csproj" (Compile target(s)):`
 
-  This shows the full name of the project, along with the target (Compile) being ran. Once again, look for the "Compile"
+  This shows the full name of the project, along with the target (Compile) being run. Once again, look for the "Compile"
   target. There are files with other targets being invoked, you'll want to ignore those. You might want to consider
   using Visual Studio's "find in files" feature to find the right file.
 
@@ -67,15 +78,15 @@ see something like this:
 
     Build FAILED.
 
-    c:\ConsoleApplication53\ConsoleApplication53\ConsoleApplication53.csproj(17,5): error : An error occured!
+    c:\ConsoleApplication53\ConsoleApplication53\ConsoleApplication53.csproj(17,5): error : An error occurred!
         0 Warning(s)
         1 Error(s)
 
-Notably, you should see `Build FAILED` and then one or more errors. This is summary of the errors in the log, so if you
+Notably, you should see `Build FAILED` and then one or more errors. This is a summary of the errors in the log, so if you
 do see an error, you should now search this log file for that error and find out where it is. Hopefully, the error will
 give some sort of a hint; it's looking for some file or SDK that's not installed, or some permissions were denied, etc.
 In that case, you can follow up with the owner of that to figure out what went wrong.
 
 If it seems to be a problem with Visual Studio itself, you might want to file a bug on
-[the Roslyn GitHub project](https://github.com/dotnet/roslyn) have a Visual Studio engineer take a look. Make sure you
+[the Roslyn GitHub project](https://github.com/dotnet/roslyn) to have a Visual Studio engineer take a look. Make sure you
 provide the full log and if possible your project file, since we may need both to diagnose the problem.

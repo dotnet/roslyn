@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.ReleaseTracking;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 
                 if (fixAllContext.CodeActionEquivalenceKey == CodeAnalysisDiagnosticsResources.EnableAnalyzerReleaseTrackingRuleTitle)
                 {
-                    var projectIds = diagnosticsToFix.Select(d => d.Key.Id).ToImmutableArray();
+                    var projectIds = diagnosticsToFix.SelectAsArray(d => d.Key.Id);
                     return new FixAllAddAdditionalDocumentsAction(projectIds, fixAllContext.Solution);
                 }
 

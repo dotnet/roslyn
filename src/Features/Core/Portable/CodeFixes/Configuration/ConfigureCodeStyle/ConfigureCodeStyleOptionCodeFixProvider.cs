@@ -91,7 +91,7 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
                     ? new TopLevelConfigureCodeStyleOptionCodeAction(diagnostic, nestedActions.ToImmutable())
                     : nestedActions.Single();
 
-                result.Add(new CodeFix(project, resultCodeAction, diagnostic));
+                result.Add(new CodeFix(resultCodeAction, [diagnostic]));
             }
         }
 
@@ -121,7 +121,7 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
             {
                 foreach (var enumValue in Enum.GetValues(t))
                 {
-                    AddCodeActionWithOptionValue(defaultValue, enumValue!);
+                    AddCodeActionWithOptionValue(defaultValue, enumValue);
                 }
             }
 

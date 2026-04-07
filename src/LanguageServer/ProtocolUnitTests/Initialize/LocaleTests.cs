@@ -41,10 +41,10 @@ public sealed class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractL
             Locale = "ja"
         });
 
-        await using var testLspServerTwo = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        await using var testLspServerTwo = await CreateTestLspServerAsync(testLspServerOne.TestWorkspace, new InitializationOptions
         {
             Locale = "zh"
-        });
+        }, LanguageNames.CSharp);
 
         var resultOne = await testLspServerOne.ExecuteRequestAsync<Request, Response>(LocaleTestHandler.MethodName, new Request(), CancellationToken.None);
         var resultTwo = await testLspServerTwo.ExecuteRequestAsync<Request, Response>(LocaleTestHandler.MethodName, new Request(), CancellationToken.None);
@@ -93,9 +93,9 @@ public sealed class LocaleTests(ITestOutputHelper? testOutputHelper) : AbstractL
         public bool MutatesSolutionState => true;
         public bool RequiresLSPSolution => true;
 
-        public Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<Response> HandleRequestAsync(Request request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new Response(CultureInfo.CurrentUICulture.Name));
+            return new Response(CultureInfo.CurrentUICulture.Name);
         }
     }
 

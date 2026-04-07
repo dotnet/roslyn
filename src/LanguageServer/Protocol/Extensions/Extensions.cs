@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -72,11 +73,18 @@ internal static partial class Extensions
     {
         var documentIds = GetDocumentIds(solution, documentUri);
 
-        var documents = documentIds
-            .Select(solution.GetTextDocument)
-            .WhereNotNull()
-            .ToImmutableArray();
-        return documents;
+        if (documentIds.IsEmpty)
+            return [];
+
+        using var _ = ArrayBuilder<TextDocument>.GetInstance(out var documentsBuilder);
+
+        foreach (var documentId in documentIds)
+        {
+            if (solution.GetTextDocument(documentId) is { } document)
+                documentsBuilder.Add(document);
+        }
+
+        return documentsBuilder.ToImmutableAndClear();
     }
 
     public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, DocumentUri documentUri)
@@ -115,19 +123,25 @@ internal static partial class Extensions
     /// </summary>
     public static async ValueTask<TextDocument?> GetTextDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
     {
-        // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
-        if (documentIdentifier.DocumentUri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
-        {
-            // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
-            // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
-            var documentId = solution.GetDocumentIds(documentIdentifier.DocumentUri).SingleOrDefault();
-            return await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-        }
-
-        var documents = solution.GetTextDocuments(documentIdentifier.DocumentUri);
+        var documents = await solution.GetTextDocumentsAsync(documentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
         return documents.Length == 0
             ? null
             : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
+    }
+
+    public static async ValueTask<ImmutableArray<TextDocument>> GetTextDocumentsAsync(this Solution solution, DocumentUri documentUri, CancellationToken cancellationToken)
+    {
+        // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
+        if (documentUri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
+        {
+            // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
+            // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
+            var documentId = solution.GetDocumentIds(documentUri).SingleOrDefault();
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            return document is not null ? [document] : [];
+        }
+
+        return solution.GetTextDocuments(documentUri);
     }
 
     private static T FindItemInProjectContext<T>(
@@ -183,7 +197,7 @@ internal static partial class Extensions
             return null;
         }
 
-        var projects = solution.Projects.Where(project => project.FilePath == projectIdentifier.DocumentUri.ParsedUri.LocalPath).ToImmutableArray();
+        var projects = solution.Projects.WhereAsArray(project => project.FilePath == projectIdentifier.DocumentUri.ParsedUri.LocalPath);
         return !projects.Any()
             ? null
             : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);
@@ -254,7 +268,7 @@ internal static partial class Extensions
     }
 
     public static ClassifiedTextElement GetClassifiedText(this DefinitionItem definition)
-        => new ClassifiedTextElement(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+        => new(definition.DisplayParts.Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
 
     private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSInternalCompletionListSetting? completionListSetting)
     {
@@ -460,6 +474,8 @@ internal static partial class Extensions
             Glyph.TargetTypeMatch => (KnownImageIds.ImageCatalogGuid, KnownImageIds.MatchType),
 
             Glyph.TypeParameter => (KnownImageIds.ImageCatalogGuid, KnownImageIds.Type),
+
+            Glyph.Copilot => (KnownImageIds.ImageCatalogGuid, KnownImageIds.SparkleNoColor),
 
             _ => throw new ArgumentException($"Unknown glyph value: {glyph}", nameof(glyph)),
         };

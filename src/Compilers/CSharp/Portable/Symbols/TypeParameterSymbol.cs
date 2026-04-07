@@ -592,8 +592,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ParameterSymbol ExtensionParameter => null;
-
         internal sealed override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             return HasUnmanagedTypeConstraint ? ManagedKind.Unmanaged : ManagedKind.Managed;
@@ -726,6 +724,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             length = 0;
             return false;
+        }
+
+        internal byte GetSynthesizedNullableAttributeValue()
+        {
+            if (this.HasReferenceTypeConstraint)
+            {
+                switch (this.ReferenceTypeConstraintIsNullable)
+                {
+                    case true:
+                        return NullableAnnotationExtensions.AnnotatedAttributeValue;
+                    case false:
+                        return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+                }
+            }
+            else if (this.HasNotNullConstraint)
+            {
+                return NullableAnnotationExtensions.NotAnnotatedAttributeValue;
+            }
+            else if (!this.HasValueTypeConstraint && this.ConstraintTypesNoUseSiteDiagnostics.IsEmpty && this.IsNotNullable == false)
+            {
+                return NullableAnnotationExtensions.AnnotatedAttributeValue;
+            }
+            return NullableAnnotationExtensions.ObliviousAttributeValue;
         }
     }
 }

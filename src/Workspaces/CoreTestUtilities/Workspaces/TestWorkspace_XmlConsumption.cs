@@ -284,7 +284,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
         else if (language == LanguageNames.VisualBasic)
         {
             return new VisualBasicParseOptions(preprocessorSymbols: preprocessorSymbolsAttribute.Value
-                .Split(',').Select(v => KeyValuePair.Create(v.Split('=').ElementAt(0), (object)v.Split('=').ElementAt(1))).ToImmutableArray());
+                .Split(',').SelectAsArray(v => KeyValuePair.Create(v.Split('=').ElementAt(0), (object)v.Split('=').ElementAt(1))));
         }
         else
         {
@@ -672,7 +672,8 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
             AssertEx.Fail($"The document attributes on file {fileName} conflicted");
         }
 
-        var filePath = Path.Combine(TestWorkspace.RootDirectory, fileName);
+        var resolveFilePath = (bool?)documentElement.Attribute("ResolveFilePath");
+        var filePath = resolveFilePath is null or true ? Path.Combine(TestWorkspace.RootDirectory, fileName) : fileName;
 
         return CreateDocument(
             exportProvider, languageServiceProvider, code, fileName, filePath, cursorPosition, spans, codeKind, folders, isLinkFile, documentServiceProvider);
@@ -731,7 +732,7 @@ public partial class TestWorkspace<TDocument, TProject, TSolution>
         var compilation = CreateCompilation(referencedSource);
 
         var aliasElement = referencedSource.Attribute("Aliases")?.Value;
-        var aliases = aliasElement != null ? aliasElement.Split(',').Select(s => s.Trim()).ToImmutableArray() : default;
+        var aliases = aliasElement != null ? aliasElement.Split(',').SelectAsArray(s => s.Trim()) : default;
 
         var includeXmlDocComments = false;
         var includeXmlDocCommentsAttribute = referencedSource.Attribute(IncludeXmlDocCommentsAttributeName);

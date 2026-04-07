@@ -67,8 +67,9 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             if (!fullSolutionAnalysisEnabled && !codeAnalysisService.HasProjectBeenAnalyzed(project.Id))
                 return;
 
-            Func<DiagnosticAnalyzer, bool>? shouldIncludeAnalyzer = !compilerFullSolutionAnalysisEnabled || !analyzersFullSolutionAnalysisEnabled
-                ? ShouldIncludeAnalyzer : null;
+            var filter =
+                (compilerFullSolutionAnalysisEnabled ? AnalyzerFilter.CompilerAnalyzer : 0) |
+                (analyzersFullSolutionAnalysisEnabled ? AnalyzerFilter.NonCompilerAnalyzer : 0);
 
             AddDocumentSources(project.Documents);
             AddDocumentSources(project.AdditionalDocuments);
@@ -89,7 +90,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
                     {
                         // Add the appropriate FSA or CodeAnalysis document source to get document diagnostics.
                         var documentDiagnosticSource = fullSolutionAnalysisEnabled
-                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, shouldIncludeAnalyzer)
+                            ? AbstractWorkspaceDocumentDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(document, filter)
                             : AbstractWorkspaceDocumentDiagnosticSource.CreateForCodeAnalysisDiagnostics(document, codeAnalysisService);
                         result.Add(documentDiagnosticSource);
                     }
@@ -99,13 +100,10 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
             void AddProjectSource()
             {
                 var projectDiagnosticSource = fullSolutionAnalysisEnabled
-                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, shouldIncludeAnalyzer)
+                    ? AbstractProjectDiagnosticSource.CreateForFullSolutionAnalysisDiagnostics(project, filter)
                     : AbstractProjectDiagnosticSource.CreateForCodeAnalysisDiagnostics(project, codeAnalysisService);
                 result.Add(projectDiagnosticSource);
             }
-
-            bool ShouldIncludeAnalyzer(DiagnosticAnalyzer analyzer)
-                => analyzer.IsCompilerAnalyzer() ? compilerFullSolutionAnalysisEnabled : analyzersFullSolutionAnalysisEnabled;
         }
     }
 }

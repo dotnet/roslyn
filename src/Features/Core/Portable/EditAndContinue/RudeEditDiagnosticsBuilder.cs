@@ -4,8 +4,8 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -44,6 +44,6 @@ internal readonly struct RudeEditDiagnosticsBuilder : IDisposable
     public ImmutableArray<RudeEditDiagnostic> GetAllDiagnostics(Func<RudeEditDiagnostic, RudeEditReportingCondition, bool> includeDeferred)
         => [
             .. Diagnostics,
-            .. DeferredDiagnostics.Where(item => includeDeferred(item.diagnostic, item.condition)).Select(static item => item.diagnostic)
+            .. DeferredDiagnostics.SelectAsArray(item => includeDeferred(item.diagnostic, item.condition), static item => item.diagnostic)
            ];
 }

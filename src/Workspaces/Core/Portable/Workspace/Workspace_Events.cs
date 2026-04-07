@@ -189,7 +189,7 @@ public abstract partial class Workspace
         return _eventMap.GetEventHandlerSet(eventType);
     }
 
-    private void EnsureEventListeners()
+    private protected void EnsureEventListeners()
     {
         // Cache this service so it doesn't need to be retrieved from MEF during disposal.
         _workspaceEventListenerService ??= this.Services.GetService<IWorkspaceEventListenerService>();

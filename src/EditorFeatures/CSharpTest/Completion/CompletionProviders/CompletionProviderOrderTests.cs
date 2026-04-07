@@ -62,7 +62,7 @@ public sealed class CompletionProviderOrderTests
             typeof(InternalsVisibleToCompletionProvider),
             typeof(PropertySubpatternCompletionProvider),
             typeof(TypeImportCompletionProvider),
-            typeof(ExtensionMethodImportCompletionProvider),
+            typeof(ExtensionMemberImportCompletionProvider),
             typeof(AggregateEmbeddedLanguageCompletionProvider),
             typeof(FunctionPointerUnmanagedCallingConventionCompletionProvider),
             typeof(CSharpSnippetCompletionProvider),
@@ -70,6 +70,13 @@ public sealed class CompletionProviderOrderTests
             // Built-in interactive providers
             typeof(LoadDirectiveCompletionProvider),
             typeof(ReferenceDirectiveCompletionProvider),
+
+            // File-based programs providers
+            typeof(SdkAppDirectiveCompletionProvider),
+            typeof(PropertyAppDirectiveCompletionProvider),
+            typeof(PackageAppDirectiveCompletionProvider),
+            typeof(ProjectAppDirectiveCompletionProvider),
+            typeof(IncludeAppDirectiveCompletionProvider),
 
             // Marker for end of built-in completion providers
             typeof(LastBuiltInCompletionProvider),

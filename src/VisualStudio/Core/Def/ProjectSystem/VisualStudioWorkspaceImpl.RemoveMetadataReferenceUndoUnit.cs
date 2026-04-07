@@ -32,7 +32,7 @@ internal partial class VisualStudioWorkspaceImpl
             if (fromProject != null)
             {
                 var reference = fromProject.MetadataReferences.OfType<PortableExecutableReference>()
-                                           .FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FilePath!, _filePath));
+                                           .FirstOrDefault(p => StringComparer.OrdinalIgnoreCase.Equals(p.FilePath, _filePath));
 
                 if (reference != null)
                 {

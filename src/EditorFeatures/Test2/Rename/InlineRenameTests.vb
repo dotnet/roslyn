@@ -110,6 +110,44 @@ class C
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameToConflictingMemberReportsConflict(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+class C
+{
+    void [|$$Foo|]() { }
+    void Bar() { }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+
+                Dim replacementInfo As IInlineRenameReplacementInfo = Nothing
+                AddHandler session.ReplacementsComputed, Sub(sender, info) replacementInfo = info
+
+                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim caretPosition = cursorDocument.CursorPosition.Value
+                Dim textBuffer = cursorDocument.GetTextBuffer()
+
+                ' Rename Foo to Bar
+                textBuffer.Delete(New Span(caretPosition, 3))
+                textBuffer.Insert(caretPosition, "Bar")
+
+                Await WaitForRename(workspace)
+
+                ' Reports an unresolved conflict
+                Assert.NotNull(replacementInfo)
+                Dim replacementKinds = replacementInfo.GetAllReplacementKinds().ToList()
+                Assert.Contains(InlineRenameReplacementKind.UnresolvedConflict, replacementKinds)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem("https://github.com/dotnet/roslyn/issues/46208")>
         Public Async Function RenameWithInvalidIdentifier(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -2379,6 +2417,53 @@ class [|C|]
                 Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
 
                 Await VerifyTagsAreCorrect(workspace)
+
+                Await VerifyChangedSourceGeneratedDocumentFilenames(workspace)
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameWithRazorGeneratedFile(host As RenameTestHost) As Task
+            Dim generatedCode = "
+public class GeneratedClass
+{
+    public void M(MyClass c) { }
+}
+"
+            Dim razorGenerator = New Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator(Sub(c) c.AddSource("generated_file.cs", generatedCode))
+
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+                            <Document>
+                                partial class [|$$MyClass|]
+                                {
+                                    public void M1()
+                                    {
+                                    }
+                                }
+                            </Document>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(New TestGeneratorReference(razorGenerator))
+                workspace.TryApplyChanges(project.Solution)
+
+                Dim session = StartSession(workspace)
+
+                ' Type a bit in the file
+                Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
+                Dim caretPosition = cursorDocument.CursorPosition.Value
+                Dim textBuffer = cursorDocument.GetTextBuffer()
+
+                textBuffer.Insert(caretPosition, "Example")
+
+                Await session.CommitAsync(previewChanges:=False, editorOperationContext:=Nothing)
+
+                Await VerifyTagsAreCorrect(workspace)
+
+                Await VerifyChangedSourceGeneratedDocumentFilenames(workspace, "generated_file.cs")
             End Using
         End Function
 

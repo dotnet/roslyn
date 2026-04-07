@@ -125,7 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
-            get { return default(System.Reflection.MethodImplAttributes); }
+            get
+            {
+                var attributes = default(System.Reflection.MethodImplAttributes);
+                AddAsyncImplAttributeIfNeeded(ref attributes);
+                return attributes;
+            }
         }
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters

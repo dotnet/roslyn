@@ -39,7 +39,7 @@ internal sealed class StringEnumConverter<TStringEnumType>
     {
         if (reader.TokenType == JsonTokenType.String)
         {
-            return CreateEnum(reader.GetString()!);
+            return CreateEnum(reader.GetString());
         }
         else if (reader.TokenType == JsonTokenType.Null)
         {

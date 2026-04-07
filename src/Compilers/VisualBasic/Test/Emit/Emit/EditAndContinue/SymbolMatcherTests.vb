@@ -355,9 +355,9 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                peAssemblySymbol0)
+                peAssemblySymbol0,
+                synthesizedTypes0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)
@@ -426,9 +426,9 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                peAssemblySymbol0)
+                peAssemblySymbol0,
+                synthesizedTypes0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)
@@ -503,9 +503,9 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                peAssemblySymbol0)
+                peAssemblySymbol0,
+                synthesizedTypes0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
             Dim mappedX2 = DirectCast(matcher.MapDefinition(x2), Cci.IFieldDefinition)

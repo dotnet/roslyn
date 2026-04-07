@@ -35,6 +35,6 @@ internal class DidOpenHandler() : ILspServiceNotificationHandler<LSP.DidOpenText
         // Create SourceText from binary representation of the document, retrieve encoding from the request and checksum algorithm from the project.
         var sourceText = SourceText.From(request.TextDocument.Text, System.Text.Encoding.UTF8, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm);
 
-        await context.StartTrackingAsync(request.TextDocument.DocumentUri, sourceText, request.TextDocument.LanguageId, cancellationToken).ConfigureAwait(false);
+        await context.StartTrackingAsync(request.TextDocument.DocumentUri, sourceText, request.TextDocument.LanguageId, request.TextDocument.Version, cancellationToken).ConfigureAwait(false);
     }
 }

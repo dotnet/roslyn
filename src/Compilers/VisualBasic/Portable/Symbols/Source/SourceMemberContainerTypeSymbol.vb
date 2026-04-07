@@ -61,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ReportedBaseClassConstraintsDiagnostics = &H4    ' Set if base class constraints diagnostics have been reported.
             ReportedInterfacesConstraintsDiagnostics = &H8    ' Set if constraints diagnostics for base/implemented interfaces have been reported.
             ReportedCodeAnalysisEmbeddedAttributeDiagnostics = &H10 ' Set if the symbol has been checked for Microsoft.CodeAnalysis.EmbeddedAttribute definition diagnostics.
+            ReportedLayoutAttributeDiagnostics = &H20 ' Set if the symbol has been checked for both StructLayout and ExtendedLayout attributes.
         End Enum
 
         ' Containing symbol
@@ -392,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If container IsNot Nothing Then
                 Debug.Assert(container.IsInterfaceType() AndAlso container.HasVariance())
 
-                diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VarianceInterfaceNesting), Locations(0)))
+                diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VarianceInterfaceNesting), GetFirstLocation()))
             End If
         End Sub
 
@@ -981,7 +982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If asClause IsNot Nothing Then
                     location = asClause.Type.GetLocation()
                 Else
-                    location = method.Locations(0)
+                    location = method.GetFirstLocation()
                 End If
 
                 ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1018,7 +1019,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
                         location = syntax.AsClause.Type.GetLocation()
                     Else
-                        location = param.Locations(0)
+                        location = param.GetFirstLocation()
                     End If
 
                     ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1043,7 +1044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each constraint As TypeSymbol In param.ConstraintTypesNoUseSiteDiagnostics
                     GenerateVarianceDiagnosticsForType(constraint, VarianceKind.In, VarianceContext.Constraint, infosBuffer)
                     If HaveDiagnostics(infosBuffer) Then
-                        Dim location As Location = param.Locations(0)
+                        Dim location As Location = param.GetFirstLocation()
 
                         For Each constraintInfo As TypeParameterConstraint In param.GetConstraints()
                             If constraintInfo.TypeConstraint IsNot Nothing AndAlso
@@ -1089,7 +1090,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
                     location = syntax.AsClause.Type.GetLocation()
                 Else
-                    location = [property].Locations(0)
+                    location = [property].GetFirstLocation()
                 End If
 
                 ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1125,7 +1126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If syntax IsNot Nothing AndAlso syntax.AsClause IsNot Nothing Then
                     location = syntax.AsClause.Type.GetLocation()
                 Else
-                    location = [event].Locations(0)
+                    location = [event].GetFirstLocation()
                 End If
 
                 ReportDiagnostics(diagnostics, location, infosBuffer)
@@ -1920,7 +1921,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodParamNamesMustMatch3,
-                                        implParameter.Locations(0),
+                                        implParameter.GetFirstLocation(),
                                         implParameter.Name, declParameter.Name, implMethod.Name)
                     End If
                 Next
@@ -1941,7 +1942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Debug.Assert(implParameter.Locations.Length = 1)
                         diagnostics.Add(ERRID.ERR_PartialMethodTypeParamNameMismatch3,
-                                        implParameter.Locations(0),
+                                        implParameter.GetFirstLocation(),
                                         implParameter.Name, declParameter.Name, implMethod.Name)
                     End If
 
@@ -2165,7 +2166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Dim symbolToReportErrorOn As Symbol = If(firstField.AssociatedSymbol, DirectCast(firstField, Symbol))
                                         Debug.Assert(symbolToReportErrorOn.Locations.Length > 0)
                                         diagnostics.Add(ERRID.ERR_RecordCycle2,
-                                                        symbolToReportErrorOn.Locations(0),
+                                                        symbolToReportErrorOn.GetFirstLocation(),
                                                         firstField.ContainingType.Name,
                                                         New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree()))
 
@@ -2250,10 +2251,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' We use simple comparison based on source location 
-            Dim typeToTestLocation = typeToTest.Locations(0)
+            Dim typeToTestLocation = typeToTest.GetFirstLocation()
 
             Debug.Assert(Me.Locations.Length > 0)
-            Dim structBeingAnalyzedLocation = Me.Locations(0)
+            Dim structBeingAnalyzedLocation = Me.GetFirstLocation()
 
             Dim compilation = Me.DeclaringCompilation
             Dim fileCompResult = compilation.CompareSourceLocations(typeToTestLocation, structBeingAnalyzedLocation)
@@ -2285,11 +2286,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 defaultPropertyName = name
 
                                 If Not defaultProperty.ShadowsExplicitly Then
-                                    CheckDefaultPropertyAgainstAllBases(Me, defaultPropertyName, propertySymbol.Locations(0), diagBag)
+                                    CheckDefaultPropertyAgainstAllBases(Me, defaultPropertyName, propertySymbol.GetFirstLocation(), diagBag)
                                 End If
                             Else
                                 ' "'Default' can be applied to only one property name in a {0}."
-                                diagBag.Add(ERRID.ERR_DuplicateDefaultProps1, propertySymbol.Locations(0), GetKindText())
+                                diagBag.Add(ERRID.ERR_DuplicateDefaultProps1, propertySymbol.GetFirstLocation(), GetKindText())
                             End If
                             Exit For
                         End If
@@ -2306,7 +2307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             If Not propertySymbol.IsDefault Then
                                 ' "'{0}' and '{1}' cannot overload each other because only one is declared 'Default'."
-                                diagBag.Add(ERRID.ERR_DefaultMissingFromProperty2, propertySymbol.Locations(0), defaultProperty, propertySymbol)
+                                diagBag.Add(ERRID.ERR_DefaultMissingFromProperty2, propertySymbol.GetFirstLocation(), defaultProperty, propertySymbol)
                             End If
                         End If
                     Next
@@ -2446,12 +2447,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 If explicitlyShadows Then
                                     If Not shadowsExplicitly Then
                                         Debug.Assert(symbol.Locations.Length > 0)
-                                        diagBag.Add(ERRID.ERR_MustShadow2, symbol.Locations(0), symbol.GetKindText(), symbol.Name)
+                                        diagBag.Add(ERRID.ERR_MustShadow2, symbol.GetFirstLocation(), symbol.GetKindText(), symbol.Name)
                                     End If
                                 ElseIf explicitlyOverloads Then
                                     If Not overridesExplicitly AndAlso Not overloadsExplicitly Then
                                         Debug.Assert(symbol.Locations.Length > 0)
-                                        diagBag.Add(ERRID.ERR_MustBeOverloads2, symbol.Locations(0), symbol.GetKindText(), symbol.Name)
+                                        diagBag.Add(ERRID.ERR_MustBeOverloads2, symbol.GetFirstLocation(), symbol.GetKindText(), symbol.Name)
                                     End If
                                 End If
                             End If
@@ -2950,14 +2951,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         ' "{0} '{1}' implicitly defines a member '{2}' which has the same name as a type parameter."
                         Binder.ReportDiagnostic(diagBag,
-                                                symImplicitlyDefinedBy.Locations(0),
+                                                symImplicitlyDefinedBy.GetFirstLocation(),
                                                 ERRID.ERR_SyntMemberShadowsGenericParam3,
                                                 symImplicitlyDefinedBy.GetKindText(),
                                                 symImplicitlyDefinedBy.Name,
                                                 sym.Name)
                     Else
                         ' "'{0}' has the same name as a type parameter."
-                        Binder.ReportDiagnostic(diagBag, sym.Locations(0), ERRID.ERR_ShadowingGenericParamWithMember1, sym.Name)
+                        Binder.ReportDiagnostic(diagBag, sym.GetFirstLocation(), ERRID.ERR_ShadowingGenericParamWithMember1, sym.Name)
                     End If
                 End If
             Next
@@ -3051,7 +3052,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' "{0} '{1}' implicitly defines '{2}', which conflicts with a member of the same name in {3} '{4}'."
                     Binder.ReportDiagnostic(
                             diagBag,
-                            firstAssociatedSymbol.Locations(0),
+                            firstAssociatedSymbol.GetFirstLocation(),
                             ERRID.ERR_SynthMemberClashesWithMember5,
                             firstAssociatedSymbol.GetKindText(),
                             OverrideHidingHelper.AssociatedSymbolName(firstAssociatedSymbol),
@@ -3071,7 +3072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         '{0} '{1}' implicitly defines '{2}', which conflicts with a member implicitly declared for {3} '{4}' in {5} '{6}'.
                         Binder.ReportDiagnostic(
                                 diagBag,
-                                firstAssociatedSymbol.Locations(0),
+                                firstAssociatedSymbol.GetFirstLocation(),
                                 ERRID.ERR_SynthMemberClashesWithSynth7,
                                 firstAssociatedSymbol.GetKindText(),
                                 OverrideHidingHelper.AssociatedSymbolName(firstAssociatedSymbol),
@@ -3087,7 +3088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' "{0} '{1}' conflicts with a member implicitly declared for {2} '{3}' in {4} '{5}'."
                 Binder.ReportDiagnostic(
                         diagBag,
-                        secondSymbol.Locations(0),
+                        secondSymbol.GetFirstLocation(),
                         ERRID.ERR_MemberClashesWithSynth6,
                         secondSymbol.GetKindText(),
                         secondSymbol.Name,
@@ -3107,7 +3108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' "'{0}' is already declared in this {1}."
                     Binder.ReportDiagnostic(
                             diagBag,
-                            firstSymbol.Locations(0),
+                            firstSymbol.GetFirstLocation(),
                             ERRID.ERR_MultiplyDefinedEnumMember2,
                             firstSymbol.Name,
                             Me.GetKindText())
@@ -3119,7 +3120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' "'{0}' is already declared as '{1}' in this {2}."
                     Binder.ReportDiagnostic(
                             diagBag,
-                            firstSymbol.Locations(0),
+                            firstSymbol.GetFirstLocation(),
                             ERRID.ERR_MultiplyDefinedType3,
                             firstSymbol.Name,
                             If(includeKind,
@@ -3422,11 +3423,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                             diagnostics.Add(New VBDiagnostic(diag, GetImplementsLocation(iface)))
 
                                         ElseIf implementingSet.Count = 1 Then ' Otherwise, a duplicate implementation error is reported above
-                                            diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0))
+                                            diagnostics.Add(useSiteInfo, implementingSet.Single.GetFirstLocation())
                                         End If
 
                                     ElseIf implementingSet.Count = 1 Then
-                                        diagnostics.Add(useSiteInfo, implementingSet.Single.Locations(0))
+                                        diagnostics.Add(useSiteInfo, implementingSet.Single.GetFirstLocation())
                                     End If
                                 End If
                             Next
@@ -3578,7 +3579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                                     ' only report diagnostics if the signature is considered equal following VB rules.
                                     If (comparisonResults And Not SymbolComparisonResults.MismatchesForConflictingMethods) = 0 Then
-                                        ReportOverloadsErrors(comparisonResults, member, nextMember, member.Locations(0), diagnostics)
+                                        ReportOverloadsErrors(comparisonResults, member, nextMember, member.GetFirstLocation(), diagnostics)
                                         Exit For
                                     End If
                                 End If
@@ -3717,7 +3718,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_MatchingOperatorExpected2,
                                                        SyntaxFacts.GetText(OverloadResolution.GetOperatorTokenKind(nameOfThePair)),
-                                                       method), method.Locations(0))
+                                                       method), method.GetFirstLocation())
             End If
 
             Return True
@@ -3759,7 +3760,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 ' only report diagnostics if the signature is considered equal following VB rules.
                 If (comparisonResults And significantDiff) = 0 Then
-                    ReportOverloadsErrors(comparisonResults, method, nextMethod, method.Locations(0), diagnostics)
+                    ReportOverloadsErrors(comparisonResults, method, nextMethod, method.GetFirstLocation(), diagnostics)
                     Return True
                 End If
             Next

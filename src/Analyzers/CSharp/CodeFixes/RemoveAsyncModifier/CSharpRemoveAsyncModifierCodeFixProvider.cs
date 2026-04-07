@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.RemoveAsyncModifier;
@@ -22,9 +23,9 @@ using static CSharpSyntaxTokens;
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed partial class CSharpRemoveAsyncModifierCodeFixProvider() : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>
 {
-    private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1998];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [
+        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifier,
+        IDEDiagnosticIds.RemoveUnnecessaryAsyncModifierInterfaceImplementationOrOverride];
 
     protected override bool IsAsyncSupportingFunctionSyntax(SyntaxNode node)
         => node.IsAsyncSupportingFunctionSyntax();

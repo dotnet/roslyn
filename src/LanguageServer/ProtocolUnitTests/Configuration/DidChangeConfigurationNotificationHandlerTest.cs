@@ -148,6 +148,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
             "projects.dotnet_binary_log_path",
             "projects.dotnet_enable_automatic_restore",
             "projects.dotnet_enable_file_based_programs",
+            "projects.dotnet_enable_file_based_programs_when_ambiguous",
             "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
             "formatting.dotnet_organize_imports_on_format",
         };
@@ -210,7 +211,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
         {
             ReceivedWorkspaceConfigurationRequest = true;
             var expectConfigurationItemsNumber = DidChangeConfigurationNotificationHandler.SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1);
-            Assert.Equal(expectConfigurationItemsNumber, configurationParams!.Items.Length);
+            Assert.Equal(expectConfigurationItemsNumber, configurationParams.Items.Length);
             Assert.Equal(expectConfigurationItemsNumber, MockClientSideValues.Count);
 
             foreach (var item in configurationParams.Items)
@@ -337,7 +338,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
         {
             Assert.NotNull(section);
             var regex = new Regex(s_clientSideSectionPattern);
-            var match = regex.Match(section!);
+            var match = regex.Match(section);
             Assert.True(match.Success);
         }
     }

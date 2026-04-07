@@ -592,4 +592,18 @@ language: LanguageNames.CSharp);
         // rooted within the export provider instance.
         GC.KeepAlive(exportProvider);
     }
+
+    [Fact]
+    public async Task VbReferencingCSharp()
+    {
+        var workspace = new AdhocWorkspace();
+        var csProj = workspace.AddProject("CsProj", LanguageNames.CSharp);
+        csProj = csProj.WithCompilationOptions(csProj.CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
+        var vbProj = csProj.Solution.AddProject("VbProj", "VbProj", LanguageNames.VisualBasic)
+            .AddProjectReference(new ProjectReference(csProj.Id));
+        vbProj = vbProj.WithCompilationOptions(vbProj.CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
+        var comp = (await vbProj.GetCompilationAsync())!;
+        var diagnostics = comp.GetDiagnostics();
+        Assert.Empty(diagnostics);
+    }
 }

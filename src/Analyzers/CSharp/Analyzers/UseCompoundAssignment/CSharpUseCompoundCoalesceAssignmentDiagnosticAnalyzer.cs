@@ -199,8 +199,7 @@ internal sealed class CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
                 arg1.Kind() == SyntaxKind.NullLiteralExpression)
             {
                 var symbol = semanticModel.GetSymbolInfo(invocation, cancellationToken).Symbol;
-                if (symbol?.Name == nameof(ReferenceEquals) &&
-                    symbol.ContainingType?.SpecialType == SpecialType.System_Object)
+                if (symbol is { Name: nameof(ReferenceEquals), ContainingType.SpecialType: SpecialType.System_Object })
                 {
                     testedExpression = arg0.Kind() == SyntaxKind.NullLiteralExpression ? arg1 : arg0;
                 }

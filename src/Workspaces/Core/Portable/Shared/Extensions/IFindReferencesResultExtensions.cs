@@ -103,7 +103,7 @@ internal static partial class IFindReferencesResultExtensions
         }
 
         var q = from r in result
-                let aliasLocations = r.Locations.Where(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol)).ToImmutableArray()
+                let aliasLocations = r.Locations.WhereAsArray(loc => SymbolEquivalenceComparer.Instance.Equals(loc.Alias, aliasSymbol))
                 where aliasLocations.Any()
                 select new ReferencedSymbol(r.Definition, aliasLocations);
 

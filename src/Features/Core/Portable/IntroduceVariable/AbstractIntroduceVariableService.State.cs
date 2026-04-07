@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,11 +18,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable;
 
 internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    private sealed partial class State(TService service, SemanticDocument document, CodeCleanupOptions options)
+    private sealed partial class State(
+        TService service, SemanticDocument document, CodeCleanupOptions options, TExpressionSyntax expression)
     {
         public SemanticDocument Document { get; } = document;
         public CodeCleanupOptions Options { get; } = options;
-        public TExpressionSyntax Expression { get; private set; }
+        public TExpressionSyntax Expression { get; } = expression;
 
         public bool InAttributeContext { get; private set; }
         public bool InBlockContext { get; private set; }
@@ -38,34 +37,35 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
         public bool IsConstant { get; private set; }
 
-        private SemanticMap _semanticMap;
+        private SemanticMap? _semanticMap;
         private readonly TService _service = service;
 
-        public static async Task<State> GenerateAsync(
+        public static async Task<State?> GenerateAsync(
             TService service,
             SemanticDocument document,
             CodeCleanupOptions options,
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var state = new State(service, document, options);
-            if (!await state.TryInitializeAsync(document, textSpan, cancellationToken).ConfigureAwait(false))
-            {
+            var expression = await document.Document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
+            if (expression is null)
                 return null;
-            }
+
+            var state = new State(service, document, options, expression);
+            if (!state.TryInitialize(document, textSpan, cancellationToken))
+                return null;
 
             return state;
         }
 
-        private async Task<bool> TryInitializeAsync(
+        private bool TryInitialize(
             SemanticDocument document,
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            Expression = await document.Document.TryGetRelevantNodeAsync<TExpressionSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
-            if (Expression == null || CodeRefactoringHelpers.IsNodeUnderselected(Expression, textSpan))
+            if (CodeRefactoringHelpers.IsNodeUnderselected(Expression, textSpan))
                 return false;
 
             // Don't introduce constant for another constant. Doesn't apply to sub-expression of constant.
@@ -101,17 +101,9 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             if (!CanIntroduceVariable(textSpan.IsEmpty, cancellationToken))
                 return false;
 
-            if (containingType is null)
-            {
-                var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
-                if (globalStatement != null)
-                {
-                    InGlobalStatementContext = true;
-                    return true;
-                }
-
+            var type = GetTypeSymbol(Document, Expression, cancellationToken, objectAsDefault: false);
+            if (type == null || type.SpecialType == SpecialType.System_Void)
                 return false;
-            }
 
             IsConstant = IsExpressionConstant(Document, Expression, _service, cancellationToken);
 
@@ -142,17 +134,8 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             var enclosingBlocks = _service.GetContainingExecutableBlocks(Expression);
             if (enclosingBlocks.Any())
             {
-                // If we're inside a block, then don't even try the other options (like field,
-                // constructor initializer, etc.).  This is desirable behavior.  If we're in a 
-                // block in a field, then we're in a lambda, and we want to offer to generate
-                // a local, and not a field.
-                if (IsInBlockContext(cancellationToken))
-                {
-                    InBlockContext = true;
-                    return true;
-                }
-
-                return false;
+                InBlockContext = true;
+                return true;
             }
 
             // NOTE: All checks from this point forward are intentionally ordered to be AFTER the check for Block Context.
@@ -175,6 +158,18 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
                 if (CanGenerateInto<TTypeDeclarationSyntax>(cancellationToken))
                 {
                     InAutoPropertyInitializerContext = true;
+                    return true;
+                }
+
+                return false;
+            }
+
+            if (containingType is null)
+            {
+                var globalStatement = Expression.AncestorsAndSelf().FirstOrDefault(syntaxFacts.IsGlobalStatement);
+                if (globalStatement != null)
+                {
+                    InGlobalStatementContext = true;
                     return true;
                 }
 
@@ -284,7 +279,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
             //
             // In essence, this says "i can be replaced with an expression as long as I'm not being
             // written to".
-            var semanticFacts = Document.Project.Services.GetService<ISemanticFactsService>();
+            var semanticFacts = Document.GetRequiredLanguageService<ISemanticFactsService>();
             return semanticFacts.CanReplaceWithRValue(Document.SemanticModel, Expression, cancellationToken);
         }
 

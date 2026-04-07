@@ -135,6 +135,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim visitor = SymbolDisplayVisitor.GetInstance(builder, format, semanticModelOpt, positionOpt)
             symbol.Accept(visitor)
+
+            If TypeOf symbol Is INamedTypeSymbol AndAlso
+                DirectCast(symbol, INamedTypeSymbol).IsExtension Then
+
+                visitor.AddExtensionMarkerName(DirectCast(symbol, INamedTypeSymbol))
+            End If
+
             visitor.Free()
         End Sub
 

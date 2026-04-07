@@ -27,7 +27,7 @@ public abstract class CSharpRemoveSuppressionTests : CSharpSuppressionTests
     {
         private readonly bool _reportDiagnosticsWithoutLocation;
         public static readonly DiagnosticDescriptor Decsciptor =
-            new DiagnosticDescriptor("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
+            new("InfoDiagnostic", "InfoDiagnostic Title", "InfoDiagnostic", "InfoDiagnostic", DiagnosticSeverity.Info, isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

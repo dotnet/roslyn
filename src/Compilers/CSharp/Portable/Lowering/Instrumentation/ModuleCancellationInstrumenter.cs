@@ -210,7 +210,8 @@ internal sealed class ModuleCancellationInstrumenter(
                         methodDefinition.TypeParameters,
                         typeMap1: null,
                         overload.TypeParameters,
-                        typeMap))
+                        typeMap,
+                        TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     var result = overload.AsMember(method.ContainingType);
                     return (result.Arity > 0) ? result.Construct(method.TypeArgumentsWithAnnotations) : result;

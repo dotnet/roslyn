@@ -6,16 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
-using Castle.Core.Resource;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -113,35 +109,6 @@ End Module")
                 {
                     TempFile file = currentDirectory.CreateFile(pair.Key);
                     file.WriteAllText(pair.Value);
-                }
-            }
-        }
-
-        private static T ApplyEnvironmentVariables<T>(
-            IEnumerable<KeyValuePair<string, string>> environmentVariables,
-            Func<T> func)
-        {
-            if (environmentVariables == null)
-            {
-                return func();
-            }
-
-            var resetVariables = new Dictionary<string, string>();
-            try
-            {
-                foreach (var variable in environmentVariables)
-                {
-                    resetVariables.Add(variable.Key, Environment.GetEnvironmentVariable(variable.Key));
-                    Environment.SetEnvironmentVariable(variable.Key, variable.Value);
-                }
-
-                return func();
-            }
-            finally
-            {
-                foreach (var variable in resetVariables)
-                {
-                    Environment.SetEnvironmentVariable(variable.Key, variable.Value);
                 }
             }
         }
@@ -1451,24 +1418,6 @@ static void Main(string[] args)
 
             var listener = await serverData.Complete();
             Assert.Equal(2, listener.CompletionDataList.Count);
-        }
-
-        [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]
-        [ConditionalFact(typeof(DesktopOnly))]
-        public void MissingCompilerAssembly_CompilerServer()
-        {
-            var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
-            var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
-            var dir = Temp.CreateDirectory();
-            var workingDirectory = dir.Path;
-            var serverExe = dir.CopyFile(compilerServerExecutable).Path;
-            dir.CopyFile(typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location);
-
-            // Missing Microsoft.CodeAnalysis.dll launching server.
-            var result = ProcessUtilities.Run(serverExe, arguments: $"-pipename:{GetUniqueName()}", workingDirectory: workingDirectory);
-            Assert.Equal(1, result.ExitCode);
-            // Exception is logged rather than written to output/error streams.
-            Assert.Equal("", result.Output.Trim());
         }
 
         [WorkItem(406649, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=406649")]

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
@@ -104,6 +105,14 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
         const string featureId = "Completion";
         var proposalId = proposal.ProposalId;
 
+        var (solution, _) = CopilotEditorUtilities.TryGetAffectedSolution(proposal);
+        if (solution is null)
+            return;
+
+        // We're about to potentially make multiple calls to oop here.  So keep a session alive to avoid
+        // resyncing any data unnecessary.
+        using var _1 = await RemoteKeepAliveSession.CreateAsync(solution, cancellationToken).ConfigureAwait(false);
+
         foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -114,12 +123,10 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
             if (document is null)
                 continue;
 
-            using var _ = PooledObjects.ArrayBuilder<TextChange>.GetInstance(out var textChanges);
-            foreach (var edit in editGroup)
-                textChanges.Add(new TextChange(edit.Span.Span.ToTextSpan(), edit.ReplacementText));
+            var normalizedEdits = CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup);
 
             await CopilotChangeAnalysisUtilities.AnalyzeCopilotChangeAsync(
-                document, accepted, featureId, proposalId, textChanges, cancellationToken).ConfigureAwait(false);
+                document, accepted, featureId, proposalId, normalizedEdits, cancellationToken).ConfigureAwait(false);
         }
     }
 }

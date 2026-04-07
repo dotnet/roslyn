@@ -27,9 +27,9 @@ internal sealed class MessagePackFormatters
     [
         ProjectIdFormatter.Instance,
         EncodingFormatter.Instance,
-        new ForceTypelessFormatter<SimplifierOptions>(),
-        new ForceTypelessFormatter<SyntaxFormattingOptions>(),
-        new ForceTypelessFormatter<CodeGenerationOptions>(),
+        new AssemblyLoadContextAwareForceTypelessFormatter<SimplifierOptions>(),
+        new AssemblyLoadContextAwareForceTypelessFormatter<SyntaxFormattingOptions>(),
+        new AssemblyLoadContextAwareForceTypelessFormatter<CodeGenerationOptions>(),
     ];
 
     private static readonly ImmutableArray<IFormatterResolver> s_resolvers = [StandardResolverAllowPrivate.Instance];
@@ -54,7 +54,7 @@ internal sealed class MessagePackFormatters
         /// to only serialize or deserialize it's DebugName once. Additionally, this cache allows
         /// the Deserialization code to only construct the ProjectID a single time.
         /// </summary>
-        private readonly ConcurrentDictionary<Guid, ProjectId> _projectIds = new ConcurrentDictionary<Guid, ProjectId>();
+        private readonly ConcurrentDictionary<Guid, ProjectId> _projectIds = new();
 
         public ProjectId? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
@@ -204,6 +204,26 @@ internal sealed class MessagePackFormatters
             {
                 throw new MessagePackSerializationException(e.Message, e);
             }
+        }
+    }
+
+    /// <summary>
+    /// Force serialize object as typeless, and ensure it's done in the correct AssemblyLoadContext.
+    /// </summary>
+    private sealed class AssemblyLoadContextAwareForceTypelessFormatter<T> : IMessagePackFormatter<T?>
+    {
+        public void Serialize(ref MessagePackWriter writer, T? value, MessagePackSerializerOptions options)
+        {
+            TypelessFormatter.Instance.Serialize(ref writer, (object?)value, options);
+        }
+
+        public T? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+#if NET
+            using var _ = System.Runtime.Loader.AssemblyLoadContext.EnterContextualReflection(typeof(AssemblyLoadContextAwareForceTypelessFormatter<>).Assembly);
+#endif
+
+            return (T?)TypelessFormatter.Instance.Deserialize(ref reader, options);
         }
     }
 }

@@ -990,11 +990,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
             type.AddOperators(name, typeOperators);
+            GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt, typeOperators, kind, name, operators);
+            typeOperators.Free();
+        }
 
+        private static void GetDeclaredUserDefinedBinaryOperators(TypeSymbol? constrainedToTypeOpt, ArrayBuilder<MethodSymbol> typeOperators, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
+        {
             foreach (MethodSymbol op in typeOperators)
             {
+                if (op.Name != name)
+                {
+                    continue;
+                }
+
                 // If we're in error recovery, we might have bad operators. Just ignore it.
-                if (op.ParameterCount != 2 || op.ReturnsVoid)
+                if (!op.IsStatic || op.ParameterCount != 2 || op.ReturnsVoid)
                 {
                     continue;
                 }
@@ -1005,8 +1015,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, op, constrainedToTypeOpt));
             }
-
-            typeOperators.Free();
         }
 
         void AddLiftedUserDefinedBinaryOperators(TypeSymbol? constrainedToTypeOpt, BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
@@ -1421,7 +1429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable 
 
         public bool BinaryOperatorExtensionOverloadResolutionInSingleScope(
-            ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope,
+            ArrayBuilder<Symbol> extensionCandidatesInSingleScope,
             BinaryOperatorKind kind,
             bool isChecked,
             string name1,
@@ -1435,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var operators = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
 
-            getDeclaredUserDefinedBinaryOperatorsInScope(extensionDeclarationsInSingleScope, kind, name1, name2Opt, operators);
+            getDeclaredUserDefinedBinaryOperatorsInScope(extensionCandidatesInSingleScope, kind, name1, name2Opt, operators);
 
             if (left.Type?.IsNullableType() == true || right.Type?.IsNullableType() == true) // Wouldn't be applicable to the receiver type otherwise
             {
@@ -1461,9 +1469,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return hadApplicableCandidates;
 
-            static void getDeclaredUserDefinedBinaryOperatorsInScope(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, BinaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<BinaryOperatorSignature> operators)
+            static void getDeclaredUserDefinedBinaryOperatorsInScope(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, BinaryOperatorKind kind, string name1, string? name2Opt, ArrayBuilder<BinaryOperatorSignature> operators)
             {
-                getDeclaredUserDefinedBinaryOperators(extensionDeclarationsInSingleScope, kind, name1, operators);
+                getDeclaredUserDefinedBinaryOperators(extensionCandidatesInSingleScope, kind, name1, operators);
 
                 if (name2Opt is not null)
                 {
@@ -1473,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         existing.AddRange(operators.Select(static (op) => op.Method));
 
                         var operators2 = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
-                        getDeclaredUserDefinedBinaryOperators(extensionDeclarationsInSingleScope, kind, name2Opt, operators2);
+                        getDeclaredUserDefinedBinaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators2);
 
                         foreach (var op in operators2)
                         {
@@ -1487,24 +1495,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        getDeclaredUserDefinedBinaryOperators(extensionDeclarationsInSingleScope, kind, name2Opt, operators);
+                        getDeclaredUserDefinedBinaryOperators(extensionCandidatesInSingleScope, kind, name2Opt, operators);
                     }
                 }
             }
 
-            static void getDeclaredUserDefinedBinaryOperators(ArrayBuilder<NamedTypeSymbol> extensionDeclarationsInSingleScope, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
+            static void getDeclaredUserDefinedBinaryOperators(ArrayBuilder<Symbol> extensionCandidatesInSingleScope, BinaryOperatorKind kind, string name, ArrayBuilder<BinaryOperatorSignature> operators)
             {
-                foreach (NamedTypeSymbol extensionDeclaration in extensionDeclarationsInSingleScope)
-                {
-                    Debug.Assert(extensionDeclaration.IsExtension);
-
-                    if (extensionDeclaration.ExtensionParameter is null)
-                    {
-                        continue;
-                    }
-
-                    GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt: null, extensionDeclaration, kind, name, operators);
-                }
+                Debug.Assert(extensionCandidatesInSingleScope.All(static m => m.ContainingType.ExtensionParameter is not null));
+                var typeOperators = ArrayBuilder<MethodSymbol>.GetInstance();
+                NamedTypeSymbol.AddOperators(typeOperators, extensionCandidatesInSingleScope);
+                GetDeclaredUserDefinedBinaryOperators(constrainedToTypeOpt: null, typeOperators, kind, name, operators);
+                typeOperators.Free();
             }
 
             void inferTypeArgumentsAndRemoveInapplicableToReceiverType(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, ArrayBuilder<BinaryOperatorSignature> operators, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

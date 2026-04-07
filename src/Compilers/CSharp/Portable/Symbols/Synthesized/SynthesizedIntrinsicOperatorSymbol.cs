@@ -236,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
+
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
@@ -423,6 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => false;
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         public override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
@@ -475,6 +479,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal override bool IsMetadataIn => RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
 
             internal override bool IsMetadataOut => RefKind == RefKind.Out;
+
+#nullable enable
+            internal override ConstantValue? DefaultValueFromAttributes => null;
+#nullable disable
 
             public override bool Equals(Symbol obj, TypeCompareKind compareKind)
             {

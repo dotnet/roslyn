@@ -31,7 +31,7 @@ public sealed class ProjectsHandlerTests : AbstractLiveShareRequestHandlerTests
     }
 
     private static CustomProtocol.Project CreateLspProject(Project project)
-        => new CustomProtocol.Project()
+        => new()
         {
             Language = project.Language,
             Name = project.Name,

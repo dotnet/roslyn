@@ -26,26 +26,26 @@ internal static partial class Extensions
         => configOptions as IOptionsReader ?? new AnalyzerConfigOptionsReader(configOptions);
 
     public static T GetOption<T>(this IOptionsReader options, Option2<T> option)
-        => options.TryGetOption<T>(new OptionKey2(option), out var value) ? value! : option.DefaultValue;
+        => options.TryGetOption<T>(new OptionKey2(option), out var value) ? value : option.DefaultValue;
 
     public static T GetOption<T>(this IOptionsReader options, Option2<T> option, T defaultValue)
-        => options.TryGetOption<T>(new OptionKey2(option), out var value) ? value! : defaultValue;
+        => options.TryGetOption<T>(new OptionKey2(option), out var value) ? value : defaultValue;
 
     public static T GetOption<T>(this IOptionsReader options, PerLanguageOption2<T> option, string language)
-        => options.TryGetOption<T>(new OptionKey2(option, language), out var value) ? value! : option.DefaultValue;
+        => options.TryGetOption<T>(new OptionKey2(option, language), out var value) ? value : option.DefaultValue;
 
     public static T GetOption<T>(this IOptionsReader options, PerLanguageOption2<T> option, string language, T defaultValue)
-        => options.TryGetOption<T>(new OptionKey2(option, language), out var value) ? value! : defaultValue;
+        => options.TryGetOption<T>(new OptionKey2(option, language), out var value) ? value : defaultValue;
 
     public static T GetOptionValue<T>(this IOptionsReader options, Option2<CodeStyleOption2<T>> option)
         => GetOptionValue(options, option, option.DefaultValue.Value);
 
     public static T GetOptionValue<T>(this IOptionsReader options, Option2<CodeStyleOption2<T>> option, T defaultValue)
-        => options.TryGetOption<CodeStyleOption2<T>>(new OptionKey2(option), out var style) ? style!.Value : defaultValue;
+        => options.TryGetOption<CodeStyleOption2<T>>(new OptionKey2(option), out var style) ? style.Value : defaultValue;
 
     public static T GetOptionValue<T>(this IOptionsReader options, PerLanguageOption2<CodeStyleOption2<T>> option, string language)
         => GetOptionValue(options, option, language, option.DefaultValue.Value);
 
     public static T GetOptionValue<T>(this IOptionsReader options, PerLanguageOption2<CodeStyleOption2<T>> option, string language, T defaultValue)
-        => options.TryGetOption<CodeStyleOption2<T>>(new OptionKey2(option, language), out var style) ? style!.Value : defaultValue;
+        => options.TryGetOption<CodeStyleOption2<T>>(new OptionKey2(option, language), out var style) ? style.Value : defaultValue;
 }

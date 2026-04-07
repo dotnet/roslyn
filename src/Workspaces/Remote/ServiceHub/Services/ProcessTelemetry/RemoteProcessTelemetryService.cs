@@ -8,13 +8,12 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
-using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -40,7 +39,7 @@ internal sealed partial class RemoteProcessTelemetryService(
     /// </summary>
     public ValueTask InitializeTelemetrySessionAsync(int hostProcessId, string serializedSession, bool logDelta, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(cancellationToken =>
+        return RunServiceAsync(async cancellationToken =>
         {
             var services = GetWorkspace().Services;
 
@@ -66,8 +65,6 @@ internal sealed partial class RemoteProcessTelemetryService(
                 // We know in the remote layer that this type must exist.
                 _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, _shutdownCancellationSource.Token);
             }
-
-            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 
@@ -76,7 +73,7 @@ internal sealed partial class RemoteProcessTelemetryService(
     /// </summary>
     public ValueTask EnableLoggingAsync(ImmutableArray<string> loggerTypeNames, ImmutableArray<FunctionId> functionIds, CancellationToken cancellationToken)
     {
-        return RunServiceAsync(cancellationToken =>
+        return RunServiceAsync(async cancellationToken =>
         {
             var functionIdsSet = new HashSet<FunctionId>(functionIds);
             bool logChecker(FunctionId id) => functionIdsSet.Contains(id);
@@ -84,8 +81,6 @@ internal sealed partial class RemoteProcessTelemetryService(
             // we only support 2 types of loggers
             SetRoslynLogger(loggerTypeNames, () => new EtwLogger(logChecker));
             SetRoslynLogger(loggerTypeNames, () => new TraceLogger(logChecker));
-
-            return ValueTask.CompletedTask;
         }, cancellationToken);
     }
 

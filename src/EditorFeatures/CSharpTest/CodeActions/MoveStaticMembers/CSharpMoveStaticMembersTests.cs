@@ -792,6 +792,53 @@ public sealed class CSharpMoveStaticMembersTests
             """, "Class1Helpers.cs", selectedMembers, "Class1Helpers").ConfigureAwait(false);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79806")]
+    public async Task TestMoveStaticMethodWithStaticMembers()
+    {
+        var selectedMembers = ImmutableArray.Create("StaticMethod");
+
+        await TestMovementNewFileAsync("""
+            using System;
+
+            namespace TestNs1
+            {
+                internal class ClassWithStaticMembers
+                {
+                    public static int StaticInt { get; set; }
+                    public static string StaticString { get; set; }
+                    public static void Static[||]Method()
+                    {
+                        Console.WriteLine(StaticString + StaticInt);
+                    }
+                }
+            }
+            """, """
+            using System;
+            
+            namespace TestNs1
+            {
+                internal class ClassWithStaticMembers
+                {
+                    public static int StaticInt { get; set; }
+                    public static string StaticString { get; set; }
+                }
+            }
+            """, """
+            using System;
+            
+            namespace TestNs1
+            {
+                internal static class ClassWithStaticMembersHelpers
+                {
+                    public static void StaticMethod()
+                    {
+                        Console.WriteLine(ClassWithStaticMembers.StaticString + ClassWithStaticMembers.StaticInt);
+                    }
+                }
+            }
+            """, "ClassWithStaticMembersHelpers.cs", selectedMembers, "ClassWithStaticMembersHelpers").ConfigureAwait(false);
+    }
+
     [Fact]
     public async Task TestMoveMethodAndRefactorUsageWithTrivia()
     {
@@ -3348,6 +3395,19 @@ public sealed class CSharpMoveStaticMembersTests
             },
         }.RunAsync().ConfigureAwait(false);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81116")]
+    public Task TestSelectEnumMember_NoAction()
+        => TestNoRefactoringAsync("""
+            namespace TestNs1
+            {
+                enum E
+                {
+                    No[||]ne = 0,
+                    Some = 1
+                }
+            }
+            """);
     #endregion
 
     private sealed class Test : VerifyCS.Test
@@ -3376,7 +3436,7 @@ public sealed class CSharpMoveStaticMembersTests
 
         private readonly bool _testPreselection;
 
-        protected override Task<Workspace> CreateWorkspaceImplAsync()
+        protected override async Task<Workspace> CreateWorkspaceImplAsync()
         {
             var hostServices = s_testServices.GetHostServices();
 
@@ -3388,7 +3448,7 @@ public sealed class CSharpMoveStaticMembersTests
             testOptionsService.CreateNew = _createNew;
             testOptionsService.ExpectedPrecheckedMembers = _testPreselection ? _selection : [];
 
-            return Task.FromResult<Workspace>(workspace);
+            return workspace;
         }
     }
 

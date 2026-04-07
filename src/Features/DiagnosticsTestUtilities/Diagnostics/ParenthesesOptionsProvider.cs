@@ -21,13 +21,13 @@ public sealed class ParenthesesOptionsProvider
     }
 
     private static readonly CodeStyleOption2<ParenthesesPreference> IgnorePreference =
-        new CodeStyleOption2<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption2.None);
+        new(ParenthesesPreference.AlwaysForClarity, NotificationOption2.None);
 
     private static readonly CodeStyleOption2<ParenthesesPreference> RequireForPrecedenceClarityPreference =
-        new CodeStyleOption2<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption2.Suggestion);
+        new(ParenthesesPreference.AlwaysForClarity, NotificationOption2.Suggestion);
 
     private static readonly CodeStyleOption2<ParenthesesPreference> RemoveIfUnnecessaryPreference =
-        new CodeStyleOption2<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption2.Suggestion);
+        new(ParenthesesPreference.NeverIfUnnecessary, NotificationOption2.Suggestion);
 
     private static IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
     {

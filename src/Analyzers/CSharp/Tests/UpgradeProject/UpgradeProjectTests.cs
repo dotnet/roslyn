@@ -1153,4 +1153,15 @@ public sealed partial class UpgradeProjectTests(ITestOutputHelper logger) : Abst
             """,
             expected: LanguageVersion.CSharp12,
             new CSharpParseOptions(LanguageVersion.CSharp11));
+
+    [Fact]
+    public Task UpgradeProjectForUserDefinedCompoundAssignment()
+        => TestLanguageVersionUpgradedAsync("""
+            class C
+            {
+                public C operator [|+=|](C c) => c;
+            }
+            """,
+            expected: LanguageVersion.CSharp14,
+            new CSharpParseOptions(LanguageVersion.CSharp13));
 }

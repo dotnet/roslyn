@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo;
 internal sealed class DefaultNavigateToPreviewServiceFactory : IWorkspaceServiceFactory
 {
     private readonly Lazy<INavigateToPreviewService> _singleton =
-        new Lazy<INavigateToPreviewService>(() => new DefaultNavigateToPreviewService());
+        new(() => new DefaultNavigateToPreviewService());
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
@@ -24,31 +25,21 @@ using static SyntaxFactory;
 /// code refactoring provider.  Those can't share a common base class due to their own inheritance
 /// requirements with <see cref="DiagnosticAnalyzer"/> and "CodeRefactoringProvider".
 /// </summary>
-internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBodyHelper
+internal abstract class UseExpressionBodyHelper<TDeclaration>(
+    string diagnosticId,
+    EnforceOnBuild enforceOnBuild,
+    LocalizableString useExpressionBodyTitle,
+    LocalizableString useBlockBodyTitle,
+    Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
+    ImmutableArray<SyntaxKind> syntaxKinds) : UseExpressionBodyHelper
     where TDeclaration : SyntaxNode
 {
-    public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; }
-    public override LocalizableString UseExpressionBodyTitle { get; }
-    public override LocalizableString UseBlockBodyTitle { get; }
-    public override string DiagnosticId { get; }
-    public override EnforceOnBuild EnforceOnBuild { get; }
-    public override ImmutableArray<SyntaxKind> SyntaxKinds { get; }
-
-    protected UseExpressionBodyHelper(
-        string diagnosticId,
-        EnforceOnBuild enforceOnBuild,
-        LocalizableString useExpressionBodyTitle,
-        LocalizableString useBlockBodyTitle,
-        Option2<CodeStyleOption2<ExpressionBodyPreference>> option,
-        ImmutableArray<SyntaxKind> syntaxKinds)
-    {
-        DiagnosticId = diagnosticId;
-        EnforceOnBuild = enforceOnBuild;
-        Option = option;
-        UseExpressionBodyTitle = useExpressionBodyTitle;
-        UseBlockBodyTitle = useBlockBodyTitle;
-        SyntaxKinds = syntaxKinds;
-    }
+    public override Option2<CodeStyleOption2<ExpressionBodyPreference>> Option { get; } = option;
+    public override LocalizableString UseExpressionBodyTitle { get; } = useExpressionBodyTitle;
+    public override LocalizableString UseBlockBodyTitle { get; } = useBlockBodyTitle;
+    public override string DiagnosticId { get; } = diagnosticId;
+    public override EnforceOnBuild EnforceOnBuild { get; } = enforceOnBuild;
+    public override ImmutableArray<SyntaxKind> SyntaxKinds { get; } = syntaxKinds;
 
     protected static AccessorDeclarationSyntax? GetSingleGetAccessor(AccessorListSyntax? accessorList)
     {
@@ -160,19 +151,76 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         if (declaration is PropertyDeclarationSyntax { Initializer: not null })
             return false;
 
-        if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
-            return true;
-
         var getAccessor = GetSingleGetAccessor(declaration.AccessorList);
+        if (TryConvertToExpressionBodyWorker(declaration, conversionPreference, cancellationToken, out arrowExpression, out semicolonToken))
+        {
+            arrowExpression = UpdateTriviaIndentation(arrowExpression, getAccessor);
+            return true;
+        }
+
         if (getAccessor?.ExpressionBody != null &&
             BlockSyntaxExtensions.MatchesPreference(getAccessor.ExpressionBody.Expression, conversionPreference))
         {
-            arrowExpression = ArrowExpressionClause(getAccessor.ExpressionBody.Expression);
+            arrowExpression = UpdateTriviaIndentation(ArrowExpressionClause(getAccessor.ExpressionBody.Expression), getAccessor);
             semicolonToken = getAccessor.SemicolonToken;
             return true;
         }
 
         return false;
+
+        static ArrowExpressionClauseSyntax UpdateTriviaIndentation(ArrowExpressionClauseSyntax arrowExpression, AccessorDeclarationSyntax? getAccessor)
+        {
+            if (!arrowExpression.Expression.GetLeadingTrivia().Any(t => t.IsRegularComment()) ||
+                getAccessor?.GetLeadingTrivia() is not [.., (kind: SyntaxKind.WhitespaceTrivia) whitespace])
+            {
+                return arrowExpression;
+            }
+
+            // We'ver got an expression with comments on it to return.  Because of the comments, the expression will
+            // not be placed directly after the `=>`, but instead will be on the following line.  For example:
+            //
+            //  {
+            //      get
+            //      {
+            //          // Comment
+            //          return x + y;
+            //      }
+            //  }
+            //
+            // will become:
+            //
+            //          // Comment
+            //          x + y;
+            //
+            // This will be indented one level too far.  Try to update the indentation to match the indentation
+            // on the get-accessor instead.
+            return arrowExpression.WithExpression(
+                arrowExpression.Expression.WithLeadingTrivia(
+                    UpdateLeadingWhitespace(arrowExpression.Expression.GetLeadingTrivia(), whitespace)));
+        }
+
+        static SyntaxTriviaList UpdateLeadingWhitespace(SyntaxTriviaList originalTrivia, SyntaxTrivia whitespace)
+        {
+            var startOfLine = true;
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(originalTrivia.Count, out var updatedTrivia);
+            foreach (var trivia in originalTrivia)
+            {
+                if (startOfLine && trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    // if we hit a whitespace at the start of the line, replace with the whitespace on the get-accessor.
+                    updatedTrivia.Add(whitespace);
+                }
+                else
+                {
+                    // otherwise, keep track if we're at the start of a line for the next trivia and add whatever
+                    // we ran into.
+                    startOfLine = trivia.IsEndOfLine() || trivia.IsSingleLineComment();
+                    updatedTrivia.Add(trivia);
+                }
+            }
+
+            return TriviaList(updatedTrivia);
+        }
     }
 
     public bool CanOfferUseBlockBody(
@@ -196,7 +244,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         var languageVersion = declaration.GetLanguageVersion();
         if (languageVersion < LanguageVersion.CSharp7)
         {
-            if (expressionBody!.Expression.IsKind(SyntaxKind.ThrowExpression))
+            if (expressionBody.Expression.IsKind(SyntaxKind.ThrowExpression))
             {
                 // If they're using a throw expression in a declaration and it's prior to C# 7
                 // then always mark this as something that can be fixed by the analyzer.  This way
@@ -231,7 +279,8 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         return userPrefersBlockBodies == forAnalyzer || (!forAnalyzer && analyzerDisabled);
     }
 
-    public TDeclaration Update(SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody, CancellationToken cancellationToken)
+    public TDeclaration Update(
+        SemanticModel semanticModel, TDeclaration declaration, bool useExpressionBody, CancellationToken cancellationToken)
     {
         if (useExpressionBody)
         {
@@ -254,7 +303,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         {
             return WithSemicolonToken(
                 WithExpressionBody(
-                    WithGenerateBody(semanticModel, declaration),
+                    WithGenerateBody(semanticModel, declaration, cancellationToken),
                     expressionBody: null),
                 default);
         }
@@ -288,7 +337,8 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
 
     protected abstract ArrowExpressionClauseSyntax? GetExpressionBody(TDeclaration declaration);
 
-    protected abstract bool CreateReturnStatementForExpression(SemanticModel semanticModel, TDeclaration declaration);
+    protected abstract bool CreateReturnStatementForExpression(
+        SemanticModel semanticModel, TDeclaration declaration, CancellationToken cancellationToken);
 
     protected abstract SyntaxToken GetSemicolonToken(TDeclaration declaration);
 
@@ -296,13 +346,14 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
     protected abstract TDeclaration WithExpressionBody(TDeclaration declaration, ArrowExpressionClauseSyntax? expressionBody);
     protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax? body);
 
-    protected virtual TDeclaration WithGenerateBody(SemanticModel semanticModel, TDeclaration declaration)
+    protected virtual TDeclaration WithGenerateBody(
+        SemanticModel semanticModel, TDeclaration declaration, CancellationToken cancellationToken)
     {
         var expressionBody = GetExpressionBody(declaration);
 
         if (expressionBody.TryConvertToBlock(
                 GetSemicolonToken(declaration),
-                CreateReturnStatementForExpression(semanticModel, declaration),
+                CreateReturnStatementForExpression(semanticModel, declaration, cancellationToken),
                 out var block))
         {
             return WithBody(declaration, block);
@@ -311,7 +362,8 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
         return declaration;
     }
 
-    protected TDeclaration WithAccessorList(SemanticModel semanticModel, TDeclaration declaration)
+    protected TDeclaration WithAccessorList(
+        SemanticModel semanticModel, TDeclaration declaration, CancellationToken cancellationToken)
     {
         var expressionBody = GetExpressionBody(declaration);
         var semicolonToken = GetSemicolonToken(declaration);
@@ -326,7 +378,7 @@ internal abstract class UseExpressionBodyHelper<TDeclaration> : UseExpressionBod
 
         expressionBody.TryConvertToBlock(
             GetSemicolonToken(declaration),
-            CreateReturnStatementForExpression(semanticModel, declaration),
+            CreateReturnStatementForExpression(semanticModel, declaration, cancellationToken),
             out var block);
 
         var accessor = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration);

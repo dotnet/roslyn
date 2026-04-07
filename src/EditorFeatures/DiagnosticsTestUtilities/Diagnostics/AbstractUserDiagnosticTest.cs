@@ -147,8 +147,7 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
             }
         }
 
-        var intersectingDiagnostics = diagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(span))
-                                                 .ToImmutableArray();
+        var intersectingDiagnostics = diagnostics.WhereAsArray(d => d.Location.SourceSpan.IntersectsWith(span));
 
         var fixes = new List<CodeFix>();
 
@@ -158,7 +157,7 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
                 document,
                 diagnostic.Location.SourceSpan,
                 [diagnostic],
-                (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
+                (a, d) => fixes.Add(new CodeFix(a, d)),
                 CancellationToken.None);
 
             await fixer.RegisterCodeFixesAsync(context);
@@ -257,7 +256,7 @@ public abstract partial class AbstractUserDiagnosticTest(ITestOutputHelper logge
         else
         {
             var diagnostics = await GetDiagnosticsAsync(workspace, ps);
-            actualTextSpans = diagnostics.Where(d => d.Id == diagnosticId).Select(d => d.Location.SourceSpan).ToSet();
+            actualTextSpans = diagnostics.SelectAsArray(d => d.Id == diagnosticId, d => d.Location.SourceSpan).ToSet();
         }
 
         Assert.True(expectedTextSpans.SetEquals(actualTextSpans));

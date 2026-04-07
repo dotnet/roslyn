@@ -2709,7 +2709,7 @@ End Class </text>
     Private Shared Function NewMethod() As Integer
         Return 100
     End Function
-End Class </text>
+End Class</text>
 
                 Await TestExtractMethodAsync(code, expected)
             End Function

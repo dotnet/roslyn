@@ -215,6 +215,19 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
             if (memberSymbol is IMethodSymbol)
                 return null;
 
+            // we're converting from `x.M` to `x?.M`.  This is not legal if 'M' is an unconstrained type parameter as
+            // the lang/compiler doesn't know what final type to make out of this.
+
+            var memberType = semanticModel.GetTypeInfo(whenPartToCheck, cancellationToken).Type;
+            if (memberType is null or ITypeParameterSymbol
+                {
+                    IsReferenceType: false,
+                    IsValueType: false,
+                })
+            {
+                return null;
+            }
+
             // `x == null ? x : x.Value` will be converted to just 'x'.
             if (UseNullPropagationHelpers.IsSystemNullableValueProperty(memberSymbol))
                 isTrivialNullableValueAccess = true;
@@ -427,7 +440,8 @@ internal abstract partial class AbstractUseNullPropagationDiagnosticAnalyzer<
         if (node is TElementAccessExpressionSyntax elementAccess)
             return (TExpressionSyntax?)syntaxFacts.GetExpressionOfElementAccessExpression(elementAccess);
 
-        if (syntaxFacts.SyntaxKinds.SimpleAssignmentExpression == node.RawKind && syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
+        if (syntaxFacts.IsAnyAssignmentStatement(node.Parent) &&
+            syntaxFacts.SupportsNullConditionalAssignment(node.SyntaxTree.Options))
         {
             syntaxFacts.GetPartsOfAssignmentExpressionOrStatement(node, out var left, out _, out _);
             return (TExpressionSyntax)left;

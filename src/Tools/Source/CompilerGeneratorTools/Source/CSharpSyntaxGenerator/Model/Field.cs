@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml.Serialization;
 
 namespace CSharpSyntaxGenerator
@@ -34,6 +35,7 @@ namespace CSharpSyntaxGenerator
         public List<TreeTypeChild> Children;
     }
 
+    [DebuggerDisplay("{Name,nq}")]
     public class Field : TreeTypeChild
     {
         [XmlAttribute]
@@ -43,7 +45,13 @@ namespace CSharpSyntaxGenerator
         public string Type;
 
         [XmlAttribute]
+        public string ExperimentalUrl;
+
+        [XmlAttribute]
         public string Optional;
+
+        [XmlAttribute]
+        public string RequiredForTest;
 
         [XmlAttribute]
         public string Override;

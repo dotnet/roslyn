@@ -1,0 +1,4 @@
+steps:
+  - script: |
+      dotnet build ./eng/snap.cs
+    displayName: Build file-based apps

@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -140,7 +139,7 @@ internal abstract class AbstractFlagsEnumGenerator : IComparer<(IFieldSymbol fie
         if (IsValidName(enumType, field.Name))
         {
             return this.SyntaxGenerator.MemberAccessExpression(
-                this.SyntaxGenerator.TypeExpression(enumType),
+                this.SyntaxGenerator.Type(enumType, typeContext: false),
                 this.SyntaxGenerator.IdentifierName(field.Name));
         }
         else

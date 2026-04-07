@@ -124,8 +124,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                 var text = await Document.GetValueTextAsync(CancellationToken).ConfigureAwait(false);
                 text.GetLineAndOffset(namePosition, out var line, out var lineOffset);
                 var items = symbol.GetMembers()
-                    .Where(FilterInterfaceMember)
-                    .SelectAsArray(CreateCompletionItem);
+                    .SelectAsArray(FilterInterfaceMember, CreateCompletionItem);
 
                 return items;
 

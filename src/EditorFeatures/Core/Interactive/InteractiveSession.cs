@@ -96,7 +96,7 @@ internal sealed class InteractiveSession : IDisposable
         _sourceSearchPaths = [];
         _workingDirectory = initialWorkingDirectory;
 
-        _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location)!, "InteractiveHost");
+        _hostDirectory = Path.Combine(Path.GetDirectoryName(typeof(InteractiveSession).Assembly.Location), "InteractiveHost");
 
         Host = new InteractiveHost(languageInfo.ReplServiceProviderType, initialWorkingDirectory);
         Host.ProcessInitialized += ProcessInitialized;
@@ -132,7 +132,7 @@ internal sealed class InteractiveSession : IDisposable
     {
         Contract.ThrowIfFalse(result.InitializationResult != null);
 
-        _workQueue.AddWork(() =>
+        _workQueue.AddWork(async () =>
         {
             _workspace.ResetSolution();
 
@@ -153,7 +153,6 @@ internal sealed class InteractiveSession : IDisposable
             }
 
             _pendingBuffers.Clear();
-            return Task.CompletedTask;
         });
     }
 
@@ -163,10 +162,9 @@ internal sealed class InteractiveSession : IDisposable
     internal void AddSubmissionProject(ITextBuffer submissionBuffer)
     {
         _workQueue.AddWork(
-            () =>
+            async () =>
             {
                 AddSubmissionProjectNoLock(submissionBuffer, _languageInfo.LanguageName);
-                return Task.CompletedTask;
             });
     }
 
@@ -204,7 +202,7 @@ internal sealed class InteractiveSession : IDisposable
                 metadataService);
 
             // if a script was specified in .rps file insert a project with a document that represents it:
-            initializationScriptPath = initResult!.ScriptPath;
+            initializationScriptPath = initResult.ScriptPath;
             if (initializationScriptPath != null)
             {
                 initializationScriptProjectId = ProjectId.CreateNewId(CreateNewSubmissionName());

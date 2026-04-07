@@ -27,19 +27,20 @@ internal sealed class CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyze
     protected override bool CanRemoveParentheses(
         ParenthesizedPatternSyntax parenthesizedExpression,
         SemanticModel semanticModel, CancellationToken cancellationToken,
-        out PrecedenceKind precedence, out bool clarifiesPrecedence)
+        out PrecedenceKind precedence, out bool clarifiesPrecedence, out bool innerExpressionHasPrimaryPrecedence)
     {
-        return CanRemoveParenthesesHelper(parenthesizedExpression, out precedence, out clarifiesPrecedence);
+        return CanRemoveParenthesesHelper(parenthesizedExpression, out precedence, out clarifiesPrecedence, out innerExpressionHasPrimaryPrecedence);
     }
 
     public static bool CanRemoveParenthesesHelper(
-        ParenthesizedPatternSyntax parenthesizedPattern, out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence)
+        ParenthesizedPatternSyntax parenthesizedPattern, out PrecedenceKind parentPrecedenceKind, out bool clarifiesPrecedence, out bool innerExpressionHasPrimaryPrecedence)
     {
         var result = parenthesizedPattern.CanRemoveParentheses();
         if (!result)
         {
             parentPrecedenceKind = default;
             clarifiesPrecedence = false;
+            innerExpressionHasPrimaryPrecedence = false;
             return false;
         }
 
@@ -47,6 +48,7 @@ internal sealed class CSharpRemoveUnnecessaryPatternParenthesesDiagnosticAnalyze
         var innerPrecedence = inner.GetOperatorPrecedence();
         var innerIsSimple = innerPrecedence is OperatorPrecedence.Primary or
                             OperatorPrecedence.None;
+        innerExpressionHasPrimaryPrecedence = innerIsSimple;
 
         if (parenthesizedPattern.Parent is not PatternSyntax)
         {

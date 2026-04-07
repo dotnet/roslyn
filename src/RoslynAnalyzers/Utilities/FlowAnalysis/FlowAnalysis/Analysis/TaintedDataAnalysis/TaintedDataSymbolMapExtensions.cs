@@ -66,8 +66,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                         IEnumerable<(PointsToCheck, string target)> positivePointsToTaintedTargets = pointsToTaintedTargets.Where(s =>
                             s.pointsToCheck(
-                                arguments.Select(o =>
-                                    pointsToAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray()));
+                                arguments.SelectAsArray(o =>
+                                    pointsToAnalysisResult[o.Kind, o.Syntax])));
                         if (positivePointsToTaintedTargets.Any())
                         {
                             allTaintedTargets ??= PooledHashSet<string>.GetInstance();
@@ -90,8 +90,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                         IEnumerable<(ValueContentCheck, string target)> positiveValueContentTaintedTargets = valueContentTaintedTargets.Where(s =>
                             s.valueContentCheck(
-                                arguments.Select(o => pointsToAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray(),
-                                arguments.Select(o => valueContentAnalysisResult[o.Kind, o.Syntax]).ToImmutableArray()));
+                                arguments.SelectAsArray(o => pointsToAnalysisResult[o.Kind, o.Syntax]),
+                                arguments.SelectAsArray(o => valueContentAnalysisResult[o.Kind, o.Syntax])));
                         if (positiveValueContentTaintedTargets.Any())
                         {
                             allTaintedTargets ??= PooledHashSet<string>.GetInstance();

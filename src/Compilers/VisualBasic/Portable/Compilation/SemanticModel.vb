@@ -927,13 +927,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            ' Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
-            If boundNodes.LowestBoundNodeOfSyntacticParent IsNot Nothing AndAlso
-               boundNodes.LowestBoundNodeOfSyntacticParent.Syntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso
-               DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent.Syntax, ObjectCreationExpressionSyntax).Type Is lowestExpr.Syntax Then
-                Return Nothing
-            End If
-
             Dim type As TypeSymbol
 
             ' Similar to a lambda expression, array literal doesn't have a type.

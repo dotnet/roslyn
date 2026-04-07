@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -19,19 +20,22 @@ internal sealed class LanguageServerTestComposition
         var devKitDependencyPath = includeDevKitComponents ? TestPaths.GetDevKitExtensionPath() : null;
         var serverConfiguration = new ServerConfiguration(LaunchDebugger: false,
             LogConfiguration: new LogConfiguration(LogLevel.Trace),
-            StarredCompletionsPath: null,
             TelemetryLevel: null,
             SessionId: null,
             ExtensionAssemblyPaths: extensionPaths ?? [],
             DevKitDependencyPath: devKitDependencyPath,
             RazorDesignTimePath: null,
+            CSharpDesignTimePath: null,
             ExtensionLogDirectory: string.Empty,
             ServerPipeName: null,
-            UseStdIo: false);
+            UseStdIo: false,
+            AutoLoadProjects: false,
+            SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
+            ClientProcessId: null);
         var extensionManager = ExtensionAssemblyManager.Create(serverConfiguration, loggerFactory);
         var assemblyLoader = new CustomExportAssemblyLoader(extensionManager, loggerFactory);
 
-        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
+        var exportProvider = await LanguageServerExportProviderBuilder.CreateExportProviderAsync(TestPaths.GetLanguageServerDirectory(), extensionManager, assemblyLoader, devKitDependencyPath, cacheDirectory, loggerFactory, CancellationToken.None);
         exportProvider.GetExportedValue<ServerConfigurationFactory>().InitializeConfiguration(serverConfiguration);
         return (exportProvider, assemblyLoader);
     }

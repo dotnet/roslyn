@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
@@ -12,14 +13,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal static class CompletionUtilities
 {
+    public static bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, IEnumerable<ITypeSymbol> targetTypes)
+    {
+        foreach (var targetType in targetTypes)
+        {
+            if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
+                return true;
+        }
+
+        return false;
+    }
+
     public static bool IsTypeImplicitlyConvertible(Compilation compilation, ITypeSymbol sourceType, ImmutableArray<ITypeSymbol> targetTypes)
     {
         foreach (var targetType in targetTypes)
         {
             if (compilation.ClassifyCommonConversion(sourceType, targetType).IsImplicit)
-            {
                 return true;
-            }
         }
 
         return false;
@@ -38,7 +48,7 @@ internal static class CompletionUtilities
         foreach (var project in projects)
         {
             projectIds.Add(project.Id);
-            if (solution is null || project.Solution.WorkspaceVersion > solution.WorkspaceVersion)
+            if (solution is null || project.Solution.SolutionStateContentVersion > solution.SolutionStateContentVersion)
             {
                 solution = project.Solution;
             }

@@ -17,7 +17,7 @@ using CSharpSyntaxGenerator.Grammar;
 
 namespace CSharpSyntaxGenerator
 {
-    internal static class Program
+    public static class Program
     {
         public static int Main(string[] args)
         {
@@ -27,11 +27,6 @@ namespace CSharpSyntaxGenerator
             }
 
             string inputFile = args[0];
-            if (!File.Exists(inputFile))
-            {
-                Console.WriteLine(inputFile + " not found.");
-                return 1;
-            }
 
             bool writeSource = true;
             bool writeTests = false;
@@ -67,6 +62,17 @@ namespace CSharpSyntaxGenerator
                 {
                     outputFile = args[1];
                 }
+            }
+
+            return Generate(inputFile, outputFile, writeSource, writeTests, writeGrammar, writeSignatures);
+        }
+
+        public static int Generate(string inputFile, string outputFile, bool writeSource, bool writeTests, bool writeGrammar, bool writeSignatures)
+        {
+            if (!File.Exists(inputFile))
+            {
+                Console.WriteLine(inputFile + " not found.");
+                return 1;
             }
 
             return writeGrammar

@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
@@ -21,7 +22,7 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
@@ -45,7 +46,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 
     public object? SerializedRequest { get; }
 
-    private QueueItem(
+    internal QueueItem(
         string methodName,
         object? serializedRequest,
         ILspServices lspServices,
@@ -66,7 +67,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
 
-    public static (IQueueItem<TRequestContext>, Task<object?>) Create(
+    public static (QueueItem<TRequestContext>, Task<object?>) Create(
         string methodName,
         object? serializedRequest,
         ILspServices lspServices,
@@ -106,7 +107,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// <summary>
     /// Deserializes the request into the concrete type.  If the deserialization fails we will fail the request and call TrySetException on the <see cref="_completionSource"/>
     /// so that the client can observe the failure.  If this is a mutating request, we will also let the exception bubble up so that the queue can handle it.
-    /// 
+    ///
     /// The caller is expected to return immediately and stop processing the request if this returns false.
     /// </summary>
     private bool TryDeserializeRequest<TRequest>(
@@ -158,7 +159,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken)
+    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, CancellationToken cancellationToken)
     {
         _requestHandlingStarted = true;
 
@@ -232,7 +233,18 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
             // Record logs and metrics on the exception.
             // It's important that this can NEVER throw, or the queue will hang.
             _requestTelemetryScope?.RecordException(ex);
-            _logger.LogException(ex);
+
+            if (ex is LocalRpcException { ErrorCode: LspErrorCodes.ContentModified })
+            {
+                // ContentModified exceptions are expected to be thrown during normal operation
+                // when the client is out of date with the server.  Log them as debug messages
+                // so we don't alarm users.
+                _logger.LogDebug(ex.ToString());
+            }
+            else
+            {
+                _logger.LogException(ex);
+            }
 
             _completionSource.TrySetException(ex);
         }
@@ -254,7 +266,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         {
             throw new InvalidOperationException("Cannot manually fail queue item after it has started");
         }
-        var exception = new Exception(message);
+        var exception = new LocalRpcException(message) { ErrorCode = RoslynLspErrorCodes.NonFatalRequestFailure };
         _requestTelemetryScope?.RecordException(exception);
         _logger.LogException(exception);
 

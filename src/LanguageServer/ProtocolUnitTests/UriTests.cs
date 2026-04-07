@@ -27,7 +27,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     {
     }
 
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(CustomResolveHandler));
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(CustomResolveHandler), typeof(LanguageSpecificHandler));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/runtime/issues/89538")]
@@ -50,9 +50,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
             """, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
-        Assert.Equal(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
-        AssertEx.NotNull(document);
+        var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
+        Assert.NotNull(document);
+        Assert.True(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
         Assert.Equal(looseFileUri, document.GetURI());
         Assert.Equal(filePath, document.FilePath);
     }
@@ -76,9 +76,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
             """, languageId: "csharp").ConfigureAwait(false);
 
         // Verify file is added to the misc file workspace.
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
-        Assert.Equal(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
-        AssertEx.NotNull(document);
+        var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
+        Assert.NotNull(document);
+        Assert.True(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
         Assert.Equal(looseFileUri, document.GetURI());
         Assert.Equal(looseFileUri.UriString, document.FilePath);
     }
@@ -99,7 +99,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
                 </Project>
             </Workspace>
             """;
-        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
         var workspaceDocument = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
         var expectedDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath);
@@ -109,8 +109,8 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         // Verify file is not added to the misc file workspace.
         {
             var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = expectedDocumentUri }, CancellationToken.None);
-            Assert.NotEqual(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
-            AssertEx.NotNull(document);
+            Assert.NotNull(document);
+            Assert.False(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
             Assert.Equal(expectedDocumentUri, document.GetURI());
             Assert.Equal(documentFilePath, document.FilePath);
         }
@@ -119,9 +119,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         {
             var lowercaseUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath.ToLowerInvariant());
             Assert.NotEqual(expectedDocumentUri.GetRequiredParsedUri().AbsolutePath, lowercaseUri.GetRequiredParsedUri().AbsolutePath);
-            var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = lowercaseUri }, CancellationToken.None);
-            Assert.NotEqual(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
-            AssertEx.NotNull(document);
+            var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = lowercaseUri }, CancellationToken.None);
+            Assert.NotNull(document);
+            Assert.False(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
             Assert.Equal(expectedDocumentUri, document.GetURI());
             Assert.Equal(documentFilePath, document.FilePath);
         }
@@ -301,8 +301,8 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Verify file is added to the misc file workspace.
         var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri }, CancellationToken.None);
-        Assert.Equal(testLspServer.GetManager().GetTestAccessor().GetLspMiscellaneousFilesWorkspace(), workspace);
-        AssertEx.NotNull(document);
+        Assert.NotNull(document);
+        Assert.True(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
         Assert.Equal(looseFileUri, document.GetURI());
         Assert.Equal(looseFileUri.UriString, document.FilePath);
 
@@ -352,6 +352,50 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         Assert.Equal("hello", (await document!.GetTextAsync()).ToString());
     }
 
+    [Theory, CombinatorialData]
+    public async Task TestUnparseableUri_FindsLanguageSpecificHandler_WhenDocumentIsOpen(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Use a URI that System.Uri cannot parse.
+        var unparseableUri = new DocumentUri("_claude_vscode_fs_right:/c:/Projects/MyApp/Pages/Component.razor");
+        Assert.Null(unparseableUri.ParsedUri);
+
+        // Open the document with the unparseable URI and "razor" language ID.
+        // The language ID should be saved and used to route subsequent requests to the Razor-specific handler.
+        await testLspServer.OpenDocumentAsync(unparseableUri, "<div>hello</div>", languageId: "razor");
+
+        // Send a request to the language-specific handler - should route to the Razor handler successfully.
+        var response = await testLspServer.ExecuteRequestAsync<CustomResolveParams, LanguageSpecificResponse>(
+            LanguageSpecificHandler.MethodName,
+            new CustomResolveParams(new LSP.TextDocumentIdentifier { DocumentUri = unparseableUri }),
+            CancellationToken.None);
+
+        Assert.NotNull(response);
+        Assert.True(response.HandlerCalled);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestUnparseableUri_WithNoDefaultHandler_DoesNotCrashServer_WhenDocumentIsClosed(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Use a URI that System.Uri cannot parse.
+        var unparseableUri = new DocumentUri("_claude_vscode_fs_right:/c:/Projects/MyApp/Pages/Component.razor");
+        Assert.Null(unparseableUri.ParsedUri);
+
+        // Send a request to a handler that is ONLY registered for "Razor" language (no default handler).
+        // Language lookup fails (document closed, URI unparseable) so there is no language to route to.
+        // The server should gracefully fail the request, not crash.
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await testLspServer.ExecuteRequestAsync<CustomResolveParams, LanguageSpecificResponse>(
+                LanguageSpecificHandler.MethodName,
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { DocumentUri = unparseableUri }),
+                CancellationToken.None));
+        Assert.False(testLspServer.GetServerAccessor().HasShutdownStarted());
+        Assert.False(testLspServer.GetQueueAccessor()!.Value.IsComplete());
+    }
+
     [Theory]
     [InlineData(true, null, null)]
     [InlineData(false, "file://c:\\valid", null)]
@@ -371,6 +415,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
     private sealed record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
     private sealed record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
+    private sealed record class LanguageSpecificResponse(bool HandlerCalled);
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(CustomResolveHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
@@ -383,9 +428,29 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(CustomResolveParams request) => request.TextDocument;
-        public Task<ResolvedDocumentInfo> HandleRequestAsync(CustomResolveParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<ResolvedDocumentInfo> HandleRequestAsync(CustomResolveParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new ResolvedDocumentInfo(context.Workspace!.Kind!, context.GetRequiredDocument().Project.Language));
+            return new ResolvedDocumentInfo(context.Workspace!.Kind!, context.GetRequiredDocument().Project.Language);
+        }
+    }
+
+    /// <summary>
+    /// Test handler that is only registered for the "Razor" language, with no default fallback.
+    /// This simulates handlers like textDocument/documentColor that are dynamically registered by Razor.
+    /// </summary>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(LanguageSpecificHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, "Razor")]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class LanguageSpecificHandler() : ILspServiceRequestHandler<CustomResolveParams, LanguageSpecificResponse>
+    {
+        public const string MethodName = nameof(LanguageSpecificHandler);
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => false;
+        public Task<LanguageSpecificResponse> HandleRequestAsync(CustomResolveParams request, RequestContext context, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new LanguageSpecificResponse(true));
         }
     }
 }

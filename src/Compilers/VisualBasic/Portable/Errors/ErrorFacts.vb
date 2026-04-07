@@ -19,7 +19,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case ERRID.ERR_TypeRefResolutionError3,
                      ERRID.ERR_MissingRuntimeHelper,
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
-                     ERRID.ERR_SymbolDefinedInAssembly
+                     ERRID.ERR_SymbolDefinedInAssembly,
+                     ERRID.ERR_AsyncSubMain,
+                     ERRID.ERR_EncUpdateFailedMissingSymbol,
+                     ERRID.ERR_EncNoPIAReference,
+                     ERRID.ERR_EncReferenceToAddedMember,
+                     ERRID.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
                     ' Update src\Features\VisualBasic\Portable\Diagnostics\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
                     ' and TestIsBuildOnlyDiagnostic in src\Compilers\VisualBasic\Test\Semantic\Diagnostics\DiagnosticTests.vb
                     ' whenever new values are added here.
@@ -450,7 +455,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_NameNotEvent2,
                      ERRID.ERR_AddOrRemoveHandlerEvent,
                      ERRID.ERR_UnrecognizedEnd,
-                     ERRID.ERR_ArrayInitForNonArray2,
                      ERRID.ERR_EndRegionNoRegion,
                      ERRID.ERR_ExpectedEndRegion,
                      ERRID.ERR_InheritsStmtWrongOrder,
@@ -1193,7 +1197,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_BadGetAwaiterMethod1,
                      ERRID.ERR_RestrictedResumableType1,
                      ERRID.ERR_BadAwaitNothing,
-                     ERRID.ERR_AsyncSubMain,
                      ERRID.ERR_PartialMethodsMustNotBeAsync1,
                      ERRID.ERR_InvalidAsyncIteratorModifiers,
                      ERRID.ERR_BadAwaitNotInAsyncMethodOrLambda,
@@ -1236,7 +1239,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_PublicKeyFileFailure,
                      ERRID.ERR_PublicKeyContainerFailure,
                      ERRID.ERR_InvalidAssemblyCulture,
-                     ERRID.ERR_EncUpdateFailedMissingSymbol,
                      ERRID.ERR_CantAwaitAsyncSub1,
                      ERRID.ERR_ResumableLambdaInExpressionTree,
                      ERRID.ERR_DllImportOnResumableMethod,
@@ -1278,7 +1280,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_ResourceInModule,
                      ERRID.ERR_FieldHasMultipleDistinctConstantValues,
                      ERRID.ERR_AmbiguousInNamespaces2,
-                     ERRID.ERR_EncNoPIAReference,
                      ERRID.ERR_LinkedNetmoduleMetadataMustProvideFullPEImage,
                      ERRID.ERR_CantReadRulesetFile,
                      ERRID.ERR_MetadataReferencesNotSupported,
@@ -1296,7 +1297,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_InvalidNameOfSubExpression,
                      ERRID.ERR_MethodTypeArgsUnexpected,
                      ERRID.ERR_InReferencedAssembly,
-                     ERRID.ERR_EncReferenceToAddedMember,
                      ERRID.ERR_InterpolationFormatWhitespace,
                      ERRID.ERR_InterpolationAlignmentOutOfRange,
                      ERRID.ERR_InterpolatedStringFactoryError,
@@ -1425,7 +1425,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_MissingAsClauseinOperator,
                      ERRID.WRN_ConstraintsFailedForInferredArgs2,
                      ERRID.WRN_ConditionalNotValidOnFunction,
-                     ERRID.WRN_UseSwitchInsteadOfAttribute,
                      ERRID.WRN_TupleLiteralNameMismatch,
                      ERRID.WRN_ReferencedAssemblyDoesNotHaveStrongName,
                      ERRID.WRN_RecursiveAddHandlerCall,
@@ -1548,7 +1547,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_InvalidExperimentalDiagID,
                      ERRID.ERR_LockTypeUnsupported,
                      ERRID.WRN_ConvertingLock,
-                     ERRID.ERR_EmbeddedAttributeMustFollowPattern
+                     ERRID.ERR_EmbeddedAttributeMustFollowPattern,
+                     ERRID.ERR_MethodImplAttributeAsyncCannotBeUsed,
+                     ERRID.ERR_AttributeCannotBeAppliedManually,
+                     ERRID.ERR_StructLayoutAndExtendedLayout,
+                     ERRID.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                     Return False
                 Case Else
                     ' NOTE: All error codes must be explicitly handled in the below select case statement

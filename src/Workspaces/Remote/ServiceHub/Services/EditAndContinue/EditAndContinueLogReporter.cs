@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable CS0436 // Type conflicts with imported type (workaround for https://github.com/dotnet/roslyn/issues/76674)
-
 using System;
 using System.Composition;
 using System.Threading;
@@ -19,6 +17,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [Export(typeof(IEditAndContinueLogReporter))]
 internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
 {
+    private const string CategoryName = "Roslyn";
+
     private readonly AsyncBatchingWorkQueue<HotReloadLogMessage> _queue;
 
     [ImportingConstructor]
@@ -59,6 +59,6 @@ internal sealed class EditAndContinueLogReporter : IEditAndContinueLogReporter
             _ => throw ExceptionUtilities.UnexpectedValue(severity),
         };
 
-        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel));
+        _queue.AddWork(new HotReloadLogMessage(verbosity, message, errorLevel: errorLevel, category: CategoryName));
     }
 }

@@ -38,6 +38,10 @@ parameters:
   # Optional: A minimatch pattern for the asset manifests to publish to BAR
   assetManifestsPattern: '*/manifests/**/*.xml'
 
+  repositoryAlias: self
+
+  officialBuildId: ''
+
 jobs:
 - job: Asset_Registry_Publish
 
@@ -60,25 +64,30 @@ jobs:
       value: false
     # unconditional - needed for logs publishing (redactor tool version)
     - template: /eng/common/core-templates/post-build/common-variables.yml
+  - name: OfficialBuildId
+    ${{ if ne(parameters.officialBuildId, '') }}:
+      value: ${{ parameters.officialBuildId }}
+    ${{ else }}:
+      value: $(Build.BuildNumber)
 
   pool:
     # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
     ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
       name: AzurePipelines-EO
-      image: 1ESPT-Windows2022
+      image: 1ESPT-Windows2025
       demands: Cmd
       os: windows
     # If it's not devdiv, it's dnceng
     ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
       name: NetCore1ESPool-Publishing-Internal
-      image: windows.vs2019.amd64
+      image: windows.vs2026.amd64
       os: windows
   steps:
   - ${{ if eq(parameters.is1ESPipeline, '') }}:
     - 'Illegal entry point, is1ESPipeline is not defined. Repository yaml should not directly reference templates in core-templates folder.': error
 
   - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-    - checkout: self
+    - checkout: ${{ parameters.repositoryAlias }}
       fetchDepth: 3
       clean: true
 
@@ -111,18 +120,29 @@ jobs:
     
     - task: NuGetAuthenticate@1
 
+    # Populate internal runtime variables.
+    - template: /eng/common/templates/steps/enable-internal-sources.yml
+      ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+        parameters:
+            legacyCredential: $(dn-bot-dnceng-artifact-feeds-rw)
+    
+    - template: /eng/common/templates/steps/enable-internal-runtimes.yml
+
     - task: AzureCLI@2
       displayName: Publish Build Assets
       inputs:
         azureSubscription: "Darc: Maestro Production"
         scriptType: ps
         scriptLocation: scriptPath
-        scriptPath: $(Build.SourcesDirectory)/eng/common/sdk-task.ps1
+        scriptPath: $(System.DefaultWorkingDirectory)/eng/common/sdk-task.ps1
         arguments: -task PublishBuildAssets -restore -msbuildEngine dotnet
           /p:ManifestsPath='$(Build.StagingDirectory)/AssetManifests'
           /p:IsAssetlessBuild=${{ parameters.isAssetlessBuild }}
           /p:MaestroApiEndpoint=https://maestro.dot.net
-          /p:OfficialBuildId=$(Build.BuildNumber)
+          /p:OfficialBuildId=$(OfficialBuildId)
+          -runtimeSourceFeed https://ci.dot.net/internal
+          -runtimeSourceFeedKey '$(dotnetbuilds-internal-container-read-token-base64)'
+
       condition: ${{ parameters.condition }}
       continueOnError: ${{ parameters.continueOnError }}
     
@@ -137,7 +157,7 @@ jobs:
           Add-Content -Path $filePath -Value "$(DefaultChannels)"
           Add-Content -Path $filePath -Value $(IsStableBuild)
 
-          $symbolExclusionfile = "$(Build.SourcesDirectory)/eng/SymbolPublishingExclusionsFile.txt"
+          $symbolExclusionfile = "$(System.DefaultWorkingDirectory)/eng/SymbolPublishingExclusionsFile.txt"
           if (Test-Path -Path $symbolExclusionfile)
           {
             Write-Host "SymbolExclusionFile exists"
@@ -171,13 +191,18 @@ jobs:
           PromoteToChannelIds: ${{ parameters.PromoteToChannelIds }}
           is1ESPipeline: ${{ parameters.is1ESPipeline }}
 
+      # Darc is targeting 8.0, so make sure it's installed
+      - task: UseDotNet@2
+        inputs:
+          version: 8.0.x
+
       - task: AzureCLI@2
         displayName: Publish Using Darc
         inputs:
           azureSubscription: "Darc: Maestro Production"
           scriptType: ps
           scriptLocation: scriptPath
-          scriptPath: $(Build.SourcesDirectory)/eng/common/post-build/publish-using-darc.ps1
+          scriptPath: $(System.DefaultWorkingDirectory)/eng/common/post-build/publish-using-darc.ps1
           arguments: >
             -BuildId $(BARBuildId)
             -PublishingInfraVersion 3
@@ -186,6 +211,8 @@ jobs:
             -ArtifactsPublishingAdditionalParameters '${{ parameters.artifactsPublishingAdditionalParameters }}'
             -SymbolPublishingAdditionalParameters '${{ parameters.symbolPublishingAdditionalParameters }}'
             -SkipAssetsPublishing '${{ parameters.isAssetlessBuild }}'
+            -runtimeSourceFeed https://ci.dot.net/internal
+            -runtimeSourceFeedKey '$(dotnetbuilds-internal-container-read-token-base64)'
 
     - ${{ if eq(parameters.enablePublishBuildArtifacts, 'true') }}:
       - template: /eng/common/core-templates/steps/publish-logs.yml

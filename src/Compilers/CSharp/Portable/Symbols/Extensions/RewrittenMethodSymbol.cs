@@ -4,7 +4,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -21,8 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(originalMethod.ExplicitInterfaceImplementations.IsEmpty);
 
             _originalMethod = originalMethod;
-            // Tracked by https://github.com/dotnet/roslyn/issues/78963 : Are we creating type parameters with the right emit behavior? Attributes, etc.
-            _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, out _typeParameters);
+            _typeMap = typeMap.WithAlphaRename(typeParametersToAlphaRename, this, propagateAttributes: true, out _typeParameters);
         }
 
         public TypeMap TypeMap => _typeMap;
@@ -64,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalMethod.IsIterator; }
         }
 
+        public sealed override bool IsAsync => _originalMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => _originalMethod.RuntimeAsyncMethodGenerationAttributeSetting;
+
         internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             return _originalMethod.CalculateLocalSyntaxOffset(localPosition, localTree);
@@ -86,6 +90,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return _originalMethod.GetAttributes();
+        }
+
+        public sealed override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes()
+        {
+            return _originalMethod.GetReturnTypeAttributes();
         }
 
         internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
@@ -112,11 +121,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _originalMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
 
-        protected class RewrittenMethodParameterSymbol : RewrittenParameterSymbol
+        protected sealed class RewrittenMethodParameterSymbol : RewrittenMethodParameterSymbolBase
+        {
+            internal RewrittenMethodParameterSymbol(RewrittenMethodSymbol containingMethod, ParameterSymbol originalParameter)
+                : base(containingMethod, originalParameter)
+            {
+            }
+
+            internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+                => throw ExceptionUtilities.Unreachable();
+        }
+
+        protected abstract class RewrittenMethodParameterSymbolBase : RewrittenParameterSymbol
         {
             protected readonly RewrittenMethodSymbol _containingMethod;
 
-            public RewrittenMethodParameterSymbol(RewrittenMethodSymbol containingMethod, ParameterSymbol originalParameter) :
+            protected RewrittenMethodParameterSymbolBase(RewrittenMethodSymbol containingMethod, ParameterSymbol originalParameter) :
                 base(originalParameter)
             {
                 _containingMethod = containingMethod;

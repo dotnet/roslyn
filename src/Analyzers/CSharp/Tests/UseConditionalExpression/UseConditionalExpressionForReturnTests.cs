@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -2238,4 +2239,138 @@ public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper log
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80640")]
+    public Task TestMissingWhenBoolOperatorsAreUsed()
+        => TestMissingAsync("""
+            class C
+            {
+                bool M()
+                {
+                    [||]if (this)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                public static bool operator true(C v) => true;
+
+                public static bool operator false(C v) => false;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80640")]
+    public Task TestWithImplicitBoolConversion()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                bool M()
+                {
+                    [|if|] (this)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                public static implicit operator bool(C v) => true;
+            }
+            """, """
+            class C
+            {
+                bool M()
+                {
+                    return this;
+                }
+
+                public static implicit operator bool(C v) => true;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81115")]
+    public Task TestTabs_SpacesOption()
+    {
+        var input = """
+            using System;
+
+            class C
+            {
+            	int M()
+            	{
+            		[|if|] (!ThisMethodNameIsVeryLongForTestingWithManyWords(out var x))
+            		{
+            			throw new Exception($"This is a long exception message for repro");
+            		}
+
+            		return x;
+            	}
+
+            	bool ThisMethodNameIsVeryLongForTestingWithManyWords(out int x) { x = 0; return true; }
+            }
+            """;
+
+        Assert.True(input.Contains("\t"));
+        return TestInRegularAndScriptAsync(input, """
+            using System;
+            
+            class C
+            {
+            	int M()
+            	{
+                    return !ThisMethodNameIsVeryLongForTestingWithManyWords(out var x)
+                        ? throw new Exception($"This is a long exception message for repro")
+                        : x;
+                }
+
+                bool ThisMethodNameIsVeryLongForTestingWithManyWords(out int x) { x = 0; return true; }
+            }
+            """, new TestParameters(options: Option(FormattingOptions2.UseTabs, false)));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81115")]
+    public Task TestTabs_TabsOption()
+    {
+        var input = """
+            using System;
+
+            class C
+            {
+            	int M()
+            	{
+            		[|if|] (!ThisMethodNameIsVeryLongForTestingWithManyWords(out var x))
+            		{
+            			throw new Exception($"This is a long exception message for repro");
+            		}
+
+            		return x;
+            	}
+
+            	bool ThisMethodNameIsVeryLongForTestingWithManyWords(out int x) { x = 0; return true; }
+            }
+            """;
+
+        Assert.True(input.Contains("\t"));
+        return TestInRegularAndScriptAsync(input, """
+            using System;
+            
+            class C
+            {
+            	int M()
+            	{
+            		return !ThisMethodNameIsVeryLongForTestingWithManyWords(out var x)
+            			? throw new Exception($"This is a long exception message for repro")
+            			: x;
+            	}
+            
+            	bool ThisMethodNameIsVeryLongForTestingWithManyWords(out int x) { x = 0; return true; }
+            }
+            """, new TestParameters(options: Option(FormattingOptions2.UseTabs, true)));
+    }
 }

@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Telemetry;
@@ -66,9 +65,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
                 // and we don't want the case where VisualStudioProjectFactory is constructed on the main thread to block on that.
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
                 _visualStudioWorkspaceImpl.Services.GetRequiredService<VisualStudioMetadataReferenceManager>();
-
-                _visualStudioWorkspaceImpl.SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents();
-                _visualStudioWorkspaceImpl.SubscribeToSourceGeneratorImpactingEvents();
             });
     }
 
@@ -78,27 +74,24 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(
         string projectSystemName, string language, VisualStudioProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(false);
-
-        // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
-        // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
-        // switch can't be completed quickly. For the rest of this method, we won't use ConfigureAwait(false) since we're expecting VS threading
-        // rules to apply.
-        if (!_threadingContext.JoinableTaskContext.IsMainThreadBlocked())
-        {
-            await TaskScheduler.Default;
-        }
+        // Since we're following JTF/VS threading rules here, we just use ConfigureAwait(true) in this method, which does what we want for performance:
+        //
+        // - For CPS where we expect this to be called on a thread pool thread, we'll stay on the thread pool thread and that's what we want.
+        // - For csproj/msvbprj, this gets called on the UI thread from AbstractLegacyProject's constructor, which since that's under a
+        //    JTF.Run() on the UI thread, ensures we don't find ourselves blocked on a busy thread pool.
+        await _initializationTask.JoinAsync(cancellationToken).ConfigureAwait(true);
 
         var solution = await _solution.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
-
-        // From this point on, we start mutating the solution.  So make us non cancellable.
-        cancellationToken = CancellationToken.None;
 
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
         var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _analyzerAssemblyRedirectors);
-        var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo).ConfigureAwait(true);
+        var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo, cancellationToken).ConfigureAwait(true);
+
+        // We have now created the project and added it to the solution -- we are committed at this point
+        // to returning a project or else we would never have a way to remove this project we created.
+        cancellationToken = CancellationToken.None;
 
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 

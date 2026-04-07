@@ -78,20 +78,53 @@ internal static class Extensions
             .GetRequiredProject(id);
     }
 
-    public static Document AddTestDocument(this Project project, string source, string path)
+    public static Document AddTestDocument(this Project project, string? source, string path)
         => project.AddTestDocument(source, path, out _);
 
-    public static Document AddTestDocument(this Project project, string source, string path, out DocumentId id)
+    public static Document AddTestDocument(this Project project, string? source, string path, out DocumentId id)
         => project.Solution.AddTestDocument(project.Id, source, path, out id);
 
-    public static Document AddTestDocument(this Solution solution, ProjectId projectId, string source, string path, out DocumentId id)
-        => solution.AddDocument(
-            id = DocumentId.CreateNewId(projectId),
-            name: PathUtilities.GetFileName(path),
-            SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default),
-            filePath: PathUtilities.IsAbsolute(path)
-                ? path : Path.Combine(Path.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath!)!, path))
-        .GetRequiredDocument(id);
+    public static TextDocument AddAdditionalTestDocument(this Project project, string? source, string path, out DocumentId id)
+        => project.Solution.AddAdditionalTestDocument(project.Id, source, path, out id);
+
+    public static TextDocument AddAnalyzerConfigTestDocument(this Project project, (string key, string value)[] config, string path, out DocumentId id)
+        => project.Solution.AddAnalyzerConfigTestDocument(project.Id, config, path, out id);
+
+    public static Document AddTestDocument(this Solution solution, ProjectId projectId, string? source, string path, out DocumentId id)
+        => solution.AddDocument(CreateTestDocumentInfo(solution, projectId, source, path, out id)).GetRequiredDocument(id);
+
+    public static TextDocument AddAdditionalTestDocument(this Solution solution, ProjectId projectId, string? source, string path, out DocumentId id)
+        => solution.AddAdditionalDocument(CreateTestDocumentInfo(solution, projectId, source, path, out id)).GetRequiredAdditionalDocument(id);
+
+    public static TextDocument AddAnalyzerConfigTestDocument(this Solution solution, ProjectId projectId, (string key, string value)[] config, string path, out DocumentId id)
+        => solution.AddAnalyzerConfigDocuments([CreateTestDocumentInfo(solution, projectId, GetAnalyzerConfigSource(config), path, out id)]).GetRequiredAnalyzerConfigDocument(id);
+
+    public static string GetAnalyzerConfigSource((string key, string value)[] config)
+        => "[*.*]" + Environment.NewLine + string.Join(Environment.NewLine, config.Select(c => $"{c.key} = {c.value}"));
+
+    public static DocumentInfo CreateTestDocumentInfo(Solution solution, ProjectId projectId, string? source, string path, out DocumentId id)
+    {
+        id = DocumentId.CreateNewId(projectId);
+
+        var name = PathUtilities.GetFileName(path);
+
+        var loader = source != null
+            ? TextLoader.From(TextAndVersion.Create(CreateText(source), VersionStamp.Create()))
+            : new WorkspaceFileTextLoader(solution.Services, path, Encoding.UTF8);
+
+        if (!PathUtilities.IsAbsolute(path))
+            path = Path.Combine(Path.GetDirectoryName(solution.GetRequiredProject(projectId).FilePath!)!, path);
+
+        return DocumentInfo.Create(
+            id,
+            name: name,
+            loader: loader,
+            filePath: path,
+            isGenerated: false);
+    }
+
+    public static SourceText CreateText(string source)
+        => SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default);
 
     public static Project WithCompilationOptions<TCompilationOptions>(this Project project, Func<TCompilationOptions, TCompilationOptions> transform)
         where TCompilationOptions : CompilationOptions

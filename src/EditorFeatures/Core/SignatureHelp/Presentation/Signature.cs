@@ -217,7 +217,7 @@ internal sealed class Signature : ISignature
         {
             var result = new List<TaggedText>
             {
-                new TaggedText(TextTags.Punctuation, "[")
+                new(TextTags.Punctuation, "[")
             };
             result.AddRange(list);
             result.Add(new TaggedText(TextTags.Punctuation, "]"));

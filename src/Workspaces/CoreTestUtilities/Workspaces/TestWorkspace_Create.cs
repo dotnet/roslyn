@@ -6,6 +6,7 @@
 
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -32,6 +33,19 @@ public partial class TestWorkspace
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
     {
         var workspace = new TestWorkspace(composition, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
+        workspace.InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
+        return workspace;
+    }
+
+    internal static TestWorkspace Create(
+        XElement workspaceElement,
+        ExportProvider exportProvider,
+        bool openDocuments = true,
+        string workspaceKind = null,
+        IDocumentServiceProvider documentServiceProvider = null,
+        bool ignoreUnchangeableDocumentsWhenApplyingChanges = true)
+    {
+        var workspace = new TestWorkspace(exportProvider, workspaceKind, ignoreUnchangeableDocumentsWhenApplyingChanges: ignoreUnchangeableDocumentsWhenApplyingChanges);
         workspace.InitializeDocuments(workspaceElement, openDocuments, documentServiceProvider);
         return workspace;
     }

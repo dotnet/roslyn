@@ -18,6 +18,9 @@ namespace CSharpSyntaxGenerator
         public string Base;
 
         [XmlAttribute]
+        public string ExperimentalUrl;
+
+        [XmlAttribute]
         public string SkipConvenienceFactories;
 
         [XmlElement]
@@ -25,6 +28,9 @@ namespace CSharpSyntaxGenerator
 
         [XmlElement]
         public Comment FactoryComment;
+
+        [XmlAttribute]
+        public string HasValidate;
 
         [XmlElement(ElementName = "Field", Type = typeof(Field))]
         [XmlElement(ElementName = "Choice", Type = typeof(Choice))]

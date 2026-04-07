@@ -8,7 +8,9 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.CodeLens;
 
 /// <summary>
-/// Holds information required to display and navigate to individual references
+/// Holds information required to display and navigate to individual references. This type is serialized between devenv and the CodeLens ServiceHub process, so must be serializable via
+/// Newtonsoft.Json with no special configuration. Since our regular <see cref="DocumentId"/> is not serialable that way, a distinction is made between a this descriptor (which might be in any random file)
+/// after it was mapped via <see cref="ICodeLensReferencesService.MapReferenceLocationsAsync"/> and a descriptor which appears in a document prior to mapping, which is a <see cref="ReferenceLocationDescriptorAndDocument"/>.
 /// </summary>
 [DataContract]
 internal sealed class ReferenceLocationDescriptor(
@@ -19,8 +21,6 @@ internal sealed class ReferenceLocationDescriptor(
     int spanLength,
     int lineNumber,
     int columnNumber,
-    Guid projectGuid,
-    Guid documentGuid,
     string filePath,
     string referenceLineText,
     int referenceStart,
@@ -72,57 +72,64 @@ internal sealed class ReferenceLocationDescriptor(
     [DataMember(Order = 6)]
     public int ColumnNumber { get; } = columnNumber;
 
-    [DataMember(Order = 7)]
-    public Guid ProjectGuid { get; } = projectGuid;
-
-    [DataMember(Order = 8)]
-    public Guid DocumentGuid { get; } = documentGuid;
-
     /// <summary>
     /// Document's file path
     /// </summary>
-    [DataMember(Order = 9)]
+    [DataMember(Order = 7)]
     public string FilePath { get; } = filePath;
 
     /// <summary>
     /// the full line of source that contained the reference
     /// </summary>
-    [DataMember(Order = 10)]
+    [DataMember(Order = 8)]
     public string ReferenceLineText { get; } = referenceLineText;
 
     /// <summary>
     /// the beginning of the span within reference text that was the use of the reference
     /// </summary>
-    [DataMember(Order = 11)]
+    [DataMember(Order = 9)]
     public int ReferenceStart { get; } = referenceStart;
 
     /// <summary>
     /// the length of the span of the reference
     /// </summary>
-    [DataMember(Order = 12)]
+    [DataMember(Order = 10)]
     public int ReferenceLength { get; } = referenceLength;
 
     /// <summary>
     /// Text above the line with the reference
     /// </summary>
-    [DataMember(Order = 13)]
+    [DataMember(Order = 11)]
     public string BeforeReferenceText1 { get; } = beforeReferenceText1;
 
     /// <summary>
     /// Text above the line with the reference
     /// </summary>
-    [DataMember(Order = 14)]
+    [DataMember(Order = 12)]
     public string BeforeReferenceText2 { get; } = beforeReferenceText2;
 
     /// <summary>
     /// Text below the line with the reference
     /// </summary>
-    [DataMember(Order = 15)]
+    [DataMember(Order = 13)]
     public string AfterReferenceText1 { get; } = afterReferenceText1;
 
     /// <summary>
     /// Text below the line with the reference
     /// </summary>
-    [DataMember(Order = 16)]
+    [DataMember(Order = 14)]
     public string AfterReferenceText2 { get; } = afterReferenceText2;
+}
+
+/// <summary>
+/// Represents a descriptor as it appears in a regular source document prior to any mapping via <see cref="ICodeLensReferencesService.MapReferenceLocationsAsync"/>.
+/// </summary>
+[DataContract]
+internal sealed record ReferenceLocationDescriptorAndDocument
+{
+    [DataMember(Order = 0)]
+    public required ReferenceLocationDescriptor Descriptor { get; init; }
+
+    [DataMember(Order = 1)]
+    public required DocumentId DocumentId { get; init; }
 }

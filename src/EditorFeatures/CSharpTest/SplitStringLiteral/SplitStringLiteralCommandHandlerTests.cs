@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -27,10 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral;
 public sealed class SplitStringLiteralCommandHandlerTests
 {
     /// <summary>
-    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
-    /// Most tests will continue to verifyUndo, but select tests will skip it due to
-    /// this known test infrastructure issure. This bug does not represent a product
-    /// failure.
+    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033 Most tests will continue to
+    /// verifyUndo, but select tests will skip it due to this known test infrastructure issue. This bug does not
+    /// represent a product failure.
     /// </summary>
     private static void TestWorker(
         string inputMarkup,
@@ -113,14 +113,13 @@ public sealed class SplitStringLiteralCommandHandlerTests
     }
 
     /// <summary>
-    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
-    /// Most tests will continue to verifyUndo, but select tests will skip it due to
-    /// this known test infrastructure issure. This bug does not represent a product
-    /// failure.
+    /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033 Most tests will continue to
+    /// verifyUndo, but select tests will skip it due to this known test infrastructure issue. This bug does not
+    /// represent a product failure.
     /// </summary>
     private static void TestHandled(
-        string inputMarkup,
-        string expectedOutputMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string inputMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedOutputMarkup,
         bool verifyUndo = true,
         IndentStyle indentStyle = IndentStyle.Smart,
         bool useTabs = false,
@@ -135,7 +134,8 @@ public sealed class SplitStringLiteralCommandHandlerTests
             verifyUndo, indentStyle, useTabs, endOfLine);
     }
 
-    private static void TestNotHandled(string inputMarkup)
+    private static void TestNotHandled(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string inputMarkup)
     {
         var notHandled = false;
         TestWorker(
@@ -1068,6 +1068,34 @@ endOfLine: "\n");
                 }
             }
             """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/64812")]
+    public void TestMultiCaretPositionsAreAllSet()
+    {
+        var inputMarkup = """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is [||]the ti[||]me";
+                }
+            }
+            """;
+
+        var expectedMarkup = """
+            class C
+            {
+                void M()
+                {
+                    var v = "now is " +
+                        "[||]the ti" +
+                        "[||]me";
+                }
+            }
+            """;
+
+        TestHandled(inputMarkup, expectedMarkup);
+    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/40277")]
     public void TestInStringWithKeepTabsEnabled1()

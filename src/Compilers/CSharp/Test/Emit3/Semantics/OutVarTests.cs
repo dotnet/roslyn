@@ -652,8 +652,7 @@ public class Cls
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
-            compilation.VerifyDiagnostics(
-                );
+            compilation.VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
@@ -769,8 +768,7 @@ public class Cls
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
-            compilation.VerifyDiagnostics(
-                );
+            compilation.VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "123");
             Assert.False(compilation.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
@@ -3626,18 +3624,18 @@ public class Y
                 // (24,28): error CS0165: Use of unassigned local variable 'x6'
                 //         : base(out int x6, x6)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x6").WithArguments("x6").WithLocation(24, 28),
-                // (28,28): error CS8196: Reference to an implicitly-typed out variable 'x7' is not permitted in the same argument list.
+                // (28,28): error CS8196: Reference to an implicitly-typed out variable 'x7' is not permitted in this location.
                 //         : base(out var x7, x7)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x7").WithArguments("x7").WithLocation(28, 28),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x7").WithArguments("x7").WithLocation(28, 28),
                 // (28,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
                 //         : base(out var x7, x7)
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, "var x7").WithArguments("1", "out").WithLocation(28, 20),
                 // (32,41): error CS0165: Use of unassigned local variable 'x8'
                 //         : base(TakeOutParam(out int x8, x8))
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x8").WithArguments("x8").WithLocation(32, 41),
-                // (36,41): error CS8196: Reference to an implicitly-typed out variable 'x9' is not permitted in the same argument list.
+                // (36,41): error CS8196: Reference to an implicitly-typed out variable 'x9' is not permitted in this location.
                 //         : base(TakeOutParam(out var x9, x9))
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x9").WithArguments("x9").WithLocation(36, 41)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x9").WithArguments("x9").WithLocation(36, 41)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -5489,9 +5487,9 @@ class Y
                 // (8,43): error CS0165: Use of unassigned local variable 'x3'
                 //     bool Test3 = TakeOutParam(out int x3, x3);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(8, 43),
-                // (10,43): error CS8196: Reference to an implicitly-typed out variable 'x4' is not permitted in the same argument list.
+                // (10,43): error CS8196: Reference to an implicitly-typed out variable 'x4' is not permitted in this location.
                 //     bool Test4 = TakeOutParam(out var x4, x4);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x4").WithArguments("x4").WithLocation(10, 43),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x4").WithArguments("x4").WithLocation(10, 43),
                 // (15,12): error CS0103: The name 'x5' does not exist in the current context
                 //     : this(x5)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x5").WithArguments("x5").WithLocation(15, 12),
@@ -12754,9 +12752,9 @@ public class X
                 // (33,50): error CS0165: Use of unassigned local variable 'y3'
                 //                   where TakeOutParam(out int y3, y3)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(33, 50),
-                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in the same argument list.
+                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in this location.
                 //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y4").WithArguments("y4").WithLocation(40, 50)
                 );
 
             compilation = CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
@@ -12770,9 +12768,9 @@ public class X
                 // (33,50): error CS0165: Use of unassigned local variable 'y3'
                 //                   where TakeOutParam(out int y3, y3)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(33, 50),
-                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in the same argument list.
+                // (40,50): error CS8196: Reference to an implicitly-typed out variable 'y4' is not permitted in this location.
                 //                   where TakeOutParam(out var y4, y4)
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "y4").WithArguments("y4").WithLocation(40, 50)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "y4").WithArguments("y4").WithLocation(40, 50)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -18133,9 +18131,9 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,23): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                // (7,23): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in this location.
                 //                   out x1);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 23)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x1").WithArguments("x1").WithLocation(7, 23)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -18174,9 +18172,9 @@ public class Cls
                                                             parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,25): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                // (7,25): error CS8181: Reference to an implicitly-typed out variable 'x1' is not permitted in this location.
                 //               Test1(out x1,
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 25)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableUsedInForbiddenZone, "x1").WithArguments("x1").WithLocation(7, 25)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -19580,11 +19578,8 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (11,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     static object Test1(out System.ArgIterator x)
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(11, 25),
-                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void Test()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
-                );
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(11, 25)
+            );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -19635,11 +19630,8 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 9),
                 // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = default(System.ArgIterator);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
-                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void Test()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13)
+            );
 
             compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461);
 
@@ -19649,11 +19641,8 @@ public class Cls
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(12, 25),
                 // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = default(System.ArgIterator);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
-                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async void Test()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13)
+            );
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -30723,27 +30712,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool b { get; } = H.TakeOutParam(1, out int x1);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(3, 6),
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (7,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool d { get; } = H.TakeOutParam(2, out int x2);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "d").WithLocation(7, 6),
+                    // (9,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool f { get; } = H.TakeOutParam(3, out int x3);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(9, 6),
+                    // (12,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool h { get; } = H.Dummy(H.TakeOutParam(41, out int x4),
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "h").WithLocation(12, 6),
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "h").WithLocation(12, 6),
                     // (13,54): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           H.TakeOutParam(42, out int x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                    // (15,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (15,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool x5 { get; } = 
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x5").WithLocation(15, 6),
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
                     //     H.Dummy(x1, x2, x3, x4, x5);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -30894,27 +30883,27 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool b { get; } = H.TakeOutParam(1, out var x1);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(3, 6),
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "b").WithLocation(3, 6),
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
                     // H.Dummy(x1);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(4, 9),
-                    // (7,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (7,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool d { get; } = H.TakeOutParam(2, out var x2);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d").WithLocation(7, 6),
-                    // (9,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "d").WithLocation(7, 6),
+                    // (9,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool f { get; } = H.TakeOutParam(3, out var x3);
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "f").WithLocation(9, 6),
-                    // (12,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "f").WithLocation(9, 6),
+                    // (12,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool h { get; } = H.Dummy(H.TakeOutParam(41, out var x4),
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "h").WithLocation(12, 6),
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "h").WithLocation(12, 6),
                     // (13,54): error CS0128: A local variable or function named 'x4' is already defined in this scope
                     //                           H.TakeOutParam(42, out var x4));
                     Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(13, 54),
-                    // (15,6): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (15,6): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                     // bool x5 { get; } = 
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "x5").WithLocation(15, 6),
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "x5").WithLocation(15, 6),
                     // (20,13): error CS0103: The name 'x1' does not exist in the current context
                     //     H.Dummy(x1, x2, x3, x4, x5);
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(20, 13),
@@ -31256,7 +31245,7 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
+                int[] exclude = new int[] { (int)ErrorCode.ERR_CompilationUnitUnexpected };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
@@ -31429,7 +31418,7 @@ class H
 
             {
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-                int[] exclude = new int[] { (int)ErrorCode.ERR_NamespaceUnexpected };
+                int[] exclude = new int[] { (int)ErrorCode.ERR_CompilationUnitUnexpected };
 
                 compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                     // (4,9): error CS0103: The name 'x1' does not exist in the current context
@@ -32043,9 +32032,9 @@ class H
                 var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
 
                 compilation.VerifyDiagnostics(
-                    // (3,12): error CS0116: A namespace cannot directly contain members such as fields or methods
+                    // (3,12): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
-                    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "a").WithLocation(3, 12),
+                    Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "a").WithLocation(3, 12),
                     // (3,18): error CS1642: Fixed size buffer fields may only be members of structs
                     // fixed bool a[2], b[H.TakeOutParam(1, out var x1)];
                     Diagnostic(ErrorCode.ERR_FixedNotInStruct, "b").WithLocation(3, 18),
@@ -35732,8 +35721,7 @@ public class C
 }";
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
-            compilation.VerifyDiagnostics(
-                );
+            compilation.VerifyDiagnostics();
 
             CompileAndVerify(compilation, expectedOutput: "23True");
         }

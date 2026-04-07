@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct UnaryOperatorAnalysisResult : IMemberResolutionResultWithPriority<MethodSymbol>
     {
         public readonly UnaryOperatorSignature Signature;
@@ -47,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public UnaryOperatorAnalysisResult Worse()
         {
             return new UnaryOperatorAnalysisResult(OperatorAnalysisResultKind.Worse, this.Signature, this.Conversion);
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return $"{Signature.Kind} {Kind} {Signature.Method?.ToDisplayString()}";
         }
     }
 }

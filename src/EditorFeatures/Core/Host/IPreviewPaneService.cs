@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.Editor.Host;
 
 internal interface IPreviewPaneService : IWorkspaceService
 {
-    object GetPreviewPane(DiagnosticData diagnostic, IReadOnlyList<object> previewContent);
+    object GetPreviewPane(DiagnosticData? diagnostic, IReadOnlyList<object> previewContent);
 }

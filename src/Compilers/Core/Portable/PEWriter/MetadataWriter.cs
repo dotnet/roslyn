@@ -534,7 +534,7 @@ namespace Microsoft.Cci
         protected IEnumerable<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef)
         {
             INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
-            if (nestedTypeDef == null)
+            if (nestedTypeDef == null || !nestedTypeDef.InheritsEnclosingTypeTypeParameters)
             {
                 if (typeDef.IsGeneric)
                 {
@@ -544,44 +544,44 @@ namespace Microsoft.Cci
                 return null;
             }
 
-            return this.GetConsolidatedTypeParameters(typeDef, typeDef);
-        }
+            return getConsolidatedTypeParameters(typeDef, typeDef);
 
-        private List<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef, ITypeDefinition owner)
-        {
-            List<IGenericTypeParameter> result = null;
-            INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
-            if (nestedTypeDef != null)
+            List<IGenericTypeParameter> getConsolidatedTypeParameters(ITypeDefinition typeDef, ITypeDefinition owner)
             {
-                result = this.GetConsolidatedTypeParameters(nestedTypeDef.ContainingTypeDefinition, owner);
-            }
-
-            if (typeDef.GenericParameterCount > 0)
-            {
-                ushort index = 0;
-                if (result == null)
+                List<IGenericTypeParameter> result = null;
+                INestedTypeDefinition nestedTypeDef = typeDef.AsNestedTypeDefinition(Context);
+                if (nestedTypeDef != null && nestedTypeDef.InheritsEnclosingTypeTypeParameters)
                 {
-                    result = new List<IGenericTypeParameter>();
-                }
-                else
-                {
-                    index = (ushort)result.Count;
+                    result = getConsolidatedTypeParameters(nestedTypeDef.ContainingTypeDefinition, owner);
                 }
 
-                if (typeDef == owner && index == 0)
+                if (typeDef.GenericParameterCount > 0)
                 {
-                    result.AddRange(typeDef.GenericParameters);
-                }
-                else
-                {
-                    foreach (IGenericTypeParameter genericParameter in typeDef.GenericParameters)
+                    ushort index = 0;
+                    if (result == null)
                     {
-                        result.Add(new InheritedTypeParameter(index++, owner, genericParameter));
+                        result = new List<IGenericTypeParameter>();
+                    }
+                    else
+                    {
+                        index = (ushort)result.Count;
+                    }
+
+                    if (typeDef == owner && index == 0)
+                    {
+                        result.AddRange(typeDef.GenericParameters);
+                    }
+                    else
+                    {
+                        foreach (IGenericTypeParameter genericParameter in typeDef.GenericParameters)
+                        {
+                            result.Add(new InheritedTypeParameter(index++, owner, genericParameter));
+                        }
                     }
                 }
-            }
 
-            return result;
+                return result;
+            }
         }
 
         protected ImmutableArray<IParameterDefinition> GetParametersToEmit(IMethodDefinition methodDef)
@@ -1453,7 +1453,7 @@ namespace Microsoft.Cci
 
         protected static Location GetSymbolLocation(ISymbolInternal symbolOpt)
         {
-            return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
+            return symbolOpt?.GetFirstLocationOrNone() ?? Location.None;
         }
 
         internal TypeAttributes GetTypeAttributes(ITypeDefinition typeDef)
@@ -1473,6 +1473,13 @@ namespace Microsoft.Cci
 
                 case LayoutKind.Explicit:
                     result |= TypeAttributes.ExplicitLayout;
+                    break;
+
+                default:
+                    if (typeDef.Layout == LayoutKind.Extended)
+                    {
+                        result |= TypeAttributes.ExtendedLayout;
+                    }
                     break;
             }
 
@@ -2117,12 +2124,6 @@ namespace Microsoft.Cci
         {
             foreach (var parent in parentList)
             {
-                if (parent.IsEncDeleted)
-                {
-                    // Custom attributes are not needed for EnC definition deletes
-                    continue;
-                }
-
                 EntityHandle parentHandle = getDefinitionHandle(parent);
                 AddCustomAttributesToTable(parentHandle, parent.GetAttributes(Context));
             }
@@ -2227,7 +2228,7 @@ namespace Microsoft.Cci
                 return;
             }
 
-            var exportedTypes = module.GetExportedTypes(Context.Diagnostics);
+            var exportedTypes = module.GetExportedTypes(Context);
             if (exportedTypes.Length == 0)
             {
                 return;
@@ -2598,9 +2599,21 @@ namespace Microsoft.Cci
 
         private void PopulateMethodImplTableRows()
         {
+            if (methodImplList.Count == 0)
+            {
+                return;
+            }
+
+            if (!Module.MethodImplSupported)
+            {
+                // .NET Framework incorrectly handles MethodImpl table in the second generation, which causes AV.
+                // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems/edit/2631743
+                Context.Diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime, NoLocation.Singleton));
+            }
+
             metadata.SetCapacity(TableIndex.MethodImpl, methodImplList.Count);
 
-            foreach (MethodImplementation methodImplementation in this.methodImplList)
+            foreach (MethodImplementation methodImplementation in methodImplList)
             {
                 metadata.AddMethodImplementation(
                     type: GetTypeDefinitionHandle(methodImplementation.ContainingType),
@@ -2652,6 +2665,12 @@ namespace Microsoft.Cci
 
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
+                // do not emit MethodSemantics entries for deleted properties - the existing ones do not need updating
+                if (propertyDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetPropertyDefIndex(propertyDef);
                 foreach (IMethodReference accessorMethod in propertyDef.GetAccessors(Context))
                 {
@@ -2678,6 +2697,12 @@ namespace Microsoft.Cci
 
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
+                // do not emit MethodSemantics entries for deleted events - the existing ones do not need updating
+                if (eventDef.IsEncDeleted)
+                {
+                    continue;
+                }
+
                 var association = GetEventDefinitionHandle(eventDef);
                 foreach (IMethodReference accessorMethod in eventDef.GetAccessors(Context))
                 {
@@ -3436,14 +3461,9 @@ namespace Microsoft.Cci
         {
             Debug.Assert(fieldReference.RefCustomModifiers.Length == 0 || fieldReference.IsByReference);
 
-            // https://github.com/dotnet/roslyn/issues/61385: Use System.Reflection.Metadata.Ecma335.FieldTypeEncoder
-            // instead, since that type supports ref fields directly.
-            var typeEncoder = new BlobEncoder(builder).FieldSignature();
-            SerializeCustomModifiers(new CustomModifiersEncoder(builder), fieldReference.RefCustomModifiers);
-            if (fieldReference.IsByReference)
-            {
-                typeEncoder.Builder.WriteByte((byte)SignatureTypeCode.ByReference);
-            }
+            var fieldTypeEncoder = new BlobEncoder(builder).Field();
+            SerializeCustomModifiers(fieldTypeEncoder.CustomModifiers(), fieldReference.RefCustomModifiers);
+            var typeEncoder = fieldTypeEncoder.Type(fieldReference.IsByReference);
             SerializeTypeReference(typeEncoder, fieldReference.GetType(Context));
         }
 
@@ -3830,9 +3850,7 @@ namespace Microsoft.Cci
             {
                 if (module.IsPlatformType(typeReference, PlatformType.SystemTypedReference))
                 {
-                    // We should use `SignatureTypeEncoder.TypedReference()` once such a method is available
-                    // Tracked by https://github.com/dotnet/runtime/issues/80812
-                    encoder.Builder.WriteByte((byte)SignatureTypeCode.TypedReference);
+                    encoder.TypedReference();
                     return;
                 }
 
@@ -4135,7 +4153,7 @@ namespace Microsoft.Cci
         private int GetNumberOfInheritedTypeParameters(ITypeReference type)
         {
             INestedTypeReference nestedType = type.AsNestedTypeReference;
-            if (nestedType == null)
+            if (nestedType == null || !nestedType.InheritsEnclosingTypeTypeParameters)
             {
                 return 0;
             }
@@ -4152,6 +4170,12 @@ namespace Microsoft.Cci
             while (nestedType != null)
             {
                 result += nestedType.GenericParameterCount;
+
+                if (!nestedType.InheritsEnclosingTypeTypeParameters)
+                {
+                    return result;
+                }
+
                 type = nestedType.GetContainingType(Context);
                 nestedType = type.AsNestedTypeReference;
             }

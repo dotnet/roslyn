@@ -3555,7 +3555,7 @@ record struct B(int X)
                 verifier.Compilation.GetMember("B.Deconstruct").ToTestDisplayString(includeNonNullable: false));
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.Patterns)]
         public void Deconstruct_Nested()
         {
             var source =
@@ -4234,9 +4234,6 @@ record struct A<T>;
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(WellKnownType.System_IEquatable_T);
             comp.VerifyEmitDiagnostics(
-                    // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
-                    // record struct A<T>;
-                    Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15),
                     // (2,15): error CS0518: Predefined type 'System.IEquatable`1' is not defined or imported
                     // record struct A<T>;
                     Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "A").WithArguments("System.IEquatable`1").WithLocation(2, 15)

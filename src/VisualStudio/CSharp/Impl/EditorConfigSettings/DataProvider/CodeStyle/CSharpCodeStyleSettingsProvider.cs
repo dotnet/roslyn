@@ -4,6 +4,8 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -13,19 +15,26 @@ using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.DataProvider.CodeStyle;
 
 internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<CodeStyleSetting, OptionUpdater, IOption2, object>
 {
-    public CSharpCodeStyleSettingsProvider(string fileName, OptionUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
-        : base(fileName, settingsUpdater, workspace, globalOptions)
+    public CSharpCodeStyleSettingsProvider(
+        IThreadingContext threadingContext,
+        string fileName,
+        OptionUpdater settingsUpdater,
+        Workspace workspace,
+        IGlobalOptionService globalOptions)
+        : base(threadingContext, fileName, settingsUpdater, workspace, globalOptions)
     {
         Update();
     }
 
-    protected override void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope)
+    protected override Task UpdateOptionsAsync(
+        TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope, CancellationToken cancellationToken)
     {
         var varSettings = GetVarCodeStyleOptions(options, SettingsUpdater);
         AddRange(varSettings);
@@ -56,6 +65,8 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
 
         var unusedValueSettings = GetUnusedValueCodeStyleOptions(options, SettingsUpdater);
         AddRange(unusedValueSettings);
+
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<CodeStyleSetting> GetVarCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
@@ -105,6 +116,7 @@ internal sealed class CSharpCodeStyleSettingsProvider : SettingsProviderBase<Cod
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTopLevelStatements, ServicesVSResources.Prefer_top_level_statements, options, updater);
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferPrimaryConstructors, ServicesVSResources.Prefer_primary_constructors, options, updater);
         yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferSystemThreadingLock, ServicesVSResources.Prefer_System_Threading_Lock, options, updater);
+        yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferSimplePropertyAccessors, ServicesVSResources.Prefer_simple_property_accessors, options, updater);
     }
 
     private static IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

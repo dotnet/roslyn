@@ -4,6 +4,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
@@ -14,14 +15,16 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
 
     protected override string DefaultPropertyBlockText => "{ get; set; }";
 
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79954")]
     public override Task InsertSnippetInReadonlyStructTest()
         => VerifyPropertyAsync("""
             readonly struct MyStruct
             {
                 $$
             }
-            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
+            """, "public required {|0:int|} {|1:MyProperty|} { get; init; }");
 
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79954")]
     public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
         => VerifyPropertyAsync("""
             partial struct MyStruct
@@ -32,8 +35,9 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             readonly partial struct MyStruct
             {
             }
-            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
+            """, "public required {|0:int|} {|1:MyProperty|} { get; init; }");
 
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79954")]
     public override Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
         => VerifyPropertyAsync("""
             struct MyStruct
@@ -44,7 +48,7 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             readonly partial struct MyStruct
             {
             }
-            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
+            """, "public required {|0:int|} {|1:MyProperty|} { get; init; }");
 
     public override Task VerifySnippetInInterfaceTest()
         => VerifySnippetIsAbsentAsync("""

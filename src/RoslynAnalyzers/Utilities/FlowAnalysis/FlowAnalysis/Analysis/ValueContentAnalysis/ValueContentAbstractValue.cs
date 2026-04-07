@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
         {
             if (!IsLiteralState || LiteralValues.Count != 1)
             {
-                literalValue = default!;
+                literalValue = default;
                 return false;
             }
 
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             }
             else
             {
-                literalValue = default!;
+                literalValue = default;
                 return false;
             }
         }

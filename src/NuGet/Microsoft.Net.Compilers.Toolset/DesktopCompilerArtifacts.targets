@@ -28,8 +28,8 @@
     <ItemGroup>
       
       <!-- The Roslyn built binaries must be taken from these locations because this is the location where signing occurs -->
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="1"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="2"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe" NgenPriority="2"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
@@ -94,6 +94,8 @@
       <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Memory.dll" />
       <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Numerics.Vectors.dll" />
       <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\System.Runtime.CompilerServices.Unsafe.dll" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\csc.rsp" />
+      <BridgeCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\vbc.rsp" />
       <BridgeCompilerResourceArtifact Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis.Sdk\$(Configuration)\net472\**\Microsoft.Build.Tasks.CodeAnalysis.Sdk.resources.dll" />
     </ItemGroup>
   </Target>

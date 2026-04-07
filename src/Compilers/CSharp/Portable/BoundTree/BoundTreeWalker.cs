@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public sealed override BoundNode? VisitCall(BoundCall node)
+        public override BoundNode? VisitCall(BoundCall node)
         {
             if (node.ReceiverOpt is BoundCall receiver1)
             {

@@ -129,8 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     p.ExplicitDefaultConstantValue,
                     // the synthesized parameter doesn't need to have the same ref custom modifiers as the base
                     refCustomModifiers: default,
-                    inheritAttributes ? p as SourceComplexParameterSymbolBase : null));
+                    baseParameterForAttributes: inheritAttributes ? p : null,
+                    isParams: this is SynthesizedClosureMethod && p.IsParams));
             }
+
             var extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
@@ -139,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra), ordinal++, RefKind.Ref));
                 }
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -190,6 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.TypeMap.SubstituteType(this.BaseMethod.OriginalDefinition.ReturnTypeWithAnnotations); }
         }
 
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return this.TypeMap.SubstituteCustomModifiers(this.BaseMethod.OriginalDefinition.RefCustomModifiers); }
+        }
+
         public sealed override FlowAnalysisAnnotations ReturnTypeFlowAnalysisAnnotations => BaseMethod.ReturnTypeFlowAnalysisAnnotations;
 
         public sealed override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => BaseMethod.ReturnNotNullIfParameterNotNull;
@@ -205,5 +213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return true; }
         }
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting =>
+            InheritsBaseMethodAttributes
+                ? BaseMethod.RuntimeAsyncMethodGenerationAttributeSetting
+                : ThreeState.Unknown;
     }
 }

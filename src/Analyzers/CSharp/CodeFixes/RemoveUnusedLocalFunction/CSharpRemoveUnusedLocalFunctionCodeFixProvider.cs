@@ -28,18 +28,12 @@ internal sealed class CSharpRemoveUnusedLocalFunctionCodeFixProvider() : SyntaxE
     public sealed override ImmutableArray<string> FixableDiagnosticIds
         => [CS8321];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        context.RegisterCodeFix(
-            CodeAction.Create(
-                CSharpCodeFixesResources.Remove_unused_function,
-                GetDocumentUpdater(context),
-                nameof(CSharpCodeFixesResources.Remove_unused_function)),
-            context.Diagnostics);
-        return Task.CompletedTask;
+        RegisterCodeFix(context, CSharpCodeFixesResources.Remove_unused_function, nameof(CSharpCodeFixesResources.Remove_unused_function));
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var root = editor.OriginalRoot;
 
@@ -56,7 +50,5 @@ internal sealed class CSharpRemoveUnusedLocalFunctionCodeFixProvider() : SyntaxE
             if (localFunction != null)
                 editor.RemoveNode(localFunction.Parent is GlobalStatementSyntax globalStatement ? globalStatement : localFunction);
         }
-
-        return Task.CompletedTask;
     }
 }

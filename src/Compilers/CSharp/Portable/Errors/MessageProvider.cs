@@ -234,6 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // pseudo-custom attributes:
         public override int ERR_PermissionSetAttributeFileReadError => (int)ErrorCode.ERR_PermissionSetAttributeFileReadError;
+        public override int ERR_MethodImplAttributeAsyncCannotBeUsed => (int)ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed;
 
         // PDB Writer:
         public override int ERR_EncodinglessSyntaxTree => (int)ErrorCode.ERR_EncodinglessSyntaxTree;
@@ -252,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => (int)ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported;
         public override int ERR_DataSectionStringLiteralHashCollision => (int)ErrorCode.ERR_DataSectionStringLiteralHashCollision;
+        public override int ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime => (int)ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime;
 
         // Generators:
         public override int WRN_GeneratorFailedDuringInitialization => (int)ErrorCode.WRN_GeneratorFailedDuringInitialization;

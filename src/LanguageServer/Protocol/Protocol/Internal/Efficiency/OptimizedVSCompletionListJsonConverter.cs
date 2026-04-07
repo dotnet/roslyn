@@ -14,7 +14,7 @@ namespace Roslyn.LanguageServer.Protocol;
 internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<OptimizedVSCompletionList>
 {
     public static readonly OptimizedVSCompletionListJsonConverter Instance = new();
-    private static readonly ConcurrentDictionary<ImageId, string> IconRawJson = new ConcurrentDictionary<ImageId, string>();
+    private static readonly ConcurrentDictionary<ImageId, string> IconRawJson = new();
 
     public override OptimizedVSCompletionList Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => throw new NotImplementedException();
 
@@ -190,7 +190,7 @@ internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<Opt
             writer.WriteString("insertText", completionItem.InsertText);
         }
 
-        if (completionItem.InsertTextFormat != default && completionItem.InsertTextFormat != InsertTextFormat.Plaintext)
+        if (completionItem.InsertTextFormat is not 0 and not InsertTextFormat.Plaintext)
         {
             writer.WriteNumber("insertTextFormat", (int)completionItem.InsertTextFormat);
         }

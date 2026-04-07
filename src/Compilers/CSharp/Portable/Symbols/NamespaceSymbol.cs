@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbolInternal
     {
         // PERF: initialization of the following fields will allocate, so we make them lazy
-        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
+        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensions;
         private string _lazyQualifiedName;
 
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -217,6 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         /// <summary>
         /// Returns an implicit type symbol for this namespace or null if there is none. This type
         /// wraps misplaced global code.
@@ -311,71 +314,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMethods
+        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensions
         {
             get
             {
-                var typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                var typesWithExtensionMethods = this._lazyTypesMightContainExtensions;
                 if (typesWithExtensionMethods.IsDefault)
                 {
-                    this._lazyTypesMightContainExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
-                    typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                    this._lazyTypesMightContainExtensions = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensions);
+                    typesWithExtensionMethods = this._lazyTypesMightContainExtensions;
                 }
 
                 return typesWithExtensionMethods;
             }
         }
 
+#nullable enable
         /// <summary>
-        /// Add all extension methods in this namespace to the given list. If name or arity
+        /// Add all extension members and methods in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.
         /// </summary>
-        /// <param name="methods">Methods list</param>
-        /// <param name="nameOpt">Optional method name</param>
-        /// <param name="arity">Method arity</param>
-        /// <param name="options">Lookup options</param>
-        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        /// <remarks>Does not perform a full viability check</remarks>
+        internal virtual void GetAllExtensionMembers(ArrayBuilder<Symbol> members, string? name, string? alternativeName, int arity, LookupOptions options, ConsList<FieldSymbol> fieldsBeingBound)
         {
             var assembly = this.ContainingAssembly;
 
-            // Only MergedAssemblySymbol should have a null ContainingAssembly
-            // and MergedAssemblySymbol overrides GetExtensionMethods.
+            // Only MergedNamespaceSymbol should have a null ContainingAssembly
+            // and MergedNamespaceSymbol overrides GetAllExtensionMembers.
             Debug.Assert((object)assembly != null);
 
-            if (!assembly.MightContainExtensionMethods)
+            if (!assembly.MightContainExtensions)
             {
                 return;
             }
 
-            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
+            var typesWithExtensionMethods = this.TypesMightContainExtensions;
 
             foreach (var type in typesWithExtensionMethods)
             {
-                type.DoGetExtensionMethods(methods, nameOpt, arity, options);
+                type.GetAllExtensionMembers(members, name, alternativeName, arity, options, fieldsBeingBound);
             }
         }
-
-        internal virtual void GetExtensionContainers(ArrayBuilder<NamedTypeSymbol> extensions)
-        {
-            foreach (var type in this.GetTypeMembersUnordered())
-            {
-                AddExtensionContainersInType(type, extensions);
-            }
-        }
-
-        internal static void AddExtensionContainersInType(NamedTypeSymbol type, ArrayBuilder<NamedTypeSymbol> extensions)
-        {
-            // Consider whether IsClassType could be used instead. Tracked by https://github.com/dotnet/roslyn/issues/78275
-            if (!type.IsReferenceType || !type.IsStatic || type.IsGenericType || !type.MightContainExtensionMethods) return;
-
-            foreach (var nestedType in type.GetTypeMembersUnordered())
-            {
-                if (nestedType.IsExtension)
-                {
-                    extensions.Add(nestedType);
-                }
-            }
-        }
+#nullable disable
 
         internal string QualifiedName
         {

@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     {
                         symbol = propertyReference.Property;
                         indices = !propertyReference.Arguments.IsEmpty ?
-                            CreateAbstractIndices(propertyReference.Arguments.Select(a => a.Value).ToImmutableArray()) :
+                            CreateAbstractIndices(propertyReference.Arguments.SelectAsArray(a => a.Value)) :
                             ImmutableArray<AbstractIndex>.Empty;
                     }
 

@@ -22,7 +22,7 @@ internal sealed class ImplementationAssemblyLookupService : IImplementationAssem
 {
     // We need to generate the namespace name in the same format that is used in metadata, which
     // is SymbolDisplayFormat.QualifiedNameOnlyFormat, which this is a copy of.
-    private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new SymbolDisplayFormat(
+    private static readonly SymbolDisplayFormat s_metadataSymbolDisplayFormat = new(
                     globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
                     typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 

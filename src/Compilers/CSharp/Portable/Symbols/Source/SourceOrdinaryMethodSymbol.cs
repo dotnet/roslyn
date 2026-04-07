@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var nameToken = syntax.Identifier;
 
             TypeSymbol explicitInterfaceType;
-            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+            var name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, syntax.Modifiers, interfaceSpecifier, nameToken.ValueText, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
             var location = new SourceLocation(nameToken);
 
             var methodKind = interfaceSpecifier == null
@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     hasAnyBody: syntax.HasAnyBody(), isExpressionBodied: syntax.IsExpressionBodied(),
                                     isExtensionMethod: syntax.ParameterList.Parameters.FirstOrDefault() is ParameterSyntax firstParam &&
                                                        !firstParam.IsArgList &&
-                                                       firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
+                                                       firstParam.Modifiers.Any(SyntaxKind.ThisKeyword) &&
+                                                       !containingType.IsExtension,
                                     isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                                     isVararg: syntax.IsVarArg(),
                                     isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation,
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<ParameterSymbol> parameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, syntax.ParameterList, out _,
                 allowRefOrOut: true,
-                allowThis: true,
+                allowThis: !this.IsExtensionBlockMember(),
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics).Cast<SourceParameterSymbol, ParameterSymbol>();
 
@@ -221,7 +222,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, _location, Name);
                 }
-                else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind is RefKind.In or RefKind.RefReadOnlyParameter
+                    && !parameter0Type.Type.IsValidInOrRefReadonlyExtensionParameterType())
                 {
                     diagnostics.Add(ErrorCode.ERR_InExtensionMustBeValueType, _location, Name);
                 }
@@ -611,12 +613,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeMap2 = new TypeMap(typeParameters2, indexedTypeParameters, allowAlpha: true);
 
             // Report any mismatched method constraints.
+            const TypeCompareKind typeComparison = TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes;
             for (int i = 0; i < arity; i++)
             {
                 var typeParameter1 = typeParameters1[i];
                 var typeParameter2 = typeParameters2[i];
 
-                if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2))
+                if (!MemberSignatureComparer.HaveSameConstraints(typeParameter1, typeMap1, typeParameter2, typeMap2, typeComparison))
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMethodInconsistentConstraints, implementation.GetFirstLocation(), implementation, typeParameter2.Name);
                 }
@@ -637,7 +640,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return base.CallsAreOmitted(syntaxTree);
         }
 
-        internal sealed override bool GenerateDebugInfo => !IsAsync && !IsIterator;
+        internal sealed override bool GenerateDebugInfo
+        {
+            get
+            {
+                if (IsIterator)
+                {
+                    return false;
+                }
+
+                if (IsAsync)
+                {
+                    // https://github.com/dotnet/roslyn/issues/79793: Need more dedicated debug information testing when runtime async is enabled.
+                    return DeclaringCompilation.IsRuntimeAsyncEnabledIn(this);
+                }
+
+                return true;
+            }
+        }
 
 #nullable enable
         protected override void MethodChecks(BindingDiagnosticBag diagnostics)

@@ -26,7 +26,6 @@ internal sealed class SolutionEventMonitor : IDisposable
 
     public SolutionEventMonitor(IGlobalOperationNotificationService notificationService)
     {
-        Contract.ThrowIfNull(notificationService);
         _notificationService = notificationService;
 
         RegisterEventHandler(KnownUIContexts.SolutionBuildingContext, SolutionBuildingContextChanged);

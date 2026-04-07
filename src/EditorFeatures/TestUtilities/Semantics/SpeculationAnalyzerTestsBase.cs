@@ -16,7 +16,7 @@ public abstract class SpeculationAnalyzerTestsBase : TestBase
 {
     protected const string CompilationName = "SemanticModelTestCompilation";
 
-    protected readonly Regex UnderTestRegex = new Regex(@"\[\|(?<content>.*?)\|\]");
+    protected readonly Regex UnderTestRegex = new(@"\[\|(?<content>.*?)\|\]");
 
     protected readonly MetadataReference[] References =
     [

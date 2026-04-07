@@ -87,6 +87,8 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
     protected abstract TAnalyzer GetAnalyzer();
 
+    protected abstract bool IsValidContainingStatement(TStatementSyntax node);
+
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterCompilationStartAction(OnCompilationStart);
 
@@ -153,6 +155,8 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         using var analyzer = GetAnalyzer();
 
         var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
+        if (containingStatement != null && !IsValidContainingStatement(containingStatement))
+            return;
 
         var collectionExpressionMatches = GetCollectionExpressionMatches();
         var collectionInitializerMatches = GetCollectionInitializerMatches();

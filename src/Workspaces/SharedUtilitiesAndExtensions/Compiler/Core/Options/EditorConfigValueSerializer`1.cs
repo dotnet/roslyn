@@ -47,7 +47,7 @@ internal sealed class EditorConfigValueSerializer<T>(
         }
         else
         {
-            result = default!;
+            result = default;
             return false;
         }
     }

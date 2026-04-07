@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,30 +21,29 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
 [Export(typeof(IVisualStudioDiagnosticAnalyzerService))]
+[Export(typeof(VisualStudioDiagnosticAnalyzerService))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class VisualStudioDiagnosticAnalyzerService(
     VisualStudioWorkspace workspace,
     IVsService<SVsStatusbar, IVsStatusbar> statusbar,
-    DiagnosticAnalyzerInfoCache.SharedGlobalCache diagnosticAnalyzerInfoCache,
     IThreadingContext threadingContext,
     IVsHierarchyItemManager vsHierarchyItemManager,
-    IAsynchronousOperationListenerProvider listenerProvider) : IVisualStudioDiagnosticAnalyzerService
+    IAsynchronousOperationListenerProvider listenerProvider,
+    [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider) : IVisualStudioDiagnosticAnalyzerService
 {
     // "Run Code Analysis on <%ProjectName%>" command for Top level "Build" and "Analyze" menus.
     // The below ID is actually defined as "ECMD_RUNFXCOPSEL" in stdidcmd.h, we're just referencing it here.
-    private const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
+    internal const int RunCodeAnalysisForSelectedProjectCommandId = 1647;
 
     private readonly VisualStudioWorkspace _workspace = workspace;
     private readonly IVsService<IVsStatusbar> _statusbar = statusbar;
-    private readonly DiagnosticAnalyzerInfoCache _diagnosticAnalyzerInfoCache = diagnosticAnalyzerInfoCache.AnalyzerInfoCache;
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IVsHierarchyItemManager _vsHierarchyItemManager = vsHierarchyItemManager;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
@@ -53,30 +51,21 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
 
     private readonly CancellationSeries _cancellationSeries = new(threadingContext.DisposalToken);
 
-    private IServiceProvider? _serviceProvider;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
-    {
-        _serviceProvider = (IServiceProvider)serviceProvider;
-
-        // Hook up the "Run Code Analysis" menu command for CPS based managed projects.
-        var menuCommandService = await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false);
-        if (menuCommandService != null)
-        {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-            VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-        }
-    }
-
-    public IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> GetAllDiagnosticDescriptors(IVsHierarchy? hierarchy)
+    public async Task<IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>>> GetAllDiagnosticDescriptorsAsync(
+        IVsHierarchy? hierarchy,
+        CancellationToken cancellationToken)
     {
         var currentSolution = _workspace.CurrentSolution;
         var hostAnalyzers = currentSolution.SolutionState.Analyzers;
+        var diagnosticService = currentSolution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
 
         if (hierarchy == null)
         {
-            return Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache));
+            return Transform(
+                await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(
+                    currentSolution, cancellationToken).ConfigureAwait(false));
         }
 
         // Analyzers are only supported for C# and VB currently.
@@ -88,8 +77,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         {
             var project = projectsWithHierarchy.FirstOrDefault();
             return project == null
-                ? Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache))
-                : Transform(hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project));
+                ? Transform(await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(currentSolution, cancellationToken).ConfigureAwait(false))
+                : Transform(await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(project, cancellationToken).ConfigureAwait(false));
         }
         else
         {
@@ -98,7 +87,8 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
             var descriptorsMap = ImmutableDictionary.CreateBuilder<string, IEnumerable<DiagnosticDescriptor>>();
             foreach (var project in projectsWithHierarchy)
             {
-                var descriptorsPerReference = hostAnalyzers.GetDiagnosticDescriptorsPerReference(_diagnosticAnalyzerInfoCache, project);
+                var descriptorsPerReference = await diagnosticService.GetDiagnosticDescriptorsPerReferenceAsync(
+                    project, cancellationToken).ConfigureAwait(false);
                 foreach (var (displayName, descriptors) in descriptorsPerReference)
                 {
                     if (descriptorsMap.TryGetValue(displayName, out var existingDescriptors))
@@ -123,7 +113,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         return map.ToDictionary(kv => kv.Key, kv => (IEnumerable<DiagnosticDescriptor>)kv.Value);
     }
 
-    private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)
+    internal void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)
     {
         var command = (OleMenuCommand)sender;
 
@@ -157,7 +147,7 @@ internal sealed partial class VisualStudioDiagnosticAnalyzerService(
         }
     }
 
-    private void OnRunCodeAnalysisForSelectedProject(object sender, EventArgs args)
+    internal void OnRunCodeAnalysisForSelectedProject(object sender, EventArgs args)
     {
         if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             RunAnalyzers(hierarchy);

@@ -6,19 +6,12 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal readonly struct StructuralTypeDisplayInfo
+internal readonly struct StructuralTypeDisplayInfo(
+    IDictionary<INamedTypeSymbol, string> structuralTypeToName,
+    IList<SymbolDisplayPart> typesParts)
 {
-    public IDictionary<INamedTypeSymbol, string> StructuralTypeToName { get; }
-    public IList<SymbolDisplayPart> TypesParts { get; }
-
-    public StructuralTypeDisplayInfo(
-        IDictionary<INamedTypeSymbol, string> structuralTypeToName,
-        IList<SymbolDisplayPart> typesParts)
-        : this()
-    {
-        StructuralTypeToName = structuralTypeToName;
-        TypesParts = typesParts;
-    }
+    public IDictionary<INamedTypeSymbol, string> StructuralTypeToName { get; } = structuralTypeToName;
+    public IList<SymbolDisplayPart> TypesParts { get; } = typesParts;
 
     public IList<SymbolDisplayPart> ReplaceStructuralTypes(IList<SymbolDisplayPart> parts, SemanticModel semanticModel, int position)
         => ReplaceStructuralTypes(parts, StructuralTypeToName, semanticModel, position);
@@ -29,6 +22,9 @@ internal readonly struct StructuralTypeDisplayInfo
         SemanticModel semanticModel,
         int position)
     {
+        if (structuralTypeToName is null)
+            return parts;
+
         // Keep replacing parts until no more changes happen. 
         while (ReplaceStructuralTypes(parts, structuralTypeToName, semanticModel, position, out var newParts))
             parts = newParts;
@@ -36,7 +32,7 @@ internal readonly struct StructuralTypeDisplayInfo
         return parts;
     }
 
-    public static bool ReplaceStructuralTypes(
+    private static bool ReplaceStructuralTypes(
         IList<SymbolDisplayPart> parts,
         IDictionary<INamedTypeSymbol, string> structuralTypeToName,
         SemanticModel semanticModel,

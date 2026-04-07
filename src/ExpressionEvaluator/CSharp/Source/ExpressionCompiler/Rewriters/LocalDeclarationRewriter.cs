@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             if ((object)method == null)
             {
-                diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, local.Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_DeclarationExpressionNotPermitted, local.GetFirstLocation());
                 return;
             }
 

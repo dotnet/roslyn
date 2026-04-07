@@ -4415,30 +4415,29 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a && b;')
-          Expression: 
+          Expression:
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'result = a && b')
-              Left: 
+              Left:
                 IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
-              Right: 
+              Right:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a && b')
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
-                  Operand: 
+                  Operand:
                     IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'a && b')
-                      Left: 
-                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3, IsInvalid) (Syntax: 'a')
-                      Right: 
-                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C.B2, IsInvalid) (Syntax: 'b')
-
+                      Left:
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3) (Syntax: 'a')
+                      Right:
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C.B2) (Syntax: 'b')
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS0034: Operator '&&' is ambiguous on operands of type 'C.B3' and 'C.B2'
+                // (6,20): error CS9342: Operator resolution is ambiguous between the following members: 'C.B3.operator &(C.B3, C.B2)' and 'C.B2.operator &(C.B3, C.B2)'
                 //         result = a && b;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a && b").WithArguments("&&", "C.B3", "C.B2").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "&&").WithArguments("C.B3.operator &(C.B3, C.B2)", "C.B2.operator &(C.B3, C.B2)").WithLocation(6, 20)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
@@ -6350,7 +6349,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C", "false").WithLocation(6, 18)
             };
@@ -6862,7 +6861,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7583,7 +7582,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -7692,7 +7691,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'C?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("C?", "false").WithLocation(6, 18)
             };
@@ -8014,7 +8013,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must define operator 'false'.
+                // file.cs(6,18): error CS7083: Expression must be implicitly convertible to Boolean or its type 'bool?' must not be an interface and must define operator 'false'.
                 //         result = a && b;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "a").WithArguments("bool?", "false").WithLocation(6, 18)
             };
@@ -8305,7 +8304,7 @@ static class Extensions
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: C Extensions.<>E__0.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: C) (Syntax: 'x + y')
+IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: C) (Syntax: 'x + y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
   Right: 
@@ -8342,7 +8341,7 @@ static class Extensions
 
             string expectedOperationTree =
 @"
-IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: C Extensions.<>E__0.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'x || y')
+IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'x || y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
   Right: 
@@ -8488,7 +8487,7 @@ Block[B0] - Entry
                   Left:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetArray()[0]')
                   Right:
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 Extensions.<>E__0.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_Addition(C c1, C c2)) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a ?? b) + (a ?? b)')
                       Left:
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a ?? b')
                       Right:
@@ -8559,7 +8558,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
             Jump if False (Regular) to Block[B4]
-                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean Extensions.<>E__0.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+                IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_True(C c)) (OperationKind.Unary, Type: System.Boolean, IsImplicit) (Syntax: 'a')
                   Operand:
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -8578,7 +8577,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
                   Value:
-                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C Extensions.<>E__0.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
+                    IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: C Extensions.<G>$9794DAFCCB9E752B29BFD6350ADA77F2.op_BitwiseOr(C x, C y)) (OperationKind.Binary, Type: C) (Syntax: 'a || b')
                       Left:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
                       Right:

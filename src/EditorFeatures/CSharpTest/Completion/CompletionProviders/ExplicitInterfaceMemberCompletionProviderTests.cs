@@ -1587,4 +1587,52 @@ public sealed class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSh
                 Outer.IInner.$$
             }
             """, "Method1", displayTextSuffix: "()");
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/79779")]
+    public Task ExplicitInterfaceProperty1()
+        => VerifyCustomCommitProviderAsync("""
+            public interface IExample
+            {
+                int MyProperty { get; }
+            }
+
+            public class C : IExample
+            {
+                int IExample.$$
+            }
+            """, "MyProperty", """
+            public interface IExample
+            {
+                int MyProperty { get; }
+            }
+            
+            public class C : IExample
+            {
+                int IExample.MyProperty => [|throw new System.NotImplementedException()|];
+            }
+            """, commitChar: '(');
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/79779")]
+    public Task ExplicitInterfaceProperty2()
+        => VerifyCustomCommitProviderAsync("""
+            public interface IExample
+            {
+                int MyProperty { get; set; }
+            }
+
+            public class C : IExample
+            {
+                int IExample.$$
+            }
+            """, "MyProperty", """
+            public interface IExample
+            {
+                int MyProperty { get; set; }
+            }
+            
+            public class C : IExample
+            {
+                int IExample.MyProperty { get => [|throw new System.NotImplementedException()|]; set => throw new System.NotImplementedException(); }
+            }
+            """, commitChar: '(');
 }

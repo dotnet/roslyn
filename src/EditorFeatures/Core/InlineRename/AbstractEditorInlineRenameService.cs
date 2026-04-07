@@ -24,7 +24,7 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
 
     public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
     {
-        var symbolicInfo = await SymbolicRenameInfo.GetRenameInfoAsync(document, position, includeSourceGenerated: false, cancellationToken).ConfigureAwait(false);
+        var symbolicInfo = await SymbolicRenameInfo.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
         if (symbolicInfo.LocalizedErrorMessage != null)
             return new FailureInlineRenameInfo(symbolicInfo.LocalizedErrorMessage);
 
@@ -32,9 +32,9 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
             _refactorNotifyServices, symbolicInfo, cancellationToken);
     }
 
-    public virtual Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    public virtual async Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
-        return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
+        return ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
     }
 
     /// <summary>

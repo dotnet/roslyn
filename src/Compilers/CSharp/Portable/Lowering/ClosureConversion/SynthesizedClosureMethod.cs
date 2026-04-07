@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeMap = lambdaFrame.TypeMap.WithAlphaRename(
                         TypeMap.ConcatMethodTypeParameters(originalMethod, stopAt: lambdaFrame.OriginalContainingMethodOpt),
                         this,
+                        propagateAttributes: false,
                         out typeParameters);
                     break;
                 case ClosureKind.ThisOnly: // all type parameters on method
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeMap = TypeMap.Empty.WithAlphaRename(
                         TypeMap.ConcatMethodTypeParameters(originalMethod, stopAt: null),
                         this,
+                        propagateAttributes: false,
                         out typeParameters);
                     break;
                 default:
@@ -120,7 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
-            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for these methods because it is not a SynthesizedDelegateInvokeMethod
+
+            ParameterHelpers.EnsureParamCollectionAttributeExists(moduleBuilder, Parameters);
 
             if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
@@ -169,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mods |= DeclarationModifiers.Extern;
             }
 
+            if (originalMethod is LocalFunctionOrSourceMemberMethodSymbol { IsUnsafe: true })
+            {
+                mods |= DeclarationModifiers.Unsafe;
+            }
+
             return mods;
         }
 
@@ -214,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
         internal override bool InheritsBaseMethodAttributes => true;
-        internal override bool GenerateDebugInfo => !this.IsAsync;
+        internal override bool GenerateDebugInfo => !this.IsAsync || DeclaringCompilation.IsRuntimeAsyncEnabledIn(this);
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

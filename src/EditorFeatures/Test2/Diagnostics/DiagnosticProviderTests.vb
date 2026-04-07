@@ -266,8 +266,8 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 For Each project In workspace.CurrentSolution.Projects
                     actualDiagnostics.AddRange(diagnosticProvider.GetDiagnosticsForIdsAsync(
-                        project, documentId:=Nothing, diagnosticIds:=Nothing, shouldIncludeAnalyzer:=Nothing,
-                        includeLocalDocumentDiagnostics:=True, includeNonLocalDocumentDiagnostics:=True, CancellationToken.None).Result)
+                        project, documentIds:=Nothing, diagnosticIds:=Nothing, AnalyzerFilter.All,
+                        includeLocalDocumentDiagnostics:=True, CancellationToken.None).Result)
                 Next
 
                 If diagnostics Is Nothing Then

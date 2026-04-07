@@ -36,7 +36,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             if (!_owner.CanAddImportForTypeOrNamespace(_diagnosticId, _node, out var nameNode))
                 return;
 
-            if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken))
+            if (ExpressionBinds(nameNode, checkForExtensionMembers: false, cancellationToken))
                 return;
 
             var (typeQuery, namespaceQuery, inAttributeContext) = GetSearchQueries(nameNode);

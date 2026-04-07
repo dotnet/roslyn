@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -101,5 +102,17 @@ internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
         }
 
         return true;
+    }
+
+    public override IfStatementAnalysisResult? AnalyzeIfStatement(
+        SemanticModel semanticModel,
+        IMethodSymbol? referenceEqualsMethod,
+        IfStatementSyntax ifStatement,
+        CancellationToken cancellationToken)
+    {
+        if (ifStatement.Statement.ContainsDirectives)
+            return null;
+
+        return base.AnalyzeIfStatement(semanticModel, referenceEqualsMethod, ifStatement, cancellationToken);
     }
 }

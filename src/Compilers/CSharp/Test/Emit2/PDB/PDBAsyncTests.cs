@@ -198,7 +198,7 @@ class Driver
     IL_012d:  nop
     IL_012e:  ret
     }",
-    sequencePoints: "TestCase+<Run>d__1.MoveNext");
+    sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
                 v.VerifyPdb(@"
 <symbols>
@@ -642,7 +642,7 @@ class C
   IL_002b:  call       ""System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get""
   IL_0030:  ret
 }",
-sequencePoints: "C.F");
+sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -727,7 +727,7 @@ sequencePoints: "C.F");
   IL_0099:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_009e:  nop
   IL_009f:  ret
-}", sequencePoints: "C+<F>d__0.MoveNext");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [WorkItem(836491, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/836491")]
@@ -1864,7 +1864,7 @@ class C
   IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_0110:  nop
   IL_0111:  ret
-}", sequencePoints: "C+<G>d__0.MoveNext");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             v.VerifyPdb("C+<G>d__0.MoveNext", @"
 <symbols>
@@ -1878,7 +1878,7 @@ class C
           <namespace usingCount=""2"" />
         </using>
         <hoistedLocalScopes>
-          <slot startOffset=""0x0"" endOffset=""0x112"" />
+          <slot startOffset=""0xe"" endOffset=""0xe2"" />
           <slot startOffset=""0x29"" endOffset=""0x33"" />
         </hoistedLocalScopes>
         <encLocalSlotMap>

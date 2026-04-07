@@ -36,11 +36,11 @@ internal static class ImportCompletionProviderHelpers
         var syntaxGenerator = SyntaxGenerator.GetGenerator(document);
         var importNode = syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
 
-        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        if (addImportService.HasExistingImport(compilation, root, addImportContextNode, importNode, syntaxGenerator))
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (addImportService.HasExistingImport(semanticModel, root, addImportContextNode, importNode, syntaxGenerator, cancellationToken))
             return [];
 
-        var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, addImportsOptions, cancellationToken);
+        var rootWithImport = addImportService.AddImport(semanticModel, root, addImportContextNode!, importNode, generator, addImportsOptions, cancellationToken);
         var documentWithImport = document.WithSyntaxRoot(rootWithImport);
 
         // This only formats the annotated import we just added, not the entire document.

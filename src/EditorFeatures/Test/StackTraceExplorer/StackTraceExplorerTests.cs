@@ -52,7 +52,8 @@ public sealed class StackTraceExplorerTests
         AssertEx.NotNull(expectedSymbol);
 
         // Compare the definition found to the definition for the test symbol
-        var expectedDefinition = expectedSymbol.ToNonClassifiedDefinitionItem(workspace.CurrentSolution, includeHiddenLocations: true);
+        var expectedDefinition = await expectedSymbol.ToNonClassifiedDefinitionItemAsync(
+            workspace.CurrentSolution, includeHiddenLocations: true, CancellationToken.None);
 
         Assert.Equal(expectedDefinition.IsExternal, definition.IsExternal);
         AssertEx.SetEqual(expectedDefinition.NameDisplayParts, definition.NameDisplayParts);

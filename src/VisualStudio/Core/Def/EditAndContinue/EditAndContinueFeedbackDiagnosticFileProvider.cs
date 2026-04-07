@@ -12,6 +12,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
 using Newtonsoft.Json.Linq;
@@ -42,22 +43,18 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
     private readonly int _vsProcessId;
     private readonly DateTime _vsProcessStartTime;
     private readonly string _tempDir;
-
+    private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
     private volatile int _isLogCollectionInProgress;
-
-    private readonly Lazy<EditAndContinueLanguageService>? _encService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueFeedbackDiagnosticFileProvider(
-        [Import(AllowDefault = true)] Lazy<EditAndContinueLanguageService>? encService = null)
+    public EditAndContinueFeedbackDiagnosticFileProvider(Lazy<IHostWorkspaceProvider> workspaceProvider)
     {
-        _encService = encService;
-
         var vsProcess = Process.GetCurrentProcess();
 
         _vsProcessId = vsProcess.Id;
         _vsProcessStartTime = vsProcess.StartTime;
+        _workspaceProvider = workspaceProvider;
 
         _tempDir = Path.GetTempPath();
         var vsFeedbackTempDir = Path.Combine(_tempDir, VSFeedbackSemaphoreDir);
@@ -97,9 +94,23 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
         => Path.Combine(Path.Combine(_tempDir, $"EnC_{_vsProcessId}", ZipFileName));
 
     public IReadOnlyCollection<string> GetFiles()
-        => _vsFeedbackSemaphoreFileWatcher is null
-           ? []
-           : (IReadOnlyCollection<string>)([GetZipFilePath()]);
+        => _vsFeedbackSemaphoreFileWatcher is null ? [] : [GetZipFilePath()];
+
+    private void SetFileLoggingDirectory(string? logDirectory)
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var proxy = new RemoteEditAndContinueServiceProxy(_workspaceProvider.Value.Workspace.Services.SolutionServices);
+                await proxy.SetFileLoggingDirectoryAsync(logDirectory, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch
+            {
+                // ignore
+            }
+        });
+    }
 
     private void OnFeedbackSemaphoreCreatedOrChanged()
     {
@@ -111,7 +122,7 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
 
         if (Interlocked.CompareExchange(ref _isLogCollectionInProgress, 1, 0) == 0)
         {
-            _encService?.Value.SetFileLoggingDirectory(GetLogDirectory());
+            SetFileLoggingDirectory(GetLogDirectory());
         }
     }
 
@@ -119,7 +130,7 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
     {
         if (Interlocked.Exchange(ref _isLogCollectionInProgress, 0) == 1)
         {
-            _encService?.Value.SetFileLoggingDirectory(logDirectory: null);
+            SetFileLoggingDirectory(logDirectory: null);
 
             // Including the zip files in VS Feedback is currently on best effort basis.
             // See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1714439

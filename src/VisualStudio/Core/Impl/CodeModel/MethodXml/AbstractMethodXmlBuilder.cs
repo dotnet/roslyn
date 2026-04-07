@@ -192,7 +192,7 @@ internal abstract partial class AbstractMethodXmlBuilder
     }
 
     private static AttributeInfo LineNumberAttribute(int lineNumber)
-        => new AttributeInfo(LineAttributeName, lineNumber.ToString());
+        => new(LineAttributeName, lineNumber.ToString());
 
     private static AttributeInfo NameAttribute(string name)
     {
@@ -205,7 +205,7 @@ internal abstract partial class AbstractMethodXmlBuilder
     }
 
     private static AttributeInfo RankAttribute(int rank)
-        => new AttributeInfo(RankAttributeName, rank.ToString());
+        => new(RankAttributeName, rank.ToString());
 
     private static AttributeInfo SpecialCastKindAttribute(SpecialCastKind? specialCastKind = null)
         => specialCastKind switch

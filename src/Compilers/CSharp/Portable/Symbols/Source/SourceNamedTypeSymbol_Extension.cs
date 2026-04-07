@@ -9,7 +9,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO.Hashing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -27,43 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public MethodSymbol? LazyExtensionMarker = ErrorMethodSymbol.UnknownMethod;
             public ParameterSymbol? LazyExtensionParameter;
             public ImmutableDictionary<MethodSymbol, MethodSymbol>? LazyImplementationMap;
-        }
-
-        internal override string ExtensionName
-        {
-            get
-            {
-                if (!IsExtension)
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
-
-                MergedNamespaceOrTypeDeclaration declaration;
-                if (ContainingType is not null)
-                {
-                    declaration = ((SourceNamedTypeSymbol)this.ContainingType).declaration;
-                }
-                else
-                {
-                    declaration = ((SourceNamespaceSymbol)this.ContainingSymbol).MergedDeclaration;
-                }
-
-                int index = 0;
-                foreach (Declaration child in declaration.Children)
-                {
-                    if (child == this.declaration)
-                    {
-                        return GeneratedNames.MakeExtensionName(index);
-                    }
-
-                    if (child.Kind == DeclarationKind.Extension)
-                    {
-                        index++;
-                    }
-                }
-
-                throw ExceptionUtilities.Unreachable();
-            }
+            public string? LazyExtensionGroupingName;
+            public string? LazyExtensionMarkerName;
         }
 
         /// <summary>
@@ -529,8 +496,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static void appendNamedType(NamedTypeSymbol namedType, StringBuilder builder)
             {
-                Debug.Assert(namedType.CustomModifierCount() == 0);
-
                 if (namedType.SpecialType == SpecialType.System_Void)
                 {
                     builder.Append("void");
@@ -828,9 +793,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (CSharpAttributeData attribute in attributes)
                 {
-                    var stringBuilder = PooledStringBuilder.GetInstance();
-                    appendAttribute(attribute, stringBuilder.Builder);
-                    attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    if (!attribute.IsConditionallyOmitted)
+                    {
+                        var stringBuilder = PooledStringBuilder.GetInstance();
+                        appendAttribute(attribute, stringBuilder.Builder);
+                        attributesBuilder.Add(stringBuilder.ToStringAndFree());
+                    }
                 }
 
                 attributesBuilder.Sort(StringComparer.Ordinal); // Actual order doesn't matter - just want to be deterministic
@@ -1092,13 +1060,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyExtensionInfo.LazyImplementationMap.GetValueOrDefault(method);
         }
 
-        protected sealed override MethodSymbol? CreateSynthesizedExtensionMarker()
-        {
-            return TryGetOrCreateExtensionMarker();
-        }
-
         [MemberNotNull(nameof(_lazyExtensionInfo))]
-        private MethodSymbol? TryGetOrCreateExtensionMarker()
+        internal MethodSymbol? TryGetOrCreateExtensionMarker()
         {
             Debug.Assert(IsExtension);
 
@@ -1132,20 +1095,98 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static Symbol? GetCompatibleSubstitutedMember(CSharpCompilation compilation, Symbol extensionMember, TypeSymbol receiverType)
+        internal override string? ExtensionGroupingName
         {
-            Debug.Assert(extensionMember.GetIsNewExtensionMember());
+            get
+            {
+                if (!IsExtension)
+                {
+                    return null;
+                }
+
+                if (_lazyExtensionInfo is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                }
+
+                if (_lazyExtensionInfo.LazyExtensionGroupingName is null)
+                {
+                    _lazyExtensionInfo.LazyExtensionGroupingName = WellKnownMemberNames.ExtensionGroupingTypePrefix + RawNameToHashString(ComputeExtensionGroupingRawName());
+                }
+
+                return _lazyExtensionInfo.LazyExtensionGroupingName;
+            }
+        }
+
+        internal override string? ExtensionMarkerName
+        {
+            get
+            {
+                if (!IsExtension)
+                {
+                    return null;
+                }
+
+                if (_lazyExtensionInfo is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyExtensionInfo, new ExtensionInfo(), null);
+                }
+
+                if (_lazyExtensionInfo.LazyExtensionMarkerName is null)
+                {
+                    _lazyExtensionInfo.LazyExtensionMarkerName = WellKnownMemberNames.ExtensionMarkerTypePrefix + RawNameToHashString(ComputeExtensionMarkerRawName());
+                }
+
+                return _lazyExtensionInfo.LazyExtensionMarkerName;
+            }
+        }
+
+        private static string RawNameToHashString(string rawName)
+        {
+            Span<byte> hash = stackalloc byte[16];
+
+            ReadOnlySpan<char> charSpan = rawName.AsSpan();
+
+            // Ensure everything is always little endian, so we get the same results across all platforms.
+            // This will be entirely elided by the jit on a little endian machine.
+            if (!BitConverter.IsLittleEndian)
+            {
+                Span<short> shortSpan = stackalloc short[charSpan.Length];
+
+                MemoryMarshal.Cast<char, short>(charSpan).CopyTo(shortSpan);
+                Text.SourceText.ReverseEndianness(shortSpan);
+
+                int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(shortSpan), hash);
+                Debug.Assert(bytesWritten == hash.Length);
+            }
+            else
+            {
+                int bytesWritten = XxHash128.Hash(MemoryMarshal.AsBytes(charSpan), hash);
+                Debug.Assert(bytesWritten == hash.Length);
+            }
+
+            return CodeAnalysis.CodeGen.PrivateImplementationDetails.HashToHex(hash);
+        }
+
+        /// <summary>
+        /// Given a receiver type, check if we can infer type arguments for the extension block and check for compatibility.
+        /// If that is successful, return the substituted extension member and whether the extension block was fully inferred.
+        /// </summary>
+        internal static Symbol? ReduceExtensionMember(CSharpCompilation? compilation, Symbol extensionMember, TypeSymbol receiverType, out bool wasExtensionFullyInferred)
+        {
+            Debug.Assert(extensionMember.IsExtensionBlockMember());
 
             NamedTypeSymbol extension = extensionMember.ContainingType;
             if (extension.ExtensionParameter is null)
             {
+                wasExtensionFullyInferred = false;
                 return null;
             }
 
             Symbol result;
             if (extensionMember.IsDefinition)
             {
-                NamedTypeSymbol? constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation);
+                NamedTypeSymbol? constructedExtension = inferExtensionTypeArguments(extension, receiverType, compilation, out wasExtensionFullyInferred);
                 if (constructedExtension is null)
                 {
                     return null;
@@ -1155,12 +1196,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
+                wasExtensionFullyInferred = true;
                 result = extensionMember;
             }
 
+            ConversionsBase conversions = compilation?.Conversions ?? (ConversionsBase)extensionMember.ContainingAssembly.CorLibrary.TypeConversions;
+
             Debug.Assert(result.ContainingType.ExtensionParameter is not null);
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Conversion conversion = compilation.Conversions.ConvertExtensionMethodThisArg(parameterType: result.ContainingType.ExtensionParameter.Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
+            Conversion conversion = conversions.ConvertExtensionMethodThisArg(parameterType: result.ContainingType.ExtensionParameter.Type, receiverType, ref discardedUseSiteInfo, isMethodGroupConversion: false);
             if (!conversion.Exists)
             {
                 return null;
@@ -1168,10 +1212,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
 
-            static NamedTypeSymbol? inferExtensionTypeArguments(NamedTypeSymbol extension, TypeSymbol receiverType, CSharpCompilation compilation)
+            static NamedTypeSymbol? inferExtensionTypeArguments(NamedTypeSymbol extension, TypeSymbol receiverType, CSharpCompilation? compilation, out bool wasExtensionFullyInferred)
             {
                 if (extension.Arity == 0)
                 {
+                    wasExtensionFullyInferred = true;
                     return extension;
                 }
 
@@ -1183,12 +1228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 ImmutableArray<TypeWithAnnotations> typeArguments = MethodTypeInferrer.InferTypeArgumentsFromReceiverType(extension, receiverValue, compilation, conversions, ref discardedUseSiteInfo);
-                if (typeArguments.IsDefault || typeArguments.Any(t => !t.HasType))
+                if (typeArguments.IsDefault)
                 {
+                    wasExtensionFullyInferred = false;
                     return null;
                 }
 
-                var result = extension.Construct(typeArguments);
+                ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = fillNotInferredTypeArguments(extension, typeArguments, out wasExtensionFullyInferred);
+                var result = extension.Construct(typeArgsForConstruct);
 
                 var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
                     NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
@@ -1200,6 +1247,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return result;
+            }
+
+            static ImmutableArray<TypeWithAnnotations> fillNotInferredTypeArguments(NamedTypeSymbol extension, ImmutableArray<TypeWithAnnotations> typeArgs, out bool wasFullyInferred)
+            {
+                // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
+                wasFullyInferred = typeArgs.All(static t => t.HasType);
+                if (!wasFullyInferred)
+                {
+                    return typeArgs.ZipAsArray(
+                        extension.TypeParameters,
+                        (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
+                }
+
+                return typeArgs;
             }
         }
     }

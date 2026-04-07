@@ -24,6 +24,18 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
 {
     private readonly ICodeFixService _codeFixService = codeFixService;
 
+    /// <summary>
+    /// Diagnostic IDs whose code fixes generate stub implementations and should not be applied automatically during code cleanup.
+    /// Applying these fixes silently converts compile-time errors into runtime errors.
+    /// </summary>
+    private static readonly ImmutableHashSet<string> s_implementMemberDiagnosticIds = ImmutableHashSet.Create(
+        "CS0535", // 'Type' does not implement interface member 'Member'
+        "CS0737", // 'Type' does not implement interface member 'Member' (not public)
+        "CS0738", // 'Type' does not implement interface member 'Member' (wrong return type)
+        "CS0534", // 'Type' does not implement inherited abstract member 'Member'
+        "BC30149", // Class 'Type' must implement 'Method' for interface 'Interface'
+        "BC30610"); // Class must either be declared 'MustInherit' or override inherited 'MustOverride' member(s)
+
     protected abstract string OrganizeImportsDescription { get; }
     protected abstract ImmutableArray<DiagnosticSet> GetDiagnosticSets();
 
@@ -184,11 +196,8 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
     private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
         Document document, string diagnosticId, DiagnosticSeverity minimumSeverity, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
-        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var textSpan = new TextSpan(0, tree.Length);
-
         var fixCollection = await _codeFixService.GetDocumentFixAllForIdInSpanAsync(
-            document, textSpan, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
+            document, textSpan: null, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
         if (fixCollection == null)
         {
             return document;
@@ -209,11 +218,12 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var range = new TextSpan(0, tree.Length);
 
-        // Compute diagnostics for everything that is not an IDE analyzer
         var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(document, range,
-            shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
+        var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
+            document, range,
+            // Compute diagnostics for everything that is *NOT* an IDE analyzer and not an implement-member diagnostic.
+            DiagnosticIdFilter.Exclude(IDEDiagnosticIdToOptionMappingHelper.KnownIDEDiagnosticIds.Union(s_implementMemberDiagnosticIds)),
+            priority: null,
             DiagnosticKind.All,
             cancellationToken).ConfigureAwait(false);
 
@@ -242,7 +252,7 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
             progressTracker.Report(CodeAnalysisProgress.Description(string.Format(FeaturesResources.Fixing_0, title ?? diagnosticId)));
             // Apply codefixes for diagnostics with a severity of warning or higher
             var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, textSpan: null, diagnosticId, DiagnosticSeverity.Warning, progressTracker, cancellationToken).ConfigureAwait(false);
 
             // If changes were made to the solution snap shot outside the current document discard the changes.
             // The assumption here is that if we are applying a third party code fix to a document it only affects the document.

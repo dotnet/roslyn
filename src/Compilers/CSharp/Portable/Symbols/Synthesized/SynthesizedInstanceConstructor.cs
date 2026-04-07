@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return LexicalSortKey.SynthesizedCtor;
         }
 
-        public sealed override ImmutableArray<Location> Locations
+        public override ImmutableArray<Location> Locations
         {
             get { return ContainingType.Locations; }
         }

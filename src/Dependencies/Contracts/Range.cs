@@ -10,7 +10,8 @@
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.Range))]
 #pragma warning restore RS0016 // Add public types and members to the declared API
 
-#else
+#elif !ROSLYN_NO_INDEXRANGE
+
 using System.Runtime.CompilerServices;
 
 namespace System
@@ -62,7 +63,7 @@ namespace System
             return $"{getFromEndSpecifier(Start)}{toString(Start)}..{getFromEndSpecifier(End)}{toString(End)}";
 
             static string getFromEndSpecifier(Index index) => index.IsFromEnd ? "^" : string.Empty;
-            static string toString(Index index) => ((uint)index.Value).ToString();
+            static string toString(Index index) => ((uint)index.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         /// <summary>Create a Range object starting from start index to the end of the collection.</summary>

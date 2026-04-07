@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -68,7 +69,13 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             foreach (var match in preMatches)
             {
                 if (match.Node is ExpressionSyntax expression)
+                {
                     yield return match.UseSpread ? SpreadElement(expression) : ExpressionElement(expression);
+                }
+                else if (match.Node is ArgumentListSyntax argumentList)
+                {
+                    yield return WithElement(argumentList.WithoutTrivia());
+                }
             }
         }
 
@@ -77,8 +84,61 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
             if (initializer != null)
             {
                 foreach (var expression in initializer.Expressions)
+                {
+                    // Enable when dictionary-expressions come online.
+#if false
+                    if (expression is InitializerExpressionSyntax { Expressions: [var keyExpression, var valueExpression1] })
+                    {
+                        // { k, v } -> [k: v]
+                        yield return KeyValuePairElement(keyExpression, valueExpression1);
+                    }
+                    else if (expression is AssignmentExpressionSyntax
+                    {
+                        Left: ImplicitElementAccessSyntax { ArgumentList.Arguments: [var argument] },
+                        Right: var valueExpression2,
+                    })
+                    {
+                        // [k] = v -> [k: v]
+                        yield return KeyValuePairElement(argument.Expression, valueExpression2);
+                    }
+                    else
+                    {
+                        yield return ExpressionElement(expression);
+                    }
+#else
                     yield return ExpressionElement(expression);
+#endif
+                }
             }
         }
+    }
+
+    protected override bool IsValidContainingStatement(StatementSyntax node)
+    {
+        // We don't want to offer this for using declarations because the way they are lifted means all
+        // initialization is done before entering try block. For example
+        // 
+        // using var c = new List<int>() { 1 };
+        //
+        // is lowered to:
+        //
+        // var __c = new List<int>();
+        // __c.Add(1);
+        // var c = __c;
+        // try
+        // {
+        // }
+        // finally
+        // {
+        //     if (c != null)
+        //     {
+        //         ((IDisposable)c).Dispose();
+        //     }
+        // }
+        //
+        // As can be seen, if initializing throws any kind of exception, the newly created instance will not
+        // be disposed properly.
+        return node is not LocalDeclarationStatementSyntax localDecl ||
+            localDecl.UsingKeyword == default;
     }
 }

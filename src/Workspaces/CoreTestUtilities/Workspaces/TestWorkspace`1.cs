@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
@@ -36,7 +37,6 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     where TSolution : TestHostSolution<TDocument>
 {
     public ExportProvider ExportProvider { get; }
-    public TestComposition? Composition { get; }
 
     public bool CanApplyChangeDocument { get; set; }
 
@@ -60,10 +60,26 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
         WorkspaceConfigurationOptions? configurationOptions = null)
-        : base(GetHostServices(ref composition, configurationOptions != null), workspaceKind ?? WorkspaceKind.Host)
+        : this(
+              (composition ?? FeaturesTestCompositions.Features).ExportProviderFactory.CreateExportProvider(),
+              workspaceKind,
+              solutionTelemetryId,
+              disablePartialSolutions,
+              ignoreUnchangeableDocumentsWhenApplyingChanges,
+              configurationOptions)
     {
-        this.Composition = composition;
-        this.ExportProvider = composition.ExportProviderFactory.CreateExportProvider();
+    }
+
+    internal TestWorkspace(
+        ExportProvider exportProvider,
+        string? workspaceKind = WorkspaceKind.Host,
+        Guid solutionTelemetryId = default,
+        bool disablePartialSolutions = true,
+        bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
+        WorkspaceConfigurationOptions? configurationOptions = null)
+        : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Host)
+    {
+        this.ExportProvider = exportProvider;
 
         var partialSolutionsTestHook = Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>();
         partialSolutionsTestHook.IsPartialSolutionDisabled = disablePartialSolutions;
@@ -153,18 +169,6 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         SetAnalyzerFallbackOptions(configOptions);
 
         options.SetGlobalOptions(GlobalOptions);
-    }
-
-    private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
-    {
-        composition ??= FeaturesTestCompositions.Features;
-
-        if (hasWorkspaceConfigurationOptions)
-        {
-            composition = composition.AddParts(typeof(TestWorkspaceConfigurationService));
-        }
-
-        return composition.GetHostServices();
     }
 
     private protected abstract TDocument CreateDocument(
@@ -335,6 +339,9 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
             case ApplyChangesKind.RemoveDocument:
                 return KindSupportsAddRemoveDocument();
 
+            case ApplyChangesKind.RemoveProject:
+                return KindSupportsRemoveProject();
+
             case ApplyChangesKind.AddAdditionalDocument:
             case ApplyChangesKind.RemoveAdditionalDocument:
             case ApplyChangesKind.AddAnalyzerConfigDocument:
@@ -361,6 +368,15 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     }
 
     private bool KindSupportsAddRemoveDocument()
+        => _workspaceKind switch
+        {
+            WorkspaceKind.MiscellaneousFiles => false,
+            WorkspaceKind.Interactive => false,
+            WorkspaceKind.SemanticSearch => false,
+            _ => true
+        };
+
+    private bool KindSupportsRemoveProject()
         => _workspaceKind switch
         {
             WorkspaceKind.MiscellaneousFiles => false,
@@ -400,7 +416,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         var hostProject = this.GetTestProject(info.Id.ProjectId);
         Contract.ThrowIfNull(hostProject);
 
-        var hostDocument = CreateDocument(text.ToString(), info.Name, id: info.Id, exportProvider: ExportProvider);
+        var hostDocument = CreateDocument(text.ToString(), info.Name, id: info.Id, filePath: info.FilePath, folders: info.Folders, exportProvider: ExportProvider);
         hostProject.AddAdditionalDocument(hostDocument);
         this.OnAdditionalDocumentAdded(hostDocument.ToDocumentInfo());
     }
@@ -464,14 +480,13 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
     /// Overriding base impl so that when we close a document it goes back to the initial state when the test
     /// workspace was loaded, throwing away any changes made to the open version.
     /// </summary>
-    internal override ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
+    internal override async ValueTask TryOnDocumentClosedAsync(DocumentId documentId, CancellationToken cancellationToken)
     {
         var testDocument = this.GetTestDocument(documentId);
         Contract.ThrowIfNull(testDocument);
         Contract.ThrowIfTrue(testDocument.IsSourceGenerated);
 
         this.OnDocumentClosedEx(documentId, testDocument.Loader, requireDocumentPresentAndOpen: false);
-        return ValueTask.CompletedTask;
     }
 
     public override void CloseDocument(DocumentId documentId)
@@ -661,7 +676,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
                 var fromProject = projectNameToTestHostProject[fromName];
                 var toProject = projectNameToTestHostProject[toName];
 
-                var aliases = projectReference.Attributes(AliasAttributeName).Select(a => a.Value).ToImmutableArray();
+                var aliases = projectReference.Attributes(AliasAttributeName).SelectAsArray(a => a.Value);
 
                 OnProjectReferenceAdded(fromProject.Id, new ProjectReference(toProject.Id, aliases.Any() ? aliases : default));
             }

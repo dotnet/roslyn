@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Accessibility_modifiers_unnecessary">
         <source>Accessibility modifiers unnecessary</source>
-        <target state="new">Accessibility modifiers unnecessary</target>
+        <target state="translated">不需要協助工具修飾元</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
@@ -196,6 +196,11 @@
         <target state="translated">使欄位唯讀</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_method_synchronous">
+        <source>Make method synchronous</source>
+        <target state="translated">讓方法同步</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Member_access_should_be_qualified">
         <source>Member access should be qualified.</source>
         <target state="translated">必須限定成員存取。</target>
@@ -209,6 +214,11 @@
       <trans-unit id="Member_name_can_be_simplified">
         <source>Member name can be simplified</source>
         <target state="translated">成員名稱可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_can_be_made_synchronous">
+        <source>Method can be made synchronous</source>
+        <target state="translated">方法可設為同步處理</target>
         <note />
       </trans-unit>
       <trans-unit id="Modifiers_are_not_ordered">
@@ -331,6 +341,11 @@
         <target state="translated">移除非必要的隱藏項目</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_unsafe_modifier">
+        <source>Remove unnecessary 'unsafe' modifier</source>
+        <target state="translated">移除不必要的 'unsafe' 修飾元</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
         <target state="translated">刪除未讀取的私用成員</target>
@@ -411,6 +426,11 @@
         <target state="translated">簡化物件初始化</target>
         <note />
       </trans-unit>
+      <trans-unit id="Suppression_is_unnecessary">
+        <source>Suppression is unnecessary</source>
+        <target state="translated">不需要抑制</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_file_header_does_not_match_the_required_text">
         <source>The file header does not match the required text</source>
         <target state="translated">檔案標頭與必要文字不相符</target>
@@ -481,9 +501,14 @@
         <target state="translated">使用 'throw' 運算式</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
-        <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="translated">'{0}' 陳述式隱含地將 '{1}' 轉換為 '{2}'。新增明確的轉換，讓意圖更清楚，因為它在執行時間可能會失敗</target>
+      <trans-unit id="_0_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
+        <source>'{0}' implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
+        <target state="translated">'{0}' 隱含地將 '{1}' 轉換成 '{2}'。新增明確的轉換，讓意圖更清楚，因為它在執行階段可能會失敗</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="unsafe_modifier_is_unnecessary">
+        <source>'unsafe' modifier is unnecessary</source>
+        <target state="translated">不需要 'unsafe' 修飾元</target>
         <note />
       </trans-unit>
     </body>

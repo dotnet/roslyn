@@ -73,6 +73,21 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
 
     public override bool Execute()
     {
+#if !NET
+        // https://github.com/dotnet/roslyn/issues/82006
+        AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+        {
+            if (args.Name.StartsWith("System.", StringComparison.Ordinal))
+            {
+                var simpleName = args.Name.Split(',').First();
+                return AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == simpleName);
+            }
+
+            return null;
+        };
+#endif
+
         try
         {
             ExecuteImpl();

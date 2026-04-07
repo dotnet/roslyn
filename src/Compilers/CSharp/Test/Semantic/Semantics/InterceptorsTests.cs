@@ -22,19 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public class InterceptorsTests : CSharpTestBase
 {
-    private static readonly (string text, string path) s_attributesSource = ("""
-        namespace System.Runtime.CompilerServices;
+    private static readonly (string text, string path) s_attributesSource = (TestSources.InterceptsLocationAttribute, "attributes.cs");
 
-        [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
-        public sealed class InterceptsLocationAttribute : Attribute
-        {
-            public InterceptsLocationAttribute(string filePath, int line, int character) { }
-            public InterceptsLocationAttribute(int version, string data) { }
-        }
-        """, "attributes.cs");
-
-    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global");
-    private static readonly CSharpParseOptions RegularPreviewWithInterceptors = TestOptions.RegularPreview.WithFeature("InterceptorsNamespaces", "global");
+    private static readonly CSharpParseOptions RegularWithInterceptors = TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "global");
+    private static readonly CSharpParseOptions RegularPreviewWithInterceptors = TestOptions.RegularPreview.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "global");
 
     private static readonly SyntaxTree s_attributesTree = CSharpTestSource.Parse(s_attributesSource.text, s_attributesSource.path, RegularWithInterceptors);
 
@@ -163,41 +154,41 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS"));
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS"));
         comp.VerifyEmitDiagnostics(
             // (8,10): error CS9137: The 'interceptors' feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation(1, "eY+urAo7Kg2rsKgGSGjShwIAAAA=")]
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "InterceptsLocation").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(8, 10));
 
-        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1.NS2"));
+        comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS1.NS2"));
         comp.VerifyEmitDiagnostics(
             // (8,10): error CS9137: The 'interceptors' feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation(1, "eY+urAo7Kg2rsKgGSGjShwIAAAA=")]
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "InterceptsLocation").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(8, 10));
 
-        var verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1"), expectedOutput: "1");
+        var verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS1"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
-        verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1;NS2"), expectedOutput: "1");
+        verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS1;NS2"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
     [Fact]
     public void FeatureFlag_Granular_Checksum_01()
     {
-        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS"), expectedOutput: null,
+        test(TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS"), expectedOutput: null,
             // Interceptors.cs(7,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "eY+urAo7Kg2rsKgGSGjShwIAAABQcm9ncmFtLmNz")]
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(7, 10));
 
-        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1.NS2"), expectedOutput: null,
+        test(TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS1.NS2"), expectedOutput: null,
             // Interceptors.cs(7,10): error CS9137: The 'interceptors' experimental feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>' to your project.
             //         [global::System.Runtime.CompilerServices.InterceptsLocationAttribute(1, "eY+urAo7Kg2rsKgGSGjShwIAAABQcm9ncmFtLmNz")]
             Diagnostic(ErrorCode.ERR_InterceptorsFeatureNotEnabled, "global::System.Runtime.CompilerServices.InterceptsLocationAttribute").WithArguments("<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1</InterceptorsNamespaces>").WithLocation(7, 10));
 
-        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1"), expectedOutput: "1");
+        test(TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS1"), expectedOutput: "1");
 
-        test(TestOptions.Regular.WithFeature("InterceptorsNamespaces", "NS1;NS2"), expectedOutput: "1");
+        test(TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "NS1;NS2"), expectedOutput: "1");
 
         void test(CSharpParseOptions options, string? expectedOutput, params DiagnosticDescription[] expected)
         {
@@ -292,7 +283,7 @@ public class InterceptorsTests : CSharpTestBase
 
         void sadCase(string featureValue)
         {
-            var comp = CreateCompilation([source, interceptor, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", featureValue));
+            var comp = CreateCompilation([source, interceptor, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, featureValue));
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS9137: The 'interceptors' feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);NS1.NS2</InterceptorsNamespaces>' to your project.
                 //         [InterceptsLocation(1, "eY+urAo7Kg2rsKgGSGjShwIAAAA=")]
@@ -301,7 +292,7 @@ public class InterceptorsTests : CSharpTestBase
 
         void happyCase(string featureValue)
         {
-            var verifier = CompileAndVerify([source, interceptor, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", featureValue), expectedOutput: "1");
+            var verifier = CompileAndVerify([source, interceptor, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, featureValue), expectedOutput: "1");
             verifier.VerifyDiagnostics();
         }
     }
@@ -329,7 +320,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", ""));
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, ""));
         comp.VerifyEmitDiagnostics(
             // (6,6): error CS9206: An interceptor cannot be declared in the global namespace.
             //     [InterceptsLocation(1, "eY+urAo7Kg2rsKgGSGjShwIAAAA=")]
@@ -361,10 +352,10 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global"), expectedOutput: "1");
+        var verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "global"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
 
-        verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global"), expectedOutput: "1");
+        verifier = CompileAndVerify([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "global"), expectedOutput: "1");
         verifier.VerifyDiagnostics();
     }
 
@@ -395,7 +386,7 @@ public class InterceptorsTests : CSharpTestBase
             }
             """;
 
-        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global.A"));
+        var comp = CreateCompilation([source, interceptors, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "global.A"));
         comp.VerifyEmitDiagnostics(
             // (8,10): error CS9137: The 'interceptors' feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);global.B</InterceptorsNamespaces>' to your project.
             //         [InterceptsLocation(1, "eY+urAo7Kg2rsKgGSGjShwIAAAA=")]
@@ -6823,7 +6814,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6870,7 +6861,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6923,7 +6914,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -6972,7 +6963,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -7028,7 +7019,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -7076,7 +7067,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -7123,7 +7114,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: featureExists ? TestOptions.Regular.WithFeature("InterceptorsNamespaces", "") : TestOptions.Regular);
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: featureExists ? TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "") : TestOptions.Regular);
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -7167,7 +7158,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors;Interceptors"));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors;Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -7195,7 +7186,7 @@ public static class S1Ext
             }
             """, "Program.cs");
 
-        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation(new[] { source, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -7214,7 +7205,7 @@ public static class S1Ext
     public void GetInterceptorMethod_12()
     {
         // Compilation contains no files
-        var comp = CreateCompilation([], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors"));
+        var comp = CreateCompilation([], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors"));
 
         // We can't use GetInterceptorMethod without a SemanticModel and we can't get a SemanticModel when the compilation contains no trees.
         // But, we can exercise some internal API for theoretical edge cases to see if it is robust (does not throw, updates expected flags).
@@ -7254,7 +7245,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", @namespace));
+        var comp = CreateCompilation(new[] { source, interceptorSource, s_attributesSource }, parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, @namespace));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
@@ -7297,7 +7288,7 @@ public static class S1Ext
             }
             """, "Interceptor.cs");
 
-        var comp = CreateCompilation([source, interceptorSource, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "Interceptors.Nested"));
+        var comp = CreateCompilation([source, interceptorSource, s_attributesSource], parseOptions: TestOptions.Regular.WithFeature(CodeAnalysis.Feature.InterceptorsNamespaces, "Interceptors.Nested"));
 
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);

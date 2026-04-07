@@ -16,11 +16,11 @@ internal abstract class DocumentDiagnosticAnalyzer : DiagnosticAnalyzer
 {
     public const int DefaultPriority = 50;
 
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    public virtual async Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+        => [];
 
-    public virtual Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
-        => SpecializedTasks.EmptyImmutableArray<Diagnostic>();
+    public virtual async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(TextDocument textDocument, SyntaxTree? tree, CancellationToken cancellationToken)
+        => [];
 
     /// <summary>
     /// it is not allowed one to implement both DocumentDiagnosticAnalyzer and DiagnosticAnalyzer

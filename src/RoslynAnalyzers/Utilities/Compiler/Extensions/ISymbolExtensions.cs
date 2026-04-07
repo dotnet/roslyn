@@ -373,10 +373,8 @@ namespace Analyzer.Utilities.Extensions
             {
                 IFieldSymbol field => field.IsReadOnly,
                 IPropertySymbol property => property.IsReadOnly,
-#if CODEANALYSIS_V3_OR_BETTER
                 IMethodSymbol method => method.IsReadOnly,
                 ITypeSymbol type => type.IsReadOnly,
-#endif
                 _ => false,
             };
     }

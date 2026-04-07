@@ -11,60 +11,51 @@ using Microsoft.CodeAnalysis.Editor.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 
-internal partial class SuggestedActionWithNestedFlavors
+internal sealed partial class EditorSuggestedActionWithNestedFlavors
 {
-    private partial class PreviewChangesSuggestedAction
+    private sealed class PreviewChangesCodeAction(
+        CodeAction originalCodeAction,
+        Func<CancellationToken, Task<SolutionPreviewResult?>> getPreviewResultAsync) : CodeAction
     {
-        private sealed class PreviewChangesCodeAction : CodeAction
+        private readonly CodeAction _originalCodeAction = originalCodeAction;
+        private readonly Func<CancellationToken, Task<SolutionPreviewResult?>> _getPreviewResultAsync = getPreviewResultAsync;
+
+        public override string Title => EditorFeaturesResources.Preview_changes2;
+
+        private protected override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+            Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
         {
-            private readonly Workspace _workspace;
-            private readonly CodeAction _originalCodeAction;
-            private readonly Func<CancellationToken, Task<SolutionPreviewResult?>> _getPreviewResultAsync;
-
-            public PreviewChangesCodeAction(Workspace workspace, CodeAction originalCodeAction, Func<CancellationToken, Task<SolutionPreviewResult?>> getPreviewResultAsync)
+            cancellationToken.ThrowIfCancellationRequested();
+            var previewDialogService = originalSolution.Services.GetService<IPreviewDialogService>();
+            if (previewDialogService == null)
             {
-                _workspace = workspace;
-                _originalCodeAction = originalCodeAction;
-                _getPreviewResultAsync = getPreviewResultAsync;
+                return [];
             }
 
-            public override string Title => EditorFeaturesResources.Preview_changes2;
-
-            private protected override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
-                Solution originalSolution, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+            var previewResult = await _getPreviewResultAsync(cancellationToken).ConfigureAwait(true);
+            if (previewResult?.ChangeSummary is not { } changeSummary)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var previewDialogService = _workspace.Services.GetService<IPreviewDialogService>();
-                if (previewDialogService == null)
-                {
-                    return [];
-                }
-
-                var previewResult = await _getPreviewResultAsync(cancellationToken).ConfigureAwait(true);
-                if (previewResult?.ChangeSummary is not { } changeSummary)
-                {
-                    return [];
-                }
-
-                var changedSolution = previewDialogService.PreviewChanges(
-                    EditorFeaturesResources.Preview_Changes,
-                    "vs.codefix.previewchanges",
-                    _originalCodeAction.Title,
-                    EditorFeaturesResources.Changes,
-                    CodeAnalysis.Glyph.OpenFolder,
-                    changeSummary.NewSolution,
-                    changeSummary.OldSolution,
-                    showCheckBoxes: false);
-
-                if (changedSolution == null)
-                {
-                    // User pressed the cancel button.
-                    return [];
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
-                return await _originalCodeAction.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
+                return [];
             }
+
+            var changedSolution = previewDialogService.PreviewChanges(
+                EditorFeaturesResources.Preview_Changes,
+                "vs.codefix.previewchanges",
+                _originalCodeAction.Title,
+                EditorFeaturesResources.Changes,
+                CodeAnalysis.Glyph.OpenFolder,
+                changeSummary.NewSolution,
+                changeSummary.OldSolution,
+                showCheckBoxes: false);
+
+            if (changedSolution == null)
+            {
+                // User pressed the cancel button.
+                return [];
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            return await _originalCodeAction.GetOperationsAsync(originalSolution, progressTracker, cancellationToken).ConfigureAwait(false);
         }
     }
 }
