@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -767,18 +768,28 @@ public sealed class SplitIntoNestedIfStatementsTests
 
     [Fact]
     public Task SplitIntoNestedIfStatements_TopLevelStatement()
-        => TestInRegularAndScriptAsync(
-            """
-            if (a [||]&& b)
-            {
-            }
-            """,
-            """
-            if (a)
-            {
-                if (b)
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                var a = true;
+                var b = true;
+
+                if (a [||]&& b)
                 {
                 }
-            }
-            """);
+                """,
+            FixedCode = """
+                var a = true;
+                var b = true;
+
+                if (a)
+                {
+                    if (b)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
+        }.RunAsync();
 }
