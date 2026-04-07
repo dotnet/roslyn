@@ -55,5 +55,13 @@ namespace Microsoft.CodeAnalysis
         /// or <see cref="IncrementalGeneratorInitializationContext.RegisterHostOutput{TSource}(IncrementalValuesProvider{TSource}, Action{HostOutputProductionContext, TSource})"/>
         /// </summary>
         Host = 0b1000,
+
+        /// <summary>
+        /// A pre-compilation source output, registered via
+        /// <see cref="IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput{TSource}(IncrementalValueProvider{TSource}, Action{PreCompilationSourceProductionContext, TSource})"/>
+        /// or <see cref="IncrementalGeneratorInitializationContext.RegisterPreCompilationSourceOutput{TSource}(IncrementalValuesProvider{TSource}, Action{PreCompilationSourceProductionContext, TSource})"/>.
+        /// Source is added to the initial compilation before compilation-dependent phases execute.
+        /// </summary>
+        PreCompilation = 0b10000,
     }
 }

@@ -28,21 +28,30 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly StateTableStore.Builder _stateTableBuilder = new StateTableStore.Builder();
             private readonly DriverStateTable _previousTable;
+            private readonly ImmutableArray<SyntaxInputNode> _syntaxInputNodes;
             private readonly CancellationToken _cancellationToken;
+            private Compilation? _compilation;
+            private SyntaxStore.Builder? _syntaxStore;
 
             internal GeneratorDriverState DriverState { get; }
 
-            public Compilation Compilation { get; }
+            public Compilation Compilation => _compilation ?? throw new InvalidOperationException("Compilation is not available during the pre-compilation phase.");
 
-            internal SyntaxStore.Builder SyntaxStore { get; }
+            internal SyntaxStore.Builder SyntaxStore => _syntaxStore ?? throw new InvalidOperationException("SyntaxStore is not available during the pre-compilation phase.");
 
-            public Builder(Compilation compilation, GeneratorDriverState driverState, SyntaxStore.Builder syntaxStore, CancellationToken cancellationToken = default)
+            public Builder(GeneratorDriverState driverState, ImmutableArray<SyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
             {
-                Compilation = compilation;
                 DriverState = driverState;
                 _previousTable = driverState.StateTable;
+                _syntaxInputNodes = syntaxInputNodes;
                 _cancellationToken = cancellationToken;
-                SyntaxStore = syntaxStore;
+            }
+
+            public void SetCompilation(Compilation compilation)
+            {
+                Debug.Assert(_compilation is null, "SetCompilation should only be called once.");
+                _compilation = compilation;
+                _syntaxStore = DriverState.SyntaxStore.ToBuilder(compilation, _syntaxInputNodes, DriverState.TrackIncrementalSteps, _cancellationToken);
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)

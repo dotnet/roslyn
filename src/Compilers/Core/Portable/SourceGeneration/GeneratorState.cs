@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis
                                                                          ImmutableArray<SyntaxInputNode>.Empty,
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,
                                                                          ImmutableArray<GeneratedSyntaxTree>.Empty,
+                                                                         ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<Diagnostic>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
@@ -33,9 +34,18 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
         public GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
+            : this(postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Creates a new generator state that contains information, constant trees (including pre-compilation) and an execution pipeline
+        /// </summary>
+        public GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> preCompilationTrees)
             : this(postInitTrees,
                    inputNodes,
                    outputNodes,
+                   preCompilationTrees,
                    ImmutableArray<GeneratedSyntaxTree>.Empty,
                    ImmutableArray<Diagnostic>.Empty,
                    ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
@@ -50,6 +60,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<GeneratedSyntaxTree> postInitTrees,
             ImmutableArray<SyntaxInputNode> inputNodes,
             ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes,
+            ImmutableArray<GeneratedSyntaxTree> preCompilationTrees,
             ImmutableArray<GeneratedSyntaxTree> generatedTrees,
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
@@ -62,6 +73,7 @@ namespace Microsoft.CodeAnalysis
             this.PostInitTrees = postInitTrees;
             this.InputNodes = inputNodes;
             this.OutputNodes = outputNodes;
+            this.PreCompilationTrees = preCompilationTrees;
             this.GeneratedTrees = generatedTrees;
             this.Diagnostics = diagnostics;
             this.ExecutedSteps = executedSteps;
@@ -69,6 +81,21 @@ namespace Microsoft.CodeAnalysis
             this.HostOutputs = hostOutputs;
             this.Exception = exception;
             this.ElapsedTime = elapsedTime;
+        }
+
+        public GeneratorState WithPreCompilationTrees(ImmutableArray<GeneratedSyntaxTree> preCompilationTrees)
+        {
+            return new GeneratorState(this.PostInitTrees,
+                                      this.InputNodes,
+                                      this.OutputNodes,
+                                      preCompilationTrees,
+                                      this.GeneratedTrees,
+                                      this.Diagnostics,
+                                      this.ExecutedSteps,
+                                      this.OutputSteps,
+                                      this.HostOutputs,
+                                      exception: null,
+                                      elapsedTime: this.ElapsedTime);
         }
 
         public GeneratorState WithResults(ImmutableArray<GeneratedSyntaxTree> generatedTrees,
@@ -81,6 +108,7 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorState(this.PostInitTrees,
                                       this.InputNodes,
                                       this.OutputNodes,
+                                      this.PreCompilationTrees,
                                       generatedTrees,
                                       diagnostics,
                                       executedSteps,
@@ -95,6 +123,7 @@ namespace Microsoft.CodeAnalysis
             return new GeneratorState(this.PostInitTrees,
                                       this.InputNodes,
                                       this.OutputNodes,
+                                      ImmutableArray<GeneratedSyntaxTree>.Empty,
                                       ImmutableArray<GeneratedSyntaxTree>.Empty,
                                       ImmutableArray.Create(error),
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
@@ -114,6 +143,8 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<GeneratedSyntaxTree> GeneratedTrees { get; }
 
+        internal ImmutableArray<GeneratedSyntaxTree> PreCompilationTrees { get; }
+
         internal Exception? Exception { get; }
 
         internal TimeSpan ElapsedTime { get; }
@@ -126,6 +157,8 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableDictionary<string, object> HostOutputs { get; }
 
-        internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
+        internal bool RequiresConstantTreeReparse(ParseOptions parseOptions)
+            => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions)
+            || PreCompilationTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
     }
 }
