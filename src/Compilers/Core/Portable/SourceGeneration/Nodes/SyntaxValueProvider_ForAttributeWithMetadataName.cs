@@ -114,7 +114,7 @@ public partial struct SyntaxValueProvider
                         if (targetSymbol is null)
                             continue;
 
-                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName);
+                        var attributes = getMatchingAttributes(targetNode, targetSymbol, fullyQualifiedMetadataName, cancellationToken);
                         if (attributes.Length > 0)
                         {
                             result.Add(transform(
@@ -137,7 +137,8 @@ public partial struct SyntaxValueProvider
         static ImmutableArray<AttributeData> getMatchingAttributes(
             SyntaxNode attributeTarget,
             ISymbol symbol,
-            string fullyQualifiedMetadataName)
+            string fullyQualifiedMetadataName,
+            CancellationToken cancellationToken)
         {
             var targetSyntaxTree = attributeTarget.SyntaxTree;
             var result = ArrayBuilder<AttributeData>.GetInstance();
@@ -149,7 +150,7 @@ public partial struct SyntaxValueProvider
             {
                 var attrs = namedTypeSymbol
                     .InstanceConstructors
-                    .Where(c => c.DeclaringSyntaxReferences.Any(r => r.GetSyntax() == attributeTarget))
+                    .Where(c => c.DeclaringSyntaxReferences.Any(r => r.GetSyntax(cancellationToken) == attributeTarget))
                     .SelectMany(c => c.GetAttributes())
                     .ToImmutableArray();
 
