@@ -147,19 +147,7 @@ public partial struct SyntaxValueProvider
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
 
             if (symbol is INamedTypeSymbol namedTypeSymbol)
-            {
-                foreach (var constructorSymbol in namedTypeSymbol.InstanceConstructors)
-                {
-                    foreach (var syntaxRef in constructorSymbol.DeclaringSyntaxReferences)
-                    {
-                        if (syntaxRef.GetSyntax(cancellationToken) == attributeTarget)
-                        {
-                            addMatchingAttributes(constructorSymbol.GetAttributes());
-                            break;
-                        }
-                    }
-                }
-            }
+                addPrimaryConstructorAttributes(namedTypeSymbol);
 
             if (symbol is IAssemblySymbol assemblySymbol)
             {
@@ -180,6 +168,21 @@ public partial struct SyntaxValueProvider
                         attribute.AttributeClass?.ToDisplayString(s_metadataDisplayFormat) == fullyQualifiedMetadataName)
                     {
                         result.Add(attribute);
+                    }
+                }
+            }
+
+            void addPrimaryConstructorAttributes(INamedTypeSymbol namedTypeSymbol)
+            {
+                foreach (var constructorSymbol in namedTypeSymbol.InstanceConstructors)
+                {
+                    foreach (var syntaxRef in constructorSymbol.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxRef.GetSyntax(cancellationToken) == attributeTarget)
+                        {
+                            addMatchingAttributes(constructorSymbol.GetAttributes());
+                            return;
+                        }
                     }
                 }
             }
