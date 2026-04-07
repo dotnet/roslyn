@@ -2,44 +2,37 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements;
 
-[Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoNestedIfStatements)]
-public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionTest_NoEditor
-{
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-        => new CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider();
+using VerifyCS = CSharpCodeRefactoringVerifier<CSharpSplitIntoNestedIfStatementsCodeRefactoringProvider>;
 
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoNestedIfStatements)]
+public sealed class SplitIntoNestedIfStatementsTests
+{
     [Theory]
     [InlineData("a [||]&& b")]
     [InlineData("a &[||]& b")]
     [InlineData("a &&[||] b")]
     [InlineData("a [|&&|] b")]
     public Task SplitOnAndOperatorSpans(string condition)
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M(bool a, bool b)
                 {
-                    if (
-            """ + condition + """
-            )
+                    if ({{condition}})
                     {
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -59,15 +52,12 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
     [InlineData("a[| &&|] b")]
     [InlineData("a[||] && b")]
     public Task NotSplitOnAndOperatorSpans(string condition)
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M(bool a, bool b)
                 {
-                    if (
-            """ + condition + """
-            )
+                    if ({{condition}})
                     {
                     }
                 }
@@ -76,8 +66,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitOnIfKeyword()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -91,8 +80,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitOnOrOperator()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -106,8 +94,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitOnBitwiseAndOperator()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -121,8 +108,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitOnAndOperatorOutsideIfStatement()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -134,22 +120,20 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitOnAndOperatorInIfStatementBody()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
                 {
                     if (a && b)
-                        a [||]&& b;
+                        {|CS0201:a [||]&& b|};
                 }
             }
             """);
 
     [Fact]
     public Task SplitWithChainedAndExpression1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -159,8 +143,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -177,8 +160,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithChainedAndExpression2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -188,8 +170,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -206,8 +187,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithChainedAndExpression3()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -217,8 +197,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -235,8 +214,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitInsideParentheses1()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -250,8 +228,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitInsideParentheses2()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -265,8 +242,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitInsideParentheses3()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -280,8 +256,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithOtherExpressionInsideParentheses1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -291,8 +266,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -309,8 +283,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithOtherExpressionInsideParentheses2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -320,8 +293,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -338,8 +310,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitWithMixedOrExpression1()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -353,8 +324,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task NotSplitWithMixedOrExpression2()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -368,8 +338,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithMixedOrExpressionInsideParentheses1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -379,8 +348,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -397,8 +365,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithMixedOrExpressionInsideParentheses2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -408,8 +375,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -426,8 +392,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithMixedBitwiseOrExpression1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -437,8 +402,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -455,8 +419,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithMixedBitwiseOrExpression2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -466,8 +429,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -484,8 +446,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithStatementInsideBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -496,8 +457,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -515,8 +475,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithStatementWithoutBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -525,8 +484,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                         System.Console.WriteLine(a && b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -542,8 +500,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithNestedIfStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -552,8 +509,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                         if (true) { }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -569,24 +525,22 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithMissingStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
                 {
-                    if (a [||]&& b)
+                    if (a [||]&& b){|CS1002:|}{|CS1525:|}
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
                 {
                     if (a)
                     {
-                        if (b)
+                        if (b){|CS1002:|}{|CS1525:|}
             }
                 }
             }
@@ -594,8 +548,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithElseStatementInsideBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -608,8 +561,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -633,8 +585,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithElseStatementWithoutBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -645,8 +596,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                         System.Console.WriteLine(a && b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -666,8 +616,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithElseNestedIfStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -677,8 +626,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     else if (true) { }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -696,8 +644,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithElseIfElse()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -710,8 +657,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                         System.Console.WriteLine(b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -735,8 +681,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitAsPartOfElseIfElse()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -749,8 +694,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                         System.Console.WriteLine(b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -772,19 +716,17 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
 
     [Fact]
     public Task SplitWithMissingElseStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
                 {
                     if (a [||]&& b)
                         System.Console.WriteLine();
-                    else
+                    else{|CS1002:|}{|CS1525:|}
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -793,17 +735,16 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     {
                         if (b)
                             System.Console.WriteLine();
-                        else
+                        else{|CS1002:|}{|CS1525:|}
             }
-                    else
+                    else{|CS1002:|}{|CS1525:|}
                 }
             }
             """);
 
     [Fact]
     public Task SplitWithPreservedSingleLineFormatting()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -811,8 +752,7 @@ public sealed class SplitIntoNestedIfStatementsTests : AbstractCSharpCodeActionT
                     if (a [||]&& b) System.Console.WriteLine();
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
