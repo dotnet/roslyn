@@ -1356,7 +1356,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps),
                     runtime: TimeSpan.Zero);
 
-            return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
+            var builder = new DriverStateTable.Builder(state, ImmutableArray<SyntaxInputNode>.Empty);
+            builder.SetCompilation(c);
+            return builder;
         }
 
         private class CallbackNode<T> : IIncrementalGeneratorNode<T>
