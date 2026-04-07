@@ -148,13 +148,17 @@ public partial struct SyntaxValueProvider
 
             if (symbol is INamedTypeSymbol namedTypeSymbol)
             {
-                var attrs = namedTypeSymbol
-                    .InstanceConstructors
-                    .Where(c => c.DeclaringSyntaxReferences.Any(r => r.GetSyntax(cancellationToken) == attributeTarget))
-                    .SelectMany(c => c.GetAttributes())
-                    .ToImmutableArray();
-
-                addMatchingAttributes(attrs);
+                foreach (var constructorSymbol in namedTypeSymbol.InstanceConstructors)
+                {
+                    foreach (var syntaxRef in constructorSymbol.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxRef.GetSyntax(cancellationToken) == attributeTarget)
+                        {
+                            addMatchingAttributes(constructorSymbol.GetAttributes());
+                            break;
+                        }
+                    }
+                }
             }
 
             if (symbol is IAssemblySymbol assemblySymbol)
