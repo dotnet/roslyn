@@ -196,16 +196,7 @@ After gathering, present **all** planned actions in a numbered list for the user
 
 8. **Retire old stable** (if applicable): If the old stable version (e.g., 18.4) is fully retired, remove its darc default channels. If a servicing branch is needed (e.g., `release/sdk10.0.3xx`), note that for the user to handle separately.
 
-**`PublishData.json` interim handling**: During the ~1 week gap between Roslyn snap and VS snap, named branches need temporary insertion target overrides because VS branch names haven't shifted yet. These temporary changes are included directly in the snap merge PRs (for non-main branches) and reverted after VS snaps.
-
-### Post-snap follow-up
-
-After VS snaps (~1 week later), several `PublishData.json` changes need reverting:
-- **`main`**: Set `insertionCreateDraftPR` back to `false` so insertions resume as normal PRs.
-- **`release/insiders`**: Update `PublishData.json` to the normal insiders config: `vsBranch` = `rel/insiders`, `insertionTitlePrefix` = `[Insiders]`.
-- **`release/stable`** (if temporarily redirected): Update `PublishData.json` to the normal stable config: `vsBranch` = `rel/stable`, `insertionTitlePrefix` = `[Stable]`.
-
-Remind the user about this follow-up.
+**`PublishData.json` interim handling**: During the ~1 week gap between Roslyn snap and VS snap, named branches need temporary insertion target overrides because VS branch names haven't shifted yet. These temporary changes are included directly in the snap merge PRs (for non-main branches) and reverted after VS snaps (see step 3.8).
 
 Present the plan clearly and ask: **"Shall I proceed with these changes?"**
 
