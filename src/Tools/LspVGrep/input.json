@@ -1,0 +1,25 @@
+{
+  "directory": "Q:\\repos\\roslyn",
+  "queries": [
+    {
+      "type": "find-type-definition",
+      "name": "SyntaxNode"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "SyntaxKind"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "ISymbol"
+    },
+    {
+      "type": "find-derived-types",
+      "name": "BoundNode"
+    },
+    {
+      "type": "find-interface-implementation",
+      "name": "ISymbol"
+    }
+  ]
+}
