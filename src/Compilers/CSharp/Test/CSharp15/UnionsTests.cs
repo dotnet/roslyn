@@ -23686,19 +23686,18 @@ struct S1
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
 @"[0]: TryGetValue(C1): (Item1, ReturnItem) t1 = t0; [1]
-[1]: t1.ReturnItem == True ? [2] : [13]
+[1]: t1.ReturnItem == True ? [2] : [12]
 [2]: t2 = (C1)t1.Item1; [3]
 [3]: t3 = t2.F11; [4]
-[4]: t3 == 1 ? [10] : [5]
-[5]: t4 = t0.Value; [6]
-[6]: t4 is C2 ? [7] : [13]
-[7]: t5 = (C2)t4; [8]
-[8]: t6 = t5.F2; [9]
-[9]: t6 == 2 ? [10] : [13]
-[10]: t7 = t2.F12; [11]
-[11]: t7 == 3 ? [12] : [13]
-[12]: leaf <isPatternFailure> `u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
-[13]: leaf <isPatternSuccess> `not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+[4]: t3 == 1 ? [9] : [5]
+[5]: t2 is C2 ? [6] : [12]
+[6]: t4 = (C2)t2; [7]
+[7]: t5 = t4.F2; [8]
+[8]: t5 == 2 ? [9] : [12]
+[9]: t6 = t2.F12; [10]
+[10]: t6 == 3 ? [11] : [12]
+[11]: leaf <isPatternFailure> `u is not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
+[12]: leaf <isPatternSuccess> `not ((C1 { F11: 1 } or C2 { F2: 2 }) and C1 { F12: 3 })`
 ",
 forLowering: true);
 
@@ -23709,67 +23708,66 @@ TryGetValue(C1)
 True
 TryGetValue(C1) 
 False
-TryGetValue(C1) get_Value 
+TryGetValue(C1) 
 True
-TryGetValue(C1) get_Value 
+TryGetValue(C1) 
 True
 TryGetValue(C1) 
 True
 TryGetValue(C1) 
 False
-TryGetValue(C1) get_Value 
+TryGetValue(C1) 
 True
-TryGetValue(C1) get_Value 
+TryGetValue(C1) 
 True
 TryGetValue(C1) 
 True
 TryGetValue(C1) 
 False
-TryGetValue(C1) get_Value 
+TryGetValue(C1) 
 False
-TryGetValue(C1) get_Value 
+TryGetValue(C1) 
 True
 ").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       64 (0x40)
+  // Code size       58 (0x3a)
   .maxstack  2
   .locals init (C1 V_0,
-                C1 V_1,
-                C2 V_2,
-                bool V_3)
+            C1 V_1,
+            C2 V_2,
+            bool V_3)
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldloca.s   V_0
   IL_0004:  call       ""bool S1.TryGetValue(out C1)""
-  IL_0009:  brfalse.s  IL_0038
+  IL_0009:  brfalse.s  IL_0032
   IL_000b:  ldloc.0
   IL_000c:  stloc.1
   IL_000d:  ldloc.1
   IL_000e:  ldfld      ""int C1.F11""
   IL_0013:  ldc.i4.1
-  IL_0014:  beq.s      IL_002f
-  IL_0016:  ldarga.s   V_0
-  IL_0018:  call       ""object S1.Value.get""
-  IL_001d:  isinst     ""C2""
-  IL_0022:  stloc.2
-  IL_0023:  ldloc.2
-  IL_0024:  brfalse.s  IL_0038
-  IL_0026:  ldloc.2
-  IL_0027:  ldfld      ""int C2.F2""
-  IL_002c:  ldc.i4.2
-  IL_002d:  bne.un.s   IL_0038
-  IL_002f:  ldloc.1
-  IL_0030:  ldfld      ""int C1.F12""
-  IL_0035:  ldc.i4.3
-  IL_0036:  beq.s      IL_003c
-  IL_0038:  ldc.i4.1
-  IL_0039:  stloc.3
-  IL_003a:  br.s       IL_003e
-  IL_003c:  ldc.i4.0
-  IL_003d:  stloc.3
-  IL_003e:  ldloc.3
-  IL_003f:  ret
+  IL_0014:  beq.s      IL_0029
+  IL_0016:  ldloc.1
+  IL_0017:  isinst     ""C2""
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.2
+  IL_001e:  brfalse.s  IL_0032
+  IL_0020:  ldloc.2
+  IL_0021:  ldfld      ""int C2.F2""
+  IL_0026:  ldc.i4.2
+  IL_0027:  bne.un.s   IL_0032
+  IL_0029:  ldloc.1
+  IL_002a:  ldfld      ""int C1.F12""
+  IL_002f:  ldc.i4.3
+  IL_0030:  beq.s      IL_0036
+  IL_0032:  ldc.i4.1
+  IL_0033:  stloc.3
+  IL_0034:  br.s       IL_0038
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.3
+  IL_0038:  ldloc.3
+  IL_0039:  ret
 }
 ");
         }
@@ -23846,105 +23844,89 @@ struct S1
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
 
             VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
-@"[0]: t1 = t0.Value; [1]
-[1]: t1 is C2 ? [2] : [8]
-[2]: t2 = (C2)t1; [3]
-[3]: t3 = t2.F2; [4]
-[4]: t3 == 2 ? [5] : [6]
-[5]: t4 = (C1)t1; [13]
-[6]: t4 = (C1)t1; [7]
-[7]: PassThrough t4; [11]
-[8]: TryGetValue(C1): (Item1, ReturnItem) t6 = t0; [9]
-[9]: t6.ReturnItem == True ? [10] : [16]
-[10]: t4 = (C1)t6.Item1; [11]
-[11]: t7 = t4.F11; [12]
-[12]: t7 == 1 ? [13] : [16]
-[13]: t8 = t4.F12; [14]
-[14]: t8 == 3 ? [15] : [16]
-[15]: leaf <isPatternFailure> `u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
-[16]: leaf <isPatternSuccess> `not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+@"[0]: TryGetValue(C1): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [12]
+[2]: t2 = (C1)t1.Item1; [3]
+[3]: t2 is C2 ? [4] : [7]
+[4]: t3 = (C2)t2; [5]
+[5]: t4 = t3.F2; [6]
+[6]: t4 == 2 ? [9] : [7]
+[7]: t5 = t2.F11; [8]
+[8]: t5 == 1 ? [9] : [12]
+[9]: t6 = t2.F12; [10]
+[10]: t6 == 3 ? [11] : [12]
+[11]: leaf <isPatternFailure> `u is not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
+[12]: leaf <isPatternSuccess> `not ((C2 { F2: 2 } or C1 { F11: 1 }) and C1 { F12: 3 })`
 ",
 forLowering: true);
 
             var verifier = CompileAndVerify(comp, expectedOutput: @"
-get_Value TryGetValue(C1) 
+TryGetValue(C1) 
 True
-get_Value TryGetValue(C1) 
+TryGetValue(C1) 
 True
-get_Value TryGetValue(C1) 
+TryGetValue(C1) 
 False
-get_Value TryGetValue(C1) 
+TryGetValue(C1) 
 True
-get_Value TryGetValue(C1) 
+TryGetValue(C1) 
 True
-get_Value 
+TryGetValue(C1) 
 True
-get_Value 
+TryGetValue(C1) 
 False
-get_Value 
+TryGetValue(C1) 
 True
-get_Value 
+TryGetValue(C1) 
 True
-get_Value 
+TryGetValue(C1) 
 True
-get_Value 
+TryGetValue(C1) 
 False
-get_Value 
+TryGetValue(C1) 
 False
-get_Value 
+TryGetValue(C1) 
 True
 ").VerifyDiagnostics();
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       87 (0x57)
+  // Code size       58 (0x3a)
   .maxstack  2
-  .locals init (object V_0,
-            C2 V_1,
-            C1 V_2,
-            C1 V_3,
-            bool V_4)
+  .locals init (C1 V_0,
+            C1 V_1,
+            C2 V_2,
+            bool V_3)
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       ""object S1.Value.get""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  isinst     ""C2""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  brfalse.s  IL_002d
-  IL_0012:  ldloc.1
-  IL_0013:  ldfld      ""int C2.F2""
-  IL_0018:  ldc.i4.2
-  IL_0019:  bne.un.s   IL_0024
-  IL_001b:  ldloc.0
-  IL_001c:  castclass  ""C1""
-  IL_0021:  stloc.2
-  IL_0022:  br.s       IL_0043
-  IL_0024:  ldloc.0
-  IL_0025:  castclass  ""C1""
-  IL_002a:  stloc.2
-  IL_002b:  br.s       IL_003a
-  IL_002d:  ldarga.s   V_0
-  IL_002f:  ldloca.s   V_3
-  IL_0031:  call       ""bool S1.TryGetValue(out C1)""
-  IL_0036:  brfalse.s  IL_004c
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out C1)""
+  IL_0009:  brfalse.s  IL_0032
+  IL_000b:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
+  IL_000e:  isinst     ""C2""
+  IL_0013:  stloc.2
+  IL_0014:  ldloc.2
+  IL_0015:  brfalse.s  IL_0020
+  IL_0017:  ldloc.2
+  IL_0018:  ldfld      ""int C2.F2""
+  IL_001d:  ldc.i4.2
+  IL_001e:  beq.s      IL_0029
+  IL_0020:  ldloc.1
+  IL_0021:  ldfld      ""int C1.F11""
+  IL_0026:  ldc.i4.1
+  IL_0027:  bne.un.s   IL_0032
+  IL_0029:  ldloc.1
+  IL_002a:  ldfld      ""int C1.F12""
+  IL_002f:  ldc.i4.3
+  IL_0030:  beq.s      IL_0036
+  IL_0032:  ldc.i4.1
+  IL_0033:  stloc.3
+  IL_0034:  br.s       IL_0038
+  IL_0036:  ldc.i4.0
+  IL_0037:  stloc.3
   IL_0038:  ldloc.3
-  IL_0039:  stloc.2
-  IL_003a:  ldloc.2
-  IL_003b:  ldfld      ""int C1.F11""
-  IL_0040:  ldc.i4.1
-  IL_0041:  bne.un.s   IL_004c
-  IL_0043:  ldloc.2
-  IL_0044:  ldfld      ""int C1.F12""
-  IL_0049:  ldc.i4.3
-  IL_004a:  beq.s      IL_0051
-  IL_004c:  ldc.i4.1
-  IL_004d:  stloc.s    V_4
-  IL_004f:  br.s       IL_0054
-  IL_0051:  ldc.i4.0
-  IL_0052:  stloc.s    V_4
-  IL_0054:  ldloc.s    V_4
-  IL_0056:  ret
+  IL_0039:  ret
 }
 ");
         }
@@ -28777,6 +28759,741 @@ class Program
                 //             _ = s switch { int => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(400, 19)
                 );
+        }
+
+        [Fact]
+        public void TryGetValueMethod_25_ImplicitReferenceConversion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(C1 x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out C1 value) { if (_value is C1) { value = (C1)_value; return true; } else { value = null; return false; } }
+}
+
+class C1;
+class C2 : C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            VerifyDecisionDagDump<BinaryExpressionSyntax>(comp,
+@"[0]: TryGetValue(C1): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [5]
+[2]: t2 = (C1)t1.Item1; [3]
+[3]: t2 is C2 ? [4] : [5]
+[4]: leaf <isPatternSuccess> `u is C2`
+[5]: leaf <isPatternFailure> `u is C2`
+",
+index: 1, forLowering: true);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (C1 V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out C1)""
+  IL_0009:  brfalse.s  IL_0015
+  IL_000b:  ldloc.0
+  IL_000c:  isinst     ""C2""
+  IL_0011:  ldnull
+  IL_0012:  cgt.un
+  IL_0014:  ret
+  IL_0015:  ldc.i4.0
+  IL_0016:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_26_ImplicitReferenceConversion_Vs_Identity(
+            [CombinatorialValues(
+                """
+                public S1(C1 x) { _value = x; }
+                public S1(C2 x) { _value = x; }
+                """,
+                """
+                public S1(C2 x) { _value = x; }
+                public S1(C1 x) { _value = x; }
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                """
+                public bool TryGetValue(out C1 value) => throw null;
+                public bool TryGetValue(out C2 value) { if (_value is C2) { value = (C2)_value; return true; } else { value = null; return false; } }
+                """,
+                """
+                public bool TryGetValue(out C2 value) { if (_value is C2) { value = (C2)_value; return true; } else { value = null; return false; } }
+                public bool TryGetValue(out C1 value) => throw null;
+                """)]
+            string tryGetValues)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public object Value => throw null;
+    " + constructors +
+        tryGetValues + @"
+}
+
+class C1;
+class C2 : C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_27_ImplicitReferenceConversion_Vs_Identity(
+            [CombinatorialValues(
+                """
+                public S1(C1 x) : base(x) {}
+                public S1(C2 x) : base(x) {}
+                """,
+                """
+                public S1(C2 x) : base(x) {}
+                public S1(C1 x) : base(x) {}
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                new[]
+                {
+                    "public bool TryGetValue(out C1 value) => throw null;",
+                    "public bool TryGetValue(out C2 value) { if (_value is C2) { value = (C2)_value; return true; } else { value = null; return false; } }"
+                },
+                new[]
+                {
+                    "public bool TryGetValue(out C2 value) { if (_value is C2) { value = (C2)_value; return true; } else { value = null; return false; } }",
+                    "public bool TryGetValue(out C1 value) => throw null;"
+                })]
+            string[] tryGetValues)
+        {
+            var src = @"
+class S0(object value)
+{
+    protected readonly object _value = value;
+    " + tryGetValues[0] + @"
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public object Value => throw null;
+    " + constructors + @"
+
+    " + tryGetValues[1] + @"
+}
+
+class C1;
+class C2 : C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_28_ImplicitReferenceConversion_Determinism(
+            [CombinatorialValues(
+                """
+                public S1(C1 x) { _value = x; }
+                public S1(C0 x) { _value = x; }
+                """,
+                """
+                public S1(C0 x) { _value = x; }
+                public S1(C1 x) { _value = x; }
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                """
+                public bool TryGetValue(out C0 value) { if (_value is C0) { value = (C0)_value; return true; } else { value = null; return false; } }
+                public bool TryGetValue(out C1 value) => throw null;
+                """,
+                """
+                public bool TryGetValue(out C1 value) { if (_value is C1) { value = (C1)_value; return true; } else { value = null; return false; } }
+                public bool TryGetValue(out C0 value) => throw null;
+                """)]
+            string tryGetValues)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1
+{
+    private readonly object _value;
+    public object Value => throw null;
+    " + constructors +
+        tryGetValues + @"
+}
+
+public class C0;
+public class C1 : C0;
+public class C2 : C1;
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_29_ImplicitReferenceConversion__Determinism(
+            [CombinatorialValues(
+                """
+                public S1(C1 x) : base(x) {}
+                public S1(C0 x) : base(x) {}
+                """,
+                """
+                public S1(C0 x) : base(x) {}
+                public S1(C1 x) : base(x) {}
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                new[]
+                {
+                    "public bool TryGetValue(out C1 value) => throw null;",
+                    "public bool TryGetValue(out C0 value) { if (_value is C0) { value = (C0)_value; return true; } else { value = null; return false; } }"
+                },
+                new[]
+                {
+                    "public bool TryGetValue(out C0 value) => throw null;",
+                    "public bool TryGetValue(out C1 value) { if (_value is C1) { value = (C1)_value; return true; } else { value = null; return false; } }"
+                })]
+            string[] tryGetValues)
+        {
+            var src1 = @"
+public class S0(object value)
+{
+    protected readonly object _value = value;
+    " + tryGetValues[0] + @"
+}
+
+[System.Runtime.CompilerServices.Union]
+public class S1 : S0
+{
+    public object Value => throw null;
+    " + constructors + @"
+
+    " + tryGetValues[1] + @"
+}
+
+public class C0;
+public class C1 : C0;
+public class C2 : C1;
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_30_BoxingConversion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(System.IComparable x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out System.IComparable value) { if (_value is System.IComparable) { value = (System.IComparable)_value; return true; } else { value = null; return false; } }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1("""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: TryGetValue(System.IComparable): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [7]
+[2]: t2 = (System.IComparable)t1.Item1; [3]
+[3]: t2 is int ? [4] : [7]
+[4]: t3 = (int)t2; [5]
+[5]: t3 == 1 ? [6] : [7]
+[6]: leaf <isPatternSuccess> `1`
+[7]: leaf <isPatternFailure> `u is 1`
+",
+forLowering: true);
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (System.IComparable V_0,
+            System.IComparable V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out System.IComparable)""
+  IL_0009:  brfalse.s  IL_001f
+  IL_000b:  ldloc.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
+  IL_000e:  isinst     ""int""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.1
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  ldc.i4.1
+  IL_001c:  ceq
+  IL_001e:  ret
+  IL_001f:  ldc.i4.0
+  IL_0020:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_31_BoxingConversion_Vs_Identity(
+            [CombinatorialValues(
+                """
+                public S1(System.IComparable x) { _value = x; }
+                public S1(int x) { _value = x; }
+                """,
+                """
+                public S1(int x) { _value = x; }
+                public S1(System.IComparable x) { _value = x; }
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                """
+                public bool TryGetValue(out System.IComparable value) => throw null;
+                public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+                """,
+                """
+                public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+                public bool TryGetValue(out System.IComparable value) => throw null;
+                """)]
+            string tryGetValues)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public object Value => throw null;
+    " + constructors +
+        tryGetValues + @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1("""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_32_BoxingConversion_Vs_Identity(
+            [CombinatorialValues(
+                """
+                public S1(System.IComparable x) : base(x) {}
+                public S1(int x) : base(x) {}
+                """,
+                """
+                public S1(int x) : base(x) {}
+                public S1(System.IComparable x) : base(x) {}
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                new[]
+                {
+                    "public bool TryGetValue(out System.IComparable value) => throw null;",
+                    "public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }"
+                },
+                new[]
+                {
+                    "public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }",
+                    "public bool TryGetValue(out System.IComparable value) => throw null;"
+                })]
+            string[] tryGetValues)
+        {
+            var src = @"
+class S0(object value)
+{
+    protected readonly object _value = value;
+    " + tryGetValues[0] + @"
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1 : S0
+{
+    public object Value => throw null;
+    " + constructors + @"
+
+    " + tryGetValues[1] + @"
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1("""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_33_BoxingConversion_Determinism(
+            [CombinatorialValues(
+                """
+                public S1(System.IComparable x) { _value = x; }
+                public S1(System.IConvertible x) { _value = x; }
+                """,
+                """
+                public S1(System.IConvertible x) { _value = x; }
+                public S1(System.IComparable x) { _value = x; }
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                """
+                public bool TryGetValue(out System.IConvertible value) { if (_value is System.IConvertible) { value = (System.IConvertible)_value; return true; } else { value = 0; return false; } }
+                public bool TryGetValue(out System.IComparable value) => throw null;
+                """,
+                """
+                public bool TryGetValue(out System.IComparable value) { if (_value is System.IComparable) { value = (System.IComparable)_value; return true; } else { value = 0; return false; } }
+                public bool TryGetValue(out System.IConvertible value) => throw null;
+                """)]
+            string tryGetValues)
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+public struct S1
+{
+    private readonly object _value;
+    public object Value => throw null;
+    " + constructors +
+        tryGetValues + @"
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1((System.IComparable)"""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1((System.IComparable)1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_34_BoxingConversion_Determinism(
+            [CombinatorialValues(
+                """
+                public S1(System.IComparable x) : base(x) {}
+                public S1(System.IConvertible x) : base(x) {}
+                """,
+                """
+                public S1(System.IConvertible x) : base(x) {}
+                public S1(System.IComparable x) : base(x) {}
+                """)]
+            string constructors,
+            [CombinatorialValues(
+                new[]
+                {
+                    "public bool TryGetValue(out System.IComparable value) => throw null;",
+                    "public bool TryGetValue(out System.IConvertible value) { if (_value is System.IConvertible) { value = (System.IConvertible)_value; return true; } else { value = 0; return false; } }"
+                },
+                new[]
+                {
+                    "public bool TryGetValue(out System.IConvertible value) => throw null;",
+                    "public bool TryGetValue(out System.IComparable value) { if (_value is System.IComparable) { value = (System.IComparable)_value; return true; } else { value = 0; return false; } }"
+                })]
+            string[] tryGetValues)
+        {
+            var src1 = @"
+public class S0(object value)
+{
+    protected readonly object _value = value;
+    " + tryGetValues[0] + @"
+}
+
+[System.Runtime.CompilerServices.Union]
+public class S1 : S0
+{
+    public object Value => throw null;
+    " + constructors + @"
+
+    " + tryGetValues[1] + @"
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1((System.IConvertible)"""")));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1((System.IConvertible)1)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 1;
+    }   
+}
+";
+            var comp1 = CreateCompilation([src1, src2, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp1, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+
+            var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp2, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_35_Dynamic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(dynamic x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out dynamic value) { value = (dynamic)_value; return value is not null; }
+}
+
+class C1;
+class C2 : C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new C2())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is C2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_36_Dynamic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(object x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out object value) { value = _value; return value is not null; }
+}
+
+class C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(new C1())));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(new object())));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is dynamic;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (25,21): error CS8208: It is not legal to use the type 'dynamic' in a pattern.
+                //         return u is dynamic;
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(25, 21)
+                );
+        }
+
+        [Fact]
+        public void TryGetValueMethod_37_UnsupportedConversion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(byte x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(out int value) => throw null;
+}
+
+class C1;
+
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1((byte)2)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is byte;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
         }
     }
 }

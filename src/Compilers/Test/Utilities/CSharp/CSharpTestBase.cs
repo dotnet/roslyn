@@ -3318,9 +3318,10 @@ namespace System
                     }
                     break;
 
-                case IsPatternExpressionSyntax n:
+                case IsPatternExpressionSyntax:
+                case BinaryExpressionSyntax n when n.Kind() == SyntaxKind.IsExpression:
                     {
-                        var b = (BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded);
+                        var b = (BoundIsPatternExpression)binder.BindExpression((ExpressionSyntax)(object)node, BindingDiagnosticBag.Discarded);
                         decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
                     }
                     break;
