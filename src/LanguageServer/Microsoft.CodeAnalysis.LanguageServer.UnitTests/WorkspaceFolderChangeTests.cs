@@ -24,7 +24,11 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
     [Fact]
     public async Task ProjectInsideWorkspaceFolder_Retained()
     {
-        var (projectSystem, projectFactory) = await CreateTestComponentsAsync();
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
+            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
+        using var __ = exportProvider;
+
+        var (projectSystem, projectFactory) = GetTestComponents(exportProvider);
 
         var workspaceRoot = MakeAbsolutePath("workspaceRoot");
         var insideProjectPath = Path.Combine(workspaceRoot, "src", "App.csproj");
@@ -48,7 +52,11 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
     [Fact]
     public async Task ProjectOutsideWorkspaceFolder_Unloaded()
     {
-        var (projectSystem, projectFactory) = await CreateTestComponentsAsync();
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
+            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
+        using var __ = exportProvider;
+
+        var (projectSystem, projectFactory) = GetTestComponents(exportProvider);
 
         var workspaceRoot = MakeAbsolutePath("workspaceRoot");
         var outsideProjectPath = MakeAbsolutePath(Path.Combine("otherFolder", "Lib.csproj"));
@@ -77,9 +85,7 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
             LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
         using var __ = exportProvider;
 
-        var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
-        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        var projectFactory = workspaceFactory.HostProjectFactory;
+        var (projectSystem, projectFactory) = GetTestComponents(exportProvider);
 
         var workspaceRoot = MakeAbsolutePath("workspaceRoot");
         var appProjectPath = Path.Combine(workspaceRoot, "App.csproj");
@@ -123,9 +129,7 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
             LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
         using var __ = exportProvider;
 
-        var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
-        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        var projectFactory = workspaceFactory.HostProjectFactory;
+        var (projectSystem, projectFactory) = GetTestComponents(exportProvider);
 
         var workspaceRoot = MakeAbsolutePath("workspaceRoot");
         var appProjectPath = Path.Combine(workspaceRoot, "App.csproj");
@@ -175,9 +179,7 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
             LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
         using var __ = exportProvider;
 
-        var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
-        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        var projectFactory = workspaceFactory.HostProjectFactory;
+        var (projectSystem, projectFactory) = GetTestComponents(exportProvider);
 
         var workspaceRoot = MakeAbsolutePath("workspaceRoot");
         var appProjectPath = Path.Combine(workspaceRoot, "App.csproj");
@@ -213,7 +215,11 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
     [Fact]
     public async Task PathPrefixSafety_SimilarNamedFolderDoesNotMatch()
     {
-        var (projectSystem, projectFactory) = await CreateTestComponentsAsync();
+        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
+            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
+        using var __ = exportProvider;
+
+        var (projectSystem, projectFactory) = GetTestComponents(exportProvider);
 
         var workspaceRoot = MakeAbsolutePath("repo");
         var prefixTrapProjectPath = MakeAbsolutePath(Path.Combine("repo2", "Proj.csproj"));
@@ -241,9 +247,7 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
             LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
         using var __ = exportProvider;
 
-        var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
-        var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
-        var projectFactory = workspaceFactory.HostProjectFactory;
+        var (projectSystem, projectFactory) = GetTestComponents(exportProvider);
 
         var workspaceRoot = MakeAbsolutePath("workspaceRoot");
         var proj1Path = Path.Combine(workspaceRoot, "Proj1.csproj");
@@ -271,14 +275,9 @@ public sealed class WorkspaceFolderChangeTests(ITestOutputHelper testOutputHelpe
     // Helpers
     // -------------------------------------------------------------------------
 
-    private async Task<(LanguageServerProjectSystem projectSystem, ProjectSystemProjectFactory projectFactory)>
-        CreateTestComponentsAsync()
+    private static (LanguageServerProjectSystem projectSystem, ProjectSystemProjectFactory projectFactory)
+        GetTestComponents(Microsoft.VisualStudio.Composition.ExportProvider exportProvider)
     {
-        var (exportProvider, _) = await LanguageServerTestComposition.CreateExportProviderAsync(
-            LoggerFactory, includeDevKitComponents: false, MefCacheDirectory.Path, []);
-
-        // Note: exportProvider is intentionally not disposed here; the test class disposes TempRoot
-        // which indirectly cleans up any temp resources.  The export provider itself will be GC'd.
         var projectSystem = exportProvider.GetExportedValue<LanguageServerProjectSystem>();
         var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
         return (projectSystem, workspaceFactory.HostProjectFactory);

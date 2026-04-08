@@ -505,7 +505,9 @@ internal abstract class LanguageServerProjectLoader
             }
 
             // Seed the reachable set with tracked projects directly inside an active workspace folder.
-            var reachablePaths = new HashSet<string>();
+            // Use ordinal comparer: all paths here come from _loadedProjects keys, which itself uses
+            // the default (ordinal) string comparer, so ordinal lookup is correct and consistent.
+            var reachablePaths = new HashSet<string>(StringComparer.Ordinal);
             if (!workspaceFolderPaths.IsEmpty)
             {
                 foreach (var (path, _) in trackedProjects)
