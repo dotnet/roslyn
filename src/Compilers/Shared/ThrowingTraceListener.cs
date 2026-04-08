@@ -5,7 +5,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Roslyn.Utilities;
+namespace Microsoft.CodeAnalysis;
 
 internal sealed class ThrowingTraceListener : TraceListener
 {

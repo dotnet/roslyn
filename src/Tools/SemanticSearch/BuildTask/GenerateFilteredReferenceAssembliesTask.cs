@@ -18,7 +18,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.CSharp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Tools;
 
