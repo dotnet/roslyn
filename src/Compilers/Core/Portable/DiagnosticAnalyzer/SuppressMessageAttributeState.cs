@@ -48,20 +48,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Dictionary<string, SuppressMessageInfo> _compilationWideSuppressions = new Dictionary<string, SuppressMessageInfo>();
             // Keep targeted suppressions grouped by diagnostic ID so we only resolve target symbols
             // for IDs that are actually queried.
-            private readonly ConcurrentDictionary<string, ImmutableArray<UnresolvedGlobalSuppression>> _lazyUnresolvedSuppressionsById = new ConcurrentDictionary<string, ImmutableArray<UnresolvedGlobalSuppression>>(StringComparer.Ordinal);
+            private readonly Dictionary<string, List<(SuppressMessageInfo Info, TargetScope Scope)>> _unresolvedSuppressionsById = new Dictionary<string, List<(SuppressMessageInfo Info, TargetScope Scope)>>(StringComparer.Ordinal);
             private readonly ConcurrentDictionary<string, FrozenDictionary<ISymbol, SuppressMessageInfo>> _lazyResolvedSuppressionsById = new ConcurrentDictionary<string, FrozenDictionary<ISymbol, SuppressMessageInfo>>(StringComparer.Ordinal);
-
-            private readonly struct UnresolvedGlobalSuppression
-            {
-                internal UnresolvedGlobalSuppression(SuppressMessageInfo info, TargetScope scope)
-                {
-                    Info = info;
-                    Scope = scope;
-                }
-
-                internal SuppressMessageInfo Info { get; }
-                internal TargetScope Scope { get; }
-            }
 
             public void AddCompilationWideSuppression(SuppressMessageInfo info)
             {
@@ -71,12 +59,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public void AddGlobalSymbolSuppression(SuppressMessageInfo info, TargetScope scope)
             {
                 Debug.Assert(!_lazyResolvedSuppressionsById.ContainsKey(info.Id));
-                var unresolvedSuppression = new UnresolvedGlobalSuppression(info, scope);
-                _lazyUnresolvedSuppressionsById.AddOrUpdate(
-                    info.Id,
-                    addValueFactory: static (_, suppression) => [suppression],
-                    updateValueFactory: static (_, existing, suppression) => existing.Add(suppression),
-                    unresolvedSuppression);
+                if (!_unresolvedSuppressionsById.TryGetValue(info.Id, out var suppressions))
+                {
+                    suppressions = [];
+                    _unresolvedSuppressionsById.Add(info.Id, suppressions);
+                }
+
+                suppressions.Add((info, scope));
             }
 
             public bool HasCompilationWideSuppression(string id, out SuppressMessageInfo info)
@@ -119,19 +108,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private FrozenDictionary<ISymbol, SuppressMessageInfo> ResolveGlobalSymbolSuppressions(string id)
             {
-                var resolvedSuppressions = new Dictionary<ISymbol, SuppressMessageInfo>();
-                if (!_lazyUnresolvedSuppressionsById.TryGetValue(id, out var suppressions))
+                if (!_unresolvedSuppressionsById.TryGetValue(id, out var suppressions))
                 {
                     return FrozenDictionary<ISymbol, SuppressMessageInfo>.Empty;
                 }
 
-                foreach (var suppression in suppressions)
+                var resolvedSuppressions = new Dictionary<ISymbol, SuppressMessageInfo>();
+                foreach (var (info, scope) in suppressions)
                 {
-                    foreach (var target in ResolveTargetSymbols(_compilation, suppression.Info.Target, suppression.Scope))
+                    foreach (var target in ResolveTargetSymbols(_compilation, info.Target, scope))
                     {
                         if (!resolvedSuppressions.ContainsKey(target))
                         {
-                            resolvedSuppressions.Add(target, suppression.Info);
+                            resolvedSuppressions.Add(target, info);
                         }
                     }
                 }
