@@ -4820,7 +4820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var scope = receiverScope;
                     foreach (var element in expr.Elements)
                     {
-                        if (tryGetValEscapeOfElement(element, out var elementSafeContext))
+                        if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
                         {
                             scope = scope.Intersect(elementSafeContext);
                         }
@@ -4830,42 +4830,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(collectionTypeKind); // ref struct collection type with unexpected type kind
             }
+        }
 
-            bool tryGetValEscapeOfElement(BoundNode element, out SafeContext safeContext)
+        private bool TryGetCollectionExpressionElementValEscape(BoundNode element, out SafeContext safeContext)
+        {
+            if (element is BoundCollectionElementInitializer colElement)
             {
-                if (element is BoundCollectionElementInitializer colElement)
-                {
-                    safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement));
-                    return true;
-                }
-
-                if (element is BoundCollectionExpressionSpreadElement spreadElement)
-                {
-                    if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
-                    {
-                        safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
-                    }
-                    else
-                    {
-                        Debug.Assert(spreadElement.HasErrors
-                            || spreadElement.IteratorBody is null
-                            or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
-                        safeContext = GetValEscape(spreadElement.Expression);
-                    }
-
-                    return true;
-                }
-
-                if (element is BoundExpression elementExpression)
-                {
-                    safeContext = GetValEscape(elementExpression);
-                    return true;
-                }
-
-                Debug.Assert(element.HasErrors);
-                safeContext = default;
-                return false;
+                safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(colElement));
+                return true;
             }
+
+            if (element is BoundCollectionExpressionSpreadElement spreadElement)
+            {
+                if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
+                {
+                    safeContext = GetInvocationEscapeToReceiver(MethodInvocationInfo.FromCollectionElementInitializer(spreadElementInitializer));
+                }
+                else
+                {
+                    Debug.Assert(spreadElement.HasErrors
+                        || spreadElement.IteratorBody is null
+                        or BoundExpressionStatement { Expression: BoundConversion or BoundValuePlaceholder or BoundDynamicCollectionElementInitializer });
+                    safeContext = GetValEscape(spreadElement.Expression);
+                }
+
+                return true;
+            }
+
+            if (element is BoundExpression elementExpression)
+            {
+                safeContext = GetValEscape(elementExpression);
+                return true;
+            }
+
+            Debug.Assert(element.HasErrors);
+            safeContext = default;
+            return false;
         }
 
         private SafeContext GetTupleValEscape(ImmutableArray<BoundExpression> elements)

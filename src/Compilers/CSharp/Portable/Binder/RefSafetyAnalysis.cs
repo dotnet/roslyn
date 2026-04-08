@@ -1008,7 +1008,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // change. Customers can respond to failures like this by putting scoped on
             // such parameters in the constructor.
             var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
-            var escapeFrom = initializerEscape;
             GetEscapeValues(
                 in methodInvocationInfo,
                 ignoreArglistRefKinds: false,
@@ -1028,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                if (!escapeFrom.IsConvertibleTo(GetValEscape(argument)))
+                if (!initializerEscape.IsConvertibleTo(GetValEscape(argument)))
                 {
                     Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, node.Constructor, parameter.Name);
                 }
@@ -1365,31 +1364,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in node.Elements)
             {
-                if (element is BoundCollectionElementInitializer colElement)
+                if (element is BoundCollectionExpressionSpreadElement spreadElement)
                 {
-                    elementsScope = elementsScope.Intersect(GetInvocationEscapeToReceiver(
-                        MethodInvocationInfo.FromCollectionElementInitializer(colElement)));
-                }
-                else if (element is BoundExpression elementExpression)
-                {
-                    elementsScope = elementsScope.Intersect(GetValEscape(elementExpression));
-                }
-                else if (element is BoundCollectionExpressionSpreadElement spreadElement)
-                {
-                    elementsScope = elementsScope.Intersect(GetValEscape(spreadElement.Expression));
+                    // Set up the element placeholder before computing the escape scope,
+                    // since GetInvocationEscapeToReceiver may need to access it.
+                    var spreadPlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
+
+                    if (spreadElement.ElementPlaceholder != null)
+                    {
+                        spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
+                    }
+
+                    using var _3 = new PlaceholderRegion(this, spreadPlaceholders);
+
+                    if (TryGetCollectionExpressionElementValEscape(element, out var spreadEscape))
+                    {
+                        elementsScope = elementsScope.Intersect(spreadEscape);
+                    }
 
                     // Spread elements are effectively foreach - we need to make sure the iteration variable is not captured by an Add(ref) method into the receiver.
                     if (!spreadElement.HasErrors)
                     {
-                        var spreadPlaceholders = ArrayBuilder<(BoundValuePlaceholderBase, SafeContextAndLocation)>.GetInstance();
-
-                        if (spreadElement.ElementPlaceholder != null)
-                        {
-                            spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
-                        }
-
-                        using var _3 = new PlaceholderRegion(this, spreadPlaceholders);
-
                         if (spreadElement.IteratorBody is BoundExpressionStatement { Expression: BoundCollectionElementInitializer spreadElementInitializer })
                         {
                             VisitList(spreadElementInitializer.Arguments);
@@ -1410,7 +1405,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Fail($"Unexpected collection expression element {element}");
+                    Debug.Assert(element is BoundCollectionElementInitializer or BoundExpression, $"Unexpected collection expression element {element}");
+
+                    if (TryGetCollectionExpressionElementValEscape(element, out var elementSafeContext))
+                    {
+                        elementsScope = elementsScope.Intersect(elementSafeContext);
+                    }
                 }
             }
 

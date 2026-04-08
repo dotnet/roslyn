@@ -6124,6 +6124,50 @@ class X : List<int>
                 ]);
         }
 
+        [Theory]
+        [InlineData("")]
+        [InlineData("[System.Diagnostics.CodeAnalysis.UnscopedRef] in ")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/81520")]
+        public void CollectionExpression_Constructor_With_Spread_AddRef(string addAttr)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    R M(ref Span<int> heapSpan)
+                    {
+                        int[] arr = [2, 3];
+                        return [with(ref heapSpan), .. arr];
+                    }
+                }
+                ref struct R : IEnumerable<int>
+                {
+                    public R(ref Span<int> a) { }
+                    public void Add({{addAttr}} int i) { }
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+                }
+                """;
+
+            CreateCompilation([source],
+                targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+                addAttr == "" ? [] : [
+                    // (8,16): error CS9203: A collection expression of type 'R' cannot be used in this context because it may be exposed outside of the current scope.
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[with(ref heapSpan), .. arr]").WithArguments("R").WithLocation(8, 16),
+                    // (8,26): error CS8350: This combination of arguments to 'R.R(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'a' outside of their declaration scope
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("R.R(ref System.Span<int>)", "a").WithLocation(8, 26),
+                    // (8,37): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, ".. arr").WithLocation(8, 37),
+                    // (8,37): error CS8350: This combination of arguments to 'R.Add(in int)' is disallowed because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                    //         return [with(ref heapSpan), .. arr];
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, ".. arr").WithArguments("R.Add(in int)", "i").WithLocation(8, 37),
+                ]);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         [InlineData("")]
         [InlineData("in ")]
