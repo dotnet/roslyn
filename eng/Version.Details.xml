@@ -135,10 +135,6 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>2ad6e0a00c692279222642dbcd6e72eb21572d93</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.DarcLib" Version="1.1.0-beta.25161.2">
-      <Uri>https://github.com/dotnet/arcade-services</Uri>
-      <Sha>8b5a2ffee4f4097893b7fc670f7d86d84c8c841f</Sha>
-    </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
     <Dependency Name="System.Composition" Version="10.0.1">
