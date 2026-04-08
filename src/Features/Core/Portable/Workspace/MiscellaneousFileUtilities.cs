@@ -15,6 +15,13 @@ namespace Microsoft.CodeAnalysis.Features.Workspaces;
 
 internal static class MiscellaneousFileUtilities
 {
+    internal static bool IsScriptFile(LanguageInformation languageInformation, string filePath)
+    {
+        return languageInformation.ScriptExtension is not null
+            && PathUtilities.GetExtension(filePath) == languageInformation.ScriptExtension;
+    }
+
+    /// <param name="enableFileBasedPrograms">Whether the host has globally enabled the C# file-based programs feature.</param>
     internal static ProjectInfo CreateMiscellaneousProjectInfoForDocument(
         Workspace workspace,
         string filePath,
@@ -22,9 +29,9 @@ internal static class MiscellaneousFileUtilities
         LanguageInformation languageInformation,
         SourceHashAlgorithm checksumAlgorithm,
         SolutionServices services,
-        ImmutableArray<MetadataReference> metadataReferences)
+        ImmutableArray<MetadataReference> metadataReferences,
+        bool enableFileBasedPrograms)
     {
-        var fileExtension = PathUtilities.GetExtension(filePath);
         var fileName = PathUtilities.GetFileName(filePath);
 
         var languageName = languageInformation.LanguageName;
@@ -48,15 +55,15 @@ internal static class MiscellaneousFileUtilities
         if (parseOptions != null)
         {
             if (compilationOptions != null &&
-                languageInformation.ScriptExtension is not null &&
-                fileExtension == languageInformation.ScriptExtension)
+                IsScriptFile(languageInformation, filePath))
             {
                 parseOptions = parseOptions.WithKind(SourceCodeKind.Script);
                 compilationOptions = GetCompilationOptionsWithScriptReferenceResolvers(services, compilationOptions, filePath);
             }
-            else
+            else if (enableFileBasedPrograms)
             {
-                // Any non-script misc file should not complain about usage of '#:' ignored directives.
+                // The host has enabled the file-based programs feature, so
+                // any non-script misc file should not complain about usage of '#:' ignored directives.
                 parseOptions = parseOptions.WithFeatures([.. parseOptions.Features, new("FileBasedProgram", "true")]);
             }
         }

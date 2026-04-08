@@ -210,7 +210,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
-            // (1,21): error CS9366: 'C': a closed type cannot be sealed or static
+            // (1,21): error CS9601: 'C': a closed type cannot be sealed or static
             // sealed closed class C { }
             Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C").WithArguments("C").WithLocation(1, 21));
 
@@ -229,7 +229,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
-            // (1,21): error CS9366: 'C': a closed type cannot be sealed or static
+            // (1,21): error CS9601: 'C': a closed type cannot be sealed or static
             // static closed class C { }
             Diagnostic(ErrorCode.ERR_ClosedSealedStatic, "C").WithArguments("C").WithLocation(1, 21));
 
@@ -420,7 +420,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 """;
             var comp2 = CreateCompilation(source2, references: [reference], targetFramework: TargetFramework.Net100);
             comp2.VerifyEmitDiagnostics(
-                // (1,14): error CS9367: 'D': cannot use a closed type 'C' from another assembly as a base type.
+                // (1,14): error CS9602: 'D': cannot use a closed type 'C' from another assembly as a base type.
                 // public class D : C { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "D").WithArguments("D", "C").WithLocation(1, 14));
         }
@@ -441,7 +441,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp2 = CreateCompilation(source2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics(
-            // (1,14): error CS9367: 'D': cannot use a closed type 'C' from another assembly as a base type.
+            // (1,14): error CS9602: 'D': cannot use a closed type 'C' from another assembly as a base type.
             // public class D : C { }
             Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "D").WithArguments("D", "C").WithLocation(1, 14));
     }
@@ -512,7 +512,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 """;
             var comp2 = CreateCompilation(source2, references: [reference], targetFramework: TargetFramework.Net100);
             comp2.VerifyEmitDiagnostics(
-                // (1,14): error CS9367: 'E': cannot use a closed type 'D' from another assembly as a base type.
+                // (1,14): error CS9602: 'E': cannot use a closed type 'D' from another assembly as a base type.
                 // public class E : D { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "E").WithArguments("E", "D").WithLocation(1, 14));
         }
@@ -582,7 +582,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (2,14): error CS9368: 'D<T>': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
+            // (2,14): error CS9603: 'D<T>': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             // public class D<T> : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("D<T>", "T", "C").WithLocation(2, 14));
     }
@@ -617,7 +617,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (5,18): error CS9368: 'Outer<T>.D': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
+            // (5,18): error CS9603: 'Outer<T>.D': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             //     public class D : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<T>.D", "T", "C").WithLocation(5, 18));
     }
@@ -648,10 +648,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (4,11): error CS9368: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U5' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
+            // (4,11): error CS9603: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U5' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
             //     class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<U1, U2, U3>.D<U4, U5, U6>", "U5", "C<U1, U2, U4, U6>").WithLocation(4, 11),
-            // (4,11): error CS9368: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U3' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
+            // (4,11): error CS9603: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U3' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
             //     class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<U1, U2, U3>.D<U4, U5, U6>", "U3", "C<U1, U2, U4, U6>").WithLocation(4, 11));
     }
@@ -669,7 +669,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics(
-            // (5,14): error CS9368: 'F<T>': The type parameter 'T' must be referenced in the base type 'E' because the base type is closed.
+            // (5,14): error CS9603: 'F<T>': The type parameter 'T' must be referenced in the base type 'E' because the base type is closed.
             // closed class F<T> : E { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "F").WithArguments("F<T>", "T", "E").WithLocation(5, 14));
     }
@@ -939,13 +939,13 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 }
                 """, references: [reference], targetFramework: TargetFramework.Net100);
             comp2.VerifyEmitDiagnostics(
-                // (3,7): error CS9367: 'D': cannot use a closed type 'C' from another assembly as a base type.
+                // (3,7): error CS9602: 'D': cannot use a closed type 'C' from another assembly as a base type.
                 // class D : C { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "D").WithArguments("D", "C").WithLocation(3, 7),
-                // (4,7): error CS9367: 'E': cannot use a closed type 'C' from another assembly as a base type.
+                // (4,7): error CS9602: 'E': cannot use a closed type 'C' from another assembly as a base type.
                 // class E() : C { }
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "E").WithArguments("E", "C").WithLocation(4, 7),
-                // (5,7): error CS9367: 'F': cannot use a closed type 'C' from another assembly as a base type.
+                // (5,7): error CS9602: 'F': cannot use a closed type 'C' from another assembly as a base type.
                 // class F : C
                 Diagnostic(ErrorCode.ERR_ClosedBaseTypeBaseFromOtherAssembly, "F").WithArguments("F", "C").WithLocation(5, 7),
                 // (16,17): error CS9035: Required member 'C.P' must be set in the object initializer or attribute constructor.

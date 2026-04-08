@@ -60,6 +60,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool _hasRequiresUnsafeAttribute;
+        public bool HasRequiresUnsafeAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasRequiresUnsafeAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasRequiresUnsafeAttribute = value;
+                SetDataStored();
+            }
+        }
+
         private ImmutableArray<string> _memberNotNullAttributeData = ImmutableArray<string>.Empty;
 
         public void AddNotNullMember(string memberName)

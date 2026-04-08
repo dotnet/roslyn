@@ -5472,7 +5472,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Capture_ConstructorParameter()
         {
             using var _ = new EditAndContinueTest()
@@ -6554,7 +6554,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void CeaseCapture_LastLocal_Lambda()
         {
             using var _ = new EditAndContinueTest()
@@ -6754,7 +6754,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void CeaseCapture_LastLocal_LocalFunction()
         {
             using var _ = new EditAndContinueTest()
@@ -9059,7 +9059,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void ChangeLambdaParent_LambdaAndLocalFunction_Lambda()
         {
             using var _ = new EditAndContinueTest()
@@ -9800,7 +9800,7 @@ class C
                 .Verify();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void Closure_ClassToStruct()
         {
             using var _ = new EditAndContinueTest()
@@ -10329,7 +10329,7 @@ class C
         /// Some lambda rude edits are simpler to detect in the IDE. They are specified via <see cref="RuntimeRudeEdit"/>.
         /// The IDE tests cover the specific cases.
         /// </summary>
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public void IdeDetectedRuntimeRudeEdit()
         {
             using var _ = new EditAndContinueTest()

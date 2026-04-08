@@ -17,10 +17,11 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal sealed class ProjectFile(
     string language,
     MSB.Evaluation.Project? project,
-    ProjectCommandLineProvider commandLineProvider,
     ProjectBuildManager buildManager,
     DiagnosticLog log) : IProjectFile
 {
+    private readonly ProjectCommandLineProvider? _commandLineProvider = ProjectCommandLineProvider.TryCreate(language, buildManager.KnownCommandLineParserLanguages);
+
     public string FilePath
         => project?.FullPath ?? string.Empty;
 
@@ -42,7 +43,7 @@ internal sealed class ProjectFile(
         var projectInstances = await buildManager.BuildProjectInstancesAsync(project, log, cancellationToken).ConfigureAwait(false);
 
         return projectInstances.SelectAsArray(
-            instance => new ProjectInstanceReader(commandLineProvider, instance, project).CreateProjectFileInfo());
+            instance => new ProjectInstanceReader(language, _commandLineProvider, instance, project).CreateProjectFileInfo());
     }
 
     public void AddDocument(string filePath, string? logicalPath = null)

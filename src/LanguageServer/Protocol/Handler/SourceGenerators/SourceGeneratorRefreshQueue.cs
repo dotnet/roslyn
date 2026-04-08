@@ -50,17 +50,16 @@ internal sealed class SourceGeneratorRefreshQueue :
             _disposalTokenSource.Token);
     }
 
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
+    public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         if (clientCapabilities.HasVisualStudioLspCapability())
         {
             // VS source generated document content is not provided by LSP.
-            return Task.CompletedTask;
+            return;
         }
 
         // After we have initialized we can start listening for workspace changes.
         _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
-        return Task.CompletedTask;
     }
 
     private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)

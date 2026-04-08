@@ -2603,5 +2603,182 @@ namespace N
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindUnionType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+union {|Definition:$$Pet|}(Dog, Cat) { }
+
+class C
+{
+    void M([|Pet|] p) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindTypeInUnionParameterList(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class {|Definition:$$Dog|} { }
+class Cat { }
+union Pet([|Dog|], Cat) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindSecondTypeInUnionParameterList(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class {|Definition:$$Cat|} { }
+union Pet(Dog, [|Cat|]) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindGenericUnionType(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+union {|Definition:$$Result|}<T1, T2>(T1, T2) { }
+
+class C
+{
+    [|Result|]<int, string> M() => default;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindTypeParameterInUnion(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+union Result<{|Definition:$$T1|}, T2>([|T1|], T2) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindUnionTypeFromUsage(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+union {|Definition:Pet|}(Dog, Cat) { }
+
+class C
+{
+    void M([|$$Pet|] p) { }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_FindTypeInUnionParameterListFromUsage(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class {|Definition:Dog|} { }
+class Cat { }
+union Pet([|$$Dog|], Cat) { }
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_NonDependentProject(kind As TestKind, host As TestHost) As Task
+            ' Union defined in one project, referenced by name in a non-dependent project.
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+public union {|Definition:$$Pet|}(Dog, Cat) { }
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class C
+{
+    private Pet p;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestUnionDeclaration_InDependentProject(kind As TestKind, host As TestHost) As Task
+            ' Union defined in one project, used in a dependent project via ProjectReference.
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+class Dog { }
+class Cat { }
+public union {|Definition:$$Pet|}(Dog, Cat) { }
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" AssemblyName="CSharpAssembly2" CommonReferences="true" LanguageVersion="preview">
+        <ProjectReference>CSharpAssembly1</ProjectReference>
+        <Document><![CDATA[
+class C
+{
+    private [|Pet|] p;
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
     End Class
 End Namespace

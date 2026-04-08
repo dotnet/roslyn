@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +22,9 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
+        if (request.ProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
+            context.Logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
+
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
         var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
 
@@ -34,9 +36,10 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
             m["capabilities"] = JsonSerializer.Serialize(serverCapabilities, ProtocolConversions.LspJsonSerializerOptions);
         }));
 
-        return new InitializeResult
+        return new RoslynInitializeResult
         {
             Capabilities = serverCapabilities,
+            ProcessId = RoslynLanguageServer.ServerProcessId,
         };
     }
 }

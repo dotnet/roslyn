@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.MSBuild.UnitTests</RootNamespace>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynWindowsTests);net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <!-- An extern alias is necessary to prevent ambiguity between shared projects linked to both Workspace and BuildHost -->

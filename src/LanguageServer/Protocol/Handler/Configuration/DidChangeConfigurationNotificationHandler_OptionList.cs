@@ -58,7 +58,7 @@ internal sealed partial class DidChangeConfigurationNotificationHandler
         LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
         LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
         LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms,
-        LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous,
+        LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles,
         MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
         LspOptionsStorage.LspOrganizeImportsOnFormat,
     ];

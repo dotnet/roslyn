@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -52,7 +53,10 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
         var semanticFacts = document.Project.Solution.GetRequiredLanguageService<ISemanticFactsService>(state.TypeToGenerateIn.Language);
 
         if (semanticFacts.SupportsParameterizedProperties &&
-            state.InvocationExpressionOpt != null)
+            state.InvocationExpressionOpt != null &&
+            // Generate Method has the Razor-specific hidden/source-generated override; properties should still
+            // only be offered when the destination passes the normal code-generation checks.
+            CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken))
         {
             var typeParameters = state.SignatureInfo.DetermineTypeParameters(cancellationToken);
             var returnType = await state.SignatureInfo.DetermineReturnTypeAsync(cancellationToken).ConfigureAwait(false);
@@ -68,4 +72,13 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
 
         return result.ToImmutableAndClear();
     }
+
+    /// <summary>
+    /// Checks if a document comes from the Razor source generator
+    /// </summary>
+    /// <returns>SourceGeneratedDocument.Identity is not available in the code style layer, so we can't use the existing extension method</returns>
+    private static bool IsRazorSourceGeneratedDocument(Document document)
+        => document is SourceGeneratedDocument &&
+           document.FilePath is string filePath &&
+           filePath.IndexOf("Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", StringComparison.Ordinal) >= 0;
 }

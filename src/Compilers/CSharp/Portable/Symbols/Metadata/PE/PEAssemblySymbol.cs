@@ -154,11 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return [];
                 }
 
-                var mightContainExtensionMethods = this.MightContainExtensionMethods;
+                var mightContainExtensions = this.MightContainExtensions;
                 using var builder = TemporaryArray<CSharpAttributeData>.Empty;
                 foreach (var handle in customAttributeHandles)
                 {
-                    if (mightContainExtensionMethods && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
+                    if (mightContainExtensions && containingModule.AttributeMatchesFilter(handle, AttributeDescription.CaseSensitiveExtensionAttribute))
                         continue;
 
                     builder.Add(new PEAttributeData(containingModule, handle));
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensions
         {
             get
             {

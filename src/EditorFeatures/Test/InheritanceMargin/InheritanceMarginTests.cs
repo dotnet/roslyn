@@ -167,6 +167,7 @@ public sealed class InheritanceMarginTests
             for (var i = 0; i < actualDocumentSpans.Length; i++)
             {
                 var docSpan = await actualDocumentSpans[i].TryRehydrateAsync(workspace.CurrentSolution, CancellationToken.None);
+                Assert.NotNull(docSpan);
                 Assert.Equal(expectedDocumentSpans[i].SourceSpan, docSpan.Value.SourceSpan);
                 Assert.Equal(expectedDocumentSpans[i].Document.FilePath, docSpan.Value.Document.FilePath);
             }

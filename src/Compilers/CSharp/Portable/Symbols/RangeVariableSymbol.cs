@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// A RangeVariableSymbol represents an identifier introduced in a query expression as the
     /// identifier of a "from" clause, an "into" query continuation, a "let" clause, or a "join" clause.
     /// </summary>
-    internal class RangeVariableSymbol : Symbol
+    internal sealed class RangeVariableSymbol : Symbol
     {
         private readonly string _name;
         private readonly Location? _location;
@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return null; }
         }
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         public override Accessibility DeclaredAccessibility
         {

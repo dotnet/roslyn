@@ -65,7 +65,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     /// The queue containing the ordered LSP requests along with the trace activityId (to associate logs with a request) and
     ///  a combined cancellation token representing the queue's cancellation token and the individual request cancellation token.
     /// </summary>
-    protected readonly AsyncQueue<(IQueueItem<TRequestContext> queueItem, Guid ActivityId, CancellationToken cancellationToken)> _queue = new();
+    protected readonly AsyncQueue<(QueueItem<TRequestContext> queueItem, Guid ActivityId, CancellationToken cancellationToken)> _queue = new();
     private readonly CancellationTokenSource _cancelSource = new();
 
     /// <summary>
@@ -198,7 +198,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             {
                 // First attempt to de-queue the work item in its own try-catch.
                 // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
-                (IQueueItem<TRequestContext> work, Guid activityId, CancellationToken cancellationToken) queueItem;
+                (QueueItem<TRequestContext> work, Guid activityId, CancellationToken cancellationToken) queueItem;
                 try
                 {
                     queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
@@ -250,12 +250,26 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
                     using var languageScope = _logger.CreateLanguageContext(language);
 
-                    // Now that we know the actual language, we can deserialize the request and start creating the request context.
-                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);
+                    // Now that we know the actual language, we can try to find the appropriate handler.
+                    var resolvedLanguage = language ?? LanguageServerConstants.DefaultLanguageName;
+                    if (!TryGetHandlerForRequest(work, resolvedLanguage, out var handlerResult))
+                    {
+                        // No handler found for this method+language combination.  This can happen if:
+                        // 1. We were unable to determine the language and there is no default handler for this method.
+                        // 2. A client sends a request for a method the server does not handle for this language.
+                        // In either case, we should not crash - just fail the request gracefully.
+                        work.FailRequest($"Missing handler for {work.MethodName} and language {resolvedLanguage}");
+                        continue;
+                    }
+
+                    var (metadata, handler, methodInfo) = handlerResult;
 
                     // We had an issue determining the language.  Generally this is very rare and only occurs
-                    // if there is a mis-behaving client that sends us requests for files where we haven't saved the languageId.
-                    // We should only crash if this was a mutating method, otherwise we should just fail the single request. 
+                    // when a client sends us requests for files where we haven't saved the languageId.
+                    // We should only crash if this was a mutating method.
+                    //
+                    // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_didClose
+                    // > Note that a server’s ability to fulfill requests is independent of whether a text document is open or closed.
                     if (!didGetLanguage)
                     {
                         var message = $"Failed to get language for {work.MethodName}";
@@ -266,7 +280,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                         else
                         {
                             work.FailRequest(message);
-                            return;
+                            continue;
                         }
                     }
 
@@ -291,7 +305,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             if (lspServices is not null)
             {
                 await _languageServer.ShutdownAsync(message).ConfigureAwait(false);
-                await _languageServer.ExitAsync().ConfigureAwait(false);
+                await _languageServer.ExitAsync(ex).ConfigureAwait(false);
             }
 
             await DisposeAsync().ConfigureAwait(false);
@@ -300,11 +314,11 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     }
 
     /// <summary>
-    /// Reflection invokes <see cref="ProcessQueueCoreAsync{TRequest, TResponse}(IQueueItem{TRequestContext}, IMethodHandler, RequestHandlerMetadata, ConcurrentDictionary{Task, CancellationTokenSource}, CancellationTokenSource?, CancellationToken)"/>
+    /// Reflection invokes <see cref="ProcessQueueCoreAsync{TRequest, TResponse}(QueueItem{TRequestContext}, IMethodHandler, RequestHandlerMetadata, ConcurrentDictionary{Task, CancellationTokenSource}, CancellationTokenSource?, CancellationToken)"/>
     /// using the concrete types defined by the handler's metadata.
     /// </summary>
     private async Task InvokeProcessCoreAsync(
-        IQueueItem<TRequestContext> work,
+        QueueItem<TRequestContext> work,
         RequestHandlerMetadata metadata,
         IMethodHandler handler,
         MethodInfo methodInfo,
@@ -327,7 +341,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     /// waiting or not waiting on results as defined by the handler.
     /// </summary>
     private async Task ProcessQueueCoreAsync<TRequest, TResponse>(
-        IQueueItem<TRequestContext> work,
+        QueueItem<TRequestContext> work,
         IMethodHandler handler,
         RequestHandlerMetadata metadata,
         ConcurrentDictionary<Task, CancellationTokenSource> concurrentlyExecutingTasks,
@@ -366,7 +380,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             Debug.Assert(!concurrentlyExecutingTasks.Any(t => !t.Key.IsCompleted), "The tasks should have all been drained before continuing");
             // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
             // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, metadata.Language, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
+            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
         }
         else
         {
@@ -375,7 +389,7 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             // though these errors don't put us into a bad state as far as the rest of the queue goes.
             // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
             // blocking the request queue for longer periods of time (it enforces parallelizability).
-            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, metadata.Language, cancellationToken), cancellationToken), rethrowExceptions: false);
+            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), cancellationToken), rethrowExceptions: false);
 
             if (CancelInProgressWorkUponMutatingRequest)
             {
@@ -410,16 +424,18 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         return;
     }
 
-    private (RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo) GetHandlerForRequest(IQueueItem<TRequestContext> work, string language)
+    private bool TryGetHandlerForRequest(QueueItem<TRequestContext> work, string language, out (RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo) result)
     {
         var handlersForMethod = _handlerInfoMap[work.MethodName];
         if (handlersForMethod.TryGetValue(language, out var lazyData) ||
             handlersForMethod.TryGetValue(LanguageServerConstants.DefaultLanguageName, out lazyData))
         {
-            return lazyData.Value;
+            result = lazyData.Value;
+            return true;
         }
 
-        throw new InvalidOperationException($"Missing default or language handler for {work.MethodName} and language {language}");
+        result = default;
+        return false;
     }
 
     /// <summary>

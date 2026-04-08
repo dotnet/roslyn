@@ -38,7 +38,7 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
     }
 
-    public async Task ShutdownAsync(string message = "Shutting down")
+    public async Task ShutdownAsync()
     {
         // Shutting down is not cancellable.
         var cancellationToken = CancellationToken.None;
@@ -51,20 +51,6 @@ internal sealed class LspServiceLifeCycleManager : ILifeCycleManager, ILspServic
         {
             var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
             await service.ResetAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        try
-        {
-            var messageParams = new LogMessageParams()
-            {
-                MessageType = MessageType.Info,
-                Message = message
-            };
-            await _clientLanguageServerManager.SendNotificationAsync("window/logMessage", messageParams, cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
-        {
-            //Don't fail shutdown just because jsonrpc has already been cancelled.
         }
     }
 

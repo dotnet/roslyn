@@ -3,10 +3,6 @@
 #nullable enable
 using System.Reflection;
 
-namespace TestProject
-{
-    internal static class Resources { }
-}
 
 /// <summary>
 ///   A strongly-typed resource class, for looking up localized strings, etc.
@@ -17,7 +13,7 @@ internal static partial class NS
     /// <summary>
     ///   Returns the cached ResourceManager instance used by this class.
     /// </summary>
-    public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager(typeof(TestProject.Resources)));
+    public static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? (s_resourceManager = new global::System.Resources.ResourceManager("TestProject.Resources", typeof(NS).Assembly));
     /// <summary>
     ///   Overrides the current thread's CurrentUICulture property for all
     ///   resource lookups using this strongly typed resource class.

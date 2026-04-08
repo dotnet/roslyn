@@ -4,10 +4,10 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -28,12 +28,10 @@ internal sealed class AnalyzerNodeSetup : IAnalyzerNodeSetup
         _analyzerCommandHandler = analyzerCommandHandler;
     }
 
-    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
+    public async Task InitializeAsync(IAsyncServiceProvider serviceProvider, ThreadSafeMenuCommandService menuCommandService, CancellationToken cancellationToken)
     {
         await _analyzerTracker.RegisterAsync(serviceProvider, cancellationToken).ConfigureAwait(false);
-        await _analyzerCommandHandler.InitializeAsync(
-            await serviceProvider.GetServiceAsync<IMenuCommandService, IMenuCommandService>(throwOnFailure: false, cancellationToken).ConfigureAwait(false),
-            cancellationToken).ConfigureAwait(false);
+        _analyzerCommandHandler.Initialize(menuCommandService);
     }
 
     public void Unregister()

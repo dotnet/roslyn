@@ -13,6 +13,7 @@ internal static class Feature
 {
     internal const string Strict = "strict";
     internal const string UseLegacyStrongNameProvider = "UseLegacyStrongNameProvider";
+    internal const string UpdatedMemorySafetyRules = "updated-memory-safety-rules";
     internal const string EnableGeneratorCache = "enable-generator-cache";
     internal const string PdbPathDeterminism = "pdb-path-determinism";
     internal const string DebugDeterminism = "debug-determinism";

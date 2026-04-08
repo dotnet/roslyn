@@ -47,7 +47,7 @@ internal abstract partial class AbstractFormatEngine
     internal readonly TreeData TreeData;
 
     /// <summary>
-    /// It is very common to be formatting lots of documents at teh same time, with the same set of formatting rules and
+    /// It is very common to be formatting lots of documents at the same time, with the same set of formatting rules and
     /// options. To help with that, cache the last set of ChainedFormattingRules that was produced, as it is not a cheap
     /// type to create.
     /// </summary>
