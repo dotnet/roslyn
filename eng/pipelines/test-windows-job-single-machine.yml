@@ -15,6 +15,8 @@ parameters:
 - name: testArguments
   type: string
   default: ''
+- name: poolParameters
+  type: object
 
 jobs:
 - job: ${{ parameters.jobName }}
