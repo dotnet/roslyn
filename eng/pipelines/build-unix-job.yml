@@ -29,8 +29,6 @@ jobs:
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore
 
-    - template: build-file-based-apps.yml
-
     - template: cache-roslyn-outputs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
