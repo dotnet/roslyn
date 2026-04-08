@@ -104,24 +104,6 @@ public sealed class GenerateFilteredReferenceAssembliesTask : Task
         return !Log.HasLoggedErrors;
     }
 
-    private sealed class ThrowingTraceListener : TraceListener
-    {
-        public override void Fail(string? message, string? detailMessage)
-        {
-            throw new InvalidOperationException(
-                (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
-                (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));
-        }
-
-        public override void Write(string? message)
-        {
-        }
-
-        public override void WriteLine(string? message)
-        {
-        }
-    }
-
     private void ExecuteImpl()
     {
         ExecuteImpl(ApiSets.Select(item => (item.ItemSpec, (IReadOnlyList<string>)File.ReadAllLines(item.ItemSpec))));
