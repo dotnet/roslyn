@@ -1,0 +1,197 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Microsoft.CodeAnalysis.Metrics.Package
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:,OLDER_ROSLYN;TRACE -features:strict;flow-analysis -doc:"<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis.Metrics.Package/Debug/net472/Microsoft.CodeAnalysis.Metrics.Package.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=7.3
+ProjectAssetsFile=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis.Metrics.Package/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis.Metrics.Package
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETFramework
+TargetPath=<PATH>../../../../artifacts/bin/Microsoft.CodeAnalysis.Metrics.Package/Debug/net472/Microsoft.CodeAnalysis.Metrics.Package.dll
+TargetRefPath=<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis.Metrics.Package/Debug/net472/ref/Microsoft.CodeAnalysis.Metrics.Package.dll
+TemporaryDependencyNodeTargetIdentifier=net472
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,IDE0079,NU5100,NU5105,RS2007,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/doc:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis.Metrics.Package/Debug/net472/Microsoft.CodeAnalysis.Metrics.Package.xml
+/define:OLDER_ROSLYN;TRACE;DEBUG;NETFRAMEWORK;NET472;NET20_OR_GREATER;NET30_OR_GREATER;NET35_OR_GREATER;NET40_OR_GREATER;NET45_OR_GREATER;NET451_OR_GREATER;NET452_OR_GREATER;NET46_OR_GREATER;NET461_OR_GREATER;NET462_OR_GREATER;NET47_OR_GREATER;NET471_OR_GREATER;NET472_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug+
+/debug:embedded
+/delaysign-
+/filealign:512
+/keyfile:<NUGET>/microsoft.dotnet.arcade.sdk/10.0.0-beta.26201.4/tools/snk/35MSSharedLib1024.snk
+/optimize-
+/out:<PATH>../../../../artifacts/obj/Microsoft.CodeAnalysis.Metrics.Package/Debug/net472/Microsoft.CodeAnalysis.Metrics.Package.dll
+/subsystemversion:6.00
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/publicsign+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/features:flow-analysis
+/warnaserror+:NU1605
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../../artifacts/obj/Microsoft.CodeAnalysis.Metrics.Package/Debug/net472/Microsoft.CodeAnalysis.Metrics.Package.AssemblyInfo.cs
+ @folderNames=..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis.Metrics.Package,Debug,net472
+
+[metadataReferences]
+../../../../artifacts/obj/
+ Metrics.Legacy/Debug/net472/ref/Metrics.Legacy.exe
+ Metrics/Debug/net472/ref/Metrics.exe
+<NUGET>/
+ microsoft.bcl.asyncinterfaces/8.0.0/lib/net462/Microsoft.Bcl.AsyncInterfaces.dll
+ microsoft.build.framework/17.11.48/ref/net472/Microsoft.Build.Framework.dll
+ microsoft.build.locator/1.10.2/lib/net46/Microsoft.Build.Locator.dll
+ microsoft.build.tasks.core/17.11.48/ref/net472/Microsoft.Build.Tasks.Core.dll
+ microsoft.build.utilities.core/17.11.48/ref/net472/Microsoft.Build.Utilities.Core.dll
+ microsoft.build/17.11.48/ref/net472/Microsoft.Build.dll
+ microsoft.codeanalysis.analyzerutilities/3.3.0/lib/netstandard2.0/Microsoft.CodeAnalysis.AnalyzerUtilities.dll
+ microsoft.codeanalysis.common/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.dll
+ microsoft.codeanalysis.csharp.features/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.CSharp.Features.dll
+ microsoft.codeanalysis.csharp.workspaces/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.CSharp.Workspaces.dll
+ microsoft.codeanalysis.csharp/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.CSharp.dll
+ microsoft.codeanalysis.elfie/1.0.0/lib/net45/Microsoft.CodeAnalysis.Elfie.dll
+ microsoft.codeanalysis.features/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.Features.dll
+ microsoft.codeanalysis.scripting.common/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.Scripting.dll
+ microsoft.codeanalysis.visualbasic.features/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.VisualBasic.Features.dll
+ microsoft.codeanalysis.visualbasic.workspaces/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll
+ microsoft.codeanalysis.visualbasic/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.VisualBasic.dll
+ microsoft.codeanalysis.workspaces.common/4.12.0/lib/netstandard2.0/Microsoft.CodeAnalysis.Workspaces.dll
+ microsoft.codeanalysis.workspaces.msbuild/4.12.0/lib/net472/
+  Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll
+  Microsoft.CodeAnalysis.Workspaces.MSBuild.dll
+ microsoft.diasymreader/2.0.0/lib/netstandard2.0/Microsoft.DiaSymReader.dll
+ microsoft.extensions.dependencyinjection.abstractions/8.0.0/lib/net462/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ microsoft.extensions.dependencyinjection/8.0.0/lib/net462/Microsoft.Extensions.DependencyInjection.dll
+ microsoft.extensions.logging.abstractions/8.0.0/lib/net462/Microsoft.Extensions.Logging.Abstractions.dll
+ microsoft.extensions.logging/8.0.0/lib/net462/Microsoft.Extensions.Logging.dll
+ microsoft.extensions.options/8.0.0/lib/net462/Microsoft.Extensions.Options.dll
+ microsoft.extensions.primitives/8.0.0/lib/net462/Microsoft.Extensions.Primitives.dll
+ microsoft.io.redist/6.0.1/lib/net472/Microsoft.IO.Redist.dll
+ microsoft.net.stringtools/17.11.48/ref/net472/Microsoft.NET.StringTools.dll
+ microsoft.netframework.referenceassemblies.net472/1.0.3/build/.NETFramework/v4.7.2/
+  Facades/netstandard.dll
+  mscorlib.dll
+  System.ComponentModel.Composition.dll
+  System.ComponentModel.DataAnnotations.dll
+  System.Configuration.dll
+  System.Core.dll
+  System.Data.DataSetExtensions.dll
+  System.Data.dll
+  System.dll
+  System.Drawing.dll
+  System.IO.Compression.FileSystem.dll
+  System.Numerics.dll
+  System.Runtime.Serialization.dll
+  System.Security.dll
+  System.Xaml.dll
+  System.Xml.dll
+  System.Xml.Linq.dll
+ newtonsoft.json/13.0.3/lib/net45/Newtonsoft.Json.dll
+ system.buffers/4.6.1/lib/net462/System.Buffers.dll
+ system.collections.immutable/8.0.0/lib/net462/System.Collections.Immutable.dll
+ system.composition.attributedmodel/8.0.0/lib/net462/System.Composition.AttributedModel.dll
+ system.composition.convention/8.0.0/lib/net462/System.Composition.Convention.dll
+ system.composition.hosting/8.0.0/lib/net462/System.Composition.Hosting.dll
+ system.composition.runtime/8.0.0/lib/net462/System.Composition.Runtime.dll
+ system.composition.typedparts/8.0.0/lib/net462/System.Composition.TypedParts.dll
+ system.configuration.configurationmanager/8.0.0/lib/net462/System.Configuration.ConfigurationManager.dll
+ system.diagnostics.diagnosticsource/8.0.0/lib/net462/System.Diagnostics.DiagnosticSource.dll
+ system.io.pipelines/8.0.0/lib/net462/System.IO.Pipelines.dll
+ system.memory/4.6.3/lib/net462/System.Memory.dll
+ system.numerics.vectors/4.6.1/lib/net462/System.Numerics.Vectors.dll
+ system.reflection.metadata/8.0.0/lib/net462/System.Reflection.Metadata.dll
+ system.reflection.metadataloadcontext/8.0.0/lib/net462/System.Reflection.MetadataLoadContext.dll
+ system.resources.extensions/8.0.0/lib/net462/System.Resources.Extensions.dll
+ system.runtime.compilerservices.unsafe/6.1.2/lib/net462/System.Runtime.CompilerServices.Unsafe.dll
+ system.security.cryptography.protecteddata/8.0.0/lib/net462/System.Security.Cryptography.ProtectedData.dll
+ system.security.principal.windows/5.0.0/ref/net461/System.Security.Principal.Windows.dll
+ system.text.encoding.codepages/7.0.0/lib/net462/System.Text.Encoding.CodePages.dll
+ system.text.encodings.web/8.0.0/lib/net462/System.Text.Encodings.Web.dll
+ system.text.json/8.0.5/lib/net462/System.Text.Json.dll
+ system.threading.channels/7.0.0/lib/net462/System.Threading.Channels.dll
+ system.threading.tasks.dataflow/8.0.0/lib/net462/System.Threading.Tasks.Dataflow.dll
+ system.threading.tasks.extensions/4.5.4/lib/net461/System.Threading.Tasks.Extensions.dll
+ system.valuetuple/4.5.0/ref/net47/System.ValueTuple.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+<NUGET>/microsoft.codeanalysis.analyzers/3.3.4/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.Analyzers.dll
+ Microsoft.CodeAnalysis.CSharp.Analyzers.dll
+<NUGET>/microsoft.codeanalysis.bannedapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.BannedApiAnalyzers.dll
+ Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.performancesensitiveanalyzers/3.3.4-beta1.22504.1/analyzers/dotnet/cs/
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll
+ Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.dll
+<NUGET>/microsoft.codeanalysis.publicapianalyzers/5.7.0-1.26202.104/analyzers/dotnet/
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.CodeFixes.dll
+ Microsoft.CodeAnalysis.PublicApiAnalyzers.dll
+<NUGET>/
+ microsoft.extensions.logging.abstractions/8.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
+ microsoft.extensions.options/8.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Options.SourceGeneration.dll
+ microsoft.visualstudio.threading.analyzers/17.15.20-alpha/analyzers/cs/
+  Microsoft.VisualStudio.Threading.Analyzers.CodeFixes.dll
+  Microsoft.VisualStudio.Threading.Analyzers.CSharp.dll
+  Microsoft.VisualStudio.Threading.Analyzers.dll
+ roslyn.diagnostics.analyzers/5.7.0-1.26202.104/analyzers/dotnet/cs/
+  Roslyn.Diagnostics.Analyzers.dll
+  Roslyn.Diagnostics.CSharp.Analyzers.dll
+ system.text.json/8.0.5/analyzers/dotnet/roslyn4.4/cs/System.Text.Json.SourceGeneration.dll
+
+[analyzerConfigFiles]
+../../../../
+ artifacts/obj/Microsoft.CodeAnalysis.Metrics.Package/Debug/net472/Microsoft.CodeAnalysis.Metrics.Package.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+
+[additionalFiles]
+../../../../eng/config/BannedSymbols.txt
+<NUGET>/microsoft.visualstudio.threading.analyzers/17.15.20-alpha/buildTransitive/AdditionalFiles/
+ vs-threading.LegacyThreadSwitchingMembers.txt
+ vs-threading.MainThreadAssertingMethods.txt
+ vs-threading.MainThreadSwitchingMethods.txt
+ vs-threading.MembersRequiringMainThread.txt

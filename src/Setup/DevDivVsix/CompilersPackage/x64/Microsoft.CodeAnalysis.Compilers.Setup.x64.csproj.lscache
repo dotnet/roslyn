@@ -1,0 +1,86 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Microsoft.CodeAnalysis.Compilers.Setup.x64
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE -features:strict
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=7.3
+ProjectAssetsFile=<PATH>../../../../../artifacts/obj/Microsoft.CodeAnalysis.Compilers.Setup.x64/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis.Compilers.Setup.x64
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETFramework
+TargetPath=<PATH>../../../../../artifacts/bin/Microsoft.CodeAnalysis.Compilers.Setup.x64/Debug/net472/Microsoft.CodeAnalysis.Compilers.Setup.x64.dll
+TargetRefPath=
+TemporaryDependencyNodeTargetIdentifier=net472
+
+[commandLineArguments]
+/noconfig
+/unsafe-
+/checked-
+/nowarn:1701,1702,1705,1591,NU1507,NU1510,RS1041,RS1038,1573,1591,1701,NU5128,NU5105,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:9999
+/define:TRACE;DEBUG;NETFRAMEWORK;NET472;NET20_OR_GREATER;NET30_OR_GREATER;NET35_OR_GREATER;NET40_OR_GREATER;NET45_OR_GREATER;NET451_OR_GREATER;NET452_OR_GREATER;NET46_OR_GREATER;NET461_OR_GREATER;NET462_OR_GREATER;NET47_OR_GREATER;NET471_OR_GREATER;NET472_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug+
+/debug:embedded
+/filealign:512
+/optimize-
+/out:Microsoft.CodeAnalysis.Compilers.Setup.x64.AssemblyInfo.dll
+/subsystemversion:6.00
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/checksumalgorithm:SHA256
+/langversion:preview
+/skipanalyzers+
+/features:strict
+/warnaserror+:NU1605
+/warnaserror-:IDE0055
+
+[sourceFiles]
+../../../../../artifacts/obj/Microsoft.CodeAnalysis.Compilers.Setup.x64/Debug/net472/Microsoft.CodeAnalysis.Compilers.Setup.x64.AssemblyInfo.cs
+ @folderNames=..,..,..,..,..,artifacts,obj,Microsoft.CodeAnalysis.Compilers.Setup.x64,Debug,net472
+
+[metadataReferences]
+../../../../../../../../../mscorlib.dll
+
+[analyzerReferences]
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<DOTNET>/sdk/10.0.105/Sdks/Microsoft.NET.Sdk/codestyle/cs/
+ Microsoft.CodeAnalysis.CodeStyle.dll
+ Microsoft.CodeAnalysis.CodeStyle.Fixes.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.dll
+ Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll
+
+[analyzerConfigFiles]
+../../../../../
+ artifacts/obj/Microsoft.CodeAnalysis.Compilers.Setup.x64/Debug/net472/Microsoft.CodeAnalysis.Compilers.Setup.x64.GeneratedMSBuildEditorConfig.editorconfig
+ eng/config/globalconfigs/
+  Common.globalconfig
+  Shipping.globalconfig
+
+[additionalFiles]
+../../../../../eng/config/BannedSymbols.txt
