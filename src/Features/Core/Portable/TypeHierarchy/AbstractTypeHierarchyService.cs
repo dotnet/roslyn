@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.TypeHierarchy;
 
 internal abstract class AbstractTypeHierarchyService : ITypeHierarchyService
 {
-    public ImmutableArray<INamedTypeSymbol> GetBaseTypesAndInterfaces(INamedTypeSymbol typeSymbol)
-        => BaseTypeFinder.FindBaseTypesAndInterfaces(typeSymbol);
+    public ImmutableArray<INamedTypeSymbol> GetBaseTypesAndInterfaces(INamedTypeSymbol typeSymbol, bool transitive)
+        => BaseTypeFinder.FindBaseTypesAndInterfaces(typeSymbol, transitive);
 
     public async Task<ImmutableArray<INamedTypeSymbol>> GetDerivedTypesAndImplementationsAsync(
         Solution solution,
