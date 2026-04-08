@@ -739,6 +739,7 @@ ScriptOptionsExtensions.cs
 ../../../artifacts/obj/
  Microsoft.CodeAnalysis.CSharp/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.CSharp.dll
  Microsoft.CodeAnalysis.Scripting/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.Scripting.dll
+  @aliases=Scripting
  Microsoft.CodeAnalysis/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.dll
 <NUGET>/
  microsoft.csharp/4.7.0/ref/netstandard2.0/Microsoft.CSharp.dll

@@ -15,7 +15,16 @@ primary
 lastDtbSucceeded
 
 [properties]
+AssemblyName=Microsoft.CodeAnalysis.LanguageServer.UnitTests
 CommandLineArgsForDesignTimeEvaluation=-langversion:preview -checksumalgorithm:SHA256 -define:TRACE -features:strict -doc:"<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Debug/net10.0-windows/Microsoft.CodeAnalysis.LanguageServer.UnitTests.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=14.0
+ProjectAssetsFile=<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.LanguageServer.UnitTests/project.assets.json
+RootNamespace=Microsoft.CodeAnalysis.LanguageServer.UnitTests
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../../../Roslyn.slnx
+TargetFrameworkIdentifier=.NETCoreApp
 TargetPath=<PATH>../../../artifacts/bin/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Debug/net10.0-windows/Microsoft.CodeAnalysis.LanguageServer.UnitTests.dll
 TargetRefPath=<PATH>../../../artifacts/obj/Microsoft.CodeAnalysis.LanguageServer.UnitTests/Debug/net10.0-windows/ref/Microsoft.CodeAnalysis.LanguageServer.UnitTests.dll
 TemporaryDependencyNodeTargetIdentifier=net10.0-windows

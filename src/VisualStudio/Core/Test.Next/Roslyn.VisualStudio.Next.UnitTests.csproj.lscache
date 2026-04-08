@@ -132,7 +132,6 @@ UnifiedSettings/UnifiedSettingsTests.cs
  Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities/Debug/net472/ref/Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.dll
  Microsoft.CodeAnalysis.LanguageServer.Protocol/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.LanguageServer.Protocol.dll
  Microsoft.CodeAnalysis.Remote.ServiceHub/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.Remote.ServiceHub.dll
-  @aliases=hub
  Microsoft.CodeAnalysis.Remote.Workspaces/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.Remote.Workspaces.dll
  Microsoft.CodeAnalysis.Scripting/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.Scripting.dll
  Microsoft.CodeAnalysis.Test.Utilities/Debug/net472/ref/Microsoft.CodeAnalysis.Test.Utilities.dll

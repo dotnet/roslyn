@@ -127,7 +127,6 @@ NamingStyles/NamingStylesTestOptionSets.cs
  Microsoft.CodeAnalysis.VisualBasic/Debug/net10.0/ref/Microsoft.CodeAnalysis.VisualBasic.dll
  Microsoft.CodeAnalysis.Workspaces.Test.Utilities/Debug/net10.0/ref/Microsoft.CodeAnalysis.Workspaces.Test.Utilities.dll
  Microsoft.CodeAnalysis.Workspaces/Debug/net10.0/ref/Microsoft.CodeAnalysis.Workspaces.dll
-  @aliases=WORKSPACES
  Microsoft.CodeAnalysis/Debug/net10.0/ref/Microsoft.CodeAnalysis.dll
  Roslyn.Test.PdbUtilities/Debug/net10.0/ref/Roslyn.Test.PdbUtilities.dll
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/10.0.5/ref/net10.0/
@@ -548,6 +547,7 @@ NamingStyles/NamingStylesTestOptionSets.cs
  Microsoft.CodeAnalysis.VisualBasic/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.VisualBasic.dll
  Microsoft.CodeAnalysis.Workspaces.Test.Utilities/Debug/net472/ref/Microsoft.CodeAnalysis.Workspaces.Test.Utilities.dll
  Microsoft.CodeAnalysis.Workspaces/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.Workspaces.dll
+  @aliases=WORKSPACES
  Microsoft.CodeAnalysis/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.dll
  Roslyn.Test.PdbUtilities/Debug/net472/ref/Roslyn.Test.PdbUtilities.dll
 <NUGET>/
@@ -929,6 +929,7 @@ NamingStyles/NamingStylesTestOptionSets.cs
  Microsoft.CodeAnalysis.VisualBasic/Debug/net8.0/ref/Microsoft.CodeAnalysis.VisualBasic.dll
  Microsoft.CodeAnalysis.Workspaces.Test.Utilities/Debug/net8.0/ref/Microsoft.CodeAnalysis.Workspaces.Test.Utilities.dll
  Microsoft.CodeAnalysis.Workspaces/Debug/net8.0/ref/Microsoft.CodeAnalysis.Workspaces.dll
+  @aliases=WORKSPACES
  Microsoft.CodeAnalysis/Debug/net8.0/ref/Microsoft.CodeAnalysis.dll
  Roslyn.Test.PdbUtilities/Debug/net8.0/ref/Roslyn.Test.PdbUtilities.dll
 <DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.25/ref/net8.0/

@@ -234,6 +234,7 @@ Workspaces/
  Microsoft.CodeAnalysis.VisualBasic/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.VisualBasic.dll
  Microsoft.CodeAnalysis.Workspaces.Test.Utilities/Debug/net472/ref/Microsoft.CodeAnalysis.Workspaces.Test.Utilities.dll
  Microsoft.CodeAnalysis.Workspaces/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.Workspaces.dll
+  @aliases=WORKSPACES
  Microsoft.CodeAnalysis.XunitHook/Debug/net472/ref/Microsoft.CodeAnalysis.XunitHook.dll
  Microsoft.CodeAnalysis/Debug/netstandard2.0/ref/Microsoft.CodeAnalysis.dll
  Roslyn.Test.PdbUtilities/Debug/net472/ref/Roslyn.Test.PdbUtilities.dll
