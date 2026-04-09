@@ -754,9 +754,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
 
         VerifyTrivia();
         UsingTree(source, TestOptions.Script,
-            // (2,1): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+            // (2,1): error CS9378: '#!' must be the first characters on the first line of the file
             // #!xyz
-            Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 1));
+            Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(2, 1));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -776,5 +776,23 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             }
         }
         EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78054")]
+    public void ShebangIncorrectlyPlaced_FileBasedProgram()
+    {
+        // Shebang on the first column of a non-first line should get a specific error,
+        // not the generic "must appear as the first non-whitespace character on a line" error.
+        var source = """
+            class Foo { }
+            #!/usr/bin/env dotnet
+            class Program { static void Main() { } }
+            """;
+
+        var options = TestOptions.Regular.WithFeature(FeatureName);
+        var root = SyntaxFactory.ParseCompilationUnit(source, options: options);
+        var diagnostics = root.GetDiagnostics().ToArray();
+        var shebangDiagnostic = diagnostics.Single(d => d.Location.GetLineSpan().StartLinePosition.Line == 1);
+        Assert.Equal((int)ErrorCode.ERR_PPShebangNotOnFirstLine, shebangDiagnostic.Code);
     }
 }

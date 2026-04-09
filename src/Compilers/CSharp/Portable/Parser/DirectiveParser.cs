@@ -113,7 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // Always parse as a shebang directive, but report an error if not at position 0
                         if (hashPosition != 0 || hash.HasTrailingTrivia)
                         {
-                            hash = this.AddError(hash, ErrorCode.ERR_BadDirectivePlacement);
+                            // If #! is the first character on its line (but not on the first line),
+                            // report a more specific error rather than the generic "first non-whitespace" error.
+                            var isFirstOnLine = !hash.HasTrailingTrivia && hashPosition > 0
+                                && SyntaxFacts.IsNewLine(lexer.TextWindow.Text[hashPosition - 1]);
+                            hash = this.AddError(hash, isFirstOnLine ? ErrorCode.ERR_PPShebangNotOnFirstLine : ErrorCode.ERR_BadDirectivePlacement);
                         }
 
                         result = this.ParseShebangDirective(hash, this.EatToken(SyntaxKind.ExclamationToken), isActive);
