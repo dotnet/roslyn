@@ -784,15 +784,33 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         // Shebang on the first column of a non-first line should get a specific error,
         // not the generic "must appear as the first non-whitespace character on a line" error.
         var source = """
-            class Foo { }
+            // Comment
             #!/usr/bin/env dotnet
-            class Program { static void Main() { } }
             """;
 
-        var options = TestOptions.Regular.WithFeature(FeatureName);
-        var root = SyntaxFactory.ParseCompilationUnit(source, options: options);
-        var diagnostics = root.GetDiagnostics().ToArray();
-        var shebangDiagnostic = diagnostics.Single(d => d.Location.GetLineSpan().StartLinePosition.Line == 1);
-        Assert.Equal((int)ErrorCode.ERR_PPShebangNotOnFirstLine, shebangDiagnostic.Code);
+        VerifyTrivia();
+        UsingTree(source, TestOptions.Regular.WithFeature(FeatureName),
+            // (2,1): error CS9378: '#!' must be the first characters on the first line of the file
+            // #!/usr/bin/env dotnet
+            Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(2, 1));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.EndOfFileToken);
+            {
+                L(SyntaxKind.SingleLineCommentTrivia, "// Comment");
+                L(SyntaxKind.EndOfLineTrivia, "\n");
+                L(SyntaxKind.ShebangDirectiveTrivia);
+                {
+                    N(SyntaxKind.HashToken);
+                    N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.EndOfDirectiveToken);
+                    {
+                        L(SyntaxKind.PreprocessingMessageTrivia, "/usr/bin/env dotnet");
+                    }
+                }
+            }
+        }
+        EOF();
     }
 }
