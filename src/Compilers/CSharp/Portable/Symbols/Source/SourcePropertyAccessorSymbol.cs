@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable disable
 
         private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
-            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
+            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe);
 
         internal override ExecutableCodeBinder TryGetBodyBinder(BinderFactory binderFactoryOpt = null, bool ignoreAccessibility = false)
         {
