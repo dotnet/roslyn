@@ -107,16 +107,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             """;
         var ordinaryFile = tempDir.CreateFile("Ordinary.cs").WriteAllText(ordinaryText);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
@@ -169,16 +160,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var app2Text = app1Text;
         var app2File = tempDir.CreateFile("App2.cs").WriteAllText(app2Text);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         AssertSequenceEqualAndStable([app2File.Path], () => discovery.FindEntryPoints(tempDir.Path));
@@ -208,16 +190,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var programFile = projectDir.CreateFile("Program.cs").WriteAllText(appText);
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
@@ -308,15 +281,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             """;
         var appFile = tempDir.CreateFile("App1.cs").WriteAllText(appText);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
         await discovery.FindAndLoadEntryPointsAsync();
@@ -343,20 +308,23 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var appFile = tempDir.CreateFile("App.cs").WriteAllText(bomAppText);
         var ordinaryFile = tempDir.CreateFile("Ordinary.cs").WriteAllText("public class Ordinary { }");
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    private Task<TestLspServer> CreateDiscoveryTestServerAsync(string workspacePath)
+        => CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
             OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+                new() { DocumentUri = CreateAbsoluteDocumentUri(workspacePath), Name = "workspace1" }
             ]
         });
-
-        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        AssertEx.SequenceEqual([appFile.Path], discovery.FindEntryPoints(tempDir.Path));
-    }
 
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
@@ -379,16 +347,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         // Setup
@@ -422,16 +381,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         // Setup
@@ -465,16 +415,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         // Setup
@@ -509,16 +450,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         // Setup
@@ -552,16 +484,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         // Setup
@@ -599,16 +522,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         // Setup
@@ -647,16 +561,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         // Setup
@@ -889,16 +794,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var tempDir = _tempRoot.CreateDirectory();
         DeferDeleteCacheDirectory(tempDir.Path);
 
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
-        {
-            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            // Disable background discovery so it doesn't race with direct FindEntryPoints calls.
-            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
-            WorkspaceFolders =
-            [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
-            ]
-        });
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
 
         for (var iteration = 0; iteration < 1000; iteration++)
