@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Copilot
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim tuple = Await service.TryAdjustProposalAsync(
-                    allowableAdjustments:=fixers, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), lineFormattingOptions:=Nothing, CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, CopilotUtilities.TryNormalizeCopilotTextChanges(changes), lineFormattingOptions:=Nothing, applicableToSpan:=Nothing, CancellationToken.None)
 
                 Dim adjustedChanges = tuple.TextChanges
                 Dim format = tuple.Format
@@ -607,7 +607,7 @@ class C
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim result = Await service.TryAdjustProposalAsync(
-                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=Nothing, CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=Nothing, applicableToSpan:=Nothing, CancellationToken.None)
 
                 ' The adjuster should have made changes (at minimum, adding "using System;").
                 Assert.False(result.TextChanges.IsDefaultOrEmpty)
@@ -673,7 +673,7 @@ class C
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim result = Await service.TryAdjustProposalAsync(
-                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=Nothing, CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=Nothing, applicableToSpan:=Nothing, CancellationToken.None)
 
                 Assert.False(result.TextChanges.IsDefaultOrEmpty)
 
@@ -760,7 +760,7 @@ class C
 
                 Dim service = originalDocument.GetRequiredLanguageService(Of ICopilotProposalAdjusterService)
                 Dim result = Await service.TryAdjustProposalAsync(
-                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=lfOptions, CancellationToken.None)
+                    allowableAdjustments:=fixers, originalDocument, changes, lineFormattingOptions:=lfOptions, applicableToSpan:=Nothing, CancellationToken.None)
 
                 Assert.False(result.TextChanges.IsDefaultOrEmpty)
 
@@ -851,6 +851,134 @@ class C
             ' The original \r\n at positions 3-4 is preserved.
             Dim result = originalText.WithChanges(fixed)
             Assert.Equal("ABC" & vbCrLf & "DEF", result.ToString())
+        End Sub
+
+#End Region
+
+#Region "ConstrainChangesToAvoidSpan"
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_NoOverlap_ReturnsUnchanged()
+            ' Change doesn't overlap the protected span - should return unchanged.
+            Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(8, 2) ' "wl"
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(10, 2), "(""Hello"");" & vbCrLf))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(1, constrained.Length)
+            Assert.Equal(changes(0), constrained(0))
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_ZeroLengthEditAtAtsEnd_Allowed()
+            ' A zero-length edit at the end of the protected span is allowed per ValidateEdits.
+            Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(8, 2) ' "wl"
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(10, 0), "(""Hello"");"))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(1, constrained.Length)
+            Assert.Equal(changes(0), constrained(0))
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_ChangeFullyContainsAts_SplitsCorrectly()
+            ' Simulates formatter re-indenting a line, producing a change that spans across
+            ' the ATS. The change should be split into before-ATS and after-ATS parts.
+            '
+            ' Original: "Console.wl\r\nreturn;" where ATS = [8,10) for "wl"
+            ' Diff change: replaces [0, 12) with "    Console.wl(""Hello"");\r\n"
+            ' This spans across ATS [8,10). Should split into:
+            '   [0,8) -> "    Console."   (indentation + prefix)
+            '   [10,12) -> "(""Hello"");\r\n" (edit + rest)
+            Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(8, 2) ' "wl"
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 12), "    Console.wl(""Hello"");" & vbCrLf))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(2, constrained.Length)
+
+            ' Before ATS: [0,8) -> "    Console."
+            Assert.Equal(0, constrained(0).Span.Start)
+            Assert.Equal(8, constrained(0).Span.End)
+            Assert.Equal("    Console.", constrained(0).NewText)
+
+            ' After ATS: [10,12) -> "(""Hello"");\r\n"
+            Assert.Equal(10, constrained(1).Span.Start)
+            Assert.Equal(12, constrained(1).Span.End)
+            Assert.Equal("(""Hello"");" & vbCrLf, constrained(1).NewText)
+
+            ' Verify: applying the split changes + keeping ATS text gives the same result.
+            Dim applied = originalText.WithChanges(constrained)
+            Assert.Equal("    Console.wl(""Hello"");" & vbCrLf & "return;", applied.ToString())
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_AtsTextNotFound_ReturnsDefault()
+            ' If the adjuster somehow changed the ATS text, we can't split. Return default.
+            Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(8, 2) ' "wl"
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 12), "    Console.WriteLine(""Hello"");" & vbCrLf))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.True(constrained.IsDefault)
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_PartialOverlap_ReturnsDefault()
+            ' A change that partially overlaps the ATS cannot be split safely.
+            Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(8, 2) ' "wl"
+            ' Change spans [7,9) which partially overlaps ATS [8,10).
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(7, 2), ".W"))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.True(constrained.IsDefault)
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_MultipleChanges_OnlyIntersectingSplit()
+            ' Multiple changes: one before ATS (kept), one spanning ATS (split), one after (kept).
+            Dim originalText = SourceText.From("using X;" & vbCrLf & "Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(18, 2) ' "wl" at offset 18 in "using X;\r\nConsole.wl\r\nreturn;"
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 0), "using System;" & vbCrLf),
+                New TextChange(New TextSpan(10, 22), "    Console.wl(""Hello"");" & vbCrLf & "    return;"))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(3, constrained.Length)
+
+            ' First change: import addition, untouched
+            Assert.Equal(New TextSpan(0, 0), constrained(0).Span)
+            Assert.Equal("using System;" & vbCrLf, constrained(0).NewText)
+
+            ' Second change (split before ATS): [10, 18) -> "    Console."
+            Assert.Equal(10, constrained(1).Span.Start)
+            Assert.Equal(18, constrained(1).Span.End)
+            Assert.Equal("    Console.", constrained(1).NewText)
+
+            ' Third change (split after ATS): [20, 32) -> "(""Hello"");\r\n    return;"
+            Assert.Equal(20, constrained(2).Span.Start)
+            Assert.Equal(32, constrained(2).Span.End)
+            Assert.Equal("(""Hello"");" & vbCrLf & "    return;", constrained(2).NewText)
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_EmptyProtectedSpan_ReturnsUnchanged()
+            ' An empty protected span should be a no-op.
+            Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(8, 0) ' empty
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 12), "    Console.wl(""Hello"");" & vbCrLf))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(1, constrained.Length)
+            Assert.Equal(changes(0), constrained(0))
         End Sub
 
 #End Region
