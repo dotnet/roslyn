@@ -13846,12 +13846,15 @@ internal class Program
 
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, vbTab)>
-        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, " ")>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, Nothing)>
         <InlineData(ImportCompletionCommitBehavior.NeverAddImport, vbTab)>
-        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, " "c)>
-        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, " "c)>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, " ")>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, Nothing)>
         <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, vbTab)>
-        Friend Async Function OnlyAddMissingImportWithCorrectCombinationOfOptionAndCommitChar(options As ImportCompletionCommitBehavior, commitChar As Char) As Task
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, " ")>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, Nothing)>
+        Friend Async Function OnlyAddMissingImportWithCorrectCombinationOfOptionAndCommitChar(options As ImportCompletionCommitBehavior, commitCharString As String) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 namespace NS1
@@ -13877,7 +13880,13 @@ namespace NS2
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, options)
 
-                Dim addedUsing As String = If(options = ImportCompletionCommitBehavior.AlwaysAddImport OrElse (options = ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted AndAlso commitChar = vbTab),
+                Dim commitChar As Char?
+                If commitCharString IsNot Nothing Then
+                    commitChar = CChar(commitCharString)
+                Else
+                    commitChar = New Char?()
+                End If
+                Dim addedUsing As String = If(options = ImportCompletionCommitBehavior.AlwaysAddImport OrElse (options = ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted AndAlso (commitChar.HasValue = False OrElse commitChar.Value = vbTab)),
                     "using NS2;
 
 ", String.Empty)
@@ -13908,10 +13917,13 @@ namespace NS2
                 Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
-                If commitChar = vbTab Then
+                If commitChar.HasValue = False Then
+                    Dim session = Await state.GetCompletionSession()
+                    session.Commit(CChar(vbNullChar), CancellationToken.None)
+                ElseIf commitChar.Value = vbTab Then
                     state.SendTab()
                 Else
-                    state.SendTypeChars(commitChar)
+                    state.SendTypeChars(commitChar.Value)
                 End If
                 Assert.Equal(expectedText, state.GetDocumentText())
             End Using
@@ -13979,7 +13991,7 @@ namespace NS2
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
 
                 ' Even though the initial cache contains items created with default commit behavior (always add using), 
-                ' we should not ad a using with TAB for this option
+                ' we should not add using with TAB for this option
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Equal(expectedText1, state.GetDocumentText())
@@ -14087,7 +14099,7 @@ namespace NS2
 }
 "
                 ' Even though the initial cache contains items created with default commit behavior (always add using), 
-                ' we should not ad a using with TAB for this option
+                ' we should not add a using with TAB for this option
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Equal(expectedText1, state.GetDocumentText())
@@ -14155,5 +14167,6 @@ namespace NS2
                 Assert.Equal(expectedText3, state.GetDocumentText())
             End Using
         End Function
+
     End Class
 End Namespace

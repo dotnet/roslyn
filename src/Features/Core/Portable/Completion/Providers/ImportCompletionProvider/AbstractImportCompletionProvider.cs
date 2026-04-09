@@ -129,7 +129,7 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
             CompletionProvidersLogger.LogCustomizedCommitToAddParenthesis(commitKey);
         }
 
-        // Decide if we should add import whe this item is committed, based on the option we stored in item property bag.
+        // Decide if we should add import when this item is committed, based on the option we stored in item property bag.
         // TAB and double-click are treated as "committed explicitly".
         if ((ImportCompletionItem.GetCommitBehavior(completionItem), commitKey) is
                 (ImportCompletionCommitBehavior.NeverAddImport, _) or
