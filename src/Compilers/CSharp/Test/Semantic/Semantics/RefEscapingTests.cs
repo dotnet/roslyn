@@ -4784,6 +4784,88 @@ class X : List<int>
                 ]);
         }
 
+        [Fact]
+        public void CollectionExpression_AddMethod_Spread_CallerContext()
+        {
+            // Verifies that when spreading a collection whose Current property returns a CallingMethod-scoped
+            // ref struct value, the resulting collection expression is also CallingMethod-scoped and can be returned.
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                ref struct MySource
+                {
+                    public MyEnumerator GetEnumerator() => new();
+                }
+
+                ref struct MyEnumerator
+                {
+                    public Span<int> Current => new int[1];
+                    public bool MoveNext() => false;
+                }
+
+                ref struct MyCollection : IEnumerable<Span<int>>
+                {
+                    private Span<int> _stored;
+
+                    public void Add(Span<int> item)
+                    {
+                        _stored = item;
+                    }
+
+                    public IEnumerator<Span<int>> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                class C
+                {
+                    static MyCollection M1()
+                    {
+                        MySource source = default;
+                        MyCollection result = [..source];
+                        return result;
+                    }
+
+                    static MyCollection M1s()
+                    {
+                        MySource source = default;
+                        scoped MyCollection result = [..source];
+                        return result; // 1
+                    }
+
+                    static MyCollection M2()
+                    {
+                        MySource source = default;
+                        MyCollection result = new();
+                        foreach (var el in source)
+                        {
+                            result.Add(el);
+                        }
+                        return result;
+                    }
+
+                    static MyCollection M2s()
+                    {
+                        MySource source = default;
+                        scoped MyCollection result = new();
+                        foreach (var el in source)
+                        {
+                            result.Add(el);
+                        }
+                        return result; // 2
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (42,16): error CS8352: Cannot use variable 'result' in this context because it may expose referenced variables outside of their declaration scope
+                //         return result; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(42, 16),
+                // (64,16): error CS8352: Cannot use variable 'result' in this context because it may expose referenced variables outside of their declaration scope
+                //         return result; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(64, 16));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
         public void CollectionExpression_Builder()
         {

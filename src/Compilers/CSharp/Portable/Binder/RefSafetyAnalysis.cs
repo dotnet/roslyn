@@ -1372,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (spreadElement.ElementPlaceholder != null)
                     {
-                        spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(_localScopeDepth)));
+                        spreadPlaceholders.Add((spreadElement.ElementPlaceholder, SafeContextAndLocation.Create(GetValEscape(spreadElement.Expression))));
                     }
 
                     using var _3 = new PlaceholderRegion(this, spreadPlaceholders);
