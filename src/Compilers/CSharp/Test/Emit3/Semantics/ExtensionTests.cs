@@ -24506,7 +24506,7 @@ static class E
             [System.Runtime.CompilerServices.InterpolatedStringHandler]
             public struct InterpolationHandler
             {
-                public InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)
+                public InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)
                 {
                     System.Console.Write($"receiver: {receiver}, key: {key}");
                 }
@@ -24516,41 +24516,43 @@ static class E
 
             public static class E
             {
-                extension(string? s)
+                extension(C? c)
                 {
-                    public string this[string key, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("s", "key")] InterpolationHandler h] { set { } }
+                    public string this[string key, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("c", "key")] InterpolationHandler h] { set { } }
                 }
             }
+
+            public class C { }
             """;
 
         var exeSource = """
             #nullable enable
-            ((string?)null)["key", $""] = "";
-            "test"[null, $""] = "";
-            E.set_Item((string?)null, "key", $"", "");
-            E.set_Item("test", null, $"", "");
+            ((C?)null)["key", $""] = "";
+            new C()[null, $""] = "";
+            E.set_Item((C?)null, "key", $"", "");
+            E.set_Item(new C(), null, $"", "");
             """;
 
         CreateCompilation([src, exeSource], targetFramework: TargetFramework.Net90).VerifyDiagnostics(
-            // (2,2): warning CS8604: Possible null reference argument for parameter 'receiver' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
-            // ((string?)null)["key", $""] = "";
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("receiver", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(2, 2),
-            // (3,8): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // "test"[null, $""] = "";
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 8),
-            // (3,8): warning CS8604: Possible null reference argument for parameter 'key' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
-            // "test"[null, $""] = "";
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(3, 8),
-            // (4,12): warning CS8604: Possible null reference argument for parameter 'receiver' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
-            // E.set_Item((string?)null, "key", $"", "");
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("receiver", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(4, 12),
-            // (5,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
-            // E.set_Item("test", null, $"", "");
-            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 20),
-            // (5,20): warning CS8604: Possible null reference argument for parameter 'key' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)'.
-            // E.set_Item("test", null, $"", "");
-            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, string receiver, string key)").WithLocation(5, 20)
-        );
+            // (2,2): warning CS8604: Possible null reference argument for parameter 'receiver' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)'.
+            // ((C?)null)["key", $""] = "";
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(C?)null").WithArguments("receiver", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)").WithLocation(2, 2),
+            // (3,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // new C()[null, $""] = "";
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 9),
+            // (3,9): warning CS8604: Possible null reference argument for parameter 'key' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)'.
+            // new C()[null, $""] = "";
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)").WithLocation(3, 9),
+            // (4,12): warning CS8604: Possible null reference argument for parameter 'receiver' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)'.
+            // E.set_Item((C?)null, "key", $"", "");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(C?)null").WithArguments("receiver", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)").WithLocation(4, 12),
+            // (5,21): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            // E.set_Item(new C(), null, $"", "");
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 21),
+            // (5,21): warning CS8604: Possible null reference argument for parameter 'key' in 'InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)'.
+            // E.set_Item(new C(), null, $"", "");
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "null").WithArguments("key", "InterpolationHandler.InterpolationHandler(int literalLength, int formattedCount, C receiver, string key)").WithLocation(5, 21)
+            );
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78137")]

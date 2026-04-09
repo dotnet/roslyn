@@ -2136,7 +2136,10 @@ public static class E
 """;
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.Skipped).VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,25): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            // System.Console.Write(""[""]);
+            Diagnostic(ErrorCode.ERR_BadArgType, @"""""").WithArguments("1", "string", "int").WithLocation(1, 25));
     }
 
     [Fact]
@@ -6940,7 +6943,7 @@ public static class E
     }
 }
 """;
-        // PROTOTYPE revisit implicit indexers on strings and array types (what is the expected behavior?)
+        // Note: ldlen is used even when Array.Length is missing
         var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
         comp2.VerifyEmitDiagnostics();
         var verifier2 = CompileAndVerify(comp2, verify: Verification.FailsPEVerify);
@@ -7062,7 +7065,7 @@ public static class E
 """;
         var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
         comp2.VerifyDiagnostics();
-        // PROTOTYPE revisit implicit indexers on strings and array types (dealing with missing Length, this[Index] extension whenGetSubArray is missing)
+        // Note: ldlen is used even when Array.Length is missing
         var verifier = CompileAndVerify(comp2, verify: Verification.Skipped);
         verifier.VerifyIL("E.M1", """
 {
@@ -7291,6 +7294,1405 @@ class C
             // (2,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[1..^1];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[1..^1]").WithArguments("C").WithLocation(2, 5));
+    }
+
+    [Fact]
+    public void SpecialImplicitIndexIndexer_01()
+    {
+        // string lacks Length and this[int] but defines this[Index] indexers
+        var corlibSource = """
+namespace System
+{
+    public class String
+    {
+        public string this[Index i] { get => throw null; }
+    }
+
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // index into string
+        var src1 = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[^1];
+    }
+}
+""";
+
+        var comp1 = CreateEmptyCompilation(src1, references: [corlibRef]);
+        var verifier1 = CompileAndVerify(comp1, verify: Verification.Skipped).VerifyDiagnostics();
+        verifier1.VerifyIL("C.M", """
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  ldc.i4.1
+  IL_0003:  newobj     "System.Index..ctor(int, bool)"
+  IL_0008:  callvirt   "string string.this[System.Index].get"
+  IL_000d:  pop
+  IL_000e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void SpecialImplicitIndexIndexer_02()
+    {
+        // string and Array lack members, but various extensions
+        var corlibSource = """
+namespace System
+{
+    public class String { }
+    public class Array { }
+
+    public struct Char { }
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // extension this[Index] on string
+        var src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public char this[System.Index i] => throw null;
+    }
+}
+""";
+
+        var comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension this[int] and Length on string
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public int Length => throw null;
+        public char this[int i] => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension this[Index] on Array
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array arr)
+    {
+        public char this[System.Index i] => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldlen
+  IL_0003:  conv.i4
+  IL_0004:  ldc.i4.1
+  IL_0005:  sub
+  IL_0006:  ldelem.i4
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+
+        // extension this[Index] on int[]
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[^1];
+    }
+}
+
+public static class E
+{
+    extension(int[] arr)
+    {
+        public char this[System.Index i] => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  ldlen
+  IL_0003:  conv.i4
+  IL_0004:  ldc.i4.1
+  IL_0005:  sub
+  IL_0006:  ldelem.i4
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void SpecialImplicitRangeIndexer_01()
+    {
+        // string and Array lack Length and GetSubArray/GetSubstring but define this[Range] indexers
+        var corlibSource = """
+namespace System
+{
+    public class String
+    {
+        public string this[Range r] { get => throw null; }
+    }
+    public class Array
+    {
+        public object this[Range r] { get => throw null; }
+    }
+
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // slice string
+        var src1 = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+""";
+
+        var comp1 = CreateEmptyCompilation(src1, references: [corlibRef]);
+        var verifier1 = CompileAndVerify(comp1, verify: Verification.Skipped).VerifyDiagnostics();
+        verifier1.VerifyIL("C.M", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       "System.Index System.Index.op_Implicit(int)"
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     "System.Index..ctor(int, bool)"
+  IL_000e:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0013:  callvirt   "string string.this[System.Range].get"
+  IL_0018:  pop
+  IL_0019:  ret
+}
+""");
+        // slice array
+        var src2 = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+""";
+
+        var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
+        comp2.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+    }
+
+    [Fact]
+    public void SpecialImplicitRangeIndexer_02()
+    {
+        // slice pattern, string and Array lack GetSubArray/GetSubstring but define Length, this[int], and this[Range]
+        var corlibSource = """
+namespace System
+{
+    public class String
+    {
+        public int Length => throw null;
+        public char this[int i] => throw null;
+        public string this[Range r] { get => throw null; }
+    }
+    public class Array
+    {
+        public int Length => throw null;
+        public object this[Range r] { get => throw null; }
+    }
+
+    public class Object { }
+    public struct Char { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // slice pattern on string
+        var src1 = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s is [_, .. var x];
+    }
+}
+""";
+
+        var comp1 = CreateEmptyCompilation(src1, references: [corlibRef]);
+        var verifier1 = CompileAndVerify(comp1, verify: Verification.Skipped).VerifyDiagnostics();
+        verifier1.VerifyIL("C.M", """
+{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0029
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   "int string.Length.get"
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_0029
+  IL_000c:  ldarg.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     "System.Index..ctor(int, bool)"
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  newobj     "System.Index..ctor(int, bool)"
+  IL_001b:  newobj     "System.Range..ctor(System.Index, System.Index)"
+  IL_0020:  callvirt   "string string.this[System.Range].get"
+  IL_0025:  pop
+  IL_0026:  ldc.i4.1
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  pop
+  IL_002b:  ret
+}
+""");
+        // slice pattern on array
+        var src2 = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr is [_, .. var x];
+    }
+}
+""";
+
+        var comp2 = CreateEmptyCompilation(src2, references: [corlibRef]);
+        comp2.VerifyEmitDiagnostics(
+            // (5,24): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var x").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 24));
+    }
+
+    [Fact]
+    public void SpecialImplicitRangeIndexer_03()
+    {
+        // slice pattern, string and Array lack GetSubArray/GetSubstring, but various extensions are available
+        var corlibSource = """
+namespace System
+{
+    public class String { }
+    public class Array { }
+
+    public class Object { }
+    public struct Char { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // slice pattern on string with extension indexers (real)
+        var src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s is [_, .. var x];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public int Length => throw null;
+        public char this[System.Index i] => throw null;
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        CreateEmptyCompilation(src, references: [corlibRef]).VerifyEmitDiagnostics(
+            // (5,18): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[_, .. var x]").WithArguments("string").WithLocation(5, 18),
+            // (5,22): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var x").WithArguments("string").WithLocation(5, 22));
+
+        // slice pattern on string with extension indexers (implicit)
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s is [_, .. var x];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public int Length => throw null;
+        public char this[int i] => throw null;
+        public string Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        CreateEmptyCompilation(src, references: [corlibRef]).VerifyEmitDiagnostics(
+            // (5,18): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[_, .. var x]").WithArguments("string").WithLocation(5, 18),
+            // (5,22): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. var x").WithArguments("string").WithLocation(5, 22));
+
+        // slice pattern on array, extension indexers (real)
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr is [_, .. var x];
+    }
+}
+
+public static class E
+{
+    extension(int[] arr)
+    {
+        public int Length => throw null;
+        public object this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        CreateEmptyCompilation(src, references: [corlibRef]).VerifyEmitDiagnostics(
+            // (5,24): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var x").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 24));
+
+        // slice pattern on array, extension indexers (implicit)
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr is [_, .. var x];
+    }
+}
+
+public static class E
+{
+    extension(int[] arr)
+    {
+        public int Length => throw null;
+        public object Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        CreateEmptyCompilation(src, references: [corlibRef]).VerifyEmitDiagnostics(
+            // (5,24): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr is [_, .. var x];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, ".. var x").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 24));
+    }
+
+    [Fact]
+    public void SpecialImplicitRangeIndexer_04()
+    {
+        // string and Array lack Length and GetSubArray/GetSubstring, but various extensions are available
+        var corlibSource = """
+namespace System
+{
+    public class String { }
+    public class Array { }
+
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // no extension
+        var src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+""";
+
+        var comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).this[Range] indexer
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).GetSubstring and Length
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public int Length => throw null;
+        public string GetSubstring(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).Slice and Length
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public int Length => throw null;
+        public string Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(Array).this[Range] indexer
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(Array).GetSubArray and Length
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public int Length => throw null;
+        public string GetSubArray(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(Array).Slice and Length
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public int Length => throw null;
+        public string Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(int[]).this[Range] indexer
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(int[] a)
+    {
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(int[]).GetSubArray and Length
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(int[] a)
+    {
+        public int Length => throw null;
+        public string GetSubArray(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(int[]).Slice and Length
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(int[] a)
+    {
+        public int Length => throw null;
+        public string Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+    }
+
+    [Fact]
+    public void SpecialImplicitRangeIndexer_05()
+    {
+        // string and Array lack GetSubArray/GetSubstring, but various extensions are available
+        var corlibSource = """
+namespace System
+{
+    public class String
+    {
+        public int Length => throw null;
+    }
+    public class Array
+    {
+        public int Length => throw null;
+    }
+
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // no extension on string
+        var src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+""";
+
+        var comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).this[Range] indexer
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).GetSubstring
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public string GetSubstring(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).Slice
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public string Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(Array).this[Range] indexer
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(Array).GetSubArray
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public string GetSubArray(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(Array).Slice
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public string Slice(int i, int j) => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+    }
+
+    [Fact]
+    public void SpecialImplicitRangeIndexer_06()
+    {
+        // string and Array lack Length, but various extensions are available
+        var corlibSource = """
+namespace System
+{
+    public class String
+    {
+        public string GetSubstring(int i, int j) => throw null;
+    }
+    public class Array
+    {
+        public object GetSubArray(int i, int j) => throw null;
+    }
+
+    public class Object { }
+    public class ValueType { }
+    public struct Void { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class Attribute { }
+    public class Enum { }
+    public class Exception { }
+    public class NotSupportedException : Exception { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get => throw null; set => throw null; }
+        public bool Inherited { get => throw null; set => throw null; }
+    }
+    public enum AttributeTargets { All = 0x7fff }
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd = false) => throw null;
+        public int Value => throw null;
+        public bool IsFromEnd => throw null;
+        public int GetOffset(int length) => throw null;
+        public static implicit operator Index(int value) => throw null;
+    }
+    public readonly struct Range
+    {
+        public Index Start => throw null;
+        public Index End => throw null;
+        public Range(Index start, Index end) => throw null;
+    }
+}
+namespace System.Reflection
+{
+    public class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(string memberName) => throw null;
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public class ExtensionAttribute : Attribute { }
+}
+""";
+
+        var corlib = CreateEmptyCompilation(corlibSource);
+        corlib.VerifyDiagnostics();
+        var corlibRef = corlib.EmitToImageReference();
+
+        // no extension on string
+        var src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+""";
+
+        var comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).this[Range] indexer
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(string).Length
+        src = """
+public class C
+{
+    public static void M(string s)
+    {
+        _ = s[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(string s)
+    {
+        public int Length => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,13): error CS0021: Cannot apply indexing with [] to an expression of type 'string'
+            //         _ = s[1..^1];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "s[1..^1]").WithArguments("string").WithLocation(5, 13));
+
+        // extension(Array).this[Range] indexer
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public string this[System.Range r] { get => throw null; }
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
+
+        // extension(Array).Length
+        src = """
+public class C
+{
+    public static void M(int[] arr)
+    {
+        _ = arr[1..^1];
+    }
+}
+
+public static class E
+{
+    extension(System.Array a)
+    {
+        public int Length => throw null;
+    }
+}
+""";
+
+        comp = CreateEmptyCompilation(src, references: [corlibRef]);
+        comp.VerifyEmitDiagnostics(
+            // (5,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+            //         _ = arr[1..^1];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..^1").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(5, 17));
     }
 
     [Fact]
@@ -9252,7 +10654,6 @@ public static class E
     [Fact]
     public void SlicePattern_17_WithExtensionLength()
     {
-        // PROTOTYPE revisit implicit indexers on strings and array types (dealing with missing Length, this[Index] extension whenGetSubArray is missing)
         // array type (with and without Length), extension Length + extension this[Index] + extension this[Range]
         var src = """
 public static class E
@@ -10969,8 +12370,10 @@ catch (System.NullReferenceException)
         string source = """
 #nullable enable
 
-string s = "";
-_ = s[null];
+C c = new C();
+_ = c[null];
+
+class C { }
 
 static class E
 {
@@ -10985,8 +12388,8 @@ static class E
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "s[null]");
-        AssertEx.Equal("E.extension<string?>(string?).this[string?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[null]");
+        AssertEx.Equal("E.extension<C?>(C?).this[C?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
     [Fact]
@@ -10996,8 +12399,10 @@ static class E
         string source = """
 #nullable enable
 
-string s = "";
-_ = s[t3: null, t2: null];
+C c = new C();
+_ = c[t3: null, t2: null];
+
+class C { }
 
 static class E
 {
@@ -11012,8 +12417,8 @@ static class E
 
         var tree = comp.SyntaxTrees.First();
         var model = comp.GetSemanticModel(tree);
-        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "s[t3: null, t2: null]");
-        AssertEx.Equal("E.extension<string?>(string?).this[string?, string?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        var memberAccess = GetSyntax<ElementAccessExpressionSyntax>(tree, "c[t3: null, t2: null]");
+        AssertEx.Equal("E.extension<C?>(C?).this[C?, C?]", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
     }
 
     [Fact]
@@ -20965,5 +22370,33 @@ namespace System
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("ran"), verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Array_01()
+    {
+        var src = """
+public class C
+{
+    public static void M(int[] i, C c)
+    {
+        _ = i[c];
+    }
+}
+
+public static class E
+{
+    extension(int[] i)
+    {
+        public int this[C c] => throw null;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,15): error CS0029: Cannot implicitly convert type 'C' to 'int'
+            //         _ = i[c];
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "c").WithArguments("C", "int").WithLocation(5, 15));
     }
 }
