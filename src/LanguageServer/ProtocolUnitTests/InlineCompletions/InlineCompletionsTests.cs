@@ -223,13 +223,13 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 
         // Verify that the first time we ask for a snippet it gets parsed and added to the cache.
         var result = await GetInlineCompletionsAsync(testLspServer, locationTyped, new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
-        Assert.Equal(expectedSnippet, result.Items.Single().Text);
+        Assert.Equal(expectedSnippet.ReplaceLineEndings("\r\n"), result.Items.Single().Text.ReplaceLineEndings("\r\n"));
         Assert.Equal(1, snippetParser.GetTestAccessor().GetCachedSnippetsCount());
         var firstSnippet = snippetParser.GetTestAccessor().GetCachedSnippet("if");
 
         // Verify that the next time we ask for the same snippet we do not parse again.
         result = await GetInlineCompletionsAsync(testLspServer, locationTyped, new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
-        Assert.Equal(expectedSnippet, result.Items.Single().Text);
+        Assert.Equal(expectedSnippet.ReplaceLineEndings("\r\n"), result.Items.Single().Text.ReplaceLineEndings("\r\n"));
         Assert.Equal(1, snippetParser.GetTestAccessor().GetCachedSnippetsCount());
         var secondSnippet = snippetParser.GetTestAccessor().GetCachedSnippet("if");
         Assert.Same(firstSnippet, secondSnippet);
@@ -250,7 +250,7 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         var item = result.Items.Single();
         AssertEx.NotNull(item.Range);
         Assert.Equal(LSP.InsertTextFormat.Snippet, item.TextFormat);
-        Assert.Equal(expected, item.Text);
+        Assert.Equal(expected.ReplaceLineEndings("\r\n"), item.Text.ReplaceLineEndings("\r\n"));
     }
 
     private static async Task<LSP.VSInternalInlineCompletionList> GetInlineCompletionsAsync(

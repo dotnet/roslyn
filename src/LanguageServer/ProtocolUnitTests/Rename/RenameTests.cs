@@ -91,10 +91,10 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         await using var testLspServer = await CreateXmlTestLspServerAsync($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
-                    <Document FilePath = "C:\C.cs"><![CDATA[{markup}]]></Document>
+                    <Document FilePath = "{TestHelpers.GetRootedPath("C.cs")}"><![CDATA[{markup}]]></Document>
                 </Project>
                 <Project Language = "C#" CommonReferences="true" PreprocessorSymbols="Proj2">
-                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="C:\C.cs"/>
+                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="{TestHelpers.GetRootedPath("C.cs")}"/>
                 </Project>
             </Workspace>
             """, mutatingLspWorkspace);
@@ -136,10 +136,10 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         await using var testLspServer = await CreateXmlTestLspServerAsync($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
-                    <Document FilePath = "C:\C.cs"><![CDATA[{markup}]]></Document>
+                    <Document FilePath = "{TestHelpers.GetRootedPath("C.cs")}"><![CDATA[{markup}]]></Document>
                 </Project>
                 <Project Language = "C#" CommonReferences="true" PreprocessorSymbols="Proj2">
-                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="C:\C.cs"/>
+                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="{TestHelpers.GetRootedPath("C.cs")}"/>
                 </Project>
             </Workspace>
             """, mutatingLspWorkspace);
@@ -174,7 +174,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var renameText = "RENAME";
         var renameParams = CreateRenameParams(new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = startPosition, End = endPosition }
         }, "RENAME");
 
