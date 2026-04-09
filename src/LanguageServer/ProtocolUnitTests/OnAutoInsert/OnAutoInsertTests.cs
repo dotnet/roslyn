@@ -203,7 +203,7 @@ public sealed partial class OnAutoInsertTests(ITestOutputHelper testOutputHelper
             }
             """, mutatingLspWorkspace);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "Bare /// auto-insert handler returns null on Unix due to line ending differences")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83117")]
     [CombinatorialData]
     public Task OnAutoInsert_EnterKey3(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpected("\n", """

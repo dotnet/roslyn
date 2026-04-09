@@ -358,8 +358,8 @@ class {|Identifier:A{{v}}|}
 @"class A {";
             var typeScriptMarkup = "???";
 
-            var csharpFilePath = TestPathUtil.GetRootedPath("C.cs");
-            var typeScriptFilePath = TestPathUtil.GetRootedPath("T.ts");
+            var csharpFilePath = TestHelpers.GetRootedPath("C.cs");
+            var typeScriptFilePath = TestHelpers.GetRootedPath("T.ts");
 
             var workspaceXml =
                 $"""

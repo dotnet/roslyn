@@ -230,10 +230,19 @@ public sealed class SectionParserTests
         Assert.True(section.SupportsFilePath(codefilePath, matchKind: SectionMatch.SplatMatch));
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "Glob ** with Windows paths requires Windows path handling")]
+    [ConditionalTheory(typeof(WindowsOnly))]
     [InlineData("sources/**/*.cs", @"C:\dev\.editorconfig", @"C:\dev\sources\CSharp\Program.cs")]
     [InlineData("sources/**/*.vb", @"C:\dev\.editorconfig", @"C:\dev\sources\VisualBasic\Program.vb")]
     internal void TestSupportsFilePathWindowsGlobStarStar(string headerText, string editorconfigFilePath, string codefilePath)
+    {
+        var section = new Section(editorconfigFilePath, false, default(TextSpan), headerText, $"[{headerText}]");
+        Assert.True(section.SupportsFilePath(codefilePath, matchKind: SectionMatch.FilePatternMatch));
+    }
+
+    [ConditionalTheory(typeof(UnixLikeOnly))]
+    [InlineData("sources/**/*.cs", @"/c/dev/.editorconfig", @"/c/dev/sources/CSharp/Program.cs")]
+    [InlineData("sources/**/*.vb", @"/c/dev/.editorconfig", @"/c/dev/sources/VisualBasic/Program.vb")]
+    internal void TestSupportsFilePatUnixGlobStarStar(string headerText, string editorconfigFilePath, string codefilePath)
     {
         var section = new Section(editorconfigFilePath, false, default(TextSpan), headerText, $"[{headerText}]");
         Assert.True(section.SupportsFilePath(codefilePath, matchKind: SectionMatch.FilePatternMatch));

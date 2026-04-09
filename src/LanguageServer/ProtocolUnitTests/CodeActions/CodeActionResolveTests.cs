@@ -212,7 +212,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
                 public static readonly int {|caret:_value|} = 10;
             }
             """;
-        var filePath = TestPathUtil.GetRootedPath("C.cs");
+        var filePath = TestHelpers.GetRootedPath("C.cs");
         var xmlWorkspace = $"""
             <Workspace>
                 <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>

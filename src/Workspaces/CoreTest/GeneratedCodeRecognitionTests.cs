@@ -58,13 +58,13 @@ public sealed class GeneratedCodeRecognitionTests
             SourceText.From("""
                 [*.{cs,vb}]
                 generated_code = true
-                """), filePath: TestPathUtil.GetRootedPath(".editorconfig")).Project;
+                """), filePath: TestHelpers.GetRootedPath(".editorconfig")).Project;
 
         var projectWithUserConfiguredGeneratedCodeFalse = project.AddAnalyzerConfigDocument(".editorconfig",
             SourceText.From("""
                 [*.{cs,vb}]
                 generated_code = false
-                """), filePath: TestPathUtil.GetRootedPath(".editorconfig")).Project;
+                """), filePath: TestHelpers.GetRootedPath(".editorconfig")).Project;
 
         foreach (var fileName in fileNames)
         {
@@ -80,7 +80,7 @@ public sealed class GeneratedCodeRecognitionTests
 
         static void TestCore(string fileName, Project project, bool assertGenerated)
         {
-            var document = project.AddDocument(fileName, "", filePath: Path.Combine(TestPathUtil.GetRootedPath(), fileName));
+            var document = project.AddDocument(fileName, "", filePath: Path.Combine(TestHelpers.GetRootedPath(), fileName));
             if (assertGenerated)
             {
                 Assert.True(document.IsGeneratedCode(CancellationToken.None), string.Format("Expected file '{0}' to be interpreted as generated code", fileName));

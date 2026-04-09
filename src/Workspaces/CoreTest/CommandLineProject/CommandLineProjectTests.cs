@@ -22,7 +22,7 @@ public sealed class CommandLineProjectTests : TestBase
     public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
     {
         var commandLine = Path.Combine("..", "goo.cs");
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestHelpers.GetRootedPath("ProjectDirectory"));
 
         var docInfo = info.Documents.First();
         Assert.Equal(0, docInfo.Folders.Count);
@@ -37,7 +37,7 @@ public sealed class CommandLineProjectTests : TestBase
         Assert.Throws<InvalidOperationException>(delegate
         {
             var ws = new AdhocWorkspace(new MefHostServices(new ContainerConfiguration().CreateContainer())); // no services
-            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestPathUtil.GetRootedPath("ProjectDirectory"), ws);
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestHelpers.GetRootedPath("ProjectDirectory"), ws);
         });
     }
 
@@ -45,14 +45,14 @@ public sealed class CommandLineProjectTests : TestBase
     public void TestCreateWithRequiredServices()
     {
         var ws = new AdhocWorkspace();
-        _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, @"goo.cs", TestPathUtil.GetRootedPath("ProjectDirectory"), ws);
+        _ = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, @"goo.cs", TestHelpers.GetRootedPath("ProjectDirectory"), ws);
     }
 
     [Fact]
     public void TestUnrootedPathInsideProjectCone()
     {
         var commandLine = @"goo.cs";
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestHelpers.GetRootedPath("ProjectDirectory"));
 
         var docInfo = info.Documents.First();
         Assert.Equal(0, docInfo.Folders.Count);
@@ -63,7 +63,7 @@ public sealed class CommandLineProjectTests : TestBase
     public void TestUnrootedSubPathInsideProjectCone()
     {
         var commandLine = Path.Combine("subdir", "goo.cs");
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestHelpers.GetRootedPath("ProjectDirectory"));
 
         var docInfo = info.Documents.First();
         Assert.Equal(1, docInfo.Folders.Count);
@@ -74,7 +74,7 @@ public sealed class CommandLineProjectTests : TestBase
     [Fact]
     public void TestRootedPathInsideProjectCone()
     {
-        var baseDir = TestPathUtil.GetRootedPath("ProjectDirectory");
+        var baseDir = TestHelpers.GetRootedPath("ProjectDirectory");
         var commandLine = Path.Combine(baseDir, "goo.cs");
         var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDir);
 
@@ -86,7 +86,7 @@ public sealed class CommandLineProjectTests : TestBase
     [Fact]
     public void TestRootedSubPathInsideProjectCone()
     {
-        var baseDir = TestPathUtil.GetRootedPath("ProjectDirectory");
+        var baseDir = TestHelpers.GetRootedPath("ProjectDirectory");
         var commandLine = Path.Combine(baseDir, "subdir", "goo.cs");
         var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDir);
 
@@ -99,8 +99,8 @@ public sealed class CommandLineProjectTests : TestBase
     [Fact]
     public void TestRootedPathOutsideProjectCone()
     {
-        var commandLine = TestPathUtil.GetRootedPath("SomeDirectory", "goo.cs");
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var commandLine = TestHelpers.GetRootedPath("SomeDirectory", "goo.cs");
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestHelpers.GetRootedPath("ProjectDirectory"));
 
         var docInfo = info.Documents.First();
         Assert.Equal(0, docInfo.Folders.Count);
@@ -111,7 +111,7 @@ public sealed class CommandLineProjectTests : TestBase
     public void TestUnrootedPathOutsideProjectCone()
     {
         var commandLine = Path.Combine("..", "goo.cs");
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestHelpers.GetRootedPath("ProjectDirectory"));
 
         var docInfo = info.Documents.First();
         Assert.Equal(0, docInfo.Folders.Count);
@@ -122,7 +122,7 @@ public sealed class CommandLineProjectTests : TestBase
     public void TestAdditionalFiles()
     {
         var commandLine = @"goo.cs /additionalfile:bar.cs";
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, TestHelpers.GetRootedPath("ProjectDirectory"));
 
         var firstDoc = info.Documents.Single();
         var secondDoc = info.AdditionalDocuments.Single();
@@ -133,7 +133,7 @@ public sealed class CommandLineProjectTests : TestBase
     [Fact]
     public void TestAnalyzerConfigFiles()
     {
-        var baseDir = TestPathUtil.GetRootedPath("ProjectDirectory");
+        var baseDir = TestHelpers.GetRootedPath("ProjectDirectory");
         var commandLine = @"/analyzerconfig:.editorconfig";
         var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDir);
 
@@ -176,7 +176,7 @@ public sealed class CommandLineProjectTests : TestBase
         var pathToAssembly = typeof(object).Assembly.Location;
         var quotedPathToAssembly = '"' + pathToAssembly + '"';
         var commandLine = $"goo.vb /r:{quotedPathToAssembly},{quotedPathToAssembly}";
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.VisualBasic, commandLine, baseDirectory: TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.VisualBasic, commandLine, baseDirectory: TestHelpers.GetRootedPath("ProjectDirectory"));
 
         // The compiler may add other references automatically, so we'll only assert a single reference for the one we're interested in
         Assert.Single(info.MetadataReferences.OfType<PortableExecutableReference>(), r => r.FilePath == pathToAssembly);
@@ -188,7 +188,7 @@ public sealed class CommandLineProjectTests : TestBase
         var pathToAssembly = typeof(object).Assembly.Location;
         var quotedPathToAssembly = '"' + pathToAssembly + '"';
         var commandLine = $"goo.vb /r:{quotedPathToAssembly} /vbruntime:{quotedPathToAssembly}";
-        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.VisualBasic, commandLine, baseDirectory: TestPathUtil.GetRootedPath("ProjectDirectory"));
+        var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.VisualBasic, commandLine, baseDirectory: TestHelpers.GetRootedPath("ProjectDirectory"));
 
         // The compiler may add other references automatically, so we'll only assert a single reference for the one we're interested in
         Assert.Single(info.MetadataReferences.OfType<PortableExecutableReference>(), r => r.FilePath == pathToAssembly);

@@ -53,8 +53,8 @@ public sealed class CommandLineProjectWorkspaceTests
     [Fact]
     public void TestLoadProjectFromCommandLine()
     {
-        var baseDir = TestPathUtil.GetRootedPath("ProjectDirectory");
         var commandLine = $"goo.cs {Path.Combine("subdir", "bar.cs")} /out:goo.dll /target:library";
+        var baseDir = TestHelpers.GetRootedPath("ProjectDirectory");
         var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDir);
         var ws = new AdhocWorkspace();
         ws.AddProject(info);

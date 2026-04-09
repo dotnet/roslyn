@@ -14,8 +14,8 @@ public sealed class FilePathUtilitiesTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
     public void GetRelativePath_SameDirectory()
     {
-        var baseDirectory = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma");
-        var fullPath = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma", "Doc.txt");
+        var baseDirectory = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma");
+        var fullPath = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma", "Doc.txt");
 
         var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
@@ -25,8 +25,8 @@ public sealed class FilePathUtilitiesTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
     public void GetRelativePath_NestedOneLevelDown()
     {
-        var baseDirectory = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma");
-        var fullPath = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma", "Delta", "Doc.txt");
+        var baseDirectory = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma");
+        var fullPath = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma", "Delta", "Doc.txt");
 
         var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
@@ -36,8 +36,8 @@ public sealed class FilePathUtilitiesTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
     public void GetRelativePath_NestedTwoLevelsDown()
     {
-        var baseDirectory = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma");
-        var fullPath = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Doc.txt");
+        var baseDirectory = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma");
+        var fullPath = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma", "Delta", "Epsilon", "Doc.txt");
 
         var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
@@ -47,8 +47,8 @@ public sealed class FilePathUtilitiesTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
     public void GetRelativePath_UpOneLevel()
     {
-        var baseDirectory = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma");
-        var fullPath = TestPathUtil.GetRootedPath("Alpha", "Beta", "Doc.txt");
+        var baseDirectory = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma");
+        var fullPath = TestHelpers.GetRootedPath("Alpha", "Beta", "Doc.txt");
 
         var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
@@ -58,8 +58,8 @@ public sealed class FilePathUtilitiesTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
     public void GetRelativePath_UpTwoLevels()
     {
-        var baseDirectory = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma");
-        var fullPath = TestPathUtil.GetRootedPath("Alpha", "Doc.txt");
+        var baseDirectory = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma");
+        var fullPath = TestHelpers.GetRootedPath("Alpha", "Doc.txt");
 
         var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
@@ -69,8 +69,8 @@ public sealed class FilePathUtilitiesTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1579")]
     public void GetRelativePath_UpTwoLevelsAndThenDown()
     {
-        var baseDirectory = TestPathUtil.GetRootedPath("Alpha", "Beta", "Gamma");
-        var fullPath = TestPathUtil.GetRootedPath("Alpha", "Phi", "Omega", "Doc.txt");
+        var baseDirectory = TestHelpers.GetRootedPath("Alpha", "Beta", "Gamma");
+        var fullPath = TestHelpers.GetRootedPath("Alpha", "Phi", "Omega", "Doc.txt");
 
         var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 
@@ -91,8 +91,8 @@ public sealed class FilePathUtilitiesTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4660")]
     public void GetRelativePath_WithBaseDirectoryMatchingIncompletePortionOfFullPath()
     {
-        var baseDirectory = TestPathUtil.GetRootedPath("Alpha", "Beta");
-        var fullPath = TestPathUtil.GetRootedPath("Alpha", "Beta2", "Gamma");
+        var baseDirectory = TestHelpers.GetRootedPath("Alpha", "Beta");
+        var fullPath = TestHelpers.GetRootedPath("Alpha", "Beta2", "Gamma");
 
         var result = PathUtilities.GetRelativePath(baseDirectory, fullPath);
 

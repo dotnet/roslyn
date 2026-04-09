@@ -87,8 +87,8 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDocument_WithFileScheme(bool mutatingLspWorkspace)
     {
-        var documentFilePath = TestPathUtil.GetRootedPath("A.cs");
-        var projectFilePath = TestPathUtil.GetRootedPath("CSProj1.csproj");
+        var documentFilePath = TestHelpers.GetRootedPath("A.cs");
+        var projectFilePath = TestHelpers.GetRootedPath("CSProj1.csproj");
         var markup =
             $$"""
             <Workspace>

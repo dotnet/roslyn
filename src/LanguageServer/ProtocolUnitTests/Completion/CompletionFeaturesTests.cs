@@ -1059,8 +1059,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
-        var nl = Environment.NewLine;
-        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = $"public override global::System.Boolean AbstractMethod(global::System.Int32 x){nl}    {{{nl}        throw new System.NotImplementedException();{nl}    }}" };
+        var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(7, 4), End = new(7, 13) }, NewText = $"public override global::System.Boolean AbstractMethod(global::System.Int32 x){Environment.NewLine}    {{{Environment.NewLine}        throw new System.NotImplementedException();{Environment.NewLine}    }}" };
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
 
         Assert.Equal(false, resolvedItem.Command.Arguments[2]);
