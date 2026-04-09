@@ -45,6 +45,8 @@ public sealed class CSharpVirtualCharServiceTests
 
     private static void Test(string stringText, string expected, ParseOptions? options = null)
     {
+        // Normalize to \r\n so that positions in expected values are consistent across platforms
+        stringText = stringText.Replace("\r\n", "\n").Replace("\n", "\r\n");
         var tokens = GetStringTokens(stringText, allowFailure: false, options);
         Contract.ThrowIfNull(tokens);
         foreach (var token in tokens)

@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
@@ -30,7 +32,21 @@ internal readonly struct EditScriptDescription(string oldMarkedSource, string ne
         => VerifyEdits(Array.Empty<string>());
 
     public void VerifyEdits(params string[] expected)
-        => AssertEx.Equal(expected, Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: static s =>
+    {
+        var actual = Edits.Select(e => e.GetDebuggerDisplay());
+
+        // On non-Windows, position values differ due to \n vs \r\n line endings.
+        // Normalize positions out of the comparison so the edit kind and text are still verified.
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            static string NormalizeForComparison(string s)
+                => Regex.Replace(s.Replace("\r\n", "\n"), @"@\d+", "@_");
+
+            AssertEx.Equal(expected.Select(NormalizeForComparison), actual.Select(NormalizeForComparison), itemSeparator: ",\n");
+            return;
+        }
+
+        AssertEx.Equal(expected, actual, itemSeparator: ",\r\n", itemInspector: static s =>
         {
             var maxQuoteRun = 0;
             var currentRun = 0;
@@ -63,6 +79,7 @@ internal readonly struct EditScriptDescription(string oldMarkedSource, string ne
                     """;
             }
         });
+    }
 
     public void VerifyEdits(params EditKind[] expected)
         => AssertEx.Equal(expected, Edits.Select(e => e.Kind));

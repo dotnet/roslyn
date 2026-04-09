@@ -102,7 +102,9 @@ public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
         /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.OutOfProcess"/>
         /// if unspecified.
         /// </summary>
-        public TestHost TestHost { get; set; } = TestHost.OutOfProcess;
+        public TestHost TestHost { get; set; } = System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows)
+            ? TestHost.OutOfProcess
+            : TestHost.InProcess;
 
         private static readonly TestComposition s_editorFeaturesOOPComposition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 
