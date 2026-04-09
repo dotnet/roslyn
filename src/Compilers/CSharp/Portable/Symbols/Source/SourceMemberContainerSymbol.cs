@@ -900,6 +900,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
 
+        internal sealed override ImmutableArray<TypeSymbol> ClosedSubtypes
+        {
+            get
+            {
+                // TODO2: is it viable to do this? risk of cycles (crashes), excessive cost, etc?
+                DeclaringCompilation.SourceModule.ForceComplete(locationOpt: null, filter: null, cancellationToken: default);
+
+
+                throw null!;
+            }
+        }
+
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 
         /// <summary>

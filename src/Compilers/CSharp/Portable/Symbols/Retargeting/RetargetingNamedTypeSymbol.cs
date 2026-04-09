@@ -158,6 +158,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override bool IsClosed => _underlyingType.IsClosed;
 
+        internal override ImmutableArray<TypeSymbol> ClosedSubtypes
+        {
+            get
+            {
+                // TODO2
+                throw null!;
+            }
+        }
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());

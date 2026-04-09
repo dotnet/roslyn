@@ -110,6 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsClosed => false;
 
+        internal sealed override ImmutableArray<TypeSymbol> ClosedSubtypes => [];
+
         internal override bool GetGuidString(out string guidString)
         {
             guidString = null;

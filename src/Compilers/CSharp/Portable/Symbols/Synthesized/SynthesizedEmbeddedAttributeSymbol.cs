@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsClosed => false;
 
+        internal sealed override ImmutableArray<TypeSymbol> ClosedSubtypes => [];
+
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
 
         public override TypeKind TypeKind => TypeKind.Class;

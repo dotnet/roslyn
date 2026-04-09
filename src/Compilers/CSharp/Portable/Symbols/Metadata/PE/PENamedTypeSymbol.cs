@@ -1215,6 +1215,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal sealed override ImmutableArray<TypeSymbol> ClosedSubtypes
+        {
+            get
+            {
+                // TODO2
+                throw null!;
+            }
+        }
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             EnsureAllMembersAreLoaded();

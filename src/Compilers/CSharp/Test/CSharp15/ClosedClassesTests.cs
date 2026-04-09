@@ -994,4 +994,98 @@ public sealed class ClosedClassesTests : CSharpTestBase
             }
         }
     }
+
+    [Fact]
+    public void Subtypes_01()
+    {
+        var source = """
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("C", classC.ToTestDisplayString());
+        Assert.Equal([], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Subtypes_02()
+    {
+        var source = """
+            closed class C<T>
+            {
+            }
+
+            class D1<T> : C<T> { }
+            class D2 : C<int> { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("C<T>", classC.ToTestDisplayString());
+        Assert.Equal([], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Subtypes_03()
+    {
+        var source = """
+            using System.Collections.Immutable;
+
+            closed class C<T>
+            {
+            }
+
+            class D1<T> : C<T> { }
+            class D2<T> : C<ImmutableArray<T>> { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("C<T>", classC.ToTestDisplayString());
+        Assert.Equal([], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Exhaustiveness_01()
+    {
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        // TODO2: unexpected warning
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 18));
+    }
 }
