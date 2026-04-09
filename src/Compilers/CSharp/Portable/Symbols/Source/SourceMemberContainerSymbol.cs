@@ -923,13 +923,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 #endif
 
-                    var queue = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
-                    queue.Add(DeclaringCompilation.SourceModule.GlobalNamespace);
+                    var stack = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+                    stack.Add(DeclaringCompilation.SourceModule.GlobalNamespace);
 
                     var subtypes = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                    while (!queue.IsEmpty)
+                    while (!stack.IsEmpty)
                     {
-                        var namespaceOrType = queue.Pop();
+                        var namespaceOrType = stack.Pop();
                         if (namespaceOrType is NamedTypeSymbol namedType
                             && namedType.BaseTypeNoUseSiteDiagnostics is { } baseType
                             && baseType.OriginalDefinition.Equals(this))
@@ -937,16 +937,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             subtypes.Add(namedType);
                         }
 
-                        foreach (var member in namespaceOrType.GetMembers())
+                        var members = namespaceOrType.GetMembers();
+                        for (var i = members.Length - 1; i >= 0; i--)
                         {
-                            if (member is NamespaceOrTypeSymbol childNamespaceOrType)
+                            if (members[i] is NamespaceOrTypeSymbol childNamespaceOrType)
                             {
-                                queue.Add(childNamespaceOrType);
+                                stack.Add(childNamespaceOrType);
                             }
                         }
                     }
 
-                    queue.Free();
+                    stack.Free();
                     return subtypes.ToImmutableAndFree();
                 }
             }

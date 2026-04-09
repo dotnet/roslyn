@@ -1012,7 +1012,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C", classC.ToTestDisplayString());
-        Assert.Equal(["D2", "D1"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1030,9 +1030,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
+        // TODO2: perform a proper type argument substitution, when determining base type match.
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C<T>", classC.ToTestDisplayString());
-        Assert.Equal(["D2", "D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+        Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
+        Assert.Equal(["D1<System.Int32>", "D2"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1054,7 +1059,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C<T>", classC.ToTestDisplayString());
-        Assert.Equal(["D2<T>", "D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        // TODO2: fix
+        var immutableArrayOfInt = comp
+            .GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)
+            .Construct(comp.GetSpecialType(SpecialType.System_Int32));
+
+        var classCOfImmutableArray = classC.Construct(immutableArrayOfInt);
+        Assert.Equal("C<System.Collections.Immutable.ImmutableArray<System.Int32>>", classCOfImmutableArray.ToTestDisplayString());
+        Assert.Equal(["D1<System.Collections.Immutable.ImmutableArray<System.Int32>>", "D2<System.Int32>"], classCOfImmutableArray.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1247,11 +1261,52 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class F2 : D2 { }
             """;
 
-        // TODO2: improve precision of PatternExplainer
+        // TODO2: hopefully a correct adjustment of the type set behaviors, would result in both PatternExplainer
+        // and DecisionDagBuilder, doing the right thing with these kinds of hierarchies.
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
-            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
             //         return c switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(5, 18));
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_06()
+    {
+        // Exhaustive type match of nested hierarchy
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                        E2 => 3,
+                        F2 => 4,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            closed class D1 : C { }
+            class E1 : D1 { }
+            class F1 : D1 { }
+
+            closed class D2 : C { }
+            class E2 : D2 { }
+            class F2 : D2 { }
+            """;
+
+        // TODO2: wonder if the TypeUnionValueSet intersection operator should be adjusted.
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(5, 18));
     }
 }
