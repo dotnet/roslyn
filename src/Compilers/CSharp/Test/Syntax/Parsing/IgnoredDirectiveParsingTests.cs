@@ -778,7 +778,7 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         EOF();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78054")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83111")]
     public void ShebangIncorrectlyPlaced_FileBasedProgram()
     {
         // Shebang on the first column of a non-first line should get a specific error,
