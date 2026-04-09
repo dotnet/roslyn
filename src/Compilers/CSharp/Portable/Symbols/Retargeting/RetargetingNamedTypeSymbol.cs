@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override bool IsClosed => _underlyingType.IsClosed;
 
-        internal override ImmutableArray<TypeSymbol> ClosedSubtypes
+        internal override ImmutableArray<NamedTypeSymbol> ClosedSubtypes
         {
             get
             {

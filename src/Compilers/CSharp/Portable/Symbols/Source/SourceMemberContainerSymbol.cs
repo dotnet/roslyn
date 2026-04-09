@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
         private ExtensionGroupingInfo? _lazyExtensionGroupingInfo;
 
+        private ImmutableArray<NamedTypeSymbol> _lazyClosedSubtypes;
+
         #region Construction
 
         internal SourceMemberContainerTypeSymbol(
@@ -900,13 +902,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
 
-        internal sealed override ImmutableArray<TypeSymbol> ClosedSubtypes
+        internal sealed override ImmutableArray<NamedTypeSymbol> ClosedSubtypes
         {
             get
             {
+                if (!_lazyClosedSubtypes.IsDefault)
+                {
+                    return _lazyClosedSubtypes;
+                }
                 // TODO2: is it viable to do this? risk of cycles (crashes), excessive cost, etc?
                 DeclaringCompilation.SourceModule.ForceComplete(locationOpt: null, filter: null, cancellationToken: default);
-
 
                 throw null!;
             }

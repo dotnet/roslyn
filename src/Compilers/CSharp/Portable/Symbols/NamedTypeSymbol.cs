@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// That is, the list of types which have this type as a base type.
         /// If this is not a closed class, returns empty array.
         /// </summary>
-        internal abstract ImmutableArray<TypeSymbol> ClosedSubtypes { get; }
+        internal abstract ImmutableArray<NamedTypeSymbol> ClosedSubtypes { get; }
 
 #nullable enable
         /// <summary>

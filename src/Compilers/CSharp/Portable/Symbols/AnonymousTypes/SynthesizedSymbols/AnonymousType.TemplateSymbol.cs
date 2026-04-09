@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool IsClosed => false;
 
-            internal override ImmutableArray<TypeSymbol> ClosedSubtypes => [];
+            internal override ImmutableArray<NamedTypeSymbol> ClosedSubtypes => [];
 
             public override ImmutableArray<Symbol> GetMembers()
             {
