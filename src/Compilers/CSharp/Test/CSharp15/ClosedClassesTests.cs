@@ -1012,7 +1012,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C", classC.ToTestDisplayString());
-        Assert.Equal([], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Equal(["D2", "D1"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1032,7 +1032,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C<T>", classC.ToTestDisplayString());
-        Assert.Equal([], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Equal(["D2", "D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1054,12 +1054,43 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C<T>", classC.ToTestDisplayString());
+        Assert.Equal(["D2<T>", "D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Subtypes_04()
+    {
+        // Verify that ClosedSubtypes API behaves reasonably in base type cycle scenario.
+        var source = """
+            using System.Collections.Immutable;
+
+            closed class C<T> : D<T>
+            {
+            }
+
+            closed class D<T> : C<T>
+            {
+            }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (3,14): error CS0146: Circular base type dependency involving 'D<T>' and 'C<T>'
+            // closed class C<T> : D<T>
+            Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("D<T>", "C<T>").WithLocation(3, 14),
+            // (7,14): error CS0146: Circular base type dependency involving 'C<T>' and 'D<T>'
+            // closed class D<T> : C<T>
+            Diagnostic(ErrorCode.ERR_CircularBase, "D").WithArguments("C<T>", "D<T>").WithLocation(7, 14));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("C<T>", classC.ToTestDisplayString());
         Assert.Equal([], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
     public void Exhaustiveness_01()
     {
+        // Simple case
         var source = """
             class Program
             {
@@ -1082,10 +1113,145 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        // TODO2: unexpected warning
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Exhaustiveness_02()
+    {
+        // Non-exhaustive inner property pattern
+        var source = """
+            #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 { Value: 1 } => 2,
+                        D2 { Value: > 1 } => 3,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { public int Value; }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
-            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            // (6,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2{ Value: 0 }' is not covered.
             //         return c switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 18));
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2{ Value: 0 }").WithLocation(6, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_03()
+    {
+        // Exhaustive inner property pattern
+        var source = """
+            #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 { Value: 1 } => 2,
+                        D2 { Value: > 1 } => 3,
+                        D2 { Value: < 1 } => 4,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { public int Value; }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (11,25): hidden CS9335: The pattern is redundant.
+            //             D2 { Value: < 1 } => 4,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "< 1").WithLocation(11, 25));
+    }
+
+    [Fact]
+    public void Exhaustiveness_04()
+    {
+        // Non-exhaustive type match
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_05()
+    {
+        // Non-exhaustive type match of nested hierarchy
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                        E2 => 3,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            closed class D1 : C { }
+            class E1 : D1 { }
+            class F1 : D1 { }
+
+            closed class D2 : C { }
+            class E2 : D2 { }
+            class F2 : D2 { }
+            """;
+
+        // TODO2: improve precision of PatternExplainer
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(5, 18));
     }
 }

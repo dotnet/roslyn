@@ -76,6 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new UnionTypeTypeUnionValueSetFactory((NamedTypeSymbol)unionInstance.Type);
             }
 
+            if (input.Type is NamedTypeSymbol { IsClosed: true } closedClass)
+            {
+                return new ClosedClassTypeUnionValueSetFactory(closedClass);
+            }
+
             return null;
         }
     }

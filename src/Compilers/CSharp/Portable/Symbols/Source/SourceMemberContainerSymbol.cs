@@ -906,14 +906,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyClosedSubtypes.IsDefault)
+                if (_lazyClosedSubtypes.IsDefault)
                 {
-                    return _lazyClosedSubtypes;
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClosedSubtypes, findClosedSubtypes());
                 }
-                // TODO2: is it viable to do this? risk of cycles (crashes), excessive cost, etc?
-                DeclaringCompilation.SourceModule.ForceComplete(locationOpt: null, filter: null, cancellationToken: default);
 
-                throw null!;
+                return _lazyClosedSubtypes;
+
+                ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
+                {
+                    // TODO2: try pulling on this API in the bootstrap build.
+#if !DEBUG
+                    if (!IsClosed)
+                    {
+                        return [];
+                    }
+#endif
+
+                    var queue = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+                    queue.Add(DeclaringCompilation.SourceModule.GlobalNamespace);
+
+                    var subtypes = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                    while (!queue.IsEmpty)
+                    {
+                        var namespaceOrType = queue.Pop();
+                        if (namespaceOrType is NamedTypeSymbol namedType
+                            && namedType.BaseTypeNoUseSiteDiagnostics is { } baseType
+                            && baseType.OriginalDefinition.Equals(this))
+                        {
+                            subtypes.Add(namedType);
+                        }
+
+                        foreach (var member in namespaceOrType.GetMembers())
+                        {
+                            if (member is NamespaceOrTypeSymbol childNamespaceOrType)
+                            {
+                                queue.Add(childNamespaceOrType);
+                            }
+                        }
+                    }
+
+                    queue.Free();
+                    return subtypes.ToImmutableAndFree();
+                }
             }
         }
 
