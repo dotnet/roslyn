@@ -195,6 +195,12 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
 
         var adjustmentsProposed = false;
         var format = false;
+
+        // Extract the ApplicableToSpan from the CompletionState, if present. The proposal system
+        // requires that no edit intersect this span (except a zero-length edit at its end), so we
+        // pass it to the adjuster to constrain its output.
+        var completionState = proposal.CompletionState;
+
         foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -207,13 +213,20 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
 
             var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
 
+            TextSpan? applicableToSpan = null;
+            if (completionState is not null)
+            {
+                var atsSpan = completionState.ApplicableToSpan.Span;
+                applicableToSpan = new TextSpan(atsSpan.Start, atsSpan.Length);
+            }
+
             var proposalAdjusterService = document.GetLanguageService<ICopilotProposalAdjusterService>();
             var (proposedEdits, formatGroup, adjustmentResults) = proposalAdjusterService is null
                 ? default
                 : await proposalAdjusterService.TryAdjustProposalAsync(
                     this._allowableAdjustments, document,
                     CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup),
-                    lineFormattingOptions, cancellationToken).ConfigureAwait(false);
+                    lineFormattingOptions, applicableToSpan, cancellationToken).ConfigureAwait(false);
 
             if (proposedEdits.IsDefault || adjustmentResults.IsDefault)
             {
