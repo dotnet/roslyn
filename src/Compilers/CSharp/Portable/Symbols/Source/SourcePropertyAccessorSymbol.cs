@@ -529,6 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+            allowedModifiers |= DeclarationModifiers.Unsafe;
 
             if (containingType.IsStructType())
             {
@@ -545,6 +546,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out _);
+
+            if ((mods & DeclarationModifiers.Unsafe) != 0)
+            {
+                var syntax = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword);
+                modifierErrors |= !MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, syntax);
+            }
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -872,6 +879,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (LocalDeclaredReadOnly != implementationAccessor.LocalDeclaredReadOnly)
             {
                 diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (IsUnsafe != implementationAccessor.IsUnsafe)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberUnsafeDifference, implementationAccessor.GetFirstLocation());
             }
 
             if (_usesInit != implementationAccessor._usesInit)

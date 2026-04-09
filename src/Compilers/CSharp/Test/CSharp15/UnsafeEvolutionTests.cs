@@ -5450,6 +5450,91 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Property_Accessors_UnsafeKeyword()
+    {
+        var source = """
+            public class C
+            {
+                public int P1 { unsafe get; set; }
+                public int P2 { get; unsafe set; }
+                public int P3 { unsafe get; unsafe set; }
+                public int P4 { unsafe get => 0; set { } }
+                public int P5 { get => 0; unsafe set { } }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Member_Property_Accessors_UnsafeKeyword_Partial()
+    {
+        var source = """
+            public partial class C
+            {
+                public partial int P1 { unsafe get; set; }
+                public partial int P1 { unsafe get => 0; set { } }
+
+                public partial int P2 { get; unsafe set; }
+                public partial int P2 { get => 0; unsafe set { } }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation("""
+            partial class C
+            {
+                public partial int P1 { unsafe get; set; }
+                public partial int P1 { get => 0; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,29): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public partial int P1 { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 29));
+
+        CreateCompilation("""
+            partial class C
+            {
+                public partial int P1 { unsafe get; set; }
+                public partial int P1 { unsafe get => 0; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Member_Property_Accessors_UnsafeKeyword_LangVersion()
+    {
+        var source = """
+            public class C
+            {
+                public int P1 { unsafe get; set; }
+                public int P2 { get; unsafe set; }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (3,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int P1 { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 21),
+            // (4,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int P2 { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(4, 26));
+    }
+
+    [Fact]
     public void Member_Property_Field()
     {
         CreateCompilation(
@@ -5868,6 +5953,89 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
         CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Member_Indexer_Accessors_UnsafeKeyword()
+    {
+        var source = """
+            public class C
+            {
+                public int this[int i] { unsafe get => i; set { } }
+                public int this[int i, int j] { get => i + j; unsafe set { } }
+                public int this[int i, int j, int k] { unsafe get => i; unsafe set { } }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Member_Indexer_Accessors_UnsafeKeyword_Partial()
+    {
+        var source = """
+            public partial class C
+            {
+                public partial int this[int i] { unsafe get; set; }
+                public partial int this[int i] { unsafe get => i; set { } }
+
+                public partial int this[int i, int j] { get; unsafe set; }
+                public partial int this[int i, int j] { get => i + j; unsafe set { } }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation("""
+            partial class C
+            {
+                public partial int this[int i] { unsafe get; set; }
+                public partial int this[int i] { get => i; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,38): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public partial int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 38));
+
+        CreateCompilation("""
+            partial class C
+            {
+                public partial int this[int i] { unsafe get; set; }
+                public partial int this[int i] { unsafe get => i; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Member_Indexer_Accessors_UnsafeKeyword_LangVersion()
+    {
+        var source = """
+            public class C
+            {
+                public int this[int i] { unsafe get => i; set { } }
+                public int this[int i, int j] { get => i + j; unsafe set { } }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (3,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int this[int i] { unsafe get => i; set { } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 30),
+            // (4,41): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public int this[int i, int j] { get => i + j; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(4, 51));
     }
 
     [Fact]
