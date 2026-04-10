@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -29,6 +28,9 @@ internal static class ImportCompletionItem
     private const string OverloadCountKey = nameof(OverloadCountKey);
     private const string AlwaysFullyQualifyKey = nameof(AlwaysFullyQualifyKey);
 
+    // The default behavior is `AlwaysAddImport`, which is represent by the absence of this property.
+    private const string CommitBehaviorKey = nameof(CommitBehaviorKey);
+
     public static CompletionItem Create(
         string name,
         int arity,
@@ -37,11 +39,12 @@ internal static class ImportCompletionItem
         string genericTypeSuffix,
         CompletionItemFlags flags,
         (string methodSymbolKey, string receiverTypeSymbolKey, int overloadCount)? extensionMethodData,
-        bool includedInTargetTypeCompletion = false)
+        bool includedInTargetTypeCompletion = false,
+        ImportCompletionCommitBehavior commitBehavior = ImportCompletionCommitBehavior.AlwaysAddImport)
     {
         ImmutableArray<KeyValuePair<string, string>> properties = default;
 
-        if (extensionMethodData != null || arity > 0)
+        if (extensionMethodData != null || arity > 0 || commitBehavior != ImportCompletionCommitBehavior.AlwaysAddImport)
         {
             using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
 
@@ -55,11 +58,27 @@ internal static class ImportCompletionItem
                     builder.Add(KeyValuePair.Create(OverloadCountKey, extensionMethodData.Value.overloadCount.ToString()));
                 }
             }
-            else
+
+            if (arity > 0)
             {
                 // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
                 // (but it still needed below to decide whether to show generic suffix)
                 builder.Add(KeyValuePair.Create(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity)));
+            }
+
+            if (commitBehavior != ImportCompletionCommitBehavior.AlwaysAddImport)
+            {
+                switch (commitBehavior)
+                {
+                    case ImportCompletionCommitBehavior.NeverAddImport:
+                        builder.Add(KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.NeverAddImport)));
+                        break;
+                    case ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted:
+                        builder.Add(KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted)));
+                        break;
+                    default:
+                        break;
+                }
             }
 
             properties = builder.ToImmutable();
@@ -223,4 +242,37 @@ internal static class ImportCompletionItem
     }
 
     public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.TryGetProperty(AlwaysFullyQualifyKey, out var _);
+
+    public static CompletionItem MarkCommitBehavior(CompletionItem item, ImportCompletionCommitBehavior commitBehavior)
+    {
+        if (commitBehavior == GetCommitBehavior(item))
+            return item;
+
+        var properties = item.GetProperties().WhereAsArray(pair => pair.Key != CommitBehaviorKey);
+        if (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted)
+        {
+            properties = [.. properties, KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted))];
+        }
+        else if (commitBehavior is ImportCompletionCommitBehavior.NeverAddImport)
+        {
+            properties = [.. properties, KeyValuePair.Create(CommitBehaviorKey, nameof(ImportCompletionCommitBehavior.NeverAddImport))];
+        }
+
+        return item.WithProperties(properties);
+    }
+
+    public static ImportCompletionCommitBehavior GetCommitBehavior(CompletionItem item)
+    {
+        if (item.TryGetProperty(CommitBehaviorKey, out var commitBehavior))
+        {
+            return commitBehavior switch
+            {
+                nameof(ImportCompletionCommitBehavior.NeverAddImport) => ImportCompletionCommitBehavior.NeverAddImport,
+                nameof(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted) => ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted,
+                _ => ImportCompletionCommitBehavior.AlwaysAddImport,
+            };
+        }
+
+        return ImportCompletionCommitBehavior.AlwaysAddImport;
+    }
 }

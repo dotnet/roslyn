@@ -20,12 +20,18 @@ jobs:
     - template: variables-build.yml
       parameters:
         configuration: ${{ parameters.configuration }}
+    - name: ROSLYN_CACHE_PATH
+      value: $(Agent.TempDirectory)/roslyn-cache
 
   steps:
     - template: checkout-unix-task.yml
 
     - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore
+
+    - template: cache-roslyn-outputs.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
 
     - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
       displayName: Build
