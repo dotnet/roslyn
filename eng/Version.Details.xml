@@ -6,10 +6,10 @@
       <Sha>6dbf3aaa0fc9664df86462f5c70b99800934fccd</Sha>
       <SourceBuild RepoName="source-build-externals" ManagedOnly="true" />
     </Dependency>
-    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-reference-packages" Version="8.0.0-alpha.1.23461.1">
-      <Uri>https://github.com/dotnet/source-build-reference-packages</Uri>
-      <Sha>264d80ed1ee84b458328b2df68f9930deac08bff</Sha>
-      <SourceBuild RepoName="source-build-reference-packages" ManagedOnly="true" />
+    <Dependency Name="Microsoft.SourceBuild.Intermediate.source-build-assets" Version="8.0.0-alpha.1.26208.5">
+      <Uri>https://github.com/dotnet/source-build-assets</Uri>
+      <Sha>e726d9647b47c6635533d8eebfc2992749128d7e</Sha>
+      <SourceBuild RepoName="source-build-assets" ManagedOnly="true" />
     </Dependency>
     <Dependency Name="System.CommandLine" Version="2.0.0-beta4.23307.1">
       <Uri>https://github.com/dotnet/command-line-api</Uri>
