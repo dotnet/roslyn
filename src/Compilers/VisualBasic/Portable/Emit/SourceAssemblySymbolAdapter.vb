@@ -22,7 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Symbol.AddSynthesizedAttribute(synthesized, referenceAssemblyAttribute)
             End If
 
-            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)
+            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False,
+                emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule,
+                emittingAssemblyAttributeInRefAssembly:=emittingRefAssembly)
         End Function
 
     End Class

@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public class Win32Res
     {
         [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hFile, uint dwFlags);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool FreeLibrary(IntPtr hFile);
+        [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr FindResource(IntPtr hModule, string lpName, string lpType);
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr LoadResource(IntPtr hModule, IntPtr hResInfo);
@@ -235,6 +239,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var sw = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
             doc.Save(sw);
             return sw.ToString();
+        }
+
+        public static string VersionResourceToXml(string filePath)
+        {
+            IntPtr lib = LoadLibraryEx(filePath, IntPtr.Zero, 0);
+            if (lib == IntPtr.Zero)
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+
+            try
+            {
+                IntPtr versionRsrc = GetResource(lib, "#1", "#16", out _);
+                return VersionResourceToXml(versionRsrc);
+            }
+            finally
+            {
+                FreeLibrary(lib);
+            }
         }
 
         private static Tuple<string, string> GetVerStringPair(BinaryReader reader)

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics
 Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.Metadata
@@ -720,6 +721,261 @@ End Class"
                          </compilation>
             CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator)
         End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_01()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyFileVersionAttribute..ctor(String)"
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedFileVersion:="1.2.3.4")
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_02()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyInformationalVersion("1.0.0-beta")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyInformationalVersionAttribute..ctor(String)"
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedProductVersion:="1.0.0-beta")
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_03()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyMetadata("key", "value")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyMetadataAttribute..ctor(String, String)"
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_04()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
+<Assembly: System.Reflection.AssemblyVersion("5.6.7.8")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyFileVersionAttribute..ctor(String)"
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedVersion:=New Version(5, 6, 7, 8), expectedFileVersion:="1.2.3.4")
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_05()
+            ' AssemblyInformationalVersionAttribute is stripped from ref assemblies, but still contributes ProductVersion to the implementation assembly's Win32 version resource.
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyInformationalVersion("1.0.0-beta")>
+<Assembly: System.Reflection.AssemblyVersion("5.6.7.8")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyInformationalVersionAttribute..ctor(String)"
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedVersion:=New Version(5, 6, 7, 8), expectedProductVersion:="1.0.0-beta")
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_06()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyMetadata("key", "value")>
+<Assembly: System.Reflection.AssemblyVersion("5.6.7.8")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyMetadataAttribute..ctor(String, String)"
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedVersion:=New Version(5, 6, 7, 8))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_07()
+            ' AssemblyVersionAttribute is affects assembly identity
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("1.2.3.4")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim expectedVersion = New Version(1, 2, 3, 4)
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyVersionAttribute..ctor(String)"
+            Dim assemblyValidator As Action(Of PEAssembly) =
+                Sub(assembly)
+                    Assert.DoesNotContain(attributeConstructor, GetAssemblyAttributeStrings(assembly))
+                    Assert.Equal(expectedVersion, assembly.GetMetadataReader().GetAssemblyDefinition().Version)
+                End Sub
+
+            CompileAndVerify(source, verify:=Verification.Passes, validator:=assemblyValidator, useLatestFramework:=True)
+
+            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(source, emitOptions:=emitRefAssembly, verify:=Verification.Passes, validator:=assemblyValidator, useLatestFramework:=True)
+
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True)
+            CompileAndVerify(source, emitOptions:=emitMetadataOnly, verify:=Verification.Passes, validator:=assemblyValidator, useLatestFramework:=True)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_08()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyTitle("MyAssembly")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim attributeConstructor = "MemberReference:Void System.Reflection.AssemblyTitleAttribute..ctor(String)"
+
+            CompileAndVerify(source,
+                             verify:=Verification.Passes,
+                             validator:=Sub(assembly) Assert.Contains(attributeConstructor, GetAssemblyAttributeStrings(assembly)),
+                             useLatestFramework:=True)
+
+            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(source,
+                             emitOptions:=emitRefAssembly,
+                             verify:=Verification.Passes,
+                             validator:=Sub(assembly) Assert.Contains(attributeConstructor, GetAssemblyAttributeStrings(assembly)),
+                             useLatestFramework:=True)
+
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True)
+            CompileAndVerify(source,
+                             emitOptions:=emitMetadataOnly,
+                             verify:=Verification.Passes,
+                             validator:=Sub(assembly) Assert.Contains(attributeConstructor, GetAssemblyAttributeStrings(assembly)),
+                             useLatestFramework:=True)
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_StripAttributes_09()
+            Dim source = <compilation>
+                             <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")>
+<Assembly: System.Reflection.AssemblyInformationalVersion("1.0.0-beta")>
+<Assembly: System.Reflection.AssemblyMetadata("key", "value")>
+<Assembly: System.Reflection.AssemblyTitle("MyAssembly")>
+Public Class C
+End Class
+                         ]]></file>
+                         </compilation>
+
+            Dim reference = CreateCompilation(source, assemblyName:="Lib").EmitToImageReference()
+            Dim consumer = CreateCompilation(<compilation><file>
+Public Class D
+End Class
+</file></compilation>, references:={reference})
+
+            Dim assembly = consumer.SourceModule.ReferencedAssemblySymbols.Single(Function(a) a.Name = "Lib")
+            Dim attributes = assembly.GetAttributes()
+
+            Assert.True(attributes.Any(Function(a) a.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly)))
+            Assert.True(attributes.Any(Function(a) a.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly)))
+            Assert.True(attributes.Any(Function(a) a.IsTargetAttribute(AttributeDescription.AssemblyMetadataAttributeSourceOnly)))
+            Assert.True(attributes.Any(Function(a) a.IsTargetAttribute(AttributeDescription.AssemblyTitleAttribute)))
+        End Sub
+
+        Private Sub VerifyRefAssemblyStripsAttribute(
+            source As XElement,
+            strippedAttributeConstructor As String,
+            Optional expectedVersion As Version = Nothing,
+            Optional expectedFileVersion As String = Nothing,
+            Optional expectedProductVersion As String = Nothing)
+
+            expectedVersion = If(expectedVersion, New Version(0, 0, 0, 0))
+
+            Dim verifier = CompileAndVerify(
+                source,
+                verify:=Verification.Passes,
+                validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=True),
+                useLatestFramework:=True)
+            VerifyWin32Resources(verifier, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+
+            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            verifier = CompileAndVerify(
+                source,
+                emitOptions:=emitRefAssembly,
+                verify:=Verification.Passes,
+                validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=False),
+                useLatestFramework:=True)
+            VerifyWin32Resources(verifier, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True)
+            verifier = CompileAndVerify(
+                source,
+                emitOptions:=emitMetadataOnly,
+                verify:=Verification.Passes,
+                validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=True),
+                useLatestFramework:=True)
+            VerifyWin32Resources(verifier, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+        End Sub
+
+        Private Shared Sub VerifyRefAssemblyStripsAttribute_Validate(assembly As PEAssembly, strippedAttributeConstructor As String, expectedVersion As Version, present As Boolean)
+            Dim attributeStrings = GetAssemblyAttributeStrings(assembly)
+
+            If present Then
+                Assert.Contains(strippedAttributeConstructor, attributeStrings)
+            Else
+                Assert.DoesNotContain(strippedAttributeConstructor, attributeStrings)
+            End If
+
+            Assert.Equal(expectedVersion, assembly.GetMetadataReader().GetAssemblyDefinition().Version)
+        End Sub
+
+        Private Sub VerifyWin32Resources(verifier As CompilationVerifier, expectedVersion As Version, expectedFileVersion As String, expectedProductVersion As String, expectResources As Boolean)
+            Using peReader As New PEReader(New MemoryStream(verifier.EmittedAssemblyData.ToArray()))
+                Dim hasResources As Boolean = peReader.PEHeaders.PEHeader.ResourceTableDirectory.Size <> 0
+                Assert.Equal(expectResources, hasResources)
+
+                If Not hasResources Then
+                    Return
+                End If
+            End Using
+
+            If ExecutionConditionUtil.IsWindows Then
+                Dim file = Temp.CreateFile(extension:=".dll").WriteAllBytes(verifier.EmittedAssemblyData)
+                Dim versionData = Win32Res.VersionResourceToXml(file.Path)
+                Dim expectedEffectiveFileVersion = If(expectedFileVersion, expectedVersion.ToString())
+
+                Assert.Equal(expectedEffectiveFileVersion, FileVersionInfo.GetVersionInfo(file.Path).FileVersion)
+                Assert.Contains($"<KeyValuePair Key=""FileVersion"" Value=""{expectedEffectiveFileVersion}"" />", versionData)
+
+                If expectedProductVersion IsNot Nothing Then
+                    Assert.Contains($"<KeyValuePair Key=""ProductVersion"" Value=""{expectedProductVersion}"" />", versionData)
+                Else
+                    Assert.DoesNotContain("Key=""ProductVersion""", versionData)
+                End If
+            End If
+        End Sub
+
+        Private Shared Function GetAssemblyAttributeStrings(assembly As PEAssembly) As IEnumerable(Of String)
+            Dim reader = assembly.GetMetadataReader()
+            Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
+            Return attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor))
+        End Function
 
         <Fact>
         Public Sub RefAssembly_InvariantToSomeChanges()

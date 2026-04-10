@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyVersionAttribute) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyCompanyAttribute) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyProductAttribute) ||
-                attribute.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute) ||
+                attribute.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyCopyrightAttribute) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyTrademarkAttribute) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyKeyFileAttribute) ||
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyAlgorithmIdAttribute) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyFlagsAttribute) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblyDelaySignAttribute) ||
-                attribute.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute) ||
+                attribute.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly) ||
                 attribute.IsTargetAttribute(AttributeDescription.SatelliteContractVersionAttribute) ||
                 attribute.IsTargetAttribute(AttributeDescription.AssemblySignatureKeyAttribute))
             {
@@ -2409,7 +2409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyVersionAttributeSetting = version;
             }
-            else if (attribute.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly))
             {
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].ValueInternal;
@@ -2455,7 +2455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyProductAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
             }
-            else if (attribute.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute))
+            else if (attribute.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly))
             {
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyInformationalVersionAttributeSetting = (string)attribute.CommonConstructorArguments[0].ValueInternal;
             }

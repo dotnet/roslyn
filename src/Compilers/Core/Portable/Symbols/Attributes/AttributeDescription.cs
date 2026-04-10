@@ -207,6 +207,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfTypeIdentifierAttribute = { s_signature_HasThis_Void, s_signature_HasThis_Void_String_String };
         private static readonly byte[][] s_signaturesOfAttributeUsage = { s_signature_HasThis_Void_AttributeTargets };
         private static readonly byte[][] s_signaturesOfAssemblySignatureKeyAttribute = { s_signature_HasThis_Void_String_String };
+        private static readonly byte[][] s_signaturesOfAssemblyMetadataAttribute = { s_signature_HasThis_Void_String_String };
         private static readonly byte[][] s_signaturesOfAssemblyFlagsAttribute =
         {
             s_signature_HasThis_Void_AssemblyNameFlags,
@@ -363,13 +364,11 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription IndexerNameAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IndexerNameAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyDelaySignAttribute = new AttributeDescription("System.Reflection", "AssemblyDelaySignAttribute", s_signatures_HasThis_Void_Boolean_Only);
         internal static readonly AttributeDescription AssemblyVersionAttribute = new AttributeDescription("System.Reflection", "AssemblyVersionAttribute", s_signatures_HasThis_Void_String_Only);
-        internal static readonly AttributeDescription AssemblyFileVersionAttribute = new AttributeDescription("System.Reflection", "AssemblyFileVersionAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyTitleAttribute = new AttributeDescription("System.Reflection", "AssemblyTitleAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyDescriptionAttribute = new AttributeDescription("System.Reflection", "AssemblyDescriptionAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyCultureAttribute = new AttributeDescription("System.Reflection", "AssemblyCultureAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyCompanyAttribute = new AttributeDescription("System.Reflection", "AssemblyCompanyAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyProductAttribute = new AttributeDescription("System.Reflection", "AssemblyProductAttribute", s_signatures_HasThis_Void_String_Only);
-        internal static readonly AttributeDescription AssemblyInformationalVersionAttribute = new AttributeDescription("System.Reflection", "AssemblyInformationalVersionAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyCopyrightAttribute = new AttributeDescription("System.Reflection", "AssemblyCopyrightAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription SatelliteContractVersionAttribute = new AttributeDescription("System.Resources", "SatelliteContractVersionAttribute", s_signatures_HasThis_Void_String_Only);
         internal static readonly AttributeDescription AssemblyTrademarkAttribute = new AttributeDescription("System.Reflection", "AssemblyTrademarkAttribute", s_signatures_HasThis_Void_String_Only);
@@ -503,5 +502,10 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription MetadataUpdateDeletedAttribute = new AttributeDescription("System.Runtime.CompilerServices", "MetadataUpdateDeletedAttribute", s_signatures_HasThis_Void_Only);
         internal static readonly AttributeDescription ExtendedLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "ExtendedLayoutAttribute", s_signaturesOfExtendedLayoutAttribute);
         internal static readonly AttributeDescription UnionAttribute = new AttributeDescription("System.Runtime.CompilerServices", "UnionAttribute", s_signatures_HasThis_Void_Only);
+
+        // These attributes are stripped from reference assemblies, so the compiler can only make use of these attributes in a source context
+        internal static readonly AttributeDescription AssemblyFileVersionAttributeSourceOnly = new AttributeDescription("System.Reflection", "AssemblyFileVersionAttribute", s_signatures_HasThis_Void_String_Only);
+        internal static readonly AttributeDescription AssemblyInformationalVersionAttributeSourceOnly = new AttributeDescription("System.Reflection", "AssemblyInformationalVersionAttribute", s_signatures_HasThis_Void_String_Only);
+        internal static readonly AttributeDescription AssemblyMetadataAttributeSourceOnly = new AttributeDescription("System.Reflection", "AssemblyMetadataAttribute", s_signaturesOfAssemblyMetadataAttribute);
     }
 }

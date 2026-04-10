@@ -2293,7 +2293,7 @@ public class C { }
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
                 var attrs = m.ContainingAssembly.GetAttributes();
-                var attrlist = attrs.Where(a => a.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute));
+                var attrlist = attrs.Where(a => a.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly));
 
                 Assert.Equal(1, attrlist.Count());
                 Assert.Equal("System.Reflection.AssemblyFileVersionAttribute(\"4.3.2.1\")", attrlist.First().ToString());

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -24,7 +25,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
@@ -964,6 +964,299 @@ public class C
             };
             string source = @"[assembly:System.Runtime.CompilerServices.ReferenceAssembly()]";
             CompileAndVerify(source, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_01()
+        {
+            var source = """
+                [assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")]
+                public class C { }
+                """;
+
+            var attributeConstructor = "MemberReference:Void System.Reflection.AssemblyFileVersionAttribute..ctor(String)";
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedFileVersion: "1.2.3.4");
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_02()
+        {
+            var source = """
+                [assembly: System.Reflection.AssemblyInformationalVersion("1.0.0-beta")]
+                public class C { }
+                """;
+
+            var attributeConstructor = "MemberReference:Void System.Reflection.AssemblyInformationalVersionAttribute..ctor(String)";
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedProductVersion: "1.0.0-beta");
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_03()
+        {
+            var source = """
+                [assembly: System.Reflection.AssemblyMetadata("key", "value")]
+                public class C { }
+                """;
+
+            var attributeConstructor = "MemberReference:Void System.Reflection.AssemblyMetadataAttribute..ctor(String, String)";
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor);
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_04()
+        {
+            var source = """
+                [assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")]
+                [assembly: System.Reflection.AssemblyVersion("5.6.7.8")]
+                public class C { }
+                """;
+
+            var attributeConstructor = "MemberReference:Void System.Reflection.AssemblyFileVersionAttribute..ctor(String)";
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedVersion: new Version(5, 6, 7, 8), expectedFileVersion: "1.2.3.4");
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_05()
+        {
+            var source = """
+                [assembly: System.Reflection.AssemblyInformationalVersion("1.0.0-beta")]
+                [assembly: System.Reflection.AssemblyVersion("5.6.7.8")]
+                public class C { }
+                """;
+
+            var attributeConstructor = "MemberReference:Void System.Reflection.AssemblyInformationalVersionAttribute..ctor(String)";
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedVersion: new Version(5, 6, 7, 8), expectedProductVersion: "1.0.0-beta");
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_06()
+        {
+            var source = """
+                [assembly: System.Reflection.AssemblyMetadata("key", "value")]
+                [assembly: System.Reflection.AssemblyVersion("5.6.7.8")]
+                public class C { }
+                """;
+
+            var attributeConstructor = "MemberReference:Void System.Reflection.AssemblyMetadataAttribute..ctor(String, String)";
+            VerifyRefAssemblyStripsAttribute(source, attributeConstructor, expectedVersion: new Version(5, 6, 7, 8));
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_07()
+        {
+            // AssemblyVersionAttribute affects assembly identity
+            var source = """
+                [assembly: System.Reflection.AssemblyVersion("1.2.3.4")]
+                public class C { }
+                """;
+
+            CompileAndVerify(source, assemblyValidator: assemblyValidator);
+
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(source, emitOptions: emitRefAssembly, assemblyValidator: assemblyValidator);
+
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(true);
+            CompileAndVerify(source, emitOptions: emitMetadataOnly, assemblyValidator: assemblyValidator);
+
+            static void assemblyValidator(PEAssembly assembly)
+            {
+                var expectedVersion = new Version(1, 2, 3, 4);
+                Assert.DoesNotContain("MemberReference:Void System.Reflection.AssemblyVersionAttribute..ctor(String)", GetAssemblyAttributeStrings(assembly));
+                Assert.Equal(expectedVersion, assembly.GetMetadataReader().GetAssemblyDefinition().Version);
+            }
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_08()
+        {
+            var source = """
+                [assembly: System.Reflection.AssemblyTitle("MyAssembly")]
+                public class C { }
+                """;
+
+            var attributeConstructor = "MemberReference:Void System.Reflection.AssemblyTitleAttribute..ctor(String)";
+
+            CompileAndVerify(source, assemblyValidator: assembly =>
+                Assert.Contains(attributeConstructor, GetAssemblyAttributeStrings(assembly)));
+
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(source, emitOptions: emitRefAssembly, assemblyValidator: assembly =>
+                Assert.Contains(attributeConstructor, GetAssemblyAttributeStrings(assembly)));
+
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(true);
+            CompileAndVerify(source, emitOptions: emitMetadataOnly, assemblyValidator: assembly =>
+                Assert.Contains(attributeConstructor, GetAssemblyAttributeStrings(assembly)));
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_09()
+        {
+            var reference = CreateCompilation("""
+                [assembly: System.Reflection.AssemblyFileVersion("1.2.3.4")]
+                [assembly: System.Reflection.AssemblyInformationalVersion("1.0.0-beta")]
+                [assembly: System.Reflection.AssemblyMetadata("key", "value")]
+                [assembly: System.Reflection.AssemblyTitle("MyAssembly")]
+                public class C { }
+                """, assemblyName: "Lib").EmitToImageReference();
+
+            var compilation = CreateCompilation("class D { }", references: [reference]);
+            var assembly = compilation.SourceModule.ReferencedAssemblySymbols.Single(a => a.Name == "Lib");
+            var attributes = assembly.GetAttributes();
+
+            Assert.Contains(attributes, static a => a.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly));
+            Assert.Contains(attributes, static a => a.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly));
+            Assert.Contains(attributes, static a => a.IsTargetAttribute(AttributeDescription.AssemblyMetadataAttributeSourceOnly));
+            Assert.Contains(attributes, static a => a.IsTargetAttribute(AttributeDescription.AssemblyTitleAttribute));
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_10()
+        {
+            // sibling of Microsoft.CodeAnalysis.CSharp.UnitTests.AssemblyAttributeTests.Bug649346
+            var mod1Source = """[assembly:System.Reflection.AssemblyFileVersionAttribute("1.2.3.4")]""";
+            var source = """[assembly:System.Reflection.AssemblyFileVersionAttribute("4.3.2.1")] class C { static void Main() {} }""";
+
+            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            var appCompilation = CreateCompilation(source, references: [compMod1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+
+            Assert.Equal(2, appCompilation.Assembly.Modules.Length);
+
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            {
+                var attrs = m.ContainingAssembly.GetAttributes();
+                var attrlist = attrs.Where(a => a.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly));
+
+                Assert.Equal(1, attrlist.Count());
+                Assert.Equal("""System.Reflection.AssemblyFileVersionAttribute("4.3.2.1")""", attrlist.First().ToString());
+            }).VerifyDiagnostics(
+                // warning CS7090: Attribute 'AssemblyFileVersionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source
+                Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyFileVersionAttribute", "M1.netmodule").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_11()
+        {
+            var mod1Source = """[assembly:System.Reflection.AssemblyInformationalVersionAttribute("1.2.3.4")]""";
+            var source = """[assembly:System.Reflection.AssemblyInformationalVersionAttribute("4.3.2.1")] class C { static void Main() {} }""";
+
+            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            var appCompilation = CreateCompilation(source, references: [compMod1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+
+            Assert.Equal(2, appCompilation.Assembly.Modules.Length);
+
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            {
+                var attrs = m.ContainingAssembly.GetAttributes();
+                var attrlist = attrs.Where(a => a.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly));
+
+                Assert.Equal(1, attrlist.Count());
+                Assert.Equal("""System.Reflection.AssemblyInformationalVersionAttribute("4.3.2.1")""", attrlist.First().ToString());
+            }).VerifyDiagnostics(
+                // warning CS7090: Attribute 'AssemblyInformationalVersionAttribute' from module 'M1.netmodule' will be ignored in favor of the instance appearing in source
+                Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyInformationalVersionAttribute", "M1.netmodule").WithLocation(1, 1)
+            );
+        }
+
+        [Fact]
+        public void RefAssembly_StripAttributes_12()
+        {
+            var mod1Source = """[assembly:System.Reflection.AssemblyMetadataAttribute("key", "value1")]""";
+            var source = """[assembly:System.Reflection.AssemblyMetadataAttribute("key", "value2")] class C { static void Main() {} }""";
+
+            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            var appCompilation = CreateCompilation(source, references: [compMod1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+
+            Assert.Equal(2, appCompilation.Assembly.Modules.Length);
+
+            CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
+            {
+                var attrs = m.ContainingAssembly.GetAttributes();
+                var attrlist = attrs.Where(a => a.IsTargetAttribute(AttributeDescription.AssemblyMetadataAttributeSourceOnly)).ToArray();
+
+                Assert.Equal(2, attrlist.Length);
+                Assert.Contains("""System.Reflection.AssemblyMetadataAttribute("key", "value1")""", attrlist.Select(a => a.ToString()));
+                Assert.Contains("""System.Reflection.AssemblyMetadataAttribute("key", "value2")""", attrlist.Select(a => a.ToString()));
+            }).VerifyDiagnostics();
+        }
+
+        private void VerifyRefAssemblyStripsAttribute(string source, string strippedAttributeConstructor, Version expectedVersion = null, string expectedFileVersion = null, string expectedProductVersion = null)
+        {
+            expectedVersion ??= new Version(0, 0, 0, 0);
+            var expectedEffectiveFileVersion = expectedFileVersion ?? expectedVersion.ToString();
+
+            // normal assembly
+            var verifier = CompileAndVerify(source,
+                assemblyValidator: assembly => validate(assembly, strippedAttributeConstructor, expectedVersion, present: true));
+
+            verifyWin32Resources(verifier, expectedEffectiveFileVersion: null, expectedProductVersion: null, expectResources: false);
+
+            // ref assembly
+            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            verifier = CompileAndVerify(source, emitOptions: emitRefAssembly,
+                assemblyValidator: assembly => validate(assembly, strippedAttributeConstructor, expectedVersion, present: false));
+
+            verifyWin32Resources(verifier, expectedEffectiveFileVersion: null, expectedProductVersion: null, expectResources: false);
+
+            // metadata-only assembly
+            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(true);
+            verifier = CompileAndVerify(source, emitOptions: emitMetadataOnly,
+                assemblyValidator: assembly => validate(assembly, strippedAttributeConstructor, expectedVersion, present: true));
+
+            verifyWin32Resources(verifier, expectedEffectiveFileVersion: null, expectedProductVersion: null, expectResources: false);
+
+            static void validate(PEAssembly assembly, string strippedAttributeConstructor, Version expectedVersion, bool present)
+            {
+                if (present)
+                {
+                    Assert.Contains(strippedAttributeConstructor, GetAssemblyAttributeStrings(assembly));
+                }
+                else
+                {
+                    Assert.DoesNotContain(strippedAttributeConstructor, GetAssemblyAttributeStrings(assembly));
+                }
+
+                Assert.Equal(expectedVersion, assembly.GetMetadataReader().GetAssemblyDefinition().Version);
+            }
+
+            void verifyWin32Resources(CompilationVerifier verifier, string expectedEffectiveFileVersion, string expectedProductVersion, bool expectResources)
+            {
+                using (var peReader = new PEReader(new MemoryStream(verifier.EmittedAssemblyData.ToArray())))
+                {
+                    bool hasResources = peReader.PEHeaders.PEHeader.ResourceTableDirectory.Size != 0;
+                    Assert.Equal(expectResources, hasResources);
+
+                    if (!hasResources)
+                    {
+                        return;
+                    }
+                }
+
+                if (ExecutionConditionUtil.IsWindows)
+                {
+                    var file = Temp.CreateFile(extension: ".dll").WriteAllBytes(verifier.EmittedAssemblyData);
+                    var versionData = Win32Res.VersionResourceToXml(file.Path);
+
+                    Assert.Equal(expectedEffectiveFileVersion, FileVersionInfo.GetVersionInfo(file.Path).FileVersion);
+                    Assert.Contains($"<KeyValuePair Key=\"FileVersion\" Value=\"{expectedEffectiveFileVersion}\" />", versionData);
+
+                    if (expectedProductVersion is not null)
+                    {
+                        Assert.Contains($"<KeyValuePair Key=\"ProductVersion\" Value=\"{expectedProductVersion}\" />", versionData);
+                    }
+                    else
+                    {
+                        Assert.DoesNotContain("Key=\"ProductVersion\"", versionData);
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<string> GetAssemblyAttributeStrings(PEAssembly assembly)
+        {
+            var reader = assembly.GetMetadataReader();
+            var attributes = reader.GetAssemblyDefinition().GetCustomAttributes();
+            return attributes.Select(a => MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor));
         }
 
         [Theory]
@@ -2598,6 +2891,19 @@ struct S
             {
                 Assert.Throws<ArgumentException>(() => comp.Emit(output,
                     options: EmitOptions.Default.WithEmitMetadataOnly(true)));
+            }
+        }
+
+        [Fact]
+        public void EmitRefAssembly_DisallowOutputtingNetModule()
+        {
+            CSharpCompilation comp = CreateEmptyCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true).WithOutputKind(OutputKind.NetModule));
+
+            using (var output = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    options: EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false)));
             }
         }
 

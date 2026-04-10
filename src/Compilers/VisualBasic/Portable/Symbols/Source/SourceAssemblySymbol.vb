@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                attribute.IsTargetAttribute(AttributeDescription.AssemblyVersionAttribute) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblyCompanyAttribute) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblyProductAttribute) OrElse
-               attribute.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute) OrElse
+               attribute.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblyCopyrightAttribute) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblyTrademarkAttribute) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblyKeyFileAttribute) OrElse
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                attribute.IsTargetAttribute(AttributeDescription.AssemblyAlgorithmIdAttribute) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblyFlagsAttribute) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblyDelaySignAttribute) OrElse
-               attribute.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute) OrElse
+               attribute.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly) OrElse
                attribute.IsTargetAttribute(AttributeDescription.SatelliteContractVersionAttribute) OrElse
                attribute.IsTargetAttribute(AttributeDescription.AssemblySignatureKeyAttribute) Then
 
@@ -1046,7 +1046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyVersionAttributeSetting = version
-            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly) Then
                 Dim dummy As Version = Nothing
                 Dim verString = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
                 If Not VersionHelper.TryParse(verString, version:=dummy) Then
@@ -1054,7 +1054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyFileVersionAttributeSetting = verString
-            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyTitleAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyTitleAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
@@ -1076,7 +1076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyCompanyAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyProductAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyProductAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
-            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
             ElseIf attrData.IsTargetAttribute(AttributeDescription.SatelliteContractVersionAttribute) Then
                 'just check the format of this one, don't do anything else with it.
