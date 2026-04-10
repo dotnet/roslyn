@@ -825,7 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Whether the property has the <see langword="unsafe"/> keyword in its signature.
         /// </summary>
-        private bool IsDeclaredUnsafe => (_modifiers & DeclarationModifiers.Unsafe) != 0;
+        internal bool IsDeclaredUnsafe => (_modifiers & DeclarationModifiers.Unsafe) != 0;
 
         internal override CallerUnsafeMode CallerUnsafeMode
         {
