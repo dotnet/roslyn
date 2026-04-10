@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertNamespace;
@@ -24,7 +25,8 @@ public sealed class ConvertToBlockScopedNamespaceAnalyzerTests
         get
         {
             yield return new object[] { "" };
-            yield return new object[] { "\r\n" };
+            if (ExecutionConditionUtil.IsWindows)
+                yield return new object[] { "\r\n" };
         }
     }
 
