@@ -103,10 +103,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Sub
 
 #Disable Warning IDE0060 ' Remove unused parameter - https://github.com/dotnet/roslyn/issues/45890
-    Public Function CreateWorkspaceWithWaiter(element As XElement, host As RenameTestHost, ParamArray additionalParts As Type()) As EditorTestWorkspace
+        Public Function CreateWorkspaceWithWaiter(element As XElement, host As RenameTestHost, ParamArray additionalParts As Type()) As EditorTestWorkspace
 #Enable Warning IDE0060 ' Remove unused parameter
-        Dim composition = If(additionalParts.Length = 0, s_composition, s_composition.AddParts(additionalParts))
-        Dim workspace = EditorTestWorkspace.CreateWorkspace(element, composition:=composition)
+            Dim composition = If(additionalParts.Length = 0, s_composition, s_composition.AddParts(additionalParts))
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(element, composition:=composition)
             workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
             Return workspace
         End Function
