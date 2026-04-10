@@ -59,6 +59,8 @@ dotnet run Program.cs -- "..\dummy-assemblies"
 dotnet run Program.cs -- "..\ref-assemblies"
 ```
 
+My pairs of ref assemblies are stored in `Q:\repos\ref-assemblies\ref-assemblies`, but you can use a folder you like.
+
 The analyzer writes reports into an `output\` folder under the input directory, including:
 
 - `pair-results.json`
