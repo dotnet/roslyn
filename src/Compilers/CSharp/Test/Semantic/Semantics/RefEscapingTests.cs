@@ -4829,9 +4829,9 @@ class X : List<int>
 
                     static MyCollection M1s()
                     {
-                        MySource source = default;
-                        scoped MyCollection result = [..source];
-                        return result; // 1
+                        scoped MySource source = default;
+                        MyCollection result = [..source]; // 1
+                        return result; // 2
                     }
 
                     static MyCollection M2()
@@ -4844,26 +4844,18 @@ class X : List<int>
                         }
                         return result;
                     }
-
-                    static MyCollection M2s()
-                    {
-                        MySource source = default;
-                        scoped MyCollection result = new();
-                        foreach (var el in source)
-                        {
-                            result.Add(el);
-                        }
-                        return result; // 2
-                    }
                 }
                 """;
             CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (41,32): error CS8352: Cannot use variable '..source' in this context because it may expose referenced variables outside of their declaration scope
+                //         MyCollection result = [..source]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "..source").WithArguments("..source").WithLocation(41, 32),
+                // (41,32): error CS8350: This combination of arguments to 'MyCollection.Add(Span<int>)' is disallowed because it may expose variables referenced by parameter 'item' outside of their declaration scope
+                //         MyCollection result = [..source]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "..source").WithArguments("MyCollection.Add(System.Span<int>)", "item").WithLocation(41, 32),
                 // (42,16): error CS8352: Cannot use variable 'result' in this context because it may expose referenced variables outside of their declaration scope
-                //         return result; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(42, 16),
-                // (64,16): error CS8352: Cannot use variable 'result' in this context because it may expose referenced variables outside of their declaration scope
                 //         return result; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(64, 16));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "result").WithArguments("result").WithLocation(42, 16));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75802")]
