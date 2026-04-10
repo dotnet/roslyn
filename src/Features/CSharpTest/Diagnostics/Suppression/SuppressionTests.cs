@@ -2016,7 +2016,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """, $"""
+                    """, ($"""
                     // This file is used by Code Analysis to maintain SuppressMessage
                     // attributes that are applied to this project.
                     // Project-level suppressions either have no target or are given
@@ -2027,7 +2027,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """).NormalizeLineEndings().TrimEnd() + "\n");
 
             [Fact]
             public Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
@@ -2093,7 +2093,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """, $"""
+                    """, ($"""
                     // This file is used by Code Analysis to maintain SuppressMessage
                     // attributes that are applied to this project.
                     // Project-level suppressions either have no target or are given
@@ -2104,7 +2104,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """).NormalizeLineEndings().TrimEnd() + "\n");
 
             [Fact]
             public Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
@@ -2127,14 +2127,14 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """, $"""
+                    """, ($"""
 
                     using System.Diagnostics.CodeAnalysis;
 
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """).NormalizeLineEndings().TrimEnd() + "\n");
 
             [Fact]
             public Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
@@ -2155,14 +2155,14 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                             </Document>
                         </Project>
                     </Workspace>
-                    """, $"""
+                    """, ($"""
 
                     using System.Diagnostics.CodeAnalysis;
 
                     [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """).NormalizeLineEndings().TrimEnd() + "\n");
         }
     }
 
