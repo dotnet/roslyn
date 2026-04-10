@@ -1,4 +1,4 @@
-#!/usr/bin/env -S dotnet run
+#!/usr/bin/env dotnet
 /*
 SYNOPSIS
     Retrieves test failures from Azure DevOps builds and Helix test runs.
@@ -9,15 +9,16 @@ DESCRIPTION
     It can also directly query a specific Helix job and work item.
 
 USAGE
-    ./Get-CIStatus.cs --build-id 1276327
-    ./Get-CIStatus.cs --pr-number 123445 --show-logs
-    ./Get-CIStatus.cs --pr-number 123445 --repository dotnet/aspnetcore
-    ./Get-CIStatus.cs --helix-job "4b24b2c2-ad5a-4c46-8a84-844be03b1d51" --work-item "iOS.Device.Aot.Test"
-    ./Get-CIStatus.cs --build-id 1276327 --search-mihubot
-    ./Get-CIStatus.cs --helix-job "4b24b2c2-ad5a-4c46-8a84-844be03b1d51" --find-binlogs
-    ./Get-CIStatus.cs --clear-cache
+    ./Get-CIStatus.cs -BuildId 1276327
+    ./Get-CIStatus.cs -PRNumber 123445 -ShowLogs
+    ./Get-CIStatus.cs -PRNumber 123445 -Repository dotnet/aspnetcore
+    ./Get-CIStatus.cs -HelixJob "4b24b2c2-ad5a-4c46-8a84-844be03b1d51" -WorkItem "iOS.Device.Aot.Test"
+    ./Get-CIStatus.cs -BuildId 1276327 -SearchMihuBot
+    ./Get-CIStatus.cs -HelixJob "4b24b2c2-ad5a-4c46-8a84-844be03b1d51" -FindBinlogs
+    ./Get-CIStatus.cs -ClearCache
 */
 #nullable enable
+// File-based app JSON serialization uses reflection-heavy APIs and is not intended for trimming or AOT publishing.
 #pragma warning disable IL2026, IL3050
 
 using System.Diagnostics;
@@ -488,7 +489,7 @@ sealed class CiAnalysisApp
                                 else if (helixUrls.Count > 0)
                                 {
                                     Console.WriteLine();
-                                    WriteLine("  Helix logs available (use --show-logs to fetch):", ConsoleColor.Yellow);
+                                    WriteLine("  Helix logs available (use -ShowLogs to fetch):", ConsoleColor.Yellow);
                                     foreach (var url in helixUrls.Take(3))
                                     {
                                         WriteLine($"    {url}", ConsoleColor.DarkGray);
@@ -819,7 +820,7 @@ sealed class CiAnalysisApp
                 WriteLine($"    - {wi.Name} (Exit: {wi.ExitCode})", ConsoleColor.White);
             }
             Console.WriteLine();
-            WriteLine("  Use --work-item '<name>' to see details", ConsoleColor.Gray);
+            WriteLine("  Use -WorkItem '<name>' to see details", ConsoleColor.Gray);
         }
         else
         {
@@ -861,7 +862,7 @@ sealed class CiAnalysisApp
                     }
                 }
                 Console.WriteLine();
-                WriteLine("  Tip: Use --work-item '<name>' to get full binlog URIs", ConsoleColor.DarkGray);
+                WriteLine("  Tip: Use -WorkItem '<name>' to get full binlog URIs", ConsoleColor.DarkGray);
             }
             else
             {
@@ -1094,7 +1095,7 @@ sealed class CiAnalysisApp
                 Console.WriteLine();
                 WriteLine($"PR #{pr} has merge conflicts (mergeable_state: dirty)", ConsoleColor.Red);
                 WriteLine("CI will not run until conflicts are resolved.", ConsoleColor.Yellow);
-                WriteLine("Resolve conflicts and push to trigger CI, or use --build-id to analyze a previous build.", ConsoleColor.Gray);
+                WriteLine("Resolve conflicts and push to trigger CI, or use -BuildId to analyze a previous build.", ConsoleColor.Gray);
                 return new BuildLookupResult([], "MERGE_CONFLICTS", prMergeState);
             }
 
@@ -2055,7 +2056,7 @@ sealed class CiAnalysisApp
     {
         if (!IsToolAvailable("gh"))
         {
-            throw new InvalidOperationException("GitHub CLI (gh) is required for PR lookup. Install from https://cli.github.com/ or use --build-id instead.");
+            throw new InvalidOperationException("GitHub CLI (gh) is required for PR lookup. Install from https://cli.github.com/ or use -BuildId instead.");
         }
     }
 
@@ -2195,6 +2196,7 @@ sealed record Options(
         int? buildId = null;
         string? helixJob = null;
         string? workItem = null;
+        // Keep the Roslyn-specific default from the prior PowerShell script in this repository copy of the skill.
         var repository = "dotnet/roslyn";
         var organization = "dnceng-public";
         var project = "cbb18261-c48f-4abb-8651-8cdcb5474649";
@@ -2224,57 +2226,76 @@ sealed record Options(
 
             switch (arg)
             {
+                case "-PRNumber":
                 case "--pr-number":
                     prNumber = int.Parse(NextValue());
                     break;
+                case "-BuildId":
                 case "--build-id":
                     buildId = int.Parse(NextValue());
                     break;
+                case "-HelixJob":
                 case "--helix-job":
                     helixJob = NextValue();
                     break;
+                case "-WorkItem":
                 case "--work-item":
                     workItem = NextValue();
                     break;
+                case "-Repository":
                 case "--repository":
                     repository = NextValue();
                     break;
+                case "-Organization":
                 case "--organization":
                     organization = NextValue();
                     break;
+                case "-Project":
                 case "--project":
                     project = NextValue();
                     break;
+                case "-ShowLogs":
                 case "--show-logs":
                     showLogs = true;
                     break;
+                case "-MaxJobs":
                 case "--max-jobs":
                     maxJobs = int.Parse(NextValue());
                     break;
+                case "-MaxFailureLines":
                 case "--max-failure-lines":
                     maxFailureLines = int.Parse(NextValue());
                     break;
+                case "-TimeoutSec":
                 case "--timeout-sec":
                     timeoutSec = int.Parse(NextValue());
                     break;
+                case "-ContextLines":
                 case "--context-lines":
                     contextLines = int.Parse(NextValue());
                     break;
+                case "-NoCache":
                 case "--no-cache":
                     noCache = true;
                     break;
+                case "-CacheTtlSeconds":
+                case "-CacheTTLSeconds":
                 case "--cache-ttl-seconds":
                     cacheTtlSeconds = int.Parse(NextValue());
                     break;
+                case "-ClearCache":
                 case "--clear-cache":
                     clearCache = true;
                     break;
+                case "-ContinueOnError":
                 case "--continue-on-error":
                     continueOnError = true;
                     break;
+                case "-SearchMihuBot":
                 case "--search-mihubot":
                     searchMihubot = true;
                     break;
+                case "-FindBinlogs":
                 case "--find-binlogs":
                     findBinlogs = true;
                     break;
@@ -2287,21 +2308,21 @@ sealed record Options(
         if (modeCount == 0)
         {
             throw new ArgumentException(
-                "One of --pr-number, --build-id, --helix-job, or --clear-cache is required.\n" +
+                "One of -PRNumber, -BuildId, -HelixJob, or -ClearCache is required.\n" +
                 "Usage:\n" +
-                "  Get-CIStatus.cs --pr-number <int> [--show-logs] [--repository owner/repo]\n" +
-                "  Get-CIStatus.cs --build-id <int> [--show-logs]\n" +
-                "  Get-CIStatus.cs --helix-job <guid> [--work-item <name>]\n" +
-                "  Get-CIStatus.cs --clear-cache");
+                "  Get-CIStatus.cs -PRNumber <int> [-ShowLogs] [-Repository owner/repo]\n" +
+                "  Get-CIStatus.cs -BuildId <int> [-ShowLogs]\n" +
+                "  Get-CIStatus.cs -HelixJob <guid> [-WorkItem <name>]\n" +
+                "  Get-CIStatus.cs -ClearCache");
         }
         if (modeCount > 1)
         {
-            throw new ArgumentException("Modes are mutually exclusive: --pr-number, --build-id, --helix-job, --clear-cache.");
+            throw new ArgumentException("Modes are mutually exclusive: -PRNumber, -BuildId, -HelixJob, -ClearCache.");
         }
 
         if (workItem is not null && helixJob is null)
         {
-            throw new ArgumentException("--work-item requires --helix-job.");
+            throw new ArgumentException("-WorkItem requires -HelixJob.");
         }
 
         return new Options(prNumber, buildId, helixJob, workItem, repository, organization, project, showLogs, maxJobs, maxFailureLines, timeoutSec, contextLines, noCache, cacheTtlSeconds, clearCache, continueOnError, searchMihubot, findBinlogs);

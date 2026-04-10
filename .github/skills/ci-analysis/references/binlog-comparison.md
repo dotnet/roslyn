@@ -27,13 +27,13 @@ When the failing work item's Helix job ID isn't visible (e.g., canceled jobs, or
 2. Load the `SendToHelix.binlog` and search for `Sent Helix Job` to find the GUIDs.
 3. Query each Helix job GUID with the CI script:
    ```bash
-   ./scripts/Get-CIStatus.cs --helix-job "{GUID}" --find-binlogs
+   ./scripts/Get-CIStatus.cs -HelixJob "{GUID}" -FindBinlogs
    ```
 
 **For Helix work item binlogs (the common case):**
 The CI script shows binlog URLs directly when you query a specific work item:
 ```bash
-./scripts/Get-CIStatus.cs --helix-job "{JOB_ID}" --work-item "{WORK_ITEM}"
+./scripts/Get-CIStatus.cs -HelixJob "{JOB_ID}" -WorkItem "{WORK_ITEM}"
 # Output includes: 📋 msbuild.binlog: https://helix...blob.core.windows.net/...
 ```
 
@@ -44,7 +44,7 @@ Launch two `task` subagents (can run in parallel), each with a prompt like:
 ```
 Download the msbuild.binlog from Helix job {JOB_ID} work item {WORK_ITEM}.
 Use the CI skill script to get the artifact URL:
-  ./scripts/Get-CIStatus.cs --helix-job "{JOB_ID}" --work-item "{WORK_ITEM}"
+  ./scripts/Get-CIStatus.cs -HelixJob "{JOB_ID}" -WorkItem "{WORK_ITEM}"
 Download the binlog, load it, find the {TASK_NAME} task, and extract CommandLineArguments.
 Normalize paths (see table below) and sort args.
 Parse into individual args using regex: (?:"[^"]+"|/[^\s]+|[^\s]+)

@@ -9,7 +9,7 @@ Guide to finding and analyzing artifacts from Helix test runs.
 Query a specific work item to see its artifacts:
 
 ```bash
-./scripts/Get-CIStatus.cs --helix-job "4b24b2c2-..." --work-item "Microsoft.NET.Sdk.Tests.dll.1" --show-logs
+./scripts/Get-CIStatus.cs -HelixJob "4b24b2c2-..." -WorkItem "Microsoft.NET.Sdk.Tests.dll.1" -ShowLogs
 ```
 
 ### Via API
