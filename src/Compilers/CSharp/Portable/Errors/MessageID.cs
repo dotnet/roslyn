@@ -310,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnsafeEvolution = MessageBase + 12859,
 
         IDS_FeatureUnions = MessageBase + 12860,
+
+        IDS_FeatureStaticMembersInInterfaces = MessageBase + 12900, // PROTOTYPE: Pack numbers
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -493,6 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureCollectionExpressionArguments:
                 case MessageID.IDS_FeatureUnsafeEvolution: // https://github.com/dotnet/roslyn/issues/82546: keep this in preview until C# 16
                 case MessageID.IDS_FeatureUnions:
+                case MessageID.IDS_FeatureStaticMembersInInterfaces:
                     return LanguageVersion.Preview;
 
                 // C# 14.0 features.

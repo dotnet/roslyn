@@ -888,12 +888,7 @@ struct S2 : S2.IUnionMembers
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetFramework);
 
-            // PROTOTYPE: We plan to enable this scenario.
-            comp.VerifyEmitDiagnostics(
-                // (9,26): error CS8701: Target runtime doesn't support default interface implementation.
-                //         public static S2 Create(int x) => throw null;
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "Create").WithLocation(9, 26)
-                );
+            comp.VerifyEmitDiagnostics();
 
             VerifyCaseTypes(comp, "S2", ["System.Int32"]);
         }
