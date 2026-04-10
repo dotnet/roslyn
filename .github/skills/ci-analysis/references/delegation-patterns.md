@@ -15,7 +15,7 @@ Job: {JOB_ID_2}, Work items: {ITEM_3}
 
 For each, search console logs for lines ending with [FAIL] (xUnit format).
 If hlx MCP is not available, fall back to:
-  ./scripts/Get-CIStatus.ps1 -HelixJob "{JOB}" -WorkItem "{ITEM}"
+  ./scripts/Get-CIStatus.cs --helix-job "{JOB}" --work-item "{ITEM}"
 
 Extract lines ending with [FAIL] (xUnit format). Ignore [OUTPUT] and [PASS] lines.
 
@@ -35,7 +35,7 @@ Failing build: {BUILD_ID}, job: {JOB_NAME}, work item: {WORK_ITEM}
 Steps:
 1. Search for recently merged PRs:
    Search for recently merged PRs on {TARGET_BRANCH}
-2. Run: ./scripts/Get-CIStatus.ps1 -PRNumber {MERGED_PR} -Repository "dotnet/{REPO}"
+2. Run: ./scripts/Get-CIStatus.cs --pr-number {MERGED_PR} --repository "dotnet/{REPO}"
 3. Find the build with same job name that passed
 4. Locate the Helix job ID (may need artifact download — see [azure-cli.md](azure-cli.md))
 

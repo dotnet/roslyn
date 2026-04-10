@@ -24,7 +24,7 @@ Use this skill when:
 
 ## Script Limitations
 
-The `Get-CIStatus.ps1` script targets **Azure DevOps + Helix** infrastructure specifically. It won't help with:
+The `Get-CIStatus.cs` script targets **Azure DevOps + Helix** infrastructure specifically. It won't help with:
 - **GitHub Actions** workflows (different API, different log format)
 - Repos not using **Helix** for test distribution (no Helix work items to query)
 - Pure **build performance** questions (use MSBuild binlog analysis instead)
@@ -33,32 +33,38 @@ However, the analysis patterns in this skill (interpreting failures, correlating
 
 ## Quick Start
 
-```powershell
-# Analyze PR failures (most common) - defaults to dotnet/runtime
-./scripts/Get-CIStatus.ps1 -PRNumber 123445 -ShowLogs
+```bash
+# Analyze PR failures (most common) - defaults to dotnet/roslyn
+./scripts/Get-CIStatus.cs --pr-number 123445 --show-logs
 
 # Analyze by build ID
-./scripts/Get-CIStatus.ps1 -BuildId 1276327 -ShowLogs
+./scripts/Get-CIStatus.cs --build-id 1276327 --show-logs
 
 # Query specific Helix work item
-./scripts/Get-CIStatus.ps1 -HelixJob "4b24b2c2-..." -WorkItem "System.Net.Http.Tests"
+./scripts/Get-CIStatus.cs --helix-job "4b24b2c2-..." --work-item "System.Net.Http.Tests"
 
 # Other dotnet repositories
-./scripts/Get-CIStatus.ps1 -PRNumber 12345 -Repository "dotnet/aspnetcore"
-./scripts/Get-CIStatus.ps1 -PRNumber 67890 -Repository "dotnet/sdk"
-./scripts/Get-CIStatus.ps1 -PRNumber 11111 -Repository "dotnet/roslyn"
+./scripts/Get-CIStatus.cs --pr-number 12345 --repository "dotnet/aspnetcore"
+./scripts/Get-CIStatus.cs --pr-number 67890 --repository "dotnet/sdk"
+./scripts/Get-CIStatus.cs --pr-number 11111 --repository "dotnet/roslyn"
+```
+
+Or equivalently using `dotnet run --file` from the repo root:
+
+```bash
+dotnet run --file .github/skills/ci-analysis/scripts/Get-CIStatus.cs -- --pr-number 123445 --show-logs
 ```
 
 ## Key Parameters
 
 | Parameter | Description |
 |-----------|-------------|
-| `-PRNumber` | GitHub PR number to analyze |
-| `-BuildId` | Azure DevOps build ID |
-| `-ShowLogs` | Fetch and display Helix console logs |
-| `-Repository` | Target repo (default: dotnet/runtime) |
-| `-MaxJobs` | Max failed jobs to show (default: 5) |
-| `-SearchMihuBot` | Search MihuBot for related issues |
+| `--pr-number` | GitHub PR number to analyze |
+| `--build-id` | Azure DevOps build ID |
+| `--show-logs` | Fetch and display Helix console logs |
+| `--repository` | Target repo (default: dotnet/roslyn) |
+| `--max-jobs` | Max failed jobs to show (default: 5) |
+| `--search-mihubot` | Search MihuBot for related issues |
 
 ## Three Modes
 
@@ -66,34 +72,34 @@ The script operates in three distinct modes depending on what information you ha
 
 | You have... | Use | What you get |
 |-------------|-----|-------------|
-| A GitHub PR number | `-PRNumber 12345` | Full analysis: all builds, failures, known issues, structured JSON summary |
-| An AzDO build ID | `-BuildId 1276327` | Single build analysis: timeline, failures, Helix results |
-| A Helix job ID (optionally a specific work item) | `-HelixJob "..." [-WorkItem "..."]` | Deep dive: list work items for the job, or with `-WorkItem`, focus on a single work item's console logs, artifacts, and test results |
+| A GitHub PR number | `--pr-number 12345` | Full analysis: all builds, failures, known issues, structured JSON summary |
+| An AzDO build ID | `--build-id 1276327` | Single build analysis: timeline, failures, Helix results |
+| A Helix job ID (optionally a specific work item) | `--helix-job "..." [--work-item "..."]` | Deep dive: list work items for the job, or with `--work-item`, focus on a single work item's console logs, artifacts, and test results |
 
-> ❌ **Don't guess the mode.** If the user gives a PR URL, use `-PRNumber`. If they paste an AzDO build link, extract the build ID. If they reference a specific Helix job, use `-HelixJob`.
+> ❌ **Don't guess the mode.** If the user gives a PR URL, use `--pr-number`. If they paste an AzDO build link, extract the build ID. If they reference a specific Helix job, use `--helix-job`.
 
 ## What the Script Does
 
-### PR Analysis Mode (`-PRNumber`)
+### PR Analysis Mode (`--pr-number`)
 1. Discovers AzDO builds associated with the PR (from GitHub check status; for full build history, query AzDO builds on `refs/pull/{PR}/merge` branch)
 2. Fetches Build Analysis for known issues
 3. Gets failed jobs from Azure DevOps timeline
 4. **Separates canceled jobs from failed jobs** (canceled may be dependency-canceled or timeout-canceled)
 5. Extracts Helix work item failures from each failed job
-6. Fetches console logs (with `-ShowLogs`)
+6. Fetches console logs (with `--show-logs`)
 7. Searches for known issues with "Known Build Error" label
 8. Correlates failures with PR file changes
 9. **Emits structured summary** — `[CI_ANALYSIS_SUMMARY]` JSON block with all key facts for the agent to reason over
 
 > **After the script runs**, you (the agent) generate recommendations. The script collects data; you synthesize the advice. See [Generating Recommendations](#generating-recommendations) below.
 
-### Build ID Mode (`-BuildId`)
+### Build ID Mode (`--build-id`)
 1. Fetches the build timeline directly (skips PR discovery)
 2. Performs steps 3–7 from PR Analysis Mode, but does **not** fetch Build Analysis known issues or correlate failures with PR file changes (those require a PR number). Still emits `[CI_ANALYSIS_SUMMARY]` JSON.
 
-### Helix Job Mode (`-HelixJob` [and optional `-WorkItem`])
-1. With `-HelixJob` alone: enumerates work items for the job and summarizes their status
-2. With `-HelixJob` and `-WorkItem`: queries the specific work item for status and artifacts
+### Helix Job Mode (`--helix-job` [and optional `--work-item`])
+1. With `--helix-job` alone: enumerates work items for the job and summarizes their status
+2. With `--helix-job` and `--work-item`: queries the specific work item for status and artifacts
 3. Fetches console logs and file listings, displays detailed failure information
 
 ## Interpreting Results
@@ -208,7 +214,7 @@ Before running the script, read the PR to understand what you're analyzing. Cont
 
 ### Step 1: Run the script
 
-Run with `-ShowLogs` for detailed failure info.
+Run with `--show-logs` for detailed failure info.
 
 ### Step 2: Analyze results
 
@@ -226,7 +232,7 @@ Run with `-ShowLogs` for detailed failure info.
    - User mentions a canceled job but `canceledJobNames` is empty
    - User says "CI is failing" but the latest build is green
    - User references a specific job name not in the current results
-   Offer to re-run with `-BuildId` if the user can provide the earlier build ID from AzDO.
+   Offer to re-run with `--build-id` if the user can provide the earlier build ID from AzDO.
 
 ### Step 3: Verify before claiming
 

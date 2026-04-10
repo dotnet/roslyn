@@ -1,0 +1,2 @@
+<!-- Stop MSBuild from traversing into the Roslyn Arcade SDK build system -->
+<Project />

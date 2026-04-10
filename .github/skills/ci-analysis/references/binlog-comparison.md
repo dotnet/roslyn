@@ -14,7 +14,7 @@ When a test **passes on the target branch but fails on a PR**, comparing MSBuild
 
 ### Step 1: Identify the two work items to compare
 
-Use `Get-CIStatus.ps1` to find the failing Helix job + work item, then find a corresponding passing build (recent PR merged to the target branch, or a CI run on that branch).
+Use `Get-CIStatus.cs` to find the failing Helix job + work item, then find a corresponding passing build (recent PR merged to the target branch, or a CI run on that branch).
 
 **Finding Helix job IDs from build artifacts (binlogs to find binlogs):**
 When the failing work item's Helix job ID isn't visible (e.g., canceled jobs, or finding a matching job from a passing build), the IDs are inside the build's `SendToHelix.binlog`:
@@ -26,15 +26,15 @@ When the failing work item's Helix job ID isn't visible (e.g., canceled jobs, or
    ```
 2. Load the `SendToHelix.binlog` and search for `Sent Helix Job` to find the GUIDs.
 3. Query each Helix job GUID with the CI script:
-   ```
-   ./scripts/Get-CIStatus.ps1 -HelixJob "{GUID}" -FindBinlogs
+   ```bash
+   ./scripts/Get-CIStatus.cs --helix-job "{GUID}" --find-binlogs
    ```
 
 **For Helix work item binlogs (the common case):**
 The CI script shows binlog URLs directly when you query a specific work item:
-```
-./scripts/Get-CIStatus.ps1 -HelixJob "{JOB_ID}" -WorkItem "{WORK_ITEM}"
-# Output includes: 🔬 msbuild.binlog: https://helix...blob.core.windows.net/...
+```bash
+./scripts/Get-CIStatus.cs --helix-job "{JOB_ID}" --work-item "{WORK_ITEM}"
+# Output includes: 📋 msbuild.binlog: https://helix...blob.core.windows.net/...
 ```
 
 ### Step 2: Dispatch parallel subagents for extraction
@@ -44,7 +44,7 @@ Launch two `task` subagents (can run in parallel), each with a prompt like:
 ```
 Download the msbuild.binlog from Helix job {JOB_ID} work item {WORK_ITEM}.
 Use the CI skill script to get the artifact URL:
-  ./scripts/Get-CIStatus.ps1 -HelixJob "{JOB_ID}" -WorkItem "{WORK_ITEM}"
+  ./scripts/Get-CIStatus.cs --helix-job "{JOB_ID}" --work-item "{WORK_ITEM}"
 Download the binlog, load it, find the {TASK_NAME} task, and extract CommandLineArguments.
 Normalize paths (see table below) and sort args.
 Parse into individual args using regex: (?:"[^"]+"|/[^\s]+|[^\s]+)

@@ -12,9 +12,9 @@ The script works with any dotnet repository that uses Azure DevOps and Helix:
 | `dotnet/roslyn` | roslyn-CI |
 | `dotnet/maui` | maui-public |
 
-Use `-Repository` to specify the target:
-```powershell
-./scripts/Get-CIStatus.ps1 -PRNumber 12345 -Repository "dotnet/aspnetcore"
+Use `--repository` to specify the target:
+```bash
+./scripts/Get-CIStatus.cs --pr-number 12345 --repository "dotnet/aspnetcore"
 ```
 
 ## Build Definition IDs (Example: dotnet/runtime)
@@ -40,8 +40,8 @@ Each repository has its own build definition IDs. Here are common ones for dotne
 - Project GUID: Varies by pipeline
 
 Override with:
-```powershell
-./scripts/Get-CIStatus.ps1 -BuildId 1276327 -Organization "dnceng" -Project "internal-project-guid"
+```bash
+./scripts/Get-CIStatus.cs --build-id 1276327 --organization "dnceng" --project "internal-project-guid"
 ```
 
 ## Common Pipeline Names (Example: dotnet/runtime)
