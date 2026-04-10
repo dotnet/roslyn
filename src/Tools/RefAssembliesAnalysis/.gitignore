@@ -1,10 +1,4 @@
-bin/
-obj/
-output/
 *.dll
-*.exe
-*.pdb
-*.runtimeconfig.json
-*.deps.json
 *.il
 *.res
+**/output/
