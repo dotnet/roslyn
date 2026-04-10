@@ -20,8 +20,9 @@ parameters:
 
   - name: devDivAzdoToken
     type: string
-  - name: dncEngAzdoToken
+  - name: dncEngAzureSubscription
     type: string
+    default: 'DncEng Insertion: Roslyn and Razor'
 
   - name: publishDataURI
     type: string
@@ -165,65 +166,71 @@ steps:
       CherryPick: ${{ parameters.cherryPick }}
 
   # Now that everything is set, actually perform the insertion.
-  - powershell: |
-      $arguments = @(
-        "create-insertion"
-        "--insertion-name", "Roslyn"
-        "--vs-branch", "$(Template.VSBranchName)"
-        "--component-branch", "$(Template.ComponentBranchName)"
-        "--component-build-queue", "$(Build.DefinitionName)"
-        "--specific-build", "$(Build.BuildNumber)"
-        "--create-draft-pr", "$(Template.CreateDraftPR)"
-        "--set-auto-complete", "$(Template.AutoComplete)"
-        "--insert-toolset", "$(Template.InsertToolset)"
-        "--update-assembly-versions", "true"
-        "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
-        "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
-        "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
-        "--devdiv-azdo-token", $Env:DevDivToken
-        "--dnceng-azdo-token", $Env:DncEngToken
-        "--ci"
-      )
-
-      $componentAzdoUri = "$(Template.ComponentAzdoUri)"
-      if ($componentAzdoUri -ne "")
-      {
-        $arguments += "--component-azdo-uri", $componentAzdoUri
-      }
-
-      $componentProjectName = "$(Template.ComponentProjectName)"
-      if ($componentProjectName -ne "")
-      {
-        $arguments += "--component-project", $componentProjectName
-      }
-
-      $dropPath = "$(Template.DropPath)"
-      if ($dropPath -ne "")
-      {
-        $arguments += "--build-drop-path", $dropPath
-      }
-
-      $titlePrefix = "$(Template.TitlePrefix)"
-      if ($titlePrefix -ne "")
-      {
-        $arguments += "--title-prefix", $titlePrefix
-      }
-
-      $titleSuffix = "$(Template.TitleSuffix)"
-      if ($titleSuffix -ne "")
-      {
-        $arguments += "--title-suffix", $titleSuffix
-      }
-
-      $cherryPick = "$(Template.CherryPick)"
-      if ($cherryPick -ne "")
-      {
-        $arguments += "--cherry-pick", $cherryPick
-      }
-
-      & ./.tools/roslyn-tools @arguments
+  # Uses AzureCLI@2 so that roslyn-tools can acquire a dnceng AzDO token
+  # via DefaultAzureCredential (AzureCliCredential) instead of a PAT.
+  - task: AzureCLI@2
     displayName: 'Create VS Insertion PR'
+    inputs:
+      azureSubscription: ${{ parameters.dncEngAzureSubscription }}
+      scriptType: ps
+      scriptLocation: inlineScript
+      inlineScript: |
+        $arguments = @(
+          "create-insertion"
+          "--insertion-name", "Roslyn"
+          "--vs-branch", "$(Template.VSBranchName)"
+          "--component-branch", "$(Template.ComponentBranchName)"
+          "--component-build-queue", "$(Build.DefinitionName)"
+          "--specific-build", "$(Build.BuildNumber)"
+          "--create-draft-pr", "$(Template.CreateDraftPR)"
+          "--set-auto-complete", "$(Template.AutoComplete)"
+          "--insert-toolset", "$(Template.InsertToolset)"
+          "--update-assembly-versions", "true"
+          "--run-speedometer-in-validation", "${{ parameters.queueSpeedometerValidation }}"
+          "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
+          "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
+          "--devdiv-azdo-token", $Env:DevDivToken
+          "--dnceng-azdo-token", "unset"
+          "--ci"
+        )
+
+        $componentAzdoUri = "$(Template.ComponentAzdoUri)"
+        if ($componentAzdoUri -ne "")
+        {
+          $arguments += "--component-azdo-uri", $componentAzdoUri
+        }
+
+        $componentProjectName = "$(Template.ComponentProjectName)"
+        if ($componentProjectName -ne "")
+        {
+          $arguments += "--component-project", $componentProjectName
+        }
+
+        $dropPath = "$(Template.DropPath)"
+        if ($dropPath -ne "")
+        {
+          $arguments += "--build-drop-path", $dropPath
+        }
+
+        $titlePrefix = "$(Template.TitlePrefix)"
+        if ($titlePrefix -ne "")
+        {
+          $arguments += "--title-prefix", $titlePrefix
+        }
+
+        $titleSuffix = "$(Template.TitleSuffix)"
+        if ($titleSuffix -ne "")
+        {
+          $arguments += "--title-suffix", $titleSuffix
+        }
+
+        $cherryPick = "$(Template.CherryPick)"
+        if ($cherryPick -ne "")
+        {
+          $arguments += "--cherry-pick", $cherryPick
+        }
+
+        & ./.tools/roslyn-tools @arguments
     env:
       DevDivToken: ${{ parameters.devDivAzdoToken }}
-      DncEngToken: ${{ parameters.dncEngAzdoToken }}
       DOTNET_ROLL_FORWARD: Major
