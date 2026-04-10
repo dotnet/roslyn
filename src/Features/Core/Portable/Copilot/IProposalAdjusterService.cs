@@ -178,21 +178,25 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
             var newText = change.NewText ?? "";
             var changed = false;
 
-            if (newText.Length > 0)
+            // Use a loop to handle cases where stripping one boundary character reveals
+            // another one (e.g., newText ends with "\r\r" adjacent to '\n').
+            while (newText.Length > 0)
             {
+                var fixedThisIteration = false;
+
                 if (newText[0] == '\n' &&
                     span.Start > 0 &&
                     originalText[span.Start - 1] == '\r')
                 {
                     // The replacement text would add a \n to a \r, changing the nature of the line break.
-                    if (originalText[span.Start] == '\n')
+                    if (span.Start < originalText.Length && originalText[span.Start] == '\n')
                     {
                         // The \n exists in the original text. There is no reason to replace it.
                         span = TextSpan.FromBounds(span.Start + 1, Math.Max(span.Start + 1, span.End));
                     }
 
                     newText = newText[1..];
-                    changed = true;
+                    fixedThisIteration = true;
                 }
 
                 if (newText.Length > 0 && newText[^1] == '\r' &&
@@ -200,15 +204,20 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
                     originalText[span.End] == '\n')
                 {
                     // The replacement text would add a \r to a \n, changing the nature of the line break.
-                    if (originalText[span.End - 1] == '\r')
+                    if (span.End > 0 && originalText[span.End - 1] == '\r')
                     {
                         // The \r already exists in the original text. There is no reason to replace it.
                         span = TextSpan.FromBounds(Math.Min(span.Start, span.End - 1), span.End - 1);
                     }
 
                     newText = newText[..^1];
-                    changed = true;
+                    fixedThisIteration = true;
                 }
+
+                changed = changed || fixedThisIteration;
+
+                if (!fixedThisIteration)
+                    break;
             }
 
             anyFixed = anyFixed || changed;

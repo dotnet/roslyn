@@ -170,6 +170,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_highlight_matching_portions_of_completion_list_items", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems")},
         {"dotnet_show_completion_item_filters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters")},
         {"dotnet_show_completion_items_from_unimported_namespaces", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces")},
+        {"dotnet_completion_items_from_unimported_namespaces_commit_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ImportCompletionCommitBehavior")},
         {"dotnet_show_name_completion_suggestions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions")},
         {"dotnet_show_new_snippet_experience_feature_flag", new FeatureFlagStorage(@"Roslyn.SnippetCompletion")},
         {"dotnet_show_new_snippet_experience", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience")},

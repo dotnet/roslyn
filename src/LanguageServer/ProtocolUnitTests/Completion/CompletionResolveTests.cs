@@ -337,7 +337,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             • Item 2.
 
             link text
-            """, results.Documentation.Value.Second.Value);
+            """.NormalizeLineEndings(), results.Documentation.Value.Second.Value.NormalizeLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -387,7 +387,7 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
 
         Assert.NotNull(results.TextEdit);
         Assert.Null(results.InsertText);
-        Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText);
+        Assert.Equal("static void Main(string[] args)\r\n    {\r\n        \r\n    }", results.TextEdit.Value.First.NewText.NormalizeLineEndings());
 
         var editRange = testLspServer.GetLocations("editRange").Single().Range;
         Assert.Equal(editRange, results.TextEdit.Value.First.Range);
@@ -519,7 +519,9 @@ public sealed class CompletionResolveTests : AbstractLanguageServerProtocolTests
             char? commitCharacter = null,
             CancellationToken cancellationToken = default)
         {
-            var textChange = new TextChange(span: new TextSpan(start: 77, length: 9), newText: """
+            var text = await document.GetTextAsync(cancellationToken);
+            var start = text.ToString().IndexOf("override ");
+            var textChange = new TextChange(span: new TextSpan(start: start, length: 9), newText: """
                 public override void M()
                     {
                         throw new System.NotImplementedException();
