@@ -289,7 +289,7 @@
       </trans-unit>
       <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
         <source>Completion behavior for items from unimported namespaces</source>
-        <target state="new">Completion behavior for items from unimported namespaces</target>
+        <target state="translated">來自未匯入命名空間項目的完成行為</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
