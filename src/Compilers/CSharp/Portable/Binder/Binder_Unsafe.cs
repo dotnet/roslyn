@@ -102,6 +102,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
         {
+            if (!this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
+            {
+                return;
+            }
+
             var callerUnsafeMode = symbol.CallerUnsafeMode;
             if (callerUnsafeMode != CallerUnsafeMode.None)
             {
@@ -246,15 +251,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!this.InUnsafeRegion)
             {
+                var featureDiag = MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
+
                 if (disallowedUnder is MemorySafetyRules.Legacy)
                 {
                     Debug.Assert(customErrorCode is null && customArgs is null);
 
-                    if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
+                    // Feature available: pointer types are safe.
+                    if (featureDiag is null)
                     {
-                        return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
+                        return null;
                     }
 
+                    // Feature not available but opted in: report feature availability error.
+                    if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
+                    {
+                        return featureDiag;
+                    }
+
+                    // Legacy rules.
                     return ((object?)sizeOfTypeOpt == null)
                         ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
                         : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
@@ -262,10 +277,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
 
+                // Feature available: pointer operations are unsafe.
+                if (featureDiag is null)
+                {
+                    return new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation, customArgs ?? []);
+                }
+
+                // Feature not available but opted in: report feature availability error.
                 if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
                 {
-                    return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation)
-                        ?? new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation, customArgs ?? []);
+                    return featureDiag;
                 }
 
                 // This location is disallowed only under updated memory safety rules which are not enabled.
