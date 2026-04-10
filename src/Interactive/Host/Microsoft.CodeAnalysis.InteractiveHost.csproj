@@ -42,6 +42,8 @@
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\AsyncLazy`1.cs" Link="Utilities\AsyncLazy`1.cs" />
     <Compile Include="..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\NonReentrantLock.cs" Link="Utilities\NonReentrantLock.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs" Link="Utilities\SemaphoreSlimExtensions.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NoMessagePumpSyncContext.cs" Link="Utilities\NoMessagePumpSyncContext.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\SpecializedSyncContext.cs" Link="Utilities\SpecializedSyncContext.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs" Link="Utilities\FileNameUtilities.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" Link="Utilities\PlatformInformation.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" Link="Utilities\Debug.cs" />

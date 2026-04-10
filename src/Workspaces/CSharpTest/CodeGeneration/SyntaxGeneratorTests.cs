@@ -51,7 +51,7 @@ public sealed class SyntaxGeneratorTests
     {
         Assert.IsAssignableFrom<TSyntax>(node);
         var normalized = node.NormalizeWhitespace().ToFullString();
-        AssertEx.Equal(expectedText, normalized);
+        AssertEx.Equal(expectedText.NormalizeLineEndings(), normalized);
     }
 
     private static void VerifySyntaxRaw<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode

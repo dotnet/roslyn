@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
-    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynWindowsTests);net472</TargetFrameworks>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup>

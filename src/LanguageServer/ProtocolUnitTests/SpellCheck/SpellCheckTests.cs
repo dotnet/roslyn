@@ -358,14 +358,17 @@ class {|Identifier:A{{v}}|}
 @"class A {";
             var typeScriptMarkup = "???";
 
+            var csharpFilePath = TestHelpers.GetRootedPath("C.cs");
+            var typeScriptFilePath = TestHelpers.GetRootedPath("T.ts");
+
             var workspaceXml =
                 $"""
                 <Workspace>
                             <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
-                                <Document FilePath="C:\C.cs">{csharpMarkup}</Document>
+                                <Document FilePath="{csharpFilePath}">{csharpMarkup}</Document>
                             </Project>
                             <Project Language="TypeScript" CommonReferences="true" AssemblyName="TypeScriptProj">
-                                <Document FilePath="C:\T.ts">{typeScriptMarkup}</Document>
+                                <Document FilePath="{typeScriptFilePath}">{typeScriptMarkup}</Document>
                             </Project>
                         </Workspace>
                 """;
@@ -374,7 +377,7 @@ class {|Identifier:A{{v}}|}
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
-            Assert.True(results.All(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath == "C:\\C.cs"));
+            Assert.True(results.All(r => r.TextDocument!.DocumentUri.GetRequiredParsedUri().LocalPath == csharpFilePath));
         }
 
         //        [Fact]

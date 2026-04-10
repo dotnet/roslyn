@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -38,11 +37,15 @@ namespace Microsoft.CodeAnalysis
                 : DescendantNodesAndTokensOnly(span, descendIntoChildrenGreen, descendIntoChildrenRed, includeSelf);
         }
 
-        private IEnumerable<SyntaxTrivia> DescendantTriviaImpl(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren = null, bool descendIntoTrivia = false)
+        private IEnumerable<SyntaxTrivia> DescendantTriviaImpl(
+            TextSpan span,
+            Func<GreenNode, bool>? descendIntoChildrenGreen,
+            Func<SyntaxNode, bool>? descendIntoChildrenRed,
+            bool descendIntoTrivia = false)
         {
             return descendIntoTrivia
-                ? DescendantTriviaIntoTrivia(span, descendIntoChildren)
-                : DescendantTriviaOnly(span, descendIntoChildren);
+                ? DescendantTriviaIntoTrivia(span, descendIntoChildrenGreen, descendIntoChildrenRed)
+                : DescendantTriviaOnly(span, descendIntoChildrenGreen, descendIntoChildrenRed);
         }
 
         private static bool IsInSpan(in TextSpan span, TextSpan childSpan)
@@ -574,9 +577,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<SyntaxTrivia> DescendantTriviaOnly(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren)
+        private IEnumerable<SyntaxTrivia> DescendantTriviaOnly(
+            TextSpan span,
+            Func<GreenNode, bool>? descendIntoChildrenGreen,
+            Func<SyntaxNode, bool>? descendIntoChildrenRed)
         {
-            using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildrenGreen: null, descendIntoChildren))
+            using (var stack = new ChildSyntaxListEnumeratorStack(this, descendIntoChildrenGreen, descendIntoChildrenRed))
             {
                 while (stack.IsNotEmpty)
                 {
@@ -612,9 +618,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private IEnumerable<SyntaxTrivia> DescendantTriviaIntoTrivia(TextSpan span, Func<SyntaxNode, bool>? descendIntoChildren)
+        private IEnumerable<SyntaxTrivia> DescendantTriviaIntoTrivia(
+            TextSpan span,
+            Func<GreenNode, bool>? descendIntoChildrenGreen,
+            Func<SyntaxNode, bool>? descendIntoChildrenRed)
         {
-            using (var stack = new TwoEnumeratorListStack(this, descendIntoChildrenGreen: null, descendIntoChildren))
+            using (var stack = new TwoEnumeratorListStack(this, descendIntoChildrenGreen, descendIntoChildrenRed))
             {
                 while (stack.IsNotEmpty)
                 {

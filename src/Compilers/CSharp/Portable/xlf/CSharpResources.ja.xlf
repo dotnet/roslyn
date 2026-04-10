@@ -1492,6 +1492,11 @@
         <target state="translated">暗黙的な参照またはボックス化変換を使用して型 '{0}' を 'object' に変換することはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PPShebangNotOnFirstLine">
+        <source>'#!' must be the first characters on the first line of the file</source>
+        <target state="new">'#!' must be the first characters on the first line of the file</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
         <target state="translated">RequiresUnsafeAttribute をこのシンボルに適用することはできません。</target>

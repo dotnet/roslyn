@@ -11,8 +11,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
     Friend NotInheritable Class ObjectBrowserLibraryManager
         Inherits AbstractObjectBrowserLibraryManager
 
-        Public Sub New(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace)
-            MyBase.New(LanguageNames.VisualBasic, Guids.VisualBasicLibraryId, serviceProvider, componentModel, workspace)
+        Public Sub New(serviceProvider As IServiceProvider, componentModel As IComponentModel)
+            MyBase.New(LanguageNames.VisualBasic, Guids.VisualBasicLibraryId, serviceProvider, componentModel)
         End Sub
 
         Friend Overrides Function CreateDescriptionBuilder(
