@@ -287,6 +287,11 @@
         <target state="translated">Comentários</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
+        <source>Completion behavior for items from unimported namespaces</source>
+        <target state="new">Completion behavior for items from unimported namespaces</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Contendo Membro</target>
@@ -1464,7 +1469,7 @@
       </trans-unit>
       <trans-unit id="Show_items_from_unimported_namespaces">
         <source>Show items from unimported namespaces</source>
-        <target state="translated">Mostrar os itens de namespaces não importados</target>
+        <target state="new">Show items from unimported namespaces</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
