@@ -6,9 +6,9 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26208.2</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26208.2</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26208.2</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26208.4</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26208.4</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26208.4</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet-dotnet dependencies -->
     <MicrosoftBclAsyncInterfacesPackageVersion>10.0.1</MicrosoftBclAsyncInterfacesPackageVersion>
     <MicrosoftExtensionsConfigurationPackageVersion>10.0.1</MicrosoftExtensionsConfigurationPackageVersion>
