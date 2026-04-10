@@ -178,6 +178,9 @@ public abstract class EditingTestBase : CSharpTestBase
     /// </summary>
     internal static EditScriptDescription GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
+        src1 = src1.NormalizeLineEndings();
+        src2 = src2.NormalizeLineEndings();
+
         var match = GetMethodMatch(src1, src2, kind);
         return new(src1, src2, match.GetTreeEdits());
     }
@@ -216,6 +219,10 @@ public abstract class EditingTestBase : CSharpTestBase
         string bodySource,
         MethodKind kind = MethodKind.Regular)
     {
+        // Normalize line endings to \r\n so that character offsets in VerifyEdits
+        // assertions are consistent across Windows and Unix.
+        bodySource = bodySource.NormalizeLineEndings();
+
         var source = WrapMethodBodyWithClass(bodySource, kind);
 
         var tree = ParseSource(source);
