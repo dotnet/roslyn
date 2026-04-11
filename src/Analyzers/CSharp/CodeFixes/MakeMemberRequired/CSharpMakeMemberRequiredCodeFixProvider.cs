@@ -60,6 +60,9 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
         var fieldOrPropertySymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
         if (fieldOrPropertySymbol is IPropertySymbol propertySymbol)
         {
+            if (propertySymbol.IsStatic)
+                return;
+
             var setMethod = propertySymbol.SetMethod;
 
             // Property must have a `set` or `init` accessor in order to be able to be required
@@ -76,6 +79,9 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
         }
         else if (fieldOrPropertySymbol is IFieldSymbol fieldSymbol)
         {
+            if (fieldSymbol.IsStatic)
+                return;
+
             var containingTypeVisibility = fieldSymbol.ContainingType.GetResultantVisibility();
             var accessibility = fieldSymbol.DeclaredAccessibility;
 
@@ -107,11 +113,15 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
     {
         var root = editor.OriginalRoot;
         var generator = editor.Generator;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var visitedFieldDeclarations = new HashSet<FieldDeclarationSyntax>();
 
         foreach (var diagnostic in diagnostics)
         {
             var memberDeclarator = root.FindNode(diagnostic.Location.SourceSpan);
+
+            if (semanticModel.GetDeclaredSymbol(memberDeclarator, cancellationToken)?.IsStatic == true)
+                continue;
 
             // If we are fixing field, do not apply new declaration modifiers just to variable declarator, but to the whole field declaration.
             // This is observable when there are several variables in single filed declaration:
