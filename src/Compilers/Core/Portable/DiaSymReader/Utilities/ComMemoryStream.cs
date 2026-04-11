@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-#if NET9_0_OR_GREATER
+#if NET
 using System.Runtime.InteropServices.Marshalling;
 #endif
 
@@ -21,7 +21,7 @@ namespace Microsoft.DiaSymReader
     /// 2. Read and Write are optimized to avoid copying (see <see cref="IUnsafeComStream"/>)
     /// 3. Allocates in chunks instead of a contiguous buffer to avoid re-alloc and copy costs when growing.
     /// </summary>
-#if NET9_0_OR_GREATER
+#if NET
     [GeneratedComClass]
 #endif
     internal sealed unsafe partial class ComMemoryStream : IUnsafeComStream
