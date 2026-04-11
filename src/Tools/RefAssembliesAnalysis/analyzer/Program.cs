@@ -136,13 +136,21 @@ static PairAnalysisResult AnalyzePair(AssemblyPair pair)
     var memberRemoved = before.MemberItems.Except(after.MemberItems).ToList();
     var memberAdded = after.MemberItems.Except(before.MemberItems).ToList();
 
-    var stateMachineAttributeAdded = new List<string>();
-    var stateMachineAttributeRemoved = new List<string>();
-    RebucketStateMachineAttributeOnlyDifferences(memberAdded, memberRemoved, stateMachineAttributeAdded, stateMachineAttributeRemoved);
+    var asyncStateMachineAttributeAdded = new List<string>();
+    var asyncStateMachineAttributeRemoved = new List<string>();
+    RebucketAsyncStateMachineAttributeOnlyDifferences(memberAdded, memberRemoved, asyncStateMachineAttributeAdded, asyncStateMachineAttributeRemoved);
+
+    var iteratorStateMachineAttributeAdded = new List<string>();
+    var iteratorStateMachineAttributeRemoved = new List<string>();
+    RebucketIteratorStateMachineAttributeOnlyDifferences(memberAdded, memberRemoved, iteratorStateMachineAttributeAdded, iteratorStateMachineAttributeRemoved);
 
     var testMethodAttributeAdded = new List<string>();
     var testMethodAttributeRemoved = new List<string>();
     RebucketTestMethodAttributeOnlyDifferences(memberAdded, memberRemoved, testMethodAttributeAdded, testMethodAttributeRemoved);
+
+    var benchmarkAttributeAdded = new List<string>();
+    var benchmarkAttributeRemoved = new List<string>();
+    RebucketBenchmarkAttributeOnlyDifferences(memberAdded, memberRemoved, benchmarkAttributeAdded, benchmarkAttributeRemoved);
 
     var assemblyAttributeVersionOnlyAdded = new List<(string Item, string Category)>();
     var assemblyAttributeVersionOnlyRemoved = new List<(string Item, string Category)>();
@@ -162,15 +170,25 @@ static PairAnalysisResult AnalyzePair(AssemblyPair pair)
         categorizedRemoved.Add((item.Item, ClassifyMemberDiffItem(item, hasIvt)));
 
     // Add rebucketed state machine attribute items
-    foreach (var item in stateMachineAttributeAdded)
-        categorizedAdded.Add((item, "public-async-state-machine-attribute"));
-    foreach (var item in stateMachineAttributeRemoved)
-        categorizedRemoved.Add((item, "public-async-state-machine-attribute"));
+    foreach (var item in asyncStateMachineAttributeAdded)
+        categorizedAdded.Add((item, "async-state-machine-attribute"));
+    foreach (var item in asyncStateMachineAttributeRemoved)
+        categorizedRemoved.Add((item, "async-state-machine-attribute"));
+
+    foreach (var item in iteratorStateMachineAttributeAdded)
+        categorizedAdded.Add((item, "iterator-state-machine-attribute"));
+    foreach (var item in iteratorStateMachineAttributeRemoved)
+        categorizedRemoved.Add((item, "iterator-state-machine-attribute"));
 
     foreach (var item in testMethodAttributeAdded)
         categorizedAdded.Add((item, "test-method-attribute"));
     foreach (var item in testMethodAttributeRemoved)
         categorizedRemoved.Add((item, "test-method-attribute"));
+
+    foreach (var item in benchmarkAttributeAdded)
+        categorizedAdded.Add((item, "benchmark-attribute"));
+    foreach (var item in benchmarkAttributeRemoved)
+        categorizedRemoved.Add((item, "benchmark-attribute"));
 
     // Add non-member diffs as categorized entries
     var identityChanged = !StringComparer.Ordinal.Equals(before.AssemblyIdentity, after.AssemblyIdentity);
@@ -277,7 +295,7 @@ static Summary BuildSummary(List<PairAnalysisResult> results, int partialPairCou
         BuildIgnoreCategoryImprovement(
             results,
             AnalysisCategorySets.StateMachineChurnCategories,
-            "Ignore state-machine, public-async-state-machine-attribute, awaiter-field, display-class, lambda-method, local-function, lambda-or-dynamic-cache")
+            "Ignore state-machine, async-state-machine-attribute, iterator-state-machine-attribute, awaiter-field, display-class, lambda-method, local-function, lambda-or-dynamic-cache")
     };
 
     return new Summary(
@@ -341,7 +359,7 @@ static string GetClassificationDescription(string classification)
     => classification switch
     {
         "valid-pair" => "The pair had differences between before and after.",
-        "ignored-attribute-versioning-only" => "The pair only differed in ignored attribute/versioning categories, so it was excluded from churn counts.",
+        "ignored-attribute-versioning-only" => "The pair only differed in the three version-only assembly attribute buckets, so it was excluded from churn counts.",
         "bad-dll" => "A before/after pair could not be analyzed because one of the DLLs was unreadable or had invalid metadata.",
         "partial-pair" => "Only one side of the before/after pair was present, so no pairwise comparison could be performed.",
         "same-mvid" => "No tracked differences were observed, and the compared ref assemblies share the same MVID.",
@@ -349,7 +367,7 @@ static string GetClassificationDescription(string classification)
     };
 
 static string GetDiffClassification(Dictionary<string, PairDiffBucket> categories)
-    => HasOnlyCategories(categories, AnalysisCategorySets.IgnoredAttributeVersioningPairCategories)
+    => HasOnlyCategories(categories, AnalysisCategorySets.VersionOnlyAssemblyAttributePairCategories)
         ? "ignored-attribute-versioning-only"
         : "valid-pair";
 
@@ -524,8 +542,10 @@ static Dictionary<string, string> BuildCategoryDescriptions()
         ["assembly-metadata"] = "Version-only AssemblyMetadataAttribute changes whose before/after entries match after stripping the version text.",
         ["references"] = "Assembly reference changes from the AssemblyRef table.",
         ["state-machine"] = "Compiler-generated async/iterator machinery such as <Method>d__N types, state fields, builder fields, current fields, and parameter/this proxy fields.",
-        ["public-async-state-machine-attribute"] = "Visible method entries whose before/after API signatures become identical after normalizing AsyncStateMachineAttribute by blanking its argument list.",
-        ["test-method-attribute"] = "Visible method entries whose before/after API signatures become identical after normalizing the string argument of Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute.",
+        ["async-state-machine-attribute"] = "Visible method entries whose before/after API signatures become identical after normalizing AsyncStateMachineAttribute by blanking its argument list.",
+        ["iterator-state-machine-attribute"] = "Visible method entries whose before/after API signatures become identical after normalizing IteratorStateMachineAttribute by blanking its argument list.",
+        ["test-method-attribute"] = "Visible method entries whose before/after API signatures become identical after normalizing Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute by blanking its argument list.",
+        ["benchmark-attribute"] = "Visible method entries whose before/after API signatures become identical after normalizing BenchmarkDotNet.Attributes.BenchmarkAttribute by blanking its argument list.",
         ["awaiter-field"] = "Compiler-generated awaiter slots such as <>u__N fields inside async/iterator state machines.",
         ["iterator-finally"] = "Compiler-generated iterator cleanup helpers such as <>m__Finally methods.",
         ["display-class"] = "Closure/display-class artifacts such as <>c, <>c__DisplayClass*, and <>8__locals* that capture locals or hold lambda state.",
@@ -680,17 +700,29 @@ static bool IsInternalMember(string item)
     => item.Contains("::internal ", StringComparison.Ordinal)
         || item.Contains("internal ", StringComparison.Ordinal) && item.StartsWith("TYPE ", StringComparison.Ordinal);
 
-static void RebucketStateMachineAttributeOnlyDifferences(
+static void RebucketAsyncStateMachineAttributeOnlyDifferences(
     List<MemberDiffItem> memberAdded,
     List<MemberDiffItem> memberRemoved,
-    List<string> stateMachineAttributeAdded,
-    List<string> stateMachineAttributeRemoved)
+    List<string> asyncStateMachineAttributeAdded,
+    List<string> asyncStateMachineAttributeRemoved)
     => RebucketVisibleMethodAttributeOnlyDifferences(
         memberAdded,
         memberRemoved,
-        stateMachineAttributeAdded,
-        stateMachineAttributeRemoved,
-        NormalizeStateMachineAttributeMethodSignature);
+        asyncStateMachineAttributeAdded,
+        asyncStateMachineAttributeRemoved,
+        NormalizeAsyncStateMachineAttributeMethodSignature);
+
+static void RebucketIteratorStateMachineAttributeOnlyDifferences(
+    List<MemberDiffItem> memberAdded,
+    List<MemberDiffItem> memberRemoved,
+    List<string> iteratorStateMachineAttributeAdded,
+    List<string> iteratorStateMachineAttributeRemoved)
+    => RebucketVisibleMethodAttributeOnlyDifferences(
+        memberAdded,
+        memberRemoved,
+        iteratorStateMachineAttributeAdded,
+        iteratorStateMachineAttributeRemoved,
+        NormalizeIteratorStateMachineAttributeMethodSignature);
 
 static void RebucketTestMethodAttributeOnlyDifferences(
     List<MemberDiffItem> memberAdded,
@@ -703,6 +735,18 @@ static void RebucketTestMethodAttributeOnlyDifferences(
         testMethodAttributeAdded,
         testMethodAttributeRemoved,
         NormalizeTestMethodAttributeMethodSignature);
+
+static void RebucketBenchmarkAttributeOnlyDifferences(
+    List<MemberDiffItem> memberAdded,
+    List<MemberDiffItem> memberRemoved,
+    List<string> benchmarkAttributeAdded,
+    List<string> benchmarkAttributeRemoved)
+    => RebucketVisibleMethodAttributeOnlyDifferences(
+        memberAdded,
+        memberRemoved,
+        benchmarkAttributeAdded,
+        benchmarkAttributeRemoved,
+        NormalizeBenchmarkAttributeMethodSignature);
 
 static void RebucketVisibleMethodAttributeOnlyDifferences(
     List<MemberDiffItem> memberAdded,
@@ -820,34 +864,30 @@ static void RebucketAssemblyAttributeVersionOnlyDifferences(
     });
 }
 
-static string? NormalizeStateMachineAttributeMethodSignature(string item)
-{
-    if (!item.StartsWith("METHOD ", StringComparison.Ordinal))
-    {
-        return null;
-    }
+static string? NormalizeAsyncStateMachineAttributeMethodSignature(string item)
+    => NormalizeMethodSignatureByBlankingAttributeArgumentList(item, "System.Runtime.CompilerServices.AsyncStateMachineAttribute");
 
-    var normalized = Regex.Replace(
-        item,
-        @"\[System\.Runtime\.CompilerServices\.AsyncStateMachineAttribute\(typeof\(.*?\)\)\]\s*",
-        "[System.Runtime.CompilerServices.AsyncStateMachineAttribute(typeof())] ",
-        RegexOptions.CultureInvariant);
-
-    return Regex.Replace(normalized, @"\s{2,}", " ", RegexOptions.CultureInvariant).Trim();
-}
+static string? NormalizeIteratorStateMachineAttributeMethodSignature(string item)
+    => NormalizeMethodSignatureByBlankingAttributeArgumentList(item, "System.Runtime.CompilerServices.IteratorStateMachineAttribute");
 
 static string? NormalizeTestMethodAttributeMethodSignature(string item)
+    => NormalizeMethodSignatureByBlankingAttributeArgumentList(item, "Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute");
+
+static string? NormalizeBenchmarkAttributeMethodSignature(string item)
+    => NormalizeMethodSignatureByBlankingAttributeArgumentList(item, "BenchmarkDotNet.Attributes.BenchmarkAttribute");
+
+static string? NormalizeMethodSignatureByBlankingAttributeArgumentList(string item, string attributeName)
 {
     if (!item.StartsWith("METHOD ", StringComparison.Ordinal)
-        || !item.Contains("[Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute(\"", StringComparison.Ordinal))
+        || !item.Contains($"[{attributeName}(", StringComparison.Ordinal))
     {
         return null;
     }
 
     var normalized = Regex.Replace(
         item,
-        @"\[Microsoft\.VisualStudio\.TestTools\.UnitTesting\.TestMethodAttribute\(""((?:\\.|[^""])*)""",
-        static _ => "[Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute(\"\")",
+        $@"\[{Regex.Escape(attributeName)}\((?>[^()""]+|""(?:\\.|[^""])*""|\((?<Depth>)|\)(?<-Depth>))*(?(Depth)(?!))\)\]\s*",
+        $"[{attributeName}()] ",
         RegexOptions.CultureInvariant);
 
     return Regex.Replace(normalized, @"\s{2,}", " ", RegexOptions.CultureInvariant).Trim();
@@ -970,17 +1010,17 @@ internal sealed record HypotheticalImprovement(
 
 internal static class AnalysisCategorySets
 {
-    public static readonly ImmutableHashSet<string> IgnoredAttributeVersioningPairCategories = ImmutableHashSet.Create(
+    public static readonly ImmutableHashSet<string> VersionOnlyAssemblyAttributePairCategories = ImmutableHashSet.Create(
         StringComparer.Ordinal,
         "assembly-file-version",
         "assembly-informational-version",
-        "assembly-metadata",
-        "test-method-attribute");
+        "assembly-metadata");
 
     public static readonly ImmutableHashSet<string> StateMachineChurnCategories = ImmutableHashSet.Create(
         StringComparer.Ordinal,
         "state-machine",
-        "public-async-state-machine-attribute",
+        "async-state-machine-attribute",
+        "iterator-state-machine-attribute",
         "awaiter-field",
         "display-class",
         "lambda-method",

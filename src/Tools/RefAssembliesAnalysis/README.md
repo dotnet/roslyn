@@ -13,7 +13,7 @@ Reducing churn matters because unnecessary differences in ref assemblies can cau
 The analyzer compares `before.dll` and `after.dll` ref assembly pairs and classifies each pair as:
 
 - `valid-pair` when there are differences between before and after
-- `ignored-attribute-versioning-only` when the only tracked differences are version-only assembly attributes, so the pair is excluded from churn counts
+- `ignored-attribute-versioning-only` when the only tracked differences are the three version-only assembly attribute buckets, so the pair is excluded from churn counts
 - `same-mvid` when no tracked differences were observed and the compared ref assemblies share the same MVID
 - `bad-dll` when a before/after pair cannot be analyzed because one of the DLLs is unreadable or has invalid metadata
 - `partial-pair` when only one side of a before/after pair is present, so no comparison can be performed
@@ -22,8 +22,10 @@ For valid pairs, each individual diff entry is categorized into buckets such as:
 
 - `other-public` — public API surface changes not covered by a more specific category (catch-all)
 - `state-machine`
-- `public-async-state-machine-attribute`
+- `async-state-machine-attribute`
+- `iterator-state-machine-attribute`
 - `test-method-attribute`
+- `benchmark-attribute`
 - `display-class`
 - `lambda-method`
 - `local-function`
@@ -32,7 +34,7 @@ For valid pairs, each individual diff entry is categorized into buckets such as:
 - `assembly-versioning`
 - `user-authored-non-public` (likely IVT)
 
-These buckets show which kinds of compiler artifacts are contributing to churn. The `other-public` catch-all contains diffs that need manual review. Pairs whose only categories are `assembly-file-version`, `assembly-informational-version`, `assembly-metadata`, and/or `test-method-attribute` stay visible in `pair-results.json` but are excluded from churn summaries and visual diff folders.
+These buckets show which kinds of compiler artifacts are contributing to churn. The `other-public` catch-all contains diffs that need manual review. Only pairs whose categories are limited to `assembly-file-version`, `assembly-informational-version`, and/or `assembly-metadata` stay visible in `pair-results.json` while being excluded from churn summaries and visual diff folders.
 
 ## Why this exists
 
