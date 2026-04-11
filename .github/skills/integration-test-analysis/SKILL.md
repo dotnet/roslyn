@@ -22,15 +22,20 @@ Use this skill when:
 
 ## Quick Start
 
+```sh
+# Ensure powershell tool is restored
+dotnet tool restore
+```
+
 ```powershell
 # Analyze integration test failures by build ID
-pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestStatus.ps1 -BuildId 1354185
+dotnet pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestStatus.ps1 -BuildId 1354185
 
 # Analyze with verbose artifact download (downloads and parses exception XMLs)
-pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestStatus.ps1 -BuildId 1354185 -DownloadArtifacts
+dotnet pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestStatus.ps1 -BuildId 1354185 -DownloadArtifacts
 
 # Limit artifact download size (default 200MB)
-pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestStatus.ps1 -BuildId 1354185 -DownloadArtifacts -MaxArtifactSizeMB 500
+dotnet pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestStatus.ps1 -BuildId 1354185 -DownloadArtifacts -MaxArtifactSizeMB 500
 ```
 
 ## Key Parameters
