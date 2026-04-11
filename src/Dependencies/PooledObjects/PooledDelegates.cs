@@ -206,10 +206,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// except typed such that it can be used to create a pooled <see cref="ConditionalWeakTable{TKey,
         /// TValue}.CreateValueCallback"/>.
         /// </summary>
-        [UnconditionalSuppressMessage("Trimming", "IL2091:DynamicallyAccessedMembers", Justification = "ConditionalWeakTable TValue constraint mismatch; no dynamic instantiation occurs.")]
-        public static Releaser GetPooledCreateValueCallback<TKey, TArg, TValue>(
-            Func<TKey, TArg, TValue> unboundFunction, TArg argument,
-            out ConditionalWeakTable<TKey, TValue>.CreateValueCallback boundFunction) where TKey : class where TValue : class
+        public static Releaser GetPooledCreateValueCallback<
+            TKey,
+            TArg,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TValue
+        >(Func<TKey, TArg, TValue> unboundFunction, TArg argument,
+          out ConditionalWeakTable<TKey, TValue>.CreateValueCallback boundFunction) where TKey : class where TValue : class
 
         {
             return GetPooledDelegate<CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>, TArg, Func<TKey, TArg, TValue>, ConditionalWeakTable<TKey, TValue>.CreateValueCallback>(unboundFunction, argument, out boundFunction);
@@ -418,9 +420,11 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 => () => UnboundDelegate(Argument);
         }
 
-        [UnconditionalSuppressMessage("Trimming", "IL2091:DynamicallyAccessedMembers", Justification = "ConditionalWeakTable TValue constraint mismatch; no dynamic instantiation occurs.")]
-        private sealed class CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>
-            : AbstractDelegateWithBoundArgument<
+        private sealed class CreateValueCallbackWithBoundArgument<
+            TKey,
+            TArg,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TValue
+        > : AbstractDelegateWithBoundArgument<
                 CreateValueCallbackWithBoundArgument<TKey, TArg, TValue>,
                 TArg,
                 Func<TKey, TArg, TValue>,
