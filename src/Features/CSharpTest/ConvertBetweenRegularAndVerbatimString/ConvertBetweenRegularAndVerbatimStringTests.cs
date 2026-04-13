@@ -4,12 +4,12 @@
 
 #nullable disable
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertBetweenRegularAndVerbatimString;
@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertBetweenRegularAn
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertBetweenRegularAndVerbatimString)]
 public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static string NewLineEscape { get; } = Environment.NewLine == "\r\n" ? @"\r\n" : @"\n";
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertBetweenRegularAndVerbatimStringCodeRefactoringProvider();
 
@@ -147,7 +149,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n line endings in verbatim strings")]
+    [Fact]
     public Task RegularStringWithEscapedNewLine()
         => TestInRegularAndScriptAsync("""
             class Test
@@ -157,7 +159,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "[||]a\r\nb";
                 }
             }
-            """,
+            """.Replace(@"\r\n", NewLineEscape),
             """
             class Test
             {
@@ -169,7 +171,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n escape for platform newlines")]
+    [Fact]
     public Task VerbatimStringWithNewLine()
         => TestInRegularAndScriptAsync("""
             class Test
@@ -189,7 +191,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "a\r\nb";
                 }
             }
-            """);
+            """.Replace(@"\r\n", NewLineEscape));
 
     [Fact]
     public Task RegularStringWithEscapedNull()
@@ -245,7 +247,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n line endings in verbatim strings")]
+    [Fact]
     public Task DoNotEscapeCurlyBracesInRegularString()
         => TestInRegularAndScriptAsync("""
             class Test
@@ -255,7 +257,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "[||]a\r\n{1}";
                 }
             }
-            """,
+            """.Replace(@"\r\n", NewLineEscape),
             """
             class Test
             {
@@ -267,7 +269,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n escape for platform newlines")]
+    [Fact]
     public Task DoNotEscapeCurlyBracesInVerbatimString()
         => TestInRegularAndScriptAsync("""
             class Test
@@ -287,5 +289,5 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
                     var v = "a\r\n{1}";
                 }
             }
-            """);
+            """.Replace(@"\r\n", NewLineEscape));
 }

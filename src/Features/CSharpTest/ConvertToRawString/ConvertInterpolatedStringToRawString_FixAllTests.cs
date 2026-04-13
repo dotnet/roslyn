@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
 [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
 public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractCSharpCodeActionTest_NoEditor
 {
+    private static string NewLineEscape { get; } = Environment.NewLine == "\r\n" ? @"\r\n" : @"\n";
+
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ConvertStringToRawStringCodeRefactoringProvider();
 
@@ -107,7 +109,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Raw string conversion of \\r\\n escape sequences produces incorrect results on Unix")]
+    [Fact]
     public Task FixAllInDocument_MultiLine()
         => TestInRegularAndScriptAsync(
         """
@@ -151,7 +153,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
         select x2";
             }
         }
-        """,
+        """.Replace(@"\r\n", NewLineEscape),
         """"
         class C
         {
