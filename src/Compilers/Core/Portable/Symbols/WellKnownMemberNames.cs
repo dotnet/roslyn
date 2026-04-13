@@ -532,5 +532,6 @@ namespace Microsoft.CodeAnalysis
         public const string TryGetValueMethodName = "TryGetValue";
 
         internal const string UnionMembersInterfaceName = "IUnionMembers";
+        internal const string UnionFactoryMethodName = "Create";
     }
 }
