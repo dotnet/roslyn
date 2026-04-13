@@ -899,16 +899,16 @@ namespace Microsoft.CodeAnalysis
                 return Failed;
             }
 
-            var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
-
             var diagnostics = DiagnosticBag.GetInstance();
-            var result = RunCore(consoleOutput, errorLogger, touchedFilesLogger, diagnostics, cancellationToken);
+            var result = RunCore(consoleOutput, errorLogger, diagnostics, cancellationToken);
             diagnostics.Free();
             return result;
         }
 
-        private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
+            var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
+
             AnalyzerConfigSet? analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
             AnalyzerConfigOptionsResult globalConfigOptions = default;
