@@ -492,7 +492,11 @@ internal partial class SerializerService
                     {
                         var metadata = ModuleMetadata.CreateFromMetadata(
                             gcHandle.AddrOfPinnedObject(), length,
-                            () => { gcHandle.Free(); memoryStream.Dispose(); });
+                            () =>
+                            {
+                                gcHandle.Free();
+                                memoryStream.Dispose();
+                            });
                         return (metadata, storageHandle);
                     }
                 }
