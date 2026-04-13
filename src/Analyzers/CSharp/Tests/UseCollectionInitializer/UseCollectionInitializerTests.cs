@@ -1541,7 +1541,7 @@ public sealed partial class UseCollectionInitializerTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Code fix produces mixed line endings on Unix"), WorkItem("https://github.com/dotnet/roslyn/issues/61066")]
     public Task TestInTopLevelStatements()
         => TestInRegularAndScriptAsync(
             """
@@ -1560,7 +1560,7 @@ public sealed partial class UseCollectionInitializerTests
 
             """, OutputKind.ConsoleApplication);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Code fix produces mixed line endings on Unix"), WorkItem("https://github.com/dotnet/roslyn/issues/71245")]
     public Task TestCollectionExpressionArgument1()
         => TestInRegularAndScriptAsync(
             """
