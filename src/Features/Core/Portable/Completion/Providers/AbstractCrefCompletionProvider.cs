@@ -11,23 +11,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
 {
-    protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
-
     internal override async Task<CompletionDescription> GetDescriptionWorkerAsync(
         Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
     {
         var position = SymbolCompletionItem.GetContextPosition(item);
-
-        // What EditorBrowsable settings were we previously passed in (if it mattered)?
-        if (item.TryGetProperty(HideAdvancedMembers, out var hideAdvancedMembersString) &&
-            bool.TryParse(hideAdvancedMembersString, out var hideAdvancedMembers))
-        {
-            options = options with
-            {
-                MemberDisplayOptions = new() { HideAdvancedMembers = hideAdvancedMembers }
-            };
-        }
-
         var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);
         if (symbols.Length == 0)
         {

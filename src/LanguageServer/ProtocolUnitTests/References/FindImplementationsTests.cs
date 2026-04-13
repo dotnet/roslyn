@@ -96,7 +96,7 @@ public sealed class FindImplementationsTests : AbstractLanguageServerProtocolTes
         var position = new LSP.Position { Line = 2, Character = 9 };
         var results = await RunFindImplementationAsync(testLspServer, new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = position, End = position }
         });
         AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);
