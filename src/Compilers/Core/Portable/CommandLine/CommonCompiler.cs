@@ -902,7 +902,13 @@ namespace Microsoft.CodeAnalysis
             var touchedFilesLogger = (Arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
             var diagnostics = DiagnosticBag.GetInstance();
+            var result = RunCore(consoleOutput, errorLogger, touchedFilesLogger, diagnostics, cancellationToken);
+            diagnostics.Free();
+            return result;
+        }
 
+        private int RunCore(TextWriter consoleOutput, ErrorLogger? errorLogger, TouchedFileLogger? touchedFilesLogger, DiagnosticBag diagnostics, CancellationToken cancellationToken)
+        {
             AnalyzerConfigSet? analyzerConfigSet = null;
             ImmutableArray<AnalyzerConfigOptionsResult> sourceFileAnalyzerConfigOptions = default;
             AnalyzerConfigOptionsResult globalConfigOptions = default;
@@ -913,7 +919,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     var hadErrors = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation: null);
                     Debug.Assert(hadErrors);
-                    diagnostics.Free();
                     return Failed;
                 }
 
@@ -929,7 +934,6 @@ namespace Microsoft.CodeAnalysis
             Compilation? compilation = CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, sourceFileAnalyzerConfigOptions, globalConfigOptions);
             if (compilation == null)
             {
-                diagnostics.Free();
                 return Failed;
             }
 
@@ -938,14 +942,12 @@ namespace Microsoft.CodeAnalysis
             var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnosticInfos, MessageProvider, touchedFilesLogger);
             if (ReportDiagnostics(diagnosticInfos, consoleOutput, errorLogger, compilation))
             {
-                diagnostics.Free();
                 return Failed;
             }
 
             ImmutableArray<EmbeddedText?> embeddedTexts = AcquireEmbeddedTexts(compilation, diagnostics);
             if (ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation))
             {
-                diagnostics.Free();
                 return Failed;
             }
 
@@ -999,8 +1001,6 @@ namespace Microsoft.CodeAnalysis
             {
                 ReportIVTInfos(consoleOutput, errorLogger, compilation, diagnostics.ToReadOnly());
             }
-
-            diagnostics.Free();
 
             return exitCode;
         }
