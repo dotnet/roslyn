@@ -70,8 +70,12 @@ internal static class BrokeredServiceDescriptors
     internal const string DebuggerComponentName = "Debugger";
 
     public static readonly ServiceRpcDescriptor SolutionSnapshotProvider = CreateClientServiceDescriptor("SolutionSnapshotProvider", new Version(0, 1));
-    public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadService = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(1, 0));
-    public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(1, 0));
+    public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadService = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(1, 0), streamOptions: new Nerdbank.Streams.MultiplexingStream.Options { ProtocolMajorVersion = 3 });
+    public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(1, 0), streamOptions: new Nerdbank.Streams.MultiplexingStream.Options { ProtocolMajorVersion = 3 });
+
+    public static readonly ServiceRpcDescriptor DebuggerManagedHotReloadServiceLegacy = CreateDebuggerServiceDescriptor("ManagedHotReloadService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor HotReloadLoggerServiceLegacy = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
+
     public static readonly ServiceRpcDescriptor HotReloadOptionService = CreateDebuggerClientServiceDescriptor("HotReloadOptionService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor MauiLaunchCustomizerService = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor CssVisualDiagnosticsService = CreateWebToolsServiceDescriptor("CssVisualDiagnosticsService", new Version(0, 1));
