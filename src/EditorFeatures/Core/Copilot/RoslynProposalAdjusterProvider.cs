@@ -212,12 +212,10 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
 
             var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
 
-            TextSpan? applicableToSpan = null;
-            if (completionState is not null)
-            {
-                var atsSpan = completionState.ApplicableToSpan.Span;
-                applicableToSpan = new TextSpan(atsSpan.Start, atsSpan.Length);
-            }
+            // The ApplicableToSpan should be on the same snapshot as the edits
+            var applicableToSpan = completionState is not null && completionState.ApplicableToSpan.Snapshot == snapshot
+                ? new TextSpan(completionState.ApplicableToSpan.Start, completionState.ApplicableToSpan.Length)
+                : (TextSpan?)null;
 
             var proposalAdjusterService = document.GetLanguageService<ICopilotProposalAdjusterService>();
             var (proposedEdits, formatGroup, adjustmentResults) = proposalAdjusterService is null
