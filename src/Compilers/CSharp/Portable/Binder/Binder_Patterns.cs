@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (membersInterfaceForDefinition is not null)
             {
-                var definition = inputUnionType.OriginalDefinition;
                 NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
 
                 foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
