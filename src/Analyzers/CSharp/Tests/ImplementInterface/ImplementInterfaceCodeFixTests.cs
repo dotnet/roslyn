@@ -582,7 +582,7 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "Mixed line endings from missing brace insertion cause failures on Unix")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26323")]
     public Task TestMethodWhenClassBracesAreMissing2(
         [CombinatorialValues(0, 1)] int behavior)
@@ -3058,7 +3058,7 @@ public sealed class ImplementInterfaceCodeFixTests
             }
             """, index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings from single-line input cause failures on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestImplementEventThroughExplicitMember()
         => TestInRegularAndScriptAsync(
 @"interface IGoo { event System . EventHandler E ; } class CanGoo : IGoo { event System.EventHandler IGoo.E { add { } remove { } } } class HasCanGoo : {|CS0535:IGoo|} { CanGoo canGoo; }",
@@ -6071,7 +6071,7 @@ class B : IGoo
             }
             """, index: 3);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings from missing brace insertion cause failures on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/941469")]
     public Task TestDoNotImplementDisposePatternForLocallyDefinedIDisposable()
         => TestWithAllCodeStyleOptionsOffAsync(

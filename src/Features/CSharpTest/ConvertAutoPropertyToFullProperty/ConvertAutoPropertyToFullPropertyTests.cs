@@ -1037,7 +1037,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings in code action output cause failures on Unix"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
     public async Task PartialClassInSeparateFiles1()
     {
         var file1 = """
@@ -1082,7 +1082,7 @@ public sealed partial class ConvertAutoPropertyToFullPropertyTests : AbstractCSh
             parameters: null);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings in code action output cause failures on Unix"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/22146")]
     public async Task PartialClassInSeparateFiles2()
     {
         var file1 = """
