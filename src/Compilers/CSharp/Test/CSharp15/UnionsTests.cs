@@ -966,7 +966,7 @@ struct S2 : S2.IUnionMembers
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
-            // PROTOTYPE: Confirm whether we want to include members from base interfaces.
+            // PROTOTYPE: We want to include members from base interfaces, but this is lower in priority, compared to other aspects of the feature.
             VerifyCaseTypes(comp, "S2", ["System.Int32"]);
         }
 
@@ -29489,6 +29489,750 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        /// <summary>
+        /// <see cref="UnionMatching_05_Constant_01"/>
+        /// </summary>
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_01()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    object IUnionMembers.Value => _value;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test5(new S1(10)));
+        System.Console.Write(Test5(default(S1)));
+        System.Console.Write(Test5(new S1(""11"")));
+        System.Console.Write(Test5(new S1(0)));
+        System.Console.Write(Test5(null));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u is null;
+    }   
+
+    static bool Test5(S1? u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse TrueFalseFalseFalseFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""S1""
+  IL_0008:  callvirt   ""object S1.IUnionMembers.Value.get""
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  isinst     ""int""
+  IL_0014:  brfalse.s  IL_0021
+  IL_0016:  ldloc.0
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  ldc.i4.s   10
+  IL_001e:  ceq
+  IL_0020:  ret
+  IL_0021:  ldc.i4.0
+  IL_0022:  ret
+}
+");
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (S1 V_0,
+            object V_1)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0032
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  constrained. ""S1""
+  IL_0019:  callvirt   ""object S1.IUnionMembers.Value.get""
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.1
+  IL_0020:  isinst     ""int""
+  IL_0025:  brfalse.s  IL_0032
+  IL_0027:  ldloc.1
+  IL_0028:  unbox.any  ""int""
+  IL_002d:  ldc.i4.s   10
+  IL_002f:  ceq
+  IL_0031:  ret
+  IL_0032:  ldc.i4.0
+  IL_0033:  ret
+}
+");
+        }
+
+        /// <summary>
+        /// <see cref="UnionMatching_05_Constant_02"/>
+        /// </summary>
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_02()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    object IUnionMembers.Value => _value;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default));
+        System.Console.Write(Test4(new S1(""11"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+
+    static bool Test4(S1 u)
+    {
+        return u is null;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse FalseTrueFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S1.IUnionMembers.Value.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""int""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldloc.0
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  ldc.i4.s   10
+  IL_001a:  ceq
+  IL_001c:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_03_Missing()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+    }
+}
+
+class Program
+{
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_04_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers<object>
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    object IUnionMembers<object>.Value => throw null;
+
+    public interface IUnionMembers<T>  
+    {
+        public static S1 Create(int x) => throw null;
+        public T Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object S1.Value.get""
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  isinst     ""int""
+  IL_000e:  brfalse.s  IL_001b
+  IL_0010:  ldloc.0
+  IL_0011:  unbox.any  ""int""
+  IL_0016:  ldc.i4.s   10
+  IL_0018:  ceq
+  IL_001a:  ret
+  IL_001b:  ldc.i4.0
+  IL_001c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_05_Generic()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    object IUnionMembers.Value => _value;
+    
+    public interface IUnionMembers<T>;  
+
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+
+    public interface IUnionMembers<T, S>;  
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_06_InGenericUnion()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    object IUnionMembers.Value => _value;
+
+    public interface IUnionMembers  
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<long>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<long>(""11"")));
+        System.Console.Write(Test1(new S1<long>(0)));
+    }
+
+    static bool Test1(S1<long> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_07_WrongGenericSubstitution()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<long>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+
+    object S1<long>.IUnionMembers.Value => throw null;
+
+    public interface IUnionMembers  
+    {
+        public static S1<T> Create(int x) => throw null;
+        public static S1<T> Create(string x) => throw null;
+
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<long>(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1<long>(""11"")));
+        System.Console.Write(Test1(new S1<long>(0)));
+    }
+
+    static bool Test1(S1<long> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionMatching_MemberProvider_Value_08_Provider_NotPublic([CombinatorialValues("", "private", "internal", "protected", "internal protected", "private protected")] string accessibility)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+
+    object IUnionMembers.Value => throw null;
+    
+    " + accessibility + @" interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalse").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S1.Value.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""int""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldloc.0
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  ldc.i4.s   10
+  IL_001a:  ceq
+  IL_001c:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_09_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public System.IComparable Value => throw null;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public System.IComparable Value { get; }
+    }
+}
+
+class Program
+{
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_10_WrongType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1<T> : S1<T>.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+
+    T IUnionMembers.Value => throw null;
+
+    public interface IUnionMembers  
+    {
+        public static S1<T> Create(int x) => new S1<T>(x);
+        public static S1<T> Create(string x) => new S1<T>(x);
+
+        public T Value { get; }
+    }
+}
+
+class Program
+{
+    static bool Test1(S1<object> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (25,21): error CS0656: Missing compiler required member 'S1<T>.IUnionMembers.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1<T>.IUnionMembers", "Value").WithLocation(25, 21)
+                );
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void UnionMatching_MemberProvider_Value_11_WrongRefKind([CombinatorialValues("ref", "ref readonly")] string refModifier)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    
+    " + refModifier + @" object IUnionMembers.Value => throw null;
+
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public " + refModifier + @" object Value { get; }
+    }
+}
+
+class Program
+{
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_12_Static()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+        public static object Value => throw null;
+    }
+}
+
+class Program
+{
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
+                );
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_13_NotVirtual()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+class S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+
+    public interface IUnionMembers  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+
+        public sealed object Value => ((S1)this).Value;
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001d
+  IL_0003:  ldarg.0
+  IL_0004:  callvirt   ""object S1.IUnionMembers.Value.get""
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  isinst     ""int""
+  IL_0010:  brfalse.s  IL_001d
+  IL_0012:  ldloc.0
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  ldc.i4.s   10
+  IL_001a:  ceq
+  IL_001c:  ret
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionMatching_MemberProvider_Value_14_NotInherited()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1 : S1.IUnionMembers
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    
+    public interface IUnionMembers : IUnionMembersBase  
+    {
+        public static S1 Create(int x) => new S1(x);
+        public static S1 Create(string x) => new S1(x);
+    }
+
+    public interface IUnionMembersBase  
+    {
+        public object Value { get; }
+    }
+}
+
+class Program
+{
+    static bool Test1(S1 u)
+    {
+#line 21
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (21,21): error CS0656: Missing compiler required member 'S1.IUnionMembers.Value'
+                //         return u is 10;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "10").WithArguments("S1.IUnionMembers", "Value").WithLocation(21, 21)
+                );
         }
     }
 }

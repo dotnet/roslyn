@@ -36,19 +36,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static PropertySymbol? GetUnionTypeValueProperty(NamedTypeSymbol inputUnionType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(inputUnionType.IsUnionType);
-            PropertySymbol? valueProperty = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo);
 
-            if (valueProperty is not null)
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
+
+            if (membersInterfaceForDefinition is not null)
             {
-                Debug.Assert(valueProperty.Type.IsObjectType());
-                useSiteInfo.Add(valueProperty.GetUseSiteInfo());
+                var definition = inputUnionType.OriginalDefinition;
+                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(inputUnionType);
+
+                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.ValuePropertyName))
+                {
+                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
+                    {
+                        return reportDiagnosticAndReturnProperty(membersInterface, valueProperty.AsMember(membersInterface), ref useSiteInfo);
+                    }
+                }
+
+                return reportDiagnosticAndReturnProperty(membersInterface, null, ref useSiteInfo);
             }
             else
             {
-                useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, inputUnionType.OriginalDefinition, WellKnownMemberNames.ValuePropertyName));
+                return reportDiagnosticAndReturnProperty(
+                    inputUnionType,
+                    TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.ValuePropertyName, isSuitableProperty, ref useSiteInfo),
+                    ref useSiteInfo);
             }
 
-            return valueProperty;
+            static PropertySymbol? reportDiagnosticAndReturnProperty(NamedTypeSymbol memberProvider, PropertySymbol? valueProperty, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                if (valueProperty is not null)
+                {
+                    Debug.Assert(valueProperty.Type.IsObjectType());
+                    useSiteInfo.Add(valueProperty.GetUseSiteInfo());
+                }
+                else
+                {
+                    useSiteInfo.AddDiagnosticInfo(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberProvider.OriginalDefinition, WellKnownMemberNames.ValuePropertyName));
+                }
+
+                return valueProperty;
+            }
 
             static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? valueProperty)
             {
