@@ -1820,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return [];
                 }
 
-                NamedTypeSymbol? membersInterfaceForDefinition = getMemberProviderInterfaceForDefinition();
+                NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
 
                 var builder = ArrayBuilder<TypeSymbol>.GetInstance();
 
@@ -1829,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var definition = this.OriginalDefinition;
                     NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(this);
 
-                    foreach (var member in membersInterfaceForDefinition.GetMembers("Create"))
+                    foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
                     {
                         if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
                         {
@@ -1859,28 +1859,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                NamedTypeSymbol? getMemberProviderInterfaceForDefinition()
-                {
-                    foreach (var type in this.OriginalDefinition.GetTypeMembers(WellKnownMemberNames.UnionMembersInterfaceName))
-                    {
-                        if (type.Arity != 0)
-                        {
-                            continue;
-                        }
-
-                        if (type.DeclaredAccessibility != Accessibility.Public ||
-                            !type.IsInterface ||
-                            !this.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Contains(type, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
-                        {
-                            return null;
-                        }
-
-                        return type;
-                    }
-
-                    return null;
-                }
-
                 static bool isSuitableUnionFactory(NamedTypeSymbol unionType, MethodSymbol factory)
                 {
                     Debug.Assert(unionType.IsDefinition);
@@ -1900,6 +1878,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     unionType.Equals(factory.ReturnType, TypeCompareKind.AllIgnoreOptions);
                 }
             }
+        }
+
+        internal NamedTypeSymbol? GetMemberProviderInterfaceForDefinition()
+        {
+            Debug.Assert(IsUnionType);
+
+            foreach (var type in this.OriginalDefinition.GetTypeMembers(WellKnownMemberNames.UnionMembersInterfaceName))
+            {
+                if (type.Arity != 0)
+                {
+                    continue;
+                }
+
+                if (type.DeclaredAccessibility != Accessibility.Public ||
+                    !type.IsInterface ||
+                    !this.OriginalDefinition.AllInterfacesNoUseSiteDiagnostics.Contains(type, Symbols.SymbolEqualityComparer.AllIgnoreOptions))
+                {
+                    return null;
+                }
+
+                return type;
+            }
+
+            return null;
         }
 
         internal static bool IsSuitableUnionConstructor(MethodSymbol ctor)
