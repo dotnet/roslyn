@@ -117,6 +117,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
             "completion.dotnet_show_name_completion_suggestions",
             "completion.dotnet_provide_regex_completions",
             "completion.dotnet_show_completion_items_from_unimported_namespaces",
+            "completion.dotnet_completion_items_from_unimported_namespaces_commit_behavior",
             "completion.dotnet_trigger_completion_in_argument_lists",
             "quick_info.dotnet_show_remarks_in_quick_info",
             "navigation.dotnet_navigate_to_decompiled_sources",

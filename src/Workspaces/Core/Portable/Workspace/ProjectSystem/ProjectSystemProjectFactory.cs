@@ -97,22 +97,10 @@ internal sealed partial class ProjectSystemProjectFactory
     public FileTextLoader CreateFileTextLoader(string fullPath)
         => new WorkspaceFileTextLoader(this.SolutionServices, fullPath, defaultEncoding: null);
 
-    public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo)
+    public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo, CancellationToken cancellationToken = default)
     {
         var projectId = ProjectId.CreateNewId(projectSystemName);
         var assemblyName = creationInfo.AssemblyName ?? projectSystemName;
-
-        // We will use the project system name as the default display name of the project
-        var project = new ProjectSystemProject(
-            this,
-            hostInfo,
-            projectId,
-            displayName: projectSystemName,
-            language,
-            assemblyName,
-            creationInfo.CompilationOptions,
-            creationInfo.FilePath,
-            creationInfo.ParseOptions);
 
         var versionStamp = creationInfo.FilePath != null
             ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -131,7 +119,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
                 telemetryId: creationInfo.TelemetryId,
-                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
+                // Since we don't have any analyzers at this point, we can just set to false.
+                hasSdkCodeStyleAnalyzers: false),
             compilationOptions: creationInfo.CompilationOptions,
             parseOptions: creationInfo.ParseOptions);
 
@@ -175,13 +164,29 @@ internal sealed partial class ProjectSystemProjectFactory
                 onBeforeUpdate: null,
                 onAfterUpdate: null);
 
+            // We have now created the project and added it to the solution -- we are committed at this point
+            // to returning a project or else we would never have a way to remove this project we created.
+            cancellationToken = CancellationToken.None;
+
             _projectUpdateState = _projectUpdateState with
             {
                 ProjectReferenceInfos = _projectUpdateState.ProjectReferenceInfos.Add(projectId, new ProjectReferenceInformation([], []))
             };
-        }).ConfigureAwait(false);
+        }, cancellationToken).ConfigureAwait(false);
 
         CodeAnalysisEventSource.Log.ProjectCreated(projectSystemName, creationInfo.FilePath);
+
+        // We will use the project system name as the default display name of the project
+        var project = new ProjectSystemProject(
+            this,
+            hostInfo,
+            projectId,
+            displayName: projectSystemName,
+            language,
+            assemblyName,
+            creationInfo.CompilationOptions,
+            creationInfo.FilePath,
+            creationInfo.ParseOptions);
 
         // Set this value early after solution is created so it is available to Razor.  This will get updated
         // when the command line is set, but we want a non-null value to be available as soon as possible.
@@ -422,21 +427,26 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        // Remove file watchers for any references we're no longer watching.
-        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
+        // WARNING: the lists in projectUpdateState.RemovedMetadataReference and AddedMetadataReferences may have duplicates across them;
+        // if a number of output paths change in a single batch for example, we might convert metadata references to project references and back
+        // within a single batch. To keep things simple, we should call StartWatchingReference before Stop, so that way we don't accidentally run the
+        // reference counts those maintain below zero.
 
         // Add file watchers for any references we are now watching.
         foreach (var reference in projectUpdateState.AddedMetadataReferences)
             FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference.FilePath!);
 
         // Remove file watchers for any references we're no longer watching.
-        foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath, referenceToTrack: null);
+        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
+            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
 
-        // Add file watchers for any references we are now watching.
+        // Add file watchers for any analyzers we are now watching.
         foreach (var referenceFullPath in projectUpdateState.AddedAnalyzerReferences)
             FileWatchedAnalyzerReferenceFactory.StartWatchingReference(referenceFullPath);
+
+        // Remove file watchers for any analyzers we're no longer watching.
+        foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
+            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath, referenceToTrack: null);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();

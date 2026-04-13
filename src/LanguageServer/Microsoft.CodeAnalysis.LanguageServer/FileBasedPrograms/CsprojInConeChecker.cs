@@ -31,27 +31,8 @@ internal sealed class CsprojInConeChecker : ILspService, IOnInitialized
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         var initializeManager = context.GetRequiredService<IInitializeManager>();
-        if (initializeManager.TryGetInitializeParams() is { WorkspaceFolders: [_, ..] nonEmptyWorkspaceFolders })
-        {
-            _workspaceFolders = GetFolderPaths(nonEmptyWorkspaceFolders);
-        }
-
+        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
         return Task.CompletedTask;
-
-        static ImmutableArray<string> GetFolderPaths(WorkspaceFolder[] workspaceFolders)
-        {
-            var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
-            foreach (var workspaceFolder in workspaceFolders)
-            {
-                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
-                    continue;
-
-                var workspaceFolderPath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
-                builder.Add(workspaceFolderPath);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
     }
 
     public bool IsContainedInCsprojCone(string csFilePath)
@@ -60,7 +41,8 @@ internal sealed class CsprojInConeChecker : ILspService, IOnInitialized
         // showed an overhead on the order of 100s of microseconds for this check.
         // If this overhead becomes problematic, we may want to put a cache in front of it.
 
-        if (_workspaceFolders.IsDefaultOrEmpty)
+        Contract.ThrowIfTrue(_workspaceFolders.IsDefault, $"{nameof(OnInitializedAsync)} must be called before {nameof(IsContainedInCsprojCone)}.");
+        if (_workspaceFolders.IsEmpty)
             return false;
 
         if (!PathUtilities.IsAbsolute(csFilePath))

@@ -1,12 +1,22 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/dotnetcore
 {
-  "name": "C# (.NET 9)",
+  "name": "Roslyn (.NET 10)",
   "build": {
     "dockerfile": "Dockerfile",
     // Set the context to the workspace folder to allow us to copy files from it.
     "context": ".."
   },
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/powershell:2.0.1": {}
+  },
+  "hostRequirements": {
+    "cpus": 8,
+    "memory": "16gb",
+    "storage": "32gb"
+  },
+  "waitFor": "updateContentCommand",
   "customizations": {
     "vscode": {
       "settings": {
@@ -57,5 +67,6 @@
       ]
     }
   },
-  "postCreateCommand": "${containerWorkspaceFolder}/restore.sh"
+  // Keep restore prebuild-friendly so Codespaces can cache the expensive first-run setup.
+  "updateContentCommand": "${containerWorkspaceFolder}/.devcontainer/restore-workspace.sh Roslyn.slnx"
 }
