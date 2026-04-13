@@ -620,6 +620,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
+                    case WellKnownType.System_Memory_T:
+                    case WellKnownType.System_ReadOnlyMemory_T:
                     case WellKnownType.System_Collections_Immutable_ImmutableArray_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     case WellKnownType.System_Index:
@@ -646,7 +648,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_ScopedRefAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_RefSafetyRulesAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute:
-                    case WellKnownType.System_Runtime_CompilerServices_RequiresUnsafeAttribute:
+                    case WellKnownType.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute:
                     case WellKnownType.System_MemoryExtensions:
                     case WellKnownType.System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute:
                     case WellKnownType.System_Diagnostics_CodeAnalysis_UnscopedRefAttribute:
@@ -655,6 +657,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
                     case WellKnownType.System_Runtime_CompilerServices_ExtensionMarkerAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_UnionAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_IUnion:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray2:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray3:
                     case WellKnownType.System_Runtime_CompilerServices_InlineArray4:
@@ -981,12 +985,14 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_Span_T__Slice_Int:
                     case WellKnownMember.System_Span_T__Slice_Int_Int:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__Slice_Int:
                     case WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int:
                     case WellKnownMember.System_Index__ctor:
                     case WellKnownMember.System_Index__GetOffset:
@@ -1034,7 +1040,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_ScopedRefAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_RefSafetyRulesAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_MemorySafetyRulesAttribute__ctor:
-                    case WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor:
+                    case WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
                     case WellKnownMember.System_MemoryExtensions__AsSpan_String:
@@ -1050,6 +1056,10 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor:
+                    case WellKnownMember.System_Memory_T__Slice_Int:
+                    case WellKnownMember.System_Memory_T__Slice_Int_Int:
+                    case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int:
+                    case WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
@@ -1090,6 +1100,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_UnionAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item:
                     case WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length:
                     case WellKnownMember.System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T:

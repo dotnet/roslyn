@@ -346,7 +346,7 @@ record_declaration
   ;
 
 struct_declaration
-  : attribute_list* modifier* 'struct' identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
+  : attribute_list* modifier* ('struct' | 'union') identifier_token type_parameter_list? parameter_list? base_list? type_parameter_constraint_clause* '{'? member_declaration* '}'? ';'?
   ;
 
 delegate_declaration

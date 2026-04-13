@@ -17,6 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class IndexAndRangeTests : CSharpTestBase
     {
+        private static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         private CompilationVerifier CompileAndVerifyWithIndexAndRange(string s, string expectedOutput = null)
         {
             var comp = CreateCompilationWithIndexAndRange(
@@ -826,55 +831,58 @@ class C
         }
     }
 }";
+            // Without ReadOnlySpan.Slice
             var comp = CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(src, TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 abcd
 abcd");
             verifier.VerifyIL("C.Main", @"
 {
   // Code size       84 (0x54)
-      .maxstack  4
-      .locals init (System.ReadOnlySpan<char> V_0, //span
-                    string V_1,
-                    System.ReadOnlySpan<char> V_2,
-                    int V_3,
-                    System.ReadOnlySpan<char>& V_4)
-      IL_0000:  ldstr      ""abcd""
-      IL_0005:  dup
-      IL_0006:  stloc.1
-      IL_0007:  ldloc.1
-      IL_0008:  ldc.i4.0
-      IL_0009:  ldloc.1
-      IL_000a:  callvirt   ""int string.Length.get""
-      IL_000f:  callvirt   ""string string.Substring(int, int)""
-      IL_0014:  call       ""void System.Console.WriteLine(string)""
-      IL_0019:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-      IL_001e:  stloc.0
-      IL_001f:  ldloca.s   V_0
-      IL_0021:  stloc.s    V_4
-      IL_0023:  ldloc.s    V_4
-      IL_0025:  ldc.i4.0
-      IL_0026:  ldloc.s    V_4
-      IL_0028:  call       ""int System.ReadOnlySpan<char>.Length.get""
-      IL_002d:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
-      IL_0032:  stloc.2
-      IL_0033:  ldc.i4.0
-      IL_0034:  stloc.3
-      IL_0035:  br.s       IL_0049
-      IL_0037:  ldloca.s   V_2
-      IL_0039:  ldloc.3
-      IL_003a:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-      IL_003f:  ldind.u2
-      IL_0040:  call       ""void System.Console.Write(char)""
-      IL_0045:  ldloc.3
-      IL_0046:  ldc.i4.1
-      IL_0047:  add
-      IL_0048:  stloc.3
-      IL_0049:  ldloc.3
-      IL_004a:  ldloca.s   V_2
-      IL_004c:  call       ""int System.ReadOnlySpan<char>.Length.get""
-      IL_0051:  blt.s      IL_0037
-      IL_0053:  ret
+  .maxstack  4
+  .locals init (System.ReadOnlySpan<char> V_0, //span
+                string V_1,
+                System.ReadOnlySpan<char> V_2,
+                int V_3,
+                System.ReadOnlySpan<char>& V_4)
+  IL_0000:  ldstr      ""abcd""
+  IL_0005:  dup
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldloc.1
+  IL_000a:  callvirt   ""int string.Length.get""
+  IL_000f:  callvirt   ""string string.Substring(int, int)""
+  IL_0014:  call       ""void System.Console.WriteLine(string)""
+  IL_0019:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_001e:  stloc.0
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  stloc.s    V_4
+  IL_0023:  ldloc.s    V_4
+  IL_0025:  ldc.i4.0
+  IL_0026:  ldloc.s    V_4
+  IL_0028:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_002d:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
+  IL_0032:  stloc.2
+  IL_0033:  ldc.i4.0
+  IL_0034:  stloc.3
+  IL_0035:  br.s       IL_0049
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  ldloc.3
+  IL_003a:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_003f:  ldind.u2
+  IL_0040:  call       ""void System.Console.Write(char)""
+  IL_0045:  ldloc.3
+  IL_0046:  ldc.i4.1
+  IL_0047:  add
+  IL_0048:  stloc.3
+  IL_0049:  ldloc.3
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0051:  blt.s      IL_0037
+  IL_0053:  ret
 }");
 
             var (model, elementAccesses) = GetModelAndAccesses(comp);
@@ -883,6 +891,58 @@ abcd");
             var substringCall = (IMethodSymbol)info.Symbol;
             info = model.GetSymbolInfo(elementAccesses[1]);
             var sliceCall = (IMethodSymbol)info.Symbol;
+
+            VerifyIndexCall(substringCall, "Substring", "String");
+            VerifyIndexCall(sliceCall, "Slice", "ReadOnlySpan");
+
+            // With ReadOnlySpan.Slice
+            comp = CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(src, TestOptions.ReleaseExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"
+abcd
+abcd");
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       65 (0x41)
+  .maxstack  3
+  .locals init (System.ReadOnlySpan<char> V_0, //span
+                System.ReadOnlySpan<char> V_1,
+                int V_2)
+  IL_0000:  ldstr      ""abcd""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  callvirt   ""string string.Substring(int)""
+  IL_000c:  call       ""void System.Console.WriteLine(string)""
+  IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldc.i4.0
+  IL_001a:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)""
+  IL_001f:  stloc.1
+  IL_0020:  ldc.i4.0
+  IL_0021:  stloc.2
+  IL_0022:  br.s       IL_0036
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  ldloc.2
+  IL_0027:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_002c:  ldind.u2
+  IL_002d:  call       ""void System.Console.Write(char)""
+  IL_0032:  ldloc.2
+  IL_0033:  ldc.i4.1
+  IL_0034:  add
+  IL_0035:  stloc.2
+  IL_0036:  ldloc.2
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_003e:  blt.s      IL_0024
+  IL_0040:  ret
+}");
+
+            (model, elementAccesses) = GetModelAndAccesses(comp);
+
+            info = model.GetSymbolInfo(elementAccesses[0]);
+            substringCall = (IMethodSymbol)info.Symbol;
+            info = model.GetSymbolInfo(elementAccesses[1]);
+            sliceCall = (IMethodSymbol)info.Symbol;
 
             VerifyIndexCall(substringCall, "Substring", "String");
             VerifyIndexCall(sliceCall, "Slice", "ReadOnlySpan");
@@ -1095,7 +1155,8 @@ class C
         Console.WriteLine(s[0]);
         Console.WriteLine(s[1]);
     }
-}", TestOptions.ReleaseExe); ;
+}", TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: @"f
 g
 f
@@ -1181,6 +1242,7 @@ class C
         Console.WriteLine(s[1]);
     }
 }", TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
             var verifier = CompileAndVerify(comp, expectedOutput: @"5
 6
 5
@@ -1188,66 +1250,66 @@ class C
             verifier.VerifyIL("C.Main", @"
 {
   // Code size      136 (0x88)
-      .maxstack  4
-      .locals init (System.Span<int> V_0, //s
-                    System.Index V_1, //index
-                    System.Span<int>& V_2,
-                    int V_3,
-                    int V_4)
-      IL_0000:  ldc.i4.4
-      IL_0001:  newarr     ""int""
-      IL_0006:  dup
-      IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.B35A10C764778866E34111165FC69660C6171DF0CB0141E39FA0217EF7A97646""
-      IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
-      IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
-      IL_0016:  stloc.0
-      IL_0017:  ldloca.s   V_0
-      IL_0019:  dup
-      IL_001a:  call       ""int System.Span<int>.Length.get""
-      IL_001f:  ldc.i4.2
-      IL_0020:  sub
-      IL_0021:  call       ""ref int System.Span<int>.this[int].get""
-      IL_0026:  ldind.i4
-      IL_0027:  call       ""void System.Console.WriteLine(int)""
-      IL_002c:  ldloca.s   V_1
-      IL_002e:  ldc.i4.1
-      IL_002f:  ldc.i4.1
-      IL_0030:  call       ""System.Index..ctor(int, bool)""
-      IL_0035:  ldloca.s   V_0
-      IL_0037:  stloc.2
-      IL_0038:  ldloc.2
-      IL_0039:  ldloca.s   V_1
-      IL_003b:  ldloc.2
-      IL_003c:  call       ""int System.Span<int>.Length.get""
-      IL_0041:  call       ""int System.Index.GetOffset(int)""
-      IL_0046:  call       ""ref int System.Span<int>.this[int].get""
-      IL_004b:  ldind.i4
-      IL_004c:  call       ""void System.Console.WriteLine(int)""
-      IL_0051:  ldloca.s   V_0
-      IL_0053:  dup
-      IL_0054:  call       ""int System.Span<int>.Length.get""
-      IL_0059:  stloc.3
-      IL_005a:  ldloc.3
-      IL_005b:  ldc.i4.2
-      IL_005c:  sub
-      IL_005d:  stloc.s    V_4
-      IL_005f:  ldloc.s    V_4
-      IL_0061:  ldloc.3
-      IL_0062:  ldloc.s    V_4
-      IL_0064:  sub
-      IL_0065:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
-      IL_006a:  stloc.0
-      IL_006b:  ldloca.s   V_0
-      IL_006d:  ldc.i4.0
-      IL_006e:  call       ""ref int System.Span<int>.this[int].get""
-      IL_0073:  ldind.i4
-      IL_0074:  call       ""void System.Console.WriteLine(int)""
-      IL_0079:  ldloca.s   V_0
-      IL_007b:  ldc.i4.1
-      IL_007c:  call       ""ref int System.Span<int>.this[int].get""
-      IL_0081:  ldind.i4
-      IL_0082:  call       ""void System.Console.WriteLine(int)""
-      IL_0087:  ret
+  .maxstack  4
+  .locals init (System.Span<int> V_0, //s
+                System.Index V_1, //index
+                System.Span<int>& V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  ldc.i4.4
+  IL_0001:  newarr     ""int""
+  IL_0006:  dup
+  IL_0007:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=16 <PrivateImplementationDetails>.B35A10C764778866E34111165FC69660C6171DF0CB0141E39FA0217EF7A97646""
+  IL_000c:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
+  IL_0011:  call       ""System.Span<int> System.Span<int>.op_Implicit(int[])""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  dup
+  IL_001a:  call       ""int System.Span<int>.Length.get""
+  IL_001f:  ldc.i4.2
+  IL_0020:  sub
+  IL_0021:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0026:  ldind.i4
+  IL_0027:  call       ""void System.Console.WriteLine(int)""
+  IL_002c:  ldloca.s   V_1
+  IL_002e:  ldc.i4.1
+  IL_002f:  ldc.i4.1
+  IL_0030:  call       ""System.Index..ctor(int, bool)""
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  stloc.2
+  IL_0038:  ldloc.2
+  IL_0039:  ldloca.s   V_1
+  IL_003b:  ldloc.2
+  IL_003c:  call       ""int System.Span<int>.Length.get""
+  IL_0041:  call       ""int System.Index.GetOffset(int)""
+  IL_0046:  call       ""ref int System.Span<int>.this[int].get""
+  IL_004b:  ldind.i4
+  IL_004c:  call       ""void System.Console.WriteLine(int)""
+  IL_0051:  ldloca.s   V_0
+  IL_0053:  dup
+  IL_0054:  call       ""int System.Span<int>.Length.get""
+  IL_0059:  stloc.3
+  IL_005a:  ldloc.3
+  IL_005b:  ldc.i4.2
+  IL_005c:  sub
+  IL_005d:  stloc.s    V_4
+  IL_005f:  ldloc.s    V_4
+  IL_0061:  ldloc.3
+  IL_0062:  ldloc.s    V_4
+  IL_0064:  sub
+  IL_0065:  call       ""System.Span<int> System.Span<int>.Slice(int, int)""
+  IL_006a:  stloc.0
+  IL_006b:  ldloca.s   V_0
+  IL_006d:  ldc.i4.0
+  IL_006e:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0073:  ldind.i4
+  IL_0074:  call       ""void System.Console.WriteLine(int)""
+  IL_0079:  ldloca.s   V_0
+  IL_007b:  ldc.i4.1
+  IL_007c:  call       ""ref int System.Span<int>.this[int].get""
+  IL_0081:  ldind.i4
+  IL_0082:  call       ""void System.Console.WriteLine(int)""
+  IL_0087:  ret
 }
 ");
         }
@@ -4234,6 +4296,495 @@ class S
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SliceStart_01(bool isMissing)
+        {
+            // ReadOnlySpan
+            string source = """
+using System;
+
+Console.Write(Util.M("0123").ToString());
+
+static class Util
+{
+    public static ReadOnlySpan<char> M(ReadOnlySpan<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
+
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.M",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.ReadOnlySpan<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.ReadOnlySpan<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SliceStart_02(bool isMissing)
+        {
+            // Span
+            string source = """
+using System;
+
+Console.Write(Util.M("0123".ToCharArray()).ToString());
+
+static class Util
+{
+    public static Span<char> M(Span<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
+
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.M",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.Span<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.Span<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.Span<char> System.Span<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.Span<char> System.Span<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SliceStart_03(bool isMissing)
+        {
+            // string
+            string source = """
+System.Console.Write("0123"[1..]);
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            if (isMissing)
+                comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
+
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123"), verify: Verification.Skipped);
+
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("<top-level-statements-entry-point>",
+                isMissing ? """
+{
+  // Code size       27 (0x1b)
+  .maxstack  4
+  .locals init (string V_0)
+  IL_0000:  ldstr      "0123"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldloc.0
+  IL_0009:  callvirt   "int string.Length.get"
+  IL_000e:  ldc.i4.1
+  IL_000f:  sub
+  IL_0010:  callvirt   "string string.Substring(int, int)"
+  IL_0015:  call       "void System.Console.Write(string)"
+  IL_001a:  ret
+}
+""" : """
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+
+  IL_0000:  ldstr      "0123"
+  IL_0005:  ldc.i4.1
+  IL_0006:  callvirt   "string string.Substring(int)"
+  IL_000b:  call       "void System.Console.Write(string)"
+  IL_0010:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SliceStart_04(bool isMissing)
+        {
+            // Memory/ReadOnlyMemory
+            string source = """
+using System;
+
+Console.Write(Util.ReadOnly("0123".AsMemory()).ToString());
+Console.Write(Util.Writable("ABCD".ToCharArray().AsMemory()).ToString());
+
+static class Util
+{
+    public static ReadOnlyMemory<char> ReadOnly(ReadOnlyMemory<char> s) => s[1..];
+    public static Memory<char> Writable(Memory<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            if (isMissing)
+            {
+                comp.MakeMemberMissing(WellKnownMember.System_ReadOnlyMemory_T__Slice_Int);
+                comp.MakeMemberMissing(WellKnownMember.System_Memory_T__Slice_Int);
+            }
+
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123BCD"), verify: Verification.FailsPEVerify);
+
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.ReadOnly",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.ReadOnlyMemory<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.ReadOnlyMemory<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.ReadOnlyMemory<char> System.ReadOnlyMemory<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.ReadOnlyMemory<char> System.ReadOnlyMemory<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
+
+            verify.VerifyIL("Util.Writable",
+                isMissing ? """
+{
+  // Code size       19 (0x13)
+  .maxstack  4
+  .locals init (System.Memory<char>& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldc.i4.1
+  IL_0005:  ldloc.0
+  IL_0006:  call       "int System.Memory<char>.Length.get"
+  IL_000b:  ldc.i4.1
+  IL_000c:  sub
+  IL_000d:  call       "System.Memory<char> System.Memory<char>.Slice(int, int)"
+  IL_0012:  ret
+}
+""" : """
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  call       "System.Memory<char> System.Memory<char>.Slice(int)"
+  IL_0008:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_05()
+        {
+            // Object initializer with `[start..] =`
+            string source = """
+System.Console.Write(Util.M());
+
+static class Util
+{
+    public static C M() => new C() { [1..] = 42 };
+}
+
+public class C
+{
+    private readonly int[] _values = new int[10];
+
+    public int Length { get { System.Console.Write("Length "); return _values.Length; } }
+
+    public ref int Slice(int start) => throw null;
+
+    public ref int Slice(int start, int length) { System.Console.Write($"SliceStartLength({start},{length}) "); return ref _values[start]; }
+
+    public override string ToString() => _values[1].ToString();
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length SliceStartLength(1,9) 42"), verify: Verification.Skipped);
+
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.M", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  4
+  .locals init (int V_0,
+                int V_1)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldc.i4.1
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  callvirt   "int C.Length.get"
+  IL_000e:  ldc.i4.1
+  IL_000f:  sub
+  IL_0010:  stloc.1
+  IL_0011:  ldloc.0
+  IL_0012:  ldloc.1
+  IL_0013:  callvirt   "ref int C.Slice(int, int)"
+  IL_0018:  ldc.i4.s   42
+  IL_001a:  stind.i4
+  IL_001b:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_06()
+        {
+            // `with` expression with `[start..] =`
+            string source = """
+_ = new C() with { [1..] = 42 };
+
+public record class C
+{
+    public int Length => throw null;
+    public ref int Slice(int start) => throw null;
+    public ref int Slice(int start, int length) => throw null;
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            comp.VerifyEmitDiagnostics(
+                // (1,20): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                // _ = new C() with { [1..] = 42 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[1..]").WithLocation(1, 20),
+                // (1,20): error CS0747: Invalid initializer member declarator
+                // _ = new C() with { [1..] = 42 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[1..] = 42").WithLocation(1, 20));
+        }
+
+        [Fact]
+        public void SliceStart_07()
+        {
+            // ReadOnlySpan with Range instance
+            string source = """
+using System;
+
+Console.Write(Util.M("0123", 1..).ToString());
+Console.Write(' ');
+Console.Write(Util.M("4567", 1..^1).ToString());
+
+static class Util
+{
+    public static ReadOnlySpan<char> M(ReadOnlySpan<char> s, Range range) => s[range];
+}
+""";
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+
+            var verify = CompileAndVerify(comp, expectedOutput: ExpectedOutput("123 56"), verify: Verification.Skipped);
+            verify.VerifyDiagnostics();
+            // Uses Slice(int, int)
+            verify.VerifyIL("Util.M", """
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarg.1
+  IL_0003:  stloc.0
+  IL_0004:  dup
+  IL_0005:  call       "int System.ReadOnlySpan<char>.Length.get"
+  IL_000a:  stloc.1
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       "System.Index System.Range.Start.get"
+  IL_0012:  stloc.s    V_4
+  IL_0014:  ldloca.s   V_4
+  IL_0016:  ldloc.1
+  IL_0017:  call       "int System.Index.GetOffset(int)"
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_0
+  IL_001f:  call       "System.Index System.Range.End.get"
+  IL_0024:  stloc.s    V_4
+  IL_0026:  ldloca.s   V_4
+  IL_0028:  ldloc.1
+  IL_0029:  call       "int System.Index.GetOffset(int)"
+  IL_002e:  ldloc.2
+  IL_002f:  sub
+  IL_0030:  stloc.3
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.3
+  IL_0033:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)"
+  IL_0038:  ret
+}
+""");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SliceStart_08(bool hasSliceInt)
+        {
+            // ReadOnlySpan where Slice(int, int) is absent, but Slice(int) may be present
+            string spanSource = $$"""
+namespace System
+{
+    public readonly ref struct ReadOnlySpan<T>
+    {
+        public ref readonly T this[int i] => throw null;
+        public int Length { get; }
+
+        public ReadOnlySpan(T[] arr) => throw null;
+
+        public ReadOnlySpan(T[] arr, int start, int length) => throw null;
+
+        public static implicit operator ReadOnlySpan<T>(string s) => throw null;
+
+        {{(hasSliceInt
+            ? "public ReadOnlySpan<T> Slice(int offset) => throw null;"
+            : "")}}
+    }
+}
+""";
+
+            var spanRef = CreateCompilation(
+                [spanSource, TestSources.Index, TestSources.Range],
+                options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics().EmitToImageReference();
+
+            string source = """
+static class C
+{
+    public static System.ReadOnlySpan<char> M(System.ReadOnlySpan<char> s) => s[1..];
+}
+""";
+
+            var comp = CreateCompilation(source, references: [spanRef]);
+            comp.VerifyDiagnostics(
+                // (3,81): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //     public static System.ReadOnlySpan<char> M(System.ReadOnlySpan<char> s) => s[1..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "1..").WithArguments("1", "System.Range", "int").WithLocation(3, 81));
+        }
+
+        [Fact]
+        public void SliceStart_09()
+        {
+            // SubtractFromLength strategy in start..
+            string source = """
+System.Console.Write(GetString()[^GetStart()..]);
+
+static int GetStart() { System.Console.Write("GetStart "); return 3; }
+static string GetString() { System.Console.Write("GetString "); return "123456"; }
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetString GetStart 456"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  call       "string Program.<<Main>$>g__GetString|0_1()"
+  IL_0005:  call       "int Program.<<Main>$>g__GetStart|0_0()"
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  callvirt   "int string.Length.get"
+  IL_0011:  ldloc.0
+  IL_0012:  sub
+  IL_0013:  callvirt   "string string.Substring(int)"
+  IL_0018:  call       "void System.Console.Write(string)"
+  IL_001d:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_10()
+        {
+            // UseGetOffsetAPI strategy in start..
+            string source = """
+System.Console.Write(C.M("0123"));
+
+static class C
+{
+    public static string M(string s) => s[GetStart()..];
+    public static System.Index GetStart() { System.Console.Write("GetStart "); return 1; }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart 123"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (string V_0,
+                System.Index V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  call       "System.Index C.GetStart()"
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  ldloc.0
+  IL_000c:  callvirt   "int string.Length.get"
+  IL_0011:  call       "int System.Index.GetOffset(int)"
+  IL_0016:  callvirt   "string string.Substring(int)"
+  IL_001b:  ret
+}
+""");
         }
     }
 }

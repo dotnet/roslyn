@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges;
@@ -93,7 +94,7 @@ public sealed partial class DocumentChangesTests
                         // hi there
                     }
                 }
-                """, document.GetTextSynchronously(CancellationToken.None).ToString());
+                """.NormalizeLineEndings(), document.GetTextSynchronously(CancellationToken.None).ToString());
         }
 
         await DidClose(testLspServer, caretLocation.DocumentUri);

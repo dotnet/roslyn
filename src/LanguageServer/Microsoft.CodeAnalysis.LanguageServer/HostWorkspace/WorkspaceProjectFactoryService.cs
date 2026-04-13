@@ -35,9 +35,8 @@ internal sealed class WorkspaceProjectFactoryService(
     Task IExportedBrokeredService.InitializeAsync(CancellationToken cancellationToken)
         => _projectInitializationHandler.SubscribeToInitializationCompleteAsync(cancellationToken);
 
-    public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
+    public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
         VSCodeRequestTelemetryLogger.ReportProjectLoadStarted();
         try
         {
@@ -50,12 +49,19 @@ internal sealed class WorkspaceProjectFactoryService(
                 creationInfo.DisplayName,
                 creationInfo.Language,
                 new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
-                _workspaceFactory.ProjectSystemHostInfo);
+                _workspaceFactory.ProjectSystemHostInfo,
+                cancellationToken).ConfigureAwait(false);
+
+            // We have now created the project and added it to the solution -- we are committed at this point
+            // to returning a project or else we would never have a way to remove this project we created.
+            cancellationToken = CancellationToken.None;
 
             var workspaceProject = new WorkspaceProject(project, _workspaceFactory.HostWorkspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager, _loggerFactory);
 
             // We've created a new project, so initialize properties we have
             await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);
+
+            _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
 
             return workspaceProject;
         }

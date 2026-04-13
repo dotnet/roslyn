@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
@@ -16,6 +15,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
+Imports Microsoft.VisualStudio.LanguageServices.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 Imports Microsoft.VisualStudio.RpcContracts.DiagnosticManagement
 Imports Roslyn.Test.Utilities
@@ -35,56 +35,67 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         Private Shared ReadOnly s_projectGuid As Guid = Guid.NewGuid()
 
         <WpfFact>
-        Public Async Function TestExternalDiagnostics_SupportedId() As Task
+        Public Async Function TestExternalDiagnostics_UnsupportedId() As Task
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
-                Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
-                Dim analyzer = New AnalyzerForErrorLogTest()
+                Dim listener = workspace.GetService(Of AsynchronousOperationListenerProvider)()
 
+                ' Create an analyzer and add it to the solution
+                Dim analyzer = New AnalyzerForErrorLogTest()
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
                     ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)))
-
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
-
-                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext).Value
 
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
+
+                ' Get the diagnostic cache through the mock VS workspace otherwise it will not be the correct instance
+                Dim diagnosticCache = vsWorkspace.Services.GetRequiredService(Of VisualStudioDiagnosticIdCache)()
+
                 Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
-
                     Dim project = workspace.CurrentSolution.Projects.First()
-                    source.OnSolutionBuildStarted()
-                    Await waiter.ExpeditedWaitAsync()
 
-                    Assert.True(Await source.IsSupportedDiagnosticIdAsync(project.Id, "ID1", CancellationToken.None))
-                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "CA1002", CancellationToken.None))
+                    ' Registering the project with the diagnostic cache will allow it to be populated (this mimics AbstractLegeacyProject)
+                    diagnosticCache.RegisterProject(project.Id)
+
+                    ' Starting a build triggers the diagnostic id cache to refresh. Waiting on DiagnosticService ensures
+                    ' that they are populated.
+                    source.OnSolutionBuildStarted()
+                    Await listener.WaitAllAsync(workspace, {FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorList})
+
+                    Assert.False(source.IsUnsupportedDiagnosticId(project.Id, "ID1"))
+                    Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "CA1002"))
                 End Using
             End Using
         End Function
 
         <WpfFact>
-        Public Async Function TestExternalDiagnostics_SupportedIdFalseIfBuildNotStarted() As Task
+        Public Sub TestExternalDiagnostics_UnsupportedIdTrueIfBuildNotStarted()
             Using workspace = EditorTestWorkspace.CreateCSharp(String.Empty, composition:=s_composition)
-                Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
+                ' Create an analyzer and add it to the solution
                 Dim analyzer = New AnalyzerForErrorLogTest()
-
                 Dim analyzerReference = New TestAnalyzerReferenceByLanguage(
                     ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)).Empty.Add(LanguageNames.CSharp, ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)))
-
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
-
-                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext).Value
 
                 Dim vsWorkspace = workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)()
                 vsWorkspace.SetWorkspace(workspace)
-                Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
 
+                ' Get the diagnostic cache through the mock VS workspace otherwise it will not be the correct instance
+                Dim diagnosticCache = vsWorkspace.Services.GetRequiredService(Of VisualStudioDiagnosticIdCache)()
+
+                Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
                     Dim project = workspace.CurrentSolution.Projects.First()
 
-                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "ID1", CancellationToken.None))
-                    Assert.False(Await source.IsSupportedDiagnosticIdAsync(project.Id, "CA1002", CancellationToken.None))
+                    ' Registering the project with the diagnostic cache will allow it to be populated (this mimics AbstractLegeacyProject)
+                    diagnosticCache.RegisterProject(project.Id)
+
+                    ' By not starting a build the cache will not populate and we cannot say a diagnostic is unsupported.
+
+                    Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "ID1"))
+                    Assert.True(source.IsUnsupportedDiagnosticId(project.Id, "CA1002"))
                 End Using
             End Using
-        End Function
+        End Sub
 
         <WpfFact>
         Public Async Function TestExternalDiagnosticsReported() As Task

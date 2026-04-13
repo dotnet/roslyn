@@ -391,7 +391,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         return documents.SingleOrDefault();
     }
 
-    private static async ValueTask<TextDocument?> GetMiscellaneousAdditionalDocumentAsync(TestLspServer testLspServer)
+    private protected static async ValueTask<TextDocument?> GetMiscellaneousAdditionalDocumentAsync(TestLspServer testLspServer)
     {
         var documents = await testLspServer.GetManagerAccessor().GetMiscellaneousDocumentsAsync(static p => p.AdditionalDocuments).ToImmutableArrayAsync(CancellationToken.None);
         return documents.SingleOrDefault();

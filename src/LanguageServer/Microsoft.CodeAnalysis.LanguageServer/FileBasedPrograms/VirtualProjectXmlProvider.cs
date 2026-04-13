@@ -99,15 +99,7 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     internal static string? GetVirtualProjectPath(string? documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-    /// <summary>
-    /// Indicates whether the editor considers the text to be a file-based program.
-    /// If this returns false, the text is either a miscellaneous file or is part of an ordinary project.
-    /// </summary>
-    /// <remarks>
-    /// The editor considers the text to be a file-based program if it has any '#!' or '#:' directives at the top.
-    /// Note that a file with top-level statements but no directives can still work with 'dotnet app.cs' etc. on the CLI, but will be treated as a misc file in the editor.
-    /// </remarks>
-    internal static bool IsFileBasedProgram(SourceText text)
+    internal static bool HasFileBasedAppDirectives(SourceText text)
     {
         var tokenizer = SyntaxFactory.CreateTokenParser(text, CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
         var result = tokenizer.ParseLeadingTrivia();
@@ -117,21 +109,6 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
             if (trivia.Kind() is SyntaxKind.ShebangDirectiveTrivia or SyntaxKind.IgnoredDirectiveTrivia)
                 return true;
         }
-
-        return false;
-    }
-
-    internal static async Task<bool> ShouldReportSemanticErrorsInPossibleFileBasedProgramAsync(IGlobalOptionService globalOptionService, SyntaxTree tree, CancellationToken cancellationToken)
-    {
-        if (!globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms)
-            || !globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedProgramsWhenAmbiguous))
-        {
-            return false;
-        }
-
-        var root = await tree.GetRootAsync(cancellationToken);
-        if (root is CompilationUnitSyntax compilationUnit)
-            return compilationUnit.Members.Any(member => member.IsKind(SyntaxKind.GlobalStatement));
 
         return false;
     }
@@ -157,21 +134,35 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
         }
     }
 
+    internal static string GetDiscoveryCacheDirectory(string workspaceFolder)
+        => GetTempPathCore("runfile-discovery", workspaceFolder);
+
+    internal static string GetDiscoveryCacheRootDirectory()
+        => GetTempDotnetSubdirectory("runfile-discovery");
+
     // See https://github.com/dotnet/sdk/blob/5a4292947487a9d34f4256c1d17fb3dc26859174/src/Cli/dotnet/Commands/Run/VirtualProjectBuildingCommand.cs#L449
     internal static string GetArtifactsPath(string entryPointFileFullPath)
+        => GetTempPathCore("runfile", entryPointFileFullPath);
+
+    private static string GetTempDotnetSubdirectory(string dotnetSubdirectory)
     {
         // We want a location where permissions are expected to be restricted to the current user.
-        string directory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        string tempDirectory = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? Path.GetTempPath()
             : Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Join(tempDirectory, "dotnet", dotnetSubdirectory);
+    }
 
-        // Include entry point file name so the directory name is not completely opaque.
-        string fileName = Path.GetFileNameWithoutExtension(entryPointFileFullPath);
-        string hash = Sha256Hasher.HashWithNormalizedCasing(entryPointFileFullPath);
+    private static string GetTempPathCore(string dotnetSubdirectory, string originalFilePath)
+    {
+        // Include original file name so the directory name is not completely opaque.
+        string fileName = Path.GetFileNameWithoutExtension(originalFilePath);
+        string hash = Sha256Hasher.HashWithNormalizedCasing(originalFilePath);
         string directoryName = $"{fileName}-{hash}";
 
-        return Path.Join(directory, "dotnet", "runfile", directoryName);
+        return Path.Join(GetTempDotnetSubdirectory(dotnetSubdirectory), directoryName);
     }
+
     #endregion
 
     // https://github.com/dotnet/roslyn/issues/78618: falling back to this until dotnet run-api is more widely available

@@ -1362,8 +1362,14 @@ internal sealed partial class ProjectSystemProject
     #endregion
 
     public void RemoveFromWorkspace()
+        => RemoveFromWorkspaceMaybeAsync(useAsync: false).VerifyCompleted();
+
+    public ValueTask RemoveFromWorkspaceAsync()
+        => RemoveFromWorkspaceMaybeAsync(useAsync: true);
+
+    private async ValueTask RemoveFromWorkspaceMaybeAsync(bool useAsync)
     {
-        using (_gate.DisposableWait())
+        using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
         {
             if (!_projectSystemProjectFactory.Workspace.CurrentSolution.ContainsProject(Id))
             {
@@ -1386,7 +1392,7 @@ internal sealed partial class ProjectSystemProject
         IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
         IReadOnlyList<AnalyzerReference>? remainingAnalyzerReferences = null;
 
-        _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
+        await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w =>
         {
             // Acquire the remaining metadata references inside the workspace lock. This is critical
             // as another project being removed at the same time could result in project to project
@@ -1412,7 +1418,7 @@ internal sealed partial class ProjectSystemProject
             {
                 _projectSystemProjectFactory.Workspace.OnProjectRemoved(Id);
             }
-        });
+        }).ConfigureAwait(false);
 
         Contract.ThrowIfNull(remainingMetadataReferences);
         Contract.ThrowIfNull(remainingAnalyzerReferences);

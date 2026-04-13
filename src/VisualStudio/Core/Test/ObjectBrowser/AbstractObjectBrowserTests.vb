@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
                 Dim mockComponentModel = New MockComponentModel(workspace.ExportProvider)
                 mockComponentModel.ProvideService(Of VisualStudioWorkspace)(vsWorkspace)
                 Dim mockServiceProvider = workspace.ExportProvider.GetExportedValue(Of MockServiceProvider)
-                Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel, vsWorkspace)
+                Dim libraryManager = CreateLibraryManager(mockServiceProvider, mockComponentModel)
 
                 result = New TestState(workspace, vsWorkspace, libraryManager)
             Finally
@@ -57,7 +57,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Return result
         End Function
 
-        Friend MustOverride Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel, workspace As VisualStudioWorkspace) As AbstractObjectBrowserLibraryManager
+        Friend MustOverride Function CreateLibraryManager(serviceProvider As IServiceProvider, componentModel As IComponentModel) As AbstractObjectBrowserLibraryManager
 
         Friend Function ProjectNode(name As String) As NavInfoNodeDescriptor
             Return New NavInfoNodeDescriptor With {.Kind = ObjectListKind.Projects, .Name = name}
