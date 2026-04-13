@@ -161,7 +161,8 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         var totalChanges = FixLineEndingBoundaries(oldText, allChanges.AsImmutableOrEmpty());
 
-        // Merge nearby changes into a single TextChange that spans across the ATS boundary. Split any such changes.
+        // The diff algorithm may have merged nearby changes into a single TextChange that spans
+        // across the ATS boundary. Split any such changes to avoid the protected span.
         if (applicableToSpan is { } ats)
         {
             totalChanges = ConstrainChangesToAvoidSpan(oldText, totalChanges, ats);
