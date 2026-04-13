@@ -274,7 +274,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
             if (change.Span.Start > protectedSpan.Start || change.Span.End < protectedSpan.End)
             {
                 // Partial overlap or change is contained within the protected span.
-                // We can't safely split this. Bail out.
+                // We can't safely split this.
                 return default;
             }
 
@@ -287,12 +287,10 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
     /// <summary>
     /// Determines whether <paramref name="editSpan"/> intersects <paramref name="protectedSpan"/>.
-    /// A zero-length edit at the end of the protected span is allowed (per <c>Proposal.ValidateEdits</c>)
-    /// and is NOT considered an intersection.
+    /// A zero-length edit at the end of the protected span is allowed and is NOT considered an intersection.
     /// </summary>
     private static bool IntersectsProtectedSpan(TextSpan editSpan, TextSpan protectedSpan)
     {
-        // A zero-length edit at the end of the protected span is allowed.
         if (editSpan.Length == 0 && editSpan.Start == protectedSpan.End)
             return false;
 
@@ -350,7 +348,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     }
 
     /// <summary>
-    /// Finds the position of the protected (ATS) text within a change's replacement text.
+    /// Finds the position of the ApplicableToSpan text within a change's replacement text.
     /// Uses surrounding context characters from the original text to disambiguate when the ATS
     /// text is short and could appear in multiple places.
     /// </summary>
@@ -362,7 +360,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         string protectedText)
     {
         // Use the character immediately before the ATS in the original text for disambiguation.
-        // This character (e.g., '.' in "Console.wl") is a non-whitespace token boundary that
+        // This character ('.' in "Console.wl") is a non-whitespace token boundary that
         // formatting adjusters preserve.
         if (protectedSpan.Start > changeSpan.Start)
         {
