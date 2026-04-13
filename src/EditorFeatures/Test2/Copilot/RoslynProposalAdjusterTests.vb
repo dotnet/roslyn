@@ -872,7 +872,7 @@ class C
 
         <WpfFact>
         Public Sub TestConstrainChanges_ZeroLengthEditAtAtsEnd_Allowed()
-            ' A zero-length edit at the end of the protected span is allowed per ValidateEdits.
+            ' A zero-length edit at the end of the protected span is allowed.
             Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
             Dim protectedSpan = New TextSpan(8, 2) ' "wl"
             Dim changes = ImmutableArray.Create(
@@ -883,16 +883,16 @@ class C
             Assert.Equal(changes(0), constrained(0))
         End Sub
 
+        ' Simulates formatter re-indenting a line, producing a change that spans across
+        ' the ApplicableToSpan. The change should be split into before-ATS and after-ATS parts.
+        '
+        ' Original: "Console.wl\r\nreturn;" where ATS = [8,10) for "wl"
+        ' Diff change: replaces [0, 12) with "    Console.wl(""Hello"");\r\n"
+        ' This spans across ATS [8,10). Should split into:
+        '   [0,8) -> "    Console."   (indentation + prefix)
+        '   [10,12) -> "(""Hello"");\r\n" (edit + rest)
         <WpfFact>
         Public Sub TestConstrainChanges_ChangeFullyContainsAts_SplitsCorrectly()
-            ' Simulates formatter re-indenting a line, producing a change that spans across
-            ' the ATS. The change should be split into before-ATS and after-ATS parts.
-            '
-            ' Original: "Console.wl\r\nreturn;" where ATS = [8,10) for "wl"
-            ' Diff change: replaces [0, 12) with "    Console.wl(""Hello"");\r\n"
-            ' This spans across ATS [8,10). Should split into:
-            '   [0,8) -> "    Console."   (indentation + prefix)
-            '   [10,12) -> "(""Hello"");\r\n" (edit + rest)
             Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
             Dim protectedSpan = New TextSpan(8, 2) ' "wl"
             Dim changes = ImmutableArray.Create(
@@ -911,7 +911,6 @@ class C
             Assert.Equal(12, constrained(1).Span.End)
             Assert.Equal("(""Hello"");" & vbCrLf, constrained(1).NewText)
 
-            ' Verify: applying the split changes + keeping ATS text gives the same result.
             Dim applied = originalText.WithChanges(constrained)
             Assert.Equal("    Console.wl(""Hello"");" & vbCrLf & "return;", applied.ToString())
         End Sub
