@@ -804,11 +804,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Add type evaluation after return value test to separate result value from deconstruct evaluation
                         // This helps us unify the same value accessed through different Union APIs.
                         // See IsSameEntity/IsEqualEvaluation helpers.
-                        var typeEvaluation = new BoundDagTypeEvaluation(syntax, outParameterTemp.Type, outParameterTemp);
+                        var typeEvaluation = new BoundDagTypeEvaluation(syntax, outParameterTemp.Type.StrippedType(), outParameterTemp);
                         tests.Add(new Tests.One(typeEvaluation));
                         BoundDagTemp typeEvaluationTemp = typeEvaluation.MakeResultTemp();
 
-                        if (!outParameterTemp.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
+                        if (!typeEvaluationTemp.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
                         {
                             tests.Add(new Tests.One(new BoundDagTypeTest(syntax, type, typeEvaluationTemp)));
                             typeEvaluation = new BoundDagTypeEvaluation(syntax, type, typeEvaluationTemp);
