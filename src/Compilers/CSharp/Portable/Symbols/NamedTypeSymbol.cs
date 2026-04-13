@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static void addCaseType(ArrayBuilder<TypeSymbol> builder, MethodSymbol factory)
                 {
-                    var candidate = factory.Parameters[0].Type.StrippedType();
+                    var candidate = factory.Parameters[0].Type;
                     if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
                     {
                         builder.Add(candidate);
