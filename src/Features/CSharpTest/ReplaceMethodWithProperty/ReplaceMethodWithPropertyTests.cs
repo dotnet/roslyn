@@ -2783,7 +2783,8 @@ index: 1);
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72035")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings in source-generated documents cause failures on Unix")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/72035")]
     public Task TestUpdateGetReferenceGeneratedPart()
         => TestInRegularAndScriptAsync(
             """
