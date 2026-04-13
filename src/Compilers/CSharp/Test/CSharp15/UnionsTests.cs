@@ -24630,6 +24630,70 @@ class Program
         }
 
         [Fact]
+        public void NonBoxingUnionMatching_77_TryGetValue()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
         public void UnionDeclaration_01()
         {
             var unionSrc = @"
