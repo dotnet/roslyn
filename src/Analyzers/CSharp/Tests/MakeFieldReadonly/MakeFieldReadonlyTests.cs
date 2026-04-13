@@ -214,7 +214,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
             }
             """);
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "Explicit \\r\\n in InlineData causes mixed line endings on Unix")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [InlineData("")]
     [InlineData("\r\n")]
     [InlineData("\r\n\r\n")]

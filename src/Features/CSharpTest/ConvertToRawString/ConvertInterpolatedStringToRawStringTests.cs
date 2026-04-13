@@ -1295,7 +1295,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Refactoring preserves \\r\\n from escape sequences producing mixed line endings on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestStringWithNewLine()
         => VerifyRefactoringAsync("""
             public class C
@@ -1366,7 +1366,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Refactoring preserves \\r\\n from escape sequences producing mixed line endings on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestStringWithNewLineAtStartAndEnd()
         => VerifyRefactoringAsync("""
             public class C
@@ -1466,7 +1466,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Refactoring preserves \\r\\n from escape sequences producing mixed line endings on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIndentedString()
         => VerifyRefactoringAsync("""
             public class C
@@ -1516,7 +1516,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Refactoring preserves \\r\\n from escape sequences producing mixed line endings on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIndentedStringTopLevel()
         => VerifyRefactoringAsync("""
             var v = [||]$"goo\r\nbar";
@@ -1566,7 +1566,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Refactoring preserves \\r\\n from escape sequences producing mixed line endings on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIndentedStringOnOwnLine()
         => VerifyRefactoringAsync("""
             public class C

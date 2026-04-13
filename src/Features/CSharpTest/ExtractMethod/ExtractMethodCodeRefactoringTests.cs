@@ -1535,7 +1535,7 @@ public sealed class ExtractMethodCodeRefactoringTests : AbstractCSharpCodeAction
             }
             """ + TestResources.NetFX.ValueTuple.tuplelib_cs);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Extract method produces mixed line endings on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [CompilerTrait(CompilerFeature.Tuples)]
     public Task TestDeconstruction2()
         => TestInRegularAndScriptAsync(
@@ -5790,7 +5790,7 @@ class Program
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "Extract method produces mixed line endings on Unix")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67017")]
     public async Task TestPrimaryConstructorBaseList(bool withBody)
     {
