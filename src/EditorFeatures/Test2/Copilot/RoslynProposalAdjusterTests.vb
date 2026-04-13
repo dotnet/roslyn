@@ -1036,6 +1036,53 @@ class C
             Assert.Equal(changes(0), constrained(0))
         End Sub
 
+        <WpfFact>
+        Public Sub TestConstrainChanges_AtsTextAppearsMultipleTimes_DisambiguatesViaContext()
+            ' The ATS text "wl" appears in multiple places in the replacement text.
+            Dim originalText = SourceText.From("foo.wl(wl)")
+            Dim protectedSpan = New TextSpan(4, 2) ' "wl" after the dot
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 10), "    foo.wl(wl)"))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(2, constrained.Length)
+
+            ' Before ATS: [0,4) -> "    foo."
+            Assert.Equal(0, constrained(0).Span.Start)
+            Assert.Equal(4, constrained(0).Span.End)
+            Assert.Equal("    foo.", constrained(0).NewText)
+
+            ' After ATS: [6,10) -> "(wl)"
+            Assert.Equal(6, constrained(1).Span.Start)
+            Assert.Equal(10, constrained(1).Span.End)
+            Assert.Equal("(wl)", constrained(1).NewText)
+
+            ' Verify round-trip: applying split changes + keeping ATS gives same result.
+            Dim applied = originalText.WithChanges(constrained)
+            Assert.Equal("    foo.wl(wl)", applied.ToString())
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_SamePrecedingChar_FindsClosestToExpectedPosition()
+            ' Original: ".wl = x.wl" where ATS = [8,10) for the second "wl"
+            ' Diff: replaces [0, 10) with "    .wl = x.wl"
+            ' newText has "wl" at indices 5 and 13. Original offset = 8.
+            ' Distances: |8-5|=3 vs |8-13|=5. Closest is index 5 (wrong one).
+            ' But the split still produces correct text because both the before-span
+            ' and after-span are applied to the original document positions, not the newText.
+            Dim originalText = SourceText.From(".wl = x.wl")
+            Dim protectedSpan = New TextSpan(8, 2) ' second "wl"
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 10), "    .wl = x.wl"))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(2, constrained.Length)
+
+            ' Verify the round-trip produces the correct result regardless of which "wl" was matched.
+            Dim applied = originalText.WithChanges(constrained)
+            Assert.Equal("    .wl = x.wl", applied.ToString())
+        End Sub
+
 #End Region
 
 #Region "Visual Basic"

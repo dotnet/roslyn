@@ -319,16 +319,9 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         // Find the protected text in newText. Adjusters (formatting, missing tokens, imports)
         // don't modify identifiers, so the ATS text should be preserved in the replacement.
-        var protectedIndex = FindProtectedTextInNewText(originalText, change.Span, newText, protectedSpan, protectedText);
+        var protectedIndex = FindProtectedTextInNewText(change.Span, newText, protectedSpan, protectedText);
         if (protectedIndex < 0)
             return false;
-
-        // Verify the match is actually the protected text.
-        if (protectedIndex + protectedText.Length > newText.Length ||
-            string.Compare(newText, protectedIndex, protectedText, 0, protectedText.Length, StringComparison.Ordinal) != 0)
-        {
-            return false;
-        }
 
         // Emit the portion before the protected span.
         var beforeSpan = TextSpan.FromBounds(change.Span.Start, protectedSpan.Start);
@@ -349,30 +342,49 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
     /// <summary>
     /// Finds the position of the ApplicableToSpan text within a change's replacement text.
-    /// Uses surrounding context characters from the original text to disambiguate when the ATS
-    /// text is short and could appear in multiple places.
+    /// Computes the expected position arithmetically from the ATS offset within the original
+    /// change span, then searches outward from that position. This handles cases where the
+    /// ATS text appears multiple times in the replacement.
     /// </summary>
     private static int FindProtectedTextInNewText(
-        SourceText originalText,
         TextSpan changeSpan,
         string newText,
         TextSpan protectedSpan,
         string protectedText)
     {
-        // Use the character immediately before the ATS in the original text for disambiguation.
-        // This character ('.' in "Console.wl") is a non-whitespace token boundary that
-        // formatting adjusters preserve.
-        if (protectedSpan.Start > changeSpan.Start)
+        // The ATS sits at a known offset within the original change span. Since adjusters
+        // primarily modify whitespace (indentation, line endings) rather than identifiers,
+        // the ATS text should appear near this same relative offset in the replacement text.
+        var originalOffset = protectedSpan.Start - changeSpan.Start;
+
+        // Search outward from the expected position, checking progressively further away.
+        // This ensures we find the closest match to the expected position rather than
+        // always picking the first occurrence (which could be wrong when the ATS text
+        // appears multiple times).
+        var maxDistance = Math.Max(originalOffset, newText.Length - originalOffset);
+        for (var distance = 0; distance <= maxDistance; distance++)
         {
-            var charBefore = originalText[protectedSpan.Start - 1];
-            var searchText = charBefore + protectedText;
-            var idx = newText.IndexOf(searchText, StringComparison.Ordinal);
-            if (idx >= 0)
-                return idx + 1;
+            // Check at expectedOffset + distance
+            var idx = originalOffset + distance;
+            if (idx >= 0 && idx + protectedText.Length <= newText.Length &&
+                string.Compare(newText, idx, protectedText, 0, protectedText.Length, StringComparison.Ordinal) == 0)
+            {
+                return idx;
+            }
+
+            // Check at expectedOffset - distance (skip 0 to avoid double-checking)
+            if (distance > 0)
+            {
+                idx = originalOffset - distance;
+                if (idx >= 0 && idx + protectedText.Length <= newText.Length &&
+                    string.Compare(newText, idx, protectedText, 0, protectedText.Length, StringComparison.Ordinal) == 0)
+                {
+                    return idx;
+                }
+            }
         }
 
-        // Fallback: plain search for the protected text.
-        return newText.IndexOf(protectedText, StringComparison.Ordinal);
+        return -1;
     }
 
     private static async Task<Document> TryGetAddImportTextChangesAsync(
