@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
@@ -106,7 +107,7 @@ public sealed class ConvertInterpolatedStringToRawString_FixAllTests : AbstractC
             }
             """");
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Raw string conversion of \\r\\n escape sequences produces incorrect results on Unix")]
     public Task FixAllInDocument_MultiLine()
         => TestInRegularAndScriptAsync(
         """
