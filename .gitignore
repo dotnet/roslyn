@@ -195,4 +195,6 @@ $RECYCLE.BIN/
 
 # WPF temp projects
 *wpftmp.*
+
+# Agent directories
 .claude/
