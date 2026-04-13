@@ -2813,7 +2813,8 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25408")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Linked file code actions produce CRLF line endings on all platforms")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/25408")]
     public Task TestLinkedFile()
         => TestInRegularAndScriptAsync(
             """
