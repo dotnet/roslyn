@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         private const int BreakLenShift = 62;
         private const int StartShift = 31;
-        private const ulong PositionMask = 0x7FFFFFFFUL; // 31 bits, used for both start and length
+        private const ulong RawValueMask = 0x7FFFFFFFUL; // 31 bits, used for both start and length
 
         private TextLine(SourceText text, ulong data)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int Start
         {
-            get { return (int)((_data >>> StartShift) & PositionMask); }
+            get { return (int)((_data >>> StartShift) & RawValueMask); }
         }
 
         /// <summary>
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public int EndIncludingLineBreak
         {
-            get { return Start + (int)(_data & PositionMask); }
+            get { return Start + (int)(_data & RawValueMask); }
         }
 
         /// <summary>
