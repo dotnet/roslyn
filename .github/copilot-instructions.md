@@ -68,21 +68,12 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - **Namespace Strategy**: `Microsoft.CodeAnalysis.[Language].[Area]` (e.g., `Microsoft.CodeAnalysis.CSharp.Formatting`)
 - **Immutability**: All syntax trees, documents, and solutions are immutable — create new instances for changes
 - **Cancellation**: Always thread `CancellationToken` through async operations
-<<<<<<< HEAD
-- **MEF Lifecycle**: Use `[ImportingConstructor]` with obsolete attribute for MEF v2 compatibility
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch. Do not add PROTOTYPE comments without asking for permission.
-- **TODO Comments**: Do not add TODO comments. Use TODO2 comments instead if needed. The CI correctness leg monitors those.
-- **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
-||||||| 0376bcd2048
-- **MEF Lifecycle**: Use `[ImportingConstructor]` with obsolete attribute for MEF v2 compatibility
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch
-- **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
-=======
 - **MEF Lifecycle**: Use `[ImportingConstructor]` with `[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]`
 - **Null checks**: Use `Contract.ThrowIfNull()` instead of manual null checks
 - **Private fields**: `_camelCase` naming
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches — disallowed in main branch
-- **Code Formatting**: Avoid trailing spaces. Blank lines must be completely empty (no whitespace characters).
+- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch. Do not add PROTOTYPE comments without asking for permission.
+- **TODO Comments**: Do not add TODO comments. Use TODO2 comments instead if needed. The CI correctness leg monitors those.
+- **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
 - **Public API Tracking**: Update `PublicAPI.Unshipped.txt` when adding/changing public APIs
 
 ## Code Generation
@@ -91,7 +82,6 @@ Several core data structures are generated from XML definitions — never edit g
 - **Syntax trees**: `src/Compilers/CSharp/Portable/Syntax/Syntax.xml`
 - **Bound trees**: `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml`
 - **After modifying XML files**, run: `dotnet run --file eng/generate-compiler-code.cs`
->>>>>>> dotnet/main
 
 ## Common Gotchas
 
