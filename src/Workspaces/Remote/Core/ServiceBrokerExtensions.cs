@@ -16,10 +16,12 @@ internal abstract class BrokeredServiceProxy<TService>(
 {
     private async ValueTask<TService> GetRequiredServiceAsync(CancellationToken cancellationToken)
     {
+#pragma warning disable ISB001 // Dispose of proxies - handled by caller
         var service = await serviceBroker.GetProxyAsync<TService>(descriptor, cancellationToken).ConfigureAwait(false);
         if (service == null && fallbackDescriptor != null)
         {
             service = await serviceBroker.GetProxyAsync<TService>(fallbackDescriptor, cancellationToken).ConfigureAwait(false);
+#pragma warning restore ISB001 // Dispose of proxies
         }
 
         Contract.ThrowIfNull(service);
