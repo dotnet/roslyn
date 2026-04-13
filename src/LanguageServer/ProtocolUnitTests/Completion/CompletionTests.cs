@@ -407,7 +407,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.True(results.SuggestionMode);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestGetDateAndTimeCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -469,7 +469,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Null(results);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
     public async Task TestGetRegexCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -508,7 +508,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestGetRegexLiteralCompletionsAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -547,7 +547,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
     public async Task TestGetRegexCompletionsReplaceTextAsync(bool mutatingLspWorkspace)
     {
         var markup =
@@ -586,7 +586,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         Assert.Equal(defaultRange, results.ItemDefaults.EditRange);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/50964")]
     public async Task TestGetRegexCompletionsWithoutItemDefaultSupportAsync(bool mutatingLspWorkspace)
     {
         var clientCapabilities = new LSP.VSInternalClientCapabilities

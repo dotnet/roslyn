@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RefSafetyRulesAttribute,
 
         System_Runtime_CompilerServices_MemorySafetyRulesAttribute,
-        System_Runtime_CompilerServices_RequiresUnsafeAttribute,
+        System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute,
 
         System_ArgumentNullException,
 
@@ -378,6 +378,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
 
+        System_Memory_T,
+        System_ReadOnlyMemory_T,
         System_Runtime_CompilerServices_UnionAttribute,
         System_Runtime_CompilerServices_IUnion,
 
@@ -693,7 +695,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.RefSafetyRulesAttribute",
 
             "System.Runtime.CompilerServices.MemorySafetyRulesAttribute",
-            "System.Runtime.CompilerServices.RequiresUnsafeAttribute",
+            "System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute",
 
             "System.ArgumentNullException",
 
@@ -747,6 +749,8 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
 
+            "System.Memory`1",
+            "System.ReadOnlyMemory`1",
             "System.Runtime.CompilerServices.UnionAttribute",
             "System.Runtime.CompilerServices.IUnion",
         };

@@ -793,6 +793,45 @@ class B : A
 }");
         }
 
+        /// <summary>
+        /// Evaluating expressions inside a ref-returning method should
+        /// produce a query method that returns by value, not by ref.
+        /// </summary>
+        [Fact]
+        public void EvaluateExpressionInRefReturningMethod()
+        {
+            var source =
+@"struct TestStruct
+{
+    public int Value;
+}
+class C
+{
+    static TestStruct _field;
+    ref readonly TestStruct GetValue(ulong id)
+    {
+        return ref _field;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.GetValue",
+                expr: "id");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            var method = (MethodSymbol)methodData.Method;
+            Assert.Equal(RefKind.None, method.RefKind);
+
+            testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.GetValue",
+                expr: "id == 1");
+            methodData = testData.GetMethodData("<>x.<>m0");
+            method = (MethodSymbol)methodData.Method;
+            Assert.Equal(RefKind.None, method.RefKind);
+        }
+
         [Fact]
         public void EvaluateStaticMethodParameters()
         {

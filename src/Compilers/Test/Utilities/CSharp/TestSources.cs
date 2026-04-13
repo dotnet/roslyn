@@ -99,7 +99,7 @@ namespace System
 
         public Span<T> Slice(int offset, int length) => new Span<T>(this.arr, offset, length);
 
-        public Span<T> Slice(int offset) => new Span<T>(this.arr, offset, Length - offset);
+        public Span<T> Slice(int offset) => Slice(offset, Length - offset);
     }
 
     public readonly ref struct ReadOnlySpan<T>
@@ -191,7 +191,7 @@ namespace System
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
 
-        public ReadOnlySpan<T> Slice(int offset) => new ReadOnlySpan<T>(this.arr, offset, offset - Length);
+        public ReadOnlySpan<T> Slice(int offset) => Slice(offset, Length - offset);
 
 #nullable enable
         public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class?, T
