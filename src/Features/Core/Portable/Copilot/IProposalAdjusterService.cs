@@ -44,9 +44,9 @@ internal readonly record struct AdjustmentResult(
 internal interface ICopilotProposalAdjusterService : ILanguageService
 {
     /// <param name="applicableToSpan">
-    /// When non-null, indicates the span of the <c>CompletionState.ApplicableToSpan</c> on the original document. Edits
-    /// that intersect this span will be split so they do not overlap it, since the proposal system's
-    /// <c>ValidateEdits</c> requires that no edit intersect this span (except a zero-length edit at its end).
+    /// Indicates the span of the <c>CompletionState.ApplicableToSpan</c> on the original document.
+    /// Edits that intersect this span will be split so they do not overlap it, since the proposal system
+    /// requires that no edit intersect this span (except a zero-length edit at its end).
     /// </param>
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
@@ -161,9 +161,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         var totalChanges = FixLineEndingBoundaries(oldText, allChanges.AsImmutableOrEmpty());
 
-        // When a CompletionState is present, the proposal system requires that no edit intersects the
-        // ApplicableToSpan (except a zero-length edit at its end). The diff algorithm can merge nearby
-        // changes into a single TextChange that spans across the ATS boundary. Split any such changes.
+        // Merge nearby changes into a single TextChange that spans across the ATS boundary. Split any such changes.
         if (applicableToSpan is { } ats)
         {
             totalChanges = ConstrainChangesToAvoidSpan(oldText, totalChanges, ats);
@@ -244,9 +242,8 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     }
 
     /// <summary>
-    /// When a <c>CompletionState</c> is present with an <c>ApplicableToSpan</c> (ATS), the proposal system
-    /// requires that no edit intersect the ATS (except a zero-length edit at its end). If the diff algorithm
-    /// merged adjacent changes into a single <see cref="TextChange"/> that spans across the ATS boundary,
+    /// The proposal system requires that no edit intersect the ApplicableToSpan (except a zero-length edit at its end).
+    /// If the diff algorithm merged adjacent changes into a single <see cref="TextChange"/> that spans across the ATS boundary,
     /// split it into before-ATS and after-ATS parts so the proposal system accepts the edits.
     /// </summary>
     /// <returns>
