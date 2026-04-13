@@ -107,7 +107,7 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
             """");
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Raw string conversion of \\r\\n escape sequences produces incorrect results on Unix")]
     public Task FixAllInDocument_MultiLine()
         => TestInRegularAndScriptAsync(
         """
@@ -971,7 +971,7 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
             """");
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Raw string conversion of \\r\\n escape sequences produces incorrect results on Unix"), WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
     public Task FixAllInDocument_EscapedCanAffectMultiLine()
         => TestInRegularAndScriptAsync(
             """
@@ -1006,7 +1006,7 @@ public sealed class ConvertRegularStringToRawString_FixAllTests : AbstractCSharp
             }
             """");
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Raw string conversion of \\r\\n escape sequences produces incorrect results on Unix"), WorkItem("https://github.com/dotnet/roslyn/issues/70209")]
     public Task FixAllInDocument_EscapedCanAffectMultiLine2()
         => TestInRegularAndScriptAsync(
             """
