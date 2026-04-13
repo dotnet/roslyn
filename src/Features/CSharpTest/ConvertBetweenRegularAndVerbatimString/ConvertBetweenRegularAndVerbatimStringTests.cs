@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertBetweenRegularAndVerbatimString;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertBetweenRegularAndVerbatimString;
@@ -146,7 +147,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n line endings in verbatim strings")]
     public Task RegularStringWithEscapedNewLine()
         => TestInRegularAndScriptAsync("""
             class Test
@@ -168,7 +169,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n escape for platform newlines")]
     public Task VerbatimStringWithNewLine()
         => TestInRegularAndScriptAsync("""
             class Test
@@ -244,7 +245,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n line endings in verbatim strings")]
     public Task DoNotEscapeCurlyBracesInRegularString()
         => TestInRegularAndScriptAsync("""
             class Test
@@ -266,7 +267,7 @@ public sealed class ConvertBetweenRegularAndVerbatimStringTests : AbstractCSharp
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Test expects \\r\\n escape for platform newlines")]
     public Task DoNotEscapeCurlyBracesInVerbatimString()
         => TestInRegularAndScriptAsync("""
             class Test
