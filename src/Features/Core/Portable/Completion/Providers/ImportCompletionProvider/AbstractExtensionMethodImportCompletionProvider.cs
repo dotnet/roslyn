@@ -65,7 +65,7 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
                 if (!completionItems.IsDefault)
                 {
                     var receiverTypeKey = SymbolKey.CreateString(receiverTypeSymbol, cancellationToken);
-                    completionContext.AddItems(completionItems.Select(i => Convert(i, receiverTypeKey, completionContext.CompletionOptions.ImportCompletionCommitBehavior)));
+                    completionContext.AddItems(completionItems.Select(i => Convert(i, receiverTypeKey)));
                 }
             }
         }
@@ -121,7 +121,7 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
             _ => symbol as ITypeSymbol,
         };
 
-    private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey, ImportCompletionCommitBehavior commitBehavior)
+    private CompletionItem Convert(SerializableImportCompletionItem serializableItem, string receiverTypeSymbolKey)
         => ImportCompletionItem.Create(
             serializableItem.Name,
             serializableItem.Arity,
@@ -130,6 +130,5 @@ internal abstract class AbstractExtensionMemberImportCompletionProvider : Abstra
             GenericSuffix,
             CompletionItemFlags.Expanded,
             (serializableItem.SymbolKeyData, receiverTypeSymbolKey, serializableItem.AdditionalOverloadCount),
-            serializableItem.IncludedInTargetTypeCompletion,
-            commitBehavior);
+            serializableItem.IncludedInTargetTypeCompletion);
 }

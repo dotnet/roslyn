@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options;
 
@@ -31,12 +30,6 @@ public partial class AutomationObject
     {
         get { return GetBooleanOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces); }
         set { SetBooleanOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, value); }
-    }
-
-    public int ImportCompletionOption
-    {
-        get { return (int)GetOption(CompletionOptionsStorage.ImportCompletionCommitBehavior); }
-        set { SetOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, (ImportCompletionCommitBehavior)value); }
     }
 
     public int InsertNewlineOnEnterWithWholeWord

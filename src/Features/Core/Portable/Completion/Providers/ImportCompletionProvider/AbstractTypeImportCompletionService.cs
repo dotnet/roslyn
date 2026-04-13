@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -18,6 +17,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Shared.Utilities.EditorBrowsableHelpers;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
@@ -52,8 +52,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         CancellationToken cancellationToken)
     {
         var currentProject = syntaxContext.Document.Project;
-        var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(
-            currentProject, syntaxContext.SemanticModel.Compilation, forceCacheCreation, options.ImportCompletionCommitBehavior, cancellationToken).ConfigureAwait(false);
+        var (getCacheResults, isPartialResult) = await GetCacheEntriesAsync(currentProject, syntaxContext.SemanticModel.Compilation, forceCacheCreation, cancellationToken).ConfigureAwait(false);
 
         var currentCompilation = syntaxContext.SemanticModel.Compilation;
         return (getCacheResults.SelectAsArray(GetItemsFromCacheResult), isPartialResult);
@@ -81,8 +80,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         }
     }
 
-    private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(
-        Project currentProject, Compilation originCompilation, bool forceCacheCreation, ImportCompletionCommitBehavior? commitBehavior, CancellationToken cancellationToken)
+    private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, Compilation originCompilation, bool forceCacheCreation, CancellationToken cancellationToken)
     {
         try
         {
@@ -107,12 +105,12 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
 
                 if (forceCacheCreation)
                 {
-                    var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, commitBehavior, cancellationToken).ConfigureAwait(false);
+                    var upToDateCacheEntry = await GetUpToDateCacheForProjectAsync(project, cancellationToken).ConfigureAwait(false);
                     resultBuilder.Add(upToDateCacheEntry);
                 }
                 else if (s_projectItemsCache.TryGetValue(project.Id, out var cacheEntry))
                 {
-                    resultBuilder.Add(UpdateCacheWithCommitBehavior(s_projectItemsCache, project.Id, cacheEntry, commitBehavior));
+                    resultBuilder.Add(cacheEntry);
                 }
                 else
                 {
@@ -132,14 +130,14 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
 
                 if (forceCacheCreation)
                 {
-                    if (TryGetUpToDateCacheForPEReference(originCompilation, solution, editorBrowsableInfo.Value, peReference, commitBehavior, cancellationToken, out var upToDateCacheEntry))
+                    if (TryGetUpToDateCacheForPEReference(originCompilation, solution, editorBrowsableInfo.Value, peReference, cancellationToken, out var upToDateCacheEntry))
                     {
                         resultBuilder.Add(upToDateCacheEntry);
                     }
                 }
                 else if (s_metadataItemsCache.TryGetValue(metadataId, out var cacheEntry))
                 {
-                    resultBuilder.Add(UpdateCacheWithCommitBehavior(s_metadataItemsCache, metadataId, cacheEntry, commitBehavior));
+                    resultBuilder.Add(cacheEntry);
                 }
                 else
                 {
@@ -164,7 +162,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
             cancellationToken.ThrowIfCancellationRequested();
             var service = (AbstractTypeImportCompletionService)project.GetRequiredLanguageService<ITypeImportCompletionService>();
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            _ = await service.GetCacheEntriesAsync(project, compilation, forceCacheCreation: true, commitBehavior: null, cancellationToken).ConfigureAwait(false);
+            _ = await service.GetCacheEntriesAsync(project, compilation, forceCacheCreation: true, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -176,7 +174,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
     /// This method is intended to be used for getting types from source only, so the project must support compilation. 
     /// For getting types from PE, use <see cref="TryGetUpToDateCacheForPEReference"/>.
     /// </summary>
-    private async Task<TypeImportCompletionCacheEntry> GetUpToDateCacheForProjectAsync(Project project, ImportCompletionCommitBehavior? commitBehavior, CancellationToken cancellationToken)
+    private async Task<TypeImportCompletionCacheEntry> GetUpToDateCacheForProjectAsync(Project project, CancellationToken cancellationToken)
     {
         // Since we only need top level types from source, therefore we only care if source symbol checksum changes.
         var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
@@ -188,7 +186,6 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
             checksum,
             s_projectItemsCache,
             new EditorBrowsableInfo(compilation),
-            commitBehavior,
             cancellationToken);
     }
 
@@ -200,7 +197,6 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         Solution solution,
         EditorBrowsableInfo editorBrowsableInfo,
         PortableExecutableReference peReference,
-        ImportCompletionCommitBehavior? commitBehavior,
         CancellationToken cancellationToken,
         [NotNullWhen(true)] out TypeImportCompletionCacheEntry? cacheEntry)
     {
@@ -219,7 +215,6 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
             checksum: SymbolTreeInfo.GetMetadataChecksum(solution.Services, peReference, cancellationToken),
             s_metadataItemsCache,
             editorBrowsableInfo,
-            commitBehavior,
             cancellationToken);
         return true;
     }
@@ -230,60 +225,28 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
         Checksum checksum,
         ConditionalWeakTable<TKey, TypeImportCompletionCacheEntry> cache,
         EditorBrowsableInfo editorBrowsableInfo,
-        ImportCompletionCommitBehavior? commitBehavior,
         CancellationToken cancellationToken)
         where TKey : class
     {
         // Cache hit
         if (cache.TryGetValue(key, out var cacheEntry) && cacheEntry.Checksum == checksum)
         {
-            return UpdateCacheWithCommitBehavior(cache, key, cacheEntry, commitBehavior);
+            return cacheEntry;
         }
 
-        // if commitBehavior is null (means triggered by cache service), we'd either use behavior of previous cache entry if exist,
-        // or fallback to default behavior (alway add import), the actual completion request will fix it if it's wrong (which will laways specify commitBehavior).
-        using var builder = new TypeImportCompletionCacheEntry.Builder(
-            SymbolKey.Create(assembly, cancellationToken),
-            checksum,
-            Language,
-            GenericTypeSuffix,
-            editorBrowsableInfo,
-            commitBehavior ?? (cacheEntry is null ? ImportCompletionCommitBehavior.AlwaysAddImport : cacheEntry.CommitBehavior));
-
+        using var builder = new TypeImportCompletionCacheEntry.Builder(SymbolKey.Create(assembly, cancellationToken), checksum, Language, GenericTypeSuffix, editorBrowsableInfo);
         GetCompletionItemsForTopLevelTypeDeclarations(assembly.GlobalNamespace, builder, cancellationToken);
         cacheEntry = builder.ToReferenceCacheEntry();
 
-        UpdateCache(cache, key, cacheEntry);
-        return cacheEntry;
-    }
-
-    private static TypeImportCompletionCacheEntry UpdateCacheWithCommitBehavior<TKey>(
-        ConditionalWeakTable<TKey, TypeImportCompletionCacheEntry> cache, TKey key, TypeImportCompletionCacheEntry cacheEntry, ImportCompletionCommitBehavior? commitBehavior)
-        where TKey : class
-    {
-        // Cache entry has up-to-date data except for commit behavior.
-        // This means the corresponding option has changed and we need to update the cache entry 
-        // (but only the commit behavior option bit)
-        if (commitBehavior != null && commitBehavior != cacheEntry.CommitBehavior)
-        {
-            cacheEntry = cacheEntry.WithCommitBehavior(commitBehavior.Value);
-            UpdateCache(cache, key, cacheEntry);
-        }
-
-        return cacheEntry;
-    }
-
-    private static void UpdateCache<TKey>(ConditionalWeakTable<TKey, TypeImportCompletionCacheEntry> cache, TKey key, TypeImportCompletionCacheEntry entry)
-        where TKey : class
-    {
 #if NET
-        cache.AddOrUpdate(key, entry);
+        cache.AddOrUpdate(key, cacheEntry);
 #else
         cache.Remove(key);
-        cache.GetValue(key, _ => entry);
+        cache.GetValue(key, _ => cacheEntry);
 #endif
-    }
 
+        return cacheEntry;
+    }
     private static string ConcatNamespace(string? containingNamespace, string name)
         => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
 

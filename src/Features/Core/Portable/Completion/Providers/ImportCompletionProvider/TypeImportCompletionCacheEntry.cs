@@ -20,8 +20,6 @@ internal sealed class TypeImportCompletionCacheEntry
 
     public Checksum Checksum { get; }
 
-    public ImportCompletionCommitBehavior CommitBehavior { get; }
-
     private ImmutableArray<TypeImportCompletionItemInfo> ItemInfos { get; }
 
     /// <summary>
@@ -43,8 +41,7 @@ internal sealed class TypeImportCompletionCacheEntry
         string language,
         ImmutableArray<TypeImportCompletionItemInfo> items,
         int publicItemCount,
-        bool hasEnumBaseTypes,
-        ImportCompletionCommitBehavior commitBehavior)
+        bool hasEnumBaseTypes)
     {
         AssemblySymbolKey = assemblySymbolKey;
         Checksum = checksum;
@@ -53,16 +50,6 @@ internal sealed class TypeImportCompletionCacheEntry
         ItemInfos = items;
         PublicItemCount = publicItemCount;
         HasEnumBaseTypes = hasEnumBaseTypes;
-        CommitBehavior = commitBehavior;
-    }
-
-    public TypeImportCompletionCacheEntry WithCommitBehavior(ImportCompletionCommitBehavior commitBehavior)
-    {
-        if (CommitBehavior == commitBehavior)
-            return this;
-
-        var newItems = ItemInfos.SelectAsArray(i => i.WithItem(ImportCompletionItem.MarkCommitBehavior(i.Item, commitBehavior)));
-        return new TypeImportCompletionCacheEntry(AssemblySymbolKey, Checksum, Language, newItems, PublicItemCount, HasEnumBaseTypes, commitBehavior);
     }
 
     public ImmutableArray<CompletionItem> GetItemsForContext(
@@ -156,14 +143,13 @@ internal sealed class TypeImportCompletionCacheEntry
         }
     }
 
-    public sealed class Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo, ImportCompletionCommitBehavior commitBehavior) : IDisposable
+    public sealed class Builder(SymbolKey assemblySymbolKey, Checksum checksum, string language, string genericTypeSuffix, EditorBrowsableInfo editorBrowsableInfo) : IDisposable
     {
         private readonly SymbolKey _assemblySymbolKey = assemblySymbolKey;
         private readonly string _language = language;
         private readonly string _genericTypeSuffix = genericTypeSuffix;
         private readonly Checksum _checksum = checksum;
         private readonly EditorBrowsableInfo _editorBrowsableInfo = editorBrowsableInfo;
-        private readonly ImportCompletionCommitBehavior _commitBehavior = commitBehavior;
 
         private int _publicItemCount;
         private bool _hasEnumBaseTypes;
@@ -178,8 +164,7 @@ internal sealed class TypeImportCompletionCacheEntry
                 _language,
                 _itemsBuilder.ToImmutable(),
                 _publicItemCount,
-                _hasEnumBaseTypes,
-                _commitBehavior);
+                _hasEnumBaseTypes);
         }
 
         public void AddItem(INamedTypeSymbol symbol, string containingNamespace, bool isPublic)
@@ -216,8 +201,7 @@ internal sealed class TypeImportCompletionCacheEntry
                 symbol.GetGlyph(),
                 _genericTypeSuffix,
                 CompletionItemFlags.CachedAndExpanded,
-                extensionMethodData: null,
-                commitBehavior: _commitBehavior);
+                extensionMethodData: null);
 
             if (isPublic)
                 _publicItemCount++;
@@ -263,8 +247,5 @@ internal sealed class TypeImportCompletionCacheEntry
             IsEnumBaseType = 8,
             IsEditorBrowsableStateAdvanced = 16
         }
-
-        public TypeImportCompletionItemInfo WithItem(CompletionItem newItem)
-            => new(newItem, IsPublic, IsGeneric, IsAttribute, IsEditorBrowsableStateAdvanced, IsEnumBaseType);
     }
 }
