@@ -2529,6 +2529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_OperatorMismatchOnOverride
                 or ErrorCode.ERR_BadCompoundAssignmentOpArgs
                 or ErrorCode.ERR_PPShebangInProjectBasedProgram
+                or ErrorCode.ERR_PPShebangNotOnFirstLine
                 or ErrorCode.ERR_NameofExtensionMember
                 or ErrorCode.ERR_BadExtensionUnaryOperatorSignature
                 or ErrorCode.ERR_BadExtensionIncDecSignature

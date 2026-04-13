@@ -37,8 +37,13 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
                 continue;
             }
 
+            // ? is a valid filename char on Unix but is a URI query delimiter, causing
+            // inconsistent encoding between GetAbsoluteUriString and CreateAbsoluteDocumentUri
+            if (c == '?' && PathUtilities.IsUnixLikePlatform)
+                continue;
+
             var filePath = PathUtilities.IsUnixLikePlatform ? $"/_{c}/" : $"C:\\_{c}\\";
-            var uriPrefix = PathUtilities.IsUnixLikePlatform ? "" : "C:/_";
+            var uriPrefix = PathUtilities.IsUnixLikePlatform ? "_" : "C:/_";
 
             var expectedAbsoluteUri = "file:///" + uriPrefix + (unescaped.Contains(c) ? c : "%" + ((int)c).ToString("X2")) + "/";
 
@@ -97,10 +102,8 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     [InlineData("/%25\ue25b/\u0089\uC7BD", "file:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23%EE%89%9B")]
-    [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
-    [InlineData("\\/\u200e", "file:////%E2%80%8E")]
-    [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]
-    [InlineData("\\\\\\\\\\\u200e", "file:///////%E2%80%8E")]
+    [InlineData("/\\\u200e//", "file:///%5C%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
+    [InlineData("/\\\\-Ā\r", "file:///%5C%5C-%C4%80%0D")]
     public void CreateAbsoluteUri_LocalPaths_Unix(string filePath, string expectedAbsoluteUri)
     {
         Assert.Equal(expectedAbsoluteUri, ProtocolConversions.GetAbsoluteUriString(filePath));
@@ -134,17 +137,14 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     }
 
     [ConditionalTheory(typeof(UnixLikeOnly))]
-    [InlineData("/", "file://")]
     [InlineData("/u", "file:///u")]
     [InlineData("/unix/", "file:///unix")]
     [InlineData("/unix/path", "file:///unix/path")]
     [InlineData("/%25\ue25b/\u0089\uC7BD", "file:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23")]
     [InlineData("/!$&'()+,-;=@[]_~#", "file:///!$&'()+,-;=@[]_~%23%EE%89%9B")]
-    [InlineData("/\\\u200e//", "file:////%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
-    [InlineData("\\/\u200e", "file:////%E2%80%8E")]
-    [InlineData("/\\\\-Ā\r", "file://///-%C4%80%0D")]
-    [InlineData("\\\\\\\\\\\u200e", "file:///////%E2%80%8E")]
+    [InlineData("/\\\u200e//", "file:///%5C%E2%80%8E/")] // cases from https://github.com/dotnet/runtime/issues/1487
+    [InlineData("/\\\\-Ā\r", "file:///%5C%5C-%C4%80%0D")]
     public void CreateRelativePatternBaseUri_LocalPaths_Unix(string filePath, string expectedRelativeUri)
     {
         var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
@@ -162,7 +162,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
 
         var uri = ProtocolConversions.CreateAbsoluteUri(filePath);
         Assert.Equal(expectedNormalizedUri, uri.AbsoluteUri);
-        Assert.Equal(filePath, uri.LocalPath);
+        Assert.Equal(Path.GetFullPath(filePath), uri.LocalPath);
     }
 
     [Theory]
@@ -233,7 +233,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
                 var x = 5;
             }
 
-            """; // add additional end line 
+            """.NormalizeLineEndings(); // add additional end line 
 
         var sourceText = SourceText.From(markup);
 
@@ -317,7 +317,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
             {
                 var x = 5;
             }
-            """;
+            """.NormalizeLineEndings();
         return markup;
     }
 

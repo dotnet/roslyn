@@ -213,6 +213,11 @@ Vererbungsrand;</target>
         <target state="translated">Visual Basic-Tools</target>
         <note>Help &gt; About</note>
       </trans-unit>
+      <trans-unit id="Always_add_import">
+        <source>Always add import</source>
+        <target state="new">Always add import</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>Always add new line on enter</source>
         <target state="translated">Nach Drücken der EINGABETASTE immer neue Zeile hinzufügen</target>
@@ -228,6 +233,11 @@ Vererbungsrand;</target>
         <target state="translated">Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
         <note />
       </trans-unit>
+      <trans-unit id="Never_add_import">
+        <source>Never add import</source>
+        <target state="new">Never add import</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>Never add new line on enter</source>
         <target state="translated">Nach Drücken der EINGABETASTE niemals neue Zeile hinzufügen</target>
@@ -236,6 +246,11 @@ Vererbungsrand;</target>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
         <target state="translated">Schnipsel nie einschließen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_import_if_explicitly_completed">
+        <source>Only add import if explicitly completed (via TAB or double-click)</source>
+        <target state="new">Only add import if explicitly completed (via TAB or double-click)</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">

@@ -122,6 +122,8 @@ variables:
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    settings:
+      networkIsolationPolicy: Permissive, CFSClean, CFSClean2
     featureFlags:
       autoBaseline: true
       autoEnablePREfastWithNewRuleset: false
@@ -410,7 +412,7 @@ extends:
         - template: /eng/pipelines/insert.yml@self
           parameters:
             devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             componentBuildProjectName: internal
             sourceBranch: "$(ComponentBranchName)"
             publishDataURI: "https://dev.azure.com/dnceng/internal/_apis/git/repositories/dotnet-roslyn/items?path=eng/config/PublishData.json&version=$(ComponentBranchName)&api-version=6.0"

@@ -32,6 +32,11 @@
         <target state="translated">同一の行に複数の埋め込みステートメントを許可する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Always_add_using">
+        <source>Always add using</source>
+        <target state="new">Always add using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">セミコロンでステートメントをオートコンプリートに設定する</target>
@@ -121,6 +126,16 @@
         <source>Inside namespace</source>
         <target state="translated">namespace 内</target>
         <note>'namespace' is a C# keyword and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Never_add_using">
+        <source>Never add using</source>
+        <target state="new">Never add using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_using_if_explicitly_completed">
+        <source>Only add using if explicitly completed (via TAB or double-click)</source>
+        <target state="new">Only add using if explicitly completed (via TAB or double-click)</target>
+        <note />
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>

@@ -3121,27 +3121,43 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // Scenarios tested:
         //
         // SaveDocument=true
-        // workspace:     --V0-------------|--V2--------|------------|
-        // file system:   --V0---------V1--|-----V2-----|------------|
-        //                   \--build--/   F5    ^      F10  ^       F10
-        //                                       save        file watcher: no-op
-        // SaveDocument=false
-        // workspace:     --V0-------------|--V2--------|----V1------|
-        // file system:   --V0---------V1--|------------|------------|
-        //                   \--build--/   F5           F10  ^       F10
-        //                                                   file watcher: workspace update
+        //                                                opened doc is updated
+        //                                                v 
+        // workspace:     --V0-------------|--------------V2--------|------------|
+        // file system:   --V0---------V1--|-----------------V2-----|------------|
+        // text provider: -----------------|-----V1-----------------|------------|
+        //                   \--build--/   F5    ^           ^      F10  ^       F10
+        //                                       open        save        file watcher: no-op
+        //
+        // Text provider captures V1 snapshot when doc is open. Without it we wouldn't have source text matching the PDB when apply is triggered (F10),
+        // since both workspace and file system are already on V2.
+        //
+        // SaveDocument=false                                                
+        // workspace:     --V0-------------|--------------V2--------|----V1------|
+        // file system:   --V0---------V1--|------------------------|------------|
+        //                   \--build--/   F5                      F10   ^       F10
+        //                                                               file watcher: workspace update
 
-        var source1 = "class C1 { void M() { System.Console.WriteLine(1); } }";
+        var checksumAlg = SourceHashAlgorithms.Default;
+        var sjis = Encoding.GetEncoding("SJIS");
+
+        var source0 = "class C1 { void こんにちは() { System.Console.WriteLine(0); } }";
+        var source1 = "class C1 { void こんにちは() { System.Console.WriteLine(1); } }";
+        var source2 = "class C1 { void こんにちは() { System.Console.WriteLine(2); } }";
+
+        var sourceText0 = CreateText(source0, sjis, checksumAlg);
+        var sourceText1 = CreateText(source1, sjis, checksumAlg);
+        var sourceText2 = CreateText(source2, sjis, checksumAlg);
 
         var dir = Temp.CreateDirectory();
-        var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, Encoding.UTF8);
+        var sourceFile = dir.CreateFile("test.cs").WriteAllText(source1, sjis);
 
         using var _ = CreateWorkspace(out var solution, out var service);
 
         // the workspace starts with a version of the source that's not updated with the output of single file generator (or design-time build):
         var document1 = solution.
-            AddTestProject("test").
-            AddDocument("test.cs", CreateText("class C1 { void M() { System.Console.WriteLine(0); } }"), filePath: sourceFile.Path);
+            AddTestProject("test", out var projectId).
+            AddDocument("test.cs", sourceText1, filePath: sourceFile.Path);
 
         var documentId = document1.Id;
         solution = document1.Project.Solution;
@@ -3151,33 +3167,36 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
             TryGetMatchingSourceTextImpl = (filePath, requiredChecksum, checksumAlgorithm) =>
             {
                 Assert.Equal(sourceFile.Path, filePath);
-                AssertEx.Equal(requiredChecksum, CreateText(source1).GetChecksum());
-                Assert.Equal(SourceHashAlgorithms.Default, checksumAlgorithm);
-
+                AssertEx.Equal(requiredChecksum, sourceText1.GetChecksum());
+                Assert.Equal(checksumAlg, checksumAlgorithm);
                 return source1;
             }
         };
 
-        var moduleId = EmitAndLoadLibraryToDebuggee(documentId.ProjectId, source1, sourceFilePath: sourceFile.Path);
+        var moduleId = EmitAndLoadLibraryToDebuggee(documentId.ProjectId, source1, encoding: sjis, checksumAlgorithm: checksumAlg, sourceFilePath: sourceFile.Path);
 
         var debuggingSession = StartDebuggingSession(service, solution, initialState: CommittedSolution.DocumentState.None, sourceTextProvider);
 
         EnterBreakState(debuggingSession);
 
         // The user opens the source file and changes the source before Roslyn receives file watcher event.
-        var source2 = "class C1 { void M() { System.Console.WriteLine(2); } }";
-        solution = solution.WithDocumentText(documentId, CreateText(source2));
-        var document2 = solution.GetDocument(documentId);
+        solution = solution.WithDocumentText(documentId, sourceText2);
 
         // Save the document:
         if (saveDocument)
         {
-            sourceFile.WriteAllText(source2, Encoding.UTF8);
+            sourceFile.WriteAllText(source2, sjis);
         }
 
         // EnC service queries for a document, which triggers read of the source file from disk.
         var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Empty(results.Diagnostics);
+        Assert.Null(results.SyntaxError);
+
+        // committed doc content has to match to the version used by the compiler, encoding and checksum do not:
+        var committedDocument1 = debuggingSession.LastCommittedSolution.GetRequiredProject(projectId).GetRequiredDocument(documentId);
+        var committedDocumentText1 = await committedDocument1.GetTextAsync(CancellationToken.None);
+        Assert.Equal(sourceText1.ToString(), committedDocumentText1.ToString());
 
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
         CommitSolutionUpdate(debuggingSession);
@@ -3187,11 +3206,16 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         EnterBreakState(debuggingSession);
 
         // file watcher updates the workspace:
-        solution = solution.WithDocumentText(documentId, CreateTextFromFile(sourceFile.Path));
-        var document3 = solution.Projects.Single().Documents.Single();
+        solution = solution.WithDocumentText(documentId, CreateTextFromFile(sourceFile.Path, sjis));
 
         results = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Empty(results.Diagnostics);
+        Assert.Null(results.SyntaxError);
+
+        // committed doc content has to match content when CommitSolutionUpdate was called, encoding and checksum do not:
+        var committedDocument2 = debuggingSession.LastCommittedSolution.GetRequiredProject(projectId).GetRequiredDocument(documentId);
+        var committedDocumentText2 = await committedDocument2.GetTextAsync(CancellationToken.None);
+        Assert.Equal(sourceText2.ToString(), committedDocumentText2.ToString());
 
         if (saveDocument)
         {
