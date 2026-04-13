@@ -9504,7 +9504,7 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
                             </Workspace>
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings cause failures on Unix")]
     public Task TestIfGeneratingInPartialClassWithFileFromSourceGenerator()
         => TestInRegularAndScriptAsync(
             """
@@ -10650,7 +10650,7 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
             """);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings cause failures on Unix")]
     public async Task GenerateInCollection3()
     {
         await TestInRegularAndScriptAsync(
@@ -10724,7 +10724,7 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
             """);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings cause failures on Unix")]
     public async Task GenerateInCollection5()
     {
         await TestInRegularAndScriptAsync(
