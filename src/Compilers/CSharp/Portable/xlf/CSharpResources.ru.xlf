@@ -1494,7 +1494,7 @@
       </trans-unit>
       <trans-unit id="ERR_PPShebangNotOnFirstLine">
         <source>'#!' must be the first characters on the first line of the file</source>
-        <target state="new">'#!' must be the first characters on the first line of the file</target>
+        <target state="translated">"#!" должны быть первыми символами в первой строке файла</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
