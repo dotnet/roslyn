@@ -370,7 +370,8 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
         var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
         var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, ["Class", "Internal"],
-            completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.'), sortText: "0000").ConfigureAwait(false);
+            completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.'), sortText: "0000",
+            matchPriority: MatchPriority.Preselect).ConfigureAwait(false);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
         AssertJsonEquals(expected, results.Items.First());

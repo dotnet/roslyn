@@ -256,7 +256,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
         string? filterText = null,
         long resultId = 0,
         bool vsResolveTextEditOnCommit = false,
-        LSP.CompletionItemLabelDetails? labelDetails = null)
+        LSP.CompletionItemLabelDetails? labelDetails = null,
+        int matchPriority = 0)
     {
         var position = await document.GetPositionFromLinePositionAsync(
             ProtocolConversions.PositionToLinePosition(request.Position), CancellationToken.None).ConfigureAwait(false);
@@ -275,7 +276,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
             Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
             Preselect = preselect,
             VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
-            LabelDetails = labelDetails
+            LabelDetails = labelDetails,
+            MatchPriority = matchPriority
         };
 
         if (tags != null)
