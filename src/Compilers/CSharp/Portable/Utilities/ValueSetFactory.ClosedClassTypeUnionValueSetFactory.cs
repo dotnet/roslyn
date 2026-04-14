@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,7 +24,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private ImmutableArray<TypeSymbol> ClosedSubtypes()
             {
-                return ImmutableArray<TypeSymbol>.CastUp(_closedClass.ClosedSubtypes);
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                var toTraverse = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                toTraverse.AddRange(_closedClass.ClosedSubtypes);
+                while (!toTraverse.IsEmpty)
+                {
+                    var subtype = toTraverse.Pop();
+                    if (!subtype.IsClosed)
+                    {
+                        builder.Add(subtype);
+                        continue;
+                    }
+
+                    toTraverse.AddRange(subtype.ClosedSubtypes);
+                }
+
+                toTraverse.Free();
+                return builder.ToImmutableAndFree();
             }
 
             public TypeUnionValueSet AllValues(ConversionsBase conversions)
