@@ -157,6 +157,13 @@ internal static class CompletionResultFactory
             if (lspVSClientCapability)
             {
                 lspItem.CommitCharacters = GetCommitCharacters(item, commitCharactersRuleCache);
+
+                // Flow the numeric match priority to VS so it can be used as a tiebreaker
+                // during best-match selection. The Preselect flag above only captures the
+                // extreme case (MatchPriority.Preselect); this preserves finer distinctions
+                // allowing MatchPriority comparison.
+                ((LSP.VSInternalCompletionItem)lspItem).MatchPriority = item.Rules.MatchPriority;
+
                 return lspItem;
             }
 
