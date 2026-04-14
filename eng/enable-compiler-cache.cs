@@ -217,11 +217,14 @@ static async Task RunAsync(
     var sourceBranchDisplay = buildInfo.sourceBranch is not null ? $" (branch: {buildInfo.sourceBranch})" : "";
     Console.WriteLine($"Downloading compiler cache from build {buildInfo.buildId}{sourceBranchDisplay}...");
 
-    var downloadUrl = await GetArtifactDownloadUrlAsync(httpClient, azdoBaseUrl, buildInfo.buildId, artifactName).ConfigureAwait(false);
+    var (downloadUrl, artifactSize) = await GetArtifactDownloadUrlAsync(httpClient, azdoBaseUrl, buildInfo.buildId, artifactName).ConfigureAwait(false);
+
+    if (artifactSize.HasValue)
+        Console.WriteLine($"  Artifact size: {artifactSize.Value / 1024 / 1024:N0} MB");
 
     if (!dryRun)
     {
-        await DownloadAndExtractArtifactAsync(httpClient, downloadUrl, artifactName, cacheDestination, cancellationToken).ConfigureAwait(false);
+        await DownloadAndExtractArtifactAsync(httpClient, downloadUrl, artifactName, cacheDestination, artifactSize, cancellationToken).ConfigureAwait(false);
 
         Console.WriteLine();
         Console.WriteLine($"Compiler cache extracted to: {cacheDestination}");
@@ -476,7 +479,7 @@ static async Task<bool> BuildHasArtifactAsync(HttpClient client, string azdoBase
     return response.IsSuccessStatusCode;
 }
 
-static async Task<string> GetArtifactDownloadUrlAsync(HttpClient client, string azdoBaseUrl, int buildId, string artifactName)
+static async Task<(string downloadUrl, long? size)> GetArtifactDownloadUrlAsync(HttpClient client, string azdoBaseUrl, int buildId, string artifactName)
 {
     var url = $"{azdoBaseUrl}/_apis/build/builds/{buildId}/artifacts?artifactName={Uri.EscapeDataString(artifactName)}&api-version=7.1";
     using var response = await client.GetAsync(url).ConfigureAwait(false);
@@ -487,21 +490,29 @@ static async Task<string> GetArtifactDownloadUrlAsync(HttpClient client, string 
     using var document = JsonDocument.Parse(body);
     var root = document.RootElement;
 
-    if (root.TryGetProperty("resource", out var resource) &&
-        resource.TryGetProperty("downloadUrl", out var downloadUrlProp))
+    long? artifactSize = null;
+    if (root.TryGetProperty("resource", out var resource))
     {
-        var downloadUrl = downloadUrlProp.GetString();
-        if (!string.IsNullOrEmpty(downloadUrl))
-            return downloadUrl;
+        if (resource.TryGetProperty("properties", out var properties) &&
+            properties.TryGetProperty("artifactsize", out var sizeProp) &&
+            long.TryParse(sizeProp.GetString(), out var parsedSize))
+        {
+            artifactSize = parsedSize;
+        }
+
+        if (resource.TryGetProperty("downloadUrl", out var downloadUrlProp))
+        {
+            var downloadUrl = downloadUrlProp.GetString();
+            if (!string.IsNullOrEmpty(downloadUrl))
+                return (downloadUrl, artifactSize);
+        }
     }
 
     throw new InvalidOperationException($"Artifact '{artifactName}' does not have a download URL.");
 }
 
-static async Task DownloadAndExtractArtifactAsync(HttpClient client, string downloadUrl, string artifactName, string destination, CancellationToken cancellationToken)
+static async Task DownloadAndExtractArtifactAsync(HttpClient client, string downloadUrl, string artifactName, string destination, long? artifactSize, CancellationToken cancellationToken)
 {
-    Console.WriteLine("Downloading artifact...");
-
     // Ensure we request a zip format if the URL doesn't already include it.
     if (!downloadUrl.Contains("$format=zip", StringComparison.OrdinalIgnoreCase) &&
         !downloadUrl.Contains("%24format=zip", StringComparison.OrdinalIgnoreCase))
@@ -514,9 +525,8 @@ static async Task DownloadAndExtractArtifactAsync(HttpClient client, string down
     if (!response.IsSuccessStatusCode)
         throw new InvalidOperationException($"Failed to download artifact ({(int)response.StatusCode}).");
 
-    var contentLength = response.Content.Headers.ContentLength;
-    if (contentLength.HasValue)
-        Console.WriteLine($"  Size: {contentLength.Value / 1024 / 1024:N0} MB");
+    // Prefer Content-Length from the response, fall back to the artifact size from the API.
+    var contentLength = response.Content.Headers.ContentLength ?? artifactSize;
 
     var tempZipPath = Path.GetTempFileName();
     try
