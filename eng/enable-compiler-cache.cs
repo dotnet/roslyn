@@ -28,11 +28,12 @@ using System.Text.Json;
 //   dotnet run --file eng/enable-compiler-cache.cs -- --configuration Debug --branch my-feature-branch
 //   dotnet run --file eng/enable-compiler-cache.cs -- --dry-run
 
-const string AzdoOrg = "dnceng";
+const string AzdoOrg = "dnceng-public";
 const string AzdoProject = "public";
 
-// Name of the azure-pipelines.yml file used to auto-discover the pipeline definition.
-const string PipelineYamlFilename = "azure-pipelines.yml";
+// Pipeline definition ID for the public Roslyn CI pipeline.
+// https://dev.azure.com/dnceng-public/public/_build?definitionId=95
+const int DefaultPipelineDefinitionId = 95;
 
 var configOption = new Option<string>("--configuration", "-c")
 {
@@ -45,7 +46,7 @@ var branchOption = new Option<string?>("--branch", "-b")
 };
 var pipelineIdOption = new Option<int?>("--pipeline-id")
 {
-    Description = "Azure DevOps pipeline definition ID. Auto-discovered from the YAML filename if not provided.",
+    Description = $"Azure DevOps pipeline definition ID. Defaults to {DefaultPipelineDefinitionId}.",
 };
 var buildIdOption = new Option<int?>("--build-id")
 {
@@ -122,7 +123,7 @@ static async Task RunAsync(
     }
     else
     {
-        // Discover pipeline definition ID.
+        // Resolve pipeline definition ID.
         int pipelineDefinitionId;
         if (explicitPipelineId is int pid)
         {
@@ -131,9 +132,8 @@ static async Task RunAsync(
         }
         else
         {
-            Console.Write("Discovering pipeline definition ID...");
-            pipelineDefinitionId = await DiscoverPipelineDefinitionIdAsync(httpClient, azdoBaseUrl, PipelineYamlFilename).ConfigureAwait(false);
-            Console.WriteLine($" {pipelineDefinitionId}");
+            pipelineDefinitionId = DefaultPipelineDefinitionId;
+            Console.WriteLine($"Using pipeline definition ID: {pipelineDefinitionId}");
         }
 
         Console.WriteLine();
@@ -313,55 +313,6 @@ static string? GetPrBaseBranch(string repoRoot)
     {
         return null;
     }
-}
-
-static async Task<int> DiscoverPipelineDefinitionIdAsync(HttpClient client, string azdoBaseUrl, string yamlFilename)
-{
-    var url = $"{azdoBaseUrl}/_apis/build/definitions?api-version=7.1";
-    var allDefinitions = new List<JsonElement>();
-    string? continuationToken = null;
-
-    do
-    {
-        var pageUrl = continuationToken is not null ? $"{url}&continuationToken={continuationToken}" : url;
-        using var response = await client.GetAsync(pageUrl).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Failed to list pipeline definitions ({(int)response.StatusCode}): {await response.Content.ReadAsStringAsync().ConfigureAwait(false)}");
-
-        continuationToken = response.Headers.TryGetValues("x-ms-continuationtoken", out var tokens) ? tokens.FirstOrDefault() : null;
-
-        var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-        using var document = JsonDocument.Parse(body);
-        foreach (var def in document.RootElement.GetProperty("value").EnumerateArray())
-        {
-            allDefinitions.Add(def.Clone());
-        }
-    } while (continuationToken is not null);
-
-    // Find the definition whose YAML filename matches (process.yamlFilename or process.filename).
-    foreach (var def in allDefinitions)
-    {
-        if (def.TryGetProperty("process", out var process))
-        {
-            string? yf = null;
-            if (process.TryGetProperty("yamlFilename", out var yfProp))
-                yf = yfProp.GetString();
-            else if (process.TryGetProperty("filename", out var fProp))
-                yf = fProp.GetString();
-
-            if (yf is not null && string.Equals(
-                yf.TrimStart('/').TrimStart('\\'),
-                yamlFilename.TrimStart('/').TrimStart('\\'),
-                StringComparison.OrdinalIgnoreCase))
-            {
-                return def.GetProperty("id").GetInt32();
-            }
-        }
-    }
-
-    throw new InvalidOperationException(
-        $"Could not find a pipeline definition for '{yamlFilename}' in {azdoBaseUrl}. " +
-        $"Pass the definition ID explicitly with --pipeline-id.");
 }
 
 static async Task<int?> FindLatestBuildWithArtifactAsync(
