@@ -299,7 +299,12 @@ namespace Microsoft.CodeAnalysis
             return GetResolvedSatellitePath(originalPath, cultureInfo);
         }
 
-        // Nested class to prevent RUC on containing type from flowing down
+        /// <summary>
+        /// Nested class to prevent RequiresUnreferencedCode attribute on containing type from flowing down.
+        /// Adding RequiresUnreferencedCode makes all nested static members effectively "RequiresUnreferencedCode",
+        /// but not members of nested classes or nested classes themselves. This is mostly correct for AnalyzerAssemblyLoader
+        /// but is incorrect for a few static methods, which we move into this class to avoid propagating the warnings.
+        /// </summary>
         internal static class RucSpacer
         {
             /// <summary>
