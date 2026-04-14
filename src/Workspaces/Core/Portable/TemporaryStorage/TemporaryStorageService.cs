@@ -174,6 +174,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
     internal static TemporaryStorageStreamHandle GetStreamHandle(TemporaryStorageIdentifier storageIdentifier)
     {
+        Contract.ThrowIfFalse(PlatformInformation.IsWindows, $"{nameof(GetStreamHandle)} should only be called for VS on Windows (where named memory mapped files as supported)");
         Contract.ThrowIfNull(storageIdentifier.Name, $"{nameof(GetStreamHandle)} should only be called for VS on Windows (where named memory mapped files as supported)");
         var memoryMappedFile = MemoryMappedFile.OpenExisting(storageIdentifier.Name);
         return new(memoryMappedFile, storageIdentifier);
