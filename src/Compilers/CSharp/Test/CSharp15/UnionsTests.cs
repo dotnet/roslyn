@@ -27749,7 +27749,7 @@ class Program
         }
 
         [Fact]
-        public void TryGetValueMethod_05()
+        public void TryGetValueMethod_05_01()
         {
             var src = @"
 class S0(object value)
@@ -27766,6 +27766,50 @@ class S1<T> : S0
     public S1(int x) : base(x) {}
     public S1(string x) : base(x) {}
     public bool TryGetValue(out T value) => throw null;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1<int>(10)));
+        System.Console.Write(Test1(new S1<int>(0)));
+        System.Console.Write(Test1(new S1<int>(""10"")));
+        System.Console.Write(Test1(new S1<int>(null)));
+        System.Console.Write(Test1(default));
+    }
+
+    static bool Test1(S1<int> u)
+    {
+        return u is 10;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseFalse").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_05_02()
+        {
+            var src = @"
+class S0(object value)
+{
+    private readonly object _value = value;
+    public object Value => throw null;
+    public bool TryGetValue(out int value) { if (_value is int) { value = (int)_value; return true; } else { value = 0; return false; } }
+}
+
+class S0<T>(object value) : S0(value)
+{
+    public bool TryGetValue(out T value) => throw null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1<T> : S0<T>
+{
+    public S1(int x) : base(x) {}
+    public S1(string x) : base(x) {}
 }
 
 class Program

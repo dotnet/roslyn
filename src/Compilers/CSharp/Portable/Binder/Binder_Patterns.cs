@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static PropertySymbol? TryGetOwnOrInheritedUnionProperty(NamedTypeSymbol inputUnionType, string memberName, IsSuitableUnionProperty isSuitableUnionMember, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            var possiblyConstructedOrSubstitutedType = inputUnionType;
             for (NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
                  declaringType is not null;
                  declaringType = declaringType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
@@ -117,9 +116,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!inputUnionType.IsDefinition)
                     {
-                        while (declaringType.OriginalDefinition != (object)possiblyConstructedOrSubstitutedType.OriginalDefinition)
+                        NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                        if (declaringType == (object)inputUnionType.OriginalDefinition)
                         {
-                            possiblyConstructedOrSubstitutedType = possiblyConstructedOrSubstitutedType.BaseTypeNoUseSiteDiagnostics;
+                            possiblyConstructedOrSubstitutedType = inputUnionType;
+                        }
+                        else
+                        {
+                            possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
                         }
 
                         member = member.OriginalDefinition.AsMember(possiblyConstructedOrSubstitutedType);
@@ -209,10 +214,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? bestMatch = null;
             Conversion bestMatchConversion = Conversion.NoConversion;
 
-            for (NamedTypeSymbol possiblyConstructedOrSubstitutedType = inputUnionType;
-                 possiblyConstructedOrSubstitutedType is not null;
-                 possiblyConstructedOrSubstitutedType = possiblyConstructedOrSubstitutedType.BaseTypeNoUseSiteDiagnostics)
+            for (;
+                 declaringType is not null;
+                 declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
             {
+                NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+
+                if (inputUnionType.IsDefinition)
+                {
+                    possiblyConstructedOrSubstitutedType = declaringType;
+                }
+                else if (declaringType == (object)inputUnionType.OriginalDefinition)
+                {
+                    possiblyConstructedOrSubstitutedType = inputUnionType;
+                }
+                else
+                {
+                    possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                }
+
                 foreach (var m in possiblyConstructedOrSubstitutedType.GetMembers(WellKnownMemberNames.TryGetValueMethodName))
                 {
                     if (m is MethodSymbol candidate && HasTryGetValueSignature(candidate))
@@ -228,11 +248,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!inputUnionType.IsDefinition)
                         {
-                            while (declaringType.OriginalDefinition != (object)possiblyConstructedOrSubstitutedType.OriginalDefinition)
-                            {
-                                declaringType = declaringType.BaseTypeNoUseSiteDiagnostics;
-                            }
-
                             declaredMethod = candidate.OriginalDefinition.AsMember(declaringType);
                         }
 
