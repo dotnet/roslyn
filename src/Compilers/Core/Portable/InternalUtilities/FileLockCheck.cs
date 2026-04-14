@@ -116,7 +116,7 @@ internal static class FileLockCheck
     private static extern unsafe int RmGetList(uint dwSessionHandle,
         uint* pnProcInfoNeeded,
         uint* pnProcInfo,
-        RM_PROCESS_INFO* rgAffectedApps,
+        void* rgAffectedApps,
         uint* lpdwRebootReasons);
 
     public static ImmutableArray<(int processId, string applicationName)> TryGetLockingProcessInfos(string path)
