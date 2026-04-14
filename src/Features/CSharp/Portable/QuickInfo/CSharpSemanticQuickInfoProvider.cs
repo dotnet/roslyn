@@ -81,6 +81,45 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         return false;
     }
 
+    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+        QuickInfoContext context, SyntaxToken token)
+    {
+        var quickInfo = await base.BuildQuickInfoAsync(context, token).ConfigureAwait(false);
+        return AppendUnicodeLiteralValueIfNeeded(token, quickInfo);
+    }
+
+    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
+        CommonQuickInfoContext context, SyntaxToken token)
+    {
+        var quickInfo = await base.BuildQuickInfoAsync(context, token).ConfigureAwait(false);
+        return AppendUnicodeLiteralValueIfNeeded(token, quickInfo);
+    }
+
+    private static QuickInfoItem? AppendUnicodeLiteralValueIfNeeded(SyntaxToken token, QuickInfoItem? quickInfo)
+    {
+        if (quickInfo is null || !ContainsUnicodeEscape(token))
+            return quickInfo;
+
+        var valueText = token.Kind() switch
+        {
+            SyntaxKind.CharacterLiteralToken when token.Value is char character
+                => $"{CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(character, quote: true)} (U+{(int)character:X4})",
+            SyntaxKind.StringLiteralToken
+                => CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(token.ValueText, quote: true),
+            _ => null,
+        };
+
+        if (valueText is null)
+            return quickInfo;
+
+        var section = QuickInfoSection.Create(QuickInfoSectionKinds.Text, [new TaggedText(TextTags.Text, valueText)]);
+        return QuickInfoItem.Create(quickInfo.Span, quickInfo.Tags, quickInfo.Sections.Add(section), quickInfo.RelatedSpans);
+    }
+
+    private static bool ContainsUnicodeEscape(SyntaxToken token)
+        => token.Kind() is SyntaxKind.CharacterLiteralToken or SyntaxKind.StringLiteralToken
+            && (token.Text.Contains("\\u", StringComparison.Ordinal) || token.Text.Contains("\\U", StringComparison.Ordinal));
+
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 

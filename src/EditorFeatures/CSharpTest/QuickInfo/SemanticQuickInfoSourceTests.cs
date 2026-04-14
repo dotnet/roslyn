@@ -650,6 +650,28 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription("class System.String"));
 
     [Fact]
+    public Task TestUnicodeEscapeCharacterLiteralIncludesValueText()
+        => TestInMethodAsync(
+            """
+            var c = '\u12$$34';
+            """,
+            MainDescription("struct System.Char"),
+            item => Assert.Equal(
+                "'ሴ' (U+1234)",
+                string.Concat(item.Sections.First(section => section.Kind == QuickInfoSectionKinds.Text).TaggedParts.Select(p => p.Text))));
+
+    [Fact]
+    public Task TestUnicodeEscapeStringLiteralIncludesValueText()
+        => TestInMethodAsync(
+            """
+            var s = "pre\u03$$87post";
+            """,
+            MainDescription("class System.String"),
+            item => Assert.Equal(
+                "\"pre·post\"",
+                string.Concat(item.Sections.First(section => section.Kind == QuickInfoSectionKinds.Text).TaggedParts.Select(p => p.Text))));
+
+    [Fact]
     public Task TestBoolean()
         => TestInClassAsync(
             @"$$Boolean b;",
