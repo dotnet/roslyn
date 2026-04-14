@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -34,12 +34,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     /// </summary>
     private static readonly SymbolDisplayFormat s_nullableDisplayFormat = new();
 #if NET9_0_OR_GREATER
-    private static readonly MethodInfo? s_runeGetUnicodeNameMethod = typeof(Rune).GetMethod(
-        "GetUnicodeName",
-        BindingFlags.Public | BindingFlags.Static,
-        binder: null,
-        types: [typeof(Rune)],
-        modifiers: null);
+    private static readonly Func<System.Text.Rune, string?>? s_runeGetUnicodeName = CreateRuneGetUnicodeNameDelegate();
 #endif
 
     /// <summary>
@@ -134,12 +129,30 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     private static string GetUnicodeCharacterNameOrCodePoint(char character)
     {
 #if NET9_0_OR_GREATER
-        if (s_runeGetUnicodeNameMethod?.Invoke(null, [new Rune(character)]) is string name && name.Length > 0)
+        if (System.Text.Rune.TryCreate(character, out var rune) &&
+            s_runeGetUnicodeName?.Invoke(rune) is string name &&
+            name.Length > 0)
+        {
             return name;
+        }
 #endif
 
         return $"U+{(int)character:X4}";
     }
+
+#if NET9_0_OR_GREATER
+    private static Func<System.Text.Rune, string?>? CreateRuneGetUnicodeNameDelegate()
+    {
+        var method = typeof(System.Text.Rune).GetMethod(
+            "GetUnicodeName",
+            BindingFlags.Public | BindingFlags.Static,
+            binder: null,
+            types: [typeof(System.Text.Rune)],
+            modifiers: null);
+        Debug.Assert(method is not null, "Expected System.Text.Rune.GetUnicodeName(Rune) to be available on NET9_0_OR_GREATER.");
+        return method is null ? null : method.CreateDelegate<Func<System.Text.Rune, string?>>();
+    }
+#endif
 
     private static bool ContainsUnicodeEscape(SyntaxToken token)
     {

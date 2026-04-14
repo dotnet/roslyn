@@ -675,7 +675,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 GetTextSectionContent(item)));
 
     [Fact]
-    public Task TestUnicodeEscapeControlCharacterLiteralIncludesCodePointFallback()
+    public Task TestUnicodeEscapeCharacterLiteralFallbackFormat()
         => TestInMethodAsync(
             """
             var c = '\u00$$09';
