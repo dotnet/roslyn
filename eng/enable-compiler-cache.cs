@@ -98,12 +98,22 @@ static async Task RunAsync(
 
     var os = GetCurrentOsName();
     var artifactName = $"compiler-cache-{os}-{configuration.ToLowerInvariant()}";
-    var cacheDestination = Path.Combine(repoRoot, "artifacts", "compiler-cache");
+
+    // If the user already has a cache path configured (e.g., via environment variable),
+    // download there and skip writing Directory.Build.props.user.
+    var existingCachePath = Environment.GetEnvironmentVariable("ROSLYN_CACHE_PATH");
+    var alreadyEnabled = string.Equals(Environment.GetEnvironmentVariable("ROSLYN_USE_CACHING_COMPILER"), "true", StringComparison.OrdinalIgnoreCase)
+        || !string.IsNullOrEmpty(existingCachePath);
+    var cacheDestination = !string.IsNullOrEmpty(existingCachePath)
+        ? existingCachePath
+        : Path.Combine(repoRoot, "artifacts", "compiler-cache");
 
     Console.WriteLine($"OS:            {os}");
     Console.WriteLine($"Configuration: {configuration}");
     Console.WriteLine($"Artifact:      {artifactName}");
     Console.WriteLine($"Cache path:    {cacheDestination}");
+    if (alreadyEnabled)
+        Console.WriteLine($"Compiler cache is already enabled globally.");
     Console.WriteLine();
 
     if (dryRun)
@@ -165,26 +175,36 @@ static async Task RunAsync(
 
         if (found is null)
         {
-            Console.WriteLine("No suitable build found. The caching compiler will be enabled without a pre-populated cache.");
-            Console.WriteLine("The cache will be built from scratch as you compile.");
-            Console.WriteLine();
-
             if (!dryRun)
             {
-                WriteUserPropsFile(repoRoot, cacheDestination: null);
+                if (!alreadyEnabled)
+                {
+                    Console.WriteLine("No suitable build found. The compiler cache will be enabled without a pre-populated cache.");
+                    Console.WriteLine("The cache will be built from scratch as you compile.");
+                    Console.WriteLine();
 
-                Console.WriteLine();
-                Console.WriteLine("Done.");
-                Console.WriteLine();
-                Console.WriteLine("The Directory.Build.props.user file has been created (or updated) to enable the");
-                Console.WriteLine("caching compiler automatically for all builds in this repository.");
-                Console.WriteLine();
-                Console.WriteLine("To disable local caching, delete Directory.Build.props.user or set the");
-                Console.WriteLine("ROSLYN_USE_CACHING_COMPILER environment variable to 'false'.");
+                    WriteUserPropsFile(repoRoot, cacheDestination: null);
+
+                    Console.WriteLine();
+                    Console.WriteLine("Done.");
+                    Console.WriteLine();
+                    Console.WriteLine("The Directory.Build.props.user file has been created (or updated) to enable the");
+                    Console.WriteLine("compiler cache automatically for all builds in this repository.");
+                    Console.WriteLine();
+                    Console.WriteLine("To disable local caching, delete Directory.Build.props.user or set the");
+                    Console.WriteLine("ROSLYN_USE_CACHING_COMPILER environment variable to 'false'.");
+                }
+                else
+                {
+                    Console.WriteLine("No suitable build found. The compiler cache is already enabled globally;");
+                    Console.WriteLine("the cache will be built from scratch as you compile.");
+                }
             }
             else
             {
-                Console.WriteLine("Dry run complete. Run without --dry-run to enable the caching compiler.");
+                Console.WriteLine("No suitable build found.");
+                Console.WriteLine();
+                Console.WriteLine("Dry run complete. Run without --dry-run to enable the compiler cache.");
             }
 
             return;
@@ -205,16 +225,24 @@ static async Task RunAsync(
         Console.WriteLine();
         Console.WriteLine($"Compiler cache extracted to: {cacheDestination}");
 
-        WriteUserPropsFile(repoRoot, cacheDestination);
+        if (!alreadyEnabled)
+        {
+            WriteUserPropsFile(repoRoot, cacheDestination);
 
-        Console.WriteLine();
-        Console.WriteLine("Done.");
-        Console.WriteLine();
-        Console.WriteLine("The Directory.Build.props.user file has been created (or updated) to enable the");
-        Console.WriteLine("caching compiler automatically for all builds in this repository.");
-        Console.WriteLine();
-        Console.WriteLine("To disable local caching, delete Directory.Build.props.user or set the");
-        Console.WriteLine("ROSLYN_USE_CACHING_COMPILER environment variable to 'false'.");
+            Console.WriteLine();
+            Console.WriteLine("Done.");
+            Console.WriteLine();
+            Console.WriteLine("The Directory.Build.props.user file has been created (or updated) to enable the");
+            Console.WriteLine("compiler cache automatically for all builds in this repository.");
+            Console.WriteLine();
+            Console.WriteLine("To disable local caching, delete Directory.Build.props.user or set the");
+            Console.WriteLine("ROSLYN_USE_CACHING_COMPILER environment variable to 'false'.");
+        }
+        else
+        {
+            Console.WriteLine();
+            Console.WriteLine("Done. The compiler cache is already enabled globally; no props file changes needed.");
+        }
     }
     else
     {
