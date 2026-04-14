@@ -104,7 +104,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         var valueText = token.Kind() switch
         {
             SyntaxKind.CharacterLiteralToken when token.Value is char character
-                => $"{SymbolDisplay.FormatLiteral(character, quote: true)} ({GetUnicodeCharacterDescription(character)})",
+                => $"{SymbolDisplay.FormatLiteral(character, quote: true)} ({GetUnicodeCharacterNameOrCodePoint(character)})",
             SyntaxKind.StringLiteralToken
                 => SymbolDisplay.FormatLiteral(token.ValueText, quote: true),
             _ => null,
@@ -121,7 +121,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         return QuickInfoItem.Create(quickInfo.Span, quickInfo.Tags, quickInfo.Sections.Add(section), quickInfo.RelatedSpans);
     }
 
-    private static string GetUnicodeCharacterDescription(char character)
+    private static string GetUnicodeCharacterNameOrCodePoint(char character)
         => TryGetUnicodeCharacterName(character) is string name ? name : $"U+{(int)character:X4}";
 
     private static string? TryGetUnicodeCharacterName(char character)
@@ -162,7 +162,6 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
             '\u007F' => "Delete",
             '\u00A0' => "No-break space",
             '\u0387' => "Greek ano teleia",
-            '\u1234' => "Ethiopic syllable see",
             _ => null,
         };
 

@@ -660,7 +660,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription("struct System.Char"),
             item => Assert.Equal(
-                "Value: '\u1234' (Ethiopic syllable see)",
+                "Value: '\u1234' (U+1234)",
                 GetTextSectionContent(item)));
 
     [Fact]
@@ -672,6 +672,17 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription("struct System.Char"),
             item => Assert.Equal(
                 "Value: '\u00A0' (No-break space)",
+                GetTextSectionContent(item)));
+
+    [Fact]
+    public Task TestUnicodeEscapeControlCharacterLiteralIncludesName()
+        => TestInMethodAsync(
+            """
+            var c = '\u00$$09';
+            """,
+            MainDescription("struct System.Char"),
+            item => Assert.Equal(
+                "Value: '\\t' (Character tabulation)",
                 GetTextSectionContent(item)));
 
     [Fact]
