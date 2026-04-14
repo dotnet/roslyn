@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -35,10 +34,7 @@ internal sealed class SerializableSourceText
     /// <remarks>
     /// Exactly one of <see cref="_storageHandle"/> or <see cref="_text"/> will be non-<see langword="null"/>.
     /// </remarks>
-    private readonly ITemporaryStorageTextHandle? _storageHandle;
-    private readonly SourceHashAlgorithm _checksumAlgorithm;
-    private readonly Encoding? _encoding;
-    private readonly ImmutableArray<byte> _contentHash;
+    private readonly TemporaryStorageTextHandle? _storageHandle;
 
     /// <summary>
     /// The <see cref="SourceText"/> in the current process.
@@ -60,38 +56,30 @@ internal sealed class SerializableSourceText
     public readonly Checksum ContentChecksum;
 
     public SerializableSourceText(TemporaryStorageTextHandle storageHandle)
-        : this(storageHandle, storageHandle.ChecksumAlgorithm, storageHandle.Encoding, storageHandle.ContentHash, text: null, Checksum.Create(storageHandle.ContentHash))
-    {
-    }
-
-    public SerializableSourceText(ITemporaryStorageTextHandle storageHandle, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash)
-        : this(storageHandle, checksumAlgorithm, encoding, contentHash, text: null, Checksum.Create(contentHash))
+        : this(storageHandle, text: null, Checksum.Create(storageHandle.ContentHash))
     {
     }
 
     public SerializableSourceText(SourceText text, ImmutableArray<byte> contentHash)
-        : this(storageHandle: null, default, null, default, text, Checksum.Create(contentHash))
+        : this(storageHandle: null, text, Checksum.Create(contentHash))
     {
     }
 
     public SerializableSourceText(SourceText text, Checksum contentChecksum)
-        : this(storageHandle: null, default, null, default, text, contentChecksum)
+        : this(storageHandle: null, text, contentChecksum)
     {
     }
 
-    private SerializableSourceText(ITemporaryStorageTextHandle? storageHandle, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, ImmutableArray<byte> contentHash, SourceText? text, Checksum contentChecksum)
+    private SerializableSourceText(TemporaryStorageTextHandle? storageHandle, SourceText? text, Checksum contentChecksum)
     {
         Debug.Assert(storageHandle is null != text is null);
 
         _storageHandle = storageHandle;
-        _checksumAlgorithm = checksumAlgorithm;
-        _encoding = encoding;
-        _contentHash = contentHash;
         _text = text;
         ContentChecksum = contentChecksum;
 
 #if DEBUG
-        var computedContentHash = TryGetText()?.GetContentHash() ?? _contentHash;
+        var computedContentHash = TryGetText()?.GetContentHash() ?? _storageHandle!.ContentHash;
         Debug.Assert(contentChecksum == Checksum.Create(computedContentHash));
 #endif
     }
@@ -158,9 +146,9 @@ internal sealed class SerializableSourceText
         {
             writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
             _storageHandle.Identifier.WriteTo(writer);
-            writer.WriteInt32((int)_checksumAlgorithm);
-            writer.WriteEncoding(_encoding);
-            writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(_contentHash)!);
+            writer.WriteInt32((int)_storageHandle.ChecksumAlgorithm);
+            writer.WriteEncoding(_storageHandle.Encoding);
+            writer.WriteByteArray(ImmutableCollectionsMarshal.AsArray(_storageHandle.ContentHash)!);
         }
         else
         {
@@ -177,7 +165,7 @@ internal sealed class SerializableSourceText
 
     public static SerializableSourceText Deserialize(
         ObjectReader reader,
-        ITemporaryStorageServiceInternal storageService,
+        TemporaryStorageService storageService,
         ITextFactoryService textService,
         CancellationToken cancellationToken)
     {
@@ -192,10 +180,9 @@ internal sealed class SerializableSourceText
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
             var encoding = reader.ReadEncoding();
             var contentHash = ImmutableCollectionsMarshal.AsImmutableArray(reader.ReadByteArray());
-
             var storageHandle = storageService.GetTextHandle(identifier, checksumAlgorithm, encoding, contentHash);
 
-            return new SerializableSourceText(storageHandle, checksumAlgorithm, encoding, contentHash);
+            return new SerializableSourceText(storageHandle);
         }
         else
         {

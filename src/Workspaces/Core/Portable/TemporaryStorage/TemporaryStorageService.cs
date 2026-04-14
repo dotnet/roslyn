@@ -172,16 +172,6 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
         }
     }
 
-    ITemporaryStorageStreamHandle ITemporaryStorageServiceInternal.GetStreamHandle(TemporaryStorageIdentifier storageIdentifier)
-        => GetStreamHandle(storageIdentifier);
-
-    ITemporaryStorageTextHandle ITemporaryStorageServiceInternal.GetTextHandle(
-        TemporaryStorageIdentifier storageIdentifier,
-        SourceHashAlgorithm checksumAlgorithm,
-        Encoding? encoding,
-        ImmutableArray<byte> contentHash)
-        => GetTextHandle(storageIdentifier, checksumAlgorithm, encoding, contentHash);
-
     internal static TemporaryStorageStreamHandle GetStreamHandle(TemporaryStorageIdentifier storageIdentifier)
     {
         Contract.ThrowIfNull(storageIdentifier.Name, $"{nameof(GetStreamHandle)} should only be called for VS on Windows (where named memory mapped files as supported)");

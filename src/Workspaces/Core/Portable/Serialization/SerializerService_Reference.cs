@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -18,6 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Serialization;
 
 using static Microsoft.CodeAnalysis.Serialization.SerializerService.TestAccessor;
+using static TemporaryStorageService;
 
 internal partial class SerializerService
 {
@@ -382,7 +381,7 @@ internal partial class SerializerService
         return true;
     }
 
-    private (Metadata metadata, ImmutableArray<ITemporaryStorageStreamHandle> storageHandles)? TryReadMetadataFrom(
+    private (Metadata metadata, ImmutableArray<TemporaryStorageStreamHandle> storageHandles)? TryReadMetadataFrom(
         ObjectReader reader, SerializationKinds kind)
     {
         var imageKind = reader.ReadInt32();
@@ -398,7 +397,7 @@ internal partial class SerializerService
             var count = reader.ReadInt32();
 
             var allMetadata = new FixedSizeArrayBuilder<ModuleMetadata>(count);
-            var allHandles = new FixedSizeArrayBuilder<ITemporaryStorageStreamHandle>(count);
+            var allHandles = new FixedSizeArrayBuilder<TemporaryStorageStreamHandle>(count);
 
             for (var i = 0; i < count; i++)
             {
@@ -422,7 +421,7 @@ internal partial class SerializerService
         }
     }
 
-    private (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFrom(
+    private (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFrom(
         ObjectReader reader, SerializationKinds kind)
     {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
@@ -431,16 +430,16 @@ internal partial class SerializerService
             ? ReadModuleMetadataFromBits()
             : ReadModuleMetadataFromMemoryMappedFile();
 
-        (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
         {
             // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
             // will not be released by the host.
             var storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
-            var storageHandle = _storageService.Value.GetStreamHandle(storageIdentifier);
+            var storageHandle = TemporaryStorageService.GetStreamHandle(storageIdentifier);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromBits()
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromBits()
         {
             // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
             // server side so that we can refer to this data uniformly.
@@ -448,66 +447,32 @@ internal partial class SerializerService
             CopyByteArrayToStream(reader, stream);
 
             var length = stream.Length;
-            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream, CancellationToken.None);
+            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream);
             Contract.ThrowIfTrue(length != storageHandle.Identifier.Size);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
 
-        (ModuleMetadata metadata, ITemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromStorage(
-            ITemporaryStorageStreamHandle storageHandle)
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromStorage(
+            TemporaryStorageStreamHandle storageHandle)
         {
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
             // sent us the full contents.
             //
-            // Important: the serialized bytes are raw CLI metadata (from MetadataReader.MetadataPointer), NOT a PE file.
-            // We must use ModuleMetadata.CreateFromMetadata (pointer-based) rather than CreateFromStream (PE-based).
+            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
+            // since this only runs on Windows for VS.
+            var unmanagedStream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage();
+            Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
 
-            var stream = storageHandle.ReadFromTemporaryStorage();
-            Contract.ThrowIfFalse(storageHandle.Identifier.Size == stream.Length);
-
-            if (stream is UnmanagedMemoryStream unmanagedStream)
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+            // the metadata.
+            unsafe
             {
-                // For an unmanaged memory stream, ModuleMetadata can take ownership directly. Stream will be kept alive
-                // as long as the ModuleMetadata is alive due to passing its Dispose method as the onDispose callback.
-                unsafe
-                {
-                    var metadata = ModuleMetadata.CreateFromMetadata(
-                        (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-                    return (metadata, storageHandle);
-                }
+                var metadata = ModuleMetadata.CreateFromMetadata(
+                    (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
+                return (metadata, storageHandle);
             }
-
-            // For regular streams (e.g., MemoryStream from TrivialTemporaryStorageService on Linux), pin the
-            // underlying buffer and create metadata from the pointer. We can't use CreateFromStream here because
-            // the bytes are raw CLI metadata, not a PE file.
-            if (stream is MemoryStream memoryStream)
-            {
-                var buffer = memoryStream.ToArray();
-                var length = buffer.Length;
-                var gcHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-                try
-                {
-                    unsafe
-                    {
-                        var metadata = ModuleMetadata.CreateFromMetadata(
-                            gcHandle.AddrOfPinnedObject(), length,
-                            () =>
-                            {
-                                gcHandle.Free();
-                                memoryStream.Dispose();
-                            });
-                        return (metadata, storageHandle);
-                    }
-                }
-                catch
-                {
-                    gcHandle.Free();
-                    throw;
-                }
-            }
-
-            throw new NotSupportedException($"Unsupported stream type for metadata deserialization: {stream.GetType()}");
         }
     }
 

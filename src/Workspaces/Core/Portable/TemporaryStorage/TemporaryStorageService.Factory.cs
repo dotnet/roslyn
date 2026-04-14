@@ -31,7 +31,7 @@ internal sealed partial class TemporaryStorageService
             }
             else
             {
-                return new TrivialTemporaryStorageService();
+                return TrivialTemporaryStorageService.Instance;
             }
         }
     }

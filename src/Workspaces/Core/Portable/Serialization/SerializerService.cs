@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -16,6 +17,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+#if NET
+[SupportedOSPlatform("windows")]
+#endif
 [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
 internal partial class SerializerService(SolutionServices workspaceServices) : ISerializerService
 {
@@ -31,10 +35,12 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
 
     private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
 
-    // Serialization to temporary storage is only involved when we have a remote process. However the serializer is
-    // created in other cases (e.g. to compute project state checksums). So lazily instantiate the storage service to
-    // avoid fetching it when not required.
-    private readonly Lazy<ITemporaryStorageServiceInternal> _storageService = new(() => workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>());
+    // Serialization to temporary storage is only involved when we have a remote process.  Which is only in VS. So the
+    // type of the storage service here is well known.  However the serializer is created in other cases (e.g. to
+    // compute project state checksums). So lazily instantiate the storage service to avoid attempting to get the
+    // TemporaryStorageService when not available.
+
+    private readonly Lazy<TemporaryStorageService> _storageService = new(() => (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>());
     private readonly ITextFactoryService _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
     private readonly IDocumentationProviderService? _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
     private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
