@@ -42,7 +42,10 @@ static async Task MainAsync(string[] args)
 {
     var options = ParseArgs(args);
 
-    var repoRoot = Path.GetFullPath(Path.Join(AppContext.GetData("EntryPointFileDirectoryPath") as string, ".."));
+    var repoRoot = Path.GetFullPath(Path.Join(
+        AppContext.GetData("EntryPointFileDirectoryPath") as string
+            ?? throw new InvalidOperationException("Could not determine the script's directory path."),
+        ".."));
     if (!Directory.Exists(repoRoot))
         throw new InvalidOperationException($"Could not locate repo root: {repoRoot}");
 
@@ -142,16 +145,21 @@ static async Task MainAsync(string[] args)
         Console.WriteLine($"Compiler cache extracted to: {cacheDestination}");
 
         WriteUserPropsFile(repoRoot, cacheDestination);
-    }
 
-    Console.WriteLine();
-    Console.WriteLine("Done.");
-    Console.WriteLine();
-    Console.WriteLine("The Directory.Build.props.user file has been created (or updated) to enable the");
-    Console.WriteLine("caching compiler automatically for all builds in this repository.");
-    Console.WriteLine();
-    Console.WriteLine("To disable local caching, delete Directory.Build.props.user or set the");
-    Console.WriteLine("ROSLYN_USE_CACHING_COMPILER environment variable to 'false'.");
+        Console.WriteLine();
+        Console.WriteLine("Done.");
+        Console.WriteLine();
+        Console.WriteLine("The Directory.Build.props.user file has been created (or updated) to enable the");
+        Console.WriteLine("caching compiler automatically for all builds in this repository.");
+        Console.WriteLine();
+        Console.WriteLine("To disable local caching, delete Directory.Build.props.user or set the");
+        Console.WriteLine("ROSLYN_USE_CACHING_COMPILER environment variable to 'false'.");
+    }
+    else
+    {
+        Console.WriteLine();
+        Console.WriteLine("Dry run complete. Run without --dry-run to download and configure the cache.");
+    }
 }
 
 static string GetCurrentOsName()
@@ -363,7 +371,19 @@ static async Task DownloadAndExtractArtifactAsync(HttpClient client, string down
         Console.WriteLine("Extracting...");
 
         if (Directory.Exists(destination))
-            Directory.Delete(destination, recursive: true);
+        {
+            try
+            {
+                Directory.Delete(destination, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Could not remove the existing cache directory '{destination}'. " +
+                    $"Close any processes that may have files open in that directory and try again. " +
+                    $"Inner error: {ex.Message}", ex);
+            }
+        }
         Directory.CreateDirectory(destination);
 
         ExtractZipToDirectory(tempZipPath, artifactName, destination);
@@ -475,16 +495,20 @@ static Options ParseArgs(string[] args)
         {
             case "--configuration":
             case "-c":
+                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
                 options = options with { Configuration = args[++i] };
                 break;
             case "--branch":
             case "-b":
+                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
                 options = options with { Branch = args[++i] };
                 break;
             case "--pipeline-id":
+                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
                 options = options with { PipelineDefinitionId = int.Parse(args[++i]) };
                 break;
             case "--build-id":
+                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
                 options = options with { ExplicitBuildId = int.Parse(args[++i]) };
                 break;
             case "--dry-run":
