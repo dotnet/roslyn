@@ -65,7 +65,18 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(C)").WithArguments("C").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1),
+                // (8,23): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         i = /*<bind>*/sizeof(C)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(C)").WithArguments("C").WithLocation(8, 23),
+            };
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -120,7 +131,18 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(UndefinedType)").WithArguments("UndefinedType").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1),
+                // (8,30): error CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
+                //         i = /*<bind>*/sizeof(UndefinedType)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "UndefinedType").WithArguments("UndefinedType").WithLocation(8, 30),
+            };
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -151,7 +173,18 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(i)").WithArguments("i").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1),
+                // (8,30): error CS0118: 'i' is a variable but is used like a type
+                //         i = /*<bind>*/sizeof(i)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadSKknown, "i").WithArguments("i", "variable", "type").WithLocation(8, 30),
+            };
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -195,7 +228,27 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'sizeof(M
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(M2").WithArguments("M2").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1),
+                // (8,32): error CS1026: ) expected
+                //         i = /*<bind>*/sizeof(M2()/*</bind>*/);                
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "(").WithLocation(8, 32),
+                // (8,45): error CS1002: ; expected
+                //         i = /*<bind>*/sizeof(M2()/*</bind>*/);                
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(8, 45),
+                // (8,45): error CS1513: } expected
+                //         i = /*<bind>*/sizeof(M2()/*</bind>*/);                
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(8, 45),
+                // (8,30): error CS0246: The type or namespace name 'M2' could not be found (are you missing a using directive or an assembly reference?)
+                //         i = /*<bind>*/sizeof(M2()/*</bind>*/);                
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "M2").WithArguments("M2").WithLocation(8, 30),
+            };
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -226,7 +279,18 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof()").WithArguments("?").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1),
+                // (8,30): error CS1031: Type expected
+                //         i = /*<bind>*/sizeof()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(8, 30),
+            };
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

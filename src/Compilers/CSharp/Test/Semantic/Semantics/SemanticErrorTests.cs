@@ -8630,7 +8630,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (16,27): error CS0233: 'S' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //         Console.WriteLine(sizeof(S));   // CS0233
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S"),
@@ -8638,6 +8638,15 @@ public class MyClass
                 // (15,11): warning CS0219: The variable 'myS' is assigned but its value is never used
                 //         S myS = new S();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "myS").WithArguments("myS"));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,11): warning CS0219: The variable 'myS' is assigned but its value is never used
+                //         S myS = new S();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "myS").WithArguments("myS")
+            };
+            CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

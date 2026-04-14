@@ -8260,7 +8260,7 @@ public class MyAttribute : System.Attribute
         [Fact]
         public void TypeParameterScope_InParameterAttributeSizeOf()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     void M()
@@ -8277,7 +8277,8 @@ public class MyAttribute : System.Attribute
 {
     public MyAttribute(int i) { }
 }
-");
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (8,36): error CS0233: 'TParameter' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         void local<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
@@ -8289,6 +8290,19 @@ public class MyAttribute : System.Attribute
 
             VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
             VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)");
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (8,36): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         void local<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "sizeof(TParameter)").WithLocation(8, 36),
+                // (11,29): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     void M2<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "sizeof(TParameter)").WithLocation(11, 29),
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
