@@ -322,11 +322,16 @@ internal static partial class DependentProjectsFinder
         Contract.ThrowIfNull(project);
         Contract.ThrowIfFalse(project.SupportsCompilation);
 
-        // If our symbol was from a project, then just check if this current project has a direct reference to it.
-        if (symbolOrigination.sourceProject != null)
-            return project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id);
+        // If our symbol was from a project, first check if this current project has a direct project reference to it.
+        // If not, it may still reference the same assembly through metadata (for example, if the project system loaded
+        // the dependency as an output reference instead of a P2P reference).
+        if (symbolOrigination.sourceProject != null &&
+            project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id))
+        {
+            return true;
+        }
 
-        // Otherwise, if the symbol is from metadata, see if the project's compilation references that metadata assembly.
+        // Otherwise, see if the project's compilation references that assembly through metadata.
         return await HasReferenceToAssemblyAsync(
             project, symbolOrigination.assembly.Name, cancellationToken).ConfigureAwait(false);
     }
@@ -343,6 +348,14 @@ internal static partial class DependentProjectsFinder
         foreach (var reference in project.MetadataReferences)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (reference is CompilationReference compilationReference)
+            {
+                if (string.Equals(compilationReference.Compilation.AssemblyName, assemblyName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                continue;
+            }
 
             if (reference is not PortableExecutableReference peReference)
                 continue;

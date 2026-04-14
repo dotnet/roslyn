@@ -10,7 +10,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -467,6 +469,113 @@ public sealed class FindReferencesTests : TestBase
         // A.C.get_Uri
         // A.ITestBase.get_Uri
         Assert.Equal(5, references.Count());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public async Task FindReferences_PartialPropertyFromProjectedMetadataSymbol()
+    {
+        using var workspace = CreateWorkspace();
+        var modelsProjectId = ProjectId.CreateNewId();
+        var reproProjectId = ProjectId.CreateNewId();
+        var parseOptions = new CSharpParseOptions(LanguageVersion.Preview);
+
+        var solution = workspace.CurrentSolution
+            .AddProject(modelsProjectId, "Models", "Models", LanguageNames.CSharp)
+            .AddMetadataReference(modelsProjectId, MscorlibRef)
+            .AddDocument(DocumentId.CreateNewId(modelsProjectId), "MyClass.cs", SourceText.From("""
+                namespace Models;
+
+                public partial class MyClass
+                {
+                    public partial string MyString { get; set; }
+                }
+
+                public partial class MyClass
+                {
+                    public partial string MyString { get => field; set => field = value; }
+                }
+                """))
+            .WithProjectParseOptions(modelsProjectId, parseOptions)
+            .WithProjectCompilationOptions(modelsProjectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var modelsProject = solution.GetProject(modelsProjectId);
+        var modelsCompilation = await modelsProject.GetCompilationAsync();
+        var modelsMetadataReference = modelsCompilation.ToMetadataReference();
+
+        solution = solution
+            .AddProject(reproProjectId, "Repro", "Repro", LanguageNames.CSharp)
+            .AddMetadataReference(reproProjectId, MscorlibRef)
+            .AddMetadataReference(reproProjectId, modelsMetadataReference)
+            .AddDocument(DocumentId.CreateNewId(reproProjectId), "Program.cs", SourceText.From("""
+                using Models;
+                using System;
+
+                var obj = new MyClass();
+                if (obj.MyString is not null)
+                {
+                    Console.WriteLine(obj.MyString);
+                }
+                """))
+            .WithProjectParseOptions(reproProjectId, parseOptions)
+            .WithProjectCompilationOptions(reproProjectId, new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+        var document = solution.GetProject(reproProjectId).Documents.Single();
+        var text = await document.GetTextAsync();
+        var position = text.ToString().IndexOf("MyString", StringComparison.Ordinal);
+        Assert.True(position >= 0);
+
+        var usageSymbol = Assert.IsAssignableFrom<IPropertySymbol>(await SymbolFinder.FindSymbolAtPositionAsync(document, position));
+        var sourceDefinition = Assert.IsAssignableFrom<IPropertySymbol>(await SymbolFinder.FindSourceDefinitionAsync(usageSymbol, solution));
+        var projectedMetadataCompilation = CSharpCompilation.Create(
+            assemblyName: "ProjectedMetadata",
+            syntaxTrees: [],
+            references: [MscorlibRef, modelsCompilation.EmitToImageReference()],
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var projectedMetadataSymbol = projectedMetadataCompilation.GetTypeByMetadataName("Models.MyClass")
+            .GetMembers("MyString")
+            .OfType<IPropertySymbol>()
+            .Single();
+
+        Assert.Null(projectedMetadataSymbol.PartialDefinitionPart);
+        Assert.Null(projectedMetadataSymbol.PartialImplementationPart);
+        Assert.True(SymbolEquivalenceComparer.Instance.Equals(projectedMetadataSymbol, sourceDefinition));
+        Assert.Equal(usageSymbol.ToTestDisplayString(), projectedMetadataSymbol.ToTestDisplayString());
+
+        var results = (await SymbolFinder.FindReferencesAsync(usageSymbol, solution))
+            .Select(referencedSymbol => FormatReferencedSymbol(referencedSymbol))
+            .OrderBy(static result => result)
+            .ToArray();
+
+        AssertEx.Equal(
+        [
+            "Field: System.String Models.MyClass.<MyString>k__BackingField -> []",
+            "Method: System.String Models.MyClass.MyString.get -> []",
+            "Method: System.String Models.MyClass.MyString.get -> []",
+            "Method: void Models.MyClass.MyString.set -> []",
+            "Method: void Models.MyClass.MyString.set -> []",
+            "Property: System.String Models.MyClass.MyString { get; set; } -> []",
+            "Property: System.String Models.MyClass.MyString { get; set; } -> [Program.cs(4,8)-(4,16) SymbolUsageInfo { ValueUsageInfoOpt = Read, TypeOrNamespaceUsageInfoOpt =  }, Program.cs(6,26)-(6,34) SymbolUsageInfo { ValueUsageInfoOpt = Read, TypeOrNamespaceUsageInfoOpt =  }]",
+        ], results);
+
+        static string FormatReferencedSymbol(ReferencedSymbol referencedSymbol)
+        {
+            var locations = referencedSymbol.Locations
+                .Where(static location => !location.IsImplicit)
+                .OrderBy(static location => location.Document.Name)
+                .ThenBy(static location => location.Location.SourceSpan.Start)
+                .Select(static location => FormatLocation(location));
+
+            return $"{referencedSymbol.Definition.Kind}: {referencedSymbol.Definition.ToTestDisplayString()} -> [{string.Join(", ", locations)}]";
+        }
+
+        static string FormatLocation(ReferenceLocation location)
+        {
+            var lineSpan = location.Location.GetLineSpan();
+            var start = lineSpan.StartLinePosition;
+            var end = lineSpan.EndLinePosition;
+            return $"{location.Document.Name}({start.Line},{start.Character})-({end.Line},{end.Character}) {location.SymbolUsageInfo}";
+        }
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4936")]

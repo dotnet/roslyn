@@ -207,8 +207,9 @@ internal sealed partial class SymbolEquivalenceComparer
                     return HaveSameLocation(x, y);
                 }
 
-                if (IsPartialMethodDefinitionPart(x) != IsPartialMethodDefinitionPart(y) ||
-                    IsPartialMethodImplementationPart(x) != IsPartialMethodImplementationPart(y) ||
+                if (!PartialPartsAreEquivalent(
+                        IsPartialMethodDefinitionPart(x), IsPartialMethodImplementationPart(x),
+                        IsPartialMethodDefinitionPart(y), IsPartialMethodImplementationPart(y)) ||
                     x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
@@ -599,8 +600,9 @@ internal sealed partial class SymbolEquivalenceComparer
                 x.IsIndexer == y.IsIndexer &&
                 x.MetadataName == y.MetadataName &&
                 x.Parameters.Length == y.Parameters.Length &&
-                IsPartialPropertyDefinitionPart(x) == IsPartialPropertyDefinitionPart(y) &&
-                IsPartialPropertyImplementationPart(x) == IsPartialPropertyImplementationPart(y) &&
+                PartialPartsAreEquivalent(
+                    IsPartialPropertyDefinitionPart(x), IsPartialPropertyImplementationPart(x),
+                    IsPartialPropertyDefinitionPart(y), IsPartialPropertyImplementationPart(y)) &&
                 ParametersAreEquivalent(x.Parameters, y.Parameters, equivalentTypesWithDifferingAssemblies) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
@@ -609,8 +611,9 @@ internal sealed partial class SymbolEquivalenceComparer
         {
             return
                 x.MetadataName == y.MetadataName &&
-                IsPartialEventDefinitionPart(x) == IsPartialEventDefinitionPart(y) &&
-                IsPartialEventImplementationPart(x) == IsPartialEventImplementationPart(y) &&
+                PartialPartsAreEquivalent(
+                    IsPartialEventDefinitionPart(x), IsPartialEventImplementationPart(x),
+                    IsPartialEventDefinitionPart(y), IsPartialEventImplementationPart(y)) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
 

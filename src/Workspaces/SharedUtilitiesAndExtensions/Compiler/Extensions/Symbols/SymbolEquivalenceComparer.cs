@@ -254,6 +254,30 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         => false;
 #endif
 
+    private static bool PartialPartsAreEquivalent(
+        bool xIsDefinitionPart,
+        bool xIsImplementationPart,
+        bool yIsDefinitionPart,
+        bool yIsImplementationPart)
+    {
+        if (xIsDefinitionPart == yIsDefinitionPart &&
+            xIsImplementationPart == yIsImplementationPart)
+        {
+            return true;
+        }
+
+        // Metadata/projected symbols can lose the partial-part information entirely. When that happens,
+        // the symbol should still unify with the source definition part so features like FAR can reach
+        // the real declaration and its references.
+        if (!xIsDefinitionPart && !xIsImplementationPart)
+            return yIsDefinitionPart && !yIsImplementationPart;
+
+        if (!yIsDefinitionPart && !yIsImplementationPart)
+            return xIsDefinitionPart && !xIsImplementationPart;
+
+        return false;
+    }
+
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
         => x.TypeKind switch
         {
