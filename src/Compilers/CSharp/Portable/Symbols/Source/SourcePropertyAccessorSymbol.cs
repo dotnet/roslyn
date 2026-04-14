@@ -468,6 +468,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool LocalDeclaredUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
 
         /// <summary>
+        /// Whether this accessor or its containing property has an 'unsafe' modifier.
+        /// </summary>
+        internal sealed override bool IsUnsafe => LocalDeclaredUnsafe || _property.HasUnsafeModifier;
+
+        /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
         internal sealed override bool IsDeclaredReadOnly

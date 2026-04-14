@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsUnsafe
+        internal override bool IsUnsafe
         {
             get
             {

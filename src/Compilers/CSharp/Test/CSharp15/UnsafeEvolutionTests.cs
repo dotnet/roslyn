@@ -5452,60 +5452,147 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Property_Accessors_UnsafeKeyword()
     {
-        var source = """
+        CreateCompilation("""
             public class C
             {
-                public int P1 { unsafe get; set; }
-                public int P2 { get; unsafe set; }
-                public int P3 { unsafe get; unsafe set; }
-                public int P4 { unsafe get => 0; set { } }
-                public int P5 { get => 0; unsafe set { } }
+                public int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+                public int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
             }
-            """;
-
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (3,68): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 68),
+            // (3,85): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(3, 85),
+            // (4,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 27),
+            // (4,56): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 56));
     }
 
     [Fact]
     public void Member_Property_Accessors_UnsafeKeyword_Partial()
     {
-        var source = """
+        CreateCompilation("""
             public partial class C
             {
                 public partial int P1 { unsafe get; set; }
-                public partial int P1 { unsafe get => 0; set { } }
+                public partial int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
 
                 public partial int P2 { get; unsafe set; }
-                public partial int P2 { get => 0; unsafe set { } }
+                public partial int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
             }
-            """;
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,76): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 76),
+            // (4,93): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(4, 93),
+            // (7,35): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(7, 35),
+            // (7,64): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(7, 64));
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
-
+        // Mismatch: definition has unsafe, implementation doesn't
         CreateCompilation("""
             partial class C
             {
                 public partial int P1 { unsafe get; set; }
-                public partial int P1 { get => 0; set { } }
+                public partial int P1 { get { int* p = null; return *p; } set { } }
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
             // (4,29): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
-            //     public partial int P1 { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 29));
+            //     public partial int P1 { get { int* p = null; return *p; } set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 29),
+            // (4,35): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int P1 { get { int* p = null; return *p; } set { } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 35),
+            // (4,58): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int P1 { get { int* p = null; return *p; } set { } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 58));
 
+        // Property has unsafe on both, accessor inherits from property (no explicit accessor unsafe)
+        // Pointer operations work because property is unsafe
         CreateCompilation("""
             partial class C
             {
-                public partial int P1 { unsafe get; set; }
-                public partial int P1 { unsafe get => 0; set { } }
+                public unsafe partial int P { get; set; }
+                public unsafe partial int P { get { int* p = null; return *p; } set { int* q = null; *q = value; } }
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
+
+        // Both property and both accessors have unsafe - this is allowed
+        CreateCompilation("""
+            partial class C
+            {
+                public unsafe partial int P { unsafe get; set; }
+                public unsafe partial int P { unsafe get { int* p = null; return *p; } set { int* q = null; *q = value; } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        // Property has unsafe on both, but only one accessor has explicit unsafe - mismatch on accessor
+        CreateCompilation("""
+            partial class C
+            {
+                public unsafe partial int P { get; set; }
+                public unsafe partial int P { unsafe get => 0; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,42): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe partial int P { unsafe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 42));
+
+        // Property has unsafe on definition, implementation has unsafe on accessor - mismatch on both
+        CreateCompilation("""
+            partial class C
+            {
+                public unsafe partial int P { get; set; }
+                public partial int P { unsafe get => 0; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,24): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public partial int P { unsafe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "P").WithLocation(4, 24),
+            // (4,35): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public partial int P { unsafe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 35));
+
+        // Property has unsafe on implementation, definition has unsafe on accessor - mismatch on both
+        CreateCompilation("""
+            partial class C
+            {
+                public partial int P { unsafe get; set; }
+                public unsafe partial int P { get => 0; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,31): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe partial int P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "P").WithLocation(4, 31),
+            // (4,35): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe partial int P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 35));
     }
 
     [Fact]
@@ -5958,58 +6045,147 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [Fact]
     public void Member_Indexer_Accessors_UnsafeKeyword()
     {
-        var source = """
+        CreateCompilation("""
             public class C
             {
-                public int this[int i] { unsafe get => i; set { } }
-                public int this[int i, int j] { get => i + j; unsafe set { } }
-                public int this[int i, int j, int k] { unsafe get => i; unsafe set { } }
+                public int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+                public int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
             }
-            """;
-
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (3,77): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 77),
+            // (3,94): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(3, 94),
+            // (4,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 43),
+            // (4,72): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 72));
     }
 
     [Fact]
     public void Member_Indexer_Accessors_UnsafeKeyword_Partial()
     {
-        var source = """
+        CreateCompilation("""
             public partial class C
             {
                 public partial int this[int i] { unsafe get; set; }
-                public partial int this[int i] { unsafe get => i; set { } }
+                public partial int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
 
                 public partial int this[int i, int j] { get; unsafe set; }
-                public partial int this[int i, int j] { get => i + j; unsafe set { } }
+                public partial int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
             }
-            """;
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,85): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 85),
+            // (4,102): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(4, 102),
+            // (7,51): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(7, 51),
+            // (7,80): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(7, 80));
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
-            .VerifyEmitDiagnostics();
-
+        // Mismatch: definition has unsafe, implementation doesn't
         CreateCompilation("""
             partial class C
             {
                 public partial int this[int i] { unsafe get; set; }
-                public partial int this[int i] { get => i; set { } }
+                public partial int this[int i] { get { int* p = null; return *p; } set { } }
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
             // (4,38): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
-            //     public partial int this[int i] { get => i; set { } }
-            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 38));
+            //     public partial int this[int i] { get { int* p = null; return *p; } set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 38),
+            // (4,44): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int this[int i] { get { int* p = null; return *p; } set { } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 44),
+            // (4,67): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public partial int this[int i] { get { int* p = null; return *p; } set { } }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 67));
 
+        // Indexer has unsafe on both, accessor inherits from indexer (no explicit accessor unsafe)
+        // Pointer operations work because indexer is unsafe
         CreateCompilation("""
             partial class C
             {
-                public partial int this[int i] { unsafe get; set; }
-                public partial int this[int i] { unsafe get => i; set { } }
+                public unsafe partial int this[int i] { get; set; }
+                public unsafe partial int this[int i] { get { int* p = null; return *p; } set { int* q = null; *q = value; } }
             }
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
+
+        // Both indexer and both accessors have unsafe - this is allowed
+        CreateCompilation("""
+            partial class C
+            {
+                public unsafe partial int this[int i] { unsafe get; set; }
+                public unsafe partial int this[int i] { unsafe get { int* p = null; return *p; } set { int* q = null; *q = value; } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        // Indexer has unsafe on both, but only one accessor has explicit unsafe - mismatch on accessor
+        CreateCompilation("""
+            partial class C
+            {
+                public unsafe partial int this[int i] { get; set; }
+                public unsafe partial int this[int i] { unsafe get => i; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,52): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe partial int this[int i] { unsafe get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 52));
+
+        // Indexer has unsafe on definition, implementation has unsafe on accessor - mismatch on both
+        CreateCompilation("""
+            partial class C
+            {
+                public unsafe partial int this[int i] { get; set; }
+                public partial int this[int i] { unsafe get => i; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,24): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public partial int this[int i] { unsafe get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "this").WithLocation(4, 24),
+            // (4,45): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public partial int this[int i] { unsafe get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 45));
+
+        // Indexer has unsafe on implementation, definition has unsafe on accessor - mismatch on both
+        CreateCompilation("""
+            partial class C
+            {
+                public partial int this[int i] { unsafe get; set; }
+                public unsafe partial int this[int i] { get => i; set { } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (4,31): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe partial int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "this").WithLocation(4, 31),
+            // (4,45): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+            //     public unsafe partial int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 45));
     }
 
     [Fact]
