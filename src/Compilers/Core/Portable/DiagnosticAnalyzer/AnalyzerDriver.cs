@@ -2050,20 +2050,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var allAnalyzerActions = new AnalyzerActions.Builder();
             var unsuppressedAnalyzersBuilder = PooledHashSet<DiagnosticAnalyzer>.GetInstance();
-            foreach (var analyzer in analyzers)
+            try
             {
-                if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken))
+                foreach (var analyzer in analyzers)
                 {
-                    unsuppressedAnalyzersBuilder.Add(analyzer);
+                    if (!IsDiagnosticAnalyzerSuppressed(analyzer, analyzerExecutor.Compilation.Options, analyzerManager, analyzerExecutor, analysisScope, severityFilter, cancellationToken))
+                    {
+                        unsuppressedAnalyzersBuilder.Add(analyzer);
 
-                    var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
-                    allAnalyzerActions.Append(in analyzerActions);
+                        var analyzerActions = await analyzerManager.GetAnalyzerActionsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
+                        allAnalyzerActions.Append(in analyzerActions);
+                    }
                 }
-            }
 
-            var unsuppressedAnalyzers = unsuppressedAnalyzersBuilder.ToImmutableHashSet();
-            unsuppressedAnalyzersBuilder.Free();
-            return (allAnalyzerActions.ToAnalyzerActionsAndFree(), unsuppressedAnalyzers);
+                var unsuppressedAnalyzers = unsuppressedAnalyzersBuilder.ToImmutableHashSet();
+                return (allAnalyzerActions.ToAnalyzerActionsAndFree(), unsuppressedAnalyzers);
+            }
+            finally
+            {
+                unsuppressedAnalyzersBuilder.Free();
+            }
         }
 
         public bool HasSymbolStartedActions(AnalysisScope analysisScope)
