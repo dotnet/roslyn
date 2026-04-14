@@ -16167,7 +16167,7 @@ class Test
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.Write(inst.field.buffer[0]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),
@@ -16175,6 +16175,20 @@ class Test
                 //         return (field.buffer[0] = 7);   // OK
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field.buffer").WithLocation(20, 17)
                  );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (13,47): error CS9360: This operation may only be used in an unsafe context
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(13, 47),
+                // (20,29): error CS9360: This operation may only be used in an unsafe context
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(20, 29)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedPreviewDiagnostics);
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

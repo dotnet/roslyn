@@ -11506,8 +11506,15 @@ class C<T> {}
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 14));
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2),
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -11567,8 +11574,15 @@ class C<T> {}
                 // [A<object>(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(11, 22));
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (11,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A<object>(default(B<delegate*<void>[]>.E))]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(default(B<delegate*<void>[]>.E))").WithLocation(11, 2),
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]
@@ -12084,8 +12098,15 @@ class C<T> {}
                 // [A<object>(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(12, 14));
 
-            CreateCompilation(source).VerifyEmitDiagnostics();
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (12,2): error CS8911: Using a function pointer type in this context is not supported.
+                // [A<object>(B<delegate*<void>[]>.C)]
+                Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A<object>(B<delegate*<void>[]>.C)").WithLocation(12, 2),
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Theory, CombinatorialData, WorkItem(65594, "https://github.com/dotnet/roslyn/issues/65594")]

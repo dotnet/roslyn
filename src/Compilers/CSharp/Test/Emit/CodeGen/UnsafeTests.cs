@@ -11633,7 +11633,17 @@ unsafe delegate void F1(int* x);
 delegate void F2(int x);
 ";
 
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
+            CompileAndVerify(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(F1)' and 'Program.Goo(F2)'
+                //         Goo(x => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(F1)", "Program.Goo(F2)").WithLocation(8, 9)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -11659,9 +11669,19 @@ unsafe delegate void F1(C<int*[]> x);
 delegate void F2(int x);
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(F1)' and 'Program.M(F2)'
+                //         M(x => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(F1)", "Program.M(F2)").WithLocation(10, 9)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
