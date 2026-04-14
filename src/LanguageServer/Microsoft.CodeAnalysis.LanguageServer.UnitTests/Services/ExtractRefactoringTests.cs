@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Services;
 
 public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerClientTests(testOutputHelper)
 {
-    [Theory]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "NamedPipeServerStream connection times out on Linux CI")]
     [CombinatorialData]
     public async Task TestExtractBaseClass(bool includeDevKitComponents)
     {
@@ -42,7 +42,7 @@ public sealed class ExtractRefactoringTests(ITestOutputHelper testOutputHelper) 
             """);
     }
 
-    [Theory]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "NamedPipeServerStream connection times out on Linux CI")]
     [CombinatorialData]
     public async Task TestExtractInterface(bool includeDevKitComponents)
     {
