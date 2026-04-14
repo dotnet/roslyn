@@ -207,8 +207,7 @@ internal sealed partial class SymbolEquivalenceComparer
                     return HaveSameLocation(x, y);
                 }
 
-                if (IsPartialMethodDefinitionPart(x) != IsPartialMethodDefinitionPart(y) ||
-                    IsPartialMethodImplementationPart(x) != IsPartialMethodImplementationPart(y) ||
+                if (!PartialPartsMatch(x, y) ||
                     x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
@@ -217,6 +216,11 @@ internal sealed partial class SymbolEquivalenceComparer
                 {
                     return false;
                 }
+
+                static bool PartialPartsMatch(IMethodSymbol x, IMethodSymbol y)
+                    => !HasPartialMethodParts(x) || !HasPartialMethodParts(y) ||
+                       (IsPartialMethodDefinitionPart(x) == IsPartialMethodDefinitionPart(y) &&
+                        IsPartialMethodImplementationPart(x) == IsPartialMethodImplementationPart(y));
 
                 var checkContainingType = CheckContainingType(x);
                 if (checkContainingType)
@@ -599,8 +603,9 @@ internal sealed partial class SymbolEquivalenceComparer
                 x.IsIndexer == y.IsIndexer &&
                 x.MetadataName == y.MetadataName &&
                 x.Parameters.Length == y.Parameters.Length &&
-                IsPartialPropertyDefinitionPart(x) == IsPartialPropertyDefinitionPart(y) &&
-                IsPartialPropertyImplementationPart(x) == IsPartialPropertyImplementationPart(y) &&
+                (!HasPartialPropertyParts(x) || !HasPartialPropertyParts(y) ||
+                 (IsPartialPropertyDefinitionPart(x) == IsPartialPropertyDefinitionPart(y) &&
+                  IsPartialPropertyImplementationPart(x) == IsPartialPropertyImplementationPart(y))) &&
                 ParametersAreEquivalent(x.Parameters, y.Parameters, equivalentTypesWithDifferingAssemblies) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
@@ -609,8 +614,9 @@ internal sealed partial class SymbolEquivalenceComparer
         {
             return
                 x.MetadataName == y.MetadataName &&
-                IsPartialEventDefinitionPart(x) == IsPartialEventDefinitionPart(y) &&
-                IsPartialEventImplementationPart(x) == IsPartialEventImplementationPart(y) &&
+                (!HasPartialEventParts(x) || !HasPartialEventParts(y) ||
+                 (IsPartialEventDefinitionPart(x) == IsPartialEventDefinitionPart(y) &&
+                  IsPartialEventImplementationPart(x) == IsPartialEventImplementationPart(y))) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
 

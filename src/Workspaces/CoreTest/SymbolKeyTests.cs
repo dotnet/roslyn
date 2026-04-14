@@ -133,6 +133,317 @@ public sealed class SymbolKeyTests : TestBase
         TestRoundTrip(GetDeclaredSymbols(compilation2), compilation2, useSymbolEquivalence: false);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public void TestPartialPropertyAcrossMetadataReference()
+    {
+        var librarySource = """
+            public partial class MyClass
+            {
+                public partial string MyString { get; set; }
+            }
+
+            public partial class MyClass
+            {
+                public partial string MyString { get => field; set => field = value; }
+            }
+            """;
+
+        var consumerSource = """
+            class Consumer
+            {
+                string M(MyClass c) => c.MyString;
+            }
+            """;
+
+        MetadataReference[] references =
+        [
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+        ];
+
+        var parseOptions = new CSharp.CSharpParseOptions(languageVersion: CSharp.LanguageVersion.Preview);
+        var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation1 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Library",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(librarySource, parseOptions, path: "File1.cs")],
+            references: references,
+            options: compilationOptions);
+        var compilation2 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Consumer",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(consumerSource, parseOptions, path: "File2.cs")],
+            references: [.. references, compilation1.EmitToImageReference()],
+            options: compilationOptions);
+
+        var symbols = GetAllSymbols(
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+            n => n is CSharp.Syntax.PropertyDeclarationSyntax).OfType<IPropertySymbol>().ToList();
+
+        Assert.Equal(2, symbols.Count);
+
+        TestRoundTrip(symbols[0], compilation2, useSymbolEquivalence: true);
+        TestRoundTrip(symbols[1], compilation2, useSymbolEquivalence: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public void TestPartialMethodAcrossMetadataReference()
+    {
+        var librarySource = """
+            public partial class MyClass
+            {
+                public partial string GetString();
+            }
+
+            public partial class MyClass
+            {
+                public partial string GetString() => "";
+            }
+            """;
+
+        var consumerSource = """
+            class Consumer
+            {
+                string M(MyClass c) => c.GetString();
+            }
+            """;
+
+        MetadataReference[] references =
+        [
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+        ];
+
+        var parseOptions = new CSharp.CSharpParseOptions(languageVersion: CSharp.LanguageVersion.Preview);
+        var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation1 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Library",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(librarySource, parseOptions, path: "File1.cs")],
+            references: references,
+            options: compilationOptions);
+        var compilation2 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Consumer",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(consumerSource, parseOptions, path: "File2.cs")],
+            references: [.. references, compilation1.EmitToImageReference()],
+            options: compilationOptions);
+
+        var symbols = GetAllSymbols(
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+            n => n is CSharp.Syntax.MethodDeclarationSyntax).OfType<IMethodSymbol>().Where(m => m.Name == "GetString").ToList();
+
+        Assert.Equal(2, symbols.Count);
+
+        TestRoundTrip(symbols[0], compilation2, useSymbolEquivalence: true);
+        TestRoundTrip(symbols[1], compilation2, useSymbolEquivalence: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public void TestPartialPropertySourcePartsRemainDistinctButBothMatchMetadata()
+    {
+        var librarySource = """
+            public partial class MyClass
+            {
+                public partial string MyString { get; set; }
+            }
+
+            public partial class MyClass
+            {
+                public partial string MyString { get => field; set => field = value; }
+            }
+            """;
+
+        MetadataReference[] references =
+        [
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+        ];
+
+        var parseOptions = new CSharp.CSharpParseOptions(languageVersion: CSharp.LanguageVersion.Preview);
+        var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation1 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Library",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(librarySource, parseOptions, path: "File1.cs")],
+            references: references,
+            options: compilationOptions);
+        var compilation2 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Consumer",
+            syntaxTrees: [],
+            references: [.. references, compilation1.EmitToImageReference()],
+            options: compilationOptions);
+
+        var symbols = GetAllSymbols(
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+            n => n is CSharp.Syntax.PropertyDeclarationSyntax).OfType<IPropertySymbol>().ToList();
+
+        Assert.Equal(2, symbols.Count);
+
+        var definition = symbols.Single(s => s.PartialImplementationPart != null);
+        var implementation = symbols.Single(s => s.PartialDefinitionPart != null);
+        var metadata = compilation2.GetTypeByMetadataName("MyClass")!.GetMembers("MyString").OfType<IPropertySymbol>().Single();
+
+        Assert.False(SymbolEquivalenceComparer.Instance.Equals(definition, implementation));
+        Assert.True(SymbolEquivalenceComparer.Instance.Equals(definition, metadata));
+        Assert.True(SymbolEquivalenceComparer.Instance.Equals(implementation, metadata));
+        Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(definition), SymbolEquivalenceComparer.Instance.GetHashCode(metadata));
+        Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(implementation), SymbolEquivalenceComparer.Instance.GetHashCode(metadata));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public void TestPartialMethodSourcePartsRemainDistinctButBothMatchMetadata()
+    {
+        var librarySource = """
+            public partial class MyClass
+            {
+                public partial string GetString();
+            }
+
+            public partial class MyClass
+            {
+                public partial string GetString() => "";
+            }
+            """;
+
+        MetadataReference[] references =
+        [
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+        ];
+
+        var parseOptions = new CSharp.CSharpParseOptions(languageVersion: CSharp.LanguageVersion.Preview);
+        var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation1 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Library",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(librarySource, parseOptions, path: "File1.cs")],
+            references: references,
+            options: compilationOptions);
+        var compilation2 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Consumer",
+            syntaxTrees: [],
+            references: [.. references, compilation1.EmitToImageReference()],
+            options: compilationOptions);
+
+        var symbols = GetAllSymbols(
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+            n => n is CSharp.Syntax.MethodDeclarationSyntax).OfType<IMethodSymbol>().Where(m => m.Name == "GetString").ToList();
+
+        Assert.Equal(2, symbols.Count);
+
+        var definition = symbols.Single(s => s.PartialImplementationPart != null);
+        var implementation = symbols.Single(s => s.PartialDefinitionPart != null);
+        var metadata = compilation2.GetTypeByMetadataName("MyClass")!.GetMembers("GetString").OfType<IMethodSymbol>().Single();
+
+        Assert.False(SymbolEquivalenceComparer.Instance.Equals(definition, implementation));
+        Assert.True(SymbolEquivalenceComparer.Instance.Equals(definition, metadata));
+        Assert.True(SymbolEquivalenceComparer.Instance.Equals(implementation, metadata));
+        Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(definition), SymbolEquivalenceComparer.Instance.GetHashCode(metadata));
+        Assert.Equal(SymbolEquivalenceComparer.Instance.GetHashCode(implementation), SymbolEquivalenceComparer.Instance.GetHashCode(metadata));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public void TestPartialEventAcrossMetadataReference()
+    {
+        var librarySource = """
+            using System;
+
+            public partial class MyClass
+            {
+                public partial event Action Event;
+            }
+
+            public partial class MyClass
+            {
+                public partial event Action Event { add { } remove { } }
+            }
+            """;
+
+        var consumerSource = """
+            class Consumer
+            {
+                void M(MyClass c)
+                {
+                    c.Event += null;
+                }
+            }
+            """;
+
+        MetadataReference[] references =
+        [
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Action).Assembly.Location),
+        ];
+
+        var parseOptions = new CSharp.CSharpParseOptions(languageVersion: CSharp.LanguageVersion.Preview);
+        var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation1 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Library",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(librarySource, parseOptions, path: "File1.cs")],
+            references: references,
+            options: compilationOptions);
+        var compilation2 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Consumer",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(consumerSource, parseOptions, path: "File2.cs")],
+            references: [.. references, compilation1.EmitToImageReference()],
+            options: compilationOptions);
+
+        var symbol = GetAllSymbols(
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+            n => n is CSharp.Syntax.VariableDeclaratorSyntax or CSharp.Syntax.EventDeclarationSyntax)
+            .OfType<IEventSymbol>()
+            .First(e => e.Name == "Event");
+
+        TestRoundTrip(symbol, compilation2, useSymbolEquivalence: true);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public void TestPartialConstructorAcrossMetadataReference()
+    {
+        var librarySource = """
+            public partial class MyClass
+            {
+                public partial MyClass();
+            }
+
+            public partial class MyClass
+            {
+                public partial MyClass() { }
+            }
+            """;
+
+        var consumerSource = """
+            class Consumer
+            {
+                object M() => new MyClass();
+            }
+            """;
+
+        MetadataReference[] references =
+        [
+            MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),
+        ];
+
+        var parseOptions = new CSharp.CSharpParseOptions(languageVersion: CSharp.LanguageVersion.Preview);
+        var compilationOptions = new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilation1 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Library",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(librarySource, parseOptions, path: "File1.cs")],
+            references: references,
+            options: compilationOptions);
+        var compilation2 = CSharp.CSharpCompilation.Create(
+            assemblyName: "Consumer",
+            syntaxTrees: [CSharp.SyntaxFactory.ParseSyntaxTree(consumerSource, parseOptions, path: "File2.cs")],
+            references: [.. references, compilation1.EmitToImageReference()],
+            options: compilationOptions);
+
+        var symbols = GetAllSymbols(
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+            n => n is CSharp.Syntax.ConstructorDeclarationSyntax).OfType<IMethodSymbol>().ToList();
+
+        Assert.Equal(2, symbols.Count);
+
+        TestRoundTrip(symbols[0], compilation2, useSymbolEquivalence: true);
+        TestRoundTrip(symbols[1], compilation2, useSymbolEquivalence: true);
+    }
+
     [Fact]
     public void TestMissingField1_CSharp()
     {

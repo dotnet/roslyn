@@ -485,5 +485,68 @@ partial class Program
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")>
+        Public Async Function FindReferences_PartialEventInMetadataReferencingProject(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+        <Document><![CDATA[
+using System;
+public partial class MyClass
+{
+    public partial event Action {|Definition:Ev$$ent|};
+
+    public void M()
+    {
+        [|Event|] += null;
+    }
+}
+        ]]></Document>
+        <Document><![CDATA[
+using System;
+public partial class MyClass
+{
+    public partial event Action {|Definition:Event|} { add { } remove { } }
+}
+        ]]></Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <MetadataReferenceFromSource Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+            <Document><![CDATA[
+using System;
+public partial class MyClass
+{
+    public partial event Action Event;
+}
+
+public partial class MyClass
+{
+    public partial event Action Event { add { } remove { } }
+}
+            ]]></Document>
+        </MetadataReferenceFromSource>
+        <Document><![CDATA[
+public class Consumer1
+{
+    public void M(MyClass c)
+    {
+        c.[|Event|] += null;
+    }
+}
+        ]]></Document>
+        <Document><![CDATA[
+public class Consumer2
+{
+    public void M(MyClass c)
+    {
+        c.[|Event|] -= null;
+    }
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace

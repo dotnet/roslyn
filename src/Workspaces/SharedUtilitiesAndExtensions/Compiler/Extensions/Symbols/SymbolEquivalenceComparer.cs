@@ -234,11 +234,17 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
         => symbol.PartialDefinitionPart != null;
 
+    private static bool HasPartialMethodParts(IMethodSymbol symbol)
+        => IsPartialMethodDefinitionPart(symbol) || IsPartialMethodImplementationPart(symbol);
+
     private static bool IsPartialPropertyDefinitionPart(IPropertySymbol symbol)
         => symbol.PartialImplementationPart != null;
 
     private static bool IsPartialPropertyImplementationPart(IPropertySymbol symbol)
         => symbol.PartialDefinitionPart != null;
+
+    private static bool HasPartialPropertyParts(IPropertySymbol symbol)
+        => IsPartialPropertyDefinitionPart(symbol) || IsPartialPropertyImplementationPart(symbol);
 
     private static bool IsPartialEventDefinitionPart(IEventSymbol symbol)
 #if !OLDER_ROSLYN
@@ -253,6 +259,9 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
 #else
         => false;
 #endif
+
+    private static bool HasPartialEventParts(IEventSymbol symbol)
+        => IsPartialEventDefinitionPart(symbol) || IsPartialEventImplementationPart(symbol);
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
         => x.TypeKind switch

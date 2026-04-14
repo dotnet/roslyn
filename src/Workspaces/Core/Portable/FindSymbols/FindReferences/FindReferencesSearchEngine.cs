@@ -277,6 +277,9 @@ internal sealed partial class FindReferencesSearchEngine(
         Action<Reference> onReferenceFound,
         CancellationToken cancellationToken)
     {
+        using var _ = PooledHashSet<ReferenceLocation>.GetInstance(out var seenLocations);
+        var seenLocationsGate = new object();
+
         // We're doing to do all of our processing of this document at once.  This will necessitate all the
         // appropriate finders checking this document for hits.  We know that in the initial pass to determine
         // documents, this document was already considered a strong match (e.g. we know it contains the name of
@@ -310,13 +313,18 @@ internal sealed partial class FindReferencesSearchEngine(
                 var state = new FindReferencesDocumentState(
                     cache, TryGet(symbolToGlobalAliases, symbolToSearchFor));
 
-                ProcessDocument(symbolToSearchFor, symbolGroup, state, onReferenceFound);
+                ProcessDocument(symbolToSearchFor, symbolGroup, state, onReferenceFound, seenLocations, seenLocationsGate);
             }).ConfigureAwait(false);
 
         return;
 
         void ProcessDocument(
-            ISymbol symbolToSearchFor, SymbolGroup symbolGroup, FindReferencesDocumentState state, Action<Reference> onReferenceFound)
+            ISymbol symbolToSearchFor,
+            SymbolGroup symbolGroup,
+            FindReferencesDocumentState state,
+            Action<Reference> onReferenceFound,
+            PooledHashSet<ReferenceLocation> seenLocations,
+            object seenLocationsGate)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -329,8 +337,17 @@ internal sealed partial class FindReferencesSearchEngine(
                 {
                     finder.FindReferencesInDocument(
                         symbolToSearchFor, state,
-                        static (loc, tuple) => tuple.onReferenceFound((tuple.symbolGroup, tuple.symbolToSearchFor, loc.Location)),
-                        (symbolGroup, symbolToSearchFor, onReferenceFound),
+                        static (loc, tuple) =>
+                        {
+                            lock (tuple.seenLocationsGate)
+                            {
+                                if (!tuple.seenLocations.Add(loc.Location))
+                                    return;
+                            }
+
+                            tuple.onReferenceFound((tuple.symbolGroup, tuple.symbolToSearchFor, loc.Location));
+                        },
+                        (symbolGroup, symbolToSearchFor, onReferenceFound, seenLocations, seenLocationsGate),
                         _options,
                         cancellationToken);
                 }

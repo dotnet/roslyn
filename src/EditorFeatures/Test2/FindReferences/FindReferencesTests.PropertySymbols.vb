@@ -1226,6 +1226,57 @@ namespace ConsoleApplication22
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")>
+        Public Async Function FindReferences_PartialPropertyInMetadataReferencingProject(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+        <Document><![CDATA[
+public partial class MyClass
+{
+    public partial string {|Definition:My$$String|} { get; set; }
+
+    public string M() => [|MyString|];
+}
+        ]]></Document>
+        <Document><![CDATA[
+public partial class MyClass
+{
+    public partial string {|Definition:MyString|} { get => field; set => field = value; }
+}
+        ]]></Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <MetadataReferenceFromSource Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+            <Document><![CDATA[
+public partial class MyClass
+{
+    public partial string MyString { get; set; }
+}
+
+public partial class MyClass
+{
+    public partial string MyString { get => field; set => field = value; }
+}
+            ]]></Document>
+        </MetadataReferenceFromSource>
+        <Document><![CDATA[
+public class Consumer1
+{
+    public string M(MyClass c) => c.[|MyString|];
+}
+        ]]></Document>
+        <Document><![CDATA[
+public class Consumer2
+{
+    public string M(MyClass c) => c.[|MyString|];
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_AbstractStaticPropertyInInterface(kind As TestKind, host As TestHost) As Task
             Dim input =

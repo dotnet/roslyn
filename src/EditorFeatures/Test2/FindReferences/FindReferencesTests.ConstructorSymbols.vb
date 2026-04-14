@@ -1635,6 +1635,57 @@ partial class Program
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")>
+        Public Async Function FindReferences_PartialConstructorInMetadataReferencingProject(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+        <Document><![CDATA[
+public partial class MyClass
+{
+    public partial {|Definition:MyC$$lass|}();
+
+    public static object M() => new [|MyClass|]();
+}
+        ]]></Document>
+        <Document><![CDATA[
+public partial class MyClass
+{
+    public partial {|Definition:MyClass|}() { }
+}
+        ]]></Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <MetadataReferenceFromSource Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+            <Document><![CDATA[
+public partial class MyClass
+{
+    public partial MyClass();
+}
+
+public partial class MyClass
+{
+    public partial MyClass() { }
+}
+            ]]></Document>
+        </MetadataReferenceFromSource>
+        <Document><![CDATA[
+public class Consumer1
+{
+    public object M() => new [|MyClass|]();
+}
+        ]]></Document>
+        <Document><![CDATA[
+public class Consumer2
+{
+    public object M() => new [|MyClass|]();
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/81767")>
         Public Async Function CollectionExpression_Constructor1(host As TestHost) As Task

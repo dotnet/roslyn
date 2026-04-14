@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
@@ -137,6 +139,132 @@ public sealed class FindReferencesTests : TestBase
 
         var typeSymbol = result.Where(@ref => @ref.Definition.Kind == SymbolKind.NamedType).Single();
         Assert.Equal(1, typeSymbol.Locations.Count());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public async Task FindMethodReferencesInMetadataReferencingProject()
+    {
+        using var workspace = CreateWorkspace();
+        var solution = AddProjectWithMetadataReferences(workspace.CurrentSolution, "Library", LanguageNames.CSharp, """
+            public class MyClass
+            {
+                public string Method2() => "";
+                public string M() => Method2();
+            }
+            """, MscorlibRef);
+
+        var libraryProject = solution.Projects.Single(p => p.Name == "Library");
+        solution = libraryProject.Solution.WithProjectCompilationOptions(
+            libraryProject.Id, new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        libraryProject = solution.GetProject(libraryProject.Id);
+        Assert.NotNull(libraryProject);
+        var metadataReference = (await libraryProject.GetCompilationAsync()).EmitToImageReference();
+
+        solution = AddProjectWithMetadataReferences(solution, "Consumer", LanguageNames.CSharp, """
+            public class Consumer
+            {
+                public string M(MyClass c) => c.Method2();
+            }
+            """, [MscorlibRef, metadataReference]);
+
+        var consumerProject = solution.Projects.Single(p => p.Name == "Consumer");
+        solution = consumerProject.Solution.WithProjectCompilationOptions(
+            consumerProject.Id, new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        libraryProject = solution.Projects.Single(p => p.Name == "Library");
+        var symbol = (await libraryProject.GetCompilationAsync()).GetTypeByMetadataName("MyClass").GetMembers("Method2").Single();
+
+        var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).Single();
+
+        Assert.Equal(2, result.Locations.Count());
+        Assert.Equal(1, result.Locations.Count(l => l.Document.Project.Name == "Library"));
+        Assert.Equal(1, result.Locations.Count(l => l.Document.Project.Name == "Consumer"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public async Task FindPartialMethodReferencesInMetadataReferencingProjectWithoutDuplicates()
+    {
+        using var workspace = CreateWorkspace();
+        var solution = AddProjectWithMetadataReferences(workspace.CurrentSolution, "Library", LanguageNames.CSharp, """
+            public partial class MyClass
+            {
+                public partial string GetString();
+                public string M() => GetString();
+            }
+
+            public partial class MyClass
+            {
+                public partial string GetString() => "";
+            }
+            """, MscorlibRef);
+
+        var libraryProject = solution.Projects.Single(p => p.Name == "Library");
+        solution = libraryProject.Solution.WithProjectCompilationOptions(
+            libraryProject.Id, new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        libraryProject = solution.GetProject(libraryProject.Id);
+        Assert.NotNull(libraryProject);
+        var metadataReference = (await libraryProject.GetCompilationAsync()).EmitToImageReference();
+
+        solution = AddProjectWithMetadataReferences(solution, "Consumer", LanguageNames.CSharp, """
+            public class Consumer
+            {
+                public string M(MyClass c) => c.GetString();
+            }
+            """, [MscorlibRef, metadataReference]);
+
+        var consumerProject = solution.Projects.Single(p => p.Name == "Consumer");
+        solution = consumerProject.Solution.WithProjectCompilationOptions(
+            consumerProject.Id, new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        libraryProject = solution.Projects.Single(p => p.Name == "Library");
+        var symbol = (await libraryProject.GetCompilationAsync()).GetTypeByMetadataName("MyClass")
+            .GetMembers("GetString").OfType<IMethodSymbol>().Single(m => m.PartialImplementationPart != null);
+
+        var references = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
+        var locations = references.SelectMany(r => r.Locations)
+            .Select(l => (ProjectName: l.Document.Project.Name, l.Location.SourceSpan))
+            .ToList();
+
+        Assert.Equal(2, locations.Count);
+        Assert.Equal(locations.Count, locations.Distinct().Count());
+        Assert.Contains(locations, l => l.ProjectName == "Library");
+        Assert.Contains(locations, l => l.ProjectName == "Consumer");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
+    public async Task DependentProjectsIncludesMetadataReferencingProjectForSourceSymbol()
+    {
+        using var workspace = CreateWorkspace();
+        var solution = AddProjectWithMetadataReferences(workspace.CurrentSolution, "Library", LanguageNames.CSharp, """
+            public class MyClass
+            {
+                public string Method2() => "";
+            }
+            """, MscorlibRef);
+
+        var libraryProject = solution.Projects.Single(p => p.Name == "Library");
+        solution = libraryProject.Solution.WithProjectCompilationOptions(
+            libraryProject.Id, new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        libraryProject = solution.GetProject(libraryProject.Id);
+        Assert.NotNull(libraryProject);
+        var metadataReference = (await libraryProject.GetCompilationAsync()).EmitToImageReference();
+
+        solution = AddProjectWithMetadataReferences(solution, "Consumer", LanguageNames.CSharp, """
+            public class Consumer
+            {
+                public string M(MyClass c) => c.Method2();
+            }
+            """, [MscorlibRef, metadataReference]);
+
+        libraryProject = solution.Projects.Single(p => p.Name == "Library");
+        var symbol = (await libraryProject.GetCompilationAsync()).GetTypeByMetadataName("MyClass").GetMembers("Method2").Single();
+
+        var dependentProjects = await DependentProjectsFinder.GetDependentProjectsAsync(
+            solution,
+            [symbol],
+            solution.Projects.ToImmutableHashSet(),
+            CancellationToken.None);
+
+        Assert.Contains(dependentProjects, p => p.Name == "Library");
+        Assert.Contains(dependentProjects, p => p.Name == "Consumer");
     }
 
     [Fact]

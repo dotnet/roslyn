@@ -101,6 +101,8 @@ internal sealed partial class FindReferencesSearchEngine
             Document document,
             PooledDictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases)
         {
+            using var _ = PooledHashSet<ReferenceLocation>.GetInstance(out var seenLocations);
+
             // We're doing to do all of our processing of this document at once.  This will necessitate all the
             // appropriate finders checking this document for hits.  We're likely going to need to perform syntax
             // and semantics checks in this file.  So just grab those once here and hold onto them for the lifetime
@@ -113,15 +115,15 @@ internal sealed partial class FindReferencesSearchEngine
                     cache, TryGet(symbolToGlobalAliases, symbol));
 
                 // Safe to call as we're only in a serial context ourselves.
-                await PerformSearchInDocumentSeriallyWorkerAsync(symbol, group, state).ConfigureAwait(false);
+                await PerformSearchInDocumentSeriallyWorkerAsync(symbol, group, state, seenLocations).ConfigureAwait(false);
             }
         }
 
         async ValueTask PerformSearchInDocumentSeriallyWorkerAsync(
-            ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state)
+            ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state, PooledHashSet<ReferenceLocation> seenLocations)
         {
             // Always perform a normal search, looking for direct references to exactly that symbol.
-            await DirectSymbolSearchAsync(symbol, group, state).ConfigureAwait(false);
+            await DirectSymbolSearchAsync(symbol, group, state, seenLocations).ConfigureAwait(false);
 
             // Now, for symbols that could involve inheritance, look for references to the same named entity, and
             // see if it's a reference to a symbol that shares an inheritance relationship with that symbol.
@@ -130,13 +132,13 @@ internal sealed partial class FindReferencesSearchEngine
             await InheritanceSymbolSearchSeriallyAsync(symbol, state).ConfigureAwait(false);
         }
 
-        async ValueTask DirectSymbolSearchAsync(ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state)
+        async ValueTask DirectSymbolSearchAsync(ISymbol symbol, SymbolGroup group, FindReferencesDocumentState state, PooledHashSet<ReferenceLocation> seenLocations)
         {
             await ProducerConsumer<FinderLocation>.RunAsync(
                 ProducerConsumerOptions.SingleReaderWriterOptions,
                 static async (callback, args, cancellationToken) =>
                 {
-                    var (@this, symbol, group, state) = args;
+                    var (@this, symbol, group, state, seenLocations) = args;
 
                     // We don't bother calling into the finders in parallel as there's only ever one that applies for a
                     // particular symbol kind.  All the rest bail out immediately after a quick type-check.  So there's
@@ -151,11 +153,19 @@ internal sealed partial class FindReferencesSearchEngine
                 },
                 consumeItems: static async (values, args, cancellationToken) =>
                 {
-                    var (@this, symbol, group, state) = args;
-                    var converted = await ConvertLocationsAsync(@this, values, symbol, group, cancellationToken).ConfigureAwait(false);
-                    await @this._progress.OnReferencesFoundAsync(converted, cancellationToken).ConfigureAwait(false);
+                    var (@this, symbol, group, state, seenLocations) = args;
+                    using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(out var distinctResults);
+
+                    foreach (var finderLocation in values)
+                    {
+                        if (seenLocations.Add(finderLocation.Location))
+                            distinctResults.Add((group, symbol, finderLocation.Location));
+                    }
+
+                    if (distinctResults.Count > 0)
+                        await @this._progress.OnReferencesFoundAsync(distinctResults.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
                 },
-                args: (@this: this, symbol, group, state),
+                args: (@this: this, symbol, group, state, seenLocations),
                 cancellationToken).ConfigureAwait(false);
         }
 

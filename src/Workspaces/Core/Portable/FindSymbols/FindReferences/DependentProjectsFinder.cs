@@ -322,9 +322,13 @@ internal static partial class DependentProjectsFinder
         Contract.ThrowIfNull(project);
         Contract.ThrowIfFalse(project.SupportsCompilation);
 
-        // If our symbol was from a project, then just check if this current project has a direct reference to it.
+        // If our symbol was from a project, then check if this current project references it either as a direct
+        // project reference or through a metadata reference to the originating assembly.
         if (symbolOrigination.sourceProject != null)
-            return project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id);
+        {
+            return project.ProjectReferences.Any(p => p.ProjectId == symbolOrigination.sourceProject.Id) ||
+                await HasReferenceToAssemblyAsync(project, symbolOrigination.assembly.Name, cancellationToken).ConfigureAwait(false);
+        }
 
         // Otherwise, if the symbol is from metadata, see if the project's compilation references that metadata assembly.
         return await HasReferenceToAssemblyAsync(

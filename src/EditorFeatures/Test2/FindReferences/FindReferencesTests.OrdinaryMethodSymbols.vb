@@ -3038,6 +3038,57 @@ End Class
             Await TestAPIAndFeature(input, kind, host)
         End Function
 
+        <WpfTheory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")>
+        Public Async Function FindReferences_PartialMethodInMetadataReferencingProject(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+        <Document><![CDATA[
+public partial class MyClass
+{
+    public partial string {|Definition:Get$$String|}();
+
+    public string M() => [|GetString|]();
+}
+        ]]></Document>
+        <Document><![CDATA[
+public partial class MyClass
+{
+    public partial string {|Definition:GetString|}() => "";
+}
+        ]]></Document>
+    </Project>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
+        <MetadataReferenceFromSource Language="C#" AssemblyName="Library" CommonReferences="true" LanguageVersion="Preview">
+            <Document><![CDATA[
+public partial class MyClass
+{
+    public partial string GetString();
+}
+
+public partial class MyClass
+{
+    public partial string GetString() => "";
+}
+            ]]></Document>
+        </MetadataReferenceFromSource>
+        <Document><![CDATA[
+public class Consumer1
+{
+    public string M(MyClass c) => c.[|GetString|]();
+}
+        ]]></Document>
+        <Document><![CDATA[
+public class Consumer2
+{
+    public string M(MyClass c) => c.[|GetString|]();
+}
+        ]]></Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
         <WpfTheory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623148")>
         Public Async Function TestFarWithInternalVisibleTo(kind As TestKind, host As TestHost) As Task
