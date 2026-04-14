@@ -182,7 +182,7 @@ static async Task RunAsync(
 
     if (!dryRun)
     {
-        await DownloadAndExtractArtifactAsync(httpClient, downloadUrl, artifactName, cacheDestination).ConfigureAwait(false);
+        await DownloadAndExtractArtifactAsync(httpClient, downloadUrl, artifactName, cacheDestination, cancellationToken).ConfigureAwait(false);
 
         Console.WriteLine();
         Console.WriteLine($"Compiler cache extracted to: {cacheDestination}");
@@ -377,7 +377,7 @@ static async Task<string> GetArtifactDownloadUrlAsync(HttpClient client, string 
     throw new InvalidOperationException($"Artifact '{artifactName}' does not have a download URL.");
 }
 
-static async Task DownloadAndExtractArtifactAsync(HttpClient client, string downloadUrl, string artifactName, string destination)
+static async Task DownloadAndExtractArtifactAsync(HttpClient client, string downloadUrl, string artifactName, string destination, CancellationToken cancellationToken)
 {
     Console.WriteLine("Downloading artifact...");
 
@@ -389,7 +389,7 @@ static async Task DownloadAndExtractArtifactAsync(HttpClient client, string down
         downloadUrl = $"{downloadUrl}{separator}$format=zip";
     }
 
-    using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+    using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
     if (!response.IsSuccessStatusCode)
         throw new InvalidOperationException($"Failed to download artifact ({(int)response.StatusCode}).");
 
@@ -400,10 +400,10 @@ static async Task DownloadAndExtractArtifactAsync(HttpClient client, string down
     var tempZipPath = Path.GetTempFileName();
     try
     {
-        using (var zipStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+        using (var zipStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false))
         using (var fileStream = new FileStream(tempZipPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 81920, useAsync: true))
         {
-            await CopyWithProgressAsync(zipStream, fileStream, contentLength).ConfigureAwait(false);
+            await CopyWithProgressAsync(zipStream, fileStream, contentLength, cancellationToken).ConfigureAwait(false);
         }
 
         Console.WriteLine("Extracting...");
@@ -459,14 +459,14 @@ static void ExtractZipToDirectory(string zipPath, string artifactName, string de
     }
 }
 
-static async Task CopyWithProgressAsync(Stream source, Stream destination, long? totalBytes)
+static async Task CopyWithProgressAsync(Stream source, Stream destination, long? totalBytes, CancellationToken cancellationToken)
 {
     var buffer = new byte[81920];
     long bytesRead = 0;
     int read;
-    while ((read = await source.ReadAsync(buffer).ConfigureAwait(false)) > 0)
+    while ((read = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
     {
-        await destination.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
+        await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
         bytesRead += read;
         if (totalBytes.HasValue)
         {
