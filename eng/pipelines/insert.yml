@@ -167,7 +167,10 @@ steps:
 
   # Now that everything is set, actually perform the insertion.
   # Uses AzureCLI@2 so that roslyn-tools can acquire a dnceng AzDO token
-  # via DefaultAzureCredential (AzureCliCredential) instead of a PAT.
+  # via az account get-access-token (the WIF SP is logged in by AzureCLI@2).
+  # NOTE: Do NOT use DefaultAzureCredential here — on 1ES hosted agents,
+  # ManagedIdentityCredential fires before AzureCliCredential and picks up
+  # the agent's MI instead of the WIF SP, causing VS30063 for dnceng.
   - task: AzureCLI@2
     displayName: 'Create VS Insertion PR'
     inputs:
@@ -175,6 +178,14 @@ steps:
       scriptType: ps
       scriptLocation: inlineScript
       inlineScript: |
+        # Acquire AzDO token explicitly from the WIF SP login context.
+        # DefaultAzureCredential is unreliable on hosted agents (picks up agent MI).
+        $dncEngAzdoToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($dncEngAzdoToken)) {
+          Write-Error 'Failed to acquire dnceng AzDO access token via WIF service connection.'
+          exit 1
+        }
+
         $arguments = @(
           "create-insertion"
           "--insertion-name", "Roslyn"
@@ -190,7 +201,7 @@ steps:
           "--retain-inserted-build", "${{ parameters.retainInsertedBuild }}"
           "--reviewer-guid", "6c25b447-1d90-4840-8fde-d8b22cb8733e"
           "--devdiv-azdo-token", $Env:DevDivToken
-          "--dnceng-azdo-token", "unset"
+          "--dnceng-azdo-token", $dncEngAzdoToken
           "--ci"
         )
 
