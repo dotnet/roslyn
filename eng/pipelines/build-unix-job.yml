@@ -41,19 +41,9 @@ jobs:
     - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
       displayName: Build
 
-    - script: |
-        if [ -d "$(ROSLYN_CACHE_PATH)" ]; then
-          echo "##vso[task.setvariable variable=ROSLYN_CACHE_EXISTS]true"
-        fi
-      displayName: Check Compiler Cache Exists
-      condition: and(ne('${{ parameters.cacheArtifactName }}', ''), succeeded())
-
-    - task: PublishPipelineArtifact@1
-      displayName: Publish Compiler Cache
-      inputs:
-        targetPath: '$(ROSLYN_CACHE_PATH)'
-        artifactName: ${{ parameters.cacheArtifactName }}
-      condition: and(ne('${{ parameters.cacheArtifactName }}', ''), succeeded(), eq(variables['ROSLYN_CACHE_EXISTS'], 'true'))
+    - template: publish-compiler-cache.yml
+      parameters:
+        cacheArtifactName: ${{ parameters.cacheArtifactName }}
 
     - script: ./eng/prepare-tests.sh
       displayName: Prepare Test Payload
