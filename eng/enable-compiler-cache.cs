@@ -19,8 +19,9 @@ using System.Text.Json;
 //
 // The script tries to find the closest available cache for your current context:
 //   1. The current git branch
-//   2. The base branch of the open PR (detected via `gh pr view`)
-//   3. main
+//   2. The PR merge ref (refs/pull/<number>/merge) if a PR is open
+//   3. The base branch of the open PR (detected via `gh pr view`)
+//   4. main
 //
 // Usage:
 //   dotnet run --file eng/enable-compiler-cache.cs
@@ -273,10 +274,15 @@ static List<string> GetBranchFallbackSequence(string? explicitBranch, string rep
         {
             branches.Add(currentBranch);
 
-            // Try to detect the PR base branch via the `gh` CLI.
-            var prBaseBranch = GetPrBaseBranch(repoRoot);
-            if (prBaseBranch is not null)
+            // Try to detect the PR via the `gh` CLI.
+            var prInfo = GetPrInfo(repoRoot);
+            if (prInfo is (int prNumber, string prBaseBranch))
             {
+                // PR builds in Azure DevOps use refs/pull/<number>/merge as the source branch.
+                var prMergeRef = $"refs/pull/{prNumber}/merge";
+                if (!branches.Contains(prMergeRef, StringComparer.OrdinalIgnoreCase))
+                    branches.Add(prMergeRef);
+
                 var normalizedPrBase = NormalizeBranchName(prBaseBranch);
                 if (!branches.Contains(normalizedPrBase, StringComparer.OrdinalIgnoreCase))
                     branches.Add(normalizedPrBase);
@@ -326,15 +332,41 @@ static string? GetCurrentGitBranch(string repoRoot)
     }
 }
 
-static string? GetPrBaseBranch(string repoRoot)
+static (int number, string baseBranch)? GetPrInfo(string repoRoot)
 {
     try
     {
-        // `gh pr view --json baseRefName` outputs {"baseRefName":"<branch>"} for the open PR on the current branch.
+        // First try `gh pr view` which works when the branch is on the same repo.
+        var result = RunGhPrView(repoRoot);
+        if (result is not null)
+            return result;
+
+        // For fork PRs, `gh pr view` won't find the PR. Fall back to `gh pr list --head <branch>`.
+        var currentBranch = GetCurrentGitBranch(repoRoot);
+        if (currentBranch is null)
+            return null;
+
+        // Strip refs/heads/ prefix for the --head filter.
+        var branchName = currentBranch.StartsWith("refs/heads/", StringComparison.OrdinalIgnoreCase)
+            ? currentBranch["refs/heads/".Length..]
+            : currentBranch;
+
+        return RunGhPrList(repoRoot, branchName);
+    }
+    catch
+    {
+        return null;
+    }
+}
+
+static (int number, string baseBranch)? RunGhPrView(string repoRoot)
+{
+    try
+    {
         var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
         {
             FileName = "gh",
-            Arguments = "pr view --json baseRefName",
+            Arguments = "pr view --json number,baseRefName",
             WorkingDirectory = repoRoot,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -345,20 +377,64 @@ static string? GetPrBaseBranch(string repoRoot)
         if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
             return null;
 
-        using var doc = JsonDocument.Parse(output);
-        if (doc.RootElement.TryGetProperty("baseRefName", out var prop))
-        {
-            var baseBranch = prop.GetString();
-            if (!string.IsNullOrWhiteSpace(baseBranch))
-                return baseBranch;
-        }
-
-        return null;
+        return ParsePrJson(output);
     }
     catch
     {
         return null;
     }
+}
+
+static (int number, string baseBranch)? RunGhPrList(string repoRoot, string headBranch)
+{
+    try
+    {
+        var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "gh",
+            Arguments = $"pr list --head {headBranch} --json number,baseRefName --limit 1",
+            WorkingDirectory = repoRoot,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        })!;
+        var output = process.StandardOutput.ReadToEnd().Trim();
+        process.WaitForExit();
+        if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
+            return null;
+
+        // `gh pr list` returns a JSON array.
+        using var doc = JsonDocument.Parse(output);
+        var arr = doc.RootElement;
+        if (arr.ValueKind != JsonValueKind.Array || arr.GetArrayLength() == 0)
+            return null;
+
+        return ParsePrJsonElement(arr[0]);
+    }
+    catch
+    {
+        return null;
+    }
+}
+
+static (int number, string baseBranch)? ParsePrJson(string json)
+{
+    using var doc = JsonDocument.Parse(json);
+    return ParsePrJsonElement(doc.RootElement);
+}
+
+static (int number, string baseBranch)? ParsePrJsonElement(JsonElement element)
+{
+    if (element.TryGetProperty("number", out var numberProp) &&
+        element.TryGetProperty("baseRefName", out var baseProp))
+    {
+        var number = numberProp.GetInt32();
+        var baseBranch = baseProp.GetString();
+        if (number > 0 && !string.IsNullOrWhiteSpace(baseBranch))
+            return (number, baseBranch);
+    }
+
+    return null;
 }
 
 static async Task<int?> FindLatestBuildWithArtifactAsync(
@@ -372,7 +448,6 @@ static async Task<int?> FindLatestBuildWithArtifactAsync(
               $"?definitions={definitionId}" +
               $"&branchName={Uri.EscapeDataString(branchName)}" +
               $"&statusFilter=completed" +
-              $"&resultFilter=succeeded" +
               $"&$top=5" +
               $"&api-version=7.1";
 
