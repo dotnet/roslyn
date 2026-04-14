@@ -47,6 +47,8 @@ jobs:
       parameters:
         configuration: ${{ parameters.configuration }}
 
+    - template: build-file-based-apps.yml
+
     - task: PowerShell@2
       displayName: Build
       inputs:

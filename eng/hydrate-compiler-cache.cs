@@ -3,6 +3,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+// Workaround for https://github.com/dotnet/roslyn/issues/76197.
+#:property SignAssembly=false
+
+#:property PublishAot=false
+#:package System.CommandLine@3.0.0-preview.4.26208.110
+
+using System.CommandLine;
 using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -12,7 +19,8 @@ using System.Text.Json;
 //
 // The script tries to find the closest available cache for your current context:
 //   1. The current git branch
-//   2. main
+//   2. The base branch of the open PR (detected via `gh pr view`)
+//   3. main
 //
 // Usage:
 //   dotnet run --file eng/hydrate-compiler-cache.cs
@@ -26,22 +34,58 @@ const string AzdoProject = "public";
 // Name of the azure-pipelines.yml file used to auto-discover the pipeline definition.
 const string PipelineYamlFilename = "azure-pipelines.yml";
 
-try
+var configOption = new Option<string>("--configuration", "-c")
 {
-    await MainAsync(args).ConfigureAwait(false);
-}
-catch (Exception ex)
+    Description = "Build configuration to look for (Debug or Release).",
+    DefaultValueFactory = _ => "Debug",
+};
+var branchOption = new Option<string?>("--branch", "-b")
 {
-    Console.Error.WriteLine($"Error: {ex.Message}");
-    Environment.Exit(1);
-}
-
-return;
-
-static async Task MainAsync(string[] args)
+    Description = "Branch to search for the cache. Defaults to the current git branch, then the PR base branch, then main.",
+};
+var pipelineIdOption = new Option<int?>("--pipeline-id")
 {
-    var options = ParseArgs(args);
+    Description = "Azure DevOps pipeline definition ID. Auto-discovered from the YAML filename if not provided.",
+};
+var buildIdOption = new Option<int?>("--build-id")
+{
+    Description = "Download the cache from a specific Azure DevOps build ID.",
+};
+var dryRunOption = new Option<bool>("--dry-run")
+{
+    Description = "Show what would be done without downloading or writing any files.",
+};
 
+var rootCommand = new RootCommand("Downloads the Roslyn compiler cache from CI and enables it for local builds.")
+{
+    configOption,
+    branchOption,
+    pipelineIdOption,
+    buildIdOption,
+    dryRunOption,
+};
+
+rootCommand.SetAction(async (parseResult, cancellationToken) =>
+{
+    var configuration = parseResult.GetValue(configOption)!;
+    var branch = parseResult.GetValue(branchOption);
+    var pipelineId = parseResult.GetValue(pipelineIdOption);
+    var buildId = parseResult.GetValue(buildIdOption);
+    var dryRun = parseResult.GetValue(dryRunOption);
+
+    await RunAsync(configuration, branch, pipelineId, buildId, dryRun, cancellationToken).ConfigureAwait(false);
+});
+
+return await rootCommand.Parse(args).InvokeAsync(new InvocationConfiguration(), CancellationToken.None);
+
+static async Task RunAsync(
+    string configuration,
+    string? explicitBranch,
+    int? explicitPipelineId,
+    int? explicitBuildId,
+    bool dryRun,
+    CancellationToken cancellationToken)
+{
     var repoRoot = Path.GetFullPath(Path.Join(
         AppContext.GetData("EntryPointFileDirectoryPath") as string
             ?? throw new InvalidOperationException("Could not determine the script's directory path."),
@@ -51,7 +95,6 @@ static async Task MainAsync(string[] args)
 
     var azdoBaseUrl = $"https://dev.azure.com/{AzdoOrg}/{AzdoProject}";
 
-    var configuration = options.Configuration;
     var os = GetCurrentOsName();
     var artifactName = $"compiler-cache-{os}-{configuration.ToLowerInvariant()}";
     var cacheDestination = Path.Combine(repoRoot, "artifacts", "compiler-cache");
@@ -62,7 +105,7 @@ static async Task MainAsync(string[] args)
     Console.WriteLine($"Cache path:    {cacheDestination}");
     Console.WriteLine();
 
-    if (options.DryRun)
+    if (dryRun)
     {
         Console.WriteLine("(dry run — no files will be written)");
         Console.WriteLine();
@@ -72,18 +115,18 @@ static async Task MainAsync(string[] args)
 
     (int buildId, string? sourceBranch) buildInfo;
 
-    if (options.ExplicitBuildId is int explicitBuildId)
+    if (explicitBuildId is int bid)
     {
-        Console.WriteLine($"Using explicit build ID: {explicitBuildId}");
-        buildInfo = (explicitBuildId, null);
+        Console.WriteLine($"Using explicit build ID: {bid}");
+        buildInfo = (bid, null);
     }
     else
     {
         // Discover pipeline definition ID.
         int pipelineDefinitionId;
-        if (options.PipelineDefinitionId is int explicitId)
+        if (explicitPipelineId is int pid)
         {
-            pipelineDefinitionId = explicitId;
+            pipelineDefinitionId = pid;
             Console.WriteLine($"Using pipeline definition ID: {pipelineDefinitionId} (from --pipeline-id)");
         }
         else
@@ -96,7 +139,7 @@ static async Task MainAsync(string[] args)
         Console.WriteLine();
 
         // Determine branch fallback sequence.
-        var branches = GetBranchFallbackSequence(options.Branch, repoRoot);
+        var branches = GetBranchFallbackSequence(explicitBranch, repoRoot);
         Console.WriteLine($"Branch fallback sequence: {string.Join(" → ", branches)}");
         Console.WriteLine();
 
@@ -105,8 +148,8 @@ static async Task MainAsync(string[] args)
         foreach (var branch in branches)
         {
             Console.Write($"  Looking for builds on '{branch}'...");
-            var buildId = await FindLatestBuildWithArtifactAsync(httpClient, azdoBaseUrl, pipelineDefinitionId, branch, artifactName).ConfigureAwait(false);
-            if (buildId is int id)
+            var foundBuildId = await FindLatestBuildWithArtifactAsync(httpClient, azdoBaseUrl, pipelineDefinitionId, branch, artifactName).ConfigureAwait(false);
+            if (foundBuildId is int id)
             {
                 Console.WriteLine($" found build {id}");
                 found = (id, branch);
@@ -137,7 +180,7 @@ static async Task MainAsync(string[] args)
 
     var downloadUrl = await GetArtifactDownloadUrlAsync(httpClient, azdoBaseUrl, buildInfo.buildId, artifactName).ConfigureAwait(false);
 
-    if (!options.DryRun)
+    if (!dryRun)
     {
         await DownloadAndExtractArtifactAsync(httpClient, downloadUrl, artifactName, cacheDestination).ConfigureAwait(false);
 
@@ -180,9 +223,18 @@ static List<string> GetBranchFallbackSequence(string? explicitBranch, string rep
     else
     {
         var currentBranch = GetCurrentGitBranch(repoRoot);
-        if (currentBranch is not null && !string.Equals(currentBranch, "main", StringComparison.OrdinalIgnoreCase))
+        if (currentBranch is not null)
         {
             branches.Add(currentBranch);
+
+            // Try to detect the PR base branch via the `gh` CLI.
+            var prBaseBranch = GetPrBaseBranch(repoRoot);
+            if (prBaseBranch is not null)
+            {
+                var normalizedPrBase = NormalizeBranchName(prBaseBranch);
+                if (!branches.Contains(normalizedPrBase, StringComparer.OrdinalIgnoreCase))
+                    branches.Add(normalizedPrBase);
+            }
         }
     }
 
@@ -221,6 +273,41 @@ static string? GetCurrentGitBranch(string repoRoot)
         if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output) || output == "HEAD")
             return null;
         return NormalizeBranchName(output);
+    }
+    catch
+    {
+        return null;
+    }
+}
+
+static string? GetPrBaseBranch(string repoRoot)
+{
+    try
+    {
+        // `gh pr view --json baseRefName` outputs {"baseRefName":"<branch>"} for the open PR on the current branch.
+        var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "gh",
+            Arguments = "pr view --json baseRefName",
+            WorkingDirectory = repoRoot,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        })!;
+        var output = process.StandardOutput.ReadToEnd().Trim();
+        process.WaitForExit();
+        if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
+            return null;
+
+        using var doc = JsonDocument.Parse(output);
+        if (doc.RootElement.TryGetProperty("baseRefName", out var prop))
+        {
+            var baseBranch = prop.GetString();
+            if (!string.IsNullOrWhiteSpace(baseBranch))
+                return baseBranch;
+        }
+
+        return null;
     }
     catch
     {
@@ -484,56 +571,4 @@ static HttpClient CreateHttpClient()
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", encoded);
     }
     return client;
-}
-
-static Options ParseArgs(string[] args)
-{
-    var options = new Options();
-    for (int i = 0; i < args.Length; i++)
-    {
-        switch (args[i])
-        {
-            case "--configuration":
-            case "-c":
-                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
-                options = options with { Configuration = args[++i] };
-                break;
-            case "--branch":
-            case "-b":
-                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
-                options = options with { Branch = args[++i] };
-                break;
-            case "--pipeline-id":
-                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
-                options = options with { PipelineDefinitionId = int.Parse(args[++i]) };
-                break;
-            case "--build-id":
-                if (i + 1 >= args.Length) throw new InvalidOperationException($"Missing value for {args[i]}.");
-                options = options with { ExplicitBuildId = int.Parse(args[++i]) };
-                break;
-            case "--dry-run":
-                options = options with { DryRun = true };
-                break;
-            default:
-                throw new InvalidOperationException(
-                    $"Unknown argument: {args[i]}\n\n" +
-                    "Usage: dotnet run --file eng/hydrate-compiler-cache.cs [-- [options]]\n" +
-                    "Options:\n" +
-                    "  --configuration <Debug|Release>  Build configuration (default: Debug)\n" +
-                    "  --branch <name>                  Branch to search (default: current git branch, then main)\n" +
-                    "  --pipeline-id <id>               Azure DevOps pipeline definition ID (auto-discovered if not set)\n" +
-                    "  --build-id <id>                  Download from a specific build ID\n" +
-                    "  --dry-run                        Show what would be done without making changes\n");
-        }
-    }
-    return options;
-}
-
-record Options
-{
-    public string Configuration { get; init; } = "Debug";
-    public string? Branch { get; init; }
-    public int? PipelineDefinitionId { get; init; }
-    public int? ExplicitBuildId { get; init; }
-    public bool DryRun { get; init; }
 }
