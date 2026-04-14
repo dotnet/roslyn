@@ -104,7 +104,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         var valueText = token.Kind() switch
         {
             SyntaxKind.CharacterLiteralToken when token.Value is char character
-                => $"{SymbolDisplay.FormatLiteral(character, quote: true)} (U+{(int)character:X4})",
+                => $"{SymbolDisplay.FormatLiteral(character, quote: true)} ({GetUnicodeCharacterDescription(character)})",
             SyntaxKind.StringLiteralToken
                 => SymbolDisplay.FormatLiteral(token.ValueText, quote: true),
             _ => null,
@@ -120,6 +120,51 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         var section = QuickInfoSection.Create(QuickInfoSectionKinds.Text, taggedParts);
         return QuickInfoItem.Create(quickInfo.Span, quickInfo.Tags, quickInfo.Sections.Add(section), quickInfo.RelatedSpans);
     }
+
+    private static string GetUnicodeCharacterDescription(char character)
+        => TryGetUnicodeCharacterName(character) is string name ? name : $"U+{(int)character:X4}";
+
+    private static string? TryGetUnicodeCharacterName(char character)
+        => character switch
+        {
+            '\u0000' => "Null",
+            '\u0001' => "Start of heading",
+            '\u0002' => "Start of text",
+            '\u0003' => "End of text",
+            '\u0004' => "End of transmission",
+            '\u0005' => "Enquiry",
+            '\u0006' => "Acknowledge",
+            '\u0007' => "Bell",
+            '\u0008' => "Backspace",
+            '\u0009' => "Character tabulation",
+            '\u000A' => "Line feed",
+            '\u000B' => "Line tabulation",
+            '\u000C' => "Form feed",
+            '\u000D' => "Carriage return",
+            '\u000E' => "Shift out",
+            '\u000F' => "Shift in",
+            '\u0010' => "Data link escape",
+            '\u0011' => "Device control one",
+            '\u0012' => "Device control two",
+            '\u0013' => "Device control three",
+            '\u0014' => "Device control four",
+            '\u0015' => "Negative acknowledge",
+            '\u0016' => "Synchronous idle",
+            '\u0017' => "End of transmission block",
+            '\u0018' => "Cancel",
+            '\u0019' => "End of medium",
+            '\u001A' => "Substitute",
+            '\u001B' => "Escape",
+            '\u001C' => "Information separator four",
+            '\u001D' => "Information separator three",
+            '\u001E' => "Information separator two",
+            '\u001F' => "Information separator one",
+            '\u007F' => "Delete",
+            '\u00A0' => "No-break space",
+            '\u0387' => "Greek ano teleia",
+            '\u1234' => "Ethiopic syllable see",
+            _ => null,
+        };
 
     private static bool ContainsUnicodeEscape(SyntaxToken token)
     {
