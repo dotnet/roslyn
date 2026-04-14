@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -122,7 +123,15 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     }
 
     private static string GetUnicodeCharacterNameOrCodePoint(char character)
-        => TryGetUnicodeCharacterName(character) is string name ? name : $"U+{(int)character:X4}";
+    {
+#if NET9_0_OR_GREATER
+        var rune = new Rune(character);
+        if (Rune.GetUnicodeName(rune) is string name)
+            return name;
+#endif
+
+        return TryGetUnicodeCharacterName(character) is string fallbackName ? fallbackName : $"U+{(int)character:X4}";
+    }
 
     private static string? TryGetUnicodeCharacterName(char character)
         => character switch
