@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,14 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     /// Display variable name only.
     /// </summary>
     private static readonly SymbolDisplayFormat s_nullableDisplayFormat = new();
+#if NET9_0_OR_GREATER
+    private static readonly MethodInfo? s_runeGetUnicodeNameMethod = typeof(Rune).GetMethod(
+        "GetUnicodeName",
+        BindingFlags.Public | BindingFlags.Static,
+        binder: null,
+        types: [typeof(Rune)],
+        modifiers: null);
+#endif
 
     /// <summary>
     /// If the token is the '=>' in a lambda, or the 'delegate' in an anonymous function,
@@ -125,54 +134,12 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     private static string GetUnicodeCharacterNameOrCodePoint(char character)
     {
 #if NET9_0_OR_GREATER
-        var rune = new Rune(character);
-        if (Rune.GetUnicodeName(rune) is string name)
+        if (s_runeGetUnicodeNameMethod?.Invoke(null, [new Rune(character)]) is string name && name.Length > 0)
             return name;
 #endif
 
-        return TryGetUnicodeCharacterName(character) is string fallbackName ? fallbackName : $"U+{(int)character:X4}";
+        return $"U+{(int)character:X4}";
     }
-
-    private static string? TryGetUnicodeCharacterName(char character)
-        => character switch
-        {
-            '\u0000' => "Null",
-            '\u0001' => "Start of heading",
-            '\u0002' => "Start of text",
-            '\u0003' => "End of text",
-            '\u0004' => "End of transmission",
-            '\u0005' => "Enquiry",
-            '\u0006' => "Acknowledge",
-            '\u0007' => "Bell",
-            '\u0008' => "Backspace",
-            '\u0009' => "Character tabulation",
-            '\u000A' => "Line feed",
-            '\u000B' => "Line tabulation",
-            '\u000C' => "Form feed",
-            '\u000D' => "Carriage return",
-            '\u000E' => "Shift out",
-            '\u000F' => "Shift in",
-            '\u0010' => "Data link escape",
-            '\u0011' => "Device control one",
-            '\u0012' => "Device control two",
-            '\u0013' => "Device control three",
-            '\u0014' => "Device control four",
-            '\u0015' => "Negative acknowledge",
-            '\u0016' => "Synchronous idle",
-            '\u0017' => "End of transmission block",
-            '\u0018' => "Cancel",
-            '\u0019' => "End of medium",
-            '\u001A' => "Substitute",
-            '\u001B' => "Escape",
-            '\u001C' => "Information separator four",
-            '\u001D' => "Information separator three",
-            '\u001E' => "Information separator two",
-            '\u001F' => "Information separator one",
-            '\u007F' => "Delete",
-            '\u00A0' => "No-break space",
-            '\u0387' => "Greek ano teleia",
-            _ => null,
-        };
 
     private static bool ContainsUnicodeEscape(SyntaxToken token)
     {

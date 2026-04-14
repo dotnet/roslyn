@@ -671,18 +671,18 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription("struct System.Char"),
             item => Assert.Equal(
-                "Value: '\u00A0' (No-break space)",
+                "Value: '\u00A0' (U+00A0)",
                 GetTextSectionContent(item)));
 
     [Fact]
-    public Task TestUnicodeEscapeControlCharacterLiteralIncludesName()
+    public Task TestUnicodeEscapeControlCharacterLiteralIncludesCodePointFallback()
         => TestInMethodAsync(
             """
             var c = '\u00$$09';
             """,
             MainDescription("struct System.Char"),
             item => Assert.Equal(
-                "Value: '\\t' (Character tabulation)",
+                "Value: '\\t' (U+0009)",
                 GetTextSectionContent(item)));
 
     [Fact]
