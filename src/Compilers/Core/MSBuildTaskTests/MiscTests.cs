@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,9 +11,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class MiscTests
     {
-        // The version of OOB dependencies that MSBuild depends on. When bumping MSBuild's dependencies,
-        // this should be updated to fix test failures. This number is obtained from MSBuild's app.config:
-        // https://github.com/dotnet/msbuild/blob/main/src/MSBuild/app.config
+        /// <summary>
+        /// The version of OOB dependencies that MSBuild depends on. When bumping MSBuild's dependencies,
+        /// this should be updated to fix test failures. This number is obtained from MSBuild's app.config:
+        /// <see href="https://github.com/dotnet/msbuild/blob/main/src/MSBuild/app.config"/>
+        /// </summary>
         private static readonly Version s_msBuildOobDependencyVersion = new Version(10, 0, 0, 1);
 
         /// <summary>
@@ -43,18 +46,18 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         /// bring in a newer version.
         /// </para>
         /// </summary>
-        [Theory]
-        [InlineData("System.Collections.Immutable")]
-        [InlineData("System.Reflection.Metadata")]
-        public void EnsureDependenciesNotNewerThanMSBuild(string refName)
+        [Fact]
+        public void EnsureDependenciesNotNewerThanMSBuild()
         {
             var assembly = typeof(ManagedCompiler).Assembly;
-            Assert.All(assembly.GetReferencedAssemblies(), x =>
+            var refs = assembly
+                .GetReferencedAssemblies()
+                .Where(x => x.Name is "System.Collections.Immutable" or "System.Reflection.Metadata")
+                .ToArray();
+            Assert.NotEmpty(refs);
+            Assert.All(refs, x =>
             {
-                if (x.Name == refName)
-                {
-                    Assert.True(x.Version <= s_msBuildOobDependencyVersion, $"Reference {x.Name} has version {x.Version} which is newer than the maximum allowed {s_msBuildOobDependencyVersion}");
-                }
+                Assert.True(x.Version <= s_msBuildOobDependencyVersion, $"Reference {x.Name} has version {x.Version} which is newer than the maximum allowed {s_msBuildOobDependencyVersion}");
             });
         }
     }
