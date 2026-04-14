@@ -174,6 +174,9 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
         await TestAsync(markupWithUsings, expectedResults);
     }
 
+    private static string GetTextSectionContent(QuickInfoItem item)
+        => string.Concat(item.Sections.Single(section => section.Kind == QuickInfoSectionKinds.Text).TaggedParts.Select(part => part.Text));
+
     private Task TestInClassAsync(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
         params Action<QuickInfoItem>[] expectedResults)
@@ -657,8 +660,8 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription("struct System.Char"),
             item => Assert.Equal(
-                "'ሴ' (U+1234)",
-                string.Concat(item.Sections.First(section => section.Kind == QuickInfoSectionKinds.Text).TaggedParts.Select(p => p.Text))));
+                "Value: '\u1234' (U+1234)",
+                GetTextSectionContent(item)));
 
     [Fact]
     public Task TestUnicodeEscapeStringLiteralIncludesValueText()
@@ -668,8 +671,17 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription("class System.String"),
             item => Assert.Equal(
-                "\"pre·post\"",
-                string.Concat(item.Sections.First(section => section.Kind == QuickInfoSectionKinds.Text).TaggedParts.Select(p => p.Text))));
+                "Value: \"pre\u0387post\"",
+                GetTextSectionContent(item)));
+
+    [Fact]
+    public Task TestEscapedBackslashUnicodePatternDoesNotAddValueText()
+        => TestInMethodAsync(
+            """
+            var s = "\\u03$$87";
+            """,
+            MainDescription("class System.String"),
+            item => Assert.DoesNotContain(item.Sections, section => section.Kind == QuickInfoSectionKinds.Text));
 
     [Fact]
     public Task TestBoolean()

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -103,22 +104,58 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         var valueText = token.Kind() switch
         {
             SyntaxKind.CharacterLiteralToken when token.Value is char character
-                => $"{CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(character, quote: true)} (U+{(int)character:X4})",
+                => $"{SymbolDisplay.FormatLiteral(character, quote: true)} (U+{(int)character:X4})",
             SyntaxKind.StringLiteralToken
-                => CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(token.ValueText, quote: true),
+                => SymbolDisplay.FormatLiteral(token.ValueText, quote: true),
             _ => null,
         };
 
         if (valueText is null)
             return quickInfo;
 
-        var section = QuickInfoSection.Create(QuickInfoSectionKinds.Text, [new TaggedText(TextTags.Text, valueText)]);
+        var taggedParts = ImmutableArray.Create(
+            new TaggedText(TextTags.Text, FeaturesResources.Value_colon),
+            new TaggedText(TextTags.Space, " "),
+            new TaggedText(TextTags.Text, valueText));
+        var section = QuickInfoSection.Create(QuickInfoSectionKinds.Text, taggedParts);
         return QuickInfoItem.Create(quickInfo.Span, quickInfo.Tags, quickInfo.Sections.Add(section), quickInfo.RelatedSpans);
     }
 
     private static bool ContainsUnicodeEscape(SyntaxToken token)
-        => token.Kind() is SyntaxKind.CharacterLiteralToken or SyntaxKind.StringLiteralToken
-            && (token.Text.Contains("\\u", StringComparison.Ordinal) || token.Text.Contains("\\U", StringComparison.Ordinal));
+    {
+        if (token.Kind() is not (SyntaxKind.CharacterLiteralToken or SyntaxKind.StringLiteralToken))
+            return false;
+
+        var text = token.Text.AsSpan();
+        if (token.Kind() == SyntaxKind.StringLiteralToken && text is ['@', '"', ..])
+            return false;
+
+        var searchText = text;
+        var offset = 0;
+        while (!searchText.IsEmpty)
+        {
+            var backslashIndex = searchText.IndexOf('\\');
+            if (backslashIndex < 0)
+                return false;
+
+            var currentIndex = offset + backslashIndex;
+            if (currentIndex + 1 < text.Length && (text[currentIndex + 1] == 'u' || text[currentIndex + 1] == 'U'))
+            {
+                var precedingBackslashCount = 0;
+                for (var i = currentIndex - 1; i >= 0 && text[i] == '\\'; i--)
+                    precedingBackslashCount++;
+
+                if (precedingBackslashCount % 2 == 0)
+                    return true;
+            }
+
+            var advanceBy = backslashIndex + 1;
+            offset += advanceBy;
+            searchText = searchText[advanceBy..];
+        }
+
+        return false;
+    }
 
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
