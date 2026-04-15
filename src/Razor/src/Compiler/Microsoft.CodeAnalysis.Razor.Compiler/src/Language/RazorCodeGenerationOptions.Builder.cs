@@ -163,6 +163,15 @@ public sealed partial class RazorCodeGenerationOptions
             set => _flags.UpdateFlag(Flags.RemapLinePragmaPathsOnWindows, value);
         }
 
+        /// <summary>
+        /// Gets or sets a value that determines if HTML literals should be written as C# UTF-8 string literals.
+        /// </summary>
+        public bool WriteHtmlUtf8StringLiterals
+        {
+            get => _flags.IsFlagSet(Flags.WriteHtmlUtf8StringLiterals);
+            set => _flags.UpdateFlag(Flags.WriteHtmlUtf8StringLiterals, value);
+        }
+
         public RazorCodeGenerationOptions ToOptions()
             => new(IndentSize, NewLine, RootNamespace, CssScope, SuppressUniqueIds, RazorWarningLevel, _flags);
     }

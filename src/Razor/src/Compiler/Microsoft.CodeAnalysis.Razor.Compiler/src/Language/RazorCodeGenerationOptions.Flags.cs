@@ -22,6 +22,7 @@ public sealed partial class RazorCodeGenerationOptions
         UseEnhancedLinePragma = 1 << 9,
         SuppressAddComponentParameter = 1 << 10,
         RemapLinePragmaPathsOnWindows = 1 << 11,
+        WriteHtmlUtf8StringLiterals = 1 << 12,
 
         DefaultFlags = UseEnhancedLinePragma,
         DefaultDesignTimeFlags = DesignTime | SuppressMetadataAttributes | UseEnhancedLinePragma | RemapLinePragmaPathsOnWindows

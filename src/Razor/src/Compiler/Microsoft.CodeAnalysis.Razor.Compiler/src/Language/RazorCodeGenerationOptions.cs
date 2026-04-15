@@ -170,6 +170,12 @@ public sealed partial class RazorCodeGenerationOptions
     public bool RemapLinePragmaPathsOnWindows
         => (_flags & Flags.RemapLinePragmaPathsOnWindows) == Flags.RemapLinePragmaPathsOnWindows;
 
+    /// <summary>
+    /// Gets a value that determines if HTML literals should be written as C# UTF-8 string literals.
+    /// </summary>
+    public bool WriteHtmlUtf8StringLiterals
+        => (_flags & Flags.WriteHtmlUtf8StringLiterals) == Flags.WriteHtmlUtf8StringLiterals;
+
     public RazorCodeGenerationOptions WithIndentSize(int value)
         => IndentSize == value
             ? this
@@ -212,7 +218,8 @@ public sealed partial class RazorCodeGenerationOptions
         Optional<bool> supportLocalizedComponentNames = default,
         Optional<bool> useEnhancedLinePragma = default,
         Optional<bool> suppressAddComponentParameter = default,
-        Optional<bool> remapLinePragmaPathsOnWindows = default)
+        Optional<bool> remapLinePragmaPathsOnWindows = default,
+        Optional<bool> writeHtmlUtf8StringLiterals = default)
     {
         var flags = _flags;
 
@@ -274,6 +281,11 @@ public sealed partial class RazorCodeGenerationOptions
         if (remapLinePragmaPathsOnWindows.HasValue)
         {
             flags.UpdateFlag(Flags.RemapLinePragmaPathsOnWindows, remapLinePragmaPathsOnWindows.Value);
+        }
+
+        if (writeHtmlUtf8StringLiterals.HasValue)
+        {
+            flags.UpdateFlag(Flags.WriteHtmlUtf8StringLiterals, writeHtmlUtf8StringLiterals.Value);
         }
 
         return flags == _flags

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -249,7 +251,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
                 .Combine(razorSourceGeneratorOptions);
 
-            var csharpDocuments = withOptions
+            var parsedDocuments = withOptions
                 .Select((pair, cancellationToken) =>
                 {
                     var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
@@ -263,7 +265,21 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
                     return (projectEngine, sourceItem.RelativePhysicalPath, document);
                 })
-                .WithTrackingName("ParsedDocuments")
+                .WithTrackingName("ParsedDocuments");
+
+            // Build a map of which @inherits base types support UTF-8 WriteLiteral.
+            var utf8SupportMap = parsedDocuments
+                .Select(static (item, _) => item.Item3.CodeDocument.GetInheritsDirectiveContent())
+                .Collect()
+                .Combine(declCompilation)
+                .Select(static (pair, _) =>
+                {
+                    var (baseTypeNames, compilation) = pair;
+                    return DefaultUtf8WriteLiteralFeature.Utf8SupportMap.Create(baseTypeNames, compilation);
+                })
+                .WithTrackingName("Utf8SupportMap");
+
+            var csharpDocuments = parsedDocuments
 
                 // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
                 .Combine(allTagHelpers)
@@ -293,12 +309,13 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (projectEngine, filePath, document);
                 })
                 .WithTrackingName("CheckedAndRewrittenTagHelpers")
+                .Combine(utf8SupportMap)
                 .Select((pair, cancellationToken) =>
                 {
-                    var (projectEngine, filePath, document) = pair;
+                    var ((projectEngine, filePath, document), utf8SupportMap) = pair;
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
-                    document = projectEngine.ProcessRemaining(document, cancellationToken);
+                    document = projectEngine.ProcessRemaining(document, utf8SupportMap, cancellationToken);
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath);
                     return (filePath, document);

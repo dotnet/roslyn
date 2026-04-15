@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -359,6 +360,7 @@ public sealed class RazorProjectEngine
         // Intermediate Node Passes
         features.Add(new DefaultDocumentClassifierPass());
         features.Add(new MetadataAttributePass());
+        features.Add(new Utf8WriteLiteralDetectionPass());
         features.Add(new DesignTimeDirectivePass());
         features.Add(new DirectiveRemovalOptimizationPass());
         features.Add(new DefaultTagHelperOptimizationPass());

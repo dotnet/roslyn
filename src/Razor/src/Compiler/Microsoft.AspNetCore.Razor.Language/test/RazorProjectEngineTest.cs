@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using Moq;
 using Xunit;
 
@@ -91,6 +92,7 @@ public class RazorProjectEngineTest
             feature => Assert.IsType<MetadataAttributePass>(feature),
             feature => Assert.IsType<PreallocatedTagHelperAttributeOptimizationPass>(feature),
             feature => Assert.IsType<TagHelperDiscoveryService>(feature),
+            feature => Assert.IsType<Utf8WriteLiteralDetectionPass>(feature),
             feature => Assert.IsType<ViewCssScopePass>(feature));
     }
 

@@ -265,18 +265,18 @@ internal static class CodeWriterExtensions
         return writer.Write("new ").Write(typeName).Write("(");
     }
 
-    public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal)
-        => writer.WriteStringLiteral(literal.AsMemory());
+    public static CodeWriter WriteStringLiteral(this CodeWriter writer, string literal, bool utf8 = false)
+        => writer.WriteStringLiteral(literal.AsMemory(), utf8);
 
-    public static CodeWriter WriteStringLiteral(this CodeWriter writer, ReadOnlyMemory<char> literal)
+    public static CodeWriter WriteStringLiteral(this CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
     {
         if (literal.Length >= 256 && literal.Length <= 1500 && literal.Span.IndexOf('\0') == -1)
         {
-            WriteVerbatimStringLiteral(writer, literal);
+            WriteVerbatimStringLiteral(writer, literal, utf8);
         }
         else
         {
-            WriteCStyleStringLiteral(writer, literal);
+            WriteCStyleStringLiteral(writer, literal, utf8);
         }
 
         return writer;
@@ -900,7 +900,7 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
+    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
     {
         writer.Write("@\"");
 
@@ -926,10 +926,15 @@ internal static class CodeWriterExtensions
 
         writer.Write("\"");
 
+        if (utf8)
+        {
+            writer.Write("u8");
+        }
+
         writer.CurrentIndent = oldIndent;
     }
 
-    private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal)
+    private static void WriteCStyleStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
     {
         // From CSharpCodeGenerator.QuoteSnippetStringCStyle in CodeDOM
         writer.Write("\"");
@@ -983,6 +988,11 @@ internal static class CodeWriterExtensions
         writer.Write(literal);
 
         writer.Write("\"");
+
+        if (utf8)
+        {
+            writer.Write("u8");
+        }
     }
 
     public struct CSharpCodeWritingScope : IDisposable

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 
@@ -42,6 +43,39 @@ public static class RazorCodeDocumentExtensions
     internal static bool IsImportsFile(this RazorCodeDocument codeDocument)
         => codeDocument.FileKind.IsComponentImport() ||
            (codeDocument.FileKind.IsLegacy() && string.Equals(Path.GetFileName(codeDocument.Source.FilePath), MvcImportProjectFeature.ImportsFileName, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Returns the content of the <c>@inherits</c> directive if present in a legacy <c>.cshtml</c>
+    /// document's syntax tree, or <see langword="null"/> for non-legacy files or when absent.
+    /// </summary>
+    internal static string? GetInheritsDirectiveContent(this RazorCodeDocument codeDocument)
+    {
+        if (!codeDocument.FileKind.IsLegacy())
+        {
+            return null;
+        }
+
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        if (syntaxTree is null)
+        {
+            return null;
+        }
+
+        foreach (var node in syntaxTree.Root.DescendantNodes())
+        {
+            if (node is RazorDirectiveSyntax
+                {
+                    DirectiveDescriptor: var descriptor,
+                    Body: RazorDirectiveBodySyntax { CSharpCode: { } csharpCode }
+                } &&
+                descriptor == InheritsDirective.Directive)
+            {
+                return csharpCode.GetContent()?.Trim();
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Returns whether the directive specified was involved in tag helper binding
