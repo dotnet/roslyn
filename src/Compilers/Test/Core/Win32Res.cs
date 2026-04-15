@@ -241,9 +241,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return sw.ToString();
         }
 
+        // https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryexa
+        private const uint LOAD_LIBRARY_AS_DATAFILE = 0x00000002;
+        private const uint LOAD_LIBRARY_AS_IMAGE_RESOURCE = 0x00000020;
+
         public static string VersionResourceToXml(string filePath)
         {
-            IntPtr lib = LoadLibraryEx(filePath, IntPtr.Zero, 0);
+            IntPtr lib = LoadLibraryEx(filePath, IntPtr.Zero, LOAD_LIBRARY_AS_DATAFILE | LOAD_LIBRARY_AS_IMAGE_RESOURCE);
             if (lib == IntPtr.Zero)
                 throw new Win32Exception(Marshal.GetLastWin32Error());
 
