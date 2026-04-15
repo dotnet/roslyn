@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
-            return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: false, emittingAssemblyAttributesInNetModule: false, emittingAssemblyAttributeInRefAssembly: false);
+            return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: false, emittingAssemblyAttributesInNetModule: false, emittingAssemblyAttributesInRefAssembly: false);
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule,
-            bool emittingAssemblyAttributeInRefAssembly)
+            bool emittingAssemblyAttributesInRefAssembly)
         {
             CheckDefinitionInvariant();
 
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<CSharpAttributeData>();
             }
 
-            return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributeInRefAssembly);
+            return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributesInRefAssembly);
         }
 
         private IEnumerable<CSharpAttributeData> GetCustomAttributesToEmitIterator(
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<CSharpAttributeData> synthesized,
             bool isReturnType,
             bool emittingAssemblyAttributesInNetModule,
-            bool emittingAssemblyAttributeInRefAssembly)
+            bool emittingAssemblyAttributesInRefAssembly)
         {
             CheckDefinitionInvariant();
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var attribute in synthesized)
                 {
                     // only synthesize attributes that are emitted:
-                    Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributeInRefAssembly));
+                    Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributesInRefAssembly));
                     yield return attribute;
                 }
 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributeInRefAssembly))
+                if (attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributesInRefAssembly))
                 {
                     yield return attribute;
                 }

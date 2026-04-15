@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False,
                 emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule,
-                emittingAssemblyAttributeInRefAssembly:=emittingRefAssembly)
+                emittingAssemblyAttributesInRefAssembly:=emittingRefAssembly)
         End Function
 
     End Class

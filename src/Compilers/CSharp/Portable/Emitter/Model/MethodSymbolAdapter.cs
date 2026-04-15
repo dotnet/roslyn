@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
-            return AdaptedMethodSymbol.GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: true, emittingAssemblyAttributesInNetModule: false, emittingAssemblyAttributeInRefAssembly: false);
+            return AdaptedMethodSymbol.GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: true, emittingAssemblyAttributesInNetModule: false, emittingAssemblyAttributesInRefAssembly: false);
         }
 
         bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly

@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim synthesized As ArrayBuilder(Of VisualBasicAttributeData) = Nothing
             AddSynthesizedAttributes(moduleBuilder, synthesized)
-            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule, emittingAssemblyAttributeInRefAssembly:=False)
+            Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule, emittingAssemblyAttributesInRefAssembly:=False)
         End Function
 
         ''' <summary> 
@@ -92,27 +92,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   synthesized As ArrayBuilder(Of VisualBasicAttributeData),
                                                   isReturnType As Boolean,
                                                   emittingAssemblyAttributesInNetModule As Boolean,
-                                                  emittingAssemblyAttributeInRefAssembly As Boolean) As IEnumerable(Of VisualBasicAttributeData)
+                                                  emittingAssemblyAttributesInRefAssembly As Boolean) As IEnumerable(Of VisualBasicAttributeData)
 
             ' PERF: Avoid creating an iterator for the common case of no attributes.
             If userDefined.IsEmpty AndAlso synthesized Is Nothing Then
                 Return SpecializedCollections.EmptyEnumerable(Of VisualBasicAttributeData)()
             End If
 
-            Return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributeInRefAssembly)
+            Return GetCustomAttributesToEmitIterator(userDefined, synthesized, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributesInRefAssembly)
         End Function
 
         Private Iterator Function GetCustomAttributesToEmitIterator(userDefined As ImmutableArray(Of VisualBasicAttributeData),
                                                   synthesized As ArrayBuilder(Of VisualBasicAttributeData),
                                                   isReturnType As Boolean,
                                                   emittingAssemblyAttributesInNetModule As Boolean,
-                                                  emittingAssemblyAttributeInRefAssembly As Boolean) As IEnumerable(Of VisualBasicAttributeData)
+                                                  emittingAssemblyAttributesInRefAssembly As Boolean) As IEnumerable(Of VisualBasicAttributeData)
 
             If synthesized IsNot Nothing Then
                 For Each attribute In synthesized
                     Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType,
                                                                emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule,
-                                                               emittingAssemblyAttributeInRefAssembly:=emittingAssemblyAttributeInRefAssembly))
+                                                               emittingAssemblyAttributesInRefAssembly:=emittingAssemblyAttributesInRefAssembly))
                     Yield attribute
                 Next
 
@@ -130,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                If attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributeInRefAssembly) Then
+                If attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule, emittingAssemblyAttributesInRefAssembly) Then
                     Yield attribute
                 End If
             Next

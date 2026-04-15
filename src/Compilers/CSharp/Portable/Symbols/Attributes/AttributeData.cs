@@ -667,11 +667,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Some attributes appear in symbol model to reflect the source code,
         /// but should not be emitted.
         /// </summary>
-        internal bool ShouldEmitAttribute(Symbol target, bool isReturnType, bool emittingAssemblyAttributesInNetModule, bool emittingAssemblyAttributeInRefAssembly)
+        internal bool ShouldEmitAttribute(Symbol target, bool isReturnType, bool emittingAssemblyAttributesInNetModule, bool emittingAssemblyAttributesInRefAssembly)
         {
             Debug.Assert(target is SourceAssemblySymbol || target.ContainingAssembly is SourceAssemblySymbol);
-            Debug.Assert(target is SourceAssemblySymbol || !emittingAssemblyAttributeInRefAssembly);
-            Debug.Assert(!emittingAssemblyAttributesInNetModule || !emittingAssemblyAttributeInRefAssembly);
+            Debug.Assert(target is SourceAssemblySymbol || !emittingAssemblyAttributesInRefAssembly);
+            Debug.Assert(!emittingAssemblyAttributesInNetModule || !emittingAssemblyAttributesInRefAssembly);
 
             // Attribute type is conditionally omitted if both the following are true:
             //  (a) It has at least one applied/inherited conditional attribute AND
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return false;
                     }
 
-                    if (emittingAssemblyAttributeInRefAssembly &&
+                    if (emittingAssemblyAttributesInRefAssembly &&
                         (IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly) ||
                          IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) ||
                          IsTargetAttribute(AttributeDescription.AssemblyMetadataAttributeSourceOnly)))

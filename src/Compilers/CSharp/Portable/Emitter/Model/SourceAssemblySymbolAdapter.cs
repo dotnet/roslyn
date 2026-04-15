@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // all items of the returned iterator, otherwise the synthesized ArrayBuilder may leak.
             return GetCustomAttributesToEmit(userDefined, synthesized, isReturnType: false,
                 emittingAssemblyAttributesInNetModule: emittingAssemblyAttributesInNetModule,
-                emittingAssemblyAttributeInRefAssembly: emittingRefAssembly);
+                emittingAssemblyAttributesInRefAssembly: emittingRefAssembly);
         }
     }
 }

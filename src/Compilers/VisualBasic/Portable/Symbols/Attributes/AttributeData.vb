@@ -527,10 +527,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         '''  This method determines if an applied attribute must be emitted. 
         ''' Some attributes appear in symbol model to reflect the source code, but should not be emitted.
         '''  </summary>
-        Friend Function ShouldEmitAttribute(target As Symbol, isReturnType As Boolean, emittingAssemblyAttributesInNetModule As Boolean, emittingAssemblyAttributeInRefAssembly As Boolean) As Boolean
+        Friend Function ShouldEmitAttribute(target As Symbol, isReturnType As Boolean, emittingAssemblyAttributesInNetModule As Boolean, emittingAssemblyAttributesInRefAssembly As Boolean) As Boolean
             Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse TypeOf target.ContainingAssembly Is SourceAssemblySymbol)
-            Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse Not emittingAssemblyAttributeInRefAssembly)
-            Debug.Assert(Not emittingAssemblyAttributesInNetModule OrElse Not emittingAssemblyAttributeInRefAssembly)
+            Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse Not emittingAssemblyAttributesInRefAssembly)
+            Debug.Assert(Not emittingAssemblyAttributesInNetModule OrElse Not emittingAssemblyAttributesInRefAssembly)
 
             ' Attribute type is conditionally omitted if both the following are true:
             '  (a) It has at least one applied conditional attribute AND
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return False
                     End If
 
-                    If (emittingAssemblyAttributeInRefAssembly AndAlso
+                    If (emittingAssemblyAttributesInRefAssembly AndAlso
                             (IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly) OrElse
                              IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) OrElse
                              IsTargetAttribute(AttributeDescription.AssemblyMetadataAttributeSourceOnly))) Then
