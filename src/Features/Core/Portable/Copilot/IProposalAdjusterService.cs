@@ -353,7 +353,11 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var midpoint = newText.Length / 2;
 
         var forwardIndex = newText.IndexOf(protectedText, midpoint, StringComparison.Ordinal);
-        var backwardIndex = newText.LastIndexOf(protectedText, midpoint, StringComparison.Ordinal);
+
+        var backwardStart = Math.Min(midpoint + protectedText.Length - 1, newText.Length - 1);
+        var backwardIndex = backwardStart >= 0
+            ? newText.LastIndexOf(protectedText, backwardStart, StringComparison.Ordinal)
+            : -1;
 
         return (forwardIndex, backwardIndex) switch
         {
