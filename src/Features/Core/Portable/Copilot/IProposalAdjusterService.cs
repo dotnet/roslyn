@@ -286,7 +286,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         if (editSpan.Length == 0 && editSpan.Start == protectedSpan.End)
             return false;
 
-        // Two spans intersect if they share at least one position.
         return editSpan.Start < protectedSpan.End && editSpan.End > protectedSpan.Start;
     }
 
@@ -306,7 +305,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         var overlapsStart = change.Span.Start <= protectedSpan.Start;
         var overlapsEnd = change.Span.End >= protectedSpan.End;
 
-        // Full containment
+        // Full containment case
         if (overlapsStart && overlapsEnd)
         {
             var protectedText = originalText.ToString(protectedSpan);
@@ -329,7 +328,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         }
         else if (overlapsStart)
         {
-            // Partial overlap on the start side — verify the overlap text is at the end of the replacement.
             var overlapText = originalText.ToString(TextSpan.FromBounds(protectedSpan.Start, change.Span.End));
             if (!newText.EndsWith(overlapText, StringComparison.Ordinal))
                 return false;
@@ -340,7 +338,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         }
         else
         {
-            // Partial overlap on the end side — verify the overlap text is at the start of the replacement.
             var overlapText = originalText.ToString(TextSpan.FromBounds(change.Span.Start, protectedSpan.End));
             if (!newText.StartsWith(overlapText, StringComparison.Ordinal))
                 return false;
@@ -364,10 +361,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     {
         var midpoint = newText.Length / 2;
 
-        // Search forward from the midpoint.
         var forwardIndex = newText.IndexOf(protectedText, midpoint, StringComparison.Ordinal);
-
-        // Search backward from the midpoint.
         var backwardIndex = newText.LastIndexOf(protectedText, midpoint, StringComparison.Ordinal);
 
         return (forwardIndex, backwardIndex) switch
