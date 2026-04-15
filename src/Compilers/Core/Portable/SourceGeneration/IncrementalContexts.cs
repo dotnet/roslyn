@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
         /// <remarks>
-        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// Directory separators <code>/</code> and <code>\</code> are allowed in <paramref name="hintName"/>, they are normalized to <code>/</code> regardless of host platform.
         /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => AdditionalSources.Add(hintName, sourceText);
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="hintName">An identifier that can be used to reference this source text, must be unique within this generator</param>
         /// <param name="sourceText">The <see cref="SourceText"/> to add to the compilation</param>
         /// <remarks>
-        /// Directory separators "/" and "\" are allowed in <paramref name="hintName"/>, they are normalized to "/" regardless of host platform.
+        /// Directory separators <code>/</code> and <code>\</code> are allowed in <paramref name="hintName"/>, they are normalized to <code>/</code> regardless of host platform.
         /// </remarks>
         public void AddSource(string hintName, SourceText sourceText) => Sources.Add(hintName, sourceText.WithChecksumAlgorithmIfAny(ChecksumAlgorithm));
 
