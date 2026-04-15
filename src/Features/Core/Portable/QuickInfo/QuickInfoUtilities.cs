@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -69,10 +70,19 @@ internal static class QuickInfoUtilities
             AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
         }
 
-        if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
+        var hasDocumentationComments = false;
+        ImmutableArray<TaggedText> docParts = default;
+        if (TryCreateCharacterLiteralDocumentation(semanticModel, span, symbol, cancellationToken, out var characterLiteralDocumentation))
+        {
+            AddSection(QuickInfoSectionKinds.DocumentationComments, characterLiteralDocumentation);
+            onTheFlyDocsInfo?.HasComments = true;
+            hasDocumentationComments = true;
+        }
+        else if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out docParts) && !docParts.IsDefaultOrEmpty)
         {
             AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
             onTheFlyDocsInfo?.HasComments = true;
+            hasDocumentationComments = true;
         }
 
         if (options.QuickInfoOptions.ShowRemarksInQuickInfo &&
@@ -80,7 +90,7 @@ internal static class QuickInfoUtilities
             !remarksDocumentation.IsEmpty)
         {
             var builder = ImmutableArray.CreateBuilder<TaggedText>();
-            if (!docParts.IsDefaultOrEmpty)
+            if (hasDocumentationComments)
                 builder.AddLineBreak();
 
             builder.AddRange(remarksDocumentation);
@@ -152,4 +162,32 @@ internal static class QuickInfoUtilities
         void AddSection(string kind, ImmutableArray<TaggedText> taggedParts)
             => sections.Add(QuickInfoSection.Create(kind, taggedParts));
     }
+
+    private static bool TryCreateCharacterLiteralDocumentation(
+        SemanticModel semanticModel,
+        TextSpan span,
+        ISymbol symbol,
+        CancellationToken cancellationToken,
+        out ImmutableArray<TaggedText> documentation)
+    {
+        documentation = default;
+
+        if (semanticModel.Language != LanguageNames.CSharp ||
+            symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
+        {
+            return false;
+        }
+
+        var token = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(span.Start);
+        if (token.Span != span || token.Value is not char character || !ContainsUnicodeEscape(token.Text))
+            return false;
+
+        documentation = [new TaggedText(TextTags.Text, string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character))];
+        return true;
+    }
+
+    private static bool ContainsUnicodeEscape(string tokenText)
+        => tokenText.IndexOf(@"\u", StringComparison.Ordinal) >= 0 ||
+           tokenText.IndexOf(@"\U", StringComparison.Ordinal) >= 0 ||
+           tokenText.IndexOf(@"\x", StringComparison.Ordinal) >= 0;
 }

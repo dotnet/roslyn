@@ -1960,6 +1960,18 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             MainDescription("struct System.Char"));
 
     [Fact]
+    public Task TestCharLiteralUnicodeEscape()
+        => TestInMethodAsync(@"char c = '\u0387'$$;",
+            MainDescription("struct System.Char"),
+            Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, '·')));
+
+    [Fact]
+    public Task TestCharLiteralLongUnicodeEscape()
+        => TestInMethodAsync(@"char c = '\U00001234'$$;",
+            MainDescription("struct System.Char"),
+            Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, 'ሴ')));
+
+    [Fact]
     public Task DynamicKeyword()
         => TestInMethodAsync(
             @"dyn$$amic dyn;",
