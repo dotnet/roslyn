@@ -530,6 +530,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function ShouldEmitAttribute(target As Symbol, isReturnType As Boolean, emittingAssemblyAttributesInNetModule As Boolean, emittingAssemblyAttributeInRefAssembly As Boolean) As Boolean
             Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse TypeOf target.ContainingAssembly Is SourceAssemblySymbol)
             Debug.Assert(TypeOf target Is SourceAssemblySymbol OrElse Not emittingAssemblyAttributeInRefAssembly)
+            Debug.Assert(Not emittingAssemblyAttributesInNetModule OrElse Not emittingAssemblyAttributeInRefAssembly)
 
             ' Attribute type is conditionally omitted if both the following are true:
             '  (a) It has at least one applied conditional attribute AND
@@ -562,6 +563,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             (IsTargetAttribute(AttributeDescription.AssemblyFileVersionAttributeSourceOnly) OrElse
                              IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) OrElse
                              IsTargetAttribute(AttributeDescription.AssemblyMetadataAttributeSourceOnly))) Then
+                        ' We skip emitting some well-known attributes in ref assemblies in order
+                        ' to reduce unnecessary churn in build. We can skip those attributes
+                        ' because they are not used from metadata by the compiler.
                         Return False
                     End If
 

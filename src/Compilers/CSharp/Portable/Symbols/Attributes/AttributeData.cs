@@ -671,6 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(target is SourceAssemblySymbol || target.ContainingAssembly is SourceAssemblySymbol);
             Debug.Assert(target is SourceAssemblySymbol || !emittingAssemblyAttributeInRefAssembly);
+            Debug.Assert(!emittingAssemblyAttributesInNetModule || !emittingAssemblyAttributeInRefAssembly);
 
             // Attribute type is conditionally omitted if both the following are true:
             //  (a) It has at least one applied/inherited conditional attribute AND
@@ -699,6 +700,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                          IsTargetAttribute(AttributeDescription.AssemblyInformationalVersionAttributeSourceOnly) ||
                          IsTargetAttribute(AttributeDescription.AssemblyMetadataAttributeSourceOnly)))
                     {
+                        // We skip emitting some well-known attributes in ref assemblies in order
+                        // to reduce unnecessary churn in build. We can skip those attributes
+                        // because they are not used from metadata by the compiler.
                         return false;
                     }
 
