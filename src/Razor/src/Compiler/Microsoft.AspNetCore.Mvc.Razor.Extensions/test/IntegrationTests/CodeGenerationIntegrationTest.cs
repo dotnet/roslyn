@@ -40,6 +40,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Register the UTF-8 WriteLiteral feature with a pre-computed support map.
         var supportMap = new DefaultUtf8WriteLiteralFeature.Utf8SupportMap(
+            ImmutableSortedDictionary<string, string>.Empty,
             ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, new[]
             {
                 new KeyValuePair<string, bool>("MyUtf8PageBase", true),

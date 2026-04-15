@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Razor;
 
 namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
@@ -23,6 +26,11 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
 {
     private RazorEngine? _engine;
 
+    /// <summary>
+    /// Information about an <c>@inherits</c> directive extracted from a parsed document.
+    /// </summary>
+    internal readonly record struct InheritsInfo(string FilePath, string BaseTypeName, ImmutableArray<string> Usings);
+
     public RazorEngine Engine
     {
         get => _engine!;
@@ -36,46 +44,133 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
         _engine = engine;
     }
 
-    public bool IsSupported(string baseTypeName)
-        => SupportMap.IsSupported(baseTypeName);
+    public bool IsSupported(string? filePath, string baseTypeName)
+        => SupportMap.IsSupported(filePath, baseTypeName);
 
     /// <summary>
-    /// A value-comparable map of base type names to whether they support UTF-8 <c>WriteLiteral</c>.
-    /// Used to flow pre-computed results through the incremental pipeline without carrying a
-    /// <see cref="Compilation"/> reference.
+    /// A value-comparable map that determines whether a file's <c>@inherits</c> base type supports
+    /// UTF-8 <c>WriteLiteral</c>. Uses a two-level lookup:
+    /// <list type="number">
+    ///   <item>Per-file: maps <c>(filePath, rawInheritsText)</c> to a fully-qualified type name</item>
+    ///   <item>Per-type: maps fully-qualified type name to <see langword="bool"/></item>
+    /// </list>
+    /// This handles cases where the same <c>@inherits</c> text resolves to different types
+    /// in different files (e.g., via <c>@using</c> aliases).
     /// </summary>
     internal sealed class Utf8SupportMap : IEquatable<Utf8SupportMap>
     {
-        public static readonly Utf8SupportMap Empty = new(ImmutableSortedDictionary<string, bool>.Empty);
+        public static readonly Utf8SupportMap Empty = new(
+            ImmutableSortedDictionary<string, string>.Empty,
+            ImmutableSortedDictionary<string, bool>.Empty);
 
-        private readonly ImmutableSortedDictionary<string, bool> _entries;
+        // filePath -> fully-qualified type name
+        private readonly ImmutableSortedDictionary<string, string> _fileToType;
+        // fully-qualified type name -> supports UTF-8
+        private readonly ImmutableSortedDictionary<string, bool> _typeSupport;
 
-        internal Utf8SupportMap(ImmutableSortedDictionary<string, bool> entries)
+        internal Utf8SupportMap(
+            ImmutableSortedDictionary<string, string> fileToType,
+            ImmutableSortedDictionary<string, bool> typeSupport)
         {
-            _entries = entries;
+            _fileToType = fileToType;
+            _typeSupport = typeSupport;
         }
 
         /// <summary>
-        /// Builds a <see cref="Utf8SupportMap"/> by checking each base type name against the compilation.
-        /// Null and duplicate entries are filtered out.
+        /// Builds a <see cref="Utf8SupportMap"/> by resolving each file's <c>@inherits</c> to a
+        /// fully-qualified type name, then checking whether each unique type supports UTF-8.
         /// </summary>
-        public static Utf8SupportMap Create(ImmutableArray<string?> baseTypeNames, Compilation compilation)
+        public static Utf8SupportMap Create(ImmutableArray<InheritsInfo> inheritsInfos, Compilation compilation)
         {
-            var builder = ImmutableSortedDictionary.CreateBuilder<string, bool>(StringComparer.Ordinal);
+            var fileToType = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
+            var typeSupport = ImmutableSortedDictionary.CreateBuilder<string, bool>(StringComparer.Ordinal);
 
-            foreach (var name in baseTypeNames)
+            foreach (var info in inheritsInfos)
             {
-                if (!string.IsNullOrEmpty(name) && !builder.ContainsKey(name))
+                var filePath = info.FilePath;
+                var baseTypeName = info.BaseTypeName;
+
+                // Fast path: try fully-qualified metadata name lookup.
+                var type = compilation.GetTypeByMetadataName(baseTypeName);
+                string? fqn;
+                if (type is null || type.TypeKind == TypeKind.Error)
                 {
-                    builder[name] = compilation.HasCallableUtf8WriteLiteralOverload(name);
+                    // Slow path: use the document's @using directives to resolve short names
+                    // via an augmented compilation.
+                    fqn = ResolveTypeNameWithUsings(baseTypeName, info.Usings, compilation);
+                }
+                else
+                {
+                    fqn = type.GetFullName();
+                }
+
+                if (fqn is null)
+                {
+                    continue;
+                }
+
+                fileToType[filePath] = fqn;
+
+                if (!typeSupport.ContainsKey(fqn))
+                {
+                    typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(fqn);
                 }
             }
 
-            return builder.Count == 0 ? Empty : new Utf8SupportMap(builder.ToImmutable());
+            return fileToType.Count == 0
+                ? Empty
+                : new Utf8SupportMap(fileToType.ToImmutable(), typeSupport.ToImmutable());
         }
 
-        public bool IsSupported(string baseTypeName)
-            => _entries.TryGetValue(baseTypeName, out var supported) && supported;
+        /// <summary>
+        /// Resolves a short or partially-qualified type name to a fully-qualified metadata name
+        /// using the document's <c>@using</c> directives and an augmented compilation.
+        /// </summary>
+        private static string? ResolveTypeNameWithUsings(
+            string typeName,
+            ImmutableArray<string> usings,
+            Compilation compilation)
+        {
+            if (compilation is not CSharpCompilation csharpCompilation || usings.IsEmpty)
+            {
+                return null;
+            }
+
+            var sb = new StringBuilder();
+            foreach (var u in usings)
+            {
+                sb.Append("using ").Append(u).AppendLine(";");
+            }
+
+            sb.Append("class __Utf8Probe__ : ").Append(typeName).AppendLine(" { }");
+
+            var parseOptions = csharpCompilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions
+                ?? CSharpParseOptions.Default;
+            var probeTree = CSharpSyntaxTree.ParseText(sb.ToString(), parseOptions);
+
+            var augmented = csharpCompilation.AddSyntaxTrees(probeTree);
+            var semanticModel = augmented.GetSemanticModel(probeTree);
+            var classDecl = probeTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+            var baseTypeSyntax = classDecl?.BaseList?.Types.FirstOrDefault();
+
+            if (baseTypeSyntax is null)
+            {
+                return null;
+            }
+
+            return (semanticModel.GetSymbolInfo(baseTypeSyntax.Type).Symbol as INamedTypeSymbol)?.GetFullName();
+        }
+
+        public bool IsSupported(string? filePath, string baseTypeName)
+        {
+            if (filePath is not null && _fileToType.TryGetValue(filePath, out var fqn))
+            {
+                return _typeSupport.TryGetValue(fqn, out var supported) && supported;
+            }
+
+            // Fallback: try the raw name directly as a fully-qualified name.
+            return _typeSupport.TryGetValue(baseTypeName, out var fallback) && fallback;
+        }
 
         public bool Equals(Utf8SupportMap? other)
         {
@@ -89,7 +184,8 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
                 return true;
             }
 
-            return _entries.SequenceEqual(other._entries);
+            return _fileToType.SequenceEqual(other._fileToType) &&
+                   _typeSupport.SequenceEqual(other._typeSupport);
         }
 
         public override bool Equals(object? obj) => Equals(obj as Utf8SupportMap);
@@ -98,7 +194,13 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
         {
             var hash = 17;
 
-            foreach (var kvp in _entries)
+            foreach (var kvp in _fileToType)
+            {
+                hash = hash * 31 + StringComparer.OrdinalIgnoreCase.GetHashCode(kvp.Key);
+                hash = hash * 31 + StringComparer.Ordinal.GetHashCode(kvp.Value);
+            }
+
+            foreach (var kvp in _typeSupport)
             {
                 hash = hash * 31 + StringComparer.Ordinal.GetHashCode(kvp.Key);
                 hash = hash * 31 + kvp.Value.GetHashCode();

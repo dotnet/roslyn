@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -490,12 +492,10 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         // Act
         var result = RunGenerator(compilation!, ref driver, out _);
 
-        // Assert - short name with @using: the @inherits value is "MyUtf8PageBase" which
-        // won't match the metadata name "MyApp.Infrastructure.MyUtf8PageBase".
-        // UTF-8 detection only works with fully-qualified @inherits for now.
+        // Assert - short name resolves via augmented compilation with the @using directives
         Assert.Empty(result.Diagnostics);
         var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
-        Assert.DoesNotContain("u8)", indexSource);
+        Assert.Contains("u8)", indexSource);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
@@ -541,5 +541,174 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         Assert.Empty(result.Diagnostics);
         var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
         Assert.DoesNotContain("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AliasedInherits_WithUsing()
+    {
+        // Arrange - @inherits with a type alias defined via @using alias in _ViewImports
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using Utf8Base = MyApp.Infrastructure.MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits Utf8Base
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - alias resolves via augmented compilation
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AliasShadowsExistingType_GracefulFallback()
+    {
+        // Arrange - "MyPageBase" exists as a non-UTF-8 type in the global namespace.
+        // AliasedPage uses "@using MyPageBase = MyApp.Infrastructure.MyUtf8PageBase"
+        // which creates a C# compile error (CS0576: definition conflicting with alias).
+        // This test verifies we handle this gracefully — no crash, falls back to string literals.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/RegularPage.cshtml"] = """
+                    @inherits MyPageBase
+                    <h1>Regular Page</h1>
+                    """,
+                ["Pages/AliasedPage.cshtml"] = """
+                    @using MyPageBase = MyApp.Infrastructure.MyUtf8PageBase
+                    @inherits MyPageBase
+                    <h1>Aliased Page</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyPageBase : RazorPage
+                    {
+                    }
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - no generator crash. The alias conflicts with the global type (CS0576),
+        // so both files fall back to string literals. This is correct behavior since the
+        // user's code has a compile error.
+        Assert.Empty(result.Diagnostics);
+
+        var regularSource = result.GeneratedSources.Single(s => s.HintName.Contains("RegularPage")).SourceText.ToString();
+        var aliasedSource = result.GeneratedSources.Single(s => s.HintName.Contains("AliasedPage")).SourceText.ToString();
+
+        Assert.DoesNotContain("u8)", regularSource);
+        Assert.DoesNotContain("u8)", aliasedSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_AddingUsingMakesShortNameResolve()
+    {
+        // Arrange - @inherits uses a short name that doesn't resolve without a @using
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var (driver, additionalTexts, optionsProvider) = await GetDriverWithAdditionalTextAndProviderAsync(project);
+
+        // Act 1 - short name doesn't resolve, falls back to string literals
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+
+        // Act 2 - add a _ViewImports with @using that makes the short name resolve
+        var viewImports = new TestAdditionalText("Pages/_ViewImports.cshtml",
+            SourceText.From("@using MyApp.Infrastructure", Encoding.UTF8));
+        driver = driver.AddAdditionalTexts([viewImports]);
+        optionsProvider.AdditionalTextOptions[viewImports.Path] = new TestAnalyzerConfigOptions
+        {
+            ["build_metadata.AdditionalFiles.TargetPath"] = Convert.ToBase64String(Encoding.UTF8.GetBytes(viewImports.Path))
+        };
+        driver = driver.WithUpdatedAnalyzerConfigOptions(optionsProvider);
+
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        // Assert - now the short name resolves and UTF-8 is used
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
     }
 }

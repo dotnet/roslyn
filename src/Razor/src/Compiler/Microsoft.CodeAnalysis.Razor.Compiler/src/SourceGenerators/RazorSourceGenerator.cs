@@ -269,13 +269,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             // Build a map of which @inherits base types support UTF-8 WriteLiteral.
             var utf8SupportMap = parsedDocuments
-                .Select(static (item, _) => item.Item3.CodeDocument.GetInheritsDirectiveContent())
+                .Select(static (item, _) =>
+                {
+                    var codeDocument = item.Item3.CodeDocument;
+                    return (codeDocument, InheritsValue: codeDocument.GetInheritsDirectiveValue());
+                })
+                .Where(static item => item.InheritsValue is not null)
+                .Select(static (item, _) => new DefaultUtf8WriteLiteralFeature.InheritsInfo(
+                    item.codeDocument.Source.FilePath ?? string.Empty, item.InheritsValue!, item.codeDocument.GetUsingDirectives()))
                 .Collect()
                 .Combine(declCompilation)
                 .Select(static (pair, _) =>
                 {
-                    var (baseTypeNames, compilation) = pair;
-                    return DefaultUtf8WriteLiteralFeature.Utf8SupportMap.Create(baseTypeNames, compilation);
+                    var (inheritsInfos, compilation) = pair;
+                    return DefaultUtf8WriteLiteralFeature.Utf8SupportMap.Create(inheritsInfos, compilation);
                 })
                 .WithTrackingName("Utf8SupportMap");
 

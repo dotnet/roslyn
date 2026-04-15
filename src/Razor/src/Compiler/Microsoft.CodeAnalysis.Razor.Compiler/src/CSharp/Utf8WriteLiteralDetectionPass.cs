@@ -41,7 +41,7 @@ internal sealed class Utf8WriteLiteralDetectionPass : IntermediateNodePassBase, 
         }
 
         var baseTypeName = baseType.BaseType.Content;
-        if (_utf8Feature.IsSupported(baseTypeName))
+        if (_utf8Feature.IsSupported(codeDocument.Source.FilePath, baseTypeName))
         {
             documentNode.Options = documentNode.Options.WithFlags(writeHtmlUtf8StringLiterals: true);
         }

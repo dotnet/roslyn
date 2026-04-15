@@ -12,9 +12,10 @@ namespace Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 internal interface IUtf8WriteLiteralFeature : IRazorEngineFeature
 {
     /// <summary>
-    /// Returns <see langword="true"/> if the specified base type has a callable
+    /// Returns <see langword="true"/> if the base type used by the specified file has a callable
     /// <c>WriteLiteral(ReadOnlySpan&lt;byte&gt;)</c> overload.
     /// </summary>
-    /// <param name="baseTypeName">The fully-qualified metadata name of the base type to check.</param>
-    bool IsSupported(string baseTypeName);
+    /// <param name="filePath">The file path of the Razor document.</param>
+    /// <param name="baseTypeName">The raw <c>@inherits</c> value from the document.</param>
+    bool IsSupported(string? filePath, string baseTypeName);
 }

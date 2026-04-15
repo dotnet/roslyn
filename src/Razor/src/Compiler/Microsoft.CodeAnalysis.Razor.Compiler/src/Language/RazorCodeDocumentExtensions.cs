@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -48,7 +50,7 @@ public static class RazorCodeDocumentExtensions
     /// Returns the content of the <c>@inherits</c> directive if present in a legacy <c>.cshtml</c>
     /// document's syntax tree, or <see langword="null"/> for non-legacy files or when absent.
     /// </summary>
-    internal static string? GetInheritsDirectiveContent(this RazorCodeDocument codeDocument)
+    internal static string? GetInheritsDirectiveValue(this RazorCodeDocument codeDocument)
     {
         if (!codeDocument.FileKind.IsLegacy())
         {
@@ -75,6 +77,50 @@ public static class RazorCodeDocumentExtensions
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Returns all <c>@using</c> directives from the document and its import files.
+    /// </summary>
+    internal static ImmutableArray<string> GetUsingDirectives(this RazorCodeDocument codeDocument)
+    {
+        var syntaxTree = codeDocument.GetSyntaxTree();
+        if (syntaxTree is null)
+        {
+            return [];
+        }
+
+        var usings = new List<string>();
+        CollectUsings(syntaxTree, usings);
+
+        if (codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
+        {
+            foreach (var importTree in importSyntaxTrees)
+            {
+                CollectUsings(importTree, usings);
+            }
+        }
+
+        return [.. usings];
+
+        static void CollectUsings(RazorSyntaxTree tree, List<string> usings)
+        {
+            foreach (var node in tree.Root.DescendantNodes())
+            {
+                if (node is RazorUsingDirectiveSyntax usingDirective)
+                {
+                    var content = usingDirective.Body?.GetContent()?.Trim();
+                    if (content is not null && content.StartsWith("using ", StringComparison.Ordinal))
+                    {
+                        var ns = content.Substring("using ".Length).TrimEnd(';').Trim();
+                        if (ns.Length > 0)
+                        {
+                            usings.Add(ns);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>
