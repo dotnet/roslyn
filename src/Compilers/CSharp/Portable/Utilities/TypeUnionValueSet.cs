@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!typesInUnion.IsEmpty);
             Debug.Assert(!typesInUnion.Any(t => t.IsNullableType()));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
+
             _typesInUnion = typesInUnion;
             _root = root;
             _conversions = conversions;
@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!typesInUnion.IsEmpty);
             Debug.Assert(!typesInUnion.Any(TypeSymbolExtensions.IsNullableType));
-            Debug.Assert(typesInUnion.Distinct().Length == typesInUnion.Length);
 
             foreach (var t in typesInUnion)
             {

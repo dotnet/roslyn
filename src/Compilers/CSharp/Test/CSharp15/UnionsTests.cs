@@ -342,7 +342,7 @@ struct S1
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyEmitDiagnostics();
 
-            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.String"]);
+            VerifyCaseTypes(comp, "S1", ["System.Int32?", "System.String"]);
         }
 
         [Fact]
@@ -916,7 +916,7 @@ struct S2 : S2.IUnionMembers
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics();
 
-            VerifyCaseTypes(comp, "S2", ["System.Int32", "System.Int64", "System.String"]);
+            VerifyCaseTypes(comp, "S2", ["System.Int32", "System.Int32?", "System.Int64?", "System.String"]);
         }
 
         [Fact]
@@ -8664,9 +8664,9 @@ struct S1
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
-    public S1(string x) { _value = x; }
-    public object? Value => _value;
+    public S1(string? x) { _value = x; }
 #nullable disable
+    public object Value => _value;
 }
 
 class Program
@@ -8859,10 +8859,8 @@ struct S1
 {
     private readonly object _value;
     public S1(int? x) { _value = x; }
-#nullable enable
     public S1(string x) { _value = x; }
-    public object? Value => _value;
-#nullable disable
+    public object Value => _value;
 }
 
 class Program
@@ -8972,9 +8970,9 @@ struct S1
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
-    public S1(string x) { _value = x; }
-    public object? Value => _value;
+    public S1(string? x) { _value = x; }
 #nullable disable
+    public object Value => _value;
 }
 
 class Program
@@ -9015,9 +9013,9 @@ struct S1
     private readonly object _value;
     public S1(bool x) { _value = x; }
 #nullable enable
-    public S1(string x) { _value = x; }
-    public object? Value => _value;
+    public S1(string? x) { _value = x; }
 #nullable disable
+    public object Value => _value;
 }
 
 class Program
@@ -9454,9 +9452,9 @@ struct S1
     private readonly object _value;
     public S1(int x) { _value = x; }
 #nullable enable
-    public S1(string x) { _value = x; }
-    public object? Value => _value;
+    public S1(string? x) { _value = x; }
 #nullable disable
+    public object Value => _value;
 }
 
 class Program
@@ -9559,9 +9557,6 @@ class Program
                 // (100,40): hidden CS9335: The pattern is redundant.
                 //         return u switch { string => 2, null => 3 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 40),
-                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return u switch { string => 2 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
                 // (600,38): hidden CS9335: The pattern is redundant.
                 //         return u switch { null => 3, string => 2 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(600, 38)
@@ -9616,9 +9611,6 @@ class Program
                 // (100,37): hidden CS9335: The pattern is redundant.
                 //         return u switch { int => 1, null => 3 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 37),
-                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return u switch { int => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
                 // (600,38): hidden CS9335: The pattern is redundant.
                 //         return u switch { null => 3, int => 1 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(600, 38)
@@ -13485,7 +13477,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -13494,16 +13486,7 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-struct S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public S3(string? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -13520,13 +13503,6 @@ class Program
 #line 300
         S2 s = default;
         _ = s switch { int => 1, bool => 3 };
-    } 
-
-    static void Test4()
-    {
-#line 400
-        S3 s = default;
-        _ = s switch { int => 1, bool => 3, string => 4 };
     } 
 }
 ";
@@ -13599,7 +13575,7 @@ class Program
 " + typeKind + @" S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -13608,15 +13584,7 @@ class Program
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-" + typeKind + @" S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -13630,12 +13598,6 @@ class Program
     static void Test4(S2 s)
     {
 #line 400
-        _ = s switch { int => 1, bool => 3 };
-    } 
-
-    static void Test5(S3 s)
-    {
-#line 500
         _ = s switch { int => 1, bool => 3 };
     } 
 }
@@ -14823,7 +14785,7 @@ class Program
 " + typeKind + @" S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -14832,15 +14794,7 @@ class Program
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-" + typeKind + @" S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -14869,20 +14823,6 @@ class Program
         else
         {
 #line 400
-            _ = s switch { int => 1, bool => 3 };
-        }
-    } 
-
-    static void Test5(S3 s)
-    {
-        if (s is int)
-        {
-#line 500
-            _ = s switch { int => 1, bool => 3 };
-        }
-        else
-        {
-#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -14906,7 +14846,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -14915,15 +14855,7 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-struct S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -14952,20 +14884,6 @@ class Program
         else
         {
 #line 400
-            _ = s switch { int => 1, bool => 3 };
-        }
-    } 
-
-    static void Test5(S3 s)
-    {
-        if (s is not int)
-        {
-#line 500
-            _ = s switch { int => 1, bool => 3 };
-        }
-        else
-        {
-#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -14989,7 +14907,7 @@ class Program
 class S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -14998,15 +14916,7 @@ class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-class S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -15035,20 +14945,6 @@ class Program
         else
         {
 #line 400
-            _ = s switch { int => 1, bool => 3 };
-        }
-    } 
-
-    static void Test5(S3 s)
-    {
-        if (s is not int)
-        {
-#line 500
-            _ = s switch { int => 1, bool => 3 };
-        }
-        else
-        {
-#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -15114,7 +15010,7 @@ class Program
 " + typeKind + @" S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -15123,15 +15019,7 @@ class Program
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-" + typeKind + @" S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -15160,20 +15048,6 @@ class Program
         else
         {
 #line 400
-            _ = s switch { int => 1, bool => 3 };
-        }
-    } 
-
-    static void Test5(S3 s)
-    {
-        if (s is 1)
-        {
-#line 500
-            _ = s switch { int => 1, bool => 3 };
-        }
-        else
-        {
-#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -15197,7 +15071,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -15206,15 +15080,7 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-struct S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -15243,20 +15109,6 @@ class Program
         else
         {
 #line 400
-            _ = s switch { int => 1, bool => 3 };
-        }
-    } 
-
-    static void Test5(S3 s)
-    {
-        if (s is not 1)
-        {
-#line 500
-            _ = s switch { int => 1, bool => 3 };
-        }
-        else
-        {
-#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -15280,7 +15132,7 @@ class Program
 class S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -15289,15 +15141,7 @@ class S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-class S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -15326,20 +15170,6 @@ class Program
         else
         {
 #line 400
-            _ = s switch { int => 1, bool => 3 };
-        }
-    } 
-
-    static void Test5(S3 s)
-    {
-        if (s is not 1)
-        {
-#line 500
-            _ = s switch { int => 1, bool => 3 };
-        }
-        else
-        {
-#line 600
             _ = s switch { int => 1, bool => 3 };
         }
     } 
@@ -15643,7 +15473,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -15652,15 +15482,7 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-struct S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -15676,13 +15498,6 @@ class Program
     {
 #line 300
         S2? s = default(S2);
-        _ = s.Value switch { int => 1, bool => 3 };
-    } 
-
-    static void Test4()
-    {
-#line 400
-        S3? s = default(S3);
         _ = s.Value switch { int => 1, bool => 3 };
     } 
 }
@@ -15705,7 +15520,7 @@ class Program
 struct S1
 {
     public S1(int x) => throw null!;
-    public S1(bool x) => throw null!;
+    public S1(bool? x) => throw null!;
     public object? Value => throw null!;
 }
 
@@ -15714,15 +15529,7 @@ struct S2
 {
     public S2(int x) => throw null!;
     public S2(bool x) => throw null!;
-    public object Value => throw null!;
-}
-
-[System.Runtime.CompilerServices.Union]
-struct S3
-{
-    public S3(int? x) => throw null!;
-    public S3(bool? x) => throw null!;
-    public object Value => throw null!;
+    public object? Value => throw null!;
 }
 
 class Program
@@ -15738,13 +15545,6 @@ class Program
     {
         if (s is null) return;
 #line 400
-        _ = s.Value switch { int => 1, bool => 3 };
-    } 
-
-    static void Test5(S3? s)
-    {
-        if (s is null) return;
-#line 500
         _ = s.Value switch { int => 1, bool => 3 };
     } 
 }
@@ -25495,7 +25295,7 @@ union S1(System.Nullable<string>);
 ";
             var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], targetFramework: TargetFramework.NetCoreApp);
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
-            VerifyCaseTypes(comp, "S1", ["System.String"]);
+            VerifyCaseTypes(comp, "S1", ["System.String?"]);
 
             comp.VerifyEmitDiagnostics(
                 // (100,10): error CS9371: Cannot convert type 'string?' to 'object' via an implicit reference or boxing conversion
@@ -28251,20 +28051,20 @@ class Program
         System.Console.Write((new S1<int?>(4)).Test(out var x));
         System.Console.Write(x);
 
-        //System.Console.WriteLine();
+        System.Console.WriteLine();
 
-        //var s = new S1<int?>(4);
-        //System.Console.Write(s is 4);
-        //System.Console.Write(s is 1);
+        var s = new S1<int?>(4);
+        System.Console.Write(s is 4);
+        System.Console.Write(s is 1);
     }
 }
 ";
-            // PROTOTYPE: Commented out code in the test scenario above should work (use TryGetValue).
-            //            Probably TryGetValue-out-parameter-conversions should allow us to do that, but they aren't implemented yet.
+
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"
 TrueTrueFalseFalse
 FalseTrue4
+TrueFalse
 ").VerifyDiagnostics();
         }
 
@@ -28557,12 +28357,12 @@ class Program
         public void TryGetValueMethod_22(
             [CombinatorialValues(
                 """
-                public S1(int x) {}
-                public bool TryGetValue(out T value) => throw null!;
+                public S1(int? x) {}
+                public bool TryGetValue(out T? value) => throw null!;
                 """,
                 """
-                public S1(T x) {}
-                public bool TryGetValue(out int value) => throw null!;
+                public S1(T? x) {}
+                public bool TryGetValue(out int? value) => throw null!;
                 """)]
             string members)
         {
@@ -28570,10 +28370,10 @@ class Program
 #nullable enable
 
 [System.Runtime.CompilerServices.Union]
-public class S1<T>
+public class S1<T> where T : struct
 {
     " + members + @"
-    public object? Value => throw null!;
+    public object Value => throw null!;
 }
 
 class Program
@@ -28636,10 +28436,10 @@ public class S0
 }
 
 [System.Runtime.CompilerServices.Union]
-public class S1<T> : S0
+public class S1<T> : S0 where T : struct
 {
-    public S1(T x) {}
-    public object? Value => throw null!;
+    public S1(T? x) {}
+    public object Value => throw null!;
 }
 
 class Program
@@ -28696,16 +28496,16 @@ class Program
             var src = @"
 #nullable enable
 
-public class S0<T>
+public class S0<T> where T : struct
 {
-    public bool TryGetValue(out T value) => throw null!;
+    public bool TryGetValue(out T? value) => throw null!;
 }
 
 [System.Runtime.CompilerServices.Union]
-public class S1<T> : S0<T>
+public class S1<T> : S0<T> where T : struct
 {
-    public S1(int x) {}
-    public object? Value => throw null!;
+    public S1(int? x) {}
+    public object Value => throw null!;
 }
 
 class Program
@@ -29489,6 +29289,412 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "FalseFalseTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_38_ParameterTypeIsUnderlying()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TryGetValueMethod_39_NullableType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool TryGetValue(out int? x) { if (_value is int v) { x = v; return true; } x = null; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write(Test2(new S1(""b"")));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is int;
+    }   
+
+    static bool Test2(S1 u)
+    {
+        return u is not int;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseFalseFalseTrueTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (int? V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int?)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int? V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int?)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TryGetValueMethod_40_NullableType()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+    public bool TryGetValue(out int? x) { if (_value is int v) { x = v; return true; } x = null; return false; }
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1(""a"")));
+        System.Console.Write(Test1(new S1(2)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: TryGetValue(int?): (Item1, ReturnItem) t1 = t0; [1]
+[1]: t1.ReturnItem == True ? [2] : [5]
+[2]: t2 = (int)t1.Item1; [3]
+[3]: t2 == 2 ? [4] : [5]
+[4]: leaf <isPatternSuccess> `2`
+[5]: leaf <isPatternFailure> `u is 2`
+",
+index: 1,
+forLowering: true);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseTrue").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (int? V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out int?)""
+  IL_0009:  brfalse.s  IL_0016
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  ldc.i4.2
+  IL_0013:  ceq
+  IL_0015:  ret
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+}
+");
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_41_NullableType_IdentityWins(
+            [CombinatorialValues(
+                new[]
+                {
+                    "public bool TryGetValue(out int? x) => throw null;",
+                    "public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }"
+                },
+                new[]
+                {
+                    "public bool TryGetValue(out int x) { if (_value is int v) { x = v; return true; } x = 0; return false; }",
+                    "public bool TryGetValue(out int? x) => throw null;"
+                })]
+            string[] tryGetValues)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(int x) { _value = x; }
+    public object Value => throw null;
+
+    " + tryGetValues[0] + @"
+    " + tryGetValues[1] + @"
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1((int?)2)));
+        System.Console.Write(Test1(new S1(2)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TryGetValueMethod_42_NullableType_BoxingLoses(
+            [CombinatorialValues(
+                new[]
+                {
+                    "public bool TryGetValue(out System.IComparable x) => throw null;",
+                    "public bool TryGetValue(out int? x) { if (_value is int v) { x = v; return true; } x = null; return false; }"
+                },
+                new[]
+                {
+                    "public bool TryGetValue(out int? x) { if (_value is int v) { x = v; return true; } x = null; return false; }",
+                    "public bool TryGetValue(out System.IComparable x) => throw null;"
+                })]
+            string[] tryGetValues)
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int? x) { _value = x; }
+    public S1(System.IComparable x) { _value = x; }
+    public object Value => throw null;
+
+    " + tryGetValues[0] + @"
+    " + tryGetValues[1] + @"
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test1(new S1((int?)2)));
+        System.Console.Write(Test1(new S1(2)));
+    }
+
+    static bool Test1(S1 u)
+    {
+        return u is 2;
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueTrue").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TryGetValueMethod_43_NullableType_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object Value => throw null!;
+    public bool TryGetValue(out bool? x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 100
+            value.Value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 200
+            value.Value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 300
+            value.Value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 400
+            value.Value.ToString();
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (200,13): warning CS8629: Nullable value type may be null.
+                //             value.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "value").WithLocation(200, 13),
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (300,13): warning CS8629: Nullable value type may be null.
+                //             value.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "value").WithLocation(300, 13),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19)
+                );
+        }
+
+        [Fact]
+        public void TryGetValueMethod_44_NullableType_NullableAnalysis()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    public S1(string? x) => throw null!;
+    public S1(bool? x) => throw null!;
+    public object Value => throw null!;
+    public bool TryGetValue(out bool x) => throw null!;
+}
+
+class Program
+{
+    static void Test2(S1 s)
+    {
+        if (s.TryGetValue(out var value))
+        {
+#line 101
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 201
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+
+    static void Test4(S1 s)
+    {
+        if (!s.TryGetValue(out var value))
+        {
+#line 301
+            _ = s switch { string => 1, bool => 3 };
+        }
+        else
+        {
+#line 401
+            _ = s switch { string => 1, bool => 3 };
+        }
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (201,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(201, 19),
+                // (301,19): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //             _ = s switch { string => 1, bool => 3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(301, 19)
+                );
         }
 
         /// <summary>

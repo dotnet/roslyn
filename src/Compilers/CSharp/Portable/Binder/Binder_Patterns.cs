@@ -219,7 +219,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Conversion conversion = conversions.ClassifyBuiltInConversion(type, candidate.Parameters[0].Type, isChecked: false, ref discardedUseSiteInfo);
 
-                        if (!conversion.Exists || !conversion.IsImplicit || !(conversion.IsIdentity || conversion.IsReference || conversion.IsBoxing))
+                        if (!conversion.Exists || !conversion.IsImplicit ||
+                            !(conversion.IsIdentity || conversion.IsReference || conversion.IsBoxing ||
+                              (conversion.IsNullable && conversion.UnderlyingConversions[0].IsIdentity)))
                         {
                             continue;
                         }
@@ -239,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bool isMatch =
                              HasTryGetValueSignature(declaredMethod) &&
                              declaredMethod.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
-                             unionDefinitionCaseTypes.Contains(declaredMethod.Parameters[0].Type, Symbols.SymbolEqualityComparer.AllIgnoreOptions); // https://github.com/dotnet/roslyn/issues/82636: Optimize this check?
+                             HasUnionTypeTryGetValueParameterType(declaredMethod, unionDefinitionCaseTypes);
 
                         Debug.Assert(isMatch == IsUnionTypeTryGetValueMethod(inputUnionType, candidate));
 
@@ -251,8 +253,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                Debug.Assert(bestMatch is null || bestMatchConversion.IsReference || bestMatchConversion.IsBoxing);
-                                if (bestMatch is null || (conversion.IsReference && bestMatchConversion.IsBoxing))
+                                Debug.Assert(bestMatch is null ||
+                                             bestMatchConversion.IsReference || bestMatchConversion.IsBoxing ||
+                                             (bestMatchConversion.IsNullable && bestMatchConversion.UnderlyingConversions[0].IsIdentity));
+                                Debug.Assert(!bestMatchConversion.IsReference || !conversion.IsNullable);
+                                Debug.Assert(!conversion.IsReference || !bestMatchConversion.IsNullable);
+                                Debug.Assert(!bestMatchConversion.IsReference || !conversion.IsBoxing);
+                                Debug.Assert(!conversion.IsReference || !bestMatchConversion.IsBoxing);
+
+                                if (bestMatch is null || (!conversion.IsBoxing && bestMatchConversion.IsBoxing))
                                 {
                                     bestMatch = candidate;
                                     bestMatchConversion = conversion;
@@ -264,6 +273,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return bestMatch;
+        }
+
+        private static bool HasUnionTypeTryGetValueParameterType(MethodSymbol declaredMethod, ImmutableArray<TypeSymbol> unionDefinitionCaseTypes)
+        {
+            return unionDefinitionCaseTypes.Any(
+                static (caseType, parameterType) =>
+                {
+                    if (caseType.Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        return true;
+                    }
+
+                    if (caseType.IsNullableType() &&
+                        caseType.GetNullableUnderlyingType().Equals(parameterType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                },
+                declaredMethod.Parameters[0].Type); // https://github.com/dotnet/roslyn/issues/82636: Optimize this check?
         }
 
         internal static bool HasTryGetValueSignature(MethodSymbol method)
@@ -302,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return HasTryGetValueSignature(method) && method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
-                           unionDefinition.UnionCaseTypes.Contains(method.Parameters[0].Type, Symbols.SymbolEqualityComparer.AllIgnoreOptions); // https://github.com/dotnet/roslyn/issues/82636: Optimize this check?
+                           HasUnionTypeTryGetValueParameterType(method, unionDefinition.UnionCaseTypes);
                 }
             }
 
