@@ -927,7 +927,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Refactoring inserts \\r\\n blank lines which don't match on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits4()
         => VerifyCS.VerifyRefactoringAsync("""
             class C

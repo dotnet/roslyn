@@ -1487,9 +1487,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         }
 
         // Now, overwrite the analyzer reference with a new version that generates different contents
-#pragma warning disable CA1416 // ClearCachedTestReferences is platform-agnostic despite class-level [SupportedOSPlatform]
         TestSerializerService.ClearCachedTestReferences();
-#pragma warning restore CA1416
         {
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2"))
             using (var destination = File.OpenWrite(analyzerPath))

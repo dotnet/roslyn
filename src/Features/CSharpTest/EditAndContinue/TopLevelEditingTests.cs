@@ -2026,7 +2026,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             Diagnostic(RudeEditKind.ModifiersUpdate, "ref struct X", FeaturesResources.struct_));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Struct_ReadonlyModifier_Add()
     {
         var src1 = "struct X { }";
@@ -7388,7 +7388,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "extension", GetResource("extension block")));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Extension_Block_ChangeParent()
     {
         var src1 = """
@@ -8030,7 +8030,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
         edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.Update, "set", GetResource("extension block")));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Extension_Operator_AddRemove()
     {
         var src1 = """
@@ -9554,7 +9554,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("S").GetMember<IMethodSymbol>("M")));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Method_ReadOnlyModifier_Add_InReadOnlyStruct2()
     {
         var src1 = """
@@ -17150,7 +17150,7 @@ public sealed class TopLevelEditingTests : EditingTestBase
             ]);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void MemberInitializer_Update_Property_StaticCtorUpdate1()
     {
         var src1 = "class C { static int a { get; } = 1; static C() { } }";
@@ -23435,7 +23435,7 @@ class C() : B{{initializer}}
             capabilities: EditAndContinueCapabilities.Baseline);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void EventField_Delete()
     {
         var src1 = "class C { event System.Action E; }";

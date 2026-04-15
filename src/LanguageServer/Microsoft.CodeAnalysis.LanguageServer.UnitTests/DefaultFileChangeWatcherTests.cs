@@ -516,7 +516,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         Assert.True(allEventsFired, "Should receive events for all file changes");
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file renames on Linux")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileRenamed_InWatchedDirectory_FireEventForOriginalPath()
     {
         var tempDirectory = _tempRoot.CreateDirectory();

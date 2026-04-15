@@ -2417,7 +2417,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Code fix inserts CRLF line endings when adding missing braces on Unix")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/75992")]
     public Task InsertMissingBraces()
         => TestAllOptionsOffAsync(
