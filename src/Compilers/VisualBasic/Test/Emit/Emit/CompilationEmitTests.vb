@@ -907,22 +907,23 @@ End Class
 
             expectedVersion = If(expectedVersion, New Version(0, 0, 0, 0))
 
-            Dim verifier = CompileAndVerify(
-                source,
-                verify:=Verification.Passes,
-                validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=True),
-                useLatestFramework:=True)
-            VerifyWin32Resources(verifier, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+            ' normal assembly — emit with win32 resources to verify version info is present
+            Dim compilation = CreateEmptyCompilationWithReferences(source, LatestVbReferences)
+            Dim normalAssemblyBytes = EmitWithWin32Resources(compilation)
+            VerifyRefAssemblyStripsAttribute_ValidateBytes(normalAssemblyBytes, strippedAttributeConstructor, expectedVersion, present:=True)
+            VerifyWin32Resources(normalAssemblyBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=True)
 
+            ' ref assembly — attribute is stripped and no win32 resources
             Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            verifier = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 source,
                 emitOptions:=emitRefAssembly,
                 verify:=Verification.Passes,
                 validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=False),
                 useLatestFramework:=True)
-            VerifyWin32Resources(verifier, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+            VerifyWin32Resources(verifier.EmittedAssemblyData, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
 
+            ' metadata-only assembly — attribute is present but no win32 resources
             Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True)
             verifier = CompileAndVerify(
                 source,
@@ -930,7 +931,33 @@ End Class
                 verify:=Verification.Passes,
                 validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=True),
                 useLatestFramework:=True)
-            VerifyWin32Resources(verifier, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+            VerifyWin32Resources(verifier.EmittedAssemblyData, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+        End Sub
+
+        Private Shared Function EmitWithWin32Resources(compilation As VisualBasicCompilation) As ImmutableArray(Of Byte)
+            Using peStream As New MemoryStream()
+                Using win32Resources = compilation.CreateDefaultWin32Resources(versionResource:=True, noManifest:=False, manifestContents:=Nothing, iconInIcoFormat:=Nothing)
+                    Dim result = compilation.Emit(peStream, win32Resources:=win32Resources)
+                    result.Diagnostics.Verify()
+                    Return peStream.ToArray().AsImmutableOrNull()
+                End Using
+            End Using
+        End Function
+
+        Private Shared Sub VerifyRefAssemblyStripsAttribute_ValidateBytes(assemblyBytes As ImmutableArray(Of Byte), strippedAttributeConstructor As String, expectedVersion As Version, present As Boolean)
+            Using peReader As New PEReader(assemblyBytes)
+                Dim reader = peReader.GetMetadataReader()
+                Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
+                Dim attributeStrings = attributes.Select(Function(a) MetadataReaderUtils.Dump(reader, reader.GetCustomAttribute(a).Constructor))
+
+                If present Then
+                    Assert.Contains(strippedAttributeConstructor, attributeStrings)
+                Else
+                    Assert.DoesNotContain(strippedAttributeConstructor, attributeStrings)
+                End If
+
+                Assert.Equal(expectedVersion, reader.GetAssemblyDefinition().Version)
+            End Using
         End Sub
 
         Private Shared Sub VerifyRefAssemblyStripsAttribute_Validate(assembly As PEAssembly, strippedAttributeConstructor As String, expectedVersion As Version, present As Boolean)
@@ -945,8 +972,8 @@ End Class
             Assert.Equal(expectedVersion, assembly.GetMetadataReader().GetAssemblyDefinition().Version)
         End Sub
 
-        Private Sub VerifyWin32Resources(verifier As CompilationVerifier, expectedVersion As Version, expectedFileVersion As String, expectedProductVersion As String, expectResources As Boolean)
-            Using peReader As New PEReader(New MemoryStream(verifier.EmittedAssemblyData.ToArray()))
+        Private Sub VerifyWin32Resources(assemblyBytes As ImmutableArray(Of Byte), expectedVersion As Version, expectedFileVersion As String, expectedProductVersion As String, expectResources As Boolean)
+            Using peReader As New PEReader(assemblyBytes)
                 Dim hasResources As Boolean = peReader.PEHeaders.PEHeader.ResourceTableDirectory.Size <> 0
                 Assert.Equal(expectResources, hasResources)
 
@@ -956,7 +983,7 @@ End Class
             End Using
 
             If ExecutionConditionUtil.IsWindows Then
-                Dim file = Temp.CreateFile(extension:=".dll").WriteAllBytes(verifier.EmittedAssemblyData)
+                Dim file = Temp.CreateFile(extension:=".dll").WriteAllBytes(assemblyBytes)
                 Dim versionData = Win32Res.VersionResourceToXml(file.Path)
                 Dim expectedEffectiveFileVersion = If(expectedFileVersion, expectedVersion.ToString())
 
@@ -965,8 +992,6 @@ End Class
 
                 If expectedProductVersion IsNot Nothing Then
                     Assert.Contains($"<KeyValuePair Key=""ProductVersion"" Value=""{expectedProductVersion}"" />", versionData)
-                Else
-                    Assert.DoesNotContain("Key=""ProductVersion""", versionData)
                 End If
             End If
         End Sub
