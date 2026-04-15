@@ -343,7 +343,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(3, results.Length);
-        Assert.True(results[0].Location.DocumentUri.ToString().EndsWith("String.cs"));
+        Assert.EndsWith(expectedEndString: "String.cs", actualString: results[0].Location.DocumentUri.ToString());
 
         AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Skip(1).Select(r => r.Location));
     }
