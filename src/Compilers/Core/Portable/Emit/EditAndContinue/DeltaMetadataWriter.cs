@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.Emit
         // original metadata
         private readonly Dictionary<EntityHandle, ImmutableArray<int>> _customAttributesAdded;
 
-        private readonly ArrayBuilder<int> _customAttributeRowIds;
-        private bool _pooledObjectsFreed;
+        private ArrayBuilder<int>? _customAttributeRowIds;
+        private ArrayBuilder<int> CustomAttributeRowIds => _customAttributeRowIds ?? throw ExceptionUtilities.Unreachable();
         private readonly List<(EntityHandle parentHandle, IEnumerator<ICustomAttribute> attributeEnumerator)> _deferredCustomAttributes = new();
 
         private readonly Dictionary<IParameterDefinition, int> _existingParameterDefs;
@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal void FreePooledObjects()
         {
-            if (!_pooledObjectsFreed)
+            if (_customAttributeRowIds is { } rowIds)
             {
-                _pooledObjectsFreed = true;
-                _customAttributeRowIds.Free();
+                _customAttributeRowIds = null;
+                rowIds.Free();
             }
         }
 
@@ -1063,10 +1063,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 var originalCustomAttributes = _previousGeneration.OriginalMetadata.MetadataReader.GetCustomAttributes(parentHandle);
                 foreach (var handle in originalCustomAttributes)
                 {
-                    _customAttributeRowIds.Add(MetadataTokens.GetRowNumber(handle));
+                    CustomAttributeRowIds.Add(MetadataTokens.GetRowNumber(handle));
                 }
 
-                Debug.Assert(_customAttributeRowIds.IsSorted());
+                Debug.Assert(CustomAttributeRowIds.IsSorted());
 
                 addWithCap(parentHandle, attributeEnumerator, originalCustomAttributes.Count);
             }
@@ -1076,9 +1076,9 @@ namespace Microsoft.CodeAnalysis.Emit
             foreach (var (parentHandle, attributeEnumerator) in _deferredCustomAttributes)
             {
                 var previouslyAddedRowIds = _previousGeneration.CustomAttributesAdded.TryGetValue(parentHandle, out var rowIds) ? rowIds : ImmutableArray<int>.Empty;
-                _customAttributeRowIds.AddRange(previouslyAddedRowIds);
+                CustomAttributeRowIds.AddRange(previouslyAddedRowIds);
 
-                Debug.Assert(_customAttributeRowIds.IsSorted());
+                Debug.Assert(CustomAttributeRowIds.IsSorted());
 
                 addWithCap(parentHandle, attributeEnumerator, previouslyAddedRowIds.Length);
             }
@@ -1087,20 +1087,20 @@ namespace Microsoft.CodeAnalysis.Emit
 
             foreach (var (parentHandle, attributeEnumerator) in _deferredCustomAttributes)
             {
-                int previousCustomAttributeRowIdsCount = _customAttributeRowIds.Count;
+                int previousCustomAttributeRowIdsCount = CustomAttributeRowIds.Count;
                 while (attributeEnumerator.MoveNext())
                 {
                     if (AddCustomAttributeToTable(parentHandle, attributeEnumerator.Current))
                     {
                         lastCustomAttributeRowId++;
-                        _customAttributeRowIds.Add(lastCustomAttributeRowId);
+                        CustomAttributeRowIds.Add(lastCustomAttributeRowId);
                     }
                 }
 
-                if (_customAttributeRowIds.Count > previousCustomAttributeRowIdsCount)
+                if (CustomAttributeRowIds.Count > previousCustomAttributeRowIdsCount)
                 {
                     var previouslyAddedRowIds = _previousGeneration.CustomAttributesAdded.TryGetValue(parentHandle, out var rowIds) ? rowIds : ImmutableArray<int>.Empty;
-                    _customAttributesAdded.Add(parentHandle, previouslyAddedRowIds.AddRange(_customAttributeRowIds.Skip(previousCustomAttributeRowIdsCount)));
+                    _customAttributesAdded.Add(parentHandle, previouslyAddedRowIds.AddRange(CustomAttributeRowIds.Skip(previousCustomAttributeRowIdsCount)));
                 }
             }
 
@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             PopulateEncLogTableRows(TableIndex.Constant, previousSizes, deltaSizes);
 
-            foreach (var rowId in _customAttributeRowIds)
+            foreach (var rowId in CustomAttributeRowIds)
             {
                 metadata.AddEncLogEntry(
                     entity: MetadataTokens.CustomAttributeHandle(rowId),
@@ -1363,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         break;
 
                     case TableIndex.CustomAttribute:
-                        AddRowNumberTokens(tokens, TableIndex.CustomAttribute, _customAttributeRowIds);
+                        AddRowNumberTokens(tokens, TableIndex.CustomAttribute, CustomAttributeRowIds);
                         break;
                 }
 

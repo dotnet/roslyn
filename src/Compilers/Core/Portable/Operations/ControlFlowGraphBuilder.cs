@@ -3989,6 +3989,7 @@ oneMoreTime:
                 resourceQueue.ReverseContents();
 
                 processQueue(resourceQueue);
+                resourceQueue.Free();
             }
             else
             {
@@ -4019,7 +4020,6 @@ oneMoreTime:
             {
                 if (resourceQueueOpt == null || resourceQueueOpt.Count == 0)
                 {
-                    resourceQueueOpt?.Free();
                     VisitStatement(body);
                 }
                 else
