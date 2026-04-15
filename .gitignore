@@ -197,3 +197,4 @@ $RECYCLE.BIN/
 
 # WPF temp projects
 *wpftmp.*
+BenchmarkDotNet.Artifacts/
