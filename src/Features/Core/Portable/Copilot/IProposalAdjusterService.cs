@@ -261,15 +261,6 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
             anyConstrained = true;
 
-            // The only case we can handle safely is when the change fully contains the
-            // protected span, because we can find the protected text in newText and split.
-            if (change.Span.Start > protectedSpan.Start || change.Span.End < protectedSpan.End)
-            {
-                // Partial overlap or change is contained within the protected span.
-                // We can't safely split this.
-                return default;
-            }
-
             if (!TrySplitChangeAroundProtectedSpan(originalText, change, protectedSpan, result))
                 return default;
         }
@@ -291,9 +282,10 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     }
 
     /// <summary>
-    /// Splits a <see cref="TextChange"/> that fully contains the protected span into parts that avoid it.
-    /// Finds the protected text within <paramref name="change"/>.<see cref="TextChange.NewText"/> and splits
-    /// around it, discarding the portion that corresponds to the protected span.
+    /// Splits or trims a <see cref="TextChange"/> that intersects the protected span.
+    /// For the portion before the protected span, the protected text is located via
+    /// <see cref="FindProtectedTextInNewText"/>. For partial overlaps, the overlap text
+    /// is verified via StartsWith or EndsWith checks.
     /// </summary>
     private static bool TrySplitChangeAroundProtectedSpan(
         SourceText originalText,
@@ -301,82 +293,82 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         TextSpan protectedSpan,
         ArrayBuilder<TextChange> result)
     {
-        Debug.Assert(change.Span.Start <= protectedSpan.Start && change.Span.End >= protectedSpan.End);
-
         var newText = change.NewText ?? "";
-        var protectedText = originalText.ToString(protectedSpan);
+        var overlapsStart = change.Span.Start <= protectedSpan.Start;
+        var overlapsEnd = change.Span.End >= protectedSpan.End;
 
-        if (protectedText.Length == 0)
-            return false;
+        // Full containment
+        if (overlapsStart && overlapsEnd)
+        {
+            var protectedText = originalText.ToString(protectedSpan);
+            if (protectedText.Length == 0)
+                return false;
 
-        // Find the protected text in newText. Adjusters (formatting, missing tokens, imports)
-        // don't modify identifiers, so the ATS text should be preserved in the replacement.
-        var protectedIndex = FindProtectedTextInNewText(change.Span, newText, protectedSpan, protectedText);
-        if (protectedIndex < 0)
-            return false;
+            var protectedIndex = FindProtectedTextInNewText(newText, protectedText);
+            if (protectedIndex < 0)
+                return false;
 
-        // Emit the portion before the protected span.
-        var beforeSpan = TextSpan.FromBounds(change.Span.Start, protectedSpan.Start);
-        var beforeText = newText[..protectedIndex];
+            var beforeSpan = TextSpan.FromBounds(change.Span.Start, protectedSpan.Start);
+            var beforeText = newText[..protectedIndex];
+            if (beforeSpan.Length > 0 || beforeText.Length > 0)
+                result.Add(new TextChange(beforeSpan, beforeText));
 
-        if (beforeSpan.Length > 0 || beforeText.Length > 0)
-            result.Add(new TextChange(beforeSpan, beforeText));
+            var afterSpan = TextSpan.FromBounds(protectedSpan.End, change.Span.End);
+            var afterText = newText[(protectedIndex + protectedText.Length)..];
+            if (afterSpan.Length > 0 || afterText.Length > 0)
+                result.Add(new TextChange(afterSpan, afterText));
+        }
+        else if (overlapsStart)
+        {
+            // Partial overlap on the start side — verify the overlap text is at the end of the replacement.
+            var overlapText = originalText.ToString(TextSpan.FromBounds(protectedSpan.Start, change.Span.End));
+            if (!newText.EndsWith(overlapText, StringComparison.Ordinal))
+                return false;
 
-        // Emit the portion after the protected span.
-        var afterSpan = TextSpan.FromBounds(protectedSpan.End, change.Span.End);
-        var afterText = newText[(protectedIndex + protectedText.Length)..];
+            result.Add(new TextChange(
+                TextSpan.FromBounds(change.Span.Start, protectedSpan.Start),
+                newText[..^overlapText.Length]));
+        }
+        else
+        {
+            // Partial overlap on the end side — verify the overlap text is at the start of the replacement.
+            var overlapText = originalText.ToString(TextSpan.FromBounds(change.Span.Start, protectedSpan.End));
+            if (!newText.StartsWith(overlapText, StringComparison.Ordinal))
+                return false;
 
-        if (afterSpan.Length > 0 || afterText.Length > 0)
-            result.Add(new TextChange(afterSpan, afterText));
+            result.Add(new TextChange(
+                TextSpan.FromBounds(protectedSpan.End, change.Span.End),
+                newText[overlapText.Length..]));
+        }
 
         return true;
     }
 
     /// <summary>
     /// Finds the position of the ApplicableToSpan text within a change's replacement text.
-    /// Computes the expected position arithmetically from the ATS offset within the original
-    /// change span, then searches outward from that position. This handles cases where the
-    /// ATS text appears multiple times in the replacement.
+    /// Searches forward and backward from the midpoint of the replacement text and returns
+    /// whichever match is closer to that midpoint.
     /// </summary>
     private static int FindProtectedTextInNewText(
-        TextSpan changeSpan,
         string newText,
-        TextSpan protectedSpan,
         string protectedText)
     {
-        // The ATS sits at a known offset within the original change span. Since adjusters
-        // primarily modify whitespace (indentation, line endings) rather than identifiers,
-        // the ATS text should appear near this same relative offset in the replacement text.
-        var originalOffset = protectedSpan.Start - changeSpan.Start;
+        var midpoint = newText.Length / 2;
 
-        // Search outward from the expected position, checking progressively further away.
-        // This ensures we find the closest match to the expected position rather than
-        // always picking the first occurrence (which could be wrong when the ATS text
-        // appears multiple times).
-        var maxDistance = Math.Max(originalOffset, newText.Length - originalOffset);
-        for (var distance = 0; distance <= maxDistance; distance++)
+        // Search forward from the midpoint.
+        var forwardIndex = newText.IndexOf(protectedText, midpoint, StringComparison.Ordinal);
+
+        // Search backward from the midpoint.
+        var backwardIndex = newText.LastIndexOf(protectedText, midpoint, StringComparison.Ordinal);
+
+        return (forwardIndex, backwardIndex) switch
         {
-            // Check at expectedOffset + distance
-            var idx = originalOffset + distance;
-            if (idx >= 0 && idx + protectedText.Length <= newText.Length &&
-                string.Compare(newText, idx, protectedText, 0, protectedText.Length, StringComparison.Ordinal) == 0)
-            {
-                return idx;
-            }
-
-            // Check at expectedOffset - distance (skip 0 to avoid double-checking)
-            if (distance > 0)
-            {
-                idx = originalOffset - distance;
-                if (idx >= 0 && idx + protectedText.Length <= newText.Length &&
-                    string.Compare(newText, idx, protectedText, 0, protectedText.Length, StringComparison.Ordinal) == 0)
-                {
-                    return idx;
-                }
-            }
-        }
-
-        return -1;
+            ( >= 0, < 0) => forwardIndex,
+            ( < 0, >= 0) => backwardIndex,
+            ( < 0, < 0) => -1,
+            // Both found — pick whichever is closer to the midpoint.
+            _ => (midpoint - backwardIndex <= forwardIndex - midpoint) ? backwardIndex : forwardIndex,
+        };
     }
 
     private static async Task<Document> TryGetAddImportTextChangesAsync(

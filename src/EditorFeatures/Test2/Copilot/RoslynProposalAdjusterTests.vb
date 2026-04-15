@@ -928,16 +928,45 @@ class C
         End Sub
 
         <WpfFact>
-        Public Sub TestConstrainChanges_PartialOverlap_ReturnsDefault()
-            ' A change that partially overlaps the ATS cannot be split safely.
+        Public Sub TestConstrainChanges_PartialOverlapStart_TrimsBeforeAts()
+            ' Change spans [5,9) which overlaps the start of ATS [8,10).
+            ' Original overlap text at [8,9) is "w". Replacement "LE.w" ends with "w" (preserved).
+            ' Trimmed: span=[5,8), newText="LE." (drop trailing overlap "w").
             Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
             Dim protectedSpan = New TextSpan(8, 2) ' "wl"
-            ' Change spans [7,9) which partially overlaps ATS [8,10).
             Dim changes = ImmutableArray.Create(
-                New TextChange(New TextSpan(7, 2), ".W"))
+                New TextChange(New TextSpan(5, 4), "LE.w"))
 
             Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
-            Assert.True(constrained.IsDefault)
+            Assert.Equal(1, constrained.Length)
+
+            Assert.Equal(5, constrained(0).Span.Start)
+            Assert.Equal(8, constrained(0).Span.End)
+            Assert.Equal("LE.", constrained(0).NewText)
+
+            Dim applied = originalText.WithChanges(constrained)
+            Assert.Equal("ConsoLE.wl" & vbCrLf & "return;", applied.ToString())
+        End Sub
+
+        <WpfFact>
+        Public Sub TestConstrainChanges_PartialOverlapEnd_TrimsAfterAts()
+            ' Change spans [9,14) which overlaps the end of ATS [8,10).
+            ' Original overlap text at [9,10) is "l". Replacement "l" & vbCrLf & "RE" starts with "l" (preserved).
+            ' Trimmed: span=[10,14), newText=vbCrLf & "RE" (drop leading overlap "l").
+            Dim originalText = SourceText.From("Console.wl" & vbCrLf & "return;")
+            Dim protectedSpan = New TextSpan(8, 2) ' "wl"
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(9, 5), "l" & vbCrLf & "RE"))
+
+            Dim constrained = AbstractCopilotProposalAdjusterService.TestAccessor.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan)
+            Assert.Equal(1, constrained.Length)
+
+            Assert.Equal(10, constrained(0).Span.Start)
+            Assert.Equal(14, constrained(0).Span.End)
+            Assert.Equal(vbCrLf & "RE", constrained(0).NewText)
+
+            Dim applied = originalText.WithChanges(constrained)
+            Assert.Equal("Console.wl" & vbCrLf & "REturn;", applied.ToString())
         End Sub
 
         <WpfFact>
