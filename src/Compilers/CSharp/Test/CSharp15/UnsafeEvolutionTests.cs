@@ -6314,6 +6314,26 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Event_Accessors_UnsafeKeyword()
+    {
+        // unsafe on event accessors is not allowed (like other modifiers on event accessors)
+        CreateCompilation("""
+            public class C
+            {
+                public event System.Action E { unsafe add { int* p = null; } unsafe remove { int* p = null; } }
+            }
+            """,
+            options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (3,36): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     public event System.Action E { unsafe add { int* p = null; } unsafe remove { int* p = null; } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "unsafe").WithLocation(3, 36),
+            // (3,66): error CS1609: Modifiers cannot be placed on event accessor declarations
+            //     public event System.Action E { unsafe add { int* p = null; } unsafe remove { int* p = null; } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "unsafe").WithLocation(3, 66));
+    }
+
+    [Fact]
     public void Member_Event_Override()
     {
         CompileAndVerifyUnsafe(
