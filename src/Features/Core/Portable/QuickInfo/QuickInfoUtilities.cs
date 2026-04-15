@@ -179,15 +179,79 @@ internal static class QuickInfoUtilities
         }
 
         var token = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(span.Start);
-        if (token.Span != span || token.Value is not char character || !ContainsUnicodeEscape(token.Text))
+        if (!token.Span.Contains(span))
             return false;
 
-        documentation = [new TaggedText(TextTags.Text, string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character))];
+        if (token.Value is not char character)
+            return false;
+
+        if (!IsDisplayableCharacter(character))
+            return false;
+
+        if (!ContainsSupportedUnicodeEscape(token.Text))
+            return false;
+
+        documentation = ImmutableArray.Create(new TaggedText(TextTags.Text, CreateCharacterDocumentationText(character)));
         return true;
     }
 
-    private static bool ContainsUnicodeEscape(string tokenText)
-        => tokenText.IndexOf(@"\u", StringComparison.Ordinal) >= 0 ||
-           tokenText.IndexOf(@"\U", StringComparison.Ordinal) >= 0 ||
-           tokenText.IndexOf(@"\x", StringComparison.Ordinal) >= 0;
+    private static bool ContainsSupportedUnicodeEscape(string tokenText)
+    {
+        const int longUnicodeEscapeHexDigitCount = 8;
+        const int longUnicodeEscapePrefixLength = 2;
+        const int maxSingleUtf16CodeUnitValue = 0xFFFF;
+        var maxStartIndex = tokenText.Length - 1;
+
+        for (var i = 0; i < maxStartIndex; i++)
+        {
+            if (tokenText[i] != '\\')
+                continue;
+
+            if (tokenText[i + 1] == 'u')
+                return true;
+
+            if (tokenText[i + 1] == 'U' &&
+                TryParseHexValue(tokenText, i + longUnicodeEscapePrefixLength, count: longUnicodeEscapeHexDigitCount, out var value) &&
+                // Quick Info text currently describes a single UTF-16 code unit (System.Char).
+                value <= maxSingleUtf16CodeUnitValue)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryParseHexValue(string text, int start, int count, out int value)
+    {
+        value = 0;
+        if (start + count > text.Length)
+            return false;
+
+        for (var i = start; i < start + count; i++)
+        {
+            var digit = GetHexDigitValue(text[i]);
+            if (digit < 0)
+                return false;
+
+            value = (value << 4) + digit;
+        }
+
+        return true;
+    }
+
+    private static int GetHexDigitValue(char c)
+        => c switch
+        {
+            >= '0' and <= '9' => c - '0',
+            >= 'a' and <= 'f' => c - 'a' + 10,
+            >= 'A' and <= 'F' => c - 'A' + 10,
+            _ => -1,
+        };
+
+    private static bool IsDisplayableCharacter(char character)
+        => !char.IsControl(character) && !char.IsSurrogate(character);
+
+    private static string CreateCharacterDocumentationText(char character)
+        => string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character);
 }
