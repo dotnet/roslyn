@@ -910,18 +910,18 @@ End Class
 
             ' normal assembly
             Dim normalBytes = EmitWithWin32Resources(compilation, EmitOptions.Default)
-            VerifyRefAssemblyStripsAttribute_ValidateBytes(normalBytes, strippedAttributeConstructor, expectedVersion, present:=True)
-            VerifyWin32Resources(normalBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=True)
+            VerifyRefAssemblyStripsAttribute_ValidateAttributes(normalBytes, strippedAttributeConstructor, expectedVersion, present:=True)
+            VerifyRefAssemblyStripsAttribute_VerifyWin32Resources(normalBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=True)
 
             ' ref assembly
             Dim refBytes = EmitWithWin32Resources(compilation, EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False))
-            VerifyRefAssemblyStripsAttribute_ValidateBytes(refBytes, strippedAttributeConstructor, expectedVersion, present:=False)
-            VerifyWin32Resources(refBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=False)
+            VerifyRefAssemblyStripsAttribute_ValidateAttributes(refBytes, strippedAttributeConstructor, expectedVersion, present:=False)
+            VerifyRefAssemblyStripsAttribute_VerifyWin32Resources(refBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=False)
 
             ' metadata-only assembly
             Dim metadataOnlyBytes = EmitWithWin32Resources(compilation, EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True))
-            VerifyRefAssemblyStripsAttribute_ValidateBytes(metadataOnlyBytes, strippedAttributeConstructor, expectedVersion, present:=True)
-            VerifyWin32Resources(metadataOnlyBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=False)
+            VerifyRefAssemblyStripsAttribute_ValidateAttributes(metadataOnlyBytes, strippedAttributeConstructor, expectedVersion, present:=True)
+            VerifyRefAssemblyStripsAttribute_VerifyWin32Resources(metadataOnlyBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=False)
         End Sub
 
         Private Shared Function EmitWithWin32Resources(compilation As VisualBasicCompilation, emitOptions As EmitOptions) As ImmutableArray(Of Byte)
@@ -934,7 +934,7 @@ End Class
             End Using
         End Function
 
-        Private Shared Sub VerifyRefAssemblyStripsAttribute_ValidateBytes(assemblyBytes As ImmutableArray(Of Byte), strippedAttributeConstructor As String, expectedVersion As Version, present As Boolean)
+        Private Shared Sub VerifyRefAssemblyStripsAttribute_ValidateAttributes(assemblyBytes As ImmutableArray(Of Byte), strippedAttributeConstructor As String, expectedVersion As Version, present As Boolean)
             Using peReader As New PEReader(assemblyBytes)
                 Dim reader = peReader.GetMetadataReader()
                 Dim attributes = reader.GetAssemblyDefinition().GetCustomAttributes()
@@ -950,7 +950,7 @@ End Class
             End Using
         End Sub
 
-        Private Sub VerifyWin32Resources(assemblyBytes As ImmutableArray(Of Byte), expectedVersion As Version, expectedFileVersion As String, expectedProductVersion As String, expectResources As Boolean)
+        Private Sub VerifyRefAssemblyStripsAttribute_VerifyWin32Resources(assemblyBytes As ImmutableArray(Of Byte), expectedVersion As Version, expectedFileVersion As String, expectedProductVersion As String, expectResources As Boolean)
             Using peReader As New PEReader(assemblyBytes)
                 Dim hasResources As Boolean = peReader.PEHeaders.PEHeader.ResourceTableDirectory.Size <> 0
                 Assert.Equal(expectResources, hasResources)
