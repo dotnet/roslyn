@@ -368,7 +368,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         Assert.True(eventFired, "FileChanged event should fire for files matching extension filter");
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task FileCreated_WithNonMatchingExtensionFilter_DoesNotRaiseFileChangedEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
@@ -457,7 +457,7 @@ public sealed class SimpleFileChangeWatcherTests : IDisposable
         Assert.True(eventFired, "FileChanged event should fire when individually watched file is modified");
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83180")]
     public async Task IndividualFileWatch_AfterDispose_DoesNotRaiseEvent()
     {
         var tempDirectory = _tempRoot.CreateDirectory();
