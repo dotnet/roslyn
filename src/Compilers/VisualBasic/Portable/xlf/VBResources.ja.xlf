@@ -341,7 +341,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
+                                  SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -411,7 +411,7 @@
                                   - 入力ファイル -
 -addmodule:&lt;file_list&gt;            指定されたモジュールからのメタデータを参照します
 -link:&lt;file_list&gt;                 指定された相互運用アセンブリからのメタデータを
-                                  参照します。(短い形式: -l)
+                                  埋め込みます。(短い形式: -l)
 -recurse:&lt;wildcard&gt;               ワイルドカードの仕様に従って、現在のディレクトリと
                                   サブディレクトリ内のすべての
                                   ファイルを含めます。
@@ -425,7 +425,7 @@
 
                                   - リソース -
 -linkresource:&lt;resinfo&gt;           指定されたファイルを外部アセンブリ リソースとして
-                                  として追加します。
+                                  リンクします。
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (短い形式: -linkres)
 -nowin32manifest                  既定のマニフェストを、出力 PE のマニフェスト セクション
@@ -445,10 +445,10 @@
 -removeintchecks[+|-]             整数チェックを削除します。既定値はオフです。
 -debug[+|-]                       デバッグ情報を出力します。
 -debug:full                       完全なデバッグ情報を出力します (既定)。
--debug:pdbonly                    完全なデバッグ情報を出力します。
--debug:portable                   クロスプラットフォーム デバッグ情報を出力します。
+-debug:pdbonly                    完全なデバッグ情報を生成します。
+-debug:portable                   クロスプラットフォーム デバッグ情報を生成します。
 -debug:embedded                   クロスプラットフォームのデバッグ情報を、ターゲットの .dll または .exe に
-                                  出力します。
+                                  生成ます。
 -deterministic                   決定論的アセンブリ
 を生成します
                                   (モジュール バージョン GUID とタイムスタンプを含む)
@@ -482,8 +482,8 @@
                                   import_list:namespace,...
 -langversion:?                   言語バージョンに指定できる値を表示します
 -langversion:&lt;string&gt;             次のような言語バージョンを指定します。
-                                  'default' (最新のメジャー バージョン)、または
-                                  'latest' (マイナー バージョンを含む最新バージョン)、
+                                  `default` (最新のメジャー バージョン)、または
+                                  `latest` (マイナー バージョンを含む最新バージョン)、
                                   または `14` や `15.3` などの特定のバージョン
 -optionexplicit[+|-]              変数の明示的な宣言が必要です。
 -optioninfer[+|-]                 変数の型推論を許可します。
@@ -510,7 +510,7 @@
                                   (16 進数)。
 -checksumalgorithm:&lt;alg&gt;          PDB に格納されているソース ファイルのチェックサムを計算するためのアルゴリズムを
                                   指定します。サポートされている値:
-                                  SHA1 または SHA256 (既定値)。
+                                  SHA1、SHA256 (既定)、SHA384、または SHA512。
 -codepage:&lt;number&gt;                ソース ファイルを開くときに使用するコードページを
                                   指定します。
 -delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
@@ -553,7 +553,7 @@
 -subsystemversion:&lt;version&gt;       出力 PE のサブシステム バージョンを指定します。
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  UTF-8 文字エンコードでコンパイラ出力を
-                                  作成します。
+                                  生成します。
 @&lt;file&gt;                           テキスト ファイルからコマンド ライン設定を挿入します
 -vbruntime[+|-|*]                 コンパイル時に既定の Visual Basic ランタイムを使用するかどうかを
                                   指定します。

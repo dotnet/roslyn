@@ -1430,77 +1430,6 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     }
 
     [Theory, CombinatorialData]
-    public Task IgnoredDirective_01(TestHost testHost)
-        => TestAsync("""
-            #:unknown // comment
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("unknown"),
-            String(" // comment"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
-
-    [Theory, CombinatorialData]
-    public Task IgnoredDirective_02(TestHost testHost)
-        => TestAsync("""
-            #:sdk Test 2.1.0
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("sdk"),
-            String(" Test 2.1.0"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
-
-    [Theory, CombinatorialData]
-    public Task IgnoredDirective_03(TestHost testHost)
-        => TestAsync("""
-            #:no-space
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("no-space"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
-
-    [Theory, CombinatorialData]
-    public Task IgnoredDirective_04(TestHost testHost)
-        => TestAsync($"""
-            #:sdk{'\t'}Test 2.1.0
-            Console.Write();
-            """,
-            testHost,
-            PPKeyword("#"),
-            PPKeyword(":"),
-            PPKeyword("sdk"),
-            String("\tTest 2.1.0"),
-            Identifier("Console"),
-            Operators.Dot,
-            Identifier("Write"),
-            Punctuation.OpenParen,
-            Punctuation.CloseParen,
-            Punctuation.Semicolon);
-
-    [Theory, CombinatorialData]
     public Task CommentAsMethodBodyContent(TestHost testHost)
         => TestAsync("""
 
@@ -2156,6 +2085,21 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             testHost,
             Keyword("struct"),
             Struct("Struct1"),
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task UnionTypeDeclaration1(TestHost testHost)
+        => TestAsync("union Union1(int, Union1) { }",
+            testHost,
+            TestOptions.RegularNext,
+            Keyword("union"),
+            Struct("Union1"),
+            Punctuation.OpenParen,
+            Keyword("int"),
+            Punctuation.Comma,
+            Identifier("Union1"),
+            Punctuation.CloseParen,
             Punctuation.OpenCurly,
             Punctuation.CloseCurly);
 

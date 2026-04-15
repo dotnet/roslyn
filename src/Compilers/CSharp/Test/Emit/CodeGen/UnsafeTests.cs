@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class UnsafeTests : EmitMetadataTestBase
     {
         #region AddressOf tests
@@ -861,6 +862,192 @@ unsafe struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_Arg_FunctionPointer_ReturnsRef()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p, delegate*<ref byte, ref byte> f)
+                    {
+                        ref byte b = ref f(ref *p);
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b
+                                delegate*<ref byte, ref byte> V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.2
+                  IL_0002:  stloc.1
+                  IL_0003:  ldarg.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  calli      "delegate*<ref byte, ref byte>"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloc.0
+                  IL_000c:  call       "string byte.ToString()"
+                  IL_0011:  pop
+                  IL_0012:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  2
+                  .locals init (delegate*<ref byte, ref byte> V_0)
+                  IL_0000:  ldarg.2
+                  IL_0001:  stloc.0
+                  IL_0002:  ldarg.1
+                  IL_0003:  ldloc.0
+                  IL_0004:  calli      "delegate*<ref byte, ref byte>"
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_Arg_FunctionPointer_ReturnsPointer()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p, delegate*<ref byte, byte*> f)
+                    {
+                        ref byte b = ref *f(ref *p);
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b
+                                delegate*<ref byte, byte*> V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldarg.2
+                  IL_0002:  stloc.1
+                  IL_0003:  ldarg.1
+                  IL_0004:  ldloc.1
+                  IL_0005:  calli      "delegate*<ref byte, byte*>"
+                  IL_000a:  stloc.0
+                  IL_000b:  ldloc.0
+                  IL_000c:  call       "string byte.ToString()"
+                  IL_0011:  pop
+                  IL_0012:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b
+                                delegate*<ref byte, byte*> V_1)
+                  IL_0000:  ldarg.2
+                  IL_0001:  stloc.1
+                  IL_0002:  ldarg.1
+                  IL_0003:  ldloc.1
+                  IL_0004:  calli      "delegate*<ref byte, byte*>"
+                  IL_0009:  stloc.0
+                  IL_000a:  ldloc.0
+                  IL_000b:  call       "string byte.ToString()"
+                  IL_0010:  pop
+                  IL_0011:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_FunctionPointer_ReturnsRef()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(delegate*<ref byte> f)
+                    {
+                        ref byte b = ref f();
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  calli      "delegate*<ref byte>"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  calli      "delegate*<ref byte>"
+                  IL_0006:  call       "string byte.ToString()"
+                  IL_000b:  pop
+                  IL_000c:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
+        public void Retrack_PointerToRefLocal_FunctionPointer_ReturnsPointer()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(delegate*<byte*> f)
+                    {
+                        ref byte b = ref *f();
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  calli      "delegate*<byte*>"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  calli      "delegate*<byte*>"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  call       "string byte.ToString()"
+                  IL_000d:  pop
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
         public void Retrack_PointerToRefLocal_Synthesized()
         {
             // Implicit (synthesized) ref locals can be elided.
@@ -940,6 +1127,548 @@ unsafe struct S
                   IL_0001:  call       "string byte.ToString()"
                   IL_0006:  pop
                   IL_0007:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_NestedAssignment()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p)
+                    {
+                        ref byte b1 = ref F();
+                        ref byte b2 = ref (b1 = ref *p);
+                        b2.ToString();
+                    }
+                    ref byte F() => throw null;
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b1
+                                byte& V_1) //b2
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "ref byte C.F()"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  dup
+                  IL_000a:  stloc.0
+                  IL_000b:  stloc.1
+                  IL_000c:  ldloc.1
+                  IL_000d:  call       "string byte.ToString()"
+                  IL_0012:  pop
+                  IL_0013:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  .locals init (byte& V_0, //b1
+                                byte& V_1) //b2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "ref byte C.F()"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  dup
+                  IL_0009:  stloc.0
+                  IL_000a:  stloc.1
+                  IL_000b:  ldloc.1
+                  IL_000c:  call       "string byte.ToString()"
+                  IL_0011:  pop
+                  IL_0012:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Field()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(System.ValueTuple<byte>* p)
+                    {
+                        ref byte b = ref p->Item1;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  call       "string byte.ToString()"
+                  IL_000d:  pop
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        [InlineData("s->F")]
+        [InlineData("(*s).F")]
+        [InlineData("s[0].F")]
+        public void Retrack_PointerToRefLocal_Field_Field(string expr)
+        {
+            var source = $$"""
+                struct S
+                {
+                    System.ValueTuple<byte> F;
+                    unsafe void M(S* s)
+                    {
+                        ref byte b = ref {{expr}}.Item1;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("S.M", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  ldflda     "System.ValueTuple<byte> S.F"
+                  IL_0007:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  call       "string byte.ToString()"
+                  IL_0013:  pop
+                  IL_0014:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.M", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldflda     "System.ValueTuple<byte> S.F"
+                  IL_0006:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldloc.0
+                  IL_000d:  call       "string byte.ToString()"
+                  IL_0012:  pop
+                  IL_0013:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_FieldPointer_Field()
+        {
+            var source = """
+                struct S
+                {
+                    unsafe System.ValueTuple<byte>* F;
+                    unsafe void M(S* s)
+                    {
+                        ref byte b = ref s->F->Item1;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("S.M", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  ldfld      "System.ValueTuple<byte>* S.F"
+                  IL_0007:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  call       "string byte.ToString()"
+                  IL_0013:  pop
+                  IL_0014:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.M", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  ldfld      "System.ValueTuple<byte>* S.F"
+                  IL_0006:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldloc.0
+                  IL_000d:  call       "string byte.ToString()"
+                  IL_0012:  pop
+                  IL_0013:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Function()
+        {
+            var source = """
+                struct S
+                {
+                    unsafe byte* F() => null;
+                    unsafe void M(S* s)
+                    {
+                        ref byte b = ref *s->F();
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("S.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "byte* S.F()"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.M", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "byte* S.F()"
+                  IL_0006:  stloc.0
+                  IL_0007:  ldloc.0
+                  IL_0008:  call       "string byte.ToString()"
+                  IL_000d:  pop
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Function_Field()
+        {
+            var source = """
+                struct S
+                {
+                    unsafe System.ValueTuple<byte>* F() => null;
+                    unsafe void M(S* s)
+                    {
+                        ref byte b = ref s->F()->Item1;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("S.M", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  call       "System.ValueTuple<byte>* S.F()"
+                  IL_0007:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  call       "string byte.ToString()"
+                  IL_0013:  pop
+                  IL_0014:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("S.M", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  call       "System.ValueTuple<byte>* S.F()"
+                  IL_0006:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000b:  stloc.0
+                  IL_000c:  ldloc.0
+                  IL_000d:  call       "string byte.ToString()"
+                  IL_0012:  pop
+                  IL_0013:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Conditional_Both()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(bool c, byte* p1, byte* p2)
+                    {
+                        ref byte b = ref c ? ref *p1 : ref *p2;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  brtrue.s   IL_0007
+                  IL_0004:  ldarg.3
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldarg.2
+                  IL_0008:  stloc.0
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "string byte.ToString()"
+                  IL_000f:  pop
+                  IL_0010:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldarg.3
+                  IL_0004:  br.s       IL_0007
+                  IL_0006:  ldarg.2
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Conditional_One()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(bool c, ref byte p1, byte* p2)
+                    {
+                        ref byte b = ref c ? ref p1 : ref *p2;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  brtrue.s   IL_0007
+                  IL_0004:  ldarg.3
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldarg.2
+                  IL_0008:  stloc.0
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "string byte.ToString()"
+                  IL_000f:  pop
+                  IL_0010:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       16 (0x10)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldarg.3
+                  IL_0004:  br.s       IL_0007
+                  IL_0006:  ldarg.2
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  call       "string byte.ToString()"
+                  IL_000e:  pop
+                  IL_000f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Retrack_PointerToRefLocal_Conditional_None()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(bool c, ref byte p1, ref byte p2)
+                    {
+                        ref byte b = ref c ? ref p1 : ref p2;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  brtrue.s   IL_0007
+                  IL_0004:  ldarg.3
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldarg.2
+                  IL_0008:  stloc.0
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "string byte.ToString()"
+                  IL_000f:  pop
+                  IL_0010:  ret
+                }
+                """);
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       14 (0xe)
+                  .maxstack  1
+                  IL_0000:  ldarg.1
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldarg.3
+                  IL_0004:  br.s       IL_0007
+                  IL_0006:  ldarg.2
+                  IL_0007:  call       "string byte.ToString()"
+                  IL_000c:  pop
+                  IL_000d:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Conditional_Field_01()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(bool c, System.ValueTuple<byte, byte>* t)
+                    {
+                        ref byte b = ref c ? ref t->Item1 : ref t->Item2;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  brtrue.s   IL_000c
+                  IL_0004:  ldarg.2
+                  IL_0005:  ldflda     "byte System.ValueTuple<byte, byte>.Item2"
+                  IL_000a:  br.s       IL_0012
+                  IL_000c:  ldarg.2
+                  IL_000d:  ldflda     "byte System.ValueTuple<byte, byte>.Item1"
+                  IL_0012:  stloc.0
+                  IL_0013:  ldloc.0
+                  IL_0014:  call       "string byte.ToString()"
+                  IL_0019:  pop
+                  IL_001a:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  brtrue.s   IL_000b
+                  IL_0003:  ldarg.2
+                  IL_0004:  ldflda     "byte System.ValueTuple<byte, byte>.Item2"
+                  IL_0009:  br.s       IL_0011
+                  IL_000b:  ldarg.2
+                  IL_000c:  ldflda     "byte System.ValueTuple<byte, byte>.Item1"
+                  IL_0011:  stloc.0
+                  IL_0012:  ldloc.0
+                  IL_0013:  call       "string byte.ToString()"
+                  IL_0018:  pop
+                  IL_0019:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82137")]
+        public void Retrack_PointerToRefLocal_Conditional_Field_02()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(bool c, System.ValueTuple<byte>* t1, System.ValueTuple<byte>* t2)
+                    {
+                        ref byte b = ref (c ? ref *t1 : ref *t2).Item1;
+                        b.ToString();
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  nop
+                  IL_0001:  ldarg.1
+                  IL_0002:  brtrue.s   IL_0007
+                  IL_0004:  ldarg.3
+                  IL_0005:  br.s       IL_0008
+                  IL_0007:  ldarg.2
+                  IL_0008:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldloc.0
+                  IL_000f:  call       "string byte.ToString()"
+                  IL_0014:  pop
+                  IL_0015:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b
+                  IL_0000:  ldarg.1
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldarg.3
+                  IL_0004:  br.s       IL_0007
+                  IL_0006:  ldarg.2
+                  IL_0007:  ldflda     "byte System.ValueTuple<byte>.Item1"
+                  IL_000c:  stloc.0
+                  IL_000d:  ldloc.0
+                  IL_000e:  call       "string byte.ToString()"
+                  IL_0013:  pop
+                  IL_0014:  ret
                 }
                 """);
         }

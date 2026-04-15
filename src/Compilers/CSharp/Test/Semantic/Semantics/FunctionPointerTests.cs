@@ -14,6 +14,7 @@ using static Microsoft.CodeAnalysis.CSharp.UnitTests.FunctionPointerUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.Unsafe)]
     public class FunctionPointerTests : CompilingTestBase
     {
         private static CSharpCompilation CreateCompilationWithFunctionPointers(string source, CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework? targetFramework = null)

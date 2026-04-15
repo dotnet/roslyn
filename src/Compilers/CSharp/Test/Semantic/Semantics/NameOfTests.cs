@@ -3296,5 +3296,94 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 //             nameof(r[0]);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "0").WithLocation(14, 22));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81738")]
+        public void NameofInObjectInitializerImplicitIndexer()
+        {
+            CompileAndVerify("""
+                using System.Collections.Generic;
+                class C
+                {
+                    private readonly Dictionary<string, int> _map = new();
+                    public int this[string key]
+                    {
+                        get => _map[key];
+                        set => _map[key] = value;
+                    }
+                    public int P { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C { [nameof(C.P)] = 42 };
+                        System.Console.Write(c[nameof(C.P)]);
+                    }
+                }
+                """, expectedOutput: "42").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81738")]
+        public void NameofOnObjectInitializerRightHandSide()
+        {
+            CompileAndVerify("""
+                class C
+                {
+                    public string P { get; set; }
+                    public string Q { get; set; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C { P = nameof(C.Q) };
+                        System.Console.Write(c.P);
+                    }
+                }
+                """, expectedOutput: "Q").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_FieldInitializer([CombinatorialValues("", "static")] string modifier)
+        {
+            var source = $$"""
+                #pragma warning disable CS0169, CS0414, CS0649 // unused field
+                class C
+                {
+                    string F = nameof(D.M);
+                    D D;
+                }
+                class D
+                {
+                    public {{modifier}} void M() { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82474")]
+        public void ColorColor_Attribute([CombinatorialValues("", "static")] string modifier)
+        {
+            var source = $$"""
+                #pragma warning disable CS0169 // unused field
+                [A(nameof(D.M))] class C
+                {
+                    D D;
+                }
+                class D
+                {
+                    public {{modifier}} void M() { }
+                }
+                class A : System.Attribute
+                {
+                    public A(string s) { }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyEmitDiagnostics();
+        }
     }
 }

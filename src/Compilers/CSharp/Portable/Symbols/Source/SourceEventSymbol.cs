@@ -369,6 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt!.Location);
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.RequiresUnsafeAttribute))
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules) MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt!);
+                arguments.GetOrCreateData<CommonEventWellKnownAttributeData>().HasRequiresUnsafeAttribute = true;
+            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData>? attributes)
@@ -397,6 +402,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (compilation.ShouldEmitNullableAttributes(this))
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, containingType.GetNullableContextValue(), type));
+            }
+
+            if (NeedsSynthesizedRequiresUnsafeAttribute)
+            {
+                Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
             }
         }
 
@@ -455,6 +466,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool IsUnsafe
         {
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
+        }
+
+        internal bool HasRequiresUnsafeAttribute => GetDecodedWellKnownAttributeData()?.HasRequiresUnsafeAttribute == true;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    return HasRequiresUnsafeAttribute || IsExtern
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
+                }
+
+                return Type.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+            }
+        }
+
+        private bool NeedsSynthesizedRequiresUnsafeAttribute
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules &&
+                    !HasRequiresUnsafeAttribute &&
+                    IsExtern;
+            }
         }
 
         public sealed override Accessibility DeclaredAccessibility
@@ -819,7 +858,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected TypeWithAnnotations BindEventType(Binder binder, TypeSyntax typeSyntax, BindingDiagnosticBag diagnostics)
         {
             // NOTE: no point in reporting unsafe errors in the return type - anything unsafe will either
-            // fail to be a delegate or will be (invalidly) passed as a type argument.
+            //       fail to be a delegate or will be (invalidly) passed as a type argument.
+            //       Actually, this is wrong (e.g., `Action<int*[]>` is valid): https://github.com/dotnet/roslyn/issues/81944.
             // Prevent constraint checking.
             binder = binder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressUnsafeDiagnostics, this);
 
@@ -843,6 +883,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeWithAnnotations.NeedsNullableAttribute())
             {
                 compilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
+            }
+
+            if (NeedsSynthesizedRequiresUnsafeAttribute)
+            {
+                Debug.Assert(CallerUnsafeMode == CallerUnsafeMode.Explicit);
+                MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, location);
+                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor, diagnostics, location);
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();

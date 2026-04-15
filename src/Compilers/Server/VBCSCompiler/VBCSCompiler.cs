@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CommandLine;
 
@@ -13,35 +12,23 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         public static int Main(string[] args)
         {
-            using var logger = new CompilerServerLogger($"VBCSCompiler {Process.GetCurrentProcess().Id}");
-
-            NameValueCollection appSettings;
-            try
+            // Pre-parse arguments to extract the log file path and other values so the logger can be
+            // initialized with the correct path before the controller is created.
+            if (!BuildServerController.ParseCommandLine(args, out var pipeName, out var shutdown, out var keepAlive, out var logFilePath))
             {
+                return CommonCompiler.Failed;
+            }
+
+            using var logger = new CompilerServerLogger($"VBCSCompiler {Process.GetCurrentProcess().Id}", logFilePath);
+
 #if BOOTSTRAP
-                ExitingTraceListener.Install(logger);
+            ExitingTraceListener.Install(logger);
 #endif
-
-#if NET472
-                appSettings = System.Configuration.ConfigurationManager.AppSettings;
-#else
-                // Do not use AppSettings on non-desktop platforms
-                appSettings = new NameValueCollection();
-#endif
-            }
-            catch (Exception ex)
-            {
-                // It is possible for AppSettings to throw when the application or machine configuration 
-                // is corrupted.  This should not prevent the server from starting, but instead just revert
-                // to the default configuration.
-                appSettings = new NameValueCollection();
-                logger.LogException(ex, "Error loading application settings");
-            }
 
             try
             {
-                var controller = new BuildServerController(appSettings, logger);
-                return controller.Run(args);
+                var controller = new BuildServerController(logger);
+                return controller.Run(pipeName, shutdown, keepAlive);
             }
             catch (Exception e)
             {

@@ -3,30 +3,37 @@
 ## Architecture Overview
 
 **Core Components** (layered from bottom-up):
-- **Compilers** (`src/Compilers/`): C# and VB.NET compilers with syntax trees, semantic models, symbols, and emit APIs
+- **Compilers** (`src/Compilers/`): C# and VB.NET compilers — syntax trees, semantic models, symbols, and emit APIs
 - **Workspaces** (`src/Workspaces/`): Solution/project model, document management, and host services
 - **Features** (`src/Features/`): Language-agnostic IDE features (refactoring, completion, diagnostics)
+- **Analyzers** (`src/Analyzers/`): IDE diagnostic analyzers and code fixes (IDE0xxx)
 - **EditorFeatures** (`src/EditorFeatures/`): Editor-specific implementations and text buffer integration
+- **LanguageServer** (`src/LanguageServer/`): LSP implementation used by VS Code extension
 - **VisualStudio** (`src/VisualStudio/`): VS-specific language services and UI integration
 
 ## Development Workflow
 
 **Building**:
-- `build.sh` - Full solution build
-- `dotnet build Compilers.slnf` - Compiler-only build  
-- `dotnet msbuild <path to csproj> /t:UpdateXlf` - Update .xlf files when their corresponding .resx file is modified
+- Windows: `build.cmd` / Unix: `build.sh` — Full solution build
+- `dotnet build Compilers.slnf` — Compiler-only build
+- `dotnet build Ide.slnf` — IDE-only build
+- Solution filters: `Roslyn.slnx` (full), `Compilers.slnf` (compilers), `Ide.slnf` (IDE)
 
 **Testing**:
-- `test.sh` - Run all tests
-- `dotnet test` for specific test projects
-- Tests inherit from base classes like `AbstractLanguageServerProtocolTests`, `WorkspaceTestBase`
+- Windows: `test.cmd` / Unix: `test.sh` — Run all tests
+- `dotnet test <path to test .csproj>` — Run specific test project
+- Tests inherit from base classes: `CSharpTestBase`, `VisualBasicTestBase` (compiler), `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (IDE analyzers)
 - Use `[UseExportProvider]` for MEF-dependent tests
+- Copilot coding agent setup preinstalls `roslyn-language-server` as a global tool and syncs the `dotnet/skills` catalog into `~/.copilot/skills`
 
 **Formatting**:
 - Whitespace formatting preferences are stored in the `.editorconfig` file
 - When running `dotnet format whitespace` use the `--folder .` option followed by `--include <path to file>` to avoid a design-time build
-- Apply formatting preferences to any modified .cs or .vb file
-- **Important**: Blank lines must not contain any whitespace characters (spaces or tabs). This will cause linting errors that must be fixed.
+- **Critical**: Blank lines must not contain any whitespace characters (spaces or tabs). This causes linting errors.
+
+**Localization**:
+- `dotnet msbuild <path to csproj> /t:UpdateXlf` — Update `.xlf` files after modifying `.resx` files
+- Resource strings accessed via generated designer classes (e.g., `CSharpResources.xxx`, `FeaturesResources.xxx`, `AnalyzersResources.xxx`)
 
 ## Code Patterns
 
@@ -40,55 +47,62 @@ internal sealed class CSharpMyService : IMyService
 
 **Roslyn API Usage**:
 ```csharp
-// Always use immutable patterns
-var newTree = oldTree.WithChangedText(newText);
+// All syntax trees, documents, and solutions are immutable — use With* methods
 var newDocument = oldDocument.WithSyntaxTree(newTree);
 
-// Semantic analysis
+// Semantic analysis — always pass CancellationToken
 var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
 var symbolInfo = semanticModel.GetSymbolInfo(expression);
 ```
 
 **Testing Conventions**:
-- Inherit from `TestBase` or language-specific base classes
-- Use `UseExportProvider` for MEF services
-- Test utilities in `Microsoft.CodeAnalysis.Test.Utilities`
-- Language-specific test bases: `CSharpTestBase`, `VisualBasicTestBase`
-- Add `[WorkItem("https://github.com/dotnet/roslyn/issues/issueNumber")]` attribute to tests that fix specific GitHub issues
+- Add `[WorkItem("https://github.com/dotnet/roslyn/issues/NNN")]` attribute to tests that fix specific GitHub issues
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`) when creating test source code
-- Avoid unnecessary intermediary assertions - tests should do the minimal amount of work to validate just the core issue being addressed
-  - In tests, use concise methods like `.Single()` instead of asserting count and extracting elements
-  - For compiler tests, validate diagnostics (e.g., `comp.VerifyEmitDiagnostics()`) so reviewers can easily see if the code is in error or represents something legal
-
-## Critical Integration Points
-
-- **Language Server Protocol**: `src/LanguageServer/` contains LSP implementation used by VS Code extension
-- **ServiceHub**: Remote services (`src/Workspaces/Remote/`) run out-of-process for performance
-- **Analyzers**: `src/Analyzers/` for static analysis, separate from `src/RoslynAnalyzers/` (internal tooling)
-- **VSIX Packaging**: Multiple deployment targets - `src/VisualStudio/Setup/` for main VS integration
+- Keep tests focused — do minimal work to validate the core issue
+  - Use `.Single()` instead of asserting count and extracting elements
+  - For compiler tests, use `comp.VerifyEmitDiagnostics()` so reviewers can see if code is legal
+  - For IDE tests, use `TestInRegularAndScriptAsync` / `TestMissingInRegularAndScriptAsync`
 
 ## Key Conventions
 
 - **Namespace Strategy**: `Microsoft.CodeAnalysis.[Language].[Area]` (e.g., `Microsoft.CodeAnalysis.CSharp.Formatting`)
-- **File Organization**: Group by feature area, separate language-specific implementations
-- **Immutability**: All syntax trees, documents, and solutions are immutable - create new instances for changes
+- **Immutability**: All syntax trees, documents, and solutions are immutable — create new instances for changes
 - **Cancellation**: Always thread `CancellationToken` through async operations
-- **MEF Lifecycle**: Use `[ImportingConstructor]` with obsolete attribute for MEF v2 compatibility
-- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches and are disallowed in main branch
-- **Code Formatting**: Avoid trailing spaces and blank lines (lines with only whitespace). Ensure all lines either have content or are completely empty.
+- **MEF Lifecycle**: Use `[ImportingConstructor]` with `[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]`
+- **Null checks**: Use `Contract.ThrowIfNull()` instead of manual null checks
+- **Private fields**: `_camelCase` naming
+- **PROTOTYPE Comments**: Only used to track follow-up work in feature branches — disallowed in main branch
+- **Code Formatting**: Avoid trailing spaces. Blank lines must be completely empty (no whitespace characters).
+- **Public API Tracking**: Update `PublicAPI.Unshipped.txt` when adding/changing public APIs
+
+## Code Generation
+
+Several core data structures are generated from XML definitions — never edit generated `.cs` files directly:
+- **Syntax trees**: `src/Compilers/CSharp/Portable/Syntax/Syntax.xml`
+- **Bound trees**: `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml`
+- **After modifying XML files**, run: `dotnet run --file eng/generate-compiler-code.cs`
 
 ## Common Gotchas
 
-- Follow existing conventions in the file
+- Follow existing conventions in the file you're editing
 - Language services must be exported per-language, not shared across C#/VB
-- Test failures often indicate MEF composition issues - check export attributes
-- VSIX deployment targets multiple architectures - ensure platform-specific assets are handled
-- ServiceHub components require special deployment considerations for .NET Core vs Framework
+- Test failures often indicate MEF composition issues — check export attributes
+- ServiceHub components (`src/Workspaces/Remote/`) require special deployment considerations for .NET Core vs Framework
+- IDE analyzers should inherit from `AbstractBuiltInCodeStyleDiagnosticAnalyzer` for code style diagnostics, not raw `DiagnosticAnalyzer`
+- Always provide `FixAllProvider` (typically `WellKnownFixAllProviders.BatchFixer`) for code fixes
+
+## Documentation
+
+**Creating new docs**:
+- Use **kebab-case** for file names (e.g., `roslyn-language-server-copilot-plugin.md`, not `Roslyn Language Server Copilot Plugin.md`)
+- Place docs in the appropriate subdirectory under `docs/` (e.g., `docs/contributing/`, `docs/compilers/`, `docs/features/`)
+- General docs that don't fit a subdirectory go directly in `docs/`
 
 ## Essential Files for Context
 
-- `docs/wiki/Roslyn-Overview.md` - Architecture deep-dive
-- `docs/contributing/Building, Debugging, and Testing on Unix.md` - Development setup
-- `src/Compilers/Core/Portable/` - Core compiler APIs
-- `src/Workspaces/Core/Portable/` - Workspace object model
-- Solution filters: `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf` for focused builds
+- `src/Compilers/CSharp/Portable/Errors/ErrorCode.cs` — All C# compiler error codes
+- `src/Compilers/CSharp/Portable/Errors/MessageID.cs` — Language feature version gating
+- `src/Analyzers/Core/Analyzers/IDEDiagnosticIds.cs` — All IDE diagnostic ID constants
+- `src/Compilers/CSharp/Portable/Syntax/Syntax.xml` — Syntax tree node definitions
+- `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml` — Bound tree node definitions
+- `docs/wiki/Roslyn-Overview.md` — Architecture deep-dive

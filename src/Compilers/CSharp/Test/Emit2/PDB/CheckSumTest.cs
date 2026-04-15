@@ -31,15 +31,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         {
             var source1 = "public class C1 { public C1() { } }";
             var source256 = "public class C256 { public C256() { } }";
+            var source384 = "public class C384 { public C384() { } }";
+            var source512 = "public class C512 { public C512() { } }";
             var tree1 = SyntaxFactory.ParseSyntaxTree(StringText.From(source1, Encoding.UTF8, SourceHashAlgorithm.Sha1), path: "sha1.cs");
             var tree256 = SyntaxFactory.ParseSyntaxTree(StringText.From(source256, Encoding.UTF8, SourceHashAlgorithm.Sha256), path: "sha256.cs");
+            var tree384 = SyntaxFactory.ParseSyntaxTree(StringText.From(source384, Encoding.UTF8, SourceHashAlgorithm.Sha384), path: "sha384.cs");
+            var tree512 = SyntaxFactory.ParseSyntaxTree(StringText.From(source512, Encoding.UTF8, SourceHashAlgorithm.Sha512), path: "sha512.cs");
 
-            var compilation = CreateCompilation(new[] { tree1, tree256 });
+            var compilation = CreateCompilation(new[] { tree1, tree256, tree384, tree512 });
+
             compilation.VerifyPdb(@"
 <symbols>
   <files>
     <file id=""1"" name=""sha1.cs"" language=""C#"" checksumAlgorithm=""SHA1"" checksum=""8E-37-F3-94-ED-18-24-3F-35-EC-1B-70-25-29-42-1C-B0-84-9B-C8"" />
     <file id=""2"" name=""sha256.cs"" language=""C#"" checksumAlgorithm=""SHA256"" checksum=""83-31-5B-52-08-2D-68-54-14-88-0E-E3-3A-5E-B7-83-86-53-83-B4-5A-3F-36-9E-5F-1B-60-33-27-0A-8A-EC"" />
+    <file id=""3"" name=""sha384.cs"" language=""C#"" checksumAlgorithm=""SHA384"" checksum=""DC-4F-64-F5-55-33-D6-A0-CF-B6-80-26-E6-CA-EC-3A-F4-64-A8-14-08-63-2D-66-5D-85-70-FF-59-8D-76-09-C7-9A-7D-80-0B-E5-71-34-99-3B-B8-B2-47-9F-91-F7"" />
+    <file id=""4"" name=""sha512.cs"" language=""C#"" checksumAlgorithm=""SHA512"" checksum=""07-7E-FF-0C-1E-84-35-85-D8-FE-84-A5-13-A8-79-C8-A4-15-C8-A1-EF-6F-3B-04-A8-B2-D2-12-B4-8B-F3-E2-7A-6A-C3-3F-0C-2C-97-B6-16-38-A6-F8-C8-E5-94-E7-23-21-F1-20-9C-4E-BE-3A-A7-53-E4-32-87-EA-D7-3C"" />
   </files>
   <methods>
     <method containingType=""C1"" name="".ctor"">
@@ -60,6 +67,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
       <sequencePoints>
         <entry offset=""0x0"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""34"" document=""2"" />
         <entry offset=""0x6"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""38"" document=""2"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C384"" name="".ctor"">
+      <customDebugInfo>
+        <forward declaringType=""C1"" methodName="".ctor"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""34"" document=""3"" />
+        <entry offset=""0x6"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""38"" document=""3"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""C512"" name="".ctor"">
+      <customDebugInfo>
+        <forward declaringType=""C1"" methodName="".ctor"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""34"" document=""4"" />
+        <entry offset=""0x6"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""38"" document=""4"" />
       </sequencePoints>
     </method>
   </methods>
@@ -494,6 +519,99 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void CheckSumPragma_Sha384AndSha512Guids()
+        {
+            // #pragma checksum with well-known SHA-384/SHA-512 GUIDs and correct-length checksums
+            var text = """
+class C
+{
+#pragma checksum "sha384.cs" "{d99cfeb1-8c43-444a-8a6c-b61269d2a0bf}" "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f"
+#pragma checksum "sha512.cs" "{ef2d1afc-6550-46d6-b14b-d70afe9a5566}" "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f"
+
+    static void Main()
+    {
+#line 1 "sha384.cs"
+        System.Console.Write(1);
+#line 1 "sha512.cs"
+        System.Console.Write(2);
+    }
+}
+""";
+
+            var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyPdb("C.Main", """
+<symbols>
+  <files>
+    <file id="1" name="" language="C#" />
+    <file id="2" name="sha384.cs" language="C#" checksumAlgorithm="SHA384" checksum="00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F-10-11-12-13-14-15-16-17-18-19-1A-1B-1C-1D-1E-1F-20-21-22-23-24-25-26-27-28-29-2A-2B-2C-2D-2E-2F" />
+    <file id="3" name="sha512.cs" language="C#" checksumAlgorithm="SHA512" checksum="00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F-10-11-12-13-14-15-16-17-18-19-1A-1B-1C-1D-1E-1F-20-21-22-23-24-25-26-27-28-29-2A-2B-2C-2D-2E-2F-30-31-32-33-34-35-36-37-38-39-3A-3B-3C-3D-3E-3F" />
+  </files>
+  <entryPoint declaringType="C" methodName="Main" />
+  <methods>
+    <method containingType="C" name="Main">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount="0" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="6" document="1" />
+        <entry offset="0x1" startLine="1" startColumn="9" endLine="1" endColumn="33" document="2" />
+        <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="33" document="3" />
+        <entry offset="0xf" startLine="2" startColumn="5" endLine="2" endColumn="6" document="3" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+""");
+        }
+
+        [Fact]
+        public void CheckSumPragma_UnrecognizedGuid()
+        {
+            // #pragma checksum treats GUIDs as opaque values
+            var text = """
+class C
+{
+#pragma checksum "random.cs" "{aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa}" "ef00112233"
+
+    static void Main()
+    {
+#line 1 "random.cs"
+        System.Console.Write(1);
+    }
+}
+""";
+
+            var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            compilation.VerifyPdb("C.Main", """
+<symbols>
+  <files>
+    <file id="1" name="" language="C#" />
+    <file id="2" name="random.cs" language="C#" checksumAlgorithm="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" checksum="EF-00-11-22-33" />
+  </files>
+  <entryPoint declaringType="C" methodName="Main" />
+  <methods>
+    <method containingType="C" name="Main">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount="0" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="6" document="1" />
+        <entry offset="0x1" startLine="1" startColumn="9" endLine="1" endColumn="33" document="2" />
+        <entry offset="0x8" startLine="2" startColumn="5" endLine="2" endColumn="6" document="2" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>
+""");
         }
     }
 }

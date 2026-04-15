@@ -161,7 +161,7 @@ abstract Microsoft.CodeAnalysis.SemanticModel.LookupLabelsCore(int position, str
 abstract Microsoft.CodeAnalysis.SemanticModel.LookupNamespacesAndTypesCore(int position, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol? container, string? name) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>
 abstract Microsoft.CodeAnalysis.SemanticModel.LookupStaticMembersCore(int position, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol? container, string? name) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>
 abstract Microsoft.CodeAnalysis.SemanticModel.LookupSymbolsCore(int position, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol? container, string? name, bool includeReducedExtensionMethods) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol!>
-abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
+[RSEXPERIMENTAL001]abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
 abstract Microsoft.CodeAnalysis.SemanticModel.OriginalPositionForSpeculation.get -> int
 abstract Microsoft.CodeAnalysis.SemanticModel.ParentModelCore.get -> Microsoft.CodeAnalysis.SemanticModel?
 abstract Microsoft.CodeAnalysis.SemanticModel.RootCore.get -> Microsoft.CodeAnalysis.SyntaxNode!
@@ -1039,6 +1039,8 @@ Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitDifferenceOptions() -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.get -> bool
 Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.EmitFieldRva.init -> void
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.get -> bool
+Microsoft.CodeAnalysis.Emit.EmitDifferenceOptions.MethodImplEntriesSupported.init -> void
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.Baseline.get -> Microsoft.CodeAnalysis.Emit.EmitBaseline?
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
@@ -1298,7 +1300,7 @@ Microsoft.CodeAnalysis.GeneratorRunResult.Exception.get -> System.Exception?
 Microsoft.CodeAnalysis.GeneratorRunResult.GeneratedSources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.GeneratedSourceResult>
 Microsoft.CodeAnalysis.GeneratorRunResult.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorRunResult.GeneratorRunResult() -> void
-Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
 Microsoft.CodeAnalysis.GeneratorRunResult.TrackedOutputSteps.get -> System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IncrementalGeneratorRunStep!>>!
 Microsoft.CodeAnalysis.GeneratorRunResult.TrackedSteps.get -> System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IncrementalGeneratorRunStep!>>!
 Microsoft.CodeAnalysis.GeneratorSyntaxContext
@@ -1432,6 +1434,7 @@ Microsoft.CodeAnalysis.IMethodSymbol.PartialImplementationPart.get -> Microsoft.
 Microsoft.CodeAnalysis.IMethodSymbol.ReceiverNullableAnnotation.get -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.IMethodSymbol.ReceiverType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.ReducedFrom.get -> Microsoft.CodeAnalysis.IMethodSymbol?
+Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.ReduceExtensionMethod(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IMethodSymbol?
 Microsoft.CodeAnalysis.IMethodSymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier!>
 Microsoft.CodeAnalysis.IMethodSymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
@@ -1622,6 +1625,7 @@ Microsoft.CodeAnalysis.IPropertySymbol.OverriddenProperty.get -> Microsoft.CodeA
 Microsoft.CodeAnalysis.IPropertySymbol.Parameters.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IParameterSymbol!>
 Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
+Microsoft.CodeAnalysis.IPropertySymbol.ReduceExtensionMember(Microsoft.CodeAnalysis.ITypeSymbol! receiverType) -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.RefCustomModifiers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CustomModifier!>
 Microsoft.CodeAnalysis.IPropertySymbol.RefKind.get -> Microsoft.CodeAnalysis.RefKind
 Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRef.get -> bool

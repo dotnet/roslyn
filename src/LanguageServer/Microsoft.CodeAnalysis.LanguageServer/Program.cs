@@ -6,7 +6,7 @@ using System.CommandLine;
 using System.Diagnostics;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Text.Json;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Contracts.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
-using Microsoft.CodeAnalysis.LanguageServer.StarredSuggestions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
@@ -34,13 +33,18 @@ return await command.Parse(args).InvokeAsync(invocationConfiguration, Cancellati
 
 static async Task RunAsync(ServerConfiguration serverConfiguration, CancellationToken cancellationToken)
 {
+    if (serverConfiguration.UseStdIo && serverConfiguration.ServerPipeName is not null)
+    {
+        throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
+    }
+
+    if (!serverConfiguration.UseStdIo && serverConfiguration.ServerPipeName is null)
+    {
+        throw new InvalidOperationException("Server must be started with either --stdio or --pipe option.");
+    }
+
     if (serverConfiguration.UseStdIo)
     {
-        if (serverConfiguration.ServerPipeName is not null)
-        {
-            throw new InvalidOperationException("Server cannot be started with both --stdio and --pipe options.");
-        }
-
         // Redirect Console.Out to try prevent the standard output stream from being corrupted.
         // This should be done before the logger is created as it can write to the standard output.
         Console.SetOut(new StreamWriter(Console.OpenStandardError()));
@@ -117,32 +121,23 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     var workspaceFactory = exportProvider.GetExportedValue<LanguageServerWorkspaceFactory>();
 
     var serviceBrokerFactory = exportProvider.GetExportedValue<ServiceBrokerFactory>();
-    StarredCompletionAssemblyHelper.InitializeInstance(serverConfiguration.StarredCompletionsPath, extensionManager, loggerFactory, serviceBrokerFactory);
 
-    LanguageServerHost? server = null;
+    LanguageServerHost server;
     if (serverConfiguration.UseStdIo)
     {
         server = new LanguageServerHost(Console.OpenStandardInput(), Console.OpenStandardOutput(), exportProvider, loggerFactory, typeRefResolver);
     }
     else
     {
-        var (clientPipeName, serverPipeName) = serverConfiguration.ServerPipeName is null
-            ? CreateNewPipeNames()
-            : (serverConfiguration.ServerPipeName, serverConfiguration.ServerPipeName);
-
-        var pipeServer = new NamedPipeServerStream(serverPipeName,
-            PipeDirection.InOut,
-            maxNumberOfServerInstances: 1,
-            PipeTransmissionMode.Byte,
-            PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
-
-        // Send the named pipe connection info to the client
-        Console.WriteLine(JsonSerializer.Serialize(new NamedPipeInformation(clientPipeName)));
-
-        // Wait for connection from client
-        await pipeServer.WaitForConnectionAsync(cancellationToken);
-
-        server = new LanguageServerHost(pipeServer, pipeServer, exportProvider, loggerFactory, typeRefResolver);
+        // The VS Code LSP client passes a full pipe path (e.g. \\.\pipe\<guid> on Windows, /tmp/<id>.sock on Unix).
+        // NamedPipeClientStream expects just the pipe name on Windows (it prepends \\.\pipe\ itself),
+        // and the full socket path on Unix.
+        var pipeName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? serverConfiguration.ServerPipeName!.Replace(@"\\.\pipe\", "")
+            : serverConfiguration.ServerPipeName!;
+        var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.CurrentUserOnly | PipeOptions.Asynchronous);
+        await pipeClient.ConnectAsync(cancellationToken);
+        server = new LanguageServerHost(pipeClient, pipeClient, exportProvider, loggerFactory, typeRefResolver);
     }
 
     server.Start();
@@ -184,12 +179,6 @@ static RootCommand CreateCommand()
     var logLevelOption = new Option<LogLevel?>("--logLevel")
     {
         Description = "The minimum log verbosity.",
-        Required = false,
-    };
-
-    var starredCompletionsPathOption = new Option<string?>("--starredCompletionComponentPath")
-    {
-        Description = "The location of the starred completion component (if one exists).",
         Required = false,
     };
 
@@ -279,7 +268,6 @@ static RootCommand CreateCommand()
         debugOption,
         brokeredServicePipeNameOption,
         logLevelOption,
-        starredCompletionsPathOption,
         telemetryLevelOption,
         sessionIdOption,
         extensionAssemblyPathsOption,
@@ -299,7 +287,6 @@ static RootCommand CreateCommand()
     {
         var launchDebugger = parseResult.GetValue(debugOption);
         var logLevel = parseResult.GetValue(logLevelOption);
-        var starredCompletionsPath = parseResult.GetValue(starredCompletionsPathOption);
         var telemetryLevel = parseResult.GetValue(telemetryLevelOption);
         var sessionId = parseResult.GetValue(sessionIdOption);
         var extensionAssemblyPaths = parseResult.GetValue(extensionAssemblyPathsOption) ?? [];
@@ -316,7 +303,6 @@ static RootCommand CreateCommand()
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
             LogConfiguration: new LogConfiguration(logLevel ?? LogLevel.Information),
-            StarredCompletionsPath: starredCompletionsPath,
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,
             ExtensionAssemblyPaths: extensionAssemblyPaths,
@@ -334,26 +320,4 @@ static RootCommand CreateCommand()
     });
 
     return rootCommand;
-}
-
-static (string clientPipe, string serverPipe) CreateNewPipeNames()
-{
-    // On windows, .NET and Nodejs use different formats for the pipe name
-    const string WINDOWS_NODJS_PREFIX = @"\\.\pipe\";
-    const string WINDOWS_DOTNET_PREFIX = @"\\.\";
-
-    // The pipe name constructed by some systems is very long (due to temp path).
-    // Shorten the unique id for the pipe.
-    var newGuid = Guid.NewGuid().ToString();
-    var pipeName = newGuid.Split('-')[0];
-
-    return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? (WINDOWS_NODJS_PREFIX + pipeName, WINDOWS_DOTNET_PREFIX + pipeName)
-        : (GetUnixTypePipeName(pipeName), GetUnixTypePipeName(pipeName));
-}
-
-static string GetUnixTypePipeName(string pipeName)
-{
-    // Unix-type pipes are actually writing to a file
-    return Path.Combine(Path.GetTempPath(), pipeName + ".sock");
 }

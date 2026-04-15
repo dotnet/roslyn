@@ -22,7 +22,7 @@ internal sealed class NoValue
     public static NoValue Instance = new();
 }
 
-internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
+internal sealed class QueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
@@ -67,7 +67,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
     }
 
-    public static (IQueueItem<TRequestContext>, Task<object?>) Create(
+    public static (QueueItem<TRequestContext>, Task<object?>) Create(
         string methodName,
         object? serializedRequest,
         ILspServices lspServices,
@@ -159,7 +159,7 @@ internal sealed class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// representing the task that the client is waiting for, then re-thrown so that
     /// the queue can correctly handle them depending on the type of request.
     /// </summary>
-    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken)
+    public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, CancellationToken cancellationToken)
     {
         _requestHandlingStarted = true;
 

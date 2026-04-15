@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -44,6 +45,9 @@ public abstract partial class AbstractLanguageServerProtocolTests
 {
     protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
 
+    private protected static DocumentUri CreateAbsoluteDocumentUri(string suffix)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath(suffix));
+
     private protected readonly AbstractLspLogger TestOutputLspLogger;
     protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
     {
@@ -63,7 +67,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     internal sealed class TestSpanMapper : ISpanMappingService
     {
         private static readonly LinePositionSpan s_mappedLinePosition = new(new LinePosition(0, 0), new LinePosition(0, 5));
-        private static readonly string s_mappedFilePath = "c:\\MappedFile_\ue25b\ud86d\udeac.cs";
+        private static readonly string s_mappedFilePath = TestHelpers.GetRootedPath("MappedFile_\ue25b\ud86d\udeac.cs");
 
         internal static readonly string GeneratedFileName = "GeneratedFile_\ue25b\ud86d\udeac.cs";
 
@@ -447,7 +451,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             generatedDocumentId,
             TestSpanMapper.GeneratedFileName,
             loader: loader,
-            filePath: $"C:\\{TestSpanMapper.GeneratedFileName}",
+            filePath: TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName),
             isGenerated: true)
             .WithDocumentServiceProvider(new TestSpanMapperProvider());
 
@@ -663,6 +667,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 {
                     Capabilities = _initializationOptions.ClientCapabilities,
                     Locale = _initializationOptions.Locale,
+                    WorkspaceFolders = _initializationOptions.WorkspaceFolders,
                 }, CancellationToken.None);
             }
 

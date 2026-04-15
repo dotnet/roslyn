@@ -157,7 +157,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             try
             {
-                await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
+                await _lspMiscellaneousFilesWorkspaceProvider.CloseDocumentAsync(uri).ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
@@ -257,29 +257,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 // We have at least one document, so find the one in the right project context.
                 var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
 
-                if (_lspMiscellaneousFilesWorkspaceProvider is not null)
+                if (workspace.Kind != WorkspaceKind.MiscellaneousFiles && _lspMiscellaneousFilesWorkspaceProvider is not null)
                 {
-                    // It is possible that a document that was previously a misc file is now part of a real workspace (e.g. project system told us about a file we already had open).
-                    // If we found a non-misc document, we should clean up any references to it in the misc provider.
-                    var foundNonMiscDocument = await documents
-                        .AnyAsync(async doc => !await _lspMiscellaneousFilesWorkspaceProvider.IsMiscellaneousFilesDocumentAsync(doc, cancellationToken).ConfigureAwait(false))
-                        .ConfigureAwait(false);
-                    if (foundNonMiscDocument)
-                    {
-                        try
-                        {
-                            var didRemove = await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
-                            if (didRemove)
-                            {
-                                // If we actually removed something, lookup the document again to ensure we return updated solutions without the misc document.
-                                return await GetLspDocumentInfoAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
-                            }
-                        }
-                        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-                        {
-                            _logger.LogException(ex);
-                        }
-                    }
+                    // Found the document in a non-miscellaneous files workspace.
+                    // Unload it from the miscellaneous files workspace.
+                    await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
                 }
 
                 // Record metadata on how we got this document.
@@ -303,7 +285,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             try
             {
-                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddMiscellaneousDocumentAsync(uri, trackedDocument.SourceText, trackedDocument.LanguageId, _logger).ConfigureAwait(false);
+                var miscDocument = await _lspMiscellaneousFilesWorkspaceProvider.AddDocumentAsync(uri, trackedDocument).ConfigureAwait(false);
                 if (miscDocument is not null)
                     return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
             }
@@ -587,7 +569,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
         public ValueTask<bool> IsMiscellaneousFilesDocumentAsync(TextDocument document)
         {
-            return _manager._lspMiscellaneousFilesWorkspaceProvider!.IsMiscellaneousFilesDocumentAsync(document, CancellationToken.None);
+            return ValueTask.FromResult(document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles);
         }
 
         public async IAsyncEnumerable<T> GetMiscellaneousDocumentsAsync<T>(Func<Project, IEnumerable<T>> documentSelector) where T : TextDocument

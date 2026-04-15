@@ -2,16 +2,19 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- TODO: Remove _NuGetRepackAssembly property when upgrading to Arcade 11: https://github.com/dotnet/roslyn/issues/83095 -->
   <PropertyGroup>
     <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\net472\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
     <_NuGetRepackAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)microsoft.dotnet.nugetrepack.tasks\$(MicrosoftDotnetNuGetRepackTasksVersion)\tools\netcoreapp2.1\Microsoft.DotNet.NuGetRepack.Tasks.dll</_NuGetRepackAssembly>
   </PropertyGroup>
 
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
-  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
-  <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
+  <!-- TODO: Remove UsingTasks when upgrading to Arcade 11: https://github.com/dotnet/roslyn/issues/83095 -->
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GroupItemsBy" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
+  <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.Unsign" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
   <UsingTask TaskName="Microsoft.DotNet.Tools.ReplacePackageParts" AssemblyFile="$(_NuGetRepackAssembly)" />
+
+  <UsingTask TaskName="Microsoft.NET.Build.Tasks.JoinItems" AssemblyFile="$(MicrosoftNETBuildTasksAssembly)" />
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>

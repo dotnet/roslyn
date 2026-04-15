@@ -243,6 +243,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 targetType,
                 ref useSiteInfo);
         }
+
+        protected override Conversion AnalyzeImplicitUnionConversions(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol target, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (_binder.InParameterDefaultValue || _binder.InAttributeArgument)
+            {
+                // We don't consider when we're in default parameter values or attributes to avoid cycles. This is an error scenario,
+                // so we don't care if we accidentally miss a parameter being applicable.
+                return Conversion.NoConversion;
+            }
+
+            return base.AnalyzeImplicitUnionConversions(sourceExpression, source, target, ref useSiteInfo);
+        }
 #nullable disable
 
         /// <summary>
