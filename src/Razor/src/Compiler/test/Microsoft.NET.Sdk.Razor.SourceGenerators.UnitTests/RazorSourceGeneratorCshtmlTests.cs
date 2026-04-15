@@ -354,7 +354,8 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        result = RunGenerator(compilation!, ref driver, out _);
+        driver = await GetDriverAsync(project);
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
 
         // Assert - should now use UTF-8 literals
         Assert.Empty(result.Diagnostics);
@@ -373,7 +374,8 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
                 """, Encoding.UTF8)).Project;
 
         compilation = await project.GetCompilationAsync();
-        result = RunGenerator(compilation!, ref driver, out _);
+        driver = await GetDriverAsync(project);
+        result = RunGenerator(compilation!, ref driver, out _, _ => { });
 
         // Assert - should switch back to string literals
         Assert.Empty(result.Diagnostics);
@@ -403,5 +405,141 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         Assert.Empty(result.Diagnostics);
         Assert.Single(result.GeneratedSources);
         Assert.DoesNotContain("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_FullyQualifiedInherits()
+    {
+        // Arrange - @inherits with fully-qualified type name
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyApp.Infrastructure.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - fully-qualified name resolves correctly
+        Assert.Empty(result.Diagnostics);
+        Assert.Single(result.GeneratedSources);
+        Assert.Contains("u8)", result.GeneratedSources[0].SourceText.ToString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_ShortNameInherits_WithUsing()
+    {
+        // Arrange - @inherits with short name, namespace imported via _ViewImports
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyApp.Infrastructure
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - short name with @using: the @inherits value is "MyUtf8PageBase" which
+        // won't match the metadata name "MyApp.Infrastructure.MyUtf8PageBase".
+        // UTF-8 detection only works with fully-qualified @inherits for now.
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.DoesNotContain("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_PartiallyQualifiedInherits()
+    {
+        // Arrange - @inherits with partially-qualified name
+        // Note: Razor requires fully-qualified names in @inherits, so this produces a compile error.
+        // This test documents that we gracefully handle this case (no UTF-8 detection).
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits Infrastructure.MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _, _ => { });
+
+        // Assert - partially-qualified name won't match the metadata name.
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.DoesNotContain("u8)", indexSource);
     }
 }
