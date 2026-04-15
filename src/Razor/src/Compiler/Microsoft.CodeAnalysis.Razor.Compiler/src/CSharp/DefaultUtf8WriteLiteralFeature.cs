@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
@@ -85,35 +87,47 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
             var fileToType = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
             var typeSupport = ImmutableSortedDictionary.CreateBuilder<string, bool>(StringComparer.Ordinal);
 
-            foreach (var info in inheritsInfos)
-            {
-                var filePath = info.FilePath;
-                var baseTypeName = info.BaseTypeName;
+            // First pass: resolve fully-qualified names via fast path, collect unresolved entries.
+            List<(int Index, InheritsInfo Info)>? unresolvedEntries = null;
 
-                // Fast path: try fully-qualified metadata name lookup.
-                var type = compilation.GetTypeByMetadataName(baseTypeName);
-                string? fqn;
-                if (type is null || type.TypeKind == TypeKind.Error)
+            for (var i = 0; i < inheritsInfos.Length; i++)
+            {
+                var info = inheritsInfos[i];
+                var type = compilation.GetTypeByMetadataName(info.BaseTypeName);
+                if (type is not null && type.TypeKind != TypeKind.Error)
                 {
-                    // Slow path: use the document's @using directives to resolve short names
-                    // via an augmented compilation.
-                    fqn = ResolveTypeNameWithUsings(baseTypeName, info.Usings, compilation);
+                    var fqn = type.GetFullName();
+                    fileToType[info.FilePath] = fqn;
+
+                    if (!typeSupport.ContainsKey(fqn))
+                    {
+                        typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(fqn);
+                    }
                 }
                 else
                 {
-                    fqn = type.GetFullName();
+                    unresolvedEntries ??= [];
+                    unresolvedEntries.Add((i, info));
                 }
+            }
 
-                if (fqn is null)
+            // Second pass: resolve remaining entries via a single augmented compilation.
+            if (unresolvedEntries is { Count: > 0 } && compilation is CSharpCompilation csharpCompilation)
+            {
+                var entriesWithUsings = unresolvedEntries.Where(e => !e.Info.Usings.IsEmpty).ToList();
+                if (entriesWithUsings.Count > 0)
                 {
-                    continue;
-                }
+                    var resolved = ResolveTypeNamesWithUsings(entriesWithUsings, csharpCompilation);
+                    foreach (var (index, fqn) in resolved)
+                    {
+                        var info = inheritsInfos[index];
+                        fileToType[info.FilePath] = fqn;
 
-                fileToType[filePath] = fqn;
-
-                if (!typeSupport.ContainsKey(fqn))
-                {
-                    typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(fqn);
+                        if (!typeSupport.ContainsKey(fqn))
+                        {
+                            typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(fqn);
+                        }
+                    }
                 }
             }
 
@@ -123,42 +137,63 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
         }
 
         /// <summary>
-        /// Resolves a short or partially-qualified type name to a fully-qualified metadata name
-        /// using the document's <c>@using</c> directives and an augmented compilation.
+        /// Resolves multiple short or partially-qualified type names in a single augmented
+        /// compilation. Each entry's usings are scoped to a unique namespace block to prevent
+        /// cross-contamination.
         /// </summary>
-        private static string? ResolveTypeNameWithUsings(
-            string typeName,
-            ImmutableArray<string> usings,
-            Compilation compilation)
+        private static List<(int Index, string Fqn)> ResolveTypeNamesWithUsings(
+            List<(int Index, InheritsInfo Info)> entries,
+            CSharpCompilation compilation)
         {
-            if (compilation is not CSharpCompilation csharpCompilation || usings.IsEmpty)
-            {
-                return null;
-            }
+            var results = new List<(int, string)>();
 
+            // Build a single probe tree with namespace-scoped usings for each entry.
             var sb = new StringBuilder();
-            foreach (var u in usings)
+            for (var i = 0; i < entries.Count; i++)
             {
-                sb.Append("using ").Append(u).AppendLine(";");
+                var info = entries[i].Info;
+                Debug.Assert(!info.Usings.IsEmpty);
+
+                sb.Append("namespace __Utf8Probe_").Append(i).AppendLine(" {");
+                foreach (var u in info.Usings)
+                {
+                    sb.Append("    using ").Append(u).AppendLine(";");
+                }
+
+                sb.Append("    class __Probe__ : ").Append(info.BaseTypeName).AppendLine(" { }");
+                sb.AppendLine("}");
             }
 
-            sb.Append("class __Utf8Probe__ : ").Append(typeName).AppendLine(" { }");
-
-            var parseOptions = csharpCompilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions
+            var parseOptions = compilation.SyntaxTrees.FirstOrDefault()?.Options as CSharpParseOptions
                 ?? CSharpParseOptions.Default;
             var probeTree = CSharpSyntaxTree.ParseText(sb.ToString(), parseOptions);
-
-            var augmented = csharpCompilation.AddSyntaxTrees(probeTree);
+            var augmented = compilation.AddSyntaxTrees(probeTree);
             var semanticModel = augmented.GetSemanticModel(probeTree);
-            var classDecl = probeTree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
-            var baseTypeSyntax = classDecl?.BaseList?.Types.FirstOrDefault();
 
-            if (baseTypeSyntax is null)
+            // Query each probe class's base type.
+            var namespaceDecls = probeTree.GetRoot().DescendantNodes()
+                .OfType<BaseNamespaceDeclarationSyntax>()
+                .ToArray();
+
+            for (var i = 0; i < namespaceDecls.Length; i++)
             {
-                return null;
+                var classDecl = namespaceDecls[i].DescendantNodes()
+                    .OfType<ClassDeclarationSyntax>()
+                    .FirstOrDefault();
+                var baseTypeSyntax = classDecl?.BaseList?.Types.FirstOrDefault();
+                if (baseTypeSyntax is null)
+                {
+                    continue;
+                }
+
+                var symbol = semanticModel.GetSymbolInfo(baseTypeSyntax.Type).Symbol as INamedTypeSymbol;
+                if (symbol is not null && symbol.TypeKind != TypeKind.Error)
+                {
+                    results.Add((entries[i].Index, symbol.GetFullName()));
+                }
             }
 
-            return (semanticModel.GetSymbolInfo(baseTypeSyntax.Type).Symbol as INamedTypeSymbol)?.GetFullName();
+            return results;
         }
 
         public bool IsSupported(string? filePath, string baseTypeName)
