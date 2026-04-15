@@ -906,38 +906,28 @@ End Class
             Optional expectedProductVersion As String = Nothing)
 
             expectedVersion = If(expectedVersion, New Version(0, 0, 0, 0))
-
-            ' normal assembly — emit with win32 resources to verify version info is present
             Dim compilation = CreateEmptyCompilationWithReferences(source, LatestVbReferences)
-            Dim normalAssemblyBytes = EmitWithWin32Resources(compilation)
-            VerifyRefAssemblyStripsAttribute_ValidateBytes(normalAssemblyBytes, strippedAttributeConstructor, expectedVersion, present:=True)
-            VerifyWin32Resources(normalAssemblyBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=True)
 
-            ' ref assembly — attribute is stripped and no win32 resources
-            Dim emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
-            Dim verifier = CompileAndVerify(
-                source,
-                emitOptions:=emitRefAssembly,
-                verify:=Verification.Passes,
-                validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=False),
-                useLatestFramework:=True)
-            VerifyWin32Resources(verifier.EmittedAssemblyData, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+            ' normal assembly
+            Dim normalBytes = EmitWithWin32Resources(compilation, EmitOptions.Default)
+            VerifyRefAssemblyStripsAttribute_ValidateBytes(normalBytes, strippedAttributeConstructor, expectedVersion, present:=True)
+            VerifyWin32Resources(normalBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=True)
 
-            ' metadata-only assembly — attribute is present but no win32 resources
-            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True)
-            verifier = CompileAndVerify(
-                source,
-                emitOptions:=emitMetadataOnly,
-                verify:=Verification.Passes,
-                validator:=Sub(assembly) VerifyRefAssemblyStripsAttribute_Validate(assembly, strippedAttributeConstructor, expectedVersion, present:=True),
-                useLatestFramework:=True)
-            VerifyWin32Resources(verifier.EmittedAssemblyData, expectedVersion, expectedFileVersion:=Nothing, expectedProductVersion:=Nothing, expectResources:=False)
+            ' ref assembly
+            Dim refBytes = EmitWithWin32Resources(compilation, EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False))
+            VerifyRefAssemblyStripsAttribute_ValidateBytes(refBytes, strippedAttributeConstructor, expectedVersion, present:=False)
+            VerifyWin32Resources(refBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=False)
+
+            ' metadata-only assembly
+            Dim metadataOnlyBytes = EmitWithWin32Resources(compilation, EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(True))
+            VerifyRefAssemblyStripsAttribute_ValidateBytes(metadataOnlyBytes, strippedAttributeConstructor, expectedVersion, present:=True)
+            VerifyWin32Resources(metadataOnlyBytes, expectedVersion, expectedFileVersion:=expectedFileVersion, expectedProductVersion:=expectedProductVersion, expectResources:=False)
         End Sub
 
-        Private Shared Function EmitWithWin32Resources(compilation As VisualBasicCompilation) As ImmutableArray(Of Byte)
+        Private Shared Function EmitWithWin32Resources(compilation As VisualBasicCompilation, emitOptions As EmitOptions) As ImmutableArray(Of Byte)
             Using peStream As New MemoryStream()
                 Using win32Resources = compilation.CreateDefaultWin32Resources(versionResource:=True, noManifest:=False, manifestContents:=Nothing, iconInIcoFormat:=Nothing)
-                    Dim result = compilation.Emit(peStream, win32Resources:=win32Resources)
+                    Dim result = compilation.Emit(peStream, win32Resources:=win32Resources, options:=emitOptions)
                     result.Diagnostics.Verify()
                     Return peStream.ToArray().AsImmutableOrNull()
                 End Using
@@ -958,18 +948,6 @@ End Class
 
                 Assert.Equal(expectedVersion, reader.GetAssemblyDefinition().Version)
             End Using
-        End Sub
-
-        Private Shared Sub VerifyRefAssemblyStripsAttribute_Validate(assembly As PEAssembly, strippedAttributeConstructor As String, expectedVersion As Version, present As Boolean)
-            Dim attributeStrings = GetAssemblyAttributeStrings(assembly)
-
-            If present Then
-                Assert.Contains(strippedAttributeConstructor, attributeStrings)
-            Else
-                Assert.DoesNotContain(strippedAttributeConstructor, attributeStrings)
-            End If
-
-            Assert.Equal(expectedVersion, assembly.GetMetadataReader().GetAssemblyDefinition().Version)
         End Sub
 
         Private Sub VerifyWin32Resources(assemblyBytes As ImmutableArray(Of Byte), expectedVersion As Version, expectedFileVersion As String, expectedProductVersion As String, expectResources As Boolean)

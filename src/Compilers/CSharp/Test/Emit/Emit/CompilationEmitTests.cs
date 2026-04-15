@@ -1184,30 +1184,28 @@ public class C
         {
             expectedVersion ??= new Version(0, 0, 0, 0);
             var expectedEffectiveFileVersion = expectedFileVersion ?? expectedVersion.ToString();
-
-            // normal assembly — emit with win32 resources to verify version info is present
             var compilation = CreateCompilation(source);
-            var normalAssemblyBytes = emitWithWin32Resources(compilation);
-            validateAttributes(normalAssemblyBytes, strippedAttributeConstructor, expectedVersion, present: true);
-            verifyWin32Resources(normalAssemblyBytes, expectedEffectiveFileVersion, expectedProductVersion, expectResources: true);
 
-            // ref assembly — attribute is stripped and no win32 resources
-            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
-            var verifier = CompileAndVerify(source, emitOptions: emitRefAssembly,
-                assemblyValidator: assembly => validate(assembly, strippedAttributeConstructor, expectedVersion, present: false));
-            verifyWin32Resources(verifier.EmittedAssemblyData, expectedEffectiveFileVersion: null, expectedProductVersion: null, expectResources: false);
+            // normal assembly
+            var normalBytes = emitWithWin32Resources(compilation, EmitOptions.Default);
+            validateAttributes(normalBytes, strippedAttributeConstructor, expectedVersion, present: true);
+            verifyWin32Resources(normalBytes, expectedEffectiveFileVersion, expectedProductVersion, expectResources: true);
 
-            // metadata-only assembly — attribute is present but no win32 resources
-            var emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(true);
-            verifier = CompileAndVerify(source, emitOptions: emitMetadataOnly,
-                assemblyValidator: assembly => validate(assembly, strippedAttributeConstructor, expectedVersion, present: true));
-            verifyWin32Resources(verifier.EmittedAssemblyData, expectedEffectiveFileVersion: null, expectedProductVersion: null, expectResources: false);
+            // ref assembly
+            var refBytes = emitWithWin32Resources(compilation, EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false));
+            validateAttributes(refBytes, strippedAttributeConstructor, expectedVersion, present: false);
+            verifyWin32Resources(refBytes, expectedEffectiveFileVersion, expectedProductVersion, expectResources: false);
 
-            static ImmutableArray<byte> emitWithWin32Resources(CSharpCompilation compilation)
+            // metadata-only assembly
+            var metadataOnlyBytes = emitWithWin32Resources(compilation, EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(true));
+            validateAttributes(metadataOnlyBytes, strippedAttributeConstructor, expectedVersion, present: true);
+            verifyWin32Resources(metadataOnlyBytes, expectedEffectiveFileVersion, expectedProductVersion, expectResources: false);
+
+            static ImmutableArray<byte> emitWithWin32Resources(CSharpCompilation compilation, EmitOptions emitOptions)
             {
                 using var peStream = new MemoryStream();
                 using var win32Resources = compilation.CreateDefaultWin32Resources(versionResource: true, noManifest: false, manifestContents: null, iconInIcoFormat: null);
-                var result = compilation.Emit(peStream, win32Resources: win32Resources);
+                var result = compilation.Emit(peStream, win32Resources: win32Resources, options: emitOptions);
                 result.Diagnostics.Verify();
                 return peStream.ToArray().AsImmutableOrNull();
             }
@@ -1229,20 +1227,6 @@ public class C
                 }
 
                 Assert.Equal(expectedVersion, reader.GetAssemblyDefinition().Version);
-            }
-
-            static void validate(PEAssembly assembly, string strippedAttributeConstructor, Version expectedVersion, bool present)
-            {
-                if (present)
-                {
-                    Assert.Contains(strippedAttributeConstructor, GetAssemblyAttributeStrings(assembly));
-                }
-                else
-                {
-                    Assert.DoesNotContain(strippedAttributeConstructor, GetAssemblyAttributeStrings(assembly));
-                }
-
-                Assert.Equal(expectedVersion, assembly.GetMetadataReader().GetAssemblyDefinition().Version);
             }
 
             void verifyWin32Resources(ImmutableArray<byte> assemblyBytes, string expectedEffectiveFileVersion, string expectedProductVersion, bool expectResources)
