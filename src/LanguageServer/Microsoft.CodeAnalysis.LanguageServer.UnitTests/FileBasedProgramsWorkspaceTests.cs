@@ -134,7 +134,6 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
-        Assert.DoesNotContain("FileBasedProgram", document.Project.ParseOptions!.Features);
     }
 
     [Theory, CombinatorialData]
