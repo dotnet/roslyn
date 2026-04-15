@@ -58,7 +58,7 @@ internal sealed class CSharpMakeMemberRequiredCodeFixProvider() : SyntaxEditorBa
         }
 
         var fieldOrPropertySymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-        if (fieldOrPropertySymbol is null || fieldOrPropertySymbol.IsStatic)
+        if (fieldOrPropertySymbol?.IsStatic == true)
             return;
 
         if (fieldOrPropertySymbol is IPropertySymbol propertySymbol)
