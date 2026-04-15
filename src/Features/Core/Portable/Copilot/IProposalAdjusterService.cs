@@ -43,11 +43,16 @@ internal readonly record struct AdjustmentResult(
 
 internal interface ICopilotProposalAdjusterService : ILanguageService
 {
+    /// <param name="applicableToSpan">
+    /// Indicates the span of the <c>CompletionState.ApplicableToSpan</c> on the original document.
+    /// Edits that intersect this span will be split so they do not overlap it, since the proposal system
+    /// requires that no edit intersect this span (except a zero-length edit at its end).
+    /// </param>
     /// <returns><c>default</c> if the proposal was not adjusted</returns>
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Document document,
         ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
-        CancellationToken cancellationToken);
+        TextSpan? applicableToSpan, CancellationToken cancellationToken);
 }
 
 internal interface IRemoteCopilotProposalAdjusterService
@@ -56,7 +61,8 @@ internal interface IRemoteCopilotProposalAdjusterService
     ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Checksum solutionChecksum,
         DocumentId documentId, ImmutableArray<TextChange> normalizedChanges,
-        LineFormattingOptions? lineFormattingOptions, CancellationToken cancellationToken);
+        LineFormattingOptions? lineFormattingOptions, TextSpan? applicableToSpan,
+        CancellationToken cancellationToken);
 }
 
 internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposalAdjusterService
@@ -81,7 +87,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
     public async ValueTask<ProposalAdjustmentResult> TryAdjustProposalAsync(
         ImmutableHashSet<string> allowableAdjustments, Document document,
         ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
-        CancellationToken cancellationToken)
+        TextSpan? applicableToSpan, CancellationToken cancellationToken)
     {
         if (normalizedChanges.IsDefaultOrEmpty)
             return default;
@@ -93,7 +99,7 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
                 document.Project,
                 (service, checksum, cancellationToken) => service.TryAdjustProposalAsync(
                     allowableAdjustments, checksum, document.Id, normalizedChanges,
-                    lineFormattingOptions, cancellationToken),
+                    lineFormattingOptions, applicableToSpan, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             return result.HasValue ? result.Value : default;
@@ -101,13 +107,13 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
 
         return await TryAdjustProposalInCurrentProcessAsync(
             allowableAdjustments, document, normalizedChanges, lineFormattingOptions,
-            cancellationToken).ConfigureAwait(false);
+            applicableToSpan, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ProposalAdjustmentResult> TryAdjustProposalInCurrentProcessAsync(
         ImmutableHashSet<string> allowableAdjustments, Document originalDocument,
         ImmutableArray<TextChange> normalizedChanges, LineFormattingOptions? lineFormattingOptions,
-        CancellationToken cancellationToken)
+        TextSpan? applicableToSpan, CancellationToken cancellationToken)
     {
         Debug.Assert(allowableAdjustments is not null);
 
@@ -154,6 +160,15 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         // Get the final set of changes between the original document and the new document.
         var allChanges = await forkedDocument.GetTextChangesAsync(originalDocument, cancellationToken).ConfigureAwait(false);
         var totalChanges = FixLineEndingBoundaries(oldText, allChanges.AsImmutableOrEmpty());
+
+        // The diff algorithm may have merged nearby changes into a single TextChange that spans
+        // across the ATS boundary. Split any such changes to avoid the protected span.
+        if (applicableToSpan is { } ats)
+        {
+            totalChanges = ConstrainChangesToAvoidSpan(oldText, totalChanges, ats);
+            if (totalChanges.IsDefault)
+                return new(normalizedChanges, Format: false, AdjustmentResults: default);
+        }
 
         return new(totalChanges, Format: true, adjustmentResults.ToImmutableAndClear());
     }
@@ -225,6 +240,142 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         }
 
         return anyFixed ? result.ToImmutableAndClear() : changes;
+    }
+
+    /// <summary>
+    /// The proposal system requires that no edit intersect the ApplicableToSpan (except a zero-length edit at its end).
+    /// If the diff algorithm merged adjacent changes into a single <see cref="TextChange"/> that spans across the ATS boundary,
+    /// split it into before-ATS and after-ATS parts so the proposal system accepts the edits.
+    /// </summary>
+    /// <returns>
+    /// The constrained changes, or <c>default</c> if splitting was not possible (caller should fall back to
+    /// the original unadjusted changes).
+    /// </returns>
+    internal static ImmutableArray<TextChange> ConstrainChangesToAvoidSpan(
+        SourceText originalText, ImmutableArray<TextChange> changes, TextSpan protectedSpan)
+    {
+        if (changes.IsDefaultOrEmpty || protectedSpan.IsEmpty)
+            return changes;
+
+        using var _ = ArrayBuilder<TextChange>.GetInstance(out var result);
+        var anyConstrained = false;
+
+        foreach (var change in changes)
+        {
+            if (!IntersectsProtectedSpan(change.Span, protectedSpan))
+            {
+                result.Add(change);
+                continue;
+            }
+
+            anyConstrained = true;
+
+            if (!TrySplitChangeAroundProtectedSpan(originalText, change, protectedSpan, result))
+                return default;
+        }
+
+        return anyConstrained ? result.ToImmutableAndClear() : changes;
+    }
+
+    /// <summary>
+    /// Determines whether <paramref name="editSpan"/> intersects <paramref name="protectedSpan"/>.
+    /// A zero-length edit at the end of the protected span is allowed and is NOT considered an intersection.
+    /// </summary>
+    private static bool IntersectsProtectedSpan(TextSpan editSpan, TextSpan protectedSpan)
+    {
+        if (editSpan.Length == 0 && editSpan.Start == protectedSpan.End)
+            return false;
+
+        return editSpan.Start < protectedSpan.End && editSpan.End > protectedSpan.Start;
+    }
+
+    /// <summary>
+    /// Splits or trims a <see cref="TextChange"/> that intersects the protected span.
+    /// For the portion before the protected span, the protected text is located via
+    /// <see cref="FindProtectedTextInNewText"/>. For partial overlaps, the overlap text
+    /// is verified via StartsWith or EndsWith checks.
+    /// </summary>
+    private static bool TrySplitChangeAroundProtectedSpan(
+        SourceText originalText,
+        TextChange change,
+        TextSpan protectedSpan,
+        ArrayBuilder<TextChange> result)
+    {
+        var newText = change.NewText ?? "";
+        var overlapsStart = change.Span.Start <= protectedSpan.Start;
+        var overlapsEnd = change.Span.End >= protectedSpan.End;
+
+        // Full containment case
+        if (overlapsStart && overlapsEnd)
+        {
+            var protectedText = originalText.ToString(protectedSpan);
+            if (protectedText.Length == 0)
+                return false;
+
+            var protectedIndex = FindProtectedTextInNewText(newText, protectedText);
+            if (protectedIndex < 0)
+                return false;
+
+            var beforeSpan = TextSpan.FromBounds(change.Span.Start, protectedSpan.Start);
+            var beforeText = newText[..protectedIndex];
+            if (beforeSpan.Length > 0 || beforeText.Length > 0)
+                result.Add(new TextChange(beforeSpan, beforeText));
+
+            var afterSpan = TextSpan.FromBounds(protectedSpan.End, change.Span.End);
+            var afterText = newText[(protectedIndex + protectedText.Length)..];
+            if (afterSpan.Length > 0 || afterText.Length > 0)
+                result.Add(new TextChange(afterSpan, afterText));
+        }
+        else if (overlapsStart)
+        {
+            var overlapText = originalText.ToString(TextSpan.FromBounds(protectedSpan.Start, change.Span.End));
+            if (!newText.EndsWith(overlapText, StringComparison.Ordinal))
+                return false;
+
+            result.Add(new TextChange(
+                TextSpan.FromBounds(change.Span.Start, protectedSpan.Start),
+                newText[..^overlapText.Length]));
+        }
+        else
+        {
+            var overlapText = originalText.ToString(TextSpan.FromBounds(change.Span.Start, protectedSpan.End));
+            if (!newText.StartsWith(overlapText, StringComparison.Ordinal))
+                return false;
+
+            result.Add(new TextChange(
+                TextSpan.FromBounds(protectedSpan.End, change.Span.End),
+                newText[overlapText.Length..]));
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Finds the position of the ApplicableToSpan text within a change's replacement text.
+    /// Searches forward and backward from the midpoint of the replacement text and returns
+    /// whichever match is closer to that midpoint.
+    /// </summary>
+    private static int FindProtectedTextInNewText(
+        string newText,
+        string protectedText)
+    {
+        var midpoint = newText.Length / 2;
+
+        var forwardIndex = newText.IndexOf(protectedText, midpoint, StringComparison.Ordinal);
+
+        var backwardStart = Math.Min(midpoint + protectedText.Length - 1, newText.Length - 1);
+        var backwardIndex = backwardStart >= 0
+            ? newText.LastIndexOf(protectedText, backwardStart, StringComparison.Ordinal)
+            : -1;
+
+        return (forwardIndex, backwardIndex) switch
+        {
+            ( >= 0, < 0) => forwardIndex,
+            ( < 0, >= 0) => backwardIndex,
+            ( < 0, < 0) => -1,
+            // Both found — pick whichever is closer to the midpoint.
+            _ => (midpoint - backwardIndex <= forwardIndex - midpoint) ? backwardIndex : forwardIndex,
+        };
     }
 
     private static async Task<Document> TryGetAddImportTextChangesAsync(
@@ -302,5 +453,9 @@ internal abstract class AbstractCopilotProposalAdjusterService : ICopilotProposa
         internal static ImmutableArray<TextChange> FixLineEndingBoundaries(
             SourceText originalText, ImmutableArray<TextChange> changes)
             => AbstractCopilotProposalAdjusterService.FixLineEndingBoundaries(originalText, changes);
+
+        internal static ImmutableArray<TextChange> ConstrainChangesToAvoidSpan(
+            SourceText originalText, ImmutableArray<TextChange> changes, TextSpan protectedSpan)
+            => AbstractCopilotProposalAdjusterService.ConstrainChangesToAvoidSpan(originalText, changes, protectedSpan);
     }
 }
