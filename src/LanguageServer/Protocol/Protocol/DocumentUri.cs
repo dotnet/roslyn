@@ -22,9 +22,19 @@ namespace Roslyn.LanguageServer.Protocol;
 internal sealed record class DocumentUri(string UriString)
 {
     private Optional<Uri> _parsedUri;
+    private ParsedDocumentUri? _parsedDocumentUri;
 
+    [Obsolete("Use the constructor taking ParsedDocumentUri instead.")]
     public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
         => _parsedUri = parsedUri;
+
+    public DocumentUri(ParsedDocumentUri parsedDocumentUri) : this(parsedDocumentUri.ToString())
+        => _parsedDocumentUri = parsedDocumentUri;
+
+    /// <summary>
+    /// Gets the parsed URI using vscode-uri compatible parsing.
+    /// </summary>
+    public ParsedDocumentUri? ParsedDocUri => _parsedDocumentUri;
 
     /// <summary>
     /// Gets the parsed System.Uri for the URI string.
@@ -39,6 +49,7 @@ internal sealed record class DocumentUri(string UriString)
     /// For example, any URI containing a 'sub-delims' character in the host name is a valid RFC spec URI, but will fail
     /// with System.Uri
     /// </remarks>
+    [Obsolete("Use ParsedDocUri instead.")]
     public Uri? ParsedUri
     {
         get
@@ -74,31 +85,46 @@ internal sealed record class DocumentUri(string UriString)
         if (this.UriString == otherUri.UriString)
             return true;
 
-        // Bail if we cannot parse either of the URIs.  We already determined the URI strings are not equal and we need
-        // to be able to parse the URIs to do deeper equivalency checks.
-        if (otherUri.ParsedUri is null || this.ParsedUri is null)
-            return false;
+        // If both sides have ParsedDocumentUri, compare using vscode-uri semantics.
+        // ParsedDocumentUri.ToString() produces a deterministic encoded form, so comparing the struct
+        // components directly is equivalent (and avoids an allocation).
+        if (this._parsedDocumentUri is { } thisParsed && otherUri._parsedDocumentUri is { } otherParsed)
+            return thisParsed.Equals(otherParsed);
 
-        // Next we compare the parsed URIs to handle various casing and encoding scenarios (for example - different
-        // schemes may handle casing differently).
+        // If both sides have System.Uri, use existing comparison logic.
+        if (this._parsedDocumentUri is null && otherUri._parsedDocumentUri is null)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var thisSystemUri = this.ParsedUri;
+            var otherSystemUri = otherUri.ParsedUri;
+#pragma warning restore CS0618
 
-        // Uri.Equals will not always consider a percent encoded URI equal to an unencoded URI, even if they point to
-        // the same resource. As above, the client is supposed to be consistent in which kind of URI they send.
-        //
-        // However, there are rare cases where we are comparing an unencoded URI to an encoded URI and should consider
-        // them equivalent if they point to the same file path. For example - say the client generally sends us the
-        // unencoded URI.  When we serialize URIs back to the client, we always serialize the AbsoluteUri property (see
-        // FromUri). The AbsoluteUri property is *always* percent encoded - if this URI gets sent back to us as part of
-        // a data object on a request (e.g. codelens/resolve), the client will leave the URI untouched, even if they
-        // generally send unencoded URIs.  In such cases we need to consider the encoded and unencoded URI equivalent.
-        //
-        // To handle that, we first compare the AbsoluteUri properties on both, which are always percent encoded.
-        return (this.ParsedUri.IsAbsoluteUri && otherUri.ParsedUri.IsAbsoluteUri && this.ParsedUri.AbsoluteUri == otherUri.ParsedUri.AbsoluteUri) ||
-            Equals(this.ParsedUri, otherUri.ParsedUri);
+            // Bail if we cannot parse either of the URIs.  We already determined the URI strings are not equal and we
+            // need to be able to parse the URIs to do deeper equivalency checks.
+            if (thisSystemUri is null || otherSystemUri is null)
+                return false;
+
+            // Compare AbsoluteUri properties (always percent encoded) to handle the case where one URI string is
+            // encoded and the other isn't. Fall back to Uri.Equals for scheme-specific comparison rules.
+            return (thisSystemUri.IsAbsoluteUri && otherSystemUri.IsAbsoluteUri && thisSystemUri.AbsoluteUri == otherSystemUri.AbsoluteUri) ||
+                Equals(thisSystemUri, otherSystemUri);
+        }
+
+        // Mixed case (one has ParsedDocumentUri, other has System.Uri). These use different encoding strategies so we
+        // cannot safely compare their canonical forms. The UriString fast path above already handles the common case.
+        return false;
     }
 
     public override int GetHashCode()
     {
+        // If this DocumentUri was constructed with a ParsedDocumentUri, use its ToString() for hashing.
+        // ParsedDocumentUri.ToString() equals UriString (set in the constructor), and we hash case-insensitively
+        // to match the existing behavior pattern for URI comparison.
+        if (this._parsedDocumentUri is { } pdu)
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(pdu.ToString());
+
+        // Existing System.Uri-based hashing behavior.
+#pragma warning disable CS0618 // Type or member is obsolete
         // We can't do anything better than the uri string hash code if we cannot parse the URI.
         if (this.ParsedUri is null)
             return this.UriString.GetHashCode();
@@ -117,5 +143,6 @@ internal sealed record class DocumentUri(string UriString)
         return this.ParsedUri.IsAbsoluteUri
             ? StringComparer.OrdinalIgnoreCase.GetHashCode(this.ParsedUri.AbsoluteUri)
             : this.ParsedUri.GetHashCode();
+#pragma warning restore CS0618
     }
 }
