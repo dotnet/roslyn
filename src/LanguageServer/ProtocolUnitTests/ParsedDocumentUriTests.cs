@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -54,23 +54,23 @@ public sealed class ParsedDocumentUriTests
     [ConditionalFact(typeof(WindowsOnly))]
     public void File_FsPath_Windows()
     {
-        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File(@"c:\win\path").GetFileSystemPath());
-        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File(@"c:\win/path").GetFileSystemPath());
-        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File("c:/win/path").GetFileSystemPath());
-        Assert.Equal(@"c:\win\path\", ParsedDocumentUri.File("c:/win/path/").GetFileSystemPath());
-        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File("C:/win/path").GetFileSystemPath());
-        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File("/c:/win/path").GetFileSystemPath());
-        Assert.Equal(@"\.\c\win\path", ParsedDocumentUri.File("./c/win/path").GetFileSystemPath());
+        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File(@"c:\win\path").FsPath);
+        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File(@"c:\win/path").FsPath);
+        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File("c:/win/path").FsPath);
+        Assert.Equal(@"c:\win\path\", ParsedDocumentUri.File("c:/win/path/").FsPath);
+        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File("C:/win/path").FsPath);
+        Assert.Equal(@"c:\win\path", ParsedDocumentUri.File("/c:/win/path").FsPath);
+        Assert.Equal(@"\.\c\win\path", ParsedDocumentUri.File("./c/win/path").FsPath);
     }
 
     [ConditionalFact(typeof(UnixLikeOnly))]
     public void File_FsPath_Unix()
     {
-        Assert.Equal("c:/win/path", ParsedDocumentUri.File("c:/win/path").GetFileSystemPath());
-        Assert.Equal("c:/win/path/", ParsedDocumentUri.File("c:/win/path/").GetFileSystemPath());
-        Assert.Equal("c:/win/path", ParsedDocumentUri.File("C:/win/path").GetFileSystemPath());
-        Assert.Equal("c:/win/path", ParsedDocumentUri.File("/c:/win/path").GetFileSystemPath());
-        Assert.Equal("/./c/win/path", ParsedDocumentUri.File("./c/win/path").GetFileSystemPath());
+        Assert.Equal("c:/win/path", ParsedDocumentUri.File("c:/win/path").FsPath);
+        Assert.Equal("c:/win/path/", ParsedDocumentUri.File("c:/win/path/").FsPath);
+        Assert.Equal("c:/win/path", ParsedDocumentUri.File("C:/win/path").FsPath);
+        Assert.Equal("c:/win/path", ParsedDocumentUri.File("/c:/win/path").FsPath);
+        Assert.Equal("/./c/win/path", ParsedDocumentUri.File("./c/win/path").FsPath);
     }
 
     #endregion
@@ -85,11 +85,11 @@ public sealed class ParsedDocumentUriTests
         Assert.Equal("/", value.Path);
         if (IsWindows)
         {
-            Assert.Equal(@"\", value.GetFileSystemPath());
+            Assert.Equal(@"\", value.FsPath);
         }
         else
         {
-            Assert.Equal("/", value.GetFileSystemPath());
+            Assert.Equal("/", value.FsPath);
         }
     }
 
@@ -226,7 +226,7 @@ public sealed class ParsedDocumentUriTests
         Assert.Equal("/c:/test/me", value.Path);
         Assert.Equal("", value.Fragment);
         Assert.Equal("", value.Query);
-        Assert.Equal(IsWindows ? @"c:\test\me" : "c:/test/me", value.GetFileSystemPath());
+        Assert.Equal(IsWindows ? @"c:\test\me" : "c:/test/me", value.FsPath);
 
         value = ParsedDocumentUri.Parse("file://shares/files/c%23/p.cs");
         Assert.Equal("file", value.Scheme);
@@ -234,7 +234,7 @@ public sealed class ParsedDocumentUriTests
         Assert.Equal("/files/c#/p.cs", value.Path);
         Assert.Equal("", value.Fragment);
         Assert.Equal("", value.Query);
-        Assert.Equal(IsWindows ? @"\\shares\files\c#\p.cs" : "//shares/files/c#/p.cs", value.GetFileSystemPath());
+        Assert.Equal(IsWindows ? @"\\shares\files\c#\p.cs" : "//shares/files/c#/p.cs", value.FsPath);
 
         value = ParsedDocumentUri.Parse("file:///c:/Source/Z%C3%BCrich%20or%20Zurich%20(%CB%88zj%CA%8A%C9%99r%C9%AAk,/Code/resources/app/plugins/c%23/plugin.json");
         Assert.Equal("file", value.Scheme);
@@ -339,7 +339,7 @@ public sealed class ParsedDocumentUriTests
         value = ParsedDocumentUri.File(@"\\localhost\c$\GitDevelopment\express");
         Assert.Equal("file", value.Scheme);
         Assert.Equal("/c$/GitDevelopment/express", value.Path);
-        Assert.Equal(@"\\localhost\c$\GitDevelopment\express", value.GetFileSystemPath());
+        Assert.Equal(@"\\localhost\c$\GitDevelopment\express", value.FsPath);
         Assert.Equal("", value.Query);
         Assert.Equal("", value.Fragment);
         Assert.Equal("file://localhost/c%24/GitDevelopment/express", value.ToString());
@@ -375,7 +375,7 @@ public sealed class ParsedDocumentUriTests
     public void DriveLetterPath_Regex()
     {
         var uri = ParsedDocumentUri.Parse("file:///_:/path");
-        Assert.Equal(IsWindows ? @"\_:\path" : "/_:/path", uri.GetFileSystemPath());
+        Assert.Equal(IsWindows ? @"\_:\path" : "/_:/path", uri.FsPath);
     }
 
     #endregion
@@ -503,9 +503,9 @@ public sealed class ParsedDocumentUriTests
         void AssertRoundTrip(string input, string expected)
         {
             var value = ParsedDocumentUri.Parse(input);
-            Assert.Equal(expected, value.GetFileSystemPath());
-            var value2 = ParsedDocumentUri.File(value.GetFileSystemPath());
-            Assert.Equal(expected, value2.GetFileSystemPath());
+            Assert.Equal(expected, value.FsPath);
+            var value2 = ParsedDocumentUri.File(value.FsPath);
+            Assert.Equal(expected, value2.FsPath);
             Assert.Equal(value.ToString(), value2.ToString());
         }
 
@@ -645,7 +645,7 @@ public sealed class ParsedDocumentUriTests
             Assert.Equal(value.Path, clone.Path);
             Assert.Equal(value.Query, clone.Query);
             Assert.Equal(value.Fragment, clone.Fragment);
-            Assert.Equal(value.GetFileSystemPath(), clone.GetFileSystemPath());
+            Assert.Equal(value.FsPath, clone.FsPath);
             Assert.Equal(value.ToString(), clone.ToString());
         }
     }
