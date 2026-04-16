@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocks(blocks), region,
+            return new ControlFlowGraph(body, parent, builder._captureIdDispenser, ToImmutableBlocksAndFree(blocks), region,
                                         localFunctions.ToImmutableAndFree(), localFunctionsMap.ToImmutable(),
                                         anonymousFunctionsMapOpt?.ToImmutable() ?? ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Empty);
         }
 
-        private static ImmutableArray<BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlockBuilder> blockBuilders)
+        private static ImmutableArray<BasicBlock> ToImmutableBlocksAndFree(ArrayBuilder<BasicBlockBuilder> blockBuilders)
         {
             var builder = ArrayBuilder<BasicBlock>.GetInstance(blockBuilders.Count);
 
