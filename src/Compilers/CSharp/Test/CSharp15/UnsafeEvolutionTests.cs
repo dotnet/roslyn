@@ -2293,6 +2293,129 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Pointer_AddressOfManaged_SafeContext()
+    {
+        var source = """
+            string s;
+            string* p = &s;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,1): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // string* p = &s;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 1),
+            // (2,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // string* p = &s;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 13),
+        };
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // string* p = &s;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "string*").WithLocation(2, 1),
+            // (2,1): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // string* p = &s;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 1),
+            // (2,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // string* p = &s;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&s").WithLocation(2, 13),
+            // (2,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // string* p = &s;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 13));
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // string* p = &s;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "string*").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,1): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // string* p = &s;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 1),
+            // (2,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // string* p = &s;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&s").WithArguments("updated memory safety rules").WithLocation(2, 13),
+            // (2,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // string* p = &s;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 13));
+    }
+
+    [Fact]
+    public void Pointer_AddressOfManaged_UnsafeContext()
+    {
+        var source = """
+            string s;
+            unsafe { string* p = &s; }
+            """;
+
+        var expectedWarnings = new[]
+        {
+            // (2,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { string* p = &s; }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 10),
+            // (2,22): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { string* p = &s; }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 22),
+        };
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // unsafe { string* p = &s; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 1),
+            // (2,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { string* p = &s; }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 10),
+            // (2,22): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { string* p = &s; }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 22),
+        };
+
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(expectedWarnings);
+
+        CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedWarnings);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedWarnings);
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // (2,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { string* p = &s; }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 10),
+            // (2,22): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { string* p = &s; }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 22));
+    }
+
+    [Fact]
     public void Pointer_Fixed_SafeContext()
     {
         var source = """
@@ -7311,6 +7434,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (3,6): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(3, 6),
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.M2(null)").WithLocation(3, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7363,6 +7504,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.M2(null)").WithLocation(3, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7504,6 +7660,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].M2();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 5),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].M2();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[0]").WithLocation(2, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].M2();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[0].M2()").WithLocation(2, 1),
+            // (4,6): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(4, 6),
+            // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E.M2(null)").WithLocation(4, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7568,6 +7751,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].M2();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 5),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].M2();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[0]").WithLocation(2, 1),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].M2();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[0].M2()").WithLocation(2, 1),
+            // (4,6): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(4, 6),
+            // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.M2(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E.M2(null)").WithLocation(4, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7713,6 +7923,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // i.M1();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "i.M1()").WithLocation(2, 1),
+            // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int* M1() => null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 12),
+            // (13,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     int* I.M1() => null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 5));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7768,6 +7999,48 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (5,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // public class C1 : I<int*[]>
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 21),
+            // (11,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // public class C2 : I<int*[]>
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(11, 21),
+            // (23,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // public class C4 : I<int*[]>
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(23, 21),
+            // (17,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // public class C3 : I<int*[]>
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(17, 21),
+            // (7,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     public int*[] M1() => null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 12),
+            // (13,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     int*[] I<int*[]>.M1() => null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 14),
+            // (14,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     void I<int*[]>.M2() { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(14, 12),
+            // (13,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     int*[] I<int*[]>.M1() => null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 5),
+            // (1,3): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // I<int*[]> i = new C1();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(1, 3),
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // i.M1();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "i.M1()").WithLocation(2, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7824,6 +8097,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.P2 = c.P2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.P2").WithLocation(3, 1),
+            // (3,8): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.P2 = c.P2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.P2").WithLocation(3, 8),
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.P2 = c.P2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.P2 = c.P2").WithLocation(3, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7896,6 +8190,42 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].P2 = new int*[0].P2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 5),
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].P2 = new int*[0].P2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[0]").WithLocation(3, 1),
+            // (3,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].P2 = new int*[0].P2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(3, 22),
+            // (3,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // new int*[0].P2 = new int*[0].P2;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new int*[0]").WithLocation(3, 18),
+            // (5,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.get_P2(null); E.set_P2(null, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(5, 10),
+            // (5,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.get_P2(null); E.set_P2(null, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E.get_P2(null)").WithLocation(5, 1),
+            // (5,26): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.get_P2(null); E.set_P2(null, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(5, 26),
+            // (5,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // E.get_P2(null); E.set_P2(null, 0);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "E.set_P2(null, 0)").WithLocation(5, 17));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -7957,6 +8287,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c2[0] = c2[0];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c2[0]").WithLocation(4, 1),
+            // (4,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c2[0] = c2[0];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c2[0]").WithLocation(4, 9),
+            // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c2[0] = c2[0];
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c2[0] = c2[0]").WithLocation(4, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -8009,6 +8360,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // c.E2 += null;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.E2").WithLocation(3, 1));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }
@@ -8057,6 +8423,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = new C(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C(null)").WithLocation(2, 5),
+            // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = new C(null);
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "null").WithLocation(2, 11));
+
+        CreateCompilation(source,
+            [libRef],
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics();
+
+        CreateCompilation(source,
+            [libRef],
+            parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics();
     }

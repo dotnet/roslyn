@@ -31,11 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
-        {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, static node => node.GetLocation());
-        }
-
         internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location)
         {
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l);

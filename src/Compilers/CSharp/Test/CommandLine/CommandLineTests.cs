@@ -1720,6 +1720,7 @@ class C
             // - [ ] update the feature status page
             // - [ ] update all the tests that call this canary
             // - [ ] replace all references to C# "Next" (such as `TestOptions.RegularNext` or `LanguageVersionFacts.CSharpNext`) with the new version and fix failing tests
+            // - [ ] replace references to C# "preview" in breaking change docs
             // - [ ] update _MaxAvailableLangVersion cap (a relevant test should break when new version is introduced)
             // - [ ] update the "UpgradeProject" codefixer
             // - [ ] Remove the `ExperimentalUrl` section from any entries for language features being shipped in Syntax.xml and OperationInterfaces.xml, and rerun the generator
