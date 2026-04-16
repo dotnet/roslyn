@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -138,65 +138,57 @@ public sealed class ParsedDocumentUriTests
 
     #endregion
 
-    #region with, identity
+    #region From, identity
 
     [Fact]
-    public void With_Identity()
+    public void From_Identity()
     {
         var uri = ParsedDocumentUri.Parse("foo:bar/path");
 
-        // With no changes should return equal struct
-        var uri2 = uri.With();
-        Assert.Equal(uri, uri2);
-
-        uri2 = uri.With(scheme: "foo", path: "bar/path");
+        // Reconstructing with same components should produce equal struct
+        var uri2 = ParsedDocumentUri.From(uri.Scheme, path: uri.Path);
         Assert.Equal(uri, uri2);
     }
 
     #endregion
 
-    #region with, changes
+    #region From, changes
 
     [Fact]
-    public void With_Changes()
+    public void From_Changes()
     {
-        Assert.Equal("after:some/file/path", ParsedDocumentUri.Parse("before:some/file/path").With(scheme: "after").ToString());
-        Assert.Equal("http:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("s").With(scheme: "http", path: "/api/files/test.me", query: "t=1234").ToString());
-        Assert.Equal("http:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("s").With(scheme: "http", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
-        Assert.Equal("https:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("s").With(scheme: "https", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
-        Assert.Equal("HTTP:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("s").With(scheme: "HTTP", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
-        Assert.Equal("HTTPS:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("s").With(scheme: "HTTPS", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
-        Assert.Equal("boo:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("s").With(scheme: "boo", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
+        Assert.Equal("after:some/file/path", ParsedDocumentUri.From("after", path: "some/file/path").ToString());
+        Assert.Equal("http:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("http", path: "/api/files/test.me", query: "t=1234").ToString());
+        Assert.Equal("http:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("http", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
+        Assert.Equal("https:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("https", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
+        Assert.Equal("HTTP:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("HTTP", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
+        Assert.Equal("HTTPS:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("HTTPS", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
+        Assert.Equal("boo:/api/files/test.me?t%3D1234", ParsedDocumentUri.From("boo", authority: "", path: "/api/files/test.me", query: "t=1234", fragment: "").ToString());
     }
 
     #endregion
 
-    #region with, remove components #8465
+    #region From, component combinations #8465
 
     [Fact]
-    public void With_RemoveComponents()
+    public void From_ComponentCombinations()
     {
-        Assert.Equal("scheme:/path", ParsedDocumentUri.Parse("scheme://authority/path").With(authority: "").ToString());
-        Assert.Equal("scheme:/path", ParsedDocumentUri.Parse("scheme:/path").With(authority: "authority").With(authority: "").ToString());
-        Assert.Equal("scheme:/path", ParsedDocumentUri.Parse("scheme:/path").With(authority: "authority").With(authority: null).ToString());
-        Assert.Equal("scheme://authority", ParsedDocumentUri.Parse("scheme:/path").With(authority: "authority").With(path: "").ToString());
-        Assert.Equal("scheme://authority", ParsedDocumentUri.Parse("scheme:/path").With(authority: "authority").With(path: null).ToString());
-        Assert.Equal("scheme:/path", ParsedDocumentUri.Parse("scheme:/path").With(authority: "").ToString());
-        Assert.Equal("scheme:/path", ParsedDocumentUri.Parse("scheme:/path").With(authority: null).ToString());
+        Assert.Equal("scheme:/path", ParsedDocumentUri.From("scheme", authority: "", path: "/path").ToString());
+        Assert.Equal("scheme://authority", ParsedDocumentUri.From("scheme", authority: "authority", path: "").ToString());
+        Assert.Equal("scheme:/path", ParsedDocumentUri.From("scheme", path: "/path").ToString());
     }
 
     #endregion
 
-    #region with, validation
+    #region From, validation
 
     [Fact]
-    public void With_Validation()
+    public void From_Validation()
     {
-        var uri = ParsedDocumentUri.Parse("foo:bar/path");
-        Assert.Throws<UriFormatException>(() => uri.With(scheme: "fai:l"));
-        Assert.Throws<UriFormatException>(() => uri.With(scheme: "fäil"));
-        Assert.Throws<UriFormatException>(() => uri.With(authority: "fail"));
-        Assert.Throws<UriFormatException>(() => uri.With(path: "//fail"));
+        Assert.Throws<UriFormatException>(() => ParsedDocumentUri.From("fai:l", path: "bar/path"));
+        Assert.Throws<UriFormatException>(() => ParsedDocumentUri.From("fäil", path: "bar/path"));
+        Assert.Throws<UriFormatException>(() => ParsedDocumentUri.From("foo", authority: "fail", path: "bar/path"));
+        Assert.Throws<UriFormatException>(() => ParsedDocumentUri.From("foo", path: "//fail"));
     }
 
     #endregion

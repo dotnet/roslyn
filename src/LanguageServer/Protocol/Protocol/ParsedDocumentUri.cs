@@ -189,41 +189,6 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     }
 
     /// <summary>
-    /// Creates a new URI with the specified component changes.
-    /// Pass null to clear a component, or omit to keep the existing value.
-    /// Use the sentinel <see cref="Undefined"/> to indicate "keep existing".
-    /// </summary>
-    public ParsedDocumentUri With(
-        string? scheme = Undefined,
-        string? authority = Undefined,
-        string? path = Undefined,
-        string? query = Undefined,
-        string? fragment = Undefined)
-    {
-        var newScheme = ReferenceEquals(scheme, Undefined) ? Scheme : (scheme ?? string.Empty);
-        var newAuthority = ReferenceEquals(authority, Undefined) ? Authority : (authority ?? string.Empty);
-        var newPath = ReferenceEquals(path, Undefined) ? Path : (path ?? string.Empty);
-        var newQuery = ReferenceEquals(query, Undefined) ? Query : (query ?? string.Empty);
-        var newFragment = ReferenceEquals(fragment, Undefined) ? Fragment : (fragment ?? string.Empty);
-
-        if (newScheme == Scheme
-            && newAuthority == Authority
-            && newPath == Path
-            && newQuery == Query
-            && newFragment == Fragment)
-        {
-            return this;
-        }
-
-        return CreateFromComponents(newScheme, newAuthority, newPath, newQuery, newFragment, strict: false);
-    }
-
-    /// <summary>
-    /// Sentinel value meaning "keep existing component unchanged" in <see cref="With"/>.
-    /// </summary>
-    internal const string Undefined = "\x01UNDEFINED";
-
-    /// <summary>
     /// Creates a string representation for this URI. Calling <see cref="Parse"/> with the
     /// result creates a URI that is equal to this URI.
     /// </summary>
