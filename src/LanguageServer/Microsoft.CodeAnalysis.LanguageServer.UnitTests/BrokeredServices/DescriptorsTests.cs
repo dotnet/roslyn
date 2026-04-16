@@ -16,4 +16,12 @@ public sealed class DescriptorsTests
         Assert.Contains(BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy.Moniker, Descriptors.RemoteServicesToRegister.Keys);
         Assert.Contains(BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy.Moniker, Descriptors.RemoteServicesToRegister.Keys);
     }
+
+    [Fact]
+    public void RemoteServicesToRegister_IncludesHotReloadAgentServices()
+    {
+        Assert.Contains(BrokeredServiceDescriptors.HotReloadSessionNotificationService.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(BrokeredServiceDescriptors.ManagedHotReloadAgentManagerService.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+        Assert.Contains(BrokeredServiceDescriptors.GenericHotReloadAgentManagerService.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+    }
 }
