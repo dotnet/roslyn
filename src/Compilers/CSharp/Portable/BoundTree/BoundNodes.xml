@@ -1179,10 +1179,11 @@
     <Field Name="Label" Type="LabelSymbol" />
     <!--
     For a labeled break (e.g. "break outer;" targeting "outer: while (true) { ... }"), this is the
-    user-declared label symbol for "outer:".  Null for an ordinary unlabeled "break;".  Used by
-    ControlFlowPass to mark the label as referenced, suppressing the WRN_UnreferencedLabel warning.
+    bound label expression for "outer".  Null for an ordinary unlabeled "break;".  Used by the
+    SemanticModel to resolve GetSymbolInfo on the label, and by ControlFlowPass (via SourceLabelOpt
+    below) to suppress WRN_UnreferencedLabel.
     -->
-    <Field Name="SourceLabelOpt" Type="LabelSymbol?" />
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
@@ -1190,10 +1191,11 @@
     <Field Name="Label" Type="LabelSymbol" />
     <!--
     For a labeled continue (e.g. "continue outer;" targeting "outer: for (...) { ... }"), this is the
-    user-declared label symbol for "outer:".  Null for an ordinary unlabeled "continue;".  Used by
-    ControlFlowPass to mark the label as referenced, suppressing the WRN_UnreferencedLabel warning.
+    bound label expression for "outer".  Null for an ordinary unlabeled "continue;".  Used by the
+    SemanticModel to resolve GetSymbolInfo on the label, and by ControlFlowPass (via LabelExpressionOpt's
+    Label) to suppress WRN_UnreferencedLabel.
     -->
-    <Field Name="SourceLabelOpt" Type="LabelSymbol?" />
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
