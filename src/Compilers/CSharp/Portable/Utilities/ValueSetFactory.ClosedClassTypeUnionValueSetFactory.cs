@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private ImmutableArray<TypeSymbol> ClosedSubtypes()
             {
+                // Ensure the set consists of the 'leaf nodes' of a closed type hierarchy.
+                // This makes it easier to filter the value set based on the tests being performed.
+                // TODO2: it's not clear to me if this should be walking thru union case types similarly.
                 var builder = ArrayBuilder<TypeSymbol>.GetInstance();
                 var toTraverse = ArrayBuilder<NamedTypeSymbol>.GetInstance();
                 toTraverse.AddRange(_closedClass.ClosedSubtypes);

@@ -902,20 +902,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> ClosedSubtypes
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions
         {
             get
             {
-                if (_lazyClosedSubtypes.IsDefault)
+                if (_lazyClosedSubtypeCandidates.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClosedSubtypes, findClosedSubtypes());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClosedSubtypeCandidates, findClosedSubtypes());
                 }
 
-                return _lazyClosedSubtypes;
+                return _lazyClosedSubtypeCandidates;
 
                 ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
                 {
                     // TODO2: try pulling on this API in the bootstrap build.
+                    // Perhaps add an access in 'ForceComplete'.
 #if !DEBUG
                     if (!IsClosed)
                     {

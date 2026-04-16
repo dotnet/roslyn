@@ -16,13 +16,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// make two types identical.
         /// </summary>
         public static bool CanUnify(TypeSymbol t1, TypeSymbol t2)
+            => CanUnify(t1, t2, out _);
+
+        /// <summary>
+        /// Attempts to unify 'candidateSubtype.BaseTypeNoUseSiteDiagnostics' with 'closedType'.
+        /// If the unification is possible, returns a construction of 'candidateSubtype' whose base type is the unified type.
+        /// </summary>
+        public static NamedTypeSymbol? TryUnifyClosedSubtype(NamedTypeSymbol closedType, NamedTypeSymbol candidateSubtype)
         {
+            Debug.Assert(closedType is not null);
+            Debug.Assert(candidateSubtype is not null);
+
+            var candidateBaseType = candidateSubtype.BaseTypeNoUseSiteDiagnostics;
+            Debug.Assert(TypeSymbol.Equals(candidateBaseType.OriginalDefinition, closedType.OriginalDefinition, TypeCompareKind.CLRSignatureCompareOptions));
+
+            if (!CanUnify(closedType, candidateBaseType, out var substitution))
+                return null;
+
+            return (NamedTypeSymbol)SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(candidateSubtype)).Type;
+        }
+
+        private static bool CanUnify(TypeSymbol t1, TypeSymbol t2, out MutableTypeMap? substitution)
+        {
+            substitution = null;
             if (TypeSymbol.Equals(t1, t2, TypeCompareKind.CLRSignatureCompareOptions))
             {
                 return true;
             }
 
-            MutableTypeMap? substitution = null;
             bool result = CanUnifyHelper(t1, t2, ref substitution);
 #if DEBUG
             if (result && ((object)t1 != null && (object)t2 != null))
@@ -37,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#if DEBUG
         private static TypeWithAnnotations SubstituteAllTypeParameters(AbstractTypeMap? substitution, TypeWithAnnotations type)
         {
             if (substitution != null)
@@ -52,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return type;
         }
-#endif
 
         private static bool CanUnifyHelper(TypeSymbol t1, TypeSymbol t2, ref MutableTypeMap? substitution)
         {

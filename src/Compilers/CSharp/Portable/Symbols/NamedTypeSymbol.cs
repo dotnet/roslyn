@@ -700,11 +700,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsClosed { get; }
 
         /// <summary>
-        /// If this is a closed class (<see cref="IsClosed"/>), returns the set of direct subtypes.
-        /// That is, the list of types which have this type as a base type.
-        /// If this is not a closed class, returns empty array.
+        /// Returns the set of possible subtypes of a closed type.
         /// </summary>
-        internal abstract ImmutableArray<NamedTypeSymbol> ClosedSubtypes { get; }
+        /// <remarks>
+        /// This set will be the same size or smaller than 'CandidateClosedSubtypes'.
+        /// The difference is that 'ClosedSubtypes' will perform substitution
+        /// and rule out subtypes whose base types can't unify with 'this'.
+        /// </remarks>
+        internal ImmutableArray<NamedTypeSymbol> ClosedSubtypes
+        {
+            get
+            {
+                if (!IsClosed)
+                    return [];
+
+                // https://github.com/dotnet/csharplang/blob/3e15888c804dc632479c94589dcd02c341fd0a4f/proposals/closed-hierarchies.md#type-parameter-restriction
+                // If a closed type lacks type parameters, then, any valid subtype of it also lacks type parameters.
+                var candidateSubtypes = CandidateClosedSubtypeDefinitions;
+                if (!IsGenericType)
+                    return candidateSubtypes;
+
+                return unifyAndCheckSubtypes(this, candidateSubtypes);
+
+                static ImmutableArray<NamedTypeSymbol> unifyAndCheckSubtypes(NamedTypeSymbol @this, ImmutableArray<NamedTypeSymbol> candidateSubtypes)
+                {
+                    var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
+                    foreach (var candidateSubtype in candidateSubtypes)
+                    {
+                        if (TypeUnification.TryUnifyClosedSubtype(closedType: @this, candidateSubtype) is { } unifiedSubtype)
+                        {
+                            // PROTOTYPE(cc): check constraints?
+                            resultBuilder.Add(unifiedSubtype);
+                        }
+                    }
+
+                    return resultBuilder.ToImmutableAndFree();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the set of subtype definitions in 'ContainingModule' whose 'BaseType.OriginalDefinition' is 'this.OriginalDefinition'.
+        /// </summary>
+        internal abstract ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions { get; }
 
 #nullable enable
         /// <summary>
