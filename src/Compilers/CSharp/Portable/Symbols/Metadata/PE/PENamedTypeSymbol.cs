@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> ClosedSubtypes
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions
         {
             get
             {

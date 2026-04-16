@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsClosed => false;
 
-        internal override ImmutableArray<NamedTypeSymbol> ClosedSubtypes => [];
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
 
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:

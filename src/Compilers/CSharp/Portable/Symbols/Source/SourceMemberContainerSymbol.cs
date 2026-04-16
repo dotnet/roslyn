@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
         private ExtensionGroupingInfo? _lazyExtensionGroupingInfo;
 
-        private ImmutableArray<NamedTypeSymbol> _lazyClosedSubtypes;
+        private ImmutableArray<NamedTypeSymbol> _lazyClosedSubtypeCandidates;
 
         #region Construction
 

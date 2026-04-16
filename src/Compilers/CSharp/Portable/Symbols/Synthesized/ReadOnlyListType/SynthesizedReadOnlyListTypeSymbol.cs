@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsClosed => false;
 
-        internal override ImmutableArray<NamedTypeSymbol> ClosedSubtypes => [];
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => [];
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
 

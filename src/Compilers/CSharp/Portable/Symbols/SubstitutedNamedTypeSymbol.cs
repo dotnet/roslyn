@@ -235,14 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsClosed => OriginalDefinition.IsClosed;
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> ClosedSubtypes
-        {
-            get
-            {
-                // TODO2: seems nontrivial
-                throw null!;
-            }
-        }
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => OriginalDefinition.CandidateClosedSubtypeDefinitions;
 
         public sealed override ImmutableArray<Symbol> GetMembers()
         {
