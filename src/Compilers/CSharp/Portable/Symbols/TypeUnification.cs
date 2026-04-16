@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Attempts to unify 'candidateSubtype.BaseTypeNoUseSiteDiagnostics' with 'closedType'.
         /// If the unification is possible, returns a construction of 'candidateSubtype' whose base type is the unified type.
         /// </summary>
-        public static NamedTypeSymbol? TryUnifyClosedSubtype(NamedTypeSymbol closedType, NamedTypeSymbol candidateSubtype)
+        public static NamedTypeSymbol? TryUnifyClosedSubtype(NamedTypeSymbol candidateSubtype, NamedTypeSymbol closedType)
         {
             Debug.Assert(closedType is not null);
-            Debug.Assert(candidateSubtype is not null);
+            Debug.Assert(candidateSubtype is not null && candidateSubtype.IsDefinition);
 
             var candidateBaseType = candidateSubtype.BaseTypeNoUseSiteDiagnostics;
             Debug.Assert(TypeSymbol.Equals(candidateBaseType.OriginalDefinition, closedType.OriginalDefinition, TypeCompareKind.CLRSignatureCompareOptions));
 
-            if (!CanUnify(closedType, candidateBaseType, out var substitution))
+            if (!CanUnify(candidateBaseType, closedType, out var substitution))
                 return null;
 
             return (NamedTypeSymbol)SubstituteAllTypeParameters(substitution, TypeWithAnnotations.Create(candidateSubtype)).Type;

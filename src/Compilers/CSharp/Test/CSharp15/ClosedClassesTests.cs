@@ -1040,6 +1040,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
         Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
         Assert.Equal(["D1<System.Int32>", "D2"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+
+        var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
+        Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
+        Assert.Equal(["D1<System.String>"], cOfString.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1061,7 +1065,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C<T>", classC.ToTestDisplayString());
-        Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        // Note: 'D2<U>' reflects a weird scenario here.
+        // Basically, when we encounter a value 'C<X>', and 'X' constraints permit its type to be some 'ImmutableArray<Y>',
+        // then we know 'C<X>' could be some 'D2'. But we don't actually have the ability to speak that 'D2' in the given context.
+        Assert.Equal(["D1<T>", "D2<U>"], classC.ClosedSubtypes.ToTestDisplayStrings());
 
         var immutableArrayOfInt = comp
             .GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)
@@ -1266,13 +1273,11 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class F2 : D2 { }
             """;
 
-        // TODO2: hopefully a correct adjustment of the type set behaviors, would result in both PatternExplainer
-        // and DecisionDagBuilder, doing the right thing with these kinds of hierarchies.
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyDiagnostics(
-            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
             //         return c switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(5, 18));
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(5, 18));
     }
 
     [Fact]
@@ -1307,12 +1312,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class F2 : D2 { }
             """;
 
-        // TODO2: wonder if the TypeUnionValueSet intersection operator should be adjusted.
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics(
-            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
-            //         return c switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(5, 18));
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -1356,18 +1357,18 @@ public sealed class ClosedClassesTests : CSharpTestBase
     [Fact]
     public void Exhaustiveness_08()
     {
-        // Generic closed hierarchy
+        // Simple generic closed hierarchy
         var source = """
             class Program
             {
-                // int M<X>(C<X> c)
-                // {
-                //     return c switch
-                //     {
-                //         D1<X> => 1,
-                //         D2<X> => 2,
-                //     };
-                // }
+                int M<X>(C<X> c)
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+                        D2<X> => 2,
+                    };
+                }
             }
 
             closed class C<T>
@@ -1387,9 +1388,48 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+    }
+
+    /// <summary>Tests an exhaustiveness scenario similar to <see cref="Subtypes_03"/>.</summary>
+    [Fact]
+    public void Exhaustiveness_09()
+    {
+        var source = """
+            using System.Collections.Immutable;
+
+            closed class C<T>
+            {
+                public static int Use1(C<T> item)
+                {
+                    return item switch
+                    {
+                        D1<T> => 1,
+                        // We know some 'D2<...>' may be possible here (i.e. 'C<T>' allows 'C<ImmutableArray<...>>' by substitution.)
+                        // But, we have no way of speaking that D2 in this context.
+                        // Does this indicate that a rule is missing? Or are we comfortable saying that exhausting this 'C<T>' via its subtypes is not possible?
+                    };
+                }
+
+                public static int Use2(C<T> item)
+                {
+                    return item switch
+                    {
+                        D1<T> => 1,
+                        C<T> => 2
+                    };
+                }
+            }
+
+            class D1<U> : C<U> { }
+            class D2<U> : C<ImmutableArray<U>> { }
+            """;
+
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        // PROTOTYPE(cc): The suggested pattern isn't valid.
         comp.VerifyDiagnostics(
-            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
-            //         return u switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(5, 18));
+            // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<U>' is not covered.
+            //         return item switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<U>").WithLocation(7, 21));
     }
 }

@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var resultBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance(candidateSubtypes.Length);
                     foreach (var candidateSubtype in candidateSubtypes)
                     {
-                        if (TypeUnification.TryUnifyClosedSubtype(closedType: @this, candidateSubtype) is { } unifiedSubtype)
+                        if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
                         {
                             // PROTOTYPE(cc): check constraints?
                             resultBuilder.Add(unifiedSubtype);
