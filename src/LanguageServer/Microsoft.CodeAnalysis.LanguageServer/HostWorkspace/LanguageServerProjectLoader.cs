@@ -481,6 +481,8 @@ internal abstract class LanguageServerProjectLoader
     /// Creates an <see cref="IAsyncToken"/> that will be completed when the next batch of projects
     /// finishes reloading. This allows tests to begin waiting for a reload before the reload has been triggered
     /// (e.g. before a <see cref="System.IO.FileSystemWatcher"/> event has been delivered).
+    /// Only one wait can be active at a time; calling this again before the reload completes
+    /// will dispose the previous token.
     /// </summary>
     internal void BeginWaitForNextProjectReload()
     {
