@@ -8090,6 +8090,18 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureUserDefinedCompoundAssignmentOperators" xml:space="preserve">
     <value>user-defined compound assignment operators</value>
   </data>
+  <data name="IDS_FeatureLabeledBreakContinue" xml:space="preserve">
+    <value>labeled break and continue</value>
+  </data>
+  <data name="ERR_LabeledBreakContinueNotOnLoopOrSwitch" xml:space="preserve">
+    <value>The label '{0}' does not refer to a containing loop or switch statement</value>
+  </data>
+  <data name="ERR_LabeledContinueNotOnLoop" xml:space="preserve">
+    <value>The label '{0}' does not refer to a containing loop statement</value>
+  </data>
+  <data name="ERR_LabeledBreakContinueNotContaining" xml:space="preserve">
+    <value>The label '{0}' does not refer to a statement that contains this break or continue statement</value>
+  </data>
   <data name="ERR_OperatorsMustBePublic" xml:space="preserve">
     <value>User-defined operator '{0}' must be declared public</value>
   </data>

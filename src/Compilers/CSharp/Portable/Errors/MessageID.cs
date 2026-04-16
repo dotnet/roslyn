@@ -310,6 +310,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureUnsafeEvolution = MessageBase + 12859,
 
         IDS_FeatureUnions = MessageBase + 12860,
+
+        IDS_FeatureLabeledBreakContinue = MessageBase + 12861,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -505,6 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNullConditionalAssignment:
                 case MessageID.IDS_FeatureExpressionOptionalAndNamedArguments:
                 case MessageID.IDS_FeatureUserDefinedCompoundAssignmentOperators:
+                case MessageID.IDS_FeatureLabeledBreakContinue:
                     return LanguageVersion.CSharp14;
 
                 // C# 13.0 features.

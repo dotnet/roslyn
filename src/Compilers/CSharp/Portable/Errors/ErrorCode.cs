@@ -2484,6 +2484,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsafeConstructorConstraint = 9376,
         WRN_UnsafeMeaningless = 9377,
 
+        ERR_LabeledBreakContinueNotOnLoopOrSwitch = 9378,
+        ERR_LabeledContinueNotOnLoop = 9379,
+        ERR_LabeledBreakContinueNotContaining = 9380,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
