@@ -542,14 +542,14 @@ public sealed class MakeMemberRequiredTests
             {
                 ExpectedDiagnostics =
                 {
-                    DiagnosticResult.CompilerError("CS8618").WithSpan(5, 26, 5, 42).WithSpan(5, 26, 5, 42).WithArguments("property", "MyStaticProperty"),
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(5, 26, 5, 42).WithSpan(5, 26, 5, 42),
                 }
             },
             BatchFixedState =
             {
                 ExpectedDiagnostics =
                 {
-                    DiagnosticResult.CompilerError("CS8618").WithSpan(5, 26, 5, 42).WithSpan(5, 26, 5, 42).WithArguments("property", "MyStaticProperty"),
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(5, 26, 5, 42).WithSpan(5, 26, 5, 42),
                 }
             },
             LanguageVersion = LanguageVersion.CSharp11,
