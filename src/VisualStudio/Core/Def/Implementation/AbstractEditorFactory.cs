@@ -230,11 +230,10 @@ internal abstract class AbstractEditorFactory(IComponentModel componentModel) : 
         if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
         {
             var uiThreadOperationExecutor = _componentModel.GetService<IUIThreadOperationExecutor>();
-            // TODO(cyrusn): Can this be cancellable?
             uiThreadOperationExecutor.Execute(
-                "Intellisense",
-                defaultDescription: "",
-                allowCancellation: false,
+                ServicesVSResources.Visual_Studio,
+                defaultDescription: ServicesVSResources.Formatting_new_document,
+                allowCancellation: true,
                 showProgress: false,
                 action: c => FormatDocumentCreatedFromTemplate(pHier, pszMkDocument, c.UserCancellationToken));
         }
