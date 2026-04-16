@@ -487,9 +487,8 @@ internal abstract class LanguageServerProjectLoader
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
     /// <summary>
-    /// Creates an <see cref="IAsyncToken"/> that will be completed when the next batch of projects
-    /// finishes reloading. This allows tests to begin waiting for a reload before the reload has been triggered
-    /// (e.g. before a <see cref="System.IO.FileSystemWatcher"/> event has been delivered).
+    /// Used in tests to ensure that a subsequent async wait will not complete until the next project reload completes,
+    /// even if the next reload doesn't even start until an indefinite period of time later.
     /// Only one wait can be active at a time.
     /// </summary>
     internal async ValueTask BeginWaitForNextProjectReloadAsync()
