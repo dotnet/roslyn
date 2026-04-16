@@ -87,8 +87,6 @@ When the environment supports launching sub-agents with different models (e.g., 
 3. Wait for all agents to complete, then synthesize: deduplicate findings that appear across models, elevate issues flagged by multiple models (higher confidence), and include unique findings from individual models that meet the confidence bar. **Timeout handling:** If a sub-agent has not completed after 10 minutes and you have results from other agents, proceed with the results you have. Do not block the review indefinitely waiting for a single slow model. Note in the output which models contributed.
 4. Present a single unified review to the user, noting when an issue was flagged by multiple models.
 
----
-
 ## Review Output Format
 
 When presenting the final review (whether as a PR comment or as output to the user), use the following structure. This ensures consistency across reviews and makes the output easy to scan.
@@ -143,53 +141,39 @@ The summary verdict **must** be consistent with the findings in the body. Follow
 
 5. **Devil's advocate check before finalizing.** Re-read all your ⚠️ findings. For each one, ask: does this represent an unresolved concern about the approach, scope, or risk of masking deeper issues? If so, the verdict must reflect that tension. Do not default to optimism because the diff is small or the code is obviously correct at a syntactic level.
 
----
-
 ## Holistic PR Assessment
 
 Before reviewing individual lines of code, evaluate the PR as a whole. Consider whether the change is justified, whether it takes the right approach, and whether it will be a net positive for the codebase.
 
 - **Every PR must articulate what problem it solves and why.** Don't accept vague or absent motivation. Ask "What's the rationale?" and block progress until the contributor provides a clear answer.
-  > "I am not sure why is this needed. ... It's not immediately obvious whether this happens only for the bridge comparison tests or whether it can happen for real-life scenarios too."
 
 - **Challenge every addition with "Do we need this?"** New code, APIs, abstractions, and flags must justify their existence. If an addition can be avoided without sacrificing correctness or meaningful capability, it should be.
-  > "I don't think we should take this change, at all. A change which makes the VS runner see the same assets as the CLI runner, sure. But random extra hacking on the side, no."
 
 - **Demand real-world use cases and customer scenarios.** Hypothetical benefits are insufficient motivation for expanding API surface area or adding features. Require evidence that real users need this.
-  > "It is not clear to me whether you can hit a real-world scenario on 32-bit platforms where it makes a difference."
-
----
 
 ## Detailed Code Review
 
 ### Scope & Focus
 
 - **Require large or mixed PRs to be split into focused changes.** Each PR should address one concern. Mixed concerns make review harder and increase regression risk.
-  > "I think I'm going to break this into two pieces, even though that's more work."
 
 - **Defer tangential improvements to follow-up PRs.** Police scope creep by asking contributors to separate concerns. Even good ideas should wait if they're not part of the PR's core purpose.
-  > "Should probably be a separate PR."
 
 - **Consider separating bug fixes from feature additions.** It's not uncommon for feature work to reveal existing issues. When that happens, consider whether the bug fix should be merged independently of the feature work and directly to the `main` branch. It's also good to record the existence of the bug in an issue if it doesn't already exist, so that the fix can be tracked and backported as needed.
-  > "Since this is a bug fix, should we merge it directly to `main` branch? Please open an issue to track the bug and link it here."
 
 ### Evidence & Data
 
 - **Require measurable performance data before accepting optimization PRs.** Demand BenchmarkDotNet results or equivalent proof — never accept performance claims at face value.
-  > "Can you please share a benchmark using BenchmarkDotNet against public LookupSymbols API that demonstrates the improvement?"
 
 - **Distinguish real performance wins from micro-benchmark noise.** Trivial benchmarks with predictable inputs overstate gains from jump tables, branch elimination, and similar tricks. Require evidence from realistic, varied inputs.
-  > "Try to benchmark it with an input that varies randomly. Jump tables are great for trivial micro-benchmarks, but they are less great for real world code."
 
 - **Investigate and explain regressions before merging.** Even if a PR shows a net improvement, regressions in specific scenarios must be understood and explicitly addressed — not hand-waved.
-  > "Could you please inspect the regressions on why exactly it's an improvement there?"
 
 ### Approach & Alternatives
 
 - **Check whether the PR solves the right problem at the right layer.** Look for whether it addresses root cause or applies a band-aid. Prefer fixing the actual source of an issue over adding workarounds to production code.
-  > "Instead of changing the core logic of the DAG builder to detect redundant patterns, can we instead construct a temporary pattern and running the existing DAG builder on it?"
 
-- **Proactively consult domain experts for risky areas.** When a change touches safety-critical, complex, or historically-problematic code areas (e.g., overload resolution, IVT checks, flow analysis), consult the domain expert rather than waiting for them to discover the issue during review.
+- **Proactively consult domain experts for risky areas.** When a change touches safety-critical, complex, or historically-problematic code areas (e.g., overload resolution, IVT checks, flow analysis), consult the domain expert rather than waiting for them to discover the issue during review. IL optimizations could break patterns recognized by the JIT, so consult the runtime team.
 
 - **When a PR takes a fundamentally wrong approach, redirect early.** Don't iterate on implementation details of a flawed design. Push back on the overall direction before the contributor invests more time.
 
@@ -200,75 +184,74 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 ### Cost-Benefit & Complexity
 
 - **Explicitly weigh whether the change is a net positive.** A performance trade-off that shifts costs around is not automatically beneficial. Demand clarity that the change is a win in the typical configuration, not just in a narrow scenario.
-  > "It is a performance trade-off. You will shift the costs around. It is not clear to me whether it would be a win at the end in the typical configuration."
 
 - **Reject overengineering — complexity is a first-class cost.** Unnecessary abstraction, extra indirections, and elaborate solutions for marginal gains are actively rejected.
-  > "This optimization smells funny. It seems overly complicated for little win. Is this path hot?"
+
+- **Every addition creates a maintenance obligation.** Long-term maintenance cost outweighs short-term convenience. Code that is hard to maintain, increases surface area, or creates technical debt needs stronger justification.
 
 ### Reducing Code Review Load
 
 - **No style-only changes to the compiler.** Every compiler code change needs to be reviewed for correctness, so style-only changes are not acceptable. It is okay for added or changed code to take advantage of new C# features, but we do not broadly revisit existing code to adopt new features or change style.
-  > "Please avoid style-only changes."
 
 - **Separate refactorings from other changes.** When possible, it is preferrable to separate refactorings into their own commits, especially when restructuring code to separate files, from functional changes. If PR feedback leads to renaming a type, renaming the file for that type should be done as a separate commit **after** the PR has been approved. This allows the reviewer to diff the functional change effectively.
-  > "Please avoid renaming files while the PR is under review. If we need to rename, we can do that in a follow-up commit after the PR is approved."
 
 ### Error Handling & Assertions
 
 - **Use the null-forgiving operator (`!`) in compiler product code only when null has already been validated.** Nullability suppressions (`!`) should only appear inside assertions or when the null check was already performed earlier in the same method but the compiler couldn't track it through the control flow. In all other cases, prefer `Debug.Assert(value != null)` over silencing the warning.
 
-- **Use `throw` for reachable error paths, `UnreachableException` for exhaustive switches.** When a code path might be hit at runtime, throw an exception rather than asserting. Use `throw new UnreachableException()` for default cases in exhaustive switches.
+- **Use `throw ExceptionUtilities.Unreachable()` for error paths that should not be reachable, `throw ExceptionUtilities.UnexpectedValue(val)` for exhaustive switches.** When a code path should not be reachable, throw an exception rather than asserting. Use `throw ExceptionUtilities.UnexpectedValue(val)` for default cases in exhaustive switches.
 
 ### Correctness Patterns
 
+- **Delete dead code and unnecessary wrappers.** Remove dead code, unnecessary wrappers, obsolete fields, and unused variables when encountered or when the only caller changes.
+
 - **Prefer allowlists over denylists for safety-critical checks.** To be correct by construction, it is better to only allow recognized/safe constructs than disallow a list of known unsafe constructs.
-  > "I think the code will be more robust long term if it enumerates known safe constructs rather than enumerating known unsafe constructs."
 
 - **Don't bail out early on `HasErrors`.** It's normal for a node to be erroneous in some way but for analysis to still produce useful information. Removing overly broad `HasErrors` checks often reveals better diagnostics and nullability warnings that were being suppressed.
-  > "I believe the HasErrors condition is also not necessary. Basically, it's normal for a node to be erroneous in some way, but for us to still be able to operate on it, and report the information we do know about it."
 
 - **Question every suspicious change.** When a diff contains changes that look unrelated or accidental (e.g., a variable name change, a reordered parameter), call it out explicitly. Accidental pastes and unintended modifications happen.
-  > "This change looks suspicious. Is it intentional?"
 
 - **Prefer `abstract`/`sealed override` over `virtual` for symbol properties.** Using `abstract` (or `sealed override`) instead of `virtual` helps catch derived types that need special handling — the compiler will force implementors to explicitly consider the property.
-  > "We generally prefer `abstract`/`sealed override` over `virtual`. That helps catch any derived type that needs special handling."
 
-- **Use proper symbol equality checks.** Don't use reference equality (`==`) for symbols. Use `SymbolEqualityComparer.Default` or the `Equals` method. Be aware of generic substitution.
-  > "Symbols can be different instances but semantically equal due to generic instantiation."
+- **Use proper symbol equality checks.** Only use the equality operator (`==`) for symbols unless it is for reference equality (`(object)symbol == otherSymbol`). Use `SymbolEqualityComparer.Default` or the `Equals` method. Be aware of generic substitution.
 
 ### Allocation Avoidance
 
-- **Avoid LINQ in compiler produce code.** In `src/Compilers/`, except for trival operations like `.Any(...)`, use manual loops instead of LINQ. LINQ is acceptable in IDE features and tests, but avoid in performance-critical code.
-  > "Avoid LINQ in hot paths - use foreach or for loops"
+- **Avoid LINQ in compiler produ code.** In `src/Compilers/`, except for trival operations like `.Any(...)`, use manual loops instead of LINQ. We want to make the computation/complexity and allocation costs apparent. LINQ is acceptable in IDE features and tests, but avoid in performance-critical code.
 
-- **Avoid `foreach` over collections without struct enumerators.** Prefer explicit enumerators or `.AsSpan()` for arrays to avoid allocations.
+- **Avoid `foreach` over collections without struct enumerators.** Prefer iterations that avoid allocations.
 
 - **Avoid closures in hot paths.** When a lambda captures locals creating a closure, consider refactoring to avoid the capture or use a static lambda with explicit parameters. Prefer `static` lambdas when possible.
 
-- **Use `ArrayBuilder<T>` and `PooledObjects` helpers.** Roslyn provides pooled collection builders in `Microsoft.CodeAnalysis.PooledObjects`. Use these in hot paths instead of allocating new collections. But be careful to return pooled objects to the pool and avoid leaks.
+- **Use `ArrayBuilder<T>` and `PooledObjects` helpers.** Roslyn provides pooled collection builders in `Microsoft.CodeAnalysis.PooledObjects`. Use these in hot paths instead of allocating new collections. But be careful to return pooled objects to the pool and avoid leaks. Specify a requested capacity when it is known to avoid unnecessary resizes.
 
 ### Code Structure for Performance
+
+- **Avoid O(n²) patterns in collections and hot paths.** Watch for linear scans inside loops.
 
 - **Place cheap checks before expensive operations.** Check simple conditions (null checks, kind checks) before calling into semantic models or expensive operations.
 
 - **Short-circuit tree visitors once the result is determined.** When a visitor is searching for a condition (e.g., "does any node match X?"), stop visiting other nodes as soon as the answer is known. Override the common `Visit` method to check the result flag and bail out early.
-  > "It looks like as soon as this field is set to `true`, there is no reason to keep visiting other nodes. Consider overriding a common Visit method and implementing the shortcut."
 
 - **Use `StringComparer.Ordinal` for internal comparisons.** Use ordinal comparison for identifiers and internal strings. Only use culture-aware comparison for user-facing text.
 
 ### Code Style & Formatting
 
 - **In compiler code, use `var` only when the type is obvious from context.** Use explicit types for casts, method returns, and async infrastructure. Never use `var` for numeric types.
-  > "Make the type explicit."
 
 - **Declare each local variable in its own statement.** Don't combine multiple variable declarations on a single line (e.g., `bool a = false, b = false;`). Use separate declaration statements for clarity.
-  > "I think we prefer a dedicates declaration statement for each local"
 
 - **Place local functions at method end and avoid nested them.** Local functions go at the end of the containing method to avoid interrupting the logical flow.
 
 - **Place fields first in types.** Fields are the first members declared in a type.
 
----
+- **Narrow warning suppression to smallest scope.** Avoid file-wide `#pragma` suppressions. Disable only around the specific line that triggers the warning.
+
+### Code Reuse & Deduplication
+
+- **Extract duplicated logic into shared helper methods.** Fix improvements inside shared helpers so all callers benefit.
+
+- **Use existing APIs instead of creating parallel ones.** Before introducing new types, enums, or helpers, check if existing ones serve the same purpose. Fix existing utilities rather than introducing duplicates.
 
 ## Test Requirements
 
@@ -276,56 +259,56 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Add `[WorkItem("https://github.com/dotnet/roslyn/issues/####")]` to regression tests.** This links the test to the original issue for traceability.
 
-- **Test all relevant `LangVersion` boundaries.** When testing language-version-specific behavior, include: the version *before* the feature (a specific version string that disallows it), the version *after* (using `TestOptions.RegularNext` or a specific version that allows it), and the *preview* version (which always rolls forward with nightly builds).
+- **Test all relevant `LangVersion` boundaries.** When testing language-version-specific behavior, include: the version *before* the feature (a specific version string that disallows it), the version *after* (using `TestOptions.RegularNext` or a specific version that allows it), and the *preview* version (which always rolls forward with nightly builds). Similarily for IDE features, completions and refactorings may be gated on language version, so test the same boundaries.
 
 ### Test Code Quality
 
 - **Avoid unnecessary intermediary assertions.** Tests should do the minimal amount of work to validate just the core issue being addressed.
-  > "Use `.Single()` instead of asserting count then accessing the first element"
-  > "No need to separately assert this is not null if the next assertion is going to fail anyway when it is null."
 
 - **For error scenarios, prefer `VerifyEmitDiagnostics` over `VerifyDiagnostics` on the compilation.** `VerifyEmitDiagnostics` exercises a greater portion of the compilation pipeline.
 
-- **For success scenarios, verify execution if possible.** Use `CompileAndVerify` when the test can execute and `VerifyDiagnostics()` on the resulting verifier.
+- **For non-error scenarios, verify execution if possible.** Use `CompileAndVerify` when the test doesn't produce error diagnostics and `VerifyDiagnostics()` on the resulting verifier.
   Since `CompileAndVerify` already emits and collects diagnostics, `VerifyEmitDiagnostics` on the compilation would involve redundant work.
-  > "We generally prefer combining `VerifyDiagnostics` with `CompileAndVerify` since it collects diagnostics anyway and collects all diagnostics."
+
+- **Avoid ConditionalFact/Theory.** Parts of the test body may be conditional, but we prefer to execute as much of the test as possible in each configuration.
 
 - **Suppress expected unrelated warnings in tests with `#pragma`.** When test code intentionally triggers unrelated warnings (e.g., CS0649 for unassigned fields), suppress them with `#pragma warning disable` to keep test output clean.
-  > "Consider suppressing the warning with `#pragma`"
 
 - **Every code path in the changed function should have dedicated test coverage.** Include both positive and negative outcomes. If logic is copied from another place, mention the source.
-  > "It feels like all individual code paths in this function should have dedicated code coverage. That should include both positive and negative outcomes, when applicable."
 
 - **Verify that test assertions are strong enough to detect regressions.** Use `SequenceEqual` when order matters, `SetEqual` when it doesn't, but be aware that `SetEqual` may not flag duplicate entries.
-  > "Is this going to flag presence of duplicate entries?"
 
-- **Format test diagnostics as they come from test output.** Keep diagnostics formatted with `.WithLocation` on the same line as `Diagnostic(`, matching the style produced by test infrastructure. This keeps style consistent and makes future updates produce smaller diffs.
-  > "Consider leaving the diagnostics formatted exactly as they come from the test output"
+- **Format test diagnostics as they come from test output.** Diagnostics typically have 2 lines of comments and 1 line of code. Keep diagnostics formatted with `.WithLocation` on the same line as `Diagnostic(`, matching the style produced by test infrastructure. This keeps style consistent and makes future updates produce smaller diffs.
+  For example:
+  ```csharp
+  // (1,12): error CS0029: Cannot implicitly convert type 'int' to 'string'
+  // string s = 42;
+  Diagnostic(ErrorCode.ERR_NoImplicitConv, "42").WithArguments("int", "string").WithLocation(1, 12)
+  ```
 
 - **Test metadata scenarios that can't be produced by C#.** Consider testing scenarios with metadata containing combinations that C# can't produce.
-  > "Do we test metadata that cannot be produced from C# (the attribute is applied even though it's not allowed in C#)?"
-
----
 
 ## Documentation & Comments
 
 - **Comments should explain why, not restate code.** Delete comments like `// Get the symbol` that just duplicate the code in English. Focus on explaining non-obvious decisions, trade-offs, or algorithm choices.
 
-- **Move important implementation comments to doc comments on the property/method.** If a comment explains critical behavior of a property or method (e.g., "returns true until X is called"), it belongs in the XML doc comment, not buried inside the implementation.
-  > "It is probably worth moving/copying this comment into a doc comment on the property"
+- **Delete or update obsolete comments when code changes.** Stale comments describing old behavior are worse than no comments.
 
-- **Track deferred work with GitHub issues.** No TODO comment should be added or merged.
+- **Move important implementation comments to doc comments on the property/method.** If a comment explains critical behavior of a property or method (e.g., "returns true until X is called"), it belongs in the XML doc comment, not buried inside the implementation.
+
+- **Track deferred work with GitHub issues.** No `// TODO` comment should be added or merged. Instead use a comment like `// Tracked by <URL>: description` to link to a GitHub issue tracking the follow-up work.
+
+- **Add XML doc comments on all new public APIs in product code.** These seed the official API documentation on learn.microsoft.com.
 
 ### Public API Requirements
 
 - **New public APIs require approved proposals before PR submission.** All new compiler or workspace API surface must go through API review. PRs cannot be merged until the APIs are approved.
-See more details about the process at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md
+See more details about the process at [API Review Process](../../../docs/contributing/API%20Review%20Process.md)
 
-- **Public API changes must have compiler-level tests.** When modifying or adding public APIs, include tests that exercise the compiler directly — not only higher-level IDE or language-service tests — to verify the observable behavior of the change.
+- **Public API changes direct tests at the definition layer.** When modifying or adding public APIs, include tests that exercise the definition layer directly.
 
 ### Breaking Changes
 
 - **Flag breaking changes and require formal process.** Any time a change causes code that compiled with a shipped version of the compiler to now produce a diagnostic, we should consider whether it should be reviewed and documented as a breaking change. Depending on the impact, such as how much time passed for users to adopt the code pattern, we may need explicit approval from the compat council.
-  > "Is this diagnostic going to be a breaking change?"
 
 - **File breaking change documentation for behavioral changes.** Open an issue in dotnet/docs if changing public API behavior, even in preview releases.
