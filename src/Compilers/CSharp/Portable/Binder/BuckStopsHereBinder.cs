@@ -139,6 +139,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override GeneratedLabelSymbol? GetBreakLabel(string? labelName) => null;
+
+        internal override GeneratedLabelSymbol? GetContinueLabel(string? labelName) => null;
+
         internal override BoundExpression? ConditionalReceiverExpression
         {
             get

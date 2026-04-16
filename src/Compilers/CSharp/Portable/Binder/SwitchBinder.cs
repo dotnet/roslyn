@@ -25,11 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<Diagnostic> _switchGoverningDiagnostics;
         private ImmutableArray<AssemblySymbol> _switchGoverningDependencies;
 
+        private readonly string _labelName;
+
         private SwitchBinder(Binder next, SwitchStatementSyntax switchSyntax)
             : base(next)
         {
             SwitchSyntax = switchSyntax;
             _breakLabel = new GeneratedLabelSymbol("break");
+            _labelName = switchSyntax.Parent is LabeledStatementSyntax labeled ? labeled.Identifier.ValueText : null;
         }
 
         protected bool PatternsEnabled =>
@@ -170,6 +173,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _breakLabel;
             }
         }
+
+        internal override GeneratedLabelSymbol GetBreakLabel(string labelName)
+            => (labelName is null || labelName == _labelName) ? _breakLabel : Next.GetBreakLabel(labelName);
 
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {

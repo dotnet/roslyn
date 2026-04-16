@@ -2947,16 +2947,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            if (node.Name != null)
-            {
-                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name.GetLocation());
-                return BindLabeledBreakOrContinue(node, node.Name, isBreak: true, diagnostics);
-            }
+            var labelName = node.Name?.Identifier.ValueText;
+            if (labelName != null)
+                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name!.GetLocation());
 
-            var target = this.BreakLabel;
-            if ((object)target == null)
+            var target = this.GetBreakLabel(labelName);
+            if (target == null)
             {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
+                Error(diagnostics, labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont, node.Name ?? (SyntaxNode)node, labelName ?? "");
                 return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
             return new BoundBreakStatement(node, target);
@@ -2964,88 +2962,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            if (node.Name != null)
-            {
-                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name.GetLocation());
-                return BindLabeledBreakOrContinue(node, node.Name, isBreak: false, diagnostics);
-            }
+            var labelName = node.Name?.Identifier.ValueText;
+            if (labelName != null)
+                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name!.GetLocation());
 
-            var target = this.ContinueLabel;
-            if ((object)target == null)
+            var target = this.GetContinueLabel(labelName);
+            if (target == null)
             {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
+                Error(diagnostics, labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont, node.Name ?? (SyntaxNode)node, labelName ?? "");
                 return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
             return new BoundContinueStatement(node, target);
-        }
-
-        private BoundStatement BindLabeledBreakOrContinue(StatementSyntax node, IdentifierNameSyntax labelName, bool isBreak, BindingDiagnosticBag diagnostics)
-        {
-            var result = LookupResult.GetInstance();
-            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            this.LookupSymbolsWithFallback(result, labelName.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
-            diagnostics.Add(node, useSiteInfo);
-
-            if (!result.IsMultiViable)
-            {
-                result.Free();
-                Error(diagnostics, ErrorCode.ERR_LabelNotFound, labelName, labelName.Identifier.ValueText);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-
-            var labelSymbol = (SourceLabelSymbol)result.Symbols.First();
-            result.Free();
-
-            // Walk from the label's identifier token to the LabeledStatementSyntax, then unwrap nested
-            // labels to find the actual target statement.
-            var identifierParent = labelSymbol.IdentifierNodeOrToken.Parent;
-            if (identifierParent is not LabeledStatementSyntax labeledStatement)
-            {
-                Error(diagnostics, isBreak ? ErrorCode.ERR_LabeledBreakContinueNotOnLoopOrSwitch : ErrorCode.ERR_LabeledContinueNotOnLoop, labelName, labelName.Identifier.ValueText);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-
-            var targetStatement = labeledStatement.Statement;
-            while (targetStatement is LabeledStatementSyntax nested)
-                targetStatement = nested.Statement;
-
-            // Verify the target statement is a loop (for continue) or loop/switch (for break).
-            bool isLoop = targetStatement is WhileStatementSyntax or DoStatementSyntax or ForStatementSyntax or ForEachStatementSyntax or ForEachVariableStatementSyntax;
-            bool isSwitch = targetStatement is SwitchStatementSyntax;
-
-            if (isBreak ? !(isLoop || isSwitch) : !isLoop)
-            {
-                Error(diagnostics, isBreak ? ErrorCode.ERR_LabeledBreakContinueNotOnLoopOrSwitch : ErrorCode.ERR_LabeledContinueNotOnLoop, labelName, labelName.Identifier.ValueText);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-
-            // Verify the labeled statement lexically contains this break/continue.
-            if (!targetStatement.Span.Contains(node.Span))
-            {
-                Error(diagnostics, ErrorCode.ERR_LabeledBreakContinueNotContaining, labelName, labelName.Identifier.ValueText);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-
-            // Walk the binder chain to find the LoopBinder or SwitchBinder for the target syntax.
-            for (var binder = this; binder != null; binder = binder.Next)
-            {
-                if (binder is LoopBinder loopBinder && loopBinder.ScopeDesignator == targetStatement)
-                {
-                    var label = isBreak ? loopBinder.BreakLabel : loopBinder.ContinueLabel;
-                    return isBreak
-                        ? new BoundBreakStatement(node, label)
-                        : (BoundStatement)new BoundContinueStatement(node, label);
-                }
-
-                if (isBreak && binder is SwitchBinder switchBinder && switchBinder.ScopeDesignator == targetStatement)
-                {
-                    return new BoundBreakStatement(node, switchBinder.BreakLabel);
-                }
-            }
-
-            // Should not normally reach here if the containment check passed, but report an error defensively.
-            Error(diagnostics, ErrorCode.ERR_LabeledBreakContinueNotContaining, labelName, labelName.Identifier.ValueText);
-            return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
         }
 
         private static SwitchBinder GetSwitchBinder(Binder binder)

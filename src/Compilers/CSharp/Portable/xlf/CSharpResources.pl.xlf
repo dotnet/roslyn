@@ -1482,21 +1482,6 @@
         <target state="translated">Argument diagnosticId atrybutu „Experimental” musi być prawidłowym identyfikatorem</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_LabeledBreakContinueNotContaining">
-        <source>The label '{0}' does not refer to a statement that contains this break or continue statement</source>
-        <target state="new">The label '{0}' does not refer to a statement that contains this break or continue statement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LabeledBreakContinueNotOnLoopOrSwitch">
-        <source>The label '{0}' does not refer to a containing loop or switch statement</source>
-        <target state="new">The label '{0}' does not refer to a containing loop or switch statement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LabeledContinueNotOnLoop">
-        <source>The label '{0}' does not refer to a containing loop statement</source>
-        <target state="new">The label '{0}' does not refer to a containing loop statement</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NoAwaitOnAsyncEnumerable">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (did you mean to iterate over the async collection with 'await foreach' instead?)</source>
         <target state="translated">„{0}” nie zawiera definicji dla „{1}” i nie znaleziono dostępnej metody rozszerzenia „{1}”, która przyjmowałaby pierwszy argument typu „{0}” (czy chodziło Ci o iterację kolekcji asynchronicznej za pomocą polecenia „await foreach”?)</target>
@@ -6678,6 +6663,11 @@
       <trans-unit id="ERR_NoBreakOrCont">
         <source>No enclosing loop out of which to break or continue</source>
         <target state="translated">Brak pętli otaczającej, w której ma nastąpić przerwanie lub kontynuowanie</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoBreakOrContId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break or continue</source>
+        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break or continue</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateLabel">

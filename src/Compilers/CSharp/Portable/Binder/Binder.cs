@@ -403,6 +403,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns the <see cref="GeneratedLabelSymbol"/> for a break statement targeting the given label,
+        /// or the nearest enclosing loop/switch if <paramref name="labelName"/> is null.
+        /// </summary>
+        internal virtual GeneratedLabelSymbol? GetBreakLabel(string? labelName)
+        {
+            RoslynDebug.Assert(Next is object);
+            return Next.GetBreakLabel(labelName);
+        }
+
+        /// <summary>
+        /// Returns the <see cref="GeneratedLabelSymbol"/> for a continue statement targeting the given label,
+        /// or the nearest enclosing loop if <paramref name="labelName"/> is null.
+        /// </summary>
+        internal virtual GeneratedLabelSymbol? GetContinueLabel(string? labelName)
+        {
+            RoslynDebug.Assert(Next is object);
+            return Next.GetContinueLabel(labelName);
+        }
+
+        /// <summary>
         /// Get the element type of this iterator.
         /// </summary>
         /// <returns>Element type of the current iterator, or an error type.</returns>
