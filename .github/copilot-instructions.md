@@ -92,3 +92,7 @@ var symbolInfo = semanticModel.GetSymbolInfo(expression);
 - `src/Compilers/Core/Portable/` - Core compiler APIs
 - `src/Workspaces/Core/Portable/` - Workspace object model
 - Solution filters: `Roslyn.slnx`, `Compilers.slnf`, `Ide.slnf` for focused builds
+
+## Code Review
+
+When performing a code review, follow the review process, priorities, conventions, and output format defined in the [code-review skill](/.github/skills/code-review/SKILL.md).
