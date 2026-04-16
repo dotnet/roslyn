@@ -324,7 +324,7 @@ Remarks are cool too.
 
 {WorkspacesResources.Exceptions_colon}
   System.NullReferenceException
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData]
@@ -448,7 +448,7 @@ if (true) {
     Console.WriteLine(""hello"");
 }
 ```  
-", results.Contents.Fourth.Value);
+".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1499")]
@@ -562,7 +562,7 @@ class C
             """, result.Contents.Fourth.Value);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
+    [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
     public async Task TestGetHoverAsync_EscapesAngleBracketsInGenerics(bool mutatingLspWorkspace)
     {
         var markup =

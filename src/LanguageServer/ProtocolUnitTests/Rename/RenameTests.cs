@@ -91,10 +91,10 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         await using var testLspServer = await CreateXmlTestLspServerAsync($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
-                    <Document FilePath = "C:\C.cs"><![CDATA[{markup}]]></Document>
+                    <Document FilePath = "{TestHelpers.GetRootedPath("C.cs")}"><![CDATA[{markup}]]></Document>
                 </Project>
                 <Project Language = "C#" CommonReferences="true" PreprocessorSymbols="Proj2">
-                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="C:\C.cs"/>
+                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="{TestHelpers.GetRootedPath("C.cs")}"/>
                 </Project>
             </Workspace>
             """, mutatingLspWorkspace);
@@ -136,10 +136,10 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         await using var testLspServer = await CreateXmlTestLspServerAsync($"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
-                    <Document FilePath = "C:\C.cs"><![CDATA[{markup}]]></Document>
+                    <Document FilePath = "{TestHelpers.GetRootedPath("C.cs")}"><![CDATA[{markup}]]></Document>
                 </Project>
                 <Project Language = "C#" CommonReferences="true" PreprocessorSymbols="Proj2">
-                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="C:\C.cs"/>
+                    <Document IsLinkFile = "true" LinkAssemblyName="CSProj" LinkFilePath="{TestHelpers.GetRootedPath("C.cs")}"/>
                 </Project>
             </Workspace>
             """, mutatingLspWorkspace);
@@ -174,7 +174,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var renameText = "RENAME";
         var renameParams = CreateRenameParams(new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = startPosition, End = endPosition }
         }, "RENAME");
 
@@ -331,11 +331,12 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         var renameLocation = testLspServer.GetLocations("caret").First();
         var renameValue = "RENAME";
+        // When the mapping service can't map spans, only the regular document edits should be returned.
+        // Source-generated document edits are dropped since the client can't open source-generated URIs.
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
-        var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
 
         Assert.False(service.DidMapEdits);
     }

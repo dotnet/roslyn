@@ -184,5 +184,11 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         public static string CreateAbsolutePath(string suffix)
             => Path.Combine(Path.GetTempPath(), suffix);
+
+        public const string WindowsRoot = @"Q:\";
+        public const string UnixRoot = @"/q/";
+        public static string Root => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsRoot : UnixRoot;
+
+        public static string GetRootedPath(params string[] relativePath) => Path.Combine([Root, .. relativePath]);
     }
 }

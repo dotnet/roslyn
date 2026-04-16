@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PatternMatching;
@@ -784,6 +785,73 @@ internal sealed partial class NavigateToSearchIndex
             foreach (var c in text)
             {
                 if (char.IsUpper(c))
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Evaluates a <see cref="RegexQuery"/> tree against this document's indexed bigrams and trigrams.
+        /// Returns <see langword="true"/> if the document could plausibly contain a symbol matching the
+        /// regex, or <see langword="false"/> if the document can be safely skipped.
+        /// </summary>
+        public bool RegexQueryCheckPasses(PatternMatching.RegexQuery query)
+        {
+            switch (query)
+            {
+                case PatternMatching.RegexQuery.All all:
+                    foreach (var child in all.Children)
+                    {
+                        if (!RegexQueryCheckPasses(child))
+                            return false;
+                    }
+
+                    return true;
+
+                case PatternMatching.RegexQuery.Any any:
+                    foreach (var child in any.Children)
+                    {
+                        if (RegexQueryCheckPasses(child))
+                            return true;
+                    }
+
+                    return false;
+
+                case PatternMatching.RegexQuery.Literal literal:
+                    return RegexLiteralCheckPasses(literal.Text);
+
+                // The optimizer removes all None nodes from the tree: None children are dropped
+                // from All (vacuously true), and Any collapses to None if any child is None. If
+                // the entire tree optimizes to None (no literals at all), Compile returns null and
+                // the caller never reaches this method. So the only nodes that can appear here are
+                // All, Any, and Literal — all handled above.
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        /// <summary>
+        /// Checks whether the bigrams of a literal string are present in this document's bigram bitset.
+        /// Uses only bigrams (not trigrams) because the trigram index is segmented by camelCase
+        /// word-parts, while regex literals are continuous strings that may span word-part boundaries
+        /// (e.g. "ReadLine" has cross-boundary trigrams "adl"/"dli" that aren't indexed). The bigram
+        /// bitset covers the full symbol name and is sufficient for filtering.
+        /// <para/>
+        /// The literal text is expected to already be lowercased at compile time by the regex query
+        /// compiler.
+        /// </summary>
+        private bool RegexLiteralCheckPasses(string text)
+        {
+            Debug.Assert(text == text.ToLowerInvariant());
+            Debug.Assert(text.Length >= 2);
+            Debug.Assert(!_fuzzyBigramBitset.IsDefault);
+
+            for (var i = 0; i < text.Length - 1; i++)
+            {
+                var idx = FuzzyBigramCharIndex(text[i]) * FuzzyBigramAlphabetSize
+                        + FuzzyBigramCharIndex(text[i + 1]);
+                if ((_fuzzyBigramBitset[idx >> 6] & (1UL << (idx & 63))) == 0)
                     return false;
             }
 

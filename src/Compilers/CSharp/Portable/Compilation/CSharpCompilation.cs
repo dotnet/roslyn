@@ -161,6 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Lazily caches SyntaxTrees by their xxHash128 checksum. Used to look up the syntax tree referenced by an interceptor.</summary>
         private ImmutableSegmentedDictionary<ReadOnlyMemory<byte>, OneOrMany<SyntaxTree>> _contentHashToSyntaxTree;
 
+        /// <summary>
+        /// Lazily caches diagnostics for method body compilations for a given SyntaxTree and TextSpan
+        /// </summary>
+        private ImmutableArray<MethodBodyDiagnostics> _methodBodiesInTreeDiagnostics = ImmutableArray<MethodBodyDiagnostics>.Empty;
+
         internal ExtendedErrorTypeSymbol ImplicitlyTypedVariableUsedInForbiddenZoneType
         {
             get
@@ -357,11 +362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(ReferenceEquals(method.ContainingAssembly, Assembly));
             Debug.Assert(method.IsDefinition);
+            Debug.Assert(method is not Symbols.Metadata.PE.PEMethodSymbol);
 
-            var runtimeAsyncEnabledInMethod = symbol switch
+            var runtimeAsyncEnabledInMethod = method.RuntimeAsyncMethodGenerationAttributeSetting switch
             {
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.True } => true,
-                SourceMethodSymbol { IsRuntimeAsyncEnabledInMethod: ThreeState.False } => false,
+                ThreeState.True => true,
+                ThreeState.False => false,
                 _ => Feature(CodeAnalysis.Feature.RuntimeAsync) == "on"
             };
 
@@ -3088,9 +3094,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Options.NullableContextOptions != NullableContextOptions.Disable && LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() &&
                     _syntaxAndDeclarations.ExternalSyntaxTrees.Any())
                 {
-                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_NullableOptionNotAvailable,
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CompilationOptionNotAvailable,
                                                  nameof(Options.NullableContextOptions), Options.NullableContextOptions, LanguageVersion.ToDisplayString(),
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
+                }
+
+                if (Options.UseUpdatedMemorySafetyRules && !this.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
+                {
+                    builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CompilationOptionNotAvailable,
+                        nameof(Options.MemorySafetyRules), Options.MemorySafetyRules, LanguageVersion.ToDisplayString(),
+                        new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion())), Location.None));
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -3181,8 +3194,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private struct MethodBodyDiagnostics
+        {
+            public SyntaxTree Tree { get; }
+            public TextSpan? Span { get; }
+            public ImmutableArray<Diagnostic> Diagnostics { get; }
+
+            public MethodBodyDiagnostics(SyntaxTree tree, TextSpan? span, ImmutableArray<Diagnostic> diagnostics)
+            {
+                Tree = tree;
+                Span = span;
+                Diagnostics = diagnostics;
+            }
+        }
+
         private ImmutableArray<Diagnostic> GetDiagnosticsForMethodBodiesInTree(SyntaxTree tree, TextSpan? span, CancellationToken cancellationToken)
         {
+            const int MaxCachedMethodBodiesInTreeDiagnostics = 10;
+
+            Debug.Assert(this.ContainsSyntaxTree(tree));
+
+            var cachedDiagnostics = _methodBodiesInTreeDiagnostics;
+            foreach (var methodBodyDiagnostics in cachedDiagnostics)
+            {
+                if (methodBodyDiagnostics.Tree == tree && methodBodyDiagnostics.Span == span)
+                {
+                    return methodBodyDiagnostics.Diagnostics;
+                }
+            }
+
             var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             Debug.Assert(bindingDiagnostics.DiagnosticBag is { });
 
@@ -3260,7 +3300,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportUnusedImports(tree, bindingDiagnostics, cancellationToken);
             }
 
-            return bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
+            var diagnostics = bindingDiagnostics.ToReadOnlyAndFree().Diagnostics;
+            updateCachedDiagnostics(diagnostics, tree, span);
+
+            return diagnostics;
+
+            void updateCachedDiagnostics(ImmutableArray<Diagnostic> diagnostics, SyntaxTree tree, TextSpan? span)
+            {
+                bool needsUpdate = true;
+                while (needsUpdate)
+                {
+                    var cachedDiagnostics = _methodBodiesInTreeDiagnostics;
+                    foreach (var methodBodyDiagnostics in cachedDiagnostics)
+                    {
+                        if (methodBodyDiagnostics.Tree == tree && methodBodyDiagnostics.Span == span)
+                        {
+                            // Someone else already computed diagnostics for this tree/span and updated the cache while we were doing our work.
+                            Debug.Assert(methodBodyDiagnostics.Diagnostics.SequenceEqual(diagnostics));
+                            return;
+                        }
+                    }
+
+                    var newDiagnostics = cachedDiagnostics;
+                    if (newDiagnostics.Length >= MaxCachedMethodBodiesInTreeDiagnostics)
+                    {
+                        // Cache is full, evict the first half. Local testing usually indicates very few entries in the cache,
+                        // so this should be sufficient to keep the cache effective while avoiding unbounded memory growth.
+                        var halfSize = MaxCachedMethodBodiesInTreeDiagnostics / 2;
+                        newDiagnostics = newDiagnostics.RemoveRange(0, halfSize);
+                    }
+
+                    newDiagnostics = newDiagnostics.Add(new MethodBodyDiagnostics(tree, span, diagnostics));
+
+                    // Only update the cache if it hasn't changed since we read it, otherwise we might lose diagnostics from another thread that is doing the same thing.
+                    var originalDiagnostics = ImmutableInterlocked.InterlockedCompareExchange(ref _methodBodiesInTreeDiagnostics, newDiagnostics, cachedDiagnostics);
+
+                    // If the original diagnostics are not what we did the compare exchange above, the call won't have updated _methodBodiesInTreeDiagnostics
+                    // and we'll need to do another iteration to make sure our diagnostics are in the cache.
+                    needsUpdate = (originalDiagnostics != cachedDiagnostics);
+                }
+            }
 
             void compileMethodBodiesAndDocComments(SyntaxTree? filterTree, TextSpan? filterSpan, BindingDiagnosticBag bindingDiagnostics, CancellationToken cancellationToken)
             {

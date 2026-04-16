@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18301,6 +18301,369 @@ public sealed partial class CSharpRegexParserTests
               </CompilationUnit>
               <Captures>
                 <Capture Name="0" Span="[10..17)" Text="[-[:L:]" />
+              </Captures>
+            </Tree>
+            """, RegexOptions.None);
+
+    [Fact]
+    public void TestInlineOptionsInConditionalBranch_ExpressionConditional_YesBranch()
+        => Test("""
+            @"(?(cat)(?i)CAT|dog)"
+            """, """
+            <Tree>
+              <CompilationUnit>
+                <Sequence>
+                  <ConditionalExpressionGrouping>
+                    <OpenParenToken>(</OpenParenToken>
+                    <QuestionToken>?</QuestionToken>
+                    <SimpleGrouping>
+                      <OpenParenToken>(</OpenParenToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>cat</TextToken>
+                        </Text>
+                      </Sequence>
+                      <CloseParenToken>)</CloseParenToken>
+                    </SimpleGrouping>
+                    <Alternation>
+                      <Sequence>
+                        <SimpleOptionsGrouping>
+                          <OpenParenToken>(</OpenParenToken>
+                          <QuestionToken>?</QuestionToken>
+                          <OptionsToken>i</OptionsToken>
+                          <CloseParenToken>)</CloseParenToken>
+                        </SimpleOptionsGrouping>
+                        <Text>
+                          <TextToken>CAT</TextToken>
+                        </Text>
+                      </Sequence>
+                      <BarToken>|</BarToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>dog</TextToken>
+                        </Text>
+                      </Sequence>
+                    </Alternation>
+                    <CloseParenToken>)</CloseParenToken>
+                  </ConditionalExpressionGrouping>
+                </Sequence>
+                <EndOfFile />
+              </CompilationUnit>
+              <Captures>
+                <Capture Name="0" Span="[10..29)" Text="(?(cat)(?i)CAT|dog)" />
+              </Captures>
+            </Tree>
+            """, RegexOptions.None, runtimeHasBug: true);
+
+    [Fact]
+    public void TestInlineOptionsInConditionalBranch_ExpressionConditional_NoBranch()
+        => Test("""
+            @"(?(cat)cat|(?i)dog)"
+            """, """
+            <Tree>
+              <CompilationUnit>
+                <Sequence>
+                  <ConditionalExpressionGrouping>
+                    <OpenParenToken>(</OpenParenToken>
+                    <QuestionToken>?</QuestionToken>
+                    <SimpleGrouping>
+                      <OpenParenToken>(</OpenParenToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>cat</TextToken>
+                        </Text>
+                      </Sequence>
+                      <CloseParenToken>)</CloseParenToken>
+                    </SimpleGrouping>
+                    <Alternation>
+                      <Sequence>
+                        <Text>
+                          <TextToken>cat</TextToken>
+                        </Text>
+                      </Sequence>
+                      <BarToken>|</BarToken>
+                      <Sequence>
+                        <SimpleOptionsGrouping>
+                          <OpenParenToken>(</OpenParenToken>
+                          <QuestionToken>?</QuestionToken>
+                          <OptionsToken>i</OptionsToken>
+                          <CloseParenToken>)</CloseParenToken>
+                        </SimpleOptionsGrouping>
+                        <Text>
+                          <TextToken>dog</TextToken>
+                        </Text>
+                      </Sequence>
+                    </Alternation>
+                    <CloseParenToken>)</CloseParenToken>
+                  </ConditionalExpressionGrouping>
+                </Sequence>
+                <EndOfFile />
+              </CompilationUnit>
+              <Captures>
+                <Capture Name="0" Span="[10..29)" Text="(?(cat)cat|(?i)dog)" />
+              </Captures>
+            </Tree>
+            """, RegexOptions.None, runtimeHasBug: true);
+
+    [Fact]
+    public void TestInlineOptionsInConditionalBranch_NestedOptionsGroup()
+        => Test("""
+            @"(?(cat)(?i:CAT)|dog)"
+            """, """
+            <Tree>
+              <CompilationUnit>
+                <Sequence>
+                  <ConditionalExpressionGrouping>
+                    <OpenParenToken>(</OpenParenToken>
+                    <QuestionToken>?</QuestionToken>
+                    <SimpleGrouping>
+                      <OpenParenToken>(</OpenParenToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>cat</TextToken>
+                        </Text>
+                      </Sequence>
+                      <CloseParenToken>)</CloseParenToken>
+                    </SimpleGrouping>
+                    <Alternation>
+                      <Sequence>
+                        <NestedOptionsGrouping>
+                          <OpenParenToken>(</OpenParenToken>
+                          <QuestionToken>?</QuestionToken>
+                          <OptionsToken>i</OptionsToken>
+                          <ColonToken>:</ColonToken>
+                          <Sequence>
+                            <Text>
+                              <TextToken>CAT</TextToken>
+                            </Text>
+                          </Sequence>
+                          <CloseParenToken>)</CloseParenToken>
+                        </NestedOptionsGrouping>
+                      </Sequence>
+                      <BarToken>|</BarToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>dog</TextToken>
+                        </Text>
+                      </Sequence>
+                    </Alternation>
+                    <CloseParenToken>)</CloseParenToken>
+                  </ConditionalExpressionGrouping>
+                </Sequence>
+                <EndOfFile />
+              </CompilationUnit>
+              <Captures>
+                <Capture Name="0" Span="[10..30)" Text="(?(cat)(?i:CAT)|dog)" />
+              </Captures>
+            </Tree>
+            """, RegexOptions.None, runtimeHasBug: true);
+
+    [Fact]
+    public void TestInlineOptionsInConditionalBranch_LookaheadConditional()
+        => Test("""
+            @"(?(?=cat)(?i)CAT|dog)"
+            """, """
+            <Tree>
+              <CompilationUnit>
+                <Sequence>
+                  <ConditionalExpressionGrouping>
+                    <OpenParenToken>(</OpenParenToken>
+                    <QuestionToken>?</QuestionToken>
+                    <PositiveLookaheadGrouping>
+                      <OpenParenToken>(</OpenParenToken>
+                      <QuestionToken>?</QuestionToken>
+                      <EqualsToken>=</EqualsToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>cat</TextToken>
+                        </Text>
+                      </Sequence>
+                      <CloseParenToken>)</CloseParenToken>
+                    </PositiveLookaheadGrouping>
+                    <Alternation>
+                      <Sequence>
+                        <SimpleOptionsGrouping>
+                          <OpenParenToken>(</OpenParenToken>
+                          <QuestionToken>?</QuestionToken>
+                          <OptionsToken>i</OptionsToken>
+                          <CloseParenToken>)</CloseParenToken>
+                        </SimpleOptionsGrouping>
+                        <Text>
+                          <TextToken>CAT</TextToken>
+                        </Text>
+                      </Sequence>
+                      <BarToken>|</BarToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>dog</TextToken>
+                        </Text>
+                      </Sequence>
+                    </Alternation>
+                    <CloseParenToken>)</CloseParenToken>
+                  </ConditionalExpressionGrouping>
+                </Sequence>
+                <EndOfFile />
+              </CompilationUnit>
+              <Captures>
+                <Capture Name="0" Span="[10..31)" Text="(?(?=cat)(?i)CAT|dog)" />
+              </Captures>
+            </Tree>
+            """, RegexOptions.None, runtimeHasBug: true);
+
+    [Fact]
+    public void TestInlineOptionsInConditionalBranch_BackreferenceConditional()
+        => Test("""
+            @"(cat)?(?(1)(?i)dog|pig)"
+            """, """
+            <Tree>
+              <CompilationUnit>
+                <Sequence>
+                  <ZeroOrOneQuantifier>
+                    <SimpleGrouping>
+                      <OpenParenToken>(</OpenParenToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>cat</TextToken>
+                        </Text>
+                      </Sequence>
+                      <CloseParenToken>)</CloseParenToken>
+                    </SimpleGrouping>
+                    <QuestionToken>?</QuestionToken>
+                  </ZeroOrOneQuantifier>
+                  <ConditionalCaptureGrouping>
+                    <OpenParenToken>(</OpenParenToken>
+                    <QuestionToken>?</QuestionToken>
+                    <OpenParenToken>(</OpenParenToken>
+                    <NumberToken value="1">1</NumberToken>
+                    <CloseParenToken>)</CloseParenToken>
+                    <Alternation>
+                      <Sequence>
+                        <SimpleOptionsGrouping>
+                          <OpenParenToken>(</OpenParenToken>
+                          <QuestionToken>?</QuestionToken>
+                          <OptionsToken>i</OptionsToken>
+                          <CloseParenToken>)</CloseParenToken>
+                        </SimpleOptionsGrouping>
+                        <Text>
+                          <TextToken>dog</TextToken>
+                        </Text>
+                      </Sequence>
+                      <BarToken>|</BarToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>pig</TextToken>
+                        </Text>
+                      </Sequence>
+                    </Alternation>
+                    <CloseParenToken>)</CloseParenToken>
+                  </ConditionalCaptureGrouping>
+                </Sequence>
+                <EndOfFile />
+              </CompilationUnit>
+              <Captures>
+                <Capture Name="0" Span="[10..33)" Text="(cat)?(?(1)(?i)dog|pig)" />
+                <Capture Name="1" Span="[10..15)" Text="(cat)" />
+              </Captures>
+            </Tree>
+            """, RegexOptions.None, runtimeHasBug: true);
+
+    [Fact]
+    public void TestInlineOptionsInConditionalBranch_OptionsInTestExpression()
+        => Test("""
+            @"(?((?i)cat)CAT|dog)"
+            """, """
+            <Tree>
+              <CompilationUnit>
+                <Sequence>
+                  <ConditionalExpressionGrouping>
+                    <OpenParenToken>(</OpenParenToken>
+                    <QuestionToken>?</QuestionToken>
+                    <SimpleGrouping>
+                      <OpenParenToken>(</OpenParenToken>
+                      <Sequence>
+                        <SimpleOptionsGrouping>
+                          <OpenParenToken>(</OpenParenToken>
+                          <QuestionToken>?</QuestionToken>
+                          <OptionsToken>i</OptionsToken>
+                          <CloseParenToken>)</CloseParenToken>
+                        </SimpleOptionsGrouping>
+                        <Text>
+                          <TextToken>cat</TextToken>
+                        </Text>
+                      </Sequence>
+                      <CloseParenToken>)</CloseParenToken>
+                    </SimpleGrouping>
+                    <Alternation>
+                      <Sequence>
+                        <Text>
+                          <TextToken>CAT</TextToken>
+                        </Text>
+                      </Sequence>
+                      <BarToken>|</BarToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>dog</TextToken>
+                        </Text>
+                      </Sequence>
+                    </Alternation>
+                    <CloseParenToken>)</CloseParenToken>
+                  </ConditionalExpressionGrouping>
+                </Sequence>
+                <EndOfFile />
+              </CompilationUnit>
+              <Captures>
+                <Capture Name="0" Span="[10..29)" Text="(?((?i)cat)CAT|dog)" />
+              </Captures>
+            </Tree>
+            """, RegexOptions.None, runtimeHasBug: true);
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    public void TestInlineOptionsInConditionalBranch_OptionsAsTestExpression_Negative()
+        => Test("""
+            @"(?(?i)yes|no)"
+            """, """
+            <Tree>
+              <CompilationUnit>
+                <Sequence>
+                  <ConditionalExpressionGrouping>
+                    <OpenParenToken>(</OpenParenToken>
+                    <QuestionToken>?</QuestionToken>
+                    <SimpleGrouping>
+                      <OpenParenToken>(</OpenParenToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>?</TextToken>
+                        </Text>
+                        <Text>
+                          <TextToken>i</TextToken>
+                        </Text>
+                      </Sequence>
+                      <CloseParenToken>)</CloseParenToken>
+                    </SimpleGrouping>
+                    <Alternation>
+                      <Sequence>
+                        <Text>
+                          <TextToken>yes</TextToken>
+                        </Text>
+                      </Sequence>
+                      <BarToken>|</BarToken>
+                      <Sequence>
+                        <Text>
+                          <TextToken>no</TextToken>
+                        </Text>
+                      </Sequence>
+                    </Alternation>
+                    <CloseParenToken>)</CloseParenToken>
+                  </ConditionalExpressionGrouping>
+                </Sequence>
+                <EndOfFile />
+              </CompilationUnit>
+              <Diagnostics>
+                <Diagnostic Message="Unrecognized grouping construct" Span="[12..13)" Text="(" />
+                <Diagnostic Message="Quantifier '?' following nothing" Span="[13..14)" Text="?" />
+              </Diagnostics>
+              <Captures>
+                <Capture Name="0" Span="[10..23)" Text="(?(?i)yes|no)" />
               </Captures>
             </Tree>
             """, RegexOptions.None);

@@ -30,7 +30,7 @@ public sealed class AnalyzersTests : TestBase
             </RuleSet>
             """);
         using var environment = new TestEnvironment();
-        using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+        await using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
         var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
         var options = (CSharpCompilationOptions)workspaceProject.CompilationOptions;
 
@@ -59,7 +59,7 @@ public sealed class AnalyzersTests : TestBase
             """);
 
         using var environment = new TestEnvironment();
-        using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+        await using var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
         // Verify SetRuleSetFile updates the ruleset.
         project.SetOptions([$"/ruleset:{ruleSetFile.Path}"]);
 
@@ -76,7 +76,7 @@ public sealed class AnalyzersTests : TestBase
         using var environment = new TestEnvironment();
         ProjectId projectId;
 
-        using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
+        await using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
         {
             project.SetOptions([$"/ruleset:{ruleSetFile.Path}"]);
 

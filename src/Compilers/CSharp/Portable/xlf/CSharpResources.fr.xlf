@@ -612,6 +612,11 @@
         <target state="translated">Le type d’élément de cette collection ne peut pas être un struct ref ni un paramètre de type autorisant les structs ref</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">Valeur '{0}' non valide : '{1}' pour C# {2}. Utilisez la version de langage '{3}' ou une version ultérieure.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">Une unité de compilation ne peut pas contenir directement des membres tels que des champs, des méthodes ou des propriétés</target>
@@ -1487,6 +1492,11 @@
         <target state="translated">Impossible de convertir le type '{0}' en 'objet' via une référence implicite ou une conversion d'encapsulation</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PPShebangNotOnFirstLine">
+        <source>'#!' must be the first characters on the first line of the file</source>
+        <target state="translated">« #! » doivent être les premiers caractères de la première ligne du fichier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
         <target state="translated">RequiresUnsafeAttribute ne peut pas être appliqué à ce symbole.</target>
@@ -1880,11 +1890,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">'warnings', 'annotations' ou fin de directive attendu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">Valeur '{0}' non valide : '{1}' pour C# {2}. Utilisez la version de langage '{3}' ou une version ultérieure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2726,6 +2731,11 @@
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
         <target state="translated">« {0} » est défini dans un module dont la version n’est pas reconnue {1} et attend « {2} ».</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">Un contexte non sécurisé est requis pour le constructeur « {0} » marqué comme « RequiresUnsafe » ou « extern » afin de satisfaire la contrainte « new() » du paramètre de type « {1} » dans « {2} »</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
@@ -5924,6 +5934,16 @@
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">Le paramètre est non lu. Avez-vous oublié de l'utiliser pour initialiser la propriété portant ce nom ?</target>
         <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">Le modificateur « unsafe » n’a aucun effet ici selon les règles actuelles de sécurité de la mémoire.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">Le modificateur « unsafe » n’a aucun effet ici selon les règles actuelles de sécurité de la mémoire.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>

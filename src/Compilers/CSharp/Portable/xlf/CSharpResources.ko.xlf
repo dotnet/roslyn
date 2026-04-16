@@ -612,6 +612,11 @@
         <target state="translated">이 컬렉션의 요소 형식은 ref 구조체 또는 ref 구조체를 허용하는 형식 매개 변수일 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CompilationOptionNotAvailable">
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="translated">C# {2}의 '{0}' 값 '{1}'이(가) 잘못되었습니다. 언어 버전 '{3}' 이상을 사용하세요.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CompilationUnitUnexpected">
         <source>A compilation unit cannot directly contain members such as fields, methods or properties</source>
         <target state="translated">컴파일 단위는 필드, 메서드 또는 속성과 같은 멤버를 직접 포함할 수 없습니다.</target>
@@ -1487,6 +1492,11 @@
         <target state="translated">암시적 참조 또는 boxing 변환을 통해 '{0}' 형식을 'object'로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PPShebangNotOnFirstLine">
+        <source>'#!' must be the first characters on the first line of the file</source>
+        <target state="translated">'#!'는 파일의 첫 번째 줄에 있는 첫 번째 문자여야 함</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
         <target state="translated">RequiresUnsafeAttribute는 이 기호에 적용할 수 없습니다.</target>
@@ -1880,11 +1890,6 @@
       <trans-unit id="ERR_NullableDirectiveTargetExpected">
         <source>Expected 'warnings', 'annotations', or end of directive</source>
         <target state="translated">'warnings', 'annotations' 또는 지시문의 끝이 필요합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="translated">C# {2}의 '{0}' 값 '{1}'이(가) 잘못되었습니다. 언어 버전 '{3}' 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -2726,6 +2731,11 @@
         <source>'{0}' is defined in a module with an unrecognized {1} version, expecting '{2}'.</source>
         <target state="translated">'{0}'은(는) 인식할 수 없는 {1} 버전의 모듈에 정의되어 있으며, '{2}' 버전을 기대합니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsafeConstructorConstraint">
+        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="translated">'{2}'의 형식 매개 변수 '{1}'의 'new()' 제약 조건을 충족하려면 'RequiresUnsafe' 또는 'extern'으로 표시된 생성자 '{0}'에 안전하지 않은 컨텍스트가 필요합니다.</target>
+        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
         <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
@@ -5924,6 +5934,16 @@
         <source>Parameter is unread. Did you forget to use it to initialize the property with that name?</source>
         <target state="translated">매개 변수를 읽을 수 없습니다. 이 매개 변수를 사용하여 해당 이름으로 속성을 초기화했는지 확인하세요.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">'안전하지 않은' 한정자는 현재 메모리 안전 규칙에서 아무런 영향을 주지 않습니다.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="WRN_UnsafeMeaningless_Title">
+        <source>The 'unsafe' modifier does not have any effect here under the current memory safety rules.</source>
+        <target state="translated">'안전하지 않은' 한정자는 현재 메모리 안전 규칙에서 아무런 영향을 주지 않습니다.</target>
+        <note>'unsafe' is a keyword, should not be localized.</note>
       </trans-unit>
       <trans-unit id="WRN_UnscopedRefAttributeOldRules">
         <source>UnscopedRefAttribute is only valid in C# 11 or later or when targeting net7.0 or later.</source>
