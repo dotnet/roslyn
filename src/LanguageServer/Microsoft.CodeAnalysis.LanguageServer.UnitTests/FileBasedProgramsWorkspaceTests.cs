@@ -809,10 +809,13 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(newAppCsText, (await document.GetTextAsync()).ToString());
 
+        // Begin waiting for the next project reload before writing to disk,
+        // since FileSystemWatcher event delivery timing is OS-dependent.
+        var projectLoader = (LanguageServerProjectLoader)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        projectLoader.BeginWaitForNextProjectReload();
+
         // Flush the document change to disk to trigger a reload of the FBA project.
         appCsFile.WriteAllText(newAppCsText);
-        // Wait for the batching queue timeout.
-        await Task.Delay(100);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file

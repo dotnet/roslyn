@@ -36,6 +36,12 @@ internal abstract class LanguageServerProjectLoader
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
+    /// Token created by <see cref="BeginWaitForNextProjectReload"/> to keep the <see cref="Listener"/>
+    /// active until the next project reload batch completes. Disposed in <see cref="ReloadProjectsAsync"/>.
+    /// </summary>
+    private IAsyncToken? _pendingReloadWaitToken;
+
+    /// <summary>
     /// Guards access to <see cref="_loadedProjects"/>.
     /// To keep the LSP queue responsive, <see cref="_gate"/> must not be held while performing design-time builds.
     /// </summary>
@@ -193,6 +199,7 @@ internal abstract class LanguageServerProjectLoader
         finally
         {
             _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
+            Interlocked.Exchange(ref _pendingReloadWaitToken, null)?.Dispose();
         }
     }
 
@@ -469,6 +476,18 @@ internal abstract class LanguageServerProjectLoader
     }
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
+
+    /// <summary>
+    /// Creates an <see cref="IAsyncToken"/> that will be completed when the next batch of projects
+    /// finishes reloading. This allows tests to begin waiting for a reload before the reload has been triggered
+    /// (e.g. before a <see cref="System.IO.FileSystemWatcher"/> event has been delivered).
+    /// </summary>
+    internal void BeginWaitForNextProjectReload()
+    {
+        var token = Listener.BeginAsyncOperation(nameof(BeginWaitForNextProjectReload));
+        var previous = Interlocked.Exchange(ref _pendingReloadWaitToken, token);
+        previous?.Dispose();
+    }
 
     /// <summary>Unloads all projects associated with this project loader.</summary>
     internal async ValueTask UnloadAllProjectsAsync()
