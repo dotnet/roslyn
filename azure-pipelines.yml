@@ -368,15 +368,13 @@ stages:
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
-  - template: eng/pipelines/test-unix-job.yml
+  - template: eng/pipelines/test-unix-job-single-machine.yml
     parameters:
       testRunName: 'Test Linux Debug'
       jobName: Test_Linux_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr
-      helixQueueName: $(HelixUbuntuQueueName)
-      helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.ubuntuPool }}
 
   - template: eng/pipelines/test-unix-job-single-machine.yml
