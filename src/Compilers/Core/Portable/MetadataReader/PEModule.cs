@@ -890,6 +890,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>Get TypeDef handles whose BaseType is equal to 'baseTypeHandle'.</summary>
+        internal void GetSubtypeDefinitionsOrThrow(EntityHandle baseTypeHandle, ArrayBuilder<EntityHandle> subtypesBuilder)
+        {
+            Debug.Assert(baseTypeHandle.Kind is HandleKind.TypeDefinition);
+            foreach (var subtypeHandle in MetadataReader.TypeDefinitions)
+            {
+                var subtype = MetadataReader.GetTypeDefinition(subtypeHandle);
+                var candidateBaseType = subtype.BaseType;
+                if (candidateBaseType == baseTypeHandle)
+                    subtypesBuilder.Add(subtypeHandle);
+            }
+        }
+
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal ImmutableArray<TypeDefinitionHandle> GetNestedTypeDefsOrThrow(TypeDefinitionHandle container)
         {

@@ -1219,8 +1219,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // TODO2
-                throw null!;
+                if (!IsClosed)
+                    return [];
+
+                var subtypesBuilder = ArrayBuilder<EntityHandle>.GetInstance();
+                try
+                {
+                    ContainingPEModule.Module.GetSubtypeDefinitionsOrThrow(Handle, subtypesBuilder);
+                }
+                catch (BadImageFormatException)
+                {
+                }
+
+                var decoder = new MetadataDecoder(ContainingPEModule);
+                var subtypes = subtypesBuilder.SelectAsArray(
+                    static (subtypeHandle, decoder) => (NamedTypeSymbol)decoder.GetTypeOfToken(subtypeHandle), decoder);
+                subtypesBuilder.Free();
+                return subtypes;
             }
         }
 
