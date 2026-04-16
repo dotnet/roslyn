@@ -83,7 +83,10 @@ namespace Microsoft.CodeAnalysis.Operations
             [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
             get
             {
-                return MethodSymbol is { MethodKind: MethodKind.Constructor };
+                // PROTOTYPE: Add checks for 'IsUnion' type once the API is available on ITypeSymbol.
+                return MethodSymbol is
+                { MethodKind: MethodKind.Constructor } or
+                { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.TypeKind: TypeKind.Interface };
             }
         }
 

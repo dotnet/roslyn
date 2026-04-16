@@ -1554,24 +1554,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion)
         {
             Debug.Assert(conversion.IsUnion);
-            Debug.Assert(conversion.Method is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+            Debug.Assert(conversion.Method is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
             Debug.Assert(rewrittenOperand.Type is { });
             Debug.Assert(!_inExpressionLambda);
             Debug.Assert(conversion.Method.Parameters[0].Type.Equals(rewrittenOperand.Type, TypeCompareKind.AllIgnoreOptions));
 
-            var constructor = conversion.Method;
-            return new BoundObjectCreationExpression(
-                syntax,
-                constructor,
-                [rewrittenOperand],
-                argumentNamesOpt: default,
-                SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(constructor, useStrictArgumentRefKinds: false),
-                expanded: false,
-                argsToParamsOpt: default,
-                defaultArguments: default,
-                constantValueOpt: null,
-                initializerExpressionOpt: null,
-                constructor.ContainingType);
+            var factory = conversion.Method;
+
+            if (factory is { MethodKind: MethodKind.Constructor } constructor)
+            {
+                return new BoundObjectCreationExpression(
+                    syntax,
+                    constructor,
+                    [rewrittenOperand],
+                    argumentNamesOpt: default,
+                    SyntheticBoundNodeFactory.ArgumentRefKindsFromParameterRefKinds(constructor, useStrictArgumentRefKinds: false),
+                    expanded: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    constantValueOpt: null,
+                    initializerExpressionOpt: null,
+                    constructor.ContainingType);
+            }
+            else
+            {
+                return BoundCall.Synthesized(
+                    syntax,
+                    receiverOpt: new BoundTypeExpression(syntax, aliasOpt: null, conversion.Method.ReturnType),
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                    conversion.Method,
+                    rewrittenOperand);
+            }
         }
 
         private BoundExpression RewriteIntPtrConversion(
