@@ -617,10 +617,14 @@ internal static partial class SyntaxNodeExtensions
         bool includeDirectives = false,
         bool includeDocumentationComments = false)
     {
+        // There is no token after the end of the file, even though that position is valid
+        // todo add tests for all edge cases around this guard
+        if (position < root.FullSpan.Start || position >= root.FullSpan.End)
+            return default;
+
         var findSkippedToken = includeSkipped ? s_findSkippedTokenForward : ((l, p) => default);
 
         var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
-
         if (position < token.SpanStart)
         {
             var skippedToken = findSkippedToken(token.LeadingTrivia, position);
@@ -657,6 +661,11 @@ internal static partial class SyntaxNodeExtensions
         bool includeDocumentationComments = false)
     {
         var findSkippedToken = includeSkipped ? s_findSkippedTokenBackward : ((l, p) => default);
+
+        // There is no token before the start of the file, even though that position is valid
+        // todo add tests for all edge cases around this guard
+        if (position <= root.FullSpan.Start || position > root.FullSpan.End)
+            return default;
 
         var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
 
