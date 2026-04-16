@@ -59,14 +59,39 @@ namespace Microsoft.CodeAnalysis
         /// <returns>An updated driver that contains the results of the generators running.</returns>
         public GeneratorDriver RunGenerators(Compilation compilation, Func<GeneratorFilterContext, bool>? generatorFilter, CancellationToken cancellationToken = default)
         {
-            var state = RunGeneratorsCore(compilation, diagnosticsBag: null, generatorFilter, cancellationToken);
-            return FromState(state);
+#if DEBUG
+            try
+#endif
+            {
+                var state = RunGeneratorsCore(compilation, diagnosticsBag: null, generatorFilter, cancellationToken);
+                return FromState(state);
+            }
+#if DEBUG
+            catch (OperationCanceledException)
+            {
+                PoolTracker.ForgiveLeaks();
+                throw;
+            }
+#endif
         }
 
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
             var diagnosticsBag = DiagnosticBag.GetInstance();
-            var state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
+            GeneratorDriverState state;
+#if DEBUG
+            try
+#endif
+            {
+                state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
+            }
+#if DEBUG
+            catch (OperationCanceledException)
+            {
+                PoolTracker.ForgiveLeaks();
+                throw;
+            }
+#endif
 
             // build the output compilation
             diagnostics = diagnosticsBag.ToReadOnlyAndFree();
