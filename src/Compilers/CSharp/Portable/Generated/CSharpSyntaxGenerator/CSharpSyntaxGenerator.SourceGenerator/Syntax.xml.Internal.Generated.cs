@@ -11479,12 +11479,13 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
 {
     internal readonly GreenNode? attributeLists;
     internal readonly SyntaxToken breakKeyword;
+    internal readonly IdentifierNameSyntax? name;
     internal readonly SyntaxToken semicolonToken;
 
-    internal BreakStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+    internal BreakStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -11492,15 +11493,20 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
         }
         this.AdjustFlagsAndWidth(breakKeyword);
         this.breakKeyword = breakKeyword;
+        if (name != null)
+        {
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
-    internal BreakStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal BreakStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken, SyntaxFactoryContext context)
       : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -11508,14 +11514,19 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
         }
         this.AdjustFlagsAndWidth(breakKeyword);
         this.breakKeyword = breakKeyword;
+        if (name != null)
+        {
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
-    internal BreakStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    internal BreakStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
       : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -11523,12 +11534,18 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
         }
         this.AdjustFlagsAndWidth(breakKeyword);
         this.breakKeyword = breakKeyword;
+        if (name != null)
+        {
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
     public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken BreakKeyword => this.breakKeyword;
+    public IdentifierNameSyntax? Name => this.name;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -11536,7 +11553,8 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
         {
             0 => this.attributeLists,
             1 => this.breakKeyword,
-            2 => this.semicolonToken,
+            2 => this.name,
+            3 => this.semicolonToken,
             _ => null,
         };
 
@@ -11545,11 +11563,11 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitBreakStatement(this);
 
-    public BreakStatementSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    public BreakStatementSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax name, SyntaxToken semicolonToken)
     {
-        if (attributeLists != this.AttributeLists || breakKeyword != this.BreakKeyword || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || breakKeyword != this.BreakKeyword || name != this.Name || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.BreakStatement(attributeLists, breakKeyword, semicolonToken);
+            var newNode = SyntaxFactory.BreakStatement(attributeLists, breakKeyword, name, semicolonToken);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11563,22 +11581,23 @@ internal sealed partial class BreakStatementSyntax : StatementSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-        => new BreakStatementSyntax(this.Kind, this.attributeLists, this.breakKeyword, this.semicolonToken, diagnostics, GetAnnotations());
+        => new BreakStatementSyntax(this.Kind, this.attributeLists, this.breakKeyword, this.name, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-        => new BreakStatementSyntax(this.Kind, this.attributeLists, this.breakKeyword, this.semicolonToken, GetDiagnostics(), annotations);
+        => new BreakStatementSyntax(this.Kind, this.attributeLists, this.breakKeyword, this.name, this.semicolonToken, GetDiagnostics(), annotations);
 }
 
 internal sealed partial class ContinueStatementSyntax : StatementSyntax
 {
     internal readonly GreenNode? attributeLists;
     internal readonly SyntaxToken continueKeyword;
+    internal readonly IdentifierNameSyntax? name;
     internal readonly SyntaxToken semicolonToken;
 
-    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -11586,15 +11605,20 @@ internal sealed partial class ContinueStatementSyntax : StatementSyntax
         }
         this.AdjustFlagsAndWidth(continueKeyword);
         this.continueKeyword = continueKeyword;
+        if (name != null)
+        {
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
-    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken, SyntaxFactoryContext context)
+    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken, SyntaxFactoryContext context)
       : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -11602,14 +11626,19 @@ internal sealed partial class ContinueStatementSyntax : StatementSyntax
         }
         this.AdjustFlagsAndWidth(continueKeyword);
         this.continueKeyword = continueKeyword;
+        if (name != null)
+        {
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
-    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    internal ContinueStatementSyntax(SyntaxKind kind, GreenNode? attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
       : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         if (attributeLists != null)
         {
             this.AdjustFlagsAndWidth(attributeLists);
@@ -11617,12 +11646,18 @@ internal sealed partial class ContinueStatementSyntax : StatementSyntax
         }
         this.AdjustFlagsAndWidth(continueKeyword);
         this.continueKeyword = continueKeyword;
+        if (name != null)
+        {
+            this.AdjustFlagsAndWidth(name);
+            this.name = name;
+        }
         this.AdjustFlagsAndWidth(semicolonToken);
         this.semicolonToken = semicolonToken;
     }
 
     public override CoreSyntax.SyntaxList<AttributeListSyntax> AttributeLists => new CoreSyntax.SyntaxList<AttributeListSyntax>(this.attributeLists);
     public SyntaxToken ContinueKeyword => this.continueKeyword;
+    public IdentifierNameSyntax? Name => this.name;
     public SyntaxToken SemicolonToken => this.semicolonToken;
 
     internal override GreenNode? GetSlot(int index)
@@ -11630,7 +11665,8 @@ internal sealed partial class ContinueStatementSyntax : StatementSyntax
         {
             0 => this.attributeLists,
             1 => this.continueKeyword,
-            2 => this.semicolonToken,
+            2 => this.name,
+            3 => this.semicolonToken,
             _ => null,
         };
 
@@ -11639,11 +11675,11 @@ internal sealed partial class ContinueStatementSyntax : StatementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitContinueStatement(this);
 
-    public ContinueStatementSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    public ContinueStatementSyntax Update(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax name, SyntaxToken semicolonToken)
     {
-        if (attributeLists != this.AttributeLists || continueKeyword != this.ContinueKeyword || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || continueKeyword != this.ContinueKeyword || name != this.Name || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ContinueStatement(attributeLists, continueKeyword, semicolonToken);
+            var newNode = SyntaxFactory.ContinueStatement(attributeLists, continueKeyword, name, semicolonToken);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11657,10 +11693,10 @@ internal sealed partial class ContinueStatementSyntax : StatementSyntax
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-        => new ContinueStatementSyntax(this.Kind, this.attributeLists, this.continueKeyword, this.semicolonToken, diagnostics, GetAnnotations());
+        => new ContinueStatementSyntax(this.Kind, this.attributeLists, this.continueKeyword, this.name, this.semicolonToken, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-        => new ContinueStatementSyntax(this.Kind, this.attributeLists, this.continueKeyword, this.semicolonToken, GetDiagnostics(), annotations);
+        => new ContinueStatementSyntax(this.Kind, this.attributeLists, this.continueKeyword, this.name, this.semicolonToken, GetDiagnostics(), annotations);
 }
 
 internal sealed partial class ReturnStatementSyntax : StatementSyntax
@@ -27891,10 +27927,10 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update(VisitList(node.AttributeLists), (SyntaxToken)Visit(node.GotoKeyword), (SyntaxToken)Visit(node.CaseOrDefaultKeyword), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.SemicolonToken));
 
     public override CSharpSyntaxNode VisitBreakStatement(BreakStatementSyntax node)
-        => node.Update(VisitList(node.AttributeLists), (SyntaxToken)Visit(node.BreakKeyword), (SyntaxToken)Visit(node.SemicolonToken));
+        => node.Update(VisitList(node.AttributeLists), (SyntaxToken)Visit(node.BreakKeyword), (IdentifierNameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.SemicolonToken));
 
     public override CSharpSyntaxNode VisitContinueStatement(ContinueStatementSyntax node)
-        => node.Update(VisitList(node.AttributeLists), (SyntaxToken)Visit(node.ContinueKeyword), (SyntaxToken)Visit(node.SemicolonToken));
+        => node.Update(VisitList(node.AttributeLists), (SyntaxToken)Visit(node.ContinueKeyword), (IdentifierNameSyntax)Visit(node.Name), (SyntaxToken)Visit(node.SemicolonToken));
 
     public override CSharpSyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
         => node.Update(VisitList(node.AttributeLists), (SyntaxToken)Visit(node.ReturnKeyword), (ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.SemicolonToken));
@@ -30933,7 +30969,7 @@ internal partial class ContextAwareSyntax
         return new GotoStatementSyntax(kind, attributeLists.Node, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken, this.context);
     }
 
-    public BreakStatementSyntax BreakStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    public BreakStatementSyntax BreakStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
 #if DEBUG
         if (breakKeyword == null) throw new ArgumentNullException(nameof(breakKeyword));
@@ -30942,20 +30978,10 @@ internal partial class ContextAwareSyntax
         if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-        int hash;
-        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken, this.context, out hash);
-        if (cached != null) return (BreakStatementSyntax)cached;
-
-        var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken, this.context);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new BreakStatementSyntax(SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, name, semicolonToken, this.context);
     }
 
-    public ContinueStatementSyntax ContinueStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    public ContinueStatementSyntax ContinueStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
 #if DEBUG
         if (continueKeyword == null) throw new ArgumentNullException(nameof(continueKeyword));
@@ -30964,17 +30990,7 @@ internal partial class ContextAwareSyntax
         if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-        int hash;
-        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken, this.context, out hash);
-        if (cached != null) return (ContinueStatementSyntax)cached;
-
-        var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken, this.context);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new ContinueStatementSyntax(SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, name, semicolonToken, this.context);
     }
 
     public ReturnStatementSyntax ReturnStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
@@ -36332,7 +36348,7 @@ internal static partial class SyntaxFactory
         return new GotoStatementSyntax(kind, attributeLists.Node, gotoKeyword, caseOrDefaultKeyword, expression, semicolonToken);
     }
 
-    public static BreakStatementSyntax BreakStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    public static BreakStatementSyntax BreakStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
 #if DEBUG
         if (breakKeyword == null) throw new ArgumentNullException(nameof(breakKeyword));
@@ -36341,20 +36357,10 @@ internal static partial class SyntaxFactory
         if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-        int hash;
-        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken, out hash);
-        if (cached != null) return (BreakStatementSyntax)cached;
-
-        var result = new BreakStatementSyntax(SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, semicolonToken);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new BreakStatementSyntax(SyntaxKind.BreakStatement, attributeLists.Node, breakKeyword, name, semicolonToken);
     }
 
-    public static ContinueStatementSyntax ContinueStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    public static ContinueStatementSyntax ContinueStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
 #if DEBUG
         if (continueKeyword == null) throw new ArgumentNullException(nameof(continueKeyword));
@@ -36363,17 +36369,7 @@ internal static partial class SyntaxFactory
         if (semicolonToken.Kind != SyntaxKind.SemicolonToken) throw new ArgumentException(nameof(semicolonToken));
 #endif
 
-        int hash;
-        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken, out hash);
-        if (cached != null) return (ContinueStatementSyntax)cached;
-
-        var result = new ContinueStatementSyntax(SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, semicolonToken);
-        if (hash >= 0)
-        {
-            SyntaxNodeCache.AddNode(result, hash);
-        }
-
-        return result;
+        return new ContinueStatementSyntax(SyntaxKind.ContinueStatement, attributeLists.Node, continueKeyword, name, semicolonToken);
     }
 
     public static ReturnStatementSyntax ReturnStatement(CoreSyntax.SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken returnKeyword, ExpressionSyntax? expression, SyntaxToken semicolonToken)
