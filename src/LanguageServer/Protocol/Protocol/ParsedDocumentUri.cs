@@ -61,6 +61,13 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
 
     private readonly string? _formatted;
 
+    /// <summary>
+    /// The file system path derived from this URI. Computed eagerly at construction time.
+    /// Handles UNC paths, normalizes windows drive letters to lower-case, and uses the
+    /// platform specific path separator.
+    /// </summary>
+    public string FsPath { get; }
+
     private ParsedDocumentUri(string scheme, string authority, string path, string query, string fragment, string? formatted = null)
     {
         Scheme = scheme;
@@ -69,6 +76,7 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
         Query = query;
         Fragment = fragment;
         _formatted = formatted;
+        FsPath = UriToFsPath(scheme, authority, path, keepDriveLetterCasing: false);
     }
 
     /// <summary>
@@ -169,9 +177,15 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     /// Handles UNC paths, normalizes windows drive letters to lower-case, and uses the
     /// platform specific path separator.
     /// </summary>
+    /// <param name="keepDriveLetterCasing">If true, preserves the original drive letter casing.</param>
     public string GetFileSystemPath(bool keepDriveLetterCasing = false)
     {
-        return UriToFsPath(this, keepDriveLetterCasing);
+        if (!keepDriveLetterCasing)
+        {
+            return FsPath;
+        }
+
+        return UriToFsPath(Scheme, Authority, Path, keepDriveLetterCasing: true);
     }
 
     /// <summary>
@@ -577,36 +591,36 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     #region Formatting
 
     /// <summary>
-    /// Compute fsPath for the given URI.
+    /// Compute fsPath for the given URI components.
     /// </summary>
-    private static string UriToFsPath(ParsedDocumentUri uri, bool keepDriveLetterCasing)
+    private static string UriToFsPath(string scheme, string authority, string path, bool keepDriveLetterCasing)
     {
         string value;
-        if (uri.Authority.Length > 0 && uri.Path.Length > 1 && uri.Scheme == "file")
+        if (authority.Length > 0 && path.Length > 1 && scheme == "file")
         {
             // unc path: file://shares/c$/far/boo
-            value = "//" + uri.Authority + uri.Path;
+            value = "//" + authority + path;
         }
         else if (
-            uri.Path.Length >= 3
-            && uri.Path[0] == '/'
-            && IsLetter(uri.Path[1])
-            && uri.Path[2] == ':')
+            path.Length >= 3
+            && path[0] == '/'
+            && IsLetter(path[1])
+            && path[2] == ':')
         {
             if (!keepDriveLetterCasing)
             {
                 // windows drive letter: file:///c:/far/boo
-                value = char.ToLowerInvariant(uri.Path[1]) + uri.Path.Substring(2);
+                value = char.ToLowerInvariant(path[1]) + path.Substring(2);
             }
             else
             {
-                value = uri.Path.Substring(1);
+                value = path.Substring(1);
             }
         }
         else
         {
             // other path
-            value = uri.Path;
+            value = path;
         }
 
         if (s_isWindows)
