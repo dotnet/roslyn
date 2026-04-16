@@ -1004,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             private sealed class LineStartComparer : IComparer<uint>
             {
-                public static readonly LineStartComparer Instance = new();
+                public static readonly LineStartComparer Instance = new LineStartComparer();
                 public int Compare(uint x, uint y) => GetLineStart(x).CompareTo(GetLineStart(y));
             }
 
