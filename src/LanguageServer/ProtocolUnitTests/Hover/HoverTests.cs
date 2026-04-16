@@ -619,7 +619,7 @@ class C
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         var results = await RunGetHoverAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         Assert.NotNull(results);
-        VerifyVSContent(results, "label outer");
+        VerifyVSContent(results, $"({FeaturesResources.label}) outer");
     }
 
     [Theory, CombinatorialData]
@@ -644,7 +644,7 @@ class C
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
         var results = await RunGetHoverAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         Assert.NotNull(results);
-        VerifyVSContent(results, "label outer");
+        VerifyVSContent(results, $"({FeaturesResources.label}) outer");
     }
 
     private static async Task<LSP.Hover> RunGetHoverAsync(
