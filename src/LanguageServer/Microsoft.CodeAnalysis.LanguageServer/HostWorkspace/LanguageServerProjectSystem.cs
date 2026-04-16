@@ -23,6 +23,17 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
     private readonly ProjectSystemProjectFactory _hostProjectFactory;
 
+    /// <summary>
+    /// Guards access to <see cref="_currentWorkspaceFolderPaths"/>.
+    /// </summary>
+    private readonly object _folderPathsLock = new();
+
+    /// <summary>
+    /// The current set of active workspace folder paths, normalized to absolute paths.
+    /// Updated by <see cref="SetInitialWorkspaceFolderPaths"/> and <see cref="OnWorkspaceFoldersChangedAsync"/>.
+    /// </summary>
+    private ImmutableArray<string> _currentWorkspaceFolderPaths = [];
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerProjectSystem(
@@ -77,6 +88,49 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader
         }
         await WaitForProjectsToFinishLoadingAsync();
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync();
+    }
+
+    /// <summary>
+    /// Records the initial set of workspace folder paths (typically supplied during LSP initialization).
+    /// This is used to establish the initial scope for project-unload decisions.
+    /// </summary>
+    public void SetInitialWorkspaceFolderPaths(ImmutableArray<string> folderPaths)
+    {
+        lock (_folderPathsLock)
+        {
+            _currentWorkspaceFolderPaths = folderPaths;
+        }
+
+        _logger.LogInformation("Initial workspace folders set: {count} folder(s).", folderPaths.Length);
+    }
+
+    /// <summary>
+    /// Applies a workspace-folder change (added and removed folders) and unloads any tracked projects
+    /// that are no longer reachable from the updated set of active workspace folders.
+    /// </summary>
+    public async Task OnWorkspaceFoldersChangedAsync(
+        ImmutableArray<string> addedFolderPaths,
+        ImmutableArray<string> removedFolderPaths,
+        CancellationToken cancellationToken)
+    {
+        ImmutableArray<string> newFolderPaths;
+        lock (_folderPathsLock)
+        {
+            // Compute the new folder set: current + added - removed (using path-aware comparer).
+            var updated = _currentWorkspaceFolderPaths
+                .Where(p => !removedFolderPaths.Contains(p, PathUtilities.Comparer))
+                .Concat(addedFolderPaths)
+                .ToImmutableArray();
+
+            _currentWorkspaceFolderPaths = updated;
+            newFolderPaths = updated;
+        }
+
+        _logger.LogInformation(
+            "Workspace folders changed. Added: {added}, Removed: {removed}. Active folders: {count}.",
+            addedFolderPaths.Length, removedFolderPaths.Length, newFolderPaths.Length);
+
+        await UnloadProjectsNotReachableFromWorkspaceFoldersAsync(newFolderPaths, cancellationToken);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(

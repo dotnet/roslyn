@@ -144,6 +144,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
             };
         }
 
+        WorkspaceFileOperationsServerCapabilities? fileOperations = null;
         if (clientCapabilities.Workspace?.FileOperations?.WillRename ?? false)
         {
             // Register for file rename notifications based on the registered rename listeners.
@@ -158,18 +159,26 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 
             if (filters.Count > 0)
             {
-                capabilities.Workspace = new WorkspaceServerCapabilities
+                fileOperations = new WorkspaceFileOperationsServerCapabilities()
                 {
-                    FileOperations = new WorkspaceFileOperationsServerCapabilities()
+                    WillRename = new FileOperationRegistrationOptions()
                     {
-                        WillRename = new FileOperationRegistrationOptions()
-                        {
-                            Filters = filters.ToArray()
-                        }
+                        Filters = filters.ToArray()
                     }
                 };
             }
         }
+
+        // Advertise that we support workspace/didChangeWorkspaceFolders so clients send us folder changes.
+        capabilities.Workspace = new WorkspaceServerCapabilities
+        {
+            FileOperations = fileOperations,
+            WorkspaceFolders = new WorkspaceFoldersServerCapabilities
+            {
+                Supported = true,
+                ChangeNotifications = true
+            }
+        };
 
         return capabilities;
     }

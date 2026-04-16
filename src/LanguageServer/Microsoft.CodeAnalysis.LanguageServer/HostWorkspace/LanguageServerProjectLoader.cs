@@ -475,6 +475,107 @@ internal abstract class LanguageServerProjectLoader
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
+    /// <summary>
+    /// Unloads all tracked projects that are not reachable (directly or via transitive <see cref="ProjectReference"/>)
+    /// from any project whose file path is under one of the given <paramref name="workspaceFolderPaths"/>.
+    /// Projects with non-absolute paths are never unloaded by this method because containment cannot be determined.
+    /// If <paramref name="workspaceFolderPaths"/> is empty, all tracked projects are unloaded.
+    /// </summary>
+    internal async ValueTask UnloadProjectsNotReachableFromWorkspaceFoldersAsync(
+        ImmutableArray<string> workspaceFolderPaths,
+        CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            if (_loadedProjects.Count == 0)
+                return;
+
+            // Snapshot the current tracked project paths and their load states.
+            var trackedProjects = _loadedProjects.ToArray();
+
+            // Build a reverse map from workspace ProjectId to the tracked project file path.
+            var projectIdToTrackedPath = new Dictionary<ProjectId, string>();
+            foreach (var (path, state) in trackedProjects)
+            {
+                switch (state)
+                {
+                    case ProjectLoadState.Primordial(_, var projectId):
+                        projectIdToTrackedPath[projectId] = path;
+                        break;
+                    case ProjectLoadState.LoadedTargets(var targets):
+                        foreach (var target in targets)
+                            projectIdToTrackedPath[target.ProjectId] = path;
+                        break;
+                }
+            }
+
+            // Seed the reachable set with tracked projects directly inside an active workspace folder.
+            // Use ordinal comparer: all paths here come from _loadedProjects keys, which itself uses
+            // the default (ordinal) string comparer, so ordinal lookup is correct and consistent.
+            var reachablePaths = new HashSet<string>(StringComparer.Ordinal);
+            if (!workspaceFolderPaths.IsEmpty)
+            {
+                foreach (var (path, _) in trackedProjects)
+                {
+                    if (!PathUtilities.IsAbsolute(path))
+                        continue;
+
+                    foreach (var folder in workspaceFolderPaths)
+                    {
+                        if (PathUtilities.IsChildPath(folder, path))
+                        {
+                            reachablePaths.Add(path);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // BFS: expand reachable set through project references.
+            var solution = _workspaceFactory.HostWorkspace.CurrentSolution;
+            var pathsToProcess = new Queue<string>(reachablePaths);
+            while (pathsToProcess.Count > 0)
+            {
+                var currentPath = pathsToProcess.Dequeue();
+                if (!_loadedProjects.TryGetValue(currentPath, out var currentState))
+                    continue;
+
+                var projectIds = currentState switch
+                {
+                    ProjectLoadState.Primordial(_, var id) => (IEnumerable<ProjectId>)[id],
+                    ProjectLoadState.LoadedTargets(var targets) => targets.Select(static t => t.ProjectId),
+                    _ => []
+                };
+
+                foreach (var projectId in projectIds)
+                {
+                    var project = solution.GetProject(projectId);
+                    if (project is null)
+                        continue;
+
+                    foreach (var reference in project.ProjectReferences)
+                    {
+                        if (projectIdToTrackedPath.TryGetValue(reference.ProjectId, out var referencedPath)
+                            && reachablePaths.Add(referencedPath))
+                        {
+                            pathsToProcess.Enqueue(referencedPath);
+                        }
+                    }
+                }
+            }
+
+            // Unload any tracked project that is not reachable from the active workspace folders.
+            foreach (var (path, _) in trackedProjects)
+            {
+                if (!reachablePaths.Contains(path))
+                {
+                    _logger.LogInformation("Unloading project '{projectPath}' because it is no longer reachable from any active workspace folder.", path);
+                    await TryUnloadProject_NoLockAsync(path);
+                }
+            }
+        }
+    }
+
     /// <summary>Unloads all projects associated with this project loader.</summary>
     internal async ValueTask UnloadAllProjectsAsync()
     {
@@ -557,5 +658,29 @@ internal abstract class LanguageServerProjectLoader
 
             return false;
         }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    /// <summary>
+    /// Exposes internal state to tests. Should not be used from production code.
+    /// </summary>
+    internal readonly struct TestAccessor
+    {
+        private readonly LanguageServerProjectLoader _loader;
+
+        internal TestAccessor(LanguageServerProjectLoader loader) => _loader = loader;
+
+        /// <summary>
+        /// Directly inserts a <see cref="ProjectLoadState.Primordial"/> entry into the tracked-projects
+        /// dictionary, allowing tests to set up fake project state without running a design-time build.
+        /// </summary>
+        internal void AddPrimordialEntry(string projectPath, ProjectSystemProjectFactory projectFactory, ProjectId projectId)
+        {
+            _loader._loadedProjects[projectPath] = new ProjectLoadState.Primordial(projectFactory, projectId);
+        }
+
+        /// <summary>Returns whether a project path is currently tracked (i.e. loaded, not unloaded).</summary>
+        internal bool IsTracked(string projectPath) => _loader._loadedProjects.ContainsKey(projectPath);
     }
 }

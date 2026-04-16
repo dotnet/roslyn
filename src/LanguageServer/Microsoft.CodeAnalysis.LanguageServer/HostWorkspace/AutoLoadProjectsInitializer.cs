@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -46,6 +47,18 @@ internal sealed class AutoLoadProjectsInitializer(
             _logger.LogWarning("No workspace folders provided during initialization; could not auto load projects.");
             return;
         }
+
+        // Record the initial workspace folder paths in the project system so that subsequent
+        // workspace/didChangeWorkspaceFolders notifications can correctly determine which projects
+        // to retain or unload.
+        using var __ = ArrayBuilder<string>.GetInstance(out var folderPathsBuilder);
+        foreach (var folder in workspaceFolders)
+        {
+            if (TryGetFolderPath(folder, _logger, out var p))
+                folderPathsBuilder.Add(p);
+        }
+
+        projectSystem.SetInitialWorkspaceFolderPaths(folderPathsBuilder.ToImmutable());
 
         var (isLoadingDisabled, solutionPath) = TryGetVSCodeSolutionSettings(workspaceFolders, _logger);
         if (isLoadingDisabled)
