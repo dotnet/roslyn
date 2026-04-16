@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -31,7 +32,7 @@ internal sealed partial class ProjectState
                 => _global.Value;
 
             public AnalyzerConfigData GetOptionsForSourcePath(string sourcePath)
-                => _sourcePathToResult.GetOrAdd(sourcePath, _computeFunction);
+                => _sourcePathToResult.GetOrAdd(PathCanonicalization.GetCanonicalPath(sourcePath), _computeFunction);
         }
 
         public readonly AsyncLazy<Value> Lazy = AsyncLazy.Create(

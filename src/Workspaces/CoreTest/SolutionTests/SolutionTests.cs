@@ -352,6 +352,51 @@ public sealed class SolutionTests : TestBase
         Assert.Throws<ArgumentException>(() => provider.TryGetDiagnosticValue(tree, "CA1234", CancellationToken.None, out _));
     }
 
+    [ConditionalFact(typeof(WindowsOnly))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/42762")]
+    public async Task EditorConfigSeverityWithCasingMismatch()
+    {
+        var dir = Temp.CreateDirectory();
+        var subDir = dir.CreateDirectory("SomeDir");
+        var editorConfigFile = subDir.CreateFile(".editorconfig");
+        editorConfigFile.WriteAllText("""
+            root = true
+            [*.cs]
+            dotnet_diagnostic.CS1573.severity = suggestion
+            """);
+        var sourceFile = subDir.CreateFile("File.cs");
+        sourceFile.WriteAllText("public class C { }");
+
+        // Use lowercase "someDir" for editorconfig path (simulating CPS/MSBuild mismatch)
+        var editorConfigPath = editorConfigFile.Path.Replace("SomeDir", "someDir");
+        // Keep canonical casing for source file path
+        var sourcePath = sourceFile.Path;
+
+        var projectId = ProjectId.CreateNewId();
+        using var workspace = CreateWorkspace();
+        var solution = workspace.CurrentSolution
+            .AddProject(projectId, "TestProject", "TestProject.dll", LanguageNames.CSharp)
+            .AddDocument(DocumentId.CreateNewId(projectId), "File.cs", "public class C { }",
+                filePath: sourcePath)
+            .AddAnalyzerConfigDocument(DocumentId.CreateNewId(projectId), ".editorconfig",
+                SourceText.From("""
+                    root = true
+                    [*.cs]
+                    dotnet_diagnostic.CS1573.severity = suggestion
+                    """),
+                filePath: editorConfigPath);
+
+        var project = solution.GetProject(projectId)!;
+        var compilation = (await project.GetCompilationAsync())!;
+        var tree = compilation.SyntaxTrees.Single();
+        var provider = compilation.Options.SyntaxTreeOptionsProvider!;
+
+        // The editorconfig sets CS1573 to suggestion, so TryGetDiagnosticValue should find it.
+        var found = provider.TryGetDiagnosticValue(tree, "CS1573", CancellationToken.None, out var severity);
+        Assert.True(found);
+        Assert.Equal(ReportDiagnostic.Info, severity);
+    }
+
     [Fact]
     public void WithDocumentText_SourceText()
     {

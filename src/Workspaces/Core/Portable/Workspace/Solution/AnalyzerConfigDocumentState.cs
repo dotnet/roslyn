@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -24,8 +25,8 @@ internal sealed class AnalyzerConfigDocumentState : TextDocumentState
         : base(solutionServices, documentServiceProvider, attributes, textAndVersionSource, loadTextOptions)
     {
         _lazyAnalyzerConfig = lazyAnalyzerConfig ?? AsyncLazy.Create(
-            asynchronousComputeFunction: static async (self, cancellationToken) => AnalyzerConfig.Parse(await self.GetTextAsync(cancellationToken).ConfigureAwait(false), self.FilePath),
-            synchronousComputeFunction: static (self, cancellationToken) => AnalyzerConfig.Parse(self.GetTextSynchronously(cancellationToken), self.FilePath),
+            asynchronousComputeFunction: static async (self, cancellationToken) => AnalyzerConfig.Parse(await self.GetTextAsync(cancellationToken).ConfigureAwait(false), PathCanonicalization.GetCanonicalPath(self.FilePath)),
+            synchronousComputeFunction: static (self, cancellationToken) => AnalyzerConfig.Parse(self.GetTextSynchronously(cancellationToken), PathCanonicalization.GetCanonicalPath(self.FilePath)),
             arg: this);
     }
 
