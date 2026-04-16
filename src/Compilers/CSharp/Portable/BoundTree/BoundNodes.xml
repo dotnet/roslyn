@@ -1175,11 +1175,25 @@
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the break jumps to (e.g. the loop's "break" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled break (e.g. "break outer;" targeting "outer: while (true) { ... }"), this is the
+    user-declared label symbol for "outer:".  Null for an ordinary unlabeled "break;".  Used by
+    ControlFlowPass to mark the label as referenced, suppressing the WRN_UnreferencedLabel warning.
+    -->
+    <Field Name="SourceLabelOpt" Type="LabelSymbol?" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the continue jumps to (e.g. the loop's "continue" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled continue (e.g. "continue outer;" targeting "outer: for (...) { ... }"), this is the
+    user-declared label symbol for "outer:".  Null for an ordinary unlabeled "continue;".  Used by
+    ControlFlowPass to mark the label as referenced, suppressing the WRN_UnreferencedLabel warning.
+    -->
+    <Field Name="SourceLabelOpt" Type="LabelSymbol?" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">

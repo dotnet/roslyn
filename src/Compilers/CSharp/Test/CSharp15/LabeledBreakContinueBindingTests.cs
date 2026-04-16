@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
 {
@@ -32,10 +32,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -54,10 +51,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -75,10 +69,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: do
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -97,10 +88,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: do
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -120,9 +108,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: for (int i = 0; i < 10; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (7,37): warning CS0162: Unreachable code detected
             //             for (int j = 0; j < 10; j++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37));
@@ -145,9 +130,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: for (int i = 0; i < 10; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (7,37): warning CS0162: Unreachable code detected
             //             for (int j = 0; j < 10; j++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37));
@@ -169,10 +151,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: foreach (var a in args)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -191,10 +170,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: foreach (var a in args)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -213,10 +189,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: foreach (var (x, y) in items)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     #endregion
@@ -240,10 +213,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: switch (x)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -265,10 +235,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -291,10 +258,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: switch (x)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     #endregion
@@ -357,15 +321,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L0: while (a-- > 0)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L0").WithLocation(5, 9),
-            // (7,13): warning CS0164: This label has not been referenced
-            //             L1: switch (b)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L1").WithLocation(7, 13),
-            // (10,21): warning CS0164: This label has not been referenced
-            //                     L2: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L2").WithLocation(10, 21),
             // (16,21): warning CS0162: Unreachable code detected
             //                     break;
             Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(16, 21));
@@ -394,10 +349,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -419,9 +371,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: for (int i = 0; i < 10; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (5,40): warning CS0162: Unreachable code detected
             //         outer: for (int i = 0; i < 10; i++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(5, 40));
@@ -446,10 +395,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -473,10 +419,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -500,9 +443,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (6,9): warning CS0164: This label has not been referenced
-            //         outer: for (int i = 0; i < 1; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(6, 9),
             // (8,36): warning CS0162: Unreachable code detected
             //             for (int j = 0; j < 1; j++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(8, 36));
@@ -525,10 +465,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (6,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(6, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -569,10 +506,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         L: for (;;)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     [Fact]
@@ -590,10 +524,185 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Break_UnreachableLabeledBreak_StillSuppressesWarning()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        break;
+                        break outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): warning CS0162: Unreachable code detected
+            //             break outer;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void Continue_UnreachableLabeledContinue_StillSuppressesWarning()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        break;
+                        continue outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): warning CS0162: Unreachable code detected
+            //             continue outer;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "continue").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void Break_StackedLabels_OnlyValidLabelReferenced()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    a: b: c: while (true)
+                    {
+                        break c;
+                    }
+                }
+            }
+            """;
         CreateCompilation(source).VerifyDiagnostics(
             // (5,9): warning CS0164: This label has not been referenced
-            //         \u006Futer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, @"\u006Futer").WithLocation(5, 9));
+            //         a: b: c: while (true)
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "a").WithLocation(5, 9),
+            // (5,12): warning CS0164: This label has not been referenced
+            //         a: b: c: while (true)
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "b").WithLocation(5, 12));
+    }
+
+    [Fact]
+    public void Break_MultipleLabeledBreaksToSameLabel()
+    {
+        var source = """
+            class C
+            {
+                void M(bool x)
+                {
+                    outer: while (true)
+                    {
+                        if (x)
+                            break outer;
+                        else
+                            break outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_MultipleLabeledContinuesToSameLabel()
+    {
+        var source = """
+            class C
+            {
+                void M(bool x)
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        if (x)
+                            continue outer;
+                        else
+                            continue outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Break_MixedUnlabeledAndLabeledExits()
+    {
+        var source = """
+            class C
+            {
+                void M(bool cond)
+                {
+                    outer: while (true)
+                    {
+                        while (cond)
+                            break;
+                        break outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Break_LabeledBreakFirst_GotoUnreachable()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    L: while (true)
+                    {
+                        break L;
+                        goto L;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): warning CS0162: Unreachable code detected
+            //             goto L;
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void Break_InCatch_WithFinally_TargetsOuterLoop()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        try
+                        {
+                            throw new System.Exception();
+                        }
+                        catch
+                        {
+                            break outer;
+                        }
+                        finally { }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     #endregion
@@ -1091,6 +1200,104 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "outer").WithArguments("outer").WithLocation(7, 15));
     }
 
+    [Fact]
+    public void Break_InsideLambda_TargetsLoopInsideLambda()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    Action a = () =>
+                    {
+                        outer: while (true)
+                        {
+                            while (true)
+                                break outer;
+                        }
+                    };
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_InsideLambda_TargetsLoopInsideLambda()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    Action a = () =>
+                    {
+                        outer: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                                continue outer;
+                        }
+                    };
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,41): warning CS0162: Unreachable code detected
+            //                     for (int j = 0; j < 10; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(10, 41));
+    }
+
+    [Fact]
+    public void Break_InsideLocalFunction_TargetsLoopInsideLocalFunction()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    void F()
+                    {
+                        outer: while (true)
+                        {
+                            while (true)
+                                break outer;
+                        }
+                    }
+                    F();
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_InsideLocalFunction_TargetsLoopInsideLocalFunction()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    void F()
+                    {
+                        outer: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                                continue outer;
+                        }
+                    }
+                    F();
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,41): warning CS0162: Unreachable code detected
+            //                     for (int j = 0; j < 10; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(9, 41));
+    }
+
     #endregion
 
     #region Finally blocks
@@ -1112,9 +1319,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: for (int i = 0; i < 10; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (5,40): warning CS0162: Unreachable code detected
             //         outer: for (int i = 0; i < 10; i++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(5, 40),
@@ -1140,12 +1344,58 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: for (int i = 0; i < 10; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (8,23): error CS0157: Control cannot leave the body of a finally clause
             //             finally { continue outer; }
             Diagnostic(ErrorCode.ERR_BadFinallyLeave, "continue").WithLocation(8, 23));
+    }
+
+    [Fact]
+    public void Break_InFinally_TargetsLoopInsideFinally()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    try { }
+                    finally
+                    {
+                        outer: while (true)
+                        {
+                            while (true)
+                                break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_InFinally_TargetsLoopInsideFinally()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    try { }
+                    finally
+                    {
+                        outer: for (int i = 0; i < 10; i++)
+                        {
+                            for (int j = 0; j < 10; j++)
+                                continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,41): warning CS0162: Unreachable code detected
+            //                     for (int j = 0; j < 10; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(10, 41));
     }
 
     [Fact]
@@ -1164,10 +1414,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     #endregion
@@ -1188,9 +1435,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: s_optionsCSharp14).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: while (true)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (6,19): error CS8652: The feature 'labeled break and continue' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             break outer;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "outer").WithArguments("labeled break and continue").WithLocation(6, 19));
@@ -1213,9 +1457,6 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: s_optionsCSharp14).VerifyDiagnostics(
-            // (5,9): warning CS0164: This label has not been referenced
-            //         outer: for (int i = 0; i < 10; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
             // (7,37): warning CS0162: Unreachable code detected
             //             for (int j = 0; j < 10; j++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37),
@@ -1236,12 +1477,43 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
                 break outer;
             """;
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-            // (1,1): warning CS0164: This label has not been referenced
-            // outer: for (int i = 0; i < 1; i++)
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(1, 1),
             // (1,31): warning CS0162: Unreachable code detected
             // outer: for (int i = 0; i < 1; i++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(1, 31));
+    }
+
+    [Fact]
+    public void Continue_TopLevelStatements()
+    {
+        var source = """
+            outer: for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                    continue outer;
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (3,29): warning CS0162: Unreachable code detected
+            //     for (int j = 0; j < 10; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(3, 29));
+    }
+
+    [Fact]
+    public void Break_TopLevelStatements_Switch()
+    {
+        var source = """
+            int x = 0;
+            outer: switch (x)
+            {
+                case 0:
+                    switch (x)
+                    {
+                        case 0: break outer;
+                    }
+                    break;
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
     }
 
     #endregion

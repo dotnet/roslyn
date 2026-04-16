@@ -2957,7 +2957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont, node.Name ?? (SyntaxNode)node, labelName ?? "");
                 return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
-            return new BoundBreakStatement(node, target);
+            return new BoundBreakStatement(node, target, GetSourceLabel(node.Name));
         }
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -2972,7 +2972,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont, node.Name ?? (SyntaxNode)node, labelName ?? "");
                 return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
-            return new BoundContinueStatement(node, target);
+            return new BoundContinueStatement(node, target, GetSourceLabel(node.Name));
+        }
+
+        private LabelSymbol GetSourceLabel(IdentifierNameSyntax name)
+        {
+            if (name == null)
+                return null;
+
+            return (this.BindLabel(name, BindingDiagnosticBag.Discarded) as BoundLabel)?.Label;
         }
 
         private static SwitchBinder GetSwitchBinder(Binder binder)

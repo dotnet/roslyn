@@ -3753,34 +3753,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBreakStatement : BoundStatement
     {
-        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
+        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label, LabelSymbol? sourceLabelOpt, bool hasErrors)
             : base(BoundKind.BreakStatement, syntax, hasErrors)
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Label = label;
+            this.SourceLabelOpt = sourceLabelOpt;
         }
 
-        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label)
+        public BoundBreakStatement(SyntaxNode syntax, LabelSymbol label, LabelSymbol? sourceLabelOpt)
             : base(BoundKind.BreakStatement, syntax)
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Label = label;
+            this.SourceLabelOpt = sourceLabelOpt;
         }
 
         public LabelSymbol Label { get; }
+        public LabelSymbol? SourceLabelOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitBreakStatement(this);
 
-        public BoundBreakStatement Update(LabelSymbol label)
+        public BoundBreakStatement Update(LabelSymbol label, LabelSymbol? sourceLabelOpt)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(sourceLabelOpt, this.SourceLabelOpt))
             {
-                var result = new BoundBreakStatement(this.Syntax, label, this.HasErrors);
+                var result = new BoundBreakStatement(this.Syntax, label, sourceLabelOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3790,34 +3793,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundContinueStatement : BoundStatement
     {
-        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label, bool hasErrors)
+        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label, LabelSymbol? sourceLabelOpt, bool hasErrors)
             : base(BoundKind.ContinueStatement, syntax, hasErrors)
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Label = label;
+            this.SourceLabelOpt = sourceLabelOpt;
         }
 
-        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label)
+        public BoundContinueStatement(SyntaxNode syntax, LabelSymbol label, LabelSymbol? sourceLabelOpt)
             : base(BoundKind.ContinueStatement, syntax)
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
             this.Label = label;
+            this.SourceLabelOpt = sourceLabelOpt;
         }
 
         public LabelSymbol Label { get; }
+        public LabelSymbol? SourceLabelOpt { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitContinueStatement(this);
 
-        public BoundContinueStatement Update(LabelSymbol label)
+        public BoundContinueStatement Update(LabelSymbol label, LabelSymbol? sourceLabelOpt)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(sourceLabelOpt, this.SourceLabelOpt))
             {
-                var result = new BoundContinueStatement(this.Syntax, label, this.HasErrors);
+                var result = new BoundContinueStatement(this.Syntax, label, sourceLabelOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11711,12 +11717,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitBreakStatement(BoundBreakStatement node)
         {
             LabelSymbol label = this.VisitLabelSymbol(node.Label);
-            return node.Update(label);
+            LabelSymbol? sourceLabelOpt = this.VisitLabelSymbol(node.SourceLabelOpt);
+            return node.Update(label, sourceLabelOpt);
         }
         public override BoundNode? VisitContinueStatement(BoundContinueStatement node)
         {
             LabelSymbol label = this.VisitLabelSymbol(node.Label);
-            return node.Update(label);
+            LabelSymbol? sourceLabelOpt = this.VisitLabelSymbol(node.SourceLabelOpt);
+            return node.Update(label, sourceLabelOpt);
         }
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
         {
@@ -16321,12 +16329,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitBreakStatement(BoundBreakStatement node, object? arg) => new TreeDumperNode("breakStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("sourceLabelOpt", node.SourceLabelOpt, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );
         public override TreeDumperNode VisitContinueStatement(BoundContinueStatement node, object? arg) => new TreeDumperNode("continueStatement", null, new TreeDumperNode[]
         {
             new TreeDumperNode("label", node.Label, null),
+            new TreeDumperNode("sourceLabelOpt", node.SourceLabelOpt, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

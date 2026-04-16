@@ -369,6 +369,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitGotoStatement(node);
         }
 
+        public override BoundNode VisitBreakStatement(BoundBreakStatement node)
+        {
+            if (node.SourceLabelOpt != null)
+                _labelsUsed.Add(node.SourceLabelOpt);
+
+            return base.VisitBreakStatement(node);
+        }
+
+        public override BoundNode VisitContinueStatement(BoundContinueStatement node)
+        {
+            if (node.SourceLabelOpt != null)
+                _labelsUsed.Add(node.SourceLabelOpt);
+
+            return base.VisitContinueStatement(node);
+        }
+
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {
             base.VisitSwitchSection(node, isLastSection);
