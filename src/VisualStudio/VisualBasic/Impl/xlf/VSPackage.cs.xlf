@@ -215,7 +215,7 @@ Okraj dědičnosti;</target>
       </trans-unit>
       <trans-unit id="Always_add_import">
         <source>Always add import</source>
-        <target state="new">Always add import</target>
+        <target state="translated">Vždy přidat direktivu import</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
@@ -235,7 +235,7 @@ Okraj dědičnosti;</target>
       </trans-unit>
       <trans-unit id="Never_add_import">
         <source>Never add import</source>
-        <target state="new">Never add import</target>
+        <target state="translated">Nikdy nepřidávat direktivu import</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
@@ -250,7 +250,7 @@ Okraj dědičnosti;</target>
       </trans-unit>
       <trans-unit id="Only_add_import_if_explicitly_completed">
         <source>Only add import if explicitly completed (via TAB or double-click)</source>
-        <target state="new">Only add import if explicitly completed (via TAB or double-click)</target>
+        <target state="translated">Přidat direktivu import pouze při explicitním dokončování (klávesou TAB nebo dvojitým kliknutím)</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">

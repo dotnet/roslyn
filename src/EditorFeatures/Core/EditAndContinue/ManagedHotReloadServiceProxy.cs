@@ -19,7 +19,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ManagedHotReloadServiceProxy(IServiceBrokerProvider serviceBrokerProvider) :
-    BrokeredServiceProxy<IManagedHotReloadService>(serviceBrokerProvider.ServiceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService),
+    BrokeredServiceProxy<IManagedHotReloadService>(
+        serviceBrokerProvider.ServiceBroker,
+        BrokeredServiceDescriptors.DebuggerManagedHotReloadService,
+        BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy),
     InternalContracts.IManagedHotReloadService
 {
     public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)

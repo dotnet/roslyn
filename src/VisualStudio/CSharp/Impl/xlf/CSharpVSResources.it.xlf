@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Always_add_using">
         <source>Always add using</source>
-        <target state="new">Always add using</target>
+        <target state="translated">Aggiungere sempre using</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
@@ -129,12 +129,12 @@
       </trans-unit>
       <trans-unit id="Never_add_using">
         <source>Never add using</source>
-        <target state="new">Never add using</target>
+        <target state="translated">Non aggiungere mai using</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_using_if_explicitly_completed">
         <source>Only add using if explicitly completed (via TAB or double-click)</source>
-        <target state="new">Only add using if explicitly completed (via TAB or double-click)</target>
+        <target state="translated">Aggiungere using solo se è stata completata esplicitamente (tramite il tasto TAB o un doppio clic)</target>
         <note />
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences_colon">

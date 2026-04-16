@@ -71,9 +71,10 @@
          (if we used Content items they would get included in the VSIX by VSSDK by default).
   -->
   
+  <!-- TODO: Remove UsingTasks when upgrading to Arcade 11: https://github.com/dotnet/roslyn/issues/83095 -->
   <UsingTask TaskName="Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid" AssemblyFile="$(ArcadeVisualStudioBuildTasksAssembly)" Runtime="NET" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" Runtime="NET" />
-  
+
   <Target Name="_SetGeneratePkgDefInputsOutputs">
     <PropertyGroup>
       <!-- The path must match the value that VSSDK uses. -->
