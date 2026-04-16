@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -145,61 +146,7 @@ public sealed class LabeledBreakContinueParsingTests : ParsingTests
     #region Contextual keywords as labels
 
     public static IEnumerable<object[]> ContextualKeywords
-    {
-        get
-        {
-            yield return ["yield"];
-            yield return ["partial"];
-            yield return ["from"];
-            yield return ["group"];
-            yield return ["join"];
-            yield return ["into"];
-            yield return ["let"];
-            yield return ["by"];
-            yield return ["where"];
-            yield return ["select"];
-            yield return ["get"];
-            yield return ["set"];
-            yield return ["add"];
-            yield return ["remove"];
-            yield return ["orderby"];
-            yield return ["alias"];
-            yield return ["on"];
-            yield return ["equals"];
-            yield return ["ascending"];
-            yield return ["descending"];
-            yield return ["assembly"];
-            yield return ["module"];
-            yield return ["type"];
-            yield return ["global"];
-            yield return ["method"];
-            yield return ["param"];
-            yield return ["property"];
-            yield return ["typevar"];
-            yield return ["nameof"];
-            yield return ["when"];
-            yield return ["or"];
-            yield return ["and"];
-            yield return ["not"];
-            yield return ["with"];
-            yield return ["init"];
-            yield return ["record"];
-            yield return ["managed"];
-            yield return ["unmanaged"];
-            yield return ["required"];
-            yield return ["scoped"];
-            yield return ["file"];
-            yield return ["allows"];
-            yield return ["extension"];
-            yield return ["union"];
-            yield return ["await"];
-            yield return ["async"];
-            yield return ["var"];
-            yield return ["field"];
-            yield return ["value"];
-            yield return ["dynamic"];
-        }
-    }
+        => SyntaxFacts.GetContextualKeywordKinds().Select(k => new object[] { SyntaxFacts.GetText(k) });
 
     [Fact]
     public void Break_AwaitAsLabel_InsideAsyncMethod()
