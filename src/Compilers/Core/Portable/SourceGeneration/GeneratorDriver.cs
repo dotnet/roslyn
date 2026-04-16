@@ -66,16 +66,7 @@ namespace Microsoft.CodeAnalysis
         public GeneratorDriver RunGeneratorsAndUpdateCompilation(Compilation compilation, out Compilation outputCompilation, out ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
         {
             var diagnosticsBag = DiagnosticBag.GetInstance();
-            GeneratorDriverState state;
-            try
-            {
-                state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
-            }
-            catch
-            {
-                diagnosticsBag.Free();
-                throw;
-            }
+            var state = RunGeneratorsCore(compilation, diagnosticsBag, generatorFilter: null, cancellationToken);
 
             // build the output compilation
             diagnostics = diagnosticsBag.ToReadOnlyAndFree();
@@ -318,36 +309,28 @@ namespace Microsoft.CodeAnalysis
             var syntaxStoreBuilder = _state.SyntaxStore.ToBuilder(compilation, syntaxInputNodes.ToImmutableAndFree(), _state.TrackIncrementalSteps, cancellationToken);
 
             var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxStoreBuilder, cancellationToken);
-            try
+            for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
-                for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+                var generatorState = stateBuilder[i];
+                if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
                 {
-                    var generatorState = stateBuilder[i];
-                    if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(syntaxStoreBuilder.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
-                    try
-                    {
-                        // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
-                        var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
-                        (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
-                        generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
-
-                        stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
-                    }
-                    catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
-                    {
-                        stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
-                    }
+                    continue;
                 }
-            }
-            catch
-            {
-                stateBuilder.Free();
-                throw;
+
+                using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(syntaxStoreBuilder.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
+                try
+                {
+                    // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, new GeneratorRunStateTable.Builder(state.TrackIncrementalSteps), cancellationToken, driverStateBuilder);
+                    (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
+                    generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
+
+                    stateBuilder[i] = generatorState.WithResults(ParseAdditionalSources(state.Generators[i], sources, cancellationToken), generatorDiagnostics, generatorRunStateTable.ExecutedSteps, generatorRunStateTable.OutputSteps, hostOutputs, generatorTimer.Elapsed);
+                }
+                catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
+                {
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
+                }
             }
 
             state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
@@ -375,17 +358,9 @@ namespace Microsoft.CodeAnalysis
             foreach (var outputNode in outputNodes)
             {
                 // if we're looking for this output kind, and it has not been explicitly disabled
-                try
+                if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
                 {
-                    if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
-                    {
-                        outputNode.AppendOutputs(context, cancellationToken);
-                    }
-                }
-                catch
-                {
-                    context.Free();
-                    throw;
+                    outputNode.AppendOutputs(context, cancellationToken);
                 }
             }
             return context;
@@ -458,7 +433,6 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (ArgumentException ex)
                 {
-                    filteredDiagnostics.Free();
                     throw new UserFunctionException(ex);
                 }
 
