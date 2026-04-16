@@ -36,13 +36,14 @@ internal abstract class LanguageServerProjectLoader
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
-    /// Token created by <see cref="BeginWaitForNextProjectReload"/> to keep the <see cref="Listener"/>
+    /// Token created by <see cref="BeginWaitForNextProjectReloadAsync"/> to keep the <see cref="Listener"/>
     /// active until the next project reload batch completes. Disposed in <see cref="ReloadProjectsAsync"/>.
+    /// Guarded by <see cref="_gate"/>.
     /// </summary>
     private IAsyncToken? _pendingReloadWaitToken;
 
     /// <summary>
-    /// Guards access to <see cref="_loadedProjects"/>.
+    /// Guards access to <see cref="_loadedProjects"/> and <see cref="_pendingReloadWaitToken"/>.
     /// To keep the LSP queue responsive, <see cref="_gate"/> must not be held while performing design-time builds.
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
@@ -199,7 +200,15 @@ internal abstract class LanguageServerProjectLoader
         finally
         {
             _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
-            Interlocked.Exchange(ref _pendingReloadWaitToken, null)?.Dispose();
+
+            IAsyncToken? tokenToDispose;
+            using (await _gate.DisposableWaitAsync(CancellationToken.None))
+            {
+                tokenToDispose = _pendingReloadWaitToken;
+                _pendingReloadWaitToken = null;
+            }
+
+            tokenToDispose?.Dispose();
         }
     }
 
@@ -483,16 +492,14 @@ internal abstract class LanguageServerProjectLoader
     /// (e.g. before a <see cref="System.IO.FileSystemWatcher"/> event has been delivered).
     /// Only one wait can be active at a time.
     /// </summary>
-    internal void BeginWaitForNextProjectReload()
+    internal async ValueTask BeginWaitForNextProjectReloadAsync()
     {
-        var token = Listener.BeginAsyncOperation(nameof(BeginWaitForNextProjectReload));
-        var previous = Interlocked.Exchange(ref _pendingReloadWaitToken, token);
-        if (previous is not null)
+        using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            // Dispose the token we just stored so we don't leak it, then throw.
-            Interlocked.Exchange(ref _pendingReloadWaitToken, null)?.Dispose();
-            previous.Dispose();
-            throw new InvalidOperationException($"A previous {nameof(BeginWaitForNextProjectReload)} call is still active.");
+            if (_pendingReloadWaitToken is not null)
+                throw new InvalidOperationException($"A previous {nameof(BeginWaitForNextProjectReloadAsync)} call is still active.");
+
+            _pendingReloadWaitToken = Listener.BeginAsyncOperation(nameof(BeginWaitForNextProjectReloadAsync));
         }
     }
 

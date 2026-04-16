@@ -812,7 +812,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         // Begin waiting for the next project reload before writing to disk,
         // since FileSystemWatcher event delivery timing is OS-dependent.
         var projectLoader = (LanguageServerProjectLoader)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
-        projectLoader.BeginWaitForNextProjectReload();
+        await projectLoader.BeginWaitForNextProjectReloadAsync();
 
         // Flush the document change to disk to trigger a reload of the FBA project.
         appCsFile.WriteAllText(newAppCsText);
