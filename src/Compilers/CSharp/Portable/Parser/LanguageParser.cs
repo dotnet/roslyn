@@ -1761,8 +1761,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.NamespaceKeyword:
                 case SyntaxKind.EnumKeyword:
-                case SyntaxKind.DelegateKeyword:
                 case SyntaxKind.EventKeyword:
+                    isDeclarationHead = true;
+                    return true;
+
+                case SyntaxKind.DelegateKeyword:
+                    // `delegate*` is the function-pointer type and is part of a type expression,
+                    // not a delegate declaration head.  For example, `ref delegate*<void> M()`
+                    // is a method whose return type is `ref delegate*<void>`, and the enclosing
+                    // `ref` must remain part of the return-type prefix.  Let the caller decide
+                    // based on its own context in that case.
+                    if (this.PeekToken(1).Kind == SyntaxKind.AsteriskToken)
+                    {
+                        break;
+                    }
+
                     isDeclarationHead = true;
                     return true;
             }
