@@ -52,44 +52,36 @@ namespace Microsoft.CodeAnalysis
             }
 
             var tableBuilder = graphState.CreateTableBuilder(previousTable, stepName, equalityComparer: null);
-            try
+            foreach (var entry in sourceTable)
             {
-                foreach (var entry in sourceTable)
+                var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                if (entry.State == EntryState.Removed)
                 {
-                    var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
-                    if (entry.State == EntryState.Removed)
+                    tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
+                }
+                else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                {
+                    var sourcesBuilder = new AdditionalSourcesCollection(_sourceExtension);
+                    var diagnostics = DiagnosticBag.GetInstance();
+
+                    SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, graphState.Compilation, graphState.DriverState.ChecksumAlgorithm, cancellationToken);
+                    try
                     {
-                        tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
+                        var stopwatch = SharedStopwatch.StartNew();
+                        _action(context, entry.Item, cancellationToken);
+                        var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
+
+                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntry(sourcesAndDiagnostics, stopwatch.Elapsed, inputs, entry.State))
+                        {
+                            tableBuilder.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
+                        }
                     }
-                    else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                    finally
                     {
-                        var sourcesBuilder = new AdditionalSourcesCollection(_sourceExtension);
-                        var diagnostics = DiagnosticBag.GetInstance();
-
-                        SourceProductionContext context = new SourceProductionContext(sourcesBuilder, diagnostics, graphState.Compilation, graphState.DriverState.ChecksumAlgorithm, cancellationToken);
-                        try
-                        {
-                            var stopwatch = SharedStopwatch.StartNew();
-                            _action(context, entry.Item, cancellationToken);
-                            var sourcesAndDiagnostics = (sourcesBuilder.ToImmutable(), diagnostics.ToReadOnly());
-
-                            if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntry(sourcesAndDiagnostics, stopwatch.Elapsed, inputs, entry.State))
-                            {
-                                tableBuilder.AddEntry(sourcesAndDiagnostics, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
-                            }
-                        }
-                        finally
-                        {
-                            sourcesBuilder.Free();
-                            diagnostics.Free();
-                        }
+                        sourcesBuilder.Free();
+                        diagnostics.Free();
                     }
                 }
-            }
-            catch
-            {
-                tableBuilder.Free();
-                throw;
             }
 
             var newTable = tableBuilder.ToImmutableAndFree();

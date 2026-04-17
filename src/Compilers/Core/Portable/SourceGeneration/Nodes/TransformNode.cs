@@ -66,40 +66,32 @@ namespace Microsoft.CodeAnalysis
             var totalEntryItemCount = sourceTable.GetTotalEntryItemCount();
             var tableBuilder = builder.CreateTableBuilder(previousTable, _name, _comparer, totalEntryItemCount);
 
-            try
+            foreach (var entry in sourceTable)
             {
-                foreach (var entry in sourceTable)
+                var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                if (entry.State == EntryState.Removed)
                 {
-                    var inputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
-                    if (entry.State == EntryState.Removed)
+                    tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
+                }
+                else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                {
+                    var stopwatch = SharedStopwatch.StartNew();
+                    // generate the new entries
+                    ImmutableArray<TOutput> newOutputs;
+                    try
                     {
-                        tableBuilder.TryRemoveEntries(TimeSpan.Zero, inputs);
+                        newOutputs = _func(entry.Item, cancellationToken);
                     }
-                    else if (entry.State != EntryState.Cached || !tableBuilder.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                    catch (Exception e) when (_wrapUserFunc && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
                     {
-                        var stopwatch = SharedStopwatch.StartNew();
-                        // generate the new entries
-                        ImmutableArray<TOutput> newOutputs;
-                        try
-                        {
-                            newOutputs = _func(entry.Item, cancellationToken);
-                        }
-                        catch (Exception e) when (_wrapUserFunc && !ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
-                        {
-                            throw new UserFunctionException(e);
-                        }
+                        throw new UserFunctionException(e);
+                    }
 
-                        if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, stopwatch.Elapsed, inputs, entry.State))
-                        {
-                            tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
-                        }
+                    if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, stopwatch.Elapsed, inputs, entry.State))
+                    {
+                        tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
                     }
                 }
-            }
-            catch
-            {
-                tableBuilder.Free();
-                throw;
             }
 
             // Can't assert anything about the count of items.  _func may have produced a different amount of items if

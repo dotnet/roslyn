@@ -36,16 +36,8 @@ namespace Microsoft.CodeAnalysis.Scripting
             where T : class
         {
             var builder = ArrayBuilder<T>.GetInstance();
-            try
-            {
-                AddRangeChecked(builder, items, parameterName);
-                return builder.ToImmutableAndFree();
-            }
-            catch
-            {
-                builder.Free();
-                throw;
-            }
+            AddRangeChecked(builder, items, parameterName);
+            return builder.ToImmutableAndFree();
         }
 
         internal static ImmutableArray<T> ConcatChecked<T>(ImmutableArray<T> existing, IEnumerable<T> items, string parameterName)
@@ -53,16 +45,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             var builder = ArrayBuilder<T>.GetInstance();
             builder.AddRange(existing);
-            try
-            {
-                AddRangeChecked(builder, items, parameterName);
-                return builder.ToImmutableAndFree();
-            }
-            catch
-            {
-                builder.Free();
-                throw;
-            }
+            AddRangeChecked(builder, items, parameterName);
+            return builder.ToImmutableAndFree();
         }
 
         internal static void AddRangeChecked<T>(ArrayBuilder<T> builder, IEnumerable<T> items, string parameterName)

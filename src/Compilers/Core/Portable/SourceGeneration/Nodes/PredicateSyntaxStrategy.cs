@@ -58,12 +58,6 @@ namespace Microsoft.CodeAnalysis
                 tables.SetTable(_key, _transformTable.ToImmutableAndFree());
             }
 
-            public void Free()
-            {
-                _filterTable.Free();
-                _transformTable.Free();
-            }
-
             public void VisitTree(
                 Lazy<SyntaxNode> root,
                 EntryState state,
@@ -124,22 +118,14 @@ namespace Microsoft.CodeAnalysis
                 static ImmutableArray<SyntaxNode> getFilteredNodes(SyntaxNode root, Func<SyntaxNode, CancellationToken, bool> func, CancellationToken token)
                 {
                     ArrayBuilder<SyntaxNode>? results = null;
-                    try
+                    foreach (var node in root.DescendantNodesAndSelf())
                     {
-                        foreach (var node in root.DescendantNodesAndSelf())
-                        {
-                            token.ThrowIfCancellationRequested();
+                        token.ThrowIfCancellationRequested();
 
-                            if (func(node, token))
-                            {
-                                (results ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
-                            }
+                        if (func(node, token))
+                        {
+                            (results ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
                         }
-                    }
-                    catch
-                    {
-                        results?.Free();
-                        throw;
                     }
 
                     return results.ToImmutableOrEmptyAndFree();

@@ -44,37 +44,21 @@ namespace Microsoft.CodeAnalysis
             }
 
             var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<OutputType>.Default);
-            try
+            foreach (var entry in sourceTable)
             {
-                foreach (var entry in sourceTable)
+                var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
+                if (entry.State == EntryState.Removed)
                 {
-                    var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
-                    if (entry.State == EntryState.Removed)
-                    {
-                        nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
-                    }
-                    else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
-                    {
-                        ArrayBuilder<(string, object)> output = ArrayBuilder<(string, object)>.GetInstance();
-                        try
-                        {
-                            HostOutputProductionContext context = new HostOutputProductionContext(output, cancellationToken);
-                            var stopwatch = SharedStopwatch.StartNew();
-                            _action(context, entry.Item, cancellationToken);
-                            nodeTable.AddEntry(output.ToImmutableAndFree(), EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
-                        }
-                        catch
-                        {
-                            output.Free();
-                            throw;
-                        }
-                    }
+                    nodeTable.TryRemoveEntries(TimeSpan.Zero, inputs);
                 }
-            }
-            catch
-            {
-                nodeTable.Free();
-                throw;
+                else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
+                {
+                    ArrayBuilder<(string, object)> output = ArrayBuilder<(string, object)>.GetInstance();
+                    HostOutputProductionContext context = new HostOutputProductionContext(output, cancellationToken);
+                    var stopwatch = SharedStopwatch.StartNew();
+                    _action(context, entry.Item, cancellationToken);
+                    nodeTable.AddEntry(output.ToImmutableAndFree(), EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
+                }
             }
 
             return nodeTable.ToImmutableAndFree();

@@ -949,25 +949,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (tree == null)
                 {
-                    externalSyntaxTrees.Free();
                     throw new ArgumentNullException($"{nameof(trees)}[{i}]");
                 }
 
                 if (!tree.HasCompilationUnitRoot)
                 {
-                    externalSyntaxTrees.Free();
                     throw new ArgumentException(CSharpResources.TreeMustHaveARootNodeWith, $"{nameof(trees)}[{i}]");
                 }
 
                 if (externalSyntaxTrees.Contains(tree))
                 {
-                    externalSyntaxTrees.Free();
                     throw new ArgumentException(CSharpResources.SyntaxTreeAlreadyPresent, $"{nameof(trees)}[{i}]");
                 }
 
                 if (this.IsSubmission && tree.Options.Kind == SourceCodeKind.Regular)
                 {
-                    externalSyntaxTrees.Free();
                     throw new ArgumentException(CSharpResources.SubmissionCanOnlyInclude, $"{nameof(trees)}[{i}]");
                 }
 
@@ -1031,13 +1027,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                     if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
                     {
-                        removeSet.Free();
-                        externalSyntaxTrees.Free();
                         throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, $"{nameof(trees)}[{i}]");
                     }
 
-                    removeSet.Free();
-                    externalSyntaxTrees.Free();
                     throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, $"{nameof(trees)}[{i}]");
                 }
 
@@ -4360,31 +4352,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<CodeAnalysis.NullableAnnotation> elementNullableAnnotations)
         {
             var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(elementTypes.Length);
-            try
+            for (int i = 0; i < elementTypes.Length; i++)
             {
-                for (int i = 0; i < elementTypes.Length; i++)
-                {
-                    ITypeSymbol typeSymbol = elementTypes[i];
-                    var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
-                    var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
-                    typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
-                }
+                ITypeSymbol typeSymbol = elementTypes[i];
+                var elementType = typeSymbol.EnsureCSharpSymbolOrNull($"{nameof(elementTypes)}[{i}]");
+                var annotation = (elementNullableAnnotations.IsDefault ? typeSymbol.NullableAnnotation : elementNullableAnnotations[i]).ToInternalAnnotation();
+                typesBuilder.Add(TypeWithAnnotations.Create(elementType, annotation));
+            }
 
-                return NamedTypeSymbol.CreateTuple(
-                    locationOpt: null, // no location for the type declaration
-                    elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
-                    elementLocations: elementLocations,
-                    elementNames: elementNames,
-                    compilation: this,
-                    shouldCheckConstraints: false,
-                    includeNullability: false,
-                    errorPositions: default).GetPublicSymbol();
-            }
-            catch
-            {
-                typesBuilder.Free();
-                throw;
-            }
+            return NamedTypeSymbol.CreateTuple(
+                locationOpt: null, // no location for the type declaration
+                elementTypesWithAnnotations: typesBuilder.ToImmutableAndFree(),
+                elementLocations: elementLocations,
+                elementNames: elementNames,
+                compilation: this,
+                shouldCheckConstraints: false,
+                includeNullability: false,
+                errorPositions: default).GetPublicSymbol();
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(

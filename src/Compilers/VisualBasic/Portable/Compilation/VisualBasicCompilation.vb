@@ -2881,21 +2881,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  elementLocations As ImmutableArray(Of Location),
                                                                  elementNullableAnnotations As ImmutableArray(Of NullableAnnotation)) As INamedTypeSymbol
             Dim typesBuilder = ArrayBuilder(Of TypeSymbol).GetInstance(elementTypes.Length)
-            Try
-                For i As Integer = 0 To elementTypes.Length - 1
-                    typesBuilder.Add(elementTypes(i).EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(elementTypes)}[{i}]"))
-                Next
+            For i As Integer = 0 To elementTypes.Length - 1
+                typesBuilder.Add(elementTypes(i).EnsureVbSymbolOrNothing(Of TypeSymbol)($"{NameOf(elementTypes)}[{i}]"))
+            Next
 
-                'no location for the type declaration
-                Return TupleTypeSymbol.Create(locationOpt:=Nothing,
-                                              elementTypes:=typesBuilder.ToImmutableAndFree(),
-                                              elementLocations:=elementLocations,
-                                              elementNames:=elementNames, compilation:=Me,
-                                              shouldCheckConstraints:=False, errorPositions:=Nothing)
-            Catch
-                typesBuilder.Free()
-                Throw
-            End Try
+            'no location for the type declaration
+            Return TupleTypeSymbol.Create(locationOpt:=Nothing,
+                                          elementTypes:=typesBuilder.ToImmutableAndFree(),
+                                          elementLocations:=elementLocations,
+                                          elementNames:=elementNames, compilation:=Me,
+                                          shouldCheckConstraints:=False, errorPositions:=Nothing)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(
