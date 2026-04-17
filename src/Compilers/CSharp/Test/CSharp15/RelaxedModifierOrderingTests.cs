@@ -35,15 +35,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
 {
     public RelaxedModifierOrderingTests(ITestOutputHelper output) : base(output) { }
 
-    /// <summary>
-    /// Every keyword / contextual-keyword kind that the parser treats as a modifier, except
-    /// <c>partial</c> (the modifier under test) and <c>ref</c> (relaxation deferred to Phase 3).
-    /// <para>
-    /// The data source is computed dynamically from <c>LanguageParser.GetModifierExcludingScoped</c>
-    /// so that any future addition of a modifier kind automatically flows into the theory-based
-    /// parser tests below without a source-level change here.
-    /// </para>
-    /// </summary>
     public static TheoryData<SyntaxKind> AllModifierKindsExceptPartialAndRef()
     {
         var data = new TheoryData<SyntaxKind>();
@@ -52,9 +43,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             if (kind is SyntaxKind.PartialKeyword or SyntaxKind.RefKeyword)
                 continue;
 
-            // A SyntaxKind is a modifier if GetModifierExcludingScoped returns non-None in
-            // either the "reserved keyword" role (as `kind`) or the "contextual keyword" role
-            // (an IdentifierToken whose contextualKind is `kind`).
             var asReserved = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser.GetModifierExcludingScoped(kind, contextualKind: SyntaxKind.None);
             var asContextual = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.LanguageParser.GetModifierExcludingScoped(SyntaxKind.IdentifierToken, contextualKind: kind);
             if (asReserved != DeclarationModifiers.None || asContextual != DeclarationModifiers.None)
@@ -202,8 +190,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [Fact]
     public void Partial_WithFileModifier_Preview()
     {
-        // 'file' is another contextual modifier; confirm the forward-scan handles chains
-        // of contextual modifiers before committing to 'partial' as a modifier.
         var src = "partial file class C { }";
 
         UsingTree(src, TestOptions.RegularPreview);
@@ -302,14 +288,9 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     }
 
     /// <summary>
-    /// Exercises the interaction between the historical <c>partial async</c> carve-out and the
-    /// new relaxed-ordering feature.  When <c>partial</c> is neither last nor second-to-last
-    /// immediately before <c>async</c>, it falls outside the carve-out and the new feature gate
-    /// must fire on pre-preview language versions.  The implementing half also stresses the
-    /// forward-scan in <c>IsPartialModifierInDeclarationHead</c>: after eating <c>partial</c>
-    /// the helper must walk through both contextual (<c>public</c> is non-contextual here; use
-    /// the declaration half above for a pure all-non-contextual case) and commit to a
-    /// declaration head.
+    /// When <c>partial</c> is neither last nor second-to-last immediately before <c>async</c>,
+    /// it falls outside the historical <c>partial async</c> carve-out and the relaxed-ordering
+    /// feature gate must fire on pre-preview language versions.
     /// </summary>
     [Fact]
     public void Partial_NonCanonicalWithAsync_CSharp14_FeatureError()
@@ -433,20 +414,11 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
 
     // ---------- parser recovery: 'partial' as identifier ----------
 
-    /// <summary>
-    /// When 'partial' is not followed by a declaration head (modulo other modifier tokens), it
-    /// must remain available as an identifier so the fall-through global-statement recovery
-    /// path in the parser still works.  This pins the behavior of the negative branch of
-    /// <c>IsPartialModifierInDeclarationHead</c>.
-    /// </summary>
     [Fact]
     public void Partial_AsIdentifier_TopLevelAssignment_NotConsumedAsModifier()
     {
         var src = "partial = 1;";
 
-        // Parser must not consume 'partial' as a modifier; it should fall through to the
-        // global-statement recovery path and parse 'partial' as an identifier in an assignment
-        // expression.  Parse tree must be clean.
         UsingTree(src, TestOptions.RegularPreview);
         N(SyntaxKind.CompilationUnit);
         {
@@ -473,25 +445,11 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
         EOF();
 
-        // Binding will then produce the "name not in context" error since 'partial' is an
-        // unresolved identifier.  The critical point is that the parser did not try to treat
-        // 'partial' as a modifier and commit to a broken declaration.
         CreateCompilation(src).VerifyDiagnostics(
             // (1,1): error CS0103: The name 'partial' does not exist in the current context
             // partial = 1;
             Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(1, 1));
     }
-
-    // ================================================================================
-    // Parser branch coverage for LanguageParser.IsAtPartialCapableDeclarationHead
-    //
-    // Each explicit return path in the helper must have at least one dedicated test.
-    // Feature-gated branches (records, unions, partial events/ctors) also have a
-    // negative test that proves `partial` falls back to being parsed as an identifier
-    // when the feature is unavailable.
-    // ================================================================================
-
-    // ---------- Branch: ClassKeyword ----------
 
     [Fact]
     public void Branch_Class()
@@ -512,8 +470,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    // ---------- Branch: StructKeyword ----------
-
     [Fact]
     public void Branch_Struct()
     {
@@ -533,8 +489,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    // ---------- Branch: InterfaceKeyword ----------
-
     [Fact]
     public void Branch_Interface()
     {
@@ -553,8 +507,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
         EOF();
     }
-
-    // ---------- Branch: RecordKeyword (contextual, gated by IDS_FeatureRecords) ----------
 
     [Fact]
     public void Branch_Record()
@@ -615,28 +567,13 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    /// <summary>
-    /// Negative test for the record branch of <c>IsAtPartialCapableDeclarationHead</c>.
-    /// On C# 8 'record' is not yet a type-declaration keyword, so the helper returns false and
-    /// 'partial' must NOT be consumed as a modifier (it remains an identifier, producing the
-    /// legacy parse shape).  This pins the feature-gate check at
-    /// <c>IsFeatureEnabled(MessageID.IDS_FeatureRecords)</c>.
-    /// </summary>
     [Fact]
     public void Branch_Record_PreRecordsFeature_NotConsumedAsModifier()
     {
-        // On C# 8 this must NOT parse as a record declaration with 'partial' as modifier.
-        // Instead 'partial' falls back to being an identifier and the compiler recovers with
-        // a cascade of diagnostics.  The important point for this test is purely parse
-        // shape: the top-level ClassDeclaration/RecordDeclaration we'd see on C# 9+ is gone.
         var tree = SyntaxFactory.ParseSyntaxTree("partial record R { }", TestOptions.Regular8);
         var root = tree.GetCompilationUnitRoot();
-        // On pre-records langver the parser treats this as an incomplete top-level construct
-        // (not a RecordDeclaration); the specific recovery shape is not what we're pinning.
         Assert.DoesNotContain(root.Members, m => m is RecordDeclarationSyntax);
     }
-
-    // ---------- Branch: UnionKeyword (contextual, gated by IDS_FeatureUnions) ----------
 
     [Fact]
     public void Branch_Union_Preview()
@@ -657,11 +594,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    /// <summary>
-    /// Negative test for the union branch.  On C# 14 (pre-unions) 'union' is an ordinary
-    /// identifier, so <c>IsAtPartialCapableDeclarationHead</c> must return false and
-    /// <c>partial</c> must NOT be consumed as a modifier.
-    /// </summary>
     [Fact]
     public void Branch_Union_PreUnionsFeature_NotConsumedAsModifier()
     {
@@ -670,14 +602,9 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         Assert.DoesNotContain(root.Members, m => m is TypeDeclarationSyntax { Keyword.Text: "union" });
     }
 
-    // ---------- Branch: NamespaceKeyword / EnumKeyword / DelegateKeyword (consumed for diagnostics) ----------
-
     [Fact]
     public void Branch_Namespace()
     {
-        // 'partial' gets eaten as a modifier so that the binder can produce a clean targeted
-        // diagnostic (ERR_BadModifiersOnNamespace, verified separately via CreateCompilation)
-        // rather than cascading from leaving 'partial' as an identifier at the parse layer.
         UsingTree("partial namespace N { }");
         N(SyntaxKind.CompilationUnit);
         {
@@ -757,8 +684,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             // partial delegate void D();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "D").WithLocation(1, 23));
     }
-
-    // ---------- Branch: EventKeyword ----------
 
     [Fact]
     public void Branch_Event()
@@ -847,8 +772,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    // ---------- Branch: IdentifierToken + OpenParenToken (partial constructor, feature-gated) ----------
-
     [Fact]
     public void Branch_Constructor_Preview()
     {
@@ -902,11 +825,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    /// <summary>
-    /// Negative test for the partial-constructor branch.  On C# 13 partial events/ctors are not
-    /// yet a feature, so the helper returns false for <c>partial Identifier(</c> and 'partial'
-    /// falls back to an identifier (the parser treats it as a return type).
-    /// </summary>
     [Fact]
     public void Branch_Constructor_PrePartialCtorsFeature_NotConsumedAsModifier()
     {
@@ -917,16 +835,11 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
             }
             """;
 
-        // On C# 13, 'partial C();' parses as an incomplete method with return type 'partial'
-        // rather than a partial constructor.  The exact recovery shape is secondary; the pin is
-        // that this is NOT a ConstructorDeclarationSyntax.
         var tree = SyntaxFactory.ParseSyntaxTree(src, TestOptions.Regular13);
         var root = tree.GetCompilationUnitRoot();
         var type = Assert.IsType<ClassDeclarationSyntax>(Assert.Single(root.Members));
         Assert.DoesNotContain(type.Members, m => m is ConstructorDeclarationSyntax);
     }
-
-    // ---------- Branch: ScanType + IsPossibleMemberName (method / property / indexer) ----------
 
     [Fact]
     public void Branch_Method_Void()
@@ -1026,7 +939,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [Fact]
     public void Branch_Method_GenericReturn()
     {
-        // Exercises the ScanType path for a generic return type.
         var src = """
             using System.Collections.Generic;
             partial class C { public partial List<int> M(); public partial List<int> M() => null; }
@@ -1037,7 +949,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [Fact]
     public void Branch_Method_ArrayReturn()
     {
-        // Exercises the ScanType path for an array return type.
         var src = """
             partial class C { public partial int[] M(); public partial int[] M() => null; }
             """;
@@ -1128,22 +1039,11 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [Fact]
     public void Branch_Indexer()
     {
-        // The indexer case flows through ScanType -> IsPossibleMemberName -> 'this' keyword.
         var src = """
             partial class C { public partial int this[int i] { get; set; } public partial int this[int i] { get => 0; set { } } }
             """;
         CreateCompilation(src).VerifyDiagnostics();
     }
-
-    // ================================================================================
-    // Theory-based permutation coverage: `partial` combined with every other modifier
-    //
-    // These drive the modifier list through both orderings (partial-first and
-    // modifier-first) for both type declarations (branch 1) and methods (branch 7).
-    // The data source is computed by reflection over SyntaxKind, so adding a new
-    // modifier kind to LanguageParser.GetModifierExcludingScoped automatically
-    // extends coverage here.
-    // ================================================================================
 
     [Theory, MemberData(nameof(AllModifierKindsExceptPartialAndRef))]
     public void PartialThenModifier_OnClass(SyntaxKind modifier)
@@ -1263,13 +1163,9 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    // ---------- Multi-modifier tests: partial in various interior positions ----------
-
     [Fact]
     public void MultiModifier_PartialFirst_ThreeOthers()
     {
-        // Exercises the modifier-skipping loop in IsPartialModifierInDeclarationHead across
-        // multiple iterations, mixing reserved and contextual modifier tokens.
         UsingTree("partial public static unsafe class C { }");
         N(SyntaxKind.CompilationUnit);
         {
@@ -1292,8 +1188,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [Fact]
     public void MultiModifier_PartialBetweenContextualAndReserved()
     {
-        // Exercises the path where the lookahead walks PAST a contextual modifier (file) and
-        // then a reserved modifier (sealed) before finding the type keyword.
         UsingTree("file partial sealed class C { }");
         N(SyntaxKind.CompilationUnit);
         {
@@ -1315,9 +1209,6 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [Fact]
     public void MultiModifier_PartialLast_InChainOfContextuals()
     {
-        // Exercises the forward-scan through a long contextual chain: 'file' is a contextual
-        // modifier, 'async' is a contextual modifier (forward-scanned past since it can be a
-        // member modifier), and 'partial' sits last before the type keyword.
         UsingTree("file partial class C { partial async void M() { } }");
         N(SyntaxKind.CompilationUnit);
         {
@@ -1355,16 +1246,9 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         EOF();
     }
 
-    // ================================================================================
-    // Negative coverage: IsAtPartialCapableDeclarationHead returns false ->
-    // 'partial' falls through to its identifier role.
-    // ================================================================================
-
     [Fact]
     public void PartialAsIdentifier_BareSemicolon()
     {
-        // After 'partial', the parser must NOT find a declaration head and must fall back to
-        // treating 'partial' as an identifier (global statement expression).
         UsingTree("partial;");
         N(SyntaxKind.CompilationUnit);
         {
@@ -1387,25 +1271,16 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     [Fact]
     public void PartialAsIdentifier_InExpressionContext()
     {
-        // 'partial + 1' - no declaration head can be found; 'partial' must be parsed as an identifier.
         var tree = SyntaxFactory.ParseSyntaxTree("_ = partial + 1;");
         var root = tree.GetCompilationUnitRoot();
-        // Ensure no declaration members are produced - just a top-level global statement.
         Assert.All(root.Members, m => Assert.IsType<GlobalStatementSyntax>(m));
     }
 
     [Fact]
     public void PartialAsIdentifier_PartialIdentifierSemicolon_NotAMember()
     {
-        // 'partial X;' at top level: X is an identifier, not '(' for a ctor, and ScanType
-        // succeeds on 'partial' but IsPossibleMemberName fails on ';'. So 'partial' must
-        // NOT be consumed as a modifier.  (It's parsed as a local-like declaration with
-        // 'partial' as the type name.)
         var tree = SyntaxFactory.ParseSyntaxTree("partial X;");
         var root = tree.GetCompilationUnitRoot();
-        // The interesting invariant: 'partial' must not have been consumed as a modifier.
-        // We assert that no TypeDeclaration or MemberDeclaration with 'partial' modifier
-        // exists at the top level.
         foreach (var member in root.Members)
         {
             Assert.False(
@@ -1414,53 +1289,24 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         }
     }
 
-    // ================================================================================
-    // Multi-iteration coverage of the skip-modifier loop in
-    // IsPartialModifierInDeclarationHead.  The loop has three exit paths:
-    //
-    //   (A) break       : current token is not a modifier at all - fall through to
-    //                     IsAtPartialCapableDeclarationHead.
-    //   (B) return true : current token IS a modifier and is NOT an IdentifierToken,
-    //                     i.e. a reserved-keyword modifier like 'public' / 'static'.
-    //                     Commit immediately.
-    //   (C) EatToken()  : current token is a contextual modifier (IdentifierToken with
-    //                     a contextual kind of partial/async/required/file).  Eat it
-    //                     and iterate.
-    //
-    // The "else path" driving further loop iterations is (C).  The tests below exercise
-    // chains of 1, 2, and 3 contextual modifiers after 'partial' to ensure the loop
-    // iterates the expected number of times and exits via each of (A) and (B).
-    // ================================================================================
-
-    /// <summary>
-    /// Chains of contextual modifier tokens (no 'partial', no 'ref') that the skip-modifier
-    /// loop in <c>IsPartialModifierInDeclarationHead</c> will iterate over when they appear
-    /// between <c>partial</c> and the declaration head.  Ordered from shortest to longest
-    /// so iteration-count coverage is explicit.
-    /// </summary>
     public static TheoryData<string> ContextualModifierChains()
     {
         return new TheoryData<string>
         {
-            // 1 iteration:
             "file",
             "async",
             "required",
-            // 2 iterations:
             "file async",
             "file required",
             "async required",
-            // 3 iterations:
             "file async required",
         };
     }
 
     [Theory]
     [MemberData(nameof(ContextualModifierChains))]
-    public void SkipLoop_PartialThenContextualChain_BreaksAtDeclHead_OnClass(string chain)
+    public void PartialThenContextualChain_OnClass(string chain)
     {
-        // Exit path (A): loop consumes each contextual modifier, then breaks on 'class'
-        // (not a modifier at all), then IsAtPartialCapableDeclarationHead returns true.
         var src = $"partial {chain} class C {{ }}";
         var tree = SyntaxFactory.ParseSyntaxTree(src);
         var root = tree.GetCompilationUnitRoot();
@@ -1474,11 +1320,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
 
     [Theory]
     [MemberData(nameof(ContextualModifierChains))]
-    public void SkipLoop_PartialThenContextualChainThenReserved_EarlyReturns_OnClass(string chain)
+    public void PartialThenContextualChainThenReserved_OnClass(string chain)
     {
-        // Exit path (B): loop consumes each contextual modifier and then sees 'public'
-        // (reserved keyword, not an IdentifierToken) and returns true immediately without
-        // ever calling IsAtPartialCapableDeclarationHead.
         var src = $"partial {chain} public class C {{ }}";
         var tree = SyntaxFactory.ParseSyntaxTree(src);
         var root = tree.GetCompilationUnitRoot();
@@ -1493,11 +1336,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
 
     [Theory]
     [MemberData(nameof(ContextualModifierChains))]
-    public void SkipLoop_PartialThenContextualChain_BreaksAtDeclHead_OnMethod(string chain)
+    public void PartialThenContextualChain_OnMethod(string chain)
     {
-        // Same as the class variant but drives the decl-head check down the ScanType
-        // path: after the loop breaks on 'void', IsAtPartialCapableDeclarationHead
-        // recognizes a method via ScanType + IsPossibleMemberName.
         var src = $"class C {{ public partial {chain} void M() {{ }} }}";
         var tree = SyntaxFactory.ParseSyntaxTree(src);
         var classDecl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().Members.Single();
@@ -1510,10 +1350,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     }
 
     [Fact]
-    public void SkipLoop_ThreeIterations_FullChainBeforeDeclHead_UsingTree()
+    public void PartialThenFullContextualChain_BeforeDeclHead()
     {
-        // Explicit parse-tree validation of the 3-iteration case to pin down that
-        // every intermediate contextual modifier ends up in the class's modifier list.
         UsingTree("partial file async required class C { }");
         N(SyntaxKind.CompilationUnit);
         {
@@ -1534,10 +1372,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     }
 
     [Fact]
-    public void SkipLoop_ThreeIterations_ThenReservedEarlyReturn_UsingTree()
+    public void PartialThenFullContextualChainThenReserved()
     {
-        // Explicit parse-tree validation that the 3-iteration chain followed by a
-        // reserved-keyword modifier still commits 'partial' as a modifier.
         UsingTree("partial file async required public class C { }");
         N(SyntaxKind.CompilationUnit);
         {
@@ -1559,13 +1395,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     }
 
     [Fact]
-    public void SkipLoop_PartialPartial_ContextualSelfReentry_OnClass()
+    public void PartialPartial_OnClass()
     {
-        // 'partial' itself is a contextual modifier, so 'partial partial class C' drives
-        // one loop iteration on the SECOND 'partial' token (the first is consumed by
-        // ParseModifiers before IsPartialModifierInDeclarationHead is called; the inner
-        // lookahead then eats the second 'partial' as a contextual modifier and breaks
-        // on 'class').
         UsingTree("partial partial class C { }");
         N(SyntaxKind.CompilationUnit);
         {
@@ -1585,14 +1416,8 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
 
     [Theory]
     [MemberData(nameof(ContextualModifierChains))]
-    public void SkipLoop_IteratesThenNoDeclHead_PartialFallsBackToIdentifier(string chain)
+    public void PartialThenContextualChain_NoDeclHead_FallsBackToIdentifier(string chain)
     {
-        // Exit path (A) returning FALSE: after the loop iterates, the decl-head check
-        // fails (nothing but a ';' follows), so IsPartialModifierInDeclarationHead
-        // returns false and 'partial' is NOT consumed as a modifier.
-        //
-        // We verify the invariant that no top-level member declaration ends up with
-        // 'partial' in its modifier list for these malformed chains.
         var src = $"partial {chain};";
         var tree = SyntaxFactory.ParseSyntaxTree(src);
         var root = tree.GetCompilationUnitRoot();
