@@ -407,12 +407,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private string _pipeName;
             private bool _shutdown;
+            private DateTime? _purgeCacheCutoff;
+            private bool _cacheStats;
+            private bool _cacheStatsVerbose;
             private TimeSpan? _timeout;
             private string _logFilePath;
 
             private bool Parse(params string[] args)
             {
-                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown, out _timeout, out _logFilePath);
+                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown, out _purgeCacheCutoff, out _cacheStats, out _cacheStatsVerbose, out _timeout, out _logFilePath);
             }
 
             [Fact]
@@ -421,6 +424,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(Parse());
                 Assert.Null(_pipeName);
                 Assert.False(_shutdown);
+                Assert.Null(_purgeCacheCutoff);
                 Assert.Null(_timeout);
                 Assert.Null(_logFilePath);
             }
@@ -447,6 +451,63 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(Parse("-pipename:test", "-shutdown"));
                 Assert.Equal("test", _pipeName);
                 Assert.True(_shutdown);
+            }
+
+            [Fact]
+            public void PurgeCache()
+            {
+                Assert.True(Parse("-purgecache"));
+                Assert.Null(_pipeName);
+                Assert.NotNull(_purgeCacheCutoff);
+                Assert.False(_shutdown);
+            }
+
+            [Fact]
+            public void PipeAndPurgeCache()
+            {
+                Assert.True(Parse("-pipename:test", "-purgecache"));
+                Assert.Equal("test", _pipeName);
+                Assert.NotNull(_purgeCacheCutoff);
+            }
+
+            [Fact]
+            public void PurgeCacheWithTimestamp()
+            {
+                Assert.True(Parse("-purgecache:2026-04-10T12:00:00Z"));
+                Assert.NotNull(_purgeCacheCutoff);
+                Assert.Equal(new DateTime(2026, 4, 10, 12, 0, 0, DateTimeKind.Utc), _purgeCacheCutoff.Value);
+            }
+
+            [Fact]
+            public void PurgeCacheWithBadTimestamp()
+            {
+                Assert.False(Parse("-purgecache:notadate"));
+            }
+
+            [Fact]
+            public void CacheStats()
+            {
+                Assert.True(Parse("-cachestats"));
+                Assert.True(_cacheStats);
+                Assert.False(_cacheStatsVerbose);
+                Assert.False(_shutdown);
+                Assert.Null(_purgeCacheCutoff);
+            }
+
+            [Fact]
+            public void CacheStatsVerbose()
+            {
+                Assert.True(Parse("-cachestats:verbose"));
+                Assert.True(_cacheStats);
+                Assert.True(_cacheStatsVerbose);
+            }
+
+            [Fact]
+            public void PipeAndCacheStats()
+            {
+                Assert.True(Parse("-pipename:test", "-cachestats"));
+                Assert.Equal("test", _pipeName);
+                Assert.True(_cacheStats);
             }
 
             [Fact]

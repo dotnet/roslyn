@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Runtime.InteropServices;
 using System.Collections.Specialized;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
@@ -32,14 +31,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _logger = logger;
         }
 
-        internal int Run(string? pipeName, bool shutdown, TimeSpan? keepAlive)
+        internal int Run(string? pipeName, bool shutdown, DateTime? purgeCacheCutoff, bool cacheStats, bool cacheStatsVerbose, TimeSpan? keepAlive)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            return shutdown
-                ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
+            if (shutdown)
+                return RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token);
+            if (purgeCacheCutoff is not null)
+                return RunPurgeCache(purgeCacheCutoff.Value);
+            if (cacheStats)
+                return RunCacheStats(cacheStatsVerbose);
+            return RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
         internal static TimeSpan GetDefaultKeepAlive(ICompilerServerLogger logger, NameValueCollection? appSettings = null)
@@ -169,6 +172,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
+        /// Purges cache entries from the default cache directory.
+        /// Entries whose <c>last-used</c> timestamp is older than <paramref name="cutoff"/> are deleted.
+        /// </summary>
+        internal int RunPurgeCache(DateTime cutoff)
+        {
+            var cachePath = CompilationCache.GetDefaultCachePath();
+            if (cachePath is null)
+            {
+                Console.Error.WriteLine("Cannot determine cache path.");
+                return CommonCompiler.Failed;
+            }
+
+            var result = CompilationCache.PurgeEntries(cachePath, cutoff, _logger);
+            Console.WriteLine(result);
+            return CommonCompiler.Succeeded;
+        }
+
+        /// <summary>
+        /// Displays cache statistics from the default cache directory.
+        /// </summary>
+        internal int RunCacheStats(bool verbose)
+        {
+            var cachePath = CompilationCache.GetDefaultCachePath();
+            if (cachePath is null)
+            {
+                Console.Error.WriteLine("Cannot determine cache path.");
+                return CommonCompiler.Failed;
+            }
+
+            var stats = CompilationCache.GetCacheStats(cachePath);
+            Console.WriteLine(stats.FormatSummary(cachePath, verbose));
+            return CommonCompiler.Succeeded;
+        }
+
+        /// <summary>
         /// Parses the command-line arguments for the build server.
         /// </summary>
         /// <remarks>
@@ -178,12 +216,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///   <item><description><c>-timeout:&lt;seconds&gt;</c> — keep-alive in seconds; <c>0</c> means infinite (no timeout).</description></item>
         ///   <item><description><c>-log:&lt;path&gt;</c> — path to the log file.</description></item>
         ///   <item><description><c>-shutdown</c> — request the server to shut down.</description></item>
+        ///   <item><description><c>-purgecache</c> / <c>-purgecache:&lt;timestamp&gt;</c> — purge cache entries not used since the given UTC timestamp (or all entries if no timestamp is given).</description></item>
+        ///   <item><description><c>-cachestats</c> / <c>-cachestats:verbose</c> — display compilation cache statistics.</description></item>
         /// </list>
         /// </remarks>
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out TimeSpan? timeout, out string? logFilePath)
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out DateTime? purgeCacheCutoff, out bool cacheStats, out bool cacheStatsVerbose, out TimeSpan? timeout, out string? logFilePath)
         {
             pipeName = null;
             shutdown = false;
+            purgeCacheCutoff = null;
+            cacheStats = false;
+            cacheStatsVerbose = false;
             timeout = null;
             logFilePath = null;
 
@@ -221,6 +264,29 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 else if (arg == "-shutdown")
                 {
                     shutdown = true;
+                }
+                else if (arg == "-purgecache")
+                {
+                    purgeCacheCutoff = DateTime.UtcNow;
+                }
+                else if (argSpan.StartsWith("-purgecache:".AsSpan(), StringComparison.Ordinal))
+                {
+                    var value = argSpan["-purgecache:".Length..].ToString();
+                    if (!DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    {
+                        return false;
+                    }
+
+                    purgeCacheCutoff = parsed.ToUniversalTime();
+                }
+                else if (arg == "-cachestats")
+                {
+                    cacheStats = true;
+                }
+                else if (arg == "-cachestats:verbose")
+                {
+                    cacheStats = true;
+                    cacheStatsVerbose = true;
                 }
                 else
                 {
