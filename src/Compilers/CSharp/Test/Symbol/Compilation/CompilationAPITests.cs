@@ -751,6 +751,7 @@ namespace A.B {
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void SyntreeAPITest()
         {
             var s1 = "namespace System.Linq {}";
@@ -920,6 +921,7 @@ class D
         }
 
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void ChainedOperations()
         {
             var s1 = "using System.Linq;";
@@ -1335,6 +1337,7 @@ var a = new C2();
 
         [WorkItem(537623, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537623")]
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void NegCreateCompilation()
         {
             Assert.Throws<ArgumentNullException>(() => CSharpCompilation.Create("goo", syntaxTrees: new SyntaxTree[] { null }));
@@ -1548,6 +1551,7 @@ var a = new C2();
         [WorkItem(537576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537576")]
         // Add already existing item
         [Fact]
+        [ValidatePooledObjects(LeakReason = "Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")]
         public void NegSynTree1()
         {
             var comp = CSharpCompilation.Create("Compilation");

@@ -7469,6 +7469,7 @@ End Class
         End Function
 
         <Fact>
+        <ValidatePooledObjects(LeakReason:="Tests pass invalid inputs to public API, causing expected ArgumentExceptions that leak pooled objects.")>
         Public Sub CreateTupleTypeSymbol2_CSharpElements()
 
             Dim csSource = "public class C { }"
