@@ -684,8 +684,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract override bool IsUnsafe { get; }
-
         public sealed override bool IsAsync
         {
             get
