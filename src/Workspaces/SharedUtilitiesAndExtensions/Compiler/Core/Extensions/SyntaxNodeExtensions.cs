@@ -617,7 +617,6 @@ internal static partial class SyntaxNodeExtensions
         bool includeDirectives = false,
         bool includeDocumentationComments = false)
     {
-        // There is no token after the end of the file, even though that position is valid
         // todo consider still throwing per Cyrus's feedback
         if (position == root.FullSpan.End)
         {
