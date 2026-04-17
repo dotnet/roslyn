@@ -24742,7 +24742,6 @@ class Program
     [InlineData("in")]
     public void ImplicitRangeIndexerAccess_Get_RValueReceiver_02(string refKind)
     {
-        // TODO2 review
         // sibling of IndexerAccess_Get_RValueReceiver_02
         // struct rvalue receiver passed by ref, extension Length + extension Slice
         var src = $$$"""
