@@ -4350,43 +4350,43 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_ArgumentList1()
         => VerifyTypingSemicolon(
-            @"Console.WriteLine($$)",
-            @"Console.WriteLine();$$");
+            "Console.WriteLine($$)",
+            "Console.WriteLine();$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_ArgumentList2()
         => VerifyTypingSemicolon(
-            @"Console.WriteLine($$""Hello"")",
-            @"Console.WriteLine(""Hello"");$$");
+            "Console.WriteLine($$\"Hello\")",
+            "Console.WriteLine(\"Hello\");$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_ArgumentList3()
         => VerifyTypingSemicolon(
-            @"Console.WriteLine(""Hello""$$)",
-            @"Console.WriteLine(""Hello"");$$");
+            "Console.WriteLine(\"Hello\"$$)",
+            "Console.WriteLine(\"Hello\");$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_NestedMethodCall()
         => VerifyTypingSemicolon(
-            @"Console.WriteLine(Math.Abs($$-5))",
-            @"Console.WriteLine(Math.Abs(-5));$$");
+            "Console.WriteLine(Math.Abs($$-5))",
+            "Console.WriteLine(Math.Abs(-5));$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_SemicolonAlreadyExists()
         => VerifyTypingSemicolon(
-            @"Console.WriteLine($$);",
-            @"Console.WriteLine();$$");
+            "Console.WriteLine($$);",
+            "Console.WriteLine();$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_LocalDeclaration()
         => VerifyTypingSemicolon(
-            @"int x = Math.Abs($$-5)",
-            @"int x = Math.Abs(-5);$$");
+            "int x = Math.Abs($$-5)",
+            "int x = Math.Abs(-5);$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_NotHandled_AfterCloseParen()
         => VerifyNoSpecialSemicolonHandling(
-            @"Console.WriteLine()$$");
+            "Console.WriteLine()$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_MultipleStatements()
@@ -4401,9 +4401,8 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
     public void TopLevelStatement_AfterNewInLocalDeclaration()
         => VerifyTypingSemicolon(
-            @"List<int> list = new$$",
-            @"List<int> list = new();$$");
-
+            "List<int> list = new$$",
+            "List<int> list = new();$$");
     #endregion
 
     protected override EditorTestWorkspace CreateTestWorkspace(string code)
