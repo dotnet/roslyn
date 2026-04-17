@@ -155,12 +155,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
-        var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
+        var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, parseOptions);
         var result = tokenizer.ParseLeadingTrivia();
         var leadingTrivia = result.Token.LeadingTrivia;
 
         // 5. Does the file have '#!' directives?
-        // - Yes → Classify as File-Based App.
+        // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
         // - No → Continue to next check
         if (leadingTrivia.Any(SyntaxKind.ShebangDirectiveTrivia))
         {
@@ -168,11 +169,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         // 6. Does the file have `#:` directives?
+        // - No → Go to (8)
+        // - Yes → Continue to next check
         if (leadingTrivia.Any(SyntaxKind.IgnoredDirectiveTrivia))
         {
-            // 7. Does it also have top-level statements?
-            // - Yes → Classify as File-Based App.
-            // - No → Classify as Miscellaneous File With Standard References.
+            // 7. Does the file have top-level statements?
+            // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
+            // - No → Classify as Miscellaneous File With Standard References
             if (ContainsTopLevelStatements())
             {
                 return LooseDocumentKind.FileBasedApp;
@@ -214,7 +217,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         bool ContainsTopLevelStatements()
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
+            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, options: parseOptions, cancellationToken: cancellationToken);
             return syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
         }
     }

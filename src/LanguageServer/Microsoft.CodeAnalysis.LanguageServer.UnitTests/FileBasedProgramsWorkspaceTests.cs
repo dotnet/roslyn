@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
@@ -1074,6 +1075,69 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.Equal(appProject.Id, document.Project.Id);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestMultiFile_Simulated_TransitiveDirective_DiscoverEntryPoint(bool mutatingLspWorkspace)
+    {
+        // A secondary file has a `#:` directive but no top-level statements.
+        // When opened alone, it is classified as a miscellaneous file.
+        // When the primary file (with `#:` + top-level statements) is opened,
+        // the secondary file moves from misc workspace to the primary file's project.
+        // Directory.Build.props simulates the `#:include` directive.
+        var tempDir = _tempRoot.CreateDirectory();
+        var dbPropsText = """
+            <Project>
+                <ItemGroup>
+                    <Compile Include="Util.cs" />
+                </ItemGroup>
+            </Project>
+            """;
+        tempDir.CreateFile("Directory.Build.props").WriteAllText(dbPropsText);
+
+        var utilCsText = """
+            #:property B=C
+            internal class Util { }
+            """;
+        var utilCsFile = tempDir.CreateFile("Util.cs").WriteAllText(utilCsText);
+
+        var appCsText = """
+            #!/usr/bin/env dotnet
+            #:property A=B
+            new Util();
+            """;
+        var appCsFile = tempDir.CreateFile("App.cs").WriteAllText(appCsText);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
+            // Do not perform the background automatic discovery on startup.
+            // Perform discovery only once we have set up initial state for the test.
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // Open secondary file first. It has `#:` but no top-level statements, so it's a misc file.
+        var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilCsFile.Path);
+        await testLspServer.OpenDocumentAsync(utilCsUri, utilCsText).ConfigureAwait(false);
+        await WaitForProjectLoad(utilCsUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+
+        // Enable automatic discovery and perform discovery.
+        var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        globalOptions.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, true);
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        await discovery.FindAndLoadEntryPointsAsync();
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        // Even though the primary file was never opened in the editor,
+        // the project for the primary file still loaded and the secondary file moved to that project.
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(utilCsUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.Contains(document.Project.Documents, document => document.FilePath == appCsFile.Path);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
