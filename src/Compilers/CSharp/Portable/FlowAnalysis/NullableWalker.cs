@@ -9607,7 +9607,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 fromExplicitCast: fromExplicitCast,
                                 useLegacyWarnings: false,
                                 assignmentKind,
-                                parameterOpt,
                                 reportTopLevelWarnings: reportWarnings,
                                 reportRemainingWarnings: reportWarnings,
                                 trackMembers: true,
@@ -9931,7 +9930,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fromExplicitCast: fromExplicitCast,
                             useLegacyWarnings,
                             assignmentKind,
-                            parameterOpt,
                             reportTopLevelWarnings,
                             reportRemainingWarnings,
                             trackMembers: trackMembers,
@@ -10561,7 +10559,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool fromExplicitCast,
             bool useLegacyWarnings,
             AssignmentKind assignmentKind,
-            ParameterSymbol? parameterOpt,
             bool reportTopLevelWarnings,
             bool reportRemainingWarnings,
             bool trackMembers,
@@ -10578,7 +10575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
 
             Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
-            Debug.Assert(analysis.Operator is  { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
+            Debug.Assert(analysis.Operator is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
             Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(TypeSymbol.Equals(targetTypeWithNullability.Type.StrippedType(), analysis.Operator.MethodKind == MethodKind.Constructor ? analysis.Operator.ContainingType : analysis.Operator.ReturnType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(TypeSymbol.Equals(targetTypeWithNullability.Type.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));

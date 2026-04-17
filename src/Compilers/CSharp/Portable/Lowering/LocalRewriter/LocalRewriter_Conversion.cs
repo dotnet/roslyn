@@ -956,9 +956,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
                 conversion.AssertUnderlyingConversionsCheckedRecursive();
                 Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
-                Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+                Debug.Assert(analysis.Operator is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
                 Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
-                Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+                Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.Operator.MethodKind == MethodKind.Constructor ? analysis.Operator.ContainingType : analysis.Operator.ReturnType, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(TypeSymbol.Equals(rewrittenType.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
                 Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
 
