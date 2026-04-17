@@ -99,7 +99,7 @@ public sealed class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (1,19): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // file partial enum C { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "C").WithLocation(1, 19)
             });

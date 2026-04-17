@@ -7261,7 +7261,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.</source>
+        <source>The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.</source>
         <target state="translated">Modifikátor partial se může objevit pouze bezprostředně před klíčovým slovem class, record, struct, interface, event, názvem konstruktoru instance nebo návratovým typem metody či vlastnosti.</target>
         <note />
       </trans-unit>
