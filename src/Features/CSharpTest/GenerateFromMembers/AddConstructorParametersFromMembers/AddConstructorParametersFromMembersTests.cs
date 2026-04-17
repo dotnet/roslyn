@@ -2437,13 +2437,7 @@ public sealed class AddConstructorParametersFromMembersTests
             CodeActionIndex = 1
         }.RunAsync();
 
-<<<<<<< Updated upstream
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
-||||||| Stash base
-    [ConditionalFact(typeof(WindowsOnly), Reason = "Mixed line endings cause failures on Unix")]
-=======
     [Fact]
->>>>>>> Stashed changes
     [WorkItem("https://github.com/dotnet/roslyn/issues/60816")]
     public Task TestAddMultipleParametersWithWrapping()
         => new VerifyCS.Test
