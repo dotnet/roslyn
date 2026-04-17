@@ -6595,6 +6595,143 @@ public class U<T>
         }
 
         [Fact]
+        public void UnionMatching_50_Direct_Value_Matching()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(10)));
+        System.Console.Write(Test1(default(S1)));
+        System.Console.Write(Test1(new S1(""11"")));
+        System.Console.Write(Test1(new S1(0)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test2(new S1(10)));
+        System.Console.Write(Test2(default(S1)));
+        System.Console.Write(Test2(new S1(""11"")));
+        System.Console.Write(Test2(new S1(0)));
+        System.Console.Write(Test2(new S1(11)));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test3(new S1(11)));
+        System.Console.Write(Test3(default(S1)));
+        System.Console.Write(Test3(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test4(new S1(11)));
+        System.Console.Write(Test4(default(S1)));
+        System.Console.Write(Test4(new S1(""11"")));
+
+        System.Console.Write(' ');
+        System.Console.Write(Test5(new S1(10)));
+        System.Console.Write(Test5(default(S1)));
+        System.Console.Write(Test5(new S1(""11"")));
+        System.Console.Write(Test5(new S1(0)));
+        System.Console.Write(Test5(null));
+    }
+
+    static bool Test1(object u)
+    {
+        return u is S1 { Value: 10 };
+    }   
+
+    static bool Test2(object u)
+    {
+        return u is S1 { Value: 10 or 11 };
+    }   
+
+    static bool Test3(object u)
+    {
+        return u is S1 { Value: ""11"" and ['1', '1'] };
+    }   
+
+    static bool Test4(object u)
+    {
+        return u is S1 { Value: null };
+    }   
+
+    static bool Test5(object u)
+    {
+        return u is S1 { Value: 10 };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("Program.Test1", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (S1 V_0,
+            object V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""S1""
+  IL_0006:  brfalse.s  IL_002a
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""S1""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""object S1.Value.get""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  isinst     ""int""
+  IL_001d:  brfalse.s  IL_002a
+  IL_001f:  ldloc.1
+  IL_0020:  unbox.any  ""int""
+  IL_0025:  ldc.i4.s   10
+  IL_0027:  ceq
+  IL_0029:  ret
+  IL_002a:  ldc.i4.0
+  IL_002b:  ret
+}
+");
+            verifier.VerifyIL("Program.Test5", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (S1 V_0,
+            object V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""S1""
+  IL_0006:  brfalse.s  IL_002a
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""S1""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""object S1.Value.get""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  isinst     ""int""
+  IL_001d:  brfalse.s  IL_002a
+  IL_001f:  ldloc.1
+  IL_0020:  unbox.any  ""int""
+  IL_0025:  ldc.i4.s   10
+  IL_0027:  ceq
+  IL_0029:  ret
+  IL_002a:  ldc.i4.0
+  IL_002b:  ret
+}
+");
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+            comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void PatternWrongType_TypePattern_01_BindConstantPatternWithFallbackToTypePattern_UnionType_Out_UnionType_In()
         {
             var src1 = @"
@@ -8655,6 +8792,44 @@ class Program
         }
 
         [Fact]
+        public void PatternWrongType_Direct_Value_Matching()
+        {
+            var src1 = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(bool x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => _value;
+}
+";
+            var src2 = @"
+class Program
+{
+    static void Test4(object u)
+    {
+        _ = u is S1 { Value: System.IComparable };
+        _ = u is S1 { Value: bool };
+        _ = u is S1 { Value: string };
+        _ = u is S1 { Value: object };
+#line 100
+        _ = u is S1 { Value: long };
+
+        _ = u is S1 { Value: true };
+#line 200
+        _ = u is S1 { Value: 1 };
+        _ = u is S1 { Value: ""a"" };
+    } 
+}
+";
+            var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
+
+            // PROTOTYPE: Should we report errors for patterns of wrong type agains Value property?
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Exhaustiveness_01()
         {
             var src = @"
@@ -9614,6 +9789,168 @@ class Program
                 // (600,38): hidden CS9335: The pattern is redundant.
                 //         return u switch { null => 3, int => 1 };
                 Diagnostic(ErrorCode.HDN_RedundantPattern, "int").WithLocation(600, 38)
+                );
+        }
+
+        [Fact]
+        public void Exhaustiveness_15_Direct_Value_Matching()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+#nullable enable
+    public S1(string? x) { _value = x; }
+#nullable disable
+    public object Value => _value;
+}
+
+class Program
+{
+    static int Test1(object u)
+    {
+#line 100
+        return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, S1 { Value: null } => 3, not S1 => -100 };
+    } 
+
+    static int Test2(object u)
+    {
+#line 200
+        return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, S1 { Value: string } => 2, not S1 => -100 };
+    } 
+
+    static int Test3(object u)
+    {
+#line 300
+        return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
+    } 
+
+    static int Test4(object u)
+    {
+#line 400
+        return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
+    }   
+
+    static int Test5(object u)
+    {
+#nullable enable
+#line 500
+        return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
+#nullable disable
+    }   
+
+    static int Test6(object u)
+    {
+#line 600
+        return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, not S1 => -100 };
+    }   
+
+    static int Test7(object u)
+    {
+#line 700
+        return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, not S1 => -100 };
+    }   
+
+    static int Test8(object u)
+    {
+#line 800
+        return u switch { S1 { Value: int } => 1, not S1 => -100 };
+    }   
+
+    static int Test9(object u)
+    {
+#line 900
+        return u switch { S1 { Value: not int } => 1, not S1 => -100 };
+    }   
+
+    static int Test10(object u)
+    {
+#line 1000
+        return u switch {  S1 { Value: null } => 3, S1 { Value: not int } => 1, not S1 => -100 };
+    }   
+
+    static int Test11(object u)
+    {
+#line 1100
+        return u switch { S1 { Value: not null } => 1, not S1 => -100 };
+    } 
+
+    static int Test11_5(object u)
+    {
+#nullable enable
+#line 1150
+        return u switch { S1 { Value: not null } => 1, not S1 => -100 };
+#nullable disable
+    } 
+
+    static int Test12(object u)
+    {
+#line 1200
+        return u switch { S1 { Value: null } => 3, S1 { Value: not null } => 1, not S1 => -100 };
+    } 
+
+    static int Test13(object u)
+    {
+#line 1300
+        return u switch { S1 { Value: not null } => 3, S1 { Value: null } => 1, not S1 => -100 };
+    } 
+
+    static int Test14(object u)
+    {
+#line 1400
+        return u switch { S1 { Value: { } } => 1, S1 { Value: null } => 3, not S1 => -100 };
+    } 
+
+    static int Test15(object u)
+    {
+#line 1500
+        return u switch { S1 { Value: null } => 3, S1 { Value: var x } => 1, not S1 => -100 };
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            CompileAndVerify(comp).VerifyDiagnostics(
+                // (100,90): hidden CS9335: The pattern is redundant.
+                //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, S1 { Value: null } => 3, not S1 => -100 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(100, 90),
+                // (200,88): hidden CS9335: The pattern is redundant.
+                //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, S1 { Value: string } => 2, not S1 => -100 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(200, 88),
+                // (300,88): hidden CS9335: The pattern is redundant.
+                //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "string").WithLocation(300, 88),
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { S1 { Value: int } => 1, S1 { Value: string } => 2, not S1 => -100 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { S1 { Value: int } => 1, S1 { Value: null } => 3, not S1 => -100 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(600, 18),
+                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { S1 { Value: null } => 3, S1 { Value: int } => 1, not S1 => -100 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(700, 18),
+                // (800,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+                //         return u switch { S1 { Value: int } => 1, not S1 => -100 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(800, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                //         return u switch { S1 { Value: not int } => 1, not S1 => -100 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(900, 18),
+                // (1000,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+                //         return u switch {  S1 { Value: null } => 3, S1 { Value: not int } => 1, not S1 => -100 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(1000, 18),
+                // (1150,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { S1 { Value: not null } => 1, not S1 => -100 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(1150, 18),
+                // (1200,68): hidden CS9335: The pattern is redundant.
+                //         return u switch { S1 { Value: null } => 3, S1 { Value: not null } => 1, not S1 => -100 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1200, 68),
+                // (1300,68): hidden CS9335: The pattern is redundant.
+                //         return u switch { S1 { Value: not null } => 3, S1 { Value: null } => 1, not S1 => -100 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1300, 68),
+                // (1400,63): hidden CS9335: The pattern is redundant.
+                //         return u switch { S1 { Value: { } } => 1, S1 { Value: null } => 3, not S1 => -100 };
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(1400, 63)
                 );
         }
 
@@ -24691,6 +25028,161 @@ struct S1
   IL_000c:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_78_HasValue_Struct_Direct_Value_Matching()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value => throw null;
+    public bool HasValue => _value != null;
+
+    static void Main()
+    {
+        System.Console.Write(Test1(new S1(1)));
+        System.Console.Write(Test1(new S1()));
+        System.Console.Write(Test2(new S1(2)));
+        System.Console.Write(Test2(new S1()));
+    }
+
+    static bool Test1(object u)
+    {
+        return u is S1 { Value: null };
+    }   
+
+    static bool Test2(object u)
+    {
+        return u is S1 { Value: not null };
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""S1""
+  IL_0006:  brfalse.s  IL_001a
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""S1""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""bool S1.HasValue.get""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ceq
+  IL_0019:  ret
+  IL_001a:  ldc.i4.0
+  IL_001b:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""S1""
+  IL_0006:  brfalse.s  IL_0017
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""S1""
+  IL_000e:  stloc.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""bool S1.HasValue.get""
+  IL_0016:  ret
+  IL_0017:  ldc.i4.0
+  IL_0018:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NonBoxingUnionMatching_79_TryGetValue_Direct_Value_Matching()
+        {
+            var src = @"
+[System.Runtime.CompilerServices.Union]
+struct S1
+{
+    private readonly object _value;
+    public S1(int x) { _value = x; }
+    public S1(string x) { _value = x; }
+    public object Value
+    {
+        get
+        {
+            System.Console.Write(""get_Value "");
+            return _value;
+        }
+    }
+
+    public bool HasValue
+    {
+        get
+        {
+            System.Console.Write(""HasValue "");
+            return _value != null;
+        }
+    }
+
+    public bool TryGetValue(out int x)
+    {
+        System.Console.Write(""TryGetValue(int) "");
+        if (_value is int v)
+        {
+            x = v;
+            return true;
+        }
+
+        x = 0;
+        return false;
+    }
+
+    public bool TryGetValue(out string x)
+    {
+        System.Console.Write(""TryGetValue(string) "");
+        x = _value as string;
+        return x != null;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Test1((new S1(1), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(1), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(), 3)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 1)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 2)));
+        System.Console.Write(""; "");
+        System.Console.Write(Test1((new S1(""a""), 3)));
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (S1 { Value: string }, 2) or (S1 { Value: int }, 1);
+    }   
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "TryGetValue(string) TryGetValue(int) True; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) TryGetValue(int) False; TryGetValue(string) False; TryGetValue(string) True; TryGetValue(string) False").VerifyDiagnostics();
         }
 
         [Fact]
