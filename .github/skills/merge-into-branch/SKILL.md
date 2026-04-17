@@ -102,6 +102,22 @@ Review and stage any generated changes before finishing the merge.
 
 Resolve any remaining conflicts carefully using the repo's existing code patterns. Avoid unrelated cleanup or opportunistic edits during the merge.
 
+#### 3e. Validate the merge after conflict resolution
+
+Before presenting the summary or creating the merge commit, run a validating build with analyzers enabled to make sure the merge did not introduce new issues:
+
+```bash
+./build.sh --runAnalyzers
+```
+
+On Windows, use:
+
+```powershell
+.\Build.cmd -runAnalyzers
+```
+
+If this build reports new issues caused by the merge, resolve them before continuing.
+
 ### 4. Present the summary and ask for confirmation
 
 Once all conflicts are resolved and staged, present a concise but specific summary that includes:
@@ -113,7 +129,8 @@ Once all conflicts are resolved and staged, present a concise but specific summa
    - `.resx` → manually merged to preserve all strings and updated XLFs
    - `src/Compilers` → reran compiler code generation
    - other files → briefly describe the manual resolution
-4. A diff summary using commands such as:
+4. The result of the post-merge validation build/analyzer run.
+5. A diff summary using commands such as:
 
 ```bash
 git status --short
