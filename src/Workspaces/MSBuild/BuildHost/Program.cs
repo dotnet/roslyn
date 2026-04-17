@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -44,7 +45,10 @@ internal static class Program
         AbstractBuildHost buildHost;
 
 #if NETFRAMEWORK
-        buildHost = new NetFrameworkBuildHost(logger, server);
+        if (PlatformInformation.IsRunningOnMono)
+            buildHost = new MonoBuildHost(logger, server);
+        else
+            buildHost = NetFrameworkBuildHost.Create(logger, server);
 #else
         buildHost = new NetCoreBuildHost(logger, server);
 #endif

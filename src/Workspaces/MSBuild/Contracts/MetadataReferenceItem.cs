@@ -8,6 +8,9 @@ using System.Runtime.Serialization;
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 [DataContract]
+#if NETFRAMEWORK
+[System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
+#endif
 internal readonly record struct MetadataReferenceItem(
     [property: DataMember(Order = 0)] string Path,
     [property: DataMember(Order = 1)] ImmutableArray<string> Aliases

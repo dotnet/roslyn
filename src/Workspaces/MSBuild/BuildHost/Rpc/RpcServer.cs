@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// are out. If at some point there is a standard RPC mechanism exposed in .NET or Source Build, we should delete this and use that instead.
 /// </remarks>
 internal sealed class RpcServer
+#if NETFRAMEWORK
+    : MarshalByRefObject
+#endif
 {
     private readonly TextWriter _streamWriter;
     private readonly SemaphoreSlim _sendingStreamSemaphore = new(initialCount: 1);

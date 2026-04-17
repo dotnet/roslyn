@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// Represents a reference to another project file.
 /// </summary>
 [DataContract]
+#if NETFRAMEWORK
+[System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
+#endif
 internal sealed class ProjectFileReference
 {
     /// <summary>

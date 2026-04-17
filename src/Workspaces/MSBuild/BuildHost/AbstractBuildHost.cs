@@ -15,7 +15,11 @@ using Microsoft.Build.Logging;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal abstract class AbstractBuildHost : IBuildHost
+internal abstract class AbstractBuildHost :
+#if NETFRAMEWORK
+    MarshalByRefObject, // We need this object to pass across the AppDomain boundary when on .NET Framework
+#endif
+    IBuildHost
 {
     private readonly RpcServer _server;
     private readonly object _gate = new();

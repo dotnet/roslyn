@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// the information from a single target framework.
 /// </summary>
 [DataContract]
+#if NETFRAMEWORK
+[System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
+#endif
 internal sealed record ProjectFileInfo
 {
     [DataMember]

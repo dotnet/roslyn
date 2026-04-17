@@ -18,7 +18,11 @@ internal sealed class ProjectFile(
     string language,
     MSB.Evaluation.Project? project,
     ProjectBuildManager buildManager,
-    DiagnosticLog log) : IProjectFile
+    DiagnosticLog log) :
+#if NETFRAMEWORK
+    MarshalByRefObject, // We need this object to pass across the AppDomain boundary when on .NET Framework
+#endif
+    IProjectFile
 {
     private readonly ProjectCommandLineProvider? _commandLineProvider = ProjectCommandLineProvider.TryCreate(language, buildManager.KnownCommandLineParserLanguages);
 
