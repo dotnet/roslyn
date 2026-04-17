@@ -4650,7 +4650,7 @@ unsafe class C
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/50765")]
     public Task TestDelegateConstructorWithMissingType()
         => TestAsync("""
