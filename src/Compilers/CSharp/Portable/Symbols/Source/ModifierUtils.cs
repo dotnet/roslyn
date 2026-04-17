@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasExplicitAccessModifier)
         {
             var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
-            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
+            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, scopedKeywordLocation: null, out modifierErrors);
 
             var readonlyToken = modifiers.FirstOrDefault(SyntaxKind.ReadOnlyKeyword);
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
@@ -36,18 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return result;
         }
-
-        internal static DeclarationModifiers CheckModifiers(
-            bool isForTypeDeclaration,
-            bool isForInterfaceMember,
-            DeclarationModifiers modifiers,
-            DeclarationModifiers allowedModifiers,
-            Location errorLocation,
-            BindingDiagnosticBag diagnostics,
-            SyntaxTokenList? modifierTokens,
-            out bool modifierErrors)
-            => CheckModifiers(isForTypeDeclaration, isForInterfaceMember, modifiers, allowedModifiers, errorLocation,
-                diagnostics, modifierTokens, scopedKeywordLocation: null, out modifierErrors);
 
         internal static DeclarationModifiers CheckModifiers(
             bool isForTypeDeclaration,
