@@ -2187,7 +2187,7 @@ partial void Goo(){};
 partial enum @en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,14): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial enum @en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "@en").WithLocation(2, 14));
         }
