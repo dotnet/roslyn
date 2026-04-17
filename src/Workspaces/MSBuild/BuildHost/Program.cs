@@ -41,7 +41,15 @@ internal static class Program
 
         var server = new RpcServer(pipeServer);
 
-        var targetObject = server.AddTarget(new BuildHost(logger, server));
+        AbstractBuildHost buildHost;
+
+#if NETFRAMEWORK
+        buildHost = new NetFrameworkBuildHost(logger, server);
+#else
+        buildHost = new NetCoreBuildHost(logger, server);
+#endif
+
+        var targetObject = server.AddTarget(buildHost);
         Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");
 
         await server.RunAsync().ConfigureAwait(false);
