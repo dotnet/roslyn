@@ -1658,16 +1658,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 this.EatToken();
             }
 
-            return IsAtPartialCapableDeclarationHead();
-        }
+            // We're now positioned at what should be the declaration head.  Return true if the
+            // current token begins a declaration for which 'partial' is a plausible modifier.
 
-        /// <summary>
-        /// Assumes the current token is positioned at what should be the declaration head (after
-        /// any modifier tokens have been skipped past).  Returns true if the current token begins
-        /// a declaration for which <c>partial</c> is a plausible modifier.
-        /// </summary>
-        private bool IsAtPartialCapableDeclarationHead()
-        {
             var kind = this.CurrentToken.Kind;
             var contextualKind = this.CurrentToken.ContextualKind;
 
