@@ -78,10 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // 'scoped' is not a valid modifier on a method. When the parser folds a leading
             // 'scoped' into the declared return type (mirroring how 'ref' return types are
             // handled), we surface the same "modifier 'scoped' is not valid for this item"
-            // diagnostic that used to come from modifier-list validation.
-            if (syntax.ReturnType is ScopedTypeSyntax)
+            // diagnostic that used to come from modifier-list validation, pointed at the
+            // 'scoped' keyword itself.
+            if (syntax.ReturnType is ScopedTypeSyntax { ScopedKeyword: var scopedKeyword })
             {
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ScopedKeyword));
             }
 
             if (syntax.Arity == 0)

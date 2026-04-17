@@ -11676,12 +11676,12 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (4,21): error CS0106: The modifier 'scoped' is not valid for this item
+                // (4,12): error CS0106: The modifier 'scoped' is not valid for this item
                 //     static scoped R F1<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("scoped").WithLocation(4, 21),
-                // (5,25): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(4, 12),
+                // (5,12): error CS0106: The modifier 'scoped' is not valid for this item
                 //     static scoped ref R F2<T>() => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("scoped").WithLocation(5, 25),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(5, 12),
                 // (9,16): error CS0106: The modifier 'scoped' is not valid for this item
                 //         static scoped R L1<T>() => throw null;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(9, 16),
@@ -11852,15 +11852,15 @@ readonly scoped record struct C();
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
             comp.VerifyDiagnostics(
+                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
                 // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
-                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
@@ -11912,15 +11912,15 @@ readonly scoped record struct C();
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
             comp.VerifyDiagnostics(
+                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
+                // scoped record A { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
                 // (1,8): error CS0118: 'record' is a variable but is used like a type
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
                 // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
-                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
@@ -12043,18 +12043,18 @@ ref struct R2
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (4,15): error CS0106: The modifier 'scoped' is not valid for this item
+                // (4,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P1 { get; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("scoped").WithLocation(4, 15),
-                // (5,15): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(4, 5),
+                // (5,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P2 { get; init; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P2").WithArguments("scoped").WithLocation(5, 15),
-                // (6,15): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(5, 5),
+                // (6,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped R1 P3 { set { } }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P3").WithArguments("scoped").WithLocation(6, 15),
-                // (7,20): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 5),
+                // (7,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped ref int P5 => throw null;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("scoped").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(7, 5));
             verify(comp);
 
             static void verify(CSharpCompilation comp)
