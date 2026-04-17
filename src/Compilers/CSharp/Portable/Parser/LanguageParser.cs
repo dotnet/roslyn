@@ -1387,22 +1387,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 switch (newMod)
                 {
                     case DeclarationModifiers.Partial:
-                        var nextToken = PeekToken(1);
-                        if (this.IsPartialType() || this.IsPartialMember())
+                        // 'partial' is a contextual keyword.  Accept it as a modifier whenever the rest of the
+                        // modifier list, followed by the actual declaration head, clearly identifies a
+                        // partial-capable type declaration or member declaration.  Historically 'partial' was
+                        // required to be the last modifier; that restriction is now enforced (with feature
+                        // gating) by the binder in ModifierUtils.ToDeclarationModifiers.
+                        if (this.IsPartialModifierInDeclarationHead())
                         {
-                            // Standard legal cases.
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (nextToken.Kind == SyntaxKind.NamespaceKeyword)
-                        {
-                            // Error reported in binding
-                            modTok = ConvertToKeyword(this.EatToken());
-                        }
-                        else if (
-                            nextToken.Kind is SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword ||
-                            (IsPossibleStartOfTypeDeclaration(nextToken.Kind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None))
-                        {
-                            // Error reported in ModifierUtils.
                             modTok = ConvertToKeyword(this.EatToken());
                         }
                         else
@@ -1627,6 +1618,92 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static bool IsNonContextualModifier(SyntaxToken nextToken)
         {
             return !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind) && GetModifierExcludingScoped(nextToken) != DeclarationModifiers.None;
+        }
+
+        /// <summary>
+        /// Returns true when the current <c>partial</c> token should be consumed as a declaration
+        /// modifier, considering that it may be interleaved with other modifier tokens.  This performs
+        /// a lookahead that skips past any following modifier tokens and then checks whether the
+        /// remaining tokens form the head of a partial-capable declaration (type declaration,
+        /// partial event/constructor/method/property, or an error-reported-later construct like
+        /// <c>namespace</c>, <c>enum</c>, or <c>delegate</c>).
+        /// </summary>
+        /// <remarks>
+        /// This is intentionally permissive at the parse layer.  The binder
+        /// (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils.ToDeclarationModifiers"/>)
+        /// is responsible for reporting diagnostics when <c>partial</c> is misplaced or when the
+        /// relaxed ordering feature is not available for the declared language version.
+        /// </remarks>
+        private bool IsPartialModifierInDeclarationHead()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
+
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            // Eat 'partial' and then any subsequent modifier tokens.  We want to allow 'partial' to
+            // appear anywhere in the modifier list, so we scan past all remaining modifier tokens
+            // (including other contextual modifier keywords like 'async', 'required', 'file', or
+            // additional 'partial' tokens) to reach the actual declaration head.
+            this.EatToken();
+            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+            {
+                this.EatToken();
+            }
+
+            return IsAtPartialCapableDeclarationHead();
+        }
+
+        /// <summary>
+        /// Assumes the current token is positioned at what should be the declaration head (after
+        /// any modifier tokens have been skipped past).  Returns true if the current token begins
+        /// a declaration for which <c>partial</c> is a plausible modifier.
+        /// </summary>
+        private bool IsAtPartialCapableDeclarationHead()
+        {
+            var kind = this.CurrentToken.Kind;
+            var contextualKind = this.CurrentToken.ContextualKind;
+
+            // Type declarations where 'partial' is legal.
+            if (kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword)
+            {
+                return true;
+            }
+
+            switch (contextualKind)
+            {
+                case SyntaxKind.RecordKeyword:
+                    return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+
+                case SyntaxKind.UnionKeyword:
+                    return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+            }
+
+            // Constructs where 'partial' is illegal but we still want to consume it so the binder
+            // can produce a targeted diagnostic instead of cascading parse errors.
+            if (kind is SyntaxKind.NamespaceKeyword or SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword)
+            {
+                return true;
+            }
+
+            // Partial members.
+
+            // 'partial event ...'
+            if (kind == SyntaxKind.EventKeyword)
+            {
+                return true;
+            }
+
+            // 'partial Identifier(...' -- partial constructor.
+            if (kind == SyntaxKind.IdentifierToken &&
+                this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+            {
+                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
+            }
+
+            // 'partial ReturnType MemberName ...' -- partial method or property.  We reuse ScanType
+            // (inside a reset-point, so the advance is local) to determine whether this looks like
+            // a member declaration head.
+            return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
         }
 
         private bool IsPartialType()
