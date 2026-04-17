@@ -1007,12 +1007,15 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
 
-        var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal("C", classC.ToTestDisplayString());
-        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        static void verify(ModuleSymbol module)
+        {
+            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C", classC.ToTestDisplayString());
+            Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
     }
 
     [Fact]
@@ -1027,23 +1030,26 @@ public sealed class ClosedClassesTests : CSharpTestBase
             class D2 : C<int> { }
             """;
 
-        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyEmitDiagnostics();
+        var verifier = CompileAndVerify([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, sourceSymbolValidator: verify, symbolValidator: verify);
+        verifier.VerifyDiagnostics();
 
-        var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal("C<T>", classC.ToTestDisplayString());
-        // Note: 'D2' is included in the set, because its base type 'C<int>' can unify with 'C<T>'.
-        // For example, if we encounter a value of type 'C<U>' where U is some unconstrained generic,
-        // then it's possible the value is also a 'D2'. i.e. 'U' could be substituted with 'int' at runtime.
-        Assert.Equal(["D1<T>", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        void verify(ModuleSymbol module)
+        {
+            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C<T>", classC.ToTestDisplayString());
+            // Note: 'D2' is included in the set, because its base type 'C<int>' can unify with 'C<T>'.
+            // For example, if we encounter a value of type 'C<U>' where U is some unconstrained generic,
+            // then it's possible the value is also a 'D2'. i.e. 'U' could be substituted with 'int' at runtime.
+            Assert.Equal(["D1<T>", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
 
-        var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
-        Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
-        Assert.Equal(["D1<System.Int32>", "D2"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+            var cOfInt = classC.Construct(module.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
+            Assert.Equal(["D1<System.Int32>", "D2"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
 
-        var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
-        Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
-        Assert.Equal(["D1<System.String>"], cOfString.ClosedSubtypes.ToTestDisplayStrings());
+            var cOfString = classC.Construct(module.DeclaringCompilation.GetSpecialType(SpecialType.System_String));
+            Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
+            Assert.Equal(["D1<System.String>"], cOfString.ClosedSubtypes.ToTestDisplayStrings());
+        }
     }
 
     [Fact]

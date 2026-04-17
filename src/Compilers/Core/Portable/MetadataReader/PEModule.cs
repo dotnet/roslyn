@@ -897,8 +897,15 @@ namespace Microsoft.CodeAnalysis
             foreach (var subtypeHandle in MetadataReader.TypeDefinitions)
             {
                 var subtype = MetadataReader.GetTypeDefinition(subtypeHandle);
-                var candidateBaseType = subtype.BaseType;
-                if (candidateBaseType == baseTypeHandle)
+                // TODO2: this is probably wrong for generics.
+                // CAn/should we dig thru TypeSpecs to find
+                var candidateBaseTypeHandle = subtype.BaseType;
+                if (candidateBaseTypeHandle.Kind == HandleKind.TypeSpecification)
+                {
+                    var typeSpec = MetadataReader.GetTypeSpecification(candidateBaseTypeHandle);
+                    typeSpec.DecodeSignature();
+                }
+                if (candidateBaseTypeHandle == baseTypeHandle)
                     subtypesBuilder.Add(subtypeHandle);
             }
         }
