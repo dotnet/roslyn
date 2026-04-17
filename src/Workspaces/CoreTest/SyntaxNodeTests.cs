@@ -147,8 +147,6 @@ public sealed partial class SyntaxNodeTests : TestBase
     public void FindTokenOnLeftOfPosition_AtStartOfFile_ReturnsDefault()
     {
         var root = GetRootForFindTokenTests();
-
-        // position at the start of the file (== FullSpan.Start) has no token to the left
         var token = root.FindTokenOnLeftOfPosition(root.FullSpan.Start);
         Assert.Equal(default, token);
     }
@@ -157,8 +155,6 @@ public sealed partial class SyntaxNodeTests : TestBase
     public void FindTokenOnLeftOfPosition_AtEof_ReturnsLastToken()
     {
         var root = GetRootForFindTokenTests();
-
-        // position at the end of the file returns the last real token
         var token = root.FindTokenOnLeftOfPosition(root.FullSpan.End);
         Assert.NotEqual(default, token);
         Assert.Equal(")", token.Text);
