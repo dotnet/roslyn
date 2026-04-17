@@ -1629,9 +1629,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsAtPartialCapableDeclarationHead()
         {
-            if (IsAtTypeOrNamespaceDeclarationHead())
+            if (CheckAtTypeOrNamespaceDeclarationHead(out var isDeclarationHead))
             {
-                return true;
+                return isDeclarationHead;
             }
 
             // Partial members.
@@ -1717,9 +1717,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // At the end of the modifier chain, 'ref' is a type modifier if we're at a type
             // declaration head.  Whether the specific type kind actually accepts 'ref' (only
             // struct/record struct/union do) is the binder's concern.
-            if (IsAtTypeOrNamespaceDeclarationHead())
+            if (CheckAtTypeOrNamespaceDeclarationHead(out var isDeclarationHead))
             {
-                return true;
+                return isDeclarationHead;
             }
 
             // Otherwise we did not land on a type-decl keyword.  If we got here by skipping pure
@@ -1732,13 +1732,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         /// <summary>
         /// Assumes the current token is positioned at what should be the declaration head (after
-        /// any modifier tokens have been skipped past).  Returns true if the current token begins
-        /// a type-like declaration (type, namespace, enum, delegate).  We accept the broader set
-        /// -- including positions where a given modifier is not actually legal -- so that the
-        /// binder can report targeted diagnostics for things like <c>ref class</c> or
-        /// <c>partial namespace</c> instead of surfacing cascading parse errors.
+        /// any modifier tokens have been skipped past).  Tells the caller whether this position
+        /// is a conclusive signal about the enclosing modifier parse.
+        /// <para>
+        /// Returns <see langword="true"/> if the position is conclusive: either we are at a type
+        /// or namespace declaration head (<paramref name="isDeclarationHead"/> is set to
+        /// <see langword="true"/>), or we are at a <c>record</c>/<c>union</c> contextual keyword
+        /// whose feature is disabled (<paramref name="isDeclarationHead"/> is set to
+        /// <see langword="false"/>).  In the latter case the caller should decline to commit to
+        /// the enclosing modifier parse: the user is almost certainly trying to declare a type
+        /// and we want the ordinary feature-availability diagnostic to surface downstream rather
+        /// than producing a surprising member/expression parse.
+        /// </para>
+        /// <para>
+        /// Returns <see langword="false"/> if we did not land on a type-decl keyword at all; in
+        /// that case the caller must decide based on its own context.
+        /// </para>
+        /// <para>
+        /// We accept the broader set of type-decl keywords here -- including positions where a
+        /// given modifier is not actually legal -- so that the binder can report targeted
+        /// diagnostics for things like <c>ref class</c> or <c>partial namespace</c> instead of
+        /// surfacing cascading parse errors.
+        /// </para>
         /// </summary>
-        private bool IsAtTypeOrNamespaceDeclarationHead()
+        private bool CheckAtTypeOrNamespaceDeclarationHead(out bool isDeclarationHead)
         {
             switch (this.CurrentToken.Kind)
             {
@@ -1748,6 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.DelegateKeyword:
+                    isDeclarationHead = true;
                     return true;
             }
 
@@ -1758,14 +1776,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     // langversion does not support a feature, but in this case we are effectively making
                     // a language breaking change to consider "record" a type declaration in all ambiguous
                     // cases.  To avoid breaking older code that is not using C# 9 we conditionally parse
-                    // based on langversion.
-                    return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    // based on langversion.  Either way the answer is conclusive for the enclosing
+                    // modifier parse.
+                    isDeclarationHead = IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    return true;
 
                 case SyntaxKind.UnionKeyword:
                     // Same rationale as for "record" above; conditional on the C# 15 unions feature.
-                    return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                    isDeclarationHead = IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                    return true;
             }
 
+            isDeclarationHead = false;
             return false;
         }
 
