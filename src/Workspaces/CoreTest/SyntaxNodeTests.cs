@@ -124,4 +124,72 @@ public sealed partial class SyntaxNodeTests : TestBase
         Assert.NotNull(finalMethodDecl);
         Assert.NotEqual(finalMethodDecl, methodDecl);
     }
+
+    private static SyntaxNode GetRootForFindTokenTests()
+    {
+        var tree = SyntaxFactory.ParseSyntaxTree("Console.WriteLine()");
+        return tree.GetRoot();
+    }
+
+    [Fact]
+    public void FindTokenOnRightOfPosition_ReturnsDefaultAtEndOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+
+        // position at the end of the file (== FullSpan.End) has no token to the right
+        var token = root.FindTokenOnRightOfPosition(root.FullSpan.End);
+        Assert.Equal(default, token);
+    }
+
+    [Fact]
+    public void FindTokenOnRightOfPosition_ReturnsDefaultPastEndOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+
+        // position past the end of the file also has no token to the right
+        var token = root.FindTokenOnRightOfPosition(root.FullSpan.End + 1);
+        Assert.Equal(default, token);
+    }
+
+    [Fact]
+    public void FindTokenOnRightOfPosition_ReturnsTokenAtStartOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+
+        // position at the start of the file returns the first real token
+        var token = root.FindTokenOnRightOfPosition(0);
+        Assert.NotEqual(default, token);
+        Assert.Equal("Console", token.Text);
+    }
+
+    [Fact]
+    public void FindTokenOnLeftOfPosition_ReturnsDefaultAtStartOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+
+        // position at the start of the file (== FullSpan.Start) has no token to the left
+        var token = root.FindTokenOnLeftOfPosition(root.FullSpan.Start);
+        Assert.Equal(default, token);
+    }
+
+    [Fact]
+    public void FindTokenOnLeftOfPosition_ReturnsDefaultPastEndOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+
+        // position past the end of the file has no token to the left
+        var token = root.FindTokenOnLeftOfPosition(root.FullSpan.End + 1);
+        Assert.Equal(default, token);
+    }
+
+    [Fact]
+    public void FindTokenOnLeftOfPosition_ReturnsLastTokenAtEndOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+
+        // position at the end of the file returns the last real token
+        var token = root.FindTokenOnLeftOfPosition(root.FullSpan.End);
+        Assert.NotEqual(default, token);
+        Assert.Equal(")", token.Text);
+    }
 }
