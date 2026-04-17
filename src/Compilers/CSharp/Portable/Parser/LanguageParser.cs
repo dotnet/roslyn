@@ -1345,11 +1345,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements, out bool isPossibleTypeDeclaration)
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements)
         {
             Debug.Assert(!(forAccessors && forTopLevelStatements));
 
-            isPossibleTypeDeclaration = true;
+            // 'scoped' is not parsed here. It is not a declaration modifier -- it is a type prefix
+            // that wraps the declared type in a ScopedType node. Callers consume it explicitly just
+            // before parsing the declaration's type. See ParseMemberDeclarationCore and
+            // ParseMemberDeclarationOrStatementCore.
 
             while (true)
             {
@@ -1358,17 +1361,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 Debug.Assert(newMod != DeclarationModifiers.Scoped);
                 if (newMod == DeclarationModifiers.None)
                 {
-                    if (!forAccessors)
-                    {
-                        SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
-
-                        if (scopedKeyword != null)
-                        {
-                            isPossibleTypeDeclaration = false;
-                            tokens.Add(scopedKeyword);
-                        }
-                    }
-
                     break;
                 }
 
@@ -2726,8 +2718,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // All modifiers that might start an expression are processed above.
-                bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: true, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: true);
                 bool haveModifiers = (modifiers.Count > 0);
                 MemberDeclarationSyntax result;
 
@@ -2803,12 +2794,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // It's valid to have a type declaration here -- check for those
-                if (isPossibleTypeDeclaration && IsTypeDeclarationStart())
+                if (IsTypeDeclarationStart())
                 {
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
 
+                // 'scoped' is a type-prefix, not a modifier.  Consume it here so the resulting type is
+                // wrapped in a ScopedType node (matching how ParseLocalDeclaration handles it).
+                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
+
                 TypeSyntax type = ParseReturnType();
+                if (scopedKeyword != null)
+                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -3313,8 +3310,7 @@ parse_member_name:;
             {
                 var attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
 
-                bool isPossibleTypeDeclaration;
-                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false, out isPossibleTypeDeclaration);
+                this.ParseModifiers(modifiers, forAccessors: false, forTopLevelStatements: false);
 
                 if (IsExtensionContainerStart())
                 {
@@ -3361,15 +3357,21 @@ parse_member_name:;
                 // Namespaces should be handled by the caller, not checking for them
 
                 // It's valid to have a type declaration here -- check for those
-                if (isPossibleTypeDeclaration && IsTypeDeclarationStart())
+                if (IsTypeDeclarationStart())
                 {
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
+
+                // 'scoped' is a type-prefix, not a modifier.  Consume it here so the resulting type
+                // is wrapped in a ScopedType node (matching how ParseLocalDeclaration handles it).
+                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
 
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void).
                 TypeSyntax type = ParseReturnType();
+                if (scopedKeyword != null)
+                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -4725,7 +4727,7 @@ parse_member_name:;
             var accMods = _pool.Allocate();
 
             var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: false);
-            this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false, isPossibleTypeDeclaration: out _);
+            this.ParseModifiers(accMods, forAccessors: true, forTopLevelStatements: false);
 
             var accessorName = this.EatToken(SyntaxKind.IdentifierToken,
                 declaringKind == AccessorDeclaringKind.Event ? ErrorCode.ERR_AddOrRemoveExpected : ErrorCode.ERR_GetOrSetExpected);
@@ -5288,14 +5290,6 @@ parse_member_name:;
             SyntaxKind parentKind)
         {
             var variables = this.ParseFieldDeclarationVariableDeclarators(type, flags: VariableFlags.LocalOrField, parentKind);
-
-            // Make 'scoped' part of the type when it is the last token in the modifiers list
-            if (modifiers is [.., SyntaxToken { Kind: SyntaxKind.ScopedKeyword } scopedKeyword])
-            {
-                type = _syntaxFactory.ScopedType(scopedKeyword, type);
-                modifiers.RemoveLast();
-            }
-
             return _syntaxFactory.FieldDeclaration(
                 attributes,
                 modifiers.ToList(),
@@ -9712,25 +9706,9 @@ done:
 
                 // Here can be either a declaration or an expression statement list.  Scan
                 // for a declaration first.
-                bool isDeclaration = false;
-
-                if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
-                {
-                    if (this.PeekToken(1).Kind == SyntaxKind.RefKeyword)
-                    {
-                        isDeclaration = true;
-                    }
-                    else
-                    {
-                        this.EatToken();
-                        isDeclaration = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-                        resetPoint.Reset();
-                    }
-                }
-                else if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
-                {
-                    isDeclaration = true;
-                }
+                bool isDeclaration =
+                    IsDefiniteScopedModifier(isFunctionPointerParameter: false, isLambdaParameter: false) ||
+                    this.CurrentToken.Kind == SyntaxKind.RefKeyword;
 
                 if (!isDeclaration)
                 {
