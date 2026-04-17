@@ -1629,13 +1629,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             // Partial members.
 
-            // 'partial event ...'
+            // 'partial event ...' is unambiguously a partial event on every language version:
+            // 'event' is a reserved keyword and cannot start any other member/statement form, so
+            // we commit to treating 'partial' as a modifier regardless of whether partial events
+            // are actually supported by the current language version.  The binder reports a
+            // feature-availability diagnostic if needed.
             if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
             {
                 return true;
             }
 
-            // 'partial Identifier(...' -- partial constructor.
+            // 'partial Identifier(...' is a partial constructor only on language versions that
+            // support partial constructors.  On earlier language versions the same tokens must
+            // be parsed as a method whose return type is 'Identifier', so we explicitly gate on
+            // the feature here to avoid changing the parse of existing code.
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
                 this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
