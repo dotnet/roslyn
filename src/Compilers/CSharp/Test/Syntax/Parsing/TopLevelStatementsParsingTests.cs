@@ -3063,12 +3063,30 @@ scoped readonly ref struct C { }
                 // (2,8): error CS1002: ; expected
                 // scoped struct A { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 8),
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "scoped ref ").WithLocation(3, 1),
                 // (3,12): error CS1031: Type expected
                 // scoped ref struct B { }
                 Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(3, 12),
-                // (4,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (3,12): error CS1001: Identifier expected
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(3, 12),
+                // (3,12): error CS1002: ; expected
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 12),
+                // (4,8): error CS1031: Type expected
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(4, 8),
+                // (4,8): error CS1001: Identifier expected
+                // scoped readonly ref struct C { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(4, 8),
+                // (4,8): error CS1003: Syntax error, ',' expected
+                // scoped readonly ref struct C { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(4, 8),
+                // (4,21): error CS1002: ; expected
+                // scoped readonly ref struct C { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(4, 21));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3097,16 +3115,30 @@ scoped readonly ref struct C { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.StructDeclaration);
@@ -3116,14 +3148,30 @@ scoped readonly ref struct C { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
                 }
                 N(SyntaxKind.StructDeclaration);
                 {
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);

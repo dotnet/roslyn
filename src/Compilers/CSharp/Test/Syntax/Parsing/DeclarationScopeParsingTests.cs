@@ -240,10 +240,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             N(SyntaxKind.MethodDeclaration);
             {
-                N(SyntaxKind.ScopedKeyword);
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.ScopedType);
                 {
-                    N(SyntaxKind.IdentifierToken, "R");
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "R");
+                    }
                 }
                 N(SyntaxKind.IdentifierToken, "F");
                 N(SyntaxKind.ParameterList);
@@ -3462,47 +3465,38 @@ scoped R x;
 @"
 scoped ref R x = M;
 ";
-            UsingTree(source, TestOptions.Script,
-                // (2,16): error CS1003: Syntax error, '(' expected
-                // scoped ref R x = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("(").WithLocation(2, 16),
-                // (2,16): error CS1001: Identifier expected
-                // scoped ref R x = M;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(2, 16),
-                // (2,19): error CS1001: Identifier expected
-                // scoped ref R x = M;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 19),
-                // (2,19): error CS1026: ) expected
-                // scoped ref R x = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(2, 19)
-                );
+            UsingTree(source, TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ScopedType);
                         {
-                            N(SyntaxKind.IdentifierToken, "R");
-                        }
-                    }
-                    N(SyntaxKind.IdentifierToken, "x");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        M(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedKeyword);
+                            N(SyntaxKind.RefType);
                             {
-                                N(SyntaxKind.IdentifierToken, "M");
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "R");
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "M");
+                                }
+                            }
+                        }
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -3518,48 +3512,39 @@ scoped ref R x = M;
 @"
 scoped ref readonly R x = M;
 ";
-            UsingTree(source, TestOptions.Script,
-                // (2,25): error CS1003: Syntax error, '(' expected
-                // scoped ref readonly R x = M;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("(").WithLocation(2, 25),
-                // (2,25): error CS1001: Identifier expected
-                // scoped ref readonly R x = M;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(2, 25),
-                // (2,28): error CS1001: Identifier expected
-                // scoped ref readonly R x = M;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(2, 28),
-                // (2,28): error CS1026: ) expected
-                // scoped ref readonly R x = M;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(2, 28)
-                );
+            UsingTree(source, TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.FieldDeclaration);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.VariableDeclaration);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ScopedType);
                         {
-                            N(SyntaxKind.IdentifierToken, "R");
-                        }
-                    }
-                    N(SyntaxKind.IdentifierToken, "x");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        M(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedKeyword);
+                            N(SyntaxKind.RefType);
                             {
-                                N(SyntaxKind.IdentifierToken, "M");
+                                N(SyntaxKind.RefKeyword);
+                                N(SyntaxKind.ReadOnlyKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "R");
+                                }
                             }
-                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "M");
+                                }
+                            }
+                        }
                     }
                     N(SyntaxKind.SemicolonToken);
                 }
@@ -5512,13 +5497,16 @@ scoped ref var (a, b) = M;
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "var");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
                         }
                     }
                 }
@@ -5581,14 +5569,17 @@ scoped ref readonly var (a, b) = M;
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RefType);
                         {
-                            N(SyntaxKind.IdentifierToken, "var");
+                            N(SyntaxKind.RefKeyword);
+                            N(SyntaxKind.ReadOnlyKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
                         }
                     }
                 }
@@ -11232,9 +11223,18 @@ scoped ref struct B { }
                 // (1,8): error CS1002: ; expected
                 // scoped struct A { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "scoped ref ").WithLocation(2, 1),
                 // (2,12): error CS1031: Type expected
                 // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
+                // (2,12): error CS1001: Identifier expected
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(2, 12),
+                // (2,12): error CS1002: ; expected
+                // scoped ref struct B { }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 12)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -11264,16 +11264,30 @@ scoped ref struct B { }
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.LocalDeclarationStatement);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.VariableDeclaration);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                N(SyntaxKind.RefType);
+                                {
+                                    N(SyntaxKind.RefKeyword);
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
+                        M(SyntaxKind.SemicolonToken);
                     }
                 }
                 N(SyntaxKind.StructDeclaration);
@@ -11297,9 +11311,18 @@ scoped readonly record struct B;
 readonly scoped record struct C();
 ";
             UsingTree(source, TestOptions.Regular11,
-                // (2,1): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                // (2,8): error CS1031: Type expected
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "scoped").WithLocation(2, 1),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(2, 8),
+                // (2,8): error CS1001: Identifier expected
+                // scoped readonly record struct B;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(2, 8),
+                // (2,8): error CS1003: Syntax error, ',' expected
+                // scoped readonly record struct B;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(2, 8),
+                // (2,24): error CS1002: ; expected
+                // scoped readonly record struct B;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 24),
                 // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
                 // readonly scoped record struct C();
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
@@ -11314,10 +11337,13 @@ readonly scoped record struct C();
             {
                 N(SyntaxKind.PropertyDeclaration);
                 {
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.IdentifierToken, "record");
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "record");
+                        }
                     }
                     N(SyntaxKind.IdentifierToken, "A");
                     N(SyntaxKind.AccessorList);
@@ -11326,14 +11352,30 @@ readonly scoped record struct C();
                         N(SyntaxKind.CloseBraceToken);
                     }
                 }
-                N(SyntaxKind.IncompleteMember);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.ScopedType);
+                            {
+                                N(SyntaxKind.ScopedKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
                 }
-                N(SyntaxKind.RecordStructDeclaration);
+                N(SyntaxKind.StructDeclaration);
                 {
-                    N(SyntaxKind.ReadOnlyKeyword);
-                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "B");
                     N(SyntaxKind.SemicolonToken);
@@ -11678,13 +11720,16 @@ readonly scoped record struct C();
                         }
                         N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.ScopedKeyword);
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RefType);
                         {
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.RefKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
                         }
                     }
                 }
@@ -14144,13 +14189,16 @@ ref struct R2
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.ScopedType);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedKeyword);
+                            N(SyntaxKind.RefType);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
                         }
                     }
@@ -14273,13 +14321,16 @@ ref struct R2
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.ScopedType);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.ScopedKeyword);
+                            N(SyntaxKind.RefType);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.RefKeyword);
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
                             }
                         }
                     }
