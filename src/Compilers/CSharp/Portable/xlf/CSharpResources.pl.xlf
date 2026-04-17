@@ -1497,6 +1497,11 @@
         <target state="translated">„#!” musi stanowić pierwsze znaki w pierwszym wierszu pliku</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RefNotMemberModifier">
+        <source>The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</source>
+        <target state="new">The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
         <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
         <target state="translated">Nie można zastosować atrybutu RequiresUnsafeAttribute do tego symbolu.</target>
