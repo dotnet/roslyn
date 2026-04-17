@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsAtPartialCapableDeclarationHead()
         {
-            if (IsAtTypeDeclarationHead())
+            if (IsAtTypeOrNamespaceDeclarationHead())
             {
                 return true;
             }
@@ -1717,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // At the end of the modifier chain, 'ref' is a type modifier if we're at a type
             // declaration head.  Whether the specific type kind actually accepts 'ref' (only
             // struct/record struct/union do) is the binder's concern.
-            if (IsAtTypeDeclarationHead())
+            if (IsAtTypeOrNamespaceDeclarationHead())
             {
                 return true;
             }
@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// binder can report targeted diagnostics for things like <c>ref class</c> or
         /// <c>partial namespace</c> instead of surfacing cascading parse errors.
         /// </summary>
-        private bool IsAtTypeDeclarationHead()
+        private bool IsAtTypeOrNamespaceDeclarationHead()
         {
             switch (this.CurrentToken.Kind)
             {
