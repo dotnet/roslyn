@@ -608,10 +608,14 @@ public class Test
 }
 ";
 
-            CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+            // Before C# preview, 'partial' was required to be the last modifier. With the
+            // relaxed-modifier-ordering feature it can appear anywhere.
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+                // (2,1): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // partial public class C  // CS0267
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(2, 1));
+
+            CreateCompilation(test, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -622,7 +626,7 @@ partial enum E { }
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,14): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 14));
         }
@@ -651,7 +655,7 @@ partial delegate E { }
                 // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
-                // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,20): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20),
                 // (2,18): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
@@ -667,7 +671,7 @@ partial delegate void E();
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (2,23): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial delegate void E();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(2, 23));
         }
