@@ -153,6 +153,8 @@
   <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase" DoesNotSurvive="LocalRewriting">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
+    <!-- The original receiver expression this placeholder stands in for. Used to delegate value checks. -->
+    <Field Name="Receiver" Type="BoundExpression"/>
   </Node>
 
   <!-- This node represents the receiver for a list pattern. -->

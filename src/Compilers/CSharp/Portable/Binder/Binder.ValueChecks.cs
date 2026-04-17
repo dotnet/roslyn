@@ -1149,7 +1149,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.ImplicitIndexerReceiverPlaceholder:
-                    break;
+                    {
+                        var placeholder = (BoundImplicitIndexerReceiverPlaceholder)expr;
+                        return CheckValueKind(node, placeholder.Receiver, valueKind, checkingReceiver, diagnostics);
+                    }
 
                 case BoundKind.DeconstructValuePlaceholder:
                     break;

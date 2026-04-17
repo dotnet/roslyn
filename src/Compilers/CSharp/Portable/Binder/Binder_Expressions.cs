@@ -9283,7 +9283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(receiver.Type is not null);
 
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiver.IsEquivalentToThisReference, receiver.Type).MakeCompilerGenerated();
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiver.IsEquivalentToThisReference, receiver, receiver.Type).MakeCompilerGenerated();
 
                 var implicitIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                 BoundExpression? indexerOrSliceAccess = null;
@@ -10655,7 +10655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(convertedArguments.Length == 1);
 
                 var int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr.Type) { WasCompilerGenerated = true };
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr, expr.Type) { WasCompilerGenerated = true };
                 var argumentPlaceholders = ImmutableArray.Create(new BoundImplicitIndexerValuePlaceholder(convertedArguments[0].Syntax, int32) { WasCompilerGenerated = true });
 
                 return new BoundImplicitIndexerAccess(
@@ -11224,7 +11224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
+            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver, receiver.Type) { WasCompilerGenerated = true };
             ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders = default;
             if (TryBindNonExtensionImplicitIndexerParts(syntax, receiverPlaceholder, argKind,
                 out BoundExpression? lengthOrCountAccess, out BoundExpression? indexerOrSliceAccess, ref intIndexerOrSliceArgumentPlaceholders, ref useSiteInfo, diagnostics))
