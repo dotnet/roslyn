@@ -618,9 +618,13 @@ internal static partial class SyntaxNodeExtensions
         bool includeDocumentationComments = false)
     {
         // There is no token after the end of the file, even though that position is valid
-        // todo return EOF when valid, `default` otherwise, consider still throwing per Cyrus's feedback
-        if (position < root.FullSpan.Start || position >= root.FullSpan.End)
-            return default;
+        // todo consider still throwing per Cyrus's feedback
+        if (position == root.FullSpan.End)
+        {
+            return root.GetLastToken(includeZeroWidth: true);
+        }
+        if (position < root.FullSpan.Start || position > root.FullSpan.End)
+            return position == root.FullSpan.End ? root.GetLastToken(includeZeroWidth: true) : default;
 
         var findSkippedToken = includeSkipped ? s_findSkippedTokenForward : ((l, p) => default);
 

@@ -150,13 +150,11 @@ public sealed partial class SyntaxNodeTests : TestBase
     }
 
     [Fact]
-    public void FindTokenOnRightOfPosition_AtEof_ReturnsDefault()
+    public void FindTokenOnRightOfPosition_AtEof_ReturnsEofToken()
     {
         var root = GetRootForFindTokenTests();
-
-        // position at the end of the file (== FullSpan.End) has no token to the right
         var token = root.FindTokenOnRightOfPosition(root.FullSpan.End);
-        Assert.Equal(default, token);
+        Assert.True(token.IsKind(SyntaxKind.EndOfFileToken));
     }
 
     [Fact]
