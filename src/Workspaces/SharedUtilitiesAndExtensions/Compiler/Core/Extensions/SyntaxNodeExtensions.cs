@@ -619,6 +619,7 @@ internal static partial class SyntaxNodeExtensions
     {
         // There is no token after the end of the file, even though that position is valid
         // todo add tests for all edge cases around this guard
+        // todo return EOF when valid, `default` otherwise, consider still throwing per Cyrus's feedback
         if (position < root.FullSpan.Start || position >= root.FullSpan.End)
             return default;
 
