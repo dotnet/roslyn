@@ -12879,7 +12879,7 @@ class Program
         }
 
         [Fact]
-        public void UnionConversion_48_Abstract_Union()
+        public void UnionConversion_48_Construction_Errors()
         {
             var src = @"
 [System.Runtime.CompilerServices.Union]
@@ -12890,28 +12890,56 @@ public abstract class C1
     public object Value => throw null;
 }
 
+[System.Runtime.CompilerServices.Union]
+public class C2
+{
+    public C2(int x) => throw null;
+    public C2(string x) => throw null;
+    public object Value => throw null;
+    public required int Prop { get; set; }
+}
+
 class Program
 {
     static C1 Test1(int x)
     {
-#line 13
+#line 100
         return new C1(x);
     }   
 
     static C1 Test2(int x)
     {
+#line 200
+        return x;
+    }   
+
+    static C2 Test3(int x)
+    {
+#line 300
+        return new C2(x);
+    }   
+
+    static C2 Test4(int x)
+    {
+#line 400
         return x;
     }   
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource]);
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
             comp.VerifyDiagnostics(
-                // (13,16): error CS0144: Cannot create an instance of the abstract type or interface 'C1'
+                // (100,16): error CS0144: Cannot create an instance of the abstract type or interface 'C1'
                 //         return new C1(x);
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new C1(x)").WithArguments("C1").WithLocation(13, 16),
-                // (18,16): error CS0144: Cannot create an instance of the abstract type or interface 'C1'
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "new C1(x)").WithArguments("C1").WithLocation(100, 16),
+                // (200,16): error CS0144: Cannot create an instance of the abstract type or interface 'C1'
                 //         return x;
-                Diagnostic(ErrorCode.ERR_NoNewAbstract, "x").WithArguments("C1").WithLocation(18, 16)
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "x").WithArguments("C1").WithLocation(200, 16),
+                // (300,20): error CS9035: Required member 'C2.Prop' must be set in the object initializer or attribute constructor.
+                //         return new C2(x);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C2").WithArguments("C2.Prop").WithLocation(300, 20),
+                // (400,16): error CS9035: Required member 'C2.Prop' must be set in the object initializer or attribute constructor.
+                //         return x;
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "x").WithArguments("C2.Prop").WithLocation(400, 16)
                 );
         }
 
