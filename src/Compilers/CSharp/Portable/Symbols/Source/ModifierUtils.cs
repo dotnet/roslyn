@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasExplicitAccessModifier)
         {
             var result = modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics.DiagnosticBag ?? new DiagnosticBag(), isOrdinaryMethod: isOrdinaryMethod);
-            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, scopedKeywordLocation: null, out modifierErrors);
+            result = CheckModifiers(isForTypeDeclaration: false, isForInterfaceMember, result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             var readonlyToken = modifiers.FirstOrDefault(SyntaxKind.ReadOnlyKeyword);
             if (readonlyToken.Parent is MethodDeclarationSyntax or AccessorDeclarationSyntax or BasePropertyDeclarationSyntax or EventDeclarationSyntax)
@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location errorLocation,
             BindingDiagnosticBag diagnostics,
             SyntaxTokenList? modifierTokens,
-            Location scopedKeywordLocation,
             out bool modifierErrors)
         {
             Debug.Assert(!isForTypeDeclaration || !isForInterfaceMember);
@@ -93,13 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // `allowedModifiers` for members).  Report a targeted diagnostic on the
                         // `ref` token itself so the fix-it location is clear.
                         ReportRefNotMemberModifier(errorLocation, diagnostics, modifierTokens);
-                        break;
-
-                    case DeclarationModifiers.Scoped:
-                        // Point the 'scoped not valid for this item' diagnostic at the 'scoped'
-                        // keyword itself when we can find it, matching how ScopedType-prefixed
-                        // uses report this error.
-                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeywordLocation ?? errorLocation, ConvertSingleModifierToSyntaxText(oneError));
                         break;
 
                     case DeclarationModifiers.Abstract:

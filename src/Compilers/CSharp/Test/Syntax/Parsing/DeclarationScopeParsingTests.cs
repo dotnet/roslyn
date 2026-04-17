@@ -3382,11 +3382,11 @@ scoped record A;
             {
                 // In language versions where 'record' is a type-declaration keyword we now
                 // parse this as `record A;` with 'scoped' treated as a misplaced modifier,
-                // producing a single clean diagnostic on the 'scoped' keyword.
+                // producing a single clean diagnostic at the type name.
                 CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
-                    // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
+                    // (2,15): error CS0106: The modifier 'scoped' is not valid for this item
                     // scoped record A;
-                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1));
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(2, 15));
             }
 
             UsingTree(source, parseOptions);

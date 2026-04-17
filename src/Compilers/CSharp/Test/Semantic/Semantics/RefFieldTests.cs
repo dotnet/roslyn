@@ -11733,97 +11733,60 @@ delegate ref scoped R D();
 
         // 'scoped' is misplaced on a type declaration. The parser consumes 'scoped' as a modifier
         // (whether or not 'ref'/'readonly'/'scoped' legitimately modify the type, e.g. a ref
-        // struct) and the binder reports a single ERR_BadMemberFlag pointed at the 'scoped'
-        // keyword itself. This behavior is identical on every language version since the shape
-        // of the declaration is the same; only the 'ref fields'/'scoped' keyword feature checks
-        // (which don't fire here) would differ.
-        [Fact]
-        public void TypeScopeModifier_01_CSharp10()
+        // struct) and the binder reports a single ERR_BadMemberFlag. This behavior is identical
+        // on every language version since the shape of the declaration is the same; only the
+        // 'ref fields'/'scoped' keyword feature checks (which don't fire here) would differ.
+        // The diagnostic is reported at the type name because that is the generic error location
+        // used for misplaced modifiers on type declarations.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void TypeScopeModifier_01(LanguageVersion langVersion)
         {
             var source =
 @"scoped struct A { }
 scoped ref struct B { }
 scoped readonly ref struct C { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
+                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
+                // (2,19): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
-                // (3,1): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "B").WithArguments("scoped").WithLocation(2, 19),
+                // (3,28): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 1));
-        }
-
-        [Fact]
-        public void TypeScopeModifier_01_CSharp11()
-        {
-            var source =
-@"scoped struct A { }
-scoped ref struct B { }
-scoped readonly ref struct C { }
-";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
-            comp.VerifyDiagnostics(
-                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
-                // (3,1): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 1));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("scoped").WithLocation(3, 28));
         }
 
         // 'scoped' prefixing a type declaration is recognised as a misplaced modifier in all
         // of these shapes -- including `scoped record A { }` where 'record' is itself the
         // type-declaration keyword (C# 9+), and `scoped readonly record struct B;` where
         // 'record struct' forms the type head.  The binder reports a single clean
-        // ERR_BadMemberFlag on the 'scoped' keyword itself in each case.
-        [Fact]
-        public void TypeScopeModifier_02_CSharp10()
+        // ERR_BadMemberFlag at the type name in each case.
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void TypeScopeModifier_02(LanguageVersion langVersion)
         {
             var source =
 @"scoped record A { }
 scoped readonly record struct B;
 readonly scoped record struct C();
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
             comp.VerifyDiagnostics(
-                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
+                // (1,15): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "A").WithArguments("scoped").WithLocation(1, 15),
+                // (2,31): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
-                // (3,10): error CS0106: The modifier 'scoped' is not valid for this item
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "B").WithArguments("scoped").WithLocation(2, 31),
+                // (3,31): error CS0106: The modifier 'scoped' is not valid for this item
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 10));
-        }
-
-        [Fact]
-        public void TypeScopeModifier_02_CSharp11()
-        {
-            var source =
-@"scoped record A { }
-scoped readonly record struct B;
-readonly scoped record struct C();
-";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
-            comp.VerifyDiagnostics(
-                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
-                // (3,10): error CS0106: The modifier 'scoped' is not valid for this item
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 10));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("scoped").WithLocation(3, 31));
         }
 
         [Fact]
