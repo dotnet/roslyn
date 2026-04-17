@@ -2637,6 +2637,126 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Pointer_Fixed_ManagedType()
+    {
+        var source = """
+            class C
+            {
+                static string x;
+                static void Main()
+                {
+                    fixed (string* p1 = &x) { }
+                    unsafe { fixed (string* p2 = &x) { } }
+                }
+            }
+            """;
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed (string* p1 = &x) { }").WithLocation(6, 9),
+            // (6,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "string*").WithLocation(6, 16),
+            // (6,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(6, 16),
+            // (6,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(6, 29),
+            // (6,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(6, 29),
+            // (6,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(6, 29),
+            // (7,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(7, 25),
+            // (7,38): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(7, 38),
+            // (7,38): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(7, 38));
+
+        var expectedDiagnostics = new[]
+        {
+             // (6,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(6, 16),
+            // (6,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(6, 29),
+            // (6,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(6, 29),
+            // (7,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(7, 25),
+            // (7,38): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(7, 38),
+            // (7,38): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(7, 38),
+        };
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (string* p1 = &x) { }").WithArguments("updated memory safety rules").WithLocation(6, 9),
+            // (6,16): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "string*").WithArguments("updated memory safety rules").WithLocation(6, 16),
+            // (6,16): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(6, 16),
+            // (6,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(6, 29),
+            // (6,29): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(6, 29),
+            // (6,29): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         fixed (string* p1 = &x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(6, 29),
+            // (7,25): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(7, 25),
+            // (7,38): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(7, 38),
+            // (7,38): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //         unsafe { fixed (string* p2 = &x) { } }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&x").WithArguments("string").WithLocation(7, 38));
+    }
+
+    [Fact]
     public void Pointer_Arithmetic_SafeContext()
     {
         var source = """
@@ -2780,6 +2900,71 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = sizeof(S);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(S)").WithArguments("updated memory safety rules").WithLocation(3, 5));
+    }
+
+    [Fact]
+    public void SizeOf_ManagedType()
+    {
+        var source = """
+            _ = sizeof(string);
+            unsafe { _ = sizeof(string); }
+            """;
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (1,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // _ = sizeof(string);
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(string)").WithArguments("string").WithLocation(1, 5),
+            // (1,5): error CS0233: 'string' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+            // _ = sizeof(string);
+            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(string)").WithArguments("string").WithLocation(1, 5),
+            // (2,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { _ = sizeof(string); }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(string)").WithArguments("string").WithLocation(2, 14));
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // _ = sizeof(string);
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(string)").WithArguments("string").WithLocation(1, 5),
+            // (2,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { _ = sizeof(string); }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(string)").WithArguments("string").WithLocation(2, 14),
+        };
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // (1,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // _ = sizeof(string);
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(string)").WithArguments("string").WithLocation(1, 5),
+            // (1,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = sizeof(string);
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(string)").WithArguments("updated memory safety rules").WithLocation(1, 5),
+            // (2,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { _ = sizeof(string); }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(string)").WithArguments("string").WithLocation(2, 14));
     }
 
     [Fact]
@@ -3024,6 +3209,74 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void StackAlloc_ManagedType()
+    {
+        var source = """
+            unsafe { System.Span<string> x = stackalloc string[5]; }
+            unsafe { string* y = stackalloc[] { "a" }; }
+            M();
+
+            [System.Runtime.CompilerServices.SkipLocalsInit]
+            void M()
+            {
+                System.Span<string> a = stackalloc string[5];
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                public class SkipLocalsInitAttribute : Attribute;
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+            // unsafe { System.Span<string> x = stackalloc string[5]; }
+            Diagnostic(ErrorCode.ERR_ManagedAddr, "string").WithArguments("string").WithLocation(1, 45),
+            // (2,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { string* y = stackalloc[] { "a" }; }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 10),
+            // (2,22): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+            // unsafe { string* y = stackalloc[] { "a" }; }
+            Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { ""a"" }").WithArguments("string").WithLocation(2, 22),
+            // (8,40): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('string')
+            //     System.Span<string> a = stackalloc string[5];
+            Diagnostic(ErrorCode.ERR_ManagedAddr, "string").WithArguments("string").WithLocation(8, 40),
+        };
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            [
+                // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+                .. expectedDiagnostics,
+            ]);
+    }
+
+    [Fact]
     public void StackAlloc_Lambda()
     {
         var source = """
@@ -3115,6 +3368,115 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
             Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22));
+    }
+
+    [Fact]
+    public void UnsafeDeclarations_PointerToManagedType()
+    {
+        var source = """
+            _ = new X<string*[]>();
+            unsafe { _ = new X<string*[]>(); }
+
+            class C
+            {
+                void M1(X<string*[]> x) { }
+                unsafe void M2(X<string*[]> x) { }
+            }
+
+            class X<T>;
+            """;
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = new X<string*[]>()").WithLocation(1, 1),
+            // (1,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new X<string*[]>()").WithLocation(1, 5),
+            // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "string*").WithLocation(1, 11),
+            // (1,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(1, 11),
+            // (2,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { _ = new X<string*[]>(); }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 20),
+            // (6,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            //     void M1(X<string*[]> x) { }
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "string*").WithLocation(6, 15),
+            // (6,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //     void M1(X<string*[]> x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(6, 26),
+            // (7,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //     unsafe void M2(X<string*[]> x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(7, 33));
+
+        var expectedDiagnostics = new[]
+        {
+            // (1,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(1, 11),
+            // (2,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { _ = new X<string*[]>(); }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 20),
+            // (6,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //     void M1(X<string*[]> x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(6, 26),
+            // (7,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //     unsafe void M2(X<string*[]> x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(7, 33),
+        };
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilationWithSpan(source,
+            parseOptions: TestOptions.Regular14,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
+            // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = new X<string*[]>()").WithArguments("updated memory safety rules").WithLocation(1, 1),
+            // (1,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "new X<string*[]>()").WithArguments("updated memory safety rules").WithLocation(1, 5),
+            // (1,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "string*").WithArguments("updated memory safety rules").WithLocation(1, 11),
+            // (1,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // _ = new X<string*[]>();
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(1, 11),
+            // (2,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // unsafe { _ = new X<string*[]>(); }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 20),
+            // (6,15): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     void M1(X<string*[]> x) { }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "string*").WithArguments("updated memory safety rules").WithLocation(6, 15),
+            // (6,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //     void M1(X<string*[]> x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(6, 26),
+            // (7,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            //     unsafe void M2(X<string*[]> x) { }
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(7, 33));
     }
 
     [Fact]
