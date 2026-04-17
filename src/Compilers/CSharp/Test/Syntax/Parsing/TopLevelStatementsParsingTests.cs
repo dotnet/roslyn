@@ -987,7 +987,7 @@ partial delegate E { }
                     // (2,20): error CS8803: Top-level statements must precede namespace and type declarations.
                     // partial delegate E { }
                     Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "{ }").WithLocation(2, 20),
-                    // (2,20): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                    // (2,20): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                     // partial delegate E { }
                     Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(2, 20)
                 );

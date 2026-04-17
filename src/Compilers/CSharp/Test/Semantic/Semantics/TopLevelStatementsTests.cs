@@ -9874,7 +9874,7 @@ partial ext X
                 // (1,12): error CS1519: Invalid token '}' in a member declaration
                 // struct S { }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(1, 12),
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // (2,1): error CS0267: The 'partial' modifier can only appear on a class, record, struct, interface, event, instance constructor, method or property.
                 // partial ext X
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
                 // (2,9): error CS0246: The type or namespace name 'ext' could not be found (are you missing a using directive or an assembly reference?)
