@@ -484,6 +484,28 @@ public sealed partial class RelaxedModifierOrderingTests
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(3, 29));
     }
 
+    [Fact]
+    public void Ref_OnEvent_Errors()
+    {
+        // `ref event ...` is syntactically unambiguous: `event` is a reserved keyword so this can
+        // only be an event declaration.  The parser consumes `ref` as a modifier and the binder
+        // reports ERR_RefNotMemberModifier on the `ref` token.
+        var src = """
+            class C
+            {
+                ref event System.Action E;
+            }
+            """;
+
+        CreateCompilation(src).VerifyDiagnostics(
+            // (3,5): error CS9379: The 'ref' keyword is not a member modifier; it must appear immediately before the member's return type.
+            //     ref event System.Action E;
+            Diagnostic(ErrorCode.ERR_RefNotMemberModifier, "ref").WithLocation(3, 5),
+            // (3,29): warning CS0067: The event 'C.E' is never used
+            //     ref event System.Action E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(3, 29));
+    }
+
     // ---------- return-type parsing must remain unchanged ----------
 
     [Fact]
@@ -641,7 +663,7 @@ public sealed partial class RelaxedModifierOrderingTests
     public void Branch_Ref_Struct()
     {
         // Canonical `ref struct` at the head of the modifier chain: ref eaten, no readonly, no
-        // other modifiers, CheckAtTypeOrNamespaceDeclarationHead reports type-decl head = true.
+        // other modifiers, CheckDefinitelyAtMemberDeclarationHead reports type-decl head = true.
         var src = "ref struct S { }";
 
         UsingTree(src);
@@ -715,7 +737,7 @@ public sealed partial class RelaxedModifierOrderingTests
     public void Branch_Ref_ContextualModifier_Chain()
     {
         // `ref` followed only by contextual modifiers (which could be identifiers) then a type
-        // keyword commits to `ref` being a modifier via CheckAtTypeOrNamespaceDeclarationHead.
+        // keyword commits to `ref` being a modifier via CheckDefinitelyAtMemberDeclarationHead.
         var src = "ref file partial struct S { }";
 
         UsingTree(src);

@@ -1622,22 +1622,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // We're now positioned at what should be the declaration head.  Return true if the
             // current token begins a declaration for which 'partial' is a plausible modifier.
 
-            if (CheckAtTypeOrNamespaceDeclarationHead(out var isDeclarationHead))
+            if (CheckDefinitelyAtMemberDeclarationHead(out var isDeclarationHead))
             {
                 return isDeclarationHead;
             }
 
-            // Partial members.
-
-            // 'partial event ...' is unambiguously a partial event on every language version:
-            // 'event' is a reserved keyword and cannot start any other member/statement form, so
-            // we commit to treating 'partial' as a modifier regardless of whether partial events
-            // are actually supported by the current language version.  The binder reports a
-            // feature-availability diagnostic if needed.
-            if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
-            {
-                return true;
-            }
+            // Partial members other than events (events are handled in the helper above).
 
             // 'partial Identifier(...' is a partial constructor only on language versions that
             // support partial constructors.  On earlier language versions the same tokens must
@@ -1714,10 +1704,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 skippedContextualModifier = true;
             }
 
-            // At the end of the modifier chain, 'ref' is a type modifier if we're at a type
-            // declaration head.  Whether the specific type kind actually accepts 'ref' (only
-            // struct/record struct/union do) is the binder's concern.
-            if (CheckAtTypeOrNamespaceDeclarationHead(out var isDeclarationHead))
+            // At the end of the modifier chain, 'ref' is a member/type-declaration modifier if
+            // we're at a definite declaration head.  Whether the specific declaration kind
+            // actually accepts 'ref' (only struct/record struct/union types do; 'ref' on events
+            // or other members is always invalid) is the binder's concern.
+            if (CheckDefinitelyAtMemberDeclarationHead(out var isDeclarationHead))
             {
                 return isDeclarationHead;
             }
@@ -1735,8 +1726,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// any modifier tokens have been skipped past).  Tells the caller whether this position
         /// is a conclusive signal about the enclosing modifier parse.
         /// <para>
-        /// Returns <see langword="true"/> if the position is conclusive: either we are at a type
-        /// or namespace declaration head (<paramref name="isDeclarationHead"/> is set to
+        /// Returns <see langword="true"/> if the position is conclusive: either we are at a type,
+        /// namespace, or event declaration head (<paramref name="isDeclarationHead"/> is set to
         /// <see langword="true"/>), or we are at a <c>record</c>/<c>union</c> contextual keyword
         /// whose feature is disabled (<paramref name="isDeclarationHead"/> is set to
         /// <see langword="false"/>).  In the latter case the caller should decline to commit to
@@ -1745,17 +1736,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// than producing a surprising member/expression parse.
         /// </para>
         /// <para>
-        /// Returns <see langword="false"/> if we did not land on a type-decl keyword at all; in
+        /// Returns <see langword="false"/> if we did not land on any such keyword at all; in
         /// that case the caller must decide based on its own context.
         /// </para>
         /// <para>
-        /// We accept the broader set of type-decl keywords here -- including positions where a
+        /// We accept the broader set of declaration keywords here -- including positions where a
         /// given modifier is not actually legal -- so that the binder can report targeted
-        /// diagnostics for things like <c>ref class</c> or <c>partial namespace</c> instead of
-        /// surfacing cascading parse errors.
+        /// diagnostics for things like <c>ref class</c>, <c>partial namespace</c>, or
+        /// <c>ref event</c>/<c>scoped event</c> instead of surfacing cascading parse errors.
+        /// Constructs like <c>partial event E</c>, <c>ref event E</c>, and <c>scoped event E</c>
+        /// are syntactically unambiguous: the <c>event</c> keyword is reserved and cannot start
+        /// any other member, statement, or expression form, so we can commit to an event
+        /// declaration at the parse layer and let the binder report whether the preceding
+        /// modifier is actually allowed (only <c>partial</c> is, and only from the language
+        /// version that enables partial events).
         /// </para>
         /// </summary>
-        private bool CheckAtTypeOrNamespaceDeclarationHead(out bool isDeclarationHead)
+        private bool CheckDefinitelyAtMemberDeclarationHead(out bool isDeclarationHead)
         {
             switch (this.CurrentToken.Kind)
             {
@@ -1765,6 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.NamespaceKeyword:
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.DelegateKeyword:
+                case SyntaxKind.EventKeyword:
                     isDeclarationHead = true;
                     return true;
             }
