@@ -609,6 +609,7 @@ internal static partial class SyntaxNodeExtensions
 
     /// <summary>
     /// If the position is inside of token, return that token; otherwise, return the token to the right.
+    /// If `position` is invalid or there is no token to the right, this function may throw.
     /// </summary>
     public static SyntaxToken FindTokenOnRightOfPosition(
         this SyntaxNode root,
@@ -617,14 +618,6 @@ internal static partial class SyntaxNodeExtensions
         bool includeDirectives = false,
         bool includeDocumentationComments = false)
     {
-        // todo consider still throwing per Cyrus's feedback
-        if (position == root.FullSpan.End)
-        {
-            return root.GetLastToken(includeZeroWidth: true);
-        }
-        if (position < root.FullSpan.Start || position > root.FullSpan.End)
-            return position == root.FullSpan.End ? root.GetLastToken(includeZeroWidth: true) : default;
-
         var findSkippedToken = includeSkipped ? s_findSkippedTokenForward : ((l, p) => default);
 
         var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
@@ -655,6 +648,7 @@ internal static partial class SyntaxNodeExtensions
 
     /// <summary>
     /// If the position is inside of token, return that token; otherwise, return the token to the left.
+    /// If `position` is invalid or there is no token to the left, this function may throw.
     /// </summary>
     public static SyntaxToken FindTokenOnLeftOfPosition(
         this SyntaxNode root,
@@ -664,10 +658,6 @@ internal static partial class SyntaxNodeExtensions
         bool includeDocumentationComments = false)
     {
         var findSkippedToken = includeSkipped ? s_findSkippedTokenBackward : ((l, p) => default);
-
-        // There is no token before the start of the file, even though that position is valid
-        if (position <= root.FullSpan.Start || position > root.FullSpan.End)
-            return default;
 
         var token = GetInitialToken(root, position, includeSkipped, includeDirectives, includeDocumentationComments);
 
