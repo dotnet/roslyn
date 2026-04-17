@@ -215,7 +215,7 @@ object with(object a, object b) { ... }
 ***Introduced in Visual Studio 2026 version 18.7***
 
 In a future C# version (currently in `langversion:preview`), pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
-Only pointer operations (dereference, member access via `->`, element access, etc.) require unsafe.
+Only pointer indirection operations (dereference, member access via `->`, element access, etc.) require unsafe.
 This is part of the [unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) feature.
 
 Because pointer types are now legal in safe contexts, overload resolution may consider candidates that were previously excluded. This can cause new ambiguity errors:
