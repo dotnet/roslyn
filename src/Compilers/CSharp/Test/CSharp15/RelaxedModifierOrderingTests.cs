@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -615,7 +616,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
     }
 
     /// <summary>
-    /// Negative test for the record branch of <see cref="IsAtPartialCapableDeclarationHead"/>.
+    /// Negative test for the record branch of <c>IsAtPartialCapableDeclarationHead</c>.
     /// On C# 8 'record' is not yet a type-declaration keyword, so the helper returns false and
     /// 'partial' must NOT be consumed as a modifier (it remains an identifier, producing the
     /// legacy parse shape).  This pins the feature-gate check at
@@ -658,7 +659,7 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
 
     /// <summary>
     /// Negative test for the union branch.  On C# 14 (pre-unions) 'union' is an ordinary
-    /// identifier, so <see cref="IsAtPartialCapableDeclarationHead"/> must return false and
+    /// identifier, so <c>IsAtPartialCapableDeclarationHead</c> must return false and
     /// <c>partial</c> must NOT be consumed as a modifier.
     /// </summary>
     [Fact]
@@ -1405,6 +1406,196 @@ public sealed partial class RelaxedModifierOrderingTests : ParsingTests
         // The interesting invariant: 'partial' must not have been consumed as a modifier.
         // We assert that no TypeDeclaration or MemberDeclaration with 'partial' modifier
         // exists at the top level.
+        foreach (var member in root.Members)
+        {
+            Assert.False(
+                member is MemberDeclarationSyntax mem && mem.Modifiers.Any(SyntaxKind.PartialKeyword),
+                $"'partial' should not have been consumed as a modifier; got: {member.Kind()}");
+        }
+    }
+
+    // ================================================================================
+    // Multi-iteration coverage of the skip-modifier loop in
+    // IsPartialModifierInDeclarationHead.  The loop has three exit paths:
+    //
+    //   (A) break       : current token is not a modifier at all - fall through to
+    //                     IsAtPartialCapableDeclarationHead.
+    //   (B) return true : current token IS a modifier and is NOT an IdentifierToken,
+    //                     i.e. a reserved-keyword modifier like 'public' / 'static'.
+    //                     Commit immediately.
+    //   (C) EatToken()  : current token is a contextual modifier (IdentifierToken with
+    //                     a contextual kind of partial/async/required/file).  Eat it
+    //                     and iterate.
+    //
+    // The "else path" driving further loop iterations is (C).  The tests below exercise
+    // chains of 1, 2, and 3 contextual modifiers after 'partial' to ensure the loop
+    // iterates the expected number of times and exits via each of (A) and (B).
+    // ================================================================================
+
+    /// <summary>
+    /// Chains of contextual modifier tokens (no 'partial', no 'ref') that the skip-modifier
+    /// loop in <c>IsPartialModifierInDeclarationHead</c> will iterate over when they appear
+    /// between <c>partial</c> and the declaration head.  Ordered from shortest to longest
+    /// so iteration-count coverage is explicit.
+    /// </summary>
+    public static TheoryData<string> ContextualModifierChains()
+    {
+        return new TheoryData<string>
+        {
+            // 1 iteration:
+            "file",
+            "async",
+            "required",
+            // 2 iterations:
+            "file async",
+            "file required",
+            "async required",
+            // 3 iterations:
+            "file async required",
+        };
+    }
+
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
+    public void SkipLoop_PartialThenContextualChain_BreaksAtDeclHead_OnClass(string chain)
+    {
+        // Exit path (A): loop consumes each contextual modifier, then breaks on 'class'
+        // (not a modifier at all), then IsAtPartialCapableDeclarationHead returns true.
+        var src = $"partial {chain} class C {{ }}";
+        var tree = SyntaxFactory.ParseSyntaxTree(src);
+        var root = tree.GetCompilationUnitRoot();
+        var classDecl = Assert.Single(root.Members.OfType<ClassDeclarationSyntax>());
+        Assert.Contains(classDecl.Modifiers, m => m.IsKind(SyntaxKind.PartialKeyword));
+        foreach (var modText in chain.Split(' '))
+        {
+            Assert.Contains(classDecl.Modifiers, m => m.Text == modText);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
+    public void SkipLoop_PartialThenContextualChainThenReserved_EarlyReturns_OnClass(string chain)
+    {
+        // Exit path (B): loop consumes each contextual modifier and then sees 'public'
+        // (reserved keyword, not an IdentifierToken) and returns true immediately without
+        // ever calling IsAtPartialCapableDeclarationHead.
+        var src = $"partial {chain} public class C {{ }}";
+        var tree = SyntaxFactory.ParseSyntaxTree(src);
+        var root = tree.GetCompilationUnitRoot();
+        var classDecl = Assert.Single(root.Members.OfType<ClassDeclarationSyntax>());
+        Assert.Contains(classDecl.Modifiers, m => m.IsKind(SyntaxKind.PartialKeyword));
+        Assert.Contains(classDecl.Modifiers, m => m.IsKind(SyntaxKind.PublicKeyword));
+        foreach (var modText in chain.Split(' '))
+        {
+            Assert.Contains(classDecl.Modifiers, m => m.Text == modText);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
+    public void SkipLoop_PartialThenContextualChain_BreaksAtDeclHead_OnMethod(string chain)
+    {
+        // Same as the class variant but drives the decl-head check down the ScanType
+        // path: after the loop breaks on 'void', IsAtPartialCapableDeclarationHead
+        // recognizes a method via ScanType + IsPossibleMemberName.
+        var src = $"class C {{ public partial {chain} void M() {{ }} }}";
+        var tree = SyntaxFactory.ParseSyntaxTree(src);
+        var classDecl = (ClassDeclarationSyntax)tree.GetCompilationUnitRoot().Members.Single();
+        var method = (MethodDeclarationSyntax)classDecl.Members.Single();
+        Assert.Contains(method.Modifiers, m => m.IsKind(SyntaxKind.PartialKeyword));
+        foreach (var modText in chain.Split(' '))
+        {
+            Assert.Contains(method.Modifiers, m => m.Text == modText);
+        }
+    }
+
+    [Fact]
+    public void SkipLoop_ThreeIterations_FullChainBeforeDeclHead_UsingTree()
+    {
+        // Explicit parse-tree validation of the 3-iteration case to pin down that
+        // every intermediate contextual modifier ends up in the class's modifier list.
+        UsingTree("partial file async required class C { }");
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.AsyncKeyword);
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void SkipLoop_ThreeIterations_ThenReservedEarlyReturn_UsingTree()
+    {
+        // Explicit parse-tree validation that the 3-iteration chain followed by a
+        // reserved-keyword modifier still commits 'partial' as a modifier.
+        UsingTree("partial file async required public class C { }");
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.AsyncKeyword);
+                N(SyntaxKind.RequiredKeyword);
+                N(SyntaxKind.PublicKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void SkipLoop_PartialPartial_ContextualSelfReentry_OnClass()
+    {
+        // 'partial' itself is a contextual modifier, so 'partial partial class C' drives
+        // one loop iteration on the SECOND 'partial' token (the first is consumed by
+        // ParseModifiers before IsPartialModifierInDeclarationHead is called; the inner
+        // lookahead then eats the second 'partial' as a contextual modifier and breaks
+        // on 'class').
+        UsingTree("partial partial class C { }");
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Theory]
+    [MemberData(nameof(ContextualModifierChains))]
+    public void SkipLoop_IteratesThenNoDeclHead_PartialFallsBackToIdentifier(string chain)
+    {
+        // Exit path (A) returning FALSE: after the loop iterates, the decl-head check
+        // fails (nothing but a ';' follows), so IsPartialModifierInDeclarationHead
+        // returns false and 'partial' is NOT consumed as a modifier.
+        //
+        // We verify the invariant that no top-level member declaration ends up with
+        // 'partial' in its modifier list for these malformed chains.
+        var src = $"partial {chain};";
+        var tree = SyntaxFactory.ParseSyntaxTree(src);
+        var root = tree.GetCompilationUnitRoot();
         foreach (var member in root.Members)
         {
             Assert.False(
