@@ -3378,59 +3378,64 @@ scoped record A;
                     // scoped record A;
                     Diagnostic(ErrorCode.WRN_UnreferencedVar, "A").WithArguments("A").WithLocation(2, 15));
             }
-            else if (langVersion == LanguageVersion.CSharp10)
+            else
             {
+                // In language versions where 'record' is a type-declaration keyword we now
+                // parse this as `record A;` with 'scoped' treated as a misplaced modifier,
+                // producing a single clean diagnostic on the 'scoped' keyword.
                 CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
-                    // (2,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
                     // scoped record A;
-                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 1),
-                    // (2,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                    // scoped record A;
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 8),
-                    // (2,15): warning CS0168: The variable 'A' is declared but never used
-                    // scoped record A;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "A").WithArguments("A").WithLocation(2, 15));
-            }
-            else if (langVersion == LanguageVersion.CSharp11)
-            {
-                CreateCompilation(source, parseOptions: parseOptions).VerifyDiagnostics(
-                    // (2,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                    // scoped record A;
-                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(2, 8),
-                    // (2,15): warning CS0168: The variable 'A' is declared but never used
-                    // scoped record A;
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "A").WithArguments("A").WithLocation(2, 15));
+                    Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1));
             }
 
             UsingTree(source, parseOptions);
 
-            N(SyntaxKind.CompilationUnit);
+            if (langVersion == LanguageVersion.CSharp8)
             {
-                N(SyntaxKind.GlobalStatement);
+                N(SyntaxKind.CompilationUnit);
                 {
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.GlobalStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.LocalDeclarationStatement);
                         {
-                            N(SyntaxKind.ScopedType);
+                            N(SyntaxKind.VariableDeclaration);
                             {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "record");
+                                    N(SyntaxKind.ScopedKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "record");
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
                                 }
                             }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
+                            N(SyntaxKind.SemicolonToken);
                         }
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+            else
+            {
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.RecordDeclaration);
+                    {
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.IdentifierToken, "A");
                         N(SyntaxKind.SemicolonToken);
                     }
+                    N(SyntaxKind.EndOfFileToken);
                 }
-                N(SyntaxKind.EndOfFileToken);
+                EOF();
             }
-            EOF();
         }
 
         [Fact]
@@ -11264,22 +11269,13 @@ readonly scoped record struct C();
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.ScopedType);
-                    {
-                        N(SyntaxKind.ScopedKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "record");
-                        }
-                    }
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.IdentifierToken, "A");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.RecordStructDeclaration);
                 {
@@ -14205,37 +14201,64 @@ class C
 ";
             UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
-            N(SyntaxKind.CompilationUnit);
+            if (langVersion == LanguageVersion.CSharp8)
             {
-                N(SyntaxKind.ClassDeclaration);
+                N(SyntaxKind.CompilationUnit);
                 {
-                    N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.FieldDeclaration);
+                    N(SyntaxKind.ClassDeclaration);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.FieldDeclaration);
                         {
-                            N(SyntaxKind.ScopedType);
+                            N(SyntaxKind.VariableDeclaration);
                             {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "record");
+                                    N(SyntaxKind.ScopedKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "record");
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "A");
                                 }
                             }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
+                            N(SyntaxKind.SemicolonToken);
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    N(SyntaxKind.CloseBraceToken);
+                    N(SyntaxKind.EndOfFileToken);
                 }
-                N(SyntaxKind.EndOfFileToken);
+                EOF();
             }
-            EOF();
+            else
+            {
+                // In language versions where 'record' is a type-declaration keyword we parse
+                // this as a record type declaration with 'scoped' treated as a misplaced modifier.
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.RecordDeclaration);
+                        {
+                            N(SyntaxKind.ScopedKeyword);
+                            N(SyntaxKind.RecordKeyword);
+                            N(SyntaxKind.IdentifierToken, "A");
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
         }
 
         [Theory]

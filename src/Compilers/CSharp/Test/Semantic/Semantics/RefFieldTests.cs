@@ -11779,11 +11779,11 @@ scoped readonly ref struct C { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 1));
         }
 
-        // 'scoped' prefixing a type declaration is recognised as a misplaced modifier even when
-        // it sits between other modifiers (e.g. 'readonly scoped record struct C();') or precedes
-        // a record/union + struct/class sequence ('scoped readonly record struct B;').  A bare
-        // 'scoped record A { }' still parses as a ScopedType-typed field because 'record' alone
-        // is a contextual keyword that can denote a type name.
+        // 'scoped' prefixing a type declaration is recognised as a misplaced modifier in all
+        // of these shapes -- including `scoped record A { }` where 'record' is itself the
+        // type-declaration keyword (C# 9+), and `scoped readonly record struct B;` where
+        // 'record struct' forms the type head.  The binder reports a single clean
+        // ERR_BadMemberFlag on the 'scoped' keyword itself in each case.
         [Fact]
         public void TypeScopeModifier_02_CSharp10()
         {
@@ -11797,15 +11797,6 @@ readonly scoped record struct C();
                 // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (1,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 8),
-                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
-                // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
                 // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly record struct B;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
@@ -11827,15 +11818,6 @@ readonly scoped record struct C();
                 // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (1,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 8),
-                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
-                // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
-                // scoped record A { }
-                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
                 // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly record struct B;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
