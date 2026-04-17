@@ -609,7 +609,7 @@ internal static partial class SyntaxNodeExtensions
 
     /// <summary>
     /// If the position is inside of token, return that token; otherwise, return the token to the right.
-    /// If `position` is invalid or there is no token to the right, this function may throw.
+    /// <exception cref="ArgumentOutOfRangeException">When `position` is invalid or there is no token to the right.</exception>
     /// </summary>
     public static SyntaxToken FindTokenOnRightOfPosition(
         this SyntaxNode root,

@@ -86,10 +86,9 @@ public abstract class AbstractCompleteStatementTests
     {
         return () =>
         {
-            var caretPosition = textView.Caret.Position.BufferPosition;
-            var newSpanshot = textView.TextBuffer.Insert(caretPosition, text);
-            // insert moves the caret forward by the length of the inserted text,
+            // `Insert` moves the caret forward by the length of the inserted text,
             // so we don't need to move it manually here
+            textView.TextBuffer.Insert(textView.Caret.Position.BufferPosition, text);
         };
     }
 
