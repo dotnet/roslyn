@@ -46,6 +46,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             SyntaxTokenList? modifierTokens,
             out bool modifierErrors)
+            => CheckModifiers(isForTypeDeclaration, isForInterfaceMember, modifiers, allowedModifiers, errorLocation,
+                diagnostics, modifierTokens, scopedKeywordLocation: null, out modifierErrors);
+
+        internal static DeclarationModifiers CheckModifiers(
+            bool isForTypeDeclaration,
+            bool isForInterfaceMember,
+            DeclarationModifiers modifiers,
+            DeclarationModifiers allowedModifiers,
+            Location errorLocation,
+            BindingDiagnosticBag diagnostics,
+            SyntaxTokenList? modifierTokens,
+            Location scopedKeywordLocation,
+            out bool modifierErrors)
         {
             Debug.Assert(!isForTypeDeclaration || !isForInterfaceMember);
 
@@ -92,6 +105,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // `allowedModifiers` for members).  Report a targeted diagnostic on the
                         // `ref` token itself so the fix-it location is clear.
                         ReportRefNotMemberModifier(errorLocation, diagnostics, modifierTokens);
+                        break;
+
+                    case DeclarationModifiers.Scoped:
+                        // Point the 'scoped not valid for this item' diagnostic at the 'scoped'
+                        // keyword itself when we can find it, matching how ScopedType-prefixed
+                        // uses report this error.
+                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, scopedKeywordLocation ?? errorLocation, ConvertSingleModifierToSyntaxText(oneError));
                         break;
 
                     case DeclarationModifiers.Abstract:

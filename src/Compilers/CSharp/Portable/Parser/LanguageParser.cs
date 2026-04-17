@@ -1345,17 +1345,73 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
+        // Consume 'scoped' as a declaration modifier when what ultimately follows (past any
+        // leading modifier tokens or another 'scoped') is the start of a type declaration.
+        // e.g. `scoped struct S { }`, `scoped ref struct S { }`, `scoped readonly ref struct S { }`,
+        // `scoped readonly record struct B;`.  That lets the binder report a single clean
+        // ERR_BadMemberFlag instead of a cascade of parse errors.  Genuine type-prefix uses
+        // (e.g. `scoped ref int x`) are left alone so ParseReturnType/ParseType can wrap them
+        // in a ScopedType node.
+        private bool TryConsumeMisplacedScopedKeyword(SyntaxListBuilder tokens)
+        {
+            if (this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
+                return false;
+
+            if (!IsScopedModifierInDeclarationHead())
+                return false;
+
+            tokens.Add(this.EatContextualToken(SyntaxKind.ScopedKeyword));
+            return true;
+        }
+
+        /// <summary>
+        /// Returns true when the current <c>scoped</c> token should be consumed as a declaration
+        /// modifier on a type declaration, rather than as a type prefix.  Walks past any
+        /// following modifier tokens (including another <c>scoped</c>) and checks whether the
+        /// remaining tokens form a type or namespace declaration head.
+        /// </summary>
+        /// <remarks>
+        /// Like the equivalent helpers for <c>partial</c> and <c>ref</c>, this is intentionally
+        /// permissive at the parse layer.  The binder
+        /// (<see cref="Microsoft.CodeAnalysis.CSharp.Symbols.ModifierUtils"/>) reports the actual
+        /// "scoped not valid for this item" error on the resulting declaration.
+        /// </remarks>
+        private bool IsScopedModifierInDeclarationHead()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword);
+
+            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
+
+            this.EatToken();
+            while (true)
+            {
+                if (GetModifierExcludingScoped(this.CurrentToken) == DeclarationModifiers.None &&
+                    this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
+                {
+                    break;
+                }
+
+                this.EatToken();
+            }
+
+            return CheckAtTypeOrNamespaceDeclarationHead(out var isDeclarationHead) && isDeclarationHead;
+        }
+
         private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors, bool forTopLevelStatements)
         {
             Debug.Assert(!(forAccessors && forTopLevelStatements));
 
-            // 'scoped' is not parsed here. It is not a declaration modifier -- it is a type prefix
-            // that wraps the declared type in a ScopedType node. Callers consume it explicitly just
-            // before parsing the declaration's type. See ParseMemberDeclarationCore and
-            // ParseMemberDeclarationOrStatementCore.
+            // 'scoped' is primarily a type prefix (absorbed by ParseReturnType/ParseType into a
+            // ScopedType node at member-decl call sites).  But when it appears in front of a
+            // construct that isn't a type -- e.g. `scoped struct S { }`, `scoped ref struct S { }`,
+            // `scoped readonly ref struct S { }` -- we consume it here as a modifier so the binder
+            // can report a clean 'scoped not valid for this item' error instead of parse cascades.
 
             while (true)
             {
+                if (TryConsumeMisplacedScopedKeyword(tokens))
+                    continue;
+
                 var newMod = GetModifierExcludingScoped(this.CurrentToken);
 
                 Debug.Assert(newMod != DeclarationModifiers.Scoped);
@@ -10686,9 +10742,7 @@ done:
             }
         }
 
-        private SyntaxToken ParsePossibleScopedKeyword(
-            bool isFunctionPointerParameter,
-            bool isLambdaParameter)
+        private SyntaxToken ParsePossibleScopedKeyword(bool isFunctionPointerParameter, bool isLambdaParameter)
         {
             return IsDefiniteScopedModifier(isFunctionPointerParameter, isLambdaParameter)
                 ? this.EatContextualToken(SyntaxKind.ScopedKeyword)

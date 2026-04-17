@@ -11731,12 +11731,12 @@ delegate ref scoped R D();
                 );
         }
 
-        // The source here is invalid on pre-scoped C# versions. The parser commits to "this is a
-        // scoped-type-prefixed declaration" as soon as 'scoped' is followed by a token that can
-        // start a scoped form (ref/readonly/Type). That yields noisy but self-consistent error
-        // recovery that the binder then reports. The precise shape of the recovery diagnostics is
-        // not a contract; these tests pin down current behavior on C# 10 / C# 11 and show the
-        // feature-availability gate for 'ref fields' kicking in on C# 10 only.
+        // 'scoped' is misplaced on a type declaration. The parser consumes 'scoped' as a modifier
+        // (whether or not 'ref'/'readonly'/'scoped' legitimately modify the type, e.g. a ref
+        // struct) and the binder reports a single ERR_BadMemberFlag pointed at the 'scoped'
+        // keyword itself. This behavior is identical on every language version since the shape
+        // of the declaration is the same; only the 'ref fields'/'scoped' keyword feature checks
+        // (which don't fire here) would differ.
         [Fact]
         public void TypeScopeModifier_01_CSharp10()
         {
@@ -11747,48 +11747,15 @@ scoped readonly ref struct C { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp10));
             comp.VerifyDiagnostics(
-                // (1,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (1,8): error CS1001: Identifier expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
-                // (1,8): error CS1002: ; expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
-                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
+                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "scoped ref ").WithLocation(2, 1),
-                // (2,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 1),
-                // (2,12): error CS1031: Type expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
-                // (2,12): error CS1001: Identifier expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(2, 12),
-                // (2,12): error CS1002: ; expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 12),
-                // (2,12): error CS8174: A declaration of a by-reference variable must have an initializer
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(2, 12),
-                // (3,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
+                // (3,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(3, 1),
-                // (3,8): error CS1031: Type expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(3, 8),
-                // (3,8): error CS1001: Identifier expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 8),
-                // (3,8): error CS1003: Syntax error, ',' expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 8),
-                // (3,21): error CS1002: ; expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 21));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 1));
         }
 
         [Fact]
@@ -11801,47 +11768,22 @@ scoped readonly ref struct C { }
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
             comp.VerifyDiagnostics(
-                // (1,1): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
+                // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (1,8): error CS1001: Identifier expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(1, 8),
-                // (1,8): error CS1002: ; expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
-                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
+                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "scoped ref ").WithLocation(2, 1),
-                // (2,12): error CS1031: Type expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(2, 12),
-                // (2,12): error CS1001: Identifier expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(2, 12),
-                // (2,12): error CS1002: ; expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 12),
-                // (2,12): error CS8174: A declaration of a by-reference variable must have an initializer
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "").WithLocation(2, 12),
-                // (3,8): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
+                // (3,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(3, 8),
-                // (3,8): error CS1001: Identifier expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(3, 8),
-                // (3,8): error CS1003: Syntax error, ',' expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(3, 8),
-                // (3,21): error CS1002: ; expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 21));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 1));
         }
 
-        // The source here is invalid on pre-scoped C# versions, and the recovery diagnostics
-        // below are not a contract. See the comment on TypeScopeModifier_01_CSharp10/11 for why
-        // the shape of the errors differs between language versions.
+        // 'scoped' prefixing a type declaration is recognised as a misplaced modifier even when
+        // it sits between other modifiers (e.g. 'readonly scoped record struct C();') or precedes
+        // a record/union + struct/class sequence ('scoped readonly record struct B;').  A bare
+        // 'scoped record A { }' still parses as a ScopedType-typed field because 'record' alone
+        // is a contextual keyword that can denote a type name.
         [Fact]
         public void TypeScopeModifier_02_CSharp10()
         {
@@ -11855,51 +11797,21 @@ readonly scoped record struct C();
                 // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (1,8): error CS0118: 'record' is a variable but is used like a type
+                // (1,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 8),
+                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,1): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(2, 1),
-                // (2,8): error CS1031: Type expected
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(2, 8),
-                // (2,8): error CS1001: Identifier expected
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(2, 8),
-                // (2,8): error CS1003: Syntax error, ',' expected
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(2, 8),
-                // (2,24): error CS1002: ; expected
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 24),
-                // (2,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, ";").WithArguments("primary constructors", "12.0").WithLocation(2, 32),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
+                // (3,10): error CS0106: The modifier 'scoped' is not valid for this item
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
-                // (3,1): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
-                // (3,10): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 10),
-                // (3,17): warning CS0168: The variable 'record' is declared but never used
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
-                // (3,24): error CS1002: ; expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS8936: Feature 'primary constructors' is not available in C# 10.0. Please use language version 12.0 or greater.
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 10));
         }
 
         [Fact]
@@ -11915,48 +11827,21 @@ readonly scoped record struct C();
                 // (1,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 1),
-                // (1,8): error CS0118: 'record' is a variable but is used like a type
+                // (1,8): error CS0246: The type or namespace name 'record' could not be found (are you missing a using directive or an assembly reference?)
                 // scoped record A { }
-                Diagnostic(ErrorCode.ERR_BadSKknown, "record").WithArguments("record", "variable", "type").WithLocation(1, 8),
-                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties 
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "record").WithArguments("record").WithLocation(1, 8),
+                // (1,15): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "A").WithLocation(1, 15),
                 // (1,15): error CS0548: '<invalid-global-code>.A': property or indexer must have at least one accessor
                 // scoped record A { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "A").WithArguments("<invalid-global-code>.A").WithLocation(1, 15),
-                // (2,8): error CS1031: Type expected
+                // (2,1): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(2, 8),
-                // (2,8): error CS1001: Identifier expected
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(2, 8),
-                // (2,8): error CS1003: Syntax error, ',' expected
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(2, 8),
-                // (2,24): error CS1002: ; expected
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 24),
-                // (2,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
-                // scoped readonly record struct B;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, ";").WithArguments("primary constructors", "12.0").WithLocation(2, 32),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(2, 1),
+                // (3,10): error CS0106: The modifier 'scoped' is not valid for this item
                 // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "readonly scoped record ").WithLocation(3, 1),
-                // (3,1): error CS0106: The modifier 'readonly' is not valid for this item
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(3, 1),
-                // (3,10): error CS0246: The type or namespace name 'scoped' could not be found (are you missing a using directive or an assembly reference?)
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "scoped").WithArguments("scoped").WithLocation(3, 10),
-                // (3,17): warning CS0168: The variable 'record' is declared but never used
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "record").WithArguments("record").WithLocation(3, 17),
-                // (3,24): error CS1002: ; expected
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 24),
-                // (3,32): error CS9058: Feature 'primary constructors' is not available in C# 11.0. Please use language version 12.0 or greater.
-                // readonly scoped record struct C();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "()").WithArguments("primary constructors", "12.0").WithLocation(3, 32));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 10));
         }
 
         [Fact]

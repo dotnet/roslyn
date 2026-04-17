@@ -423,10 +423,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!modifierErrors)
                 {
+                    // Point the 'scoped' diagnostic at the 'scoped' keyword itself rather than
+                    // at the type name when we can recover it from the declaration syntax.
+                    Location? scopedKeywordLocation = null;
+                    if ((mods & DeclarationModifiers.Scoped) != 0)
+                    {
+                        var modifierList = decl.SyntaxReference.GetSyntax() switch
+                        {
+                            BaseTypeDeclarationSyntax typeDecl => typeDecl.Modifiers,
+                            DelegateDeclarationSyntax delegateDecl => delegateDecl.Modifiers,
+                            _ => default,
+                        };
+
+                        var scopedToken = modifierList.FirstOrDefault(SyntaxKind.ScopedKeyword);
+                        if (scopedToken != default)
+                            scopedKeywordLocation = scopedToken.GetLocation();
+                    }
+
                     mods = ModifierUtils.CheckModifiers(
                         isForTypeDeclaration: true, isForInterfaceMember: false,
                         mods, allowedModifiers, declaration.Declarations[i].NameLocation, diagnostics,
-                        modifierTokens: null, modifierErrors: out modifierErrors);
+                        modifierTokens: null, scopedKeywordLocation, modifierErrors: out modifierErrors);
 
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)

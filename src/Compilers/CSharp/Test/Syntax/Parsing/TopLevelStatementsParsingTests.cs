@@ -3056,122 +3056,32 @@ scoped ref struct B { }
 scoped readonly ref struct C { }
 ";
 
-            UsingTree(test,
-                // (2,8): error CS1001: Identifier expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(2, 8),
-                // (2,8): error CS1002: ; expected
-                // scoped struct A { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(2, 8),
-                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "scoped ref ").WithLocation(3, 1),
-                // (3,12): error CS1031: Type expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(3, 12),
-                // (3,12): error CS1001: Identifier expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "struct").WithLocation(3, 12),
-                // (3,12): error CS1002: ; expected
-                // scoped ref struct B { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(3, 12),
-                // (4,8): error CS1031: Type expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "readonly").WithLocation(4, 8),
-                // (4,8): error CS1001: Identifier expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "readonly").WithLocation(4, 8),
-                // (4,8): error CS1003: Syntax error, ',' expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "readonly").WithArguments(",").WithLocation(4, 8),
-                // (4,21): error CS1002: ; expected
-                // scoped readonly ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(4, 21));
+            UsingTree(test);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.ScopedKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "A");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.ScopedType);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.RefType);
-                                {
-                                    N(SyntaxKind.RefKeyword);
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "B");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.LocalDeclarationStatement);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.ScopedType);
-                            {
-                                N(SyntaxKind.ScopedKeyword);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.ScopedKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
