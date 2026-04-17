@@ -218,8 +218,12 @@ internal sealed class TriviaRewriter : CSharpSyntaxRewriter
         if (triviaList.Count == 0)
             return (false, triviaList);
 
+        var hasElasticNewLine = triviaList.Any(t => t.IsElastic() && t.IsEndOfLine());
+        if (!hasElasticNewLine)
+            return (false, triviaList);
+
         var hasChanges = false;
-        var builder = new ArrayBuilder<SyntaxTrivia>(triviaList.Count);
+        using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(triviaList.Count, out var builder);
         foreach (var trivia in triviaList)
         {
             if (trivia.IsEndOfLine() && trivia.IsElastic())
