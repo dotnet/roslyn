@@ -841,10 +841,7 @@ class C
         public void PartialPublicDelegate()
         {
             CreateCompilation("partial public delegate void M();").VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                // partial public delegate void M();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
-                // (1,30): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (1,30): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // partial public delegate void M();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "M").WithLocation(1, 30));
         }

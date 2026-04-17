@@ -279,19 +279,22 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 partial public C() { }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+        // Before C# preview, 'partial' was required to be the last modifier. With the relaxed-modifier-ordering feature it can appear anywhere.
+        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (3,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     partial public event System.Action E;
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(3, 5),
+            // (4,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     partial public event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-            // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(4, 5),
+            // (5,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     partial public C();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-            // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(5, 5),
+            // (6,5): error CS8652: The feature 'relaxed modifier ordering' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     partial public C() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "partial").WithArguments("relaxed modifier ordering").WithLocation(6, 5));
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
     }
 
     [Fact]
@@ -747,12 +750,6 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial static C();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial static C();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial static C() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
             // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial static C() { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),

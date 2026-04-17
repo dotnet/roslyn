@@ -511,7 +511,8 @@ partial class PartialPartial
     }
 }
 ";
-            ParseAndRoundTripping(text, -1);
+            // Duplicate `partial` on a method is a bind-time error (ERR_DuplicateModifier), not a parse error.
+            ParseAndRoundTripping(text);
         }
 
         [Fact]
