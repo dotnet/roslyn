@@ -32,5 +32,5 @@ internal sealed class CSharpFormatEngine : AbstractFormatEngine
         => new TriviaDataFactory(this.TreeData, this.Options.LineFormatting);
 
     protected override AbstractFormattingResult CreateFormattingResult(TokenStream tokenStream)
-        => new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat);
+        => new FormattingResult(this.TreeData, tokenStream, this.SpanToFormat, this.Options);
 }
