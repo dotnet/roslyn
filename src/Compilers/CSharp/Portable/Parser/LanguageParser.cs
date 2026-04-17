@@ -1680,10 +1680,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (contextualKind)
             {
                 case SyntaxKind.RecordKeyword:
-                    return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    {
+                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                        // does not support a feature, but in this case we are effectively making a language breaking
+                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
+                        // older code that is not using C# 9 we conditionally parse based on langversion
+                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+                    }
 
                 case SyntaxKind.UnionKeyword:
-                    return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                    {
+                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
+                        // does not support a feature, but in this case we are effectively making a language breaking
+                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
+                        // older code that is not using C# 15 we conditionally parse based on langversion
+                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
+                    }
             }
 
             // Constructs where 'partial' is illegal but we still want to consume it so the binder
