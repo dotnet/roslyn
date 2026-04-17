@@ -357,6 +357,7 @@ internal sealed class CompleteStatementCommandHandler(
         // Short-circuit if we are at the position in the file
         if (targetPosition.Position >= targetPosition.Snapshot.Length)
             return false;
+
         var existingSemicolon = statementNode.FindTokenOnRightOfPosition(targetPosition, includeSkipped: true);
         if (existingSemicolon.IsKind(SyntaxKind.SemicolonToken) && !existingSemicolon.IsMissing)
         {
