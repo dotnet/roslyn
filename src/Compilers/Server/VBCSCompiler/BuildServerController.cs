@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _logger = logger;
         }
 
-        internal int Run(string? pipeName, bool shutdown, DateTime? purgeCacheCutoff, bool cacheStats, bool cacheStatsVerbose, TimeSpan? keepAlive)
+        internal int Run(string? pipeName, bool shutdown, DateTime? purgeCacheCutoff, DateTime? cacheStatsSince, int cacheStatsVerbosity, TimeSpan? keepAlive)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token);
             if (purgeCacheCutoff is not null)
                 return RunPurgeCache(purgeCacheCutoff.Value);
-            if (cacheStats)
-                return RunCacheStats(cacheStatsVerbose);
+            if (cacheStatsSince is not null)
+                return RunCacheStats(cacheStatsSince.Value, cacheStatsVerbosity);
             return RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Displays cache statistics from the default cache directory.
         /// </summary>
-        internal int RunCacheStats(bool verbose)
+        internal int RunCacheStats(DateTime since, int verbosity)
         {
             var cachePath = CompilationCache.GetDefaultCachePath();
             if (cachePath is null)
@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return CommonCompiler.Failed;
             }
 
-            var stats = CompilationCache.GetCacheStats(cachePath);
-            Console.WriteLine(stats.FormatSummary(cachePath, verbose));
+            var stats = CompilationCache.GetCacheStats(cachePath, since);
+            Console.WriteLine(stats.FormatSummary(cachePath, verbosity));
             return CommonCompiler.Succeeded;
         }
 
@@ -217,16 +217,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///   <item><description><c>-log:&lt;path&gt;</c> — path to the log file.</description></item>
         ///   <item><description><c>-shutdown</c> — request the server to shut down.</description></item>
         ///   <item><description><c>-purgecache</c> / <c>-purgecache:&lt;timestamp&gt;</c> — purge cache entries not used since the given UTC timestamp (or all entries if no timestamp is given).</description></item>
-        ///   <item><description><c>-cachestats</c> / <c>-cachestats:verbose</c> — display compilation cache statistics.</description></item>
+        ///   <item><description><c>-cachestats</c> / <c>-cachestats:&lt;timestamp&gt;</c> — display compilation cache statistics since the given UTC timestamp (or since the start of time if no timestamp is given).</description></item>
+        ///   <item><description><c>-verbosity:&lt;0|1|2&gt;</c> — cache stats verbosity level (0 = totals, 1 = grouped by DLL, 2 = individual entries). Defaults to 0.</description></item>
         /// </list>
         /// </remarks>
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out DateTime? purgeCacheCutoff, out bool cacheStats, out bool cacheStatsVerbose, out TimeSpan? timeout, out string? logFilePath)
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out DateTime? purgeCacheCutoff, out DateTime? cacheStatsSince, out int cacheStatsVerbosity, out TimeSpan? timeout, out string? logFilePath)
         {
             pipeName = null;
             shutdown = false;
             purgeCacheCutoff = null;
-            cacheStats = false;
-            cacheStatsVerbose = false;
+            cacheStatsSince = null;
+            cacheStatsVerbosity = 0;
             timeout = null;
             logFilePath = null;
 
@@ -281,12 +282,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (arg == "-cachestats")
                 {
-                    cacheStats = true;
+                    cacheStatsSince = DateTime.MinValue;
                 }
-                else if (arg == "-cachestats:verbose")
+                else if (argSpan.StartsWith("-cachestats:".AsSpan(), StringComparison.Ordinal))
                 {
-                    cacheStats = true;
-                    cacheStatsVerbose = true;
+                    var value = argSpan["-cachestats:".Length..].ToString();
+                    if (!DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    {
+                        return false;
+                    }
+
+                    cacheStatsSince = parsed.ToUniversalTime();
+                }
+                else if (argSpan.StartsWith("-verbosity:".AsSpan(), StringComparison.Ordinal))
+                {
+                    var value = argSpan["-verbosity:".Length..].ToString();
+                    if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedVerbosity) ||
+                        parsedVerbosity < 0 || parsedVerbosity > 2)
+                    {
+                        return false;
+                    }
+
+                    cacheStatsVerbosity = parsedVerbosity;
                 }
                 else
                 {

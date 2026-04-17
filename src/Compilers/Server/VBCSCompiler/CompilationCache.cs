@@ -587,9 +587,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Computes cache statistics for all entries under <paramref name="cachePath"/>.
+        /// Computes cache hit/miss statistics for entries under <paramref name="cachePath"/>
+        /// since the given <paramref name="since"/> cutoff.
+        /// An entry is a <b>hit</b> if it was created before <paramref name="since"/>
+        /// and used (last-used &gt;= since).  It is a <b>store</b> (miss) if created
+        /// after <paramref name="since"/>.  Otherwise it is <b>untouched</b>.
         /// </summary>
-        internal static CacheStats GetCacheStats(string cachePath)
+        internal static CacheStats GetCacheStats(string cachePath, DateTime since)
         {
             var stats = new CacheStats();
             if (!Directory.Exists(cachePath))
@@ -613,8 +617,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                         var created = GetCreatedTimeUtc(entryDir);
                         var lastUsed = GetLastUsedTimeUtc(entryDir);
-                        stats.TotalEntries++;
-                        stats.Details.Add((dllName, dirName, created, lastUsed));
+
+                        if (created >= since)
+                        {
+                            stats.Stores++;
+                            stats.StoreDetails.Add((dllName, dirName, created, lastUsed));
+                        }
+                        else if (lastUsed >= since)
+                        {
+                            stats.Hits++;
+                            stats.HitDetails.Add((dllName, dirName, created, lastUsed));
+                        }
+                        else
+                        {
+                            stats.Untouched++;
+                        }
                     }
                 }
             }
@@ -628,39 +645,60 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     }
 
     /// <summary>
-    /// Aggregated cache statistics for a single cache root.
+    /// Aggregated cache hit/miss statistics for a single cache root.
     /// </summary>
     internal sealed class CacheStats
     {
-        public int TotalEntries { get; set; }
-        public List<(string DllName, string HashKey, DateTime Created, DateTime LastUsed)> Details { get; } = new();
+        public int Hits { get; set; }
+        public int Stores { get; set; }
+        public int Untouched { get; set; }
+        public List<(string DllName, string HashKey, DateTime Created, DateTime LastUsed)> HitDetails { get; } = new();
+        public List<(string DllName, string HashKey, DateTime Created, DateTime LastUsed)> StoreDetails { get; } = new();
 
-        public string FormatSummary(string cachePath, bool verbose)
+        /// <summary>
+        /// Formats a human-readable summary of the statistics.
+        /// <paramref name="verbosity"/>: 0 = totals only, 1 = grouped by DLL, 2 = individual entries.
+        /// </summary>
+        public string FormatSummary(string cachePath, int verbosity)
         {
             var sb = new StringBuilder();
             sb.AppendLine($"Cache: {cachePath}");
-            sb.AppendLine($"  Total entries: {TotalEntries}");
+            sb.AppendLine($"  Hits (reused):  {Hits}");
+            sb.AppendLine($"  Stores (new):   {Stores}");
+            sb.AppendLine($"  Untouched:      {Untouched}");
 
-            if (TotalEntries > 0)
+            if (verbosity >= 1)
             {
-                var byDll = Details
-                    .GroupBy(d => d.DllName, StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase);
-
-                foreach (var group in byDll)
-                {
-                    sb.AppendLine($"  {group.Key}: {group.Count()} entries");
-                    if (verbose)
-                    {
-                        foreach (var (_, hashKey, created, lastUsed) in group)
-                        {
-                            sb.AppendLine($"    {hashKey} (created: {created:u}, last used: {lastUsed:u})");
-                        }
-                    }
-                }
+                FormatGrouped(sb, "Hit", HitDetails, verbosity);
+                FormatGrouped(sb, "Store", StoreDetails, verbosity);
             }
 
             return sb.ToString().TrimEnd();
+        }
+
+        private static void FormatGrouped(StringBuilder sb, string label, List<(string DllName, string HashKey, DateTime Created, DateTime LastUsed)> details, int verbosity)
+        {
+            if (details.Count == 0)
+            {
+                return;
+            }
+
+            var byDll = details
+                .GroupBy(d => d.DllName, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase);
+
+            sb.AppendLine($"  {label} details:");
+            foreach (var group in byDll)
+            {
+                sb.AppendLine($"    {group.Key} ({group.Count()})");
+                if (verbosity >= 2)
+                {
+                    foreach (var (_, hashKey, created, lastUsed) in group)
+                    {
+                        sb.AppendLine($"      {hashKey} (created: {created:u}, last used: {lastUsed:u})");
+                    }
+                }
+            }
         }
     }
 }

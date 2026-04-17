@@ -545,16 +545,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             File.WriteAllText(Path.Combine(entry3, "created"), now.AddHours(-2).ToString("O"));
             File.WriteAllText(Path.Combine(entry3, "last-used"), now.AddHours(-1).ToString("O"));
 
-            var stats = CompilationCache.GetCacheStats(cacheDir);
-            Assert.Equal(3, stats.TotalEntries);
-            Assert.Equal(3, stats.Details.Count);
-            Assert.Contains(stats.Details, d => d.DllName == "A.dll");
-            Assert.Contains(stats.Details, d => d.DllName == "B.dll");
-            Assert.Contains(stats.Details, d => d.DllName == "C.dll");
+            // Since = now => entry1 is a hit (created before, used after), entry2 is a store (created after), entry3 is untouched
+            var stats = CompilationCache.GetCacheStats(cacheDir, now);
+            Assert.Equal(1, stats.Hits);
+            Assert.Equal(1, stats.Stores);
+            Assert.Equal(1, stats.Untouched);
+            Assert.Contains(stats.HitDetails, d => d.DllName == "A.dll");
+            Assert.Contains(stats.StoreDetails, d => d.DllName == "B.dll");
         }
 
         [Fact]
-        public void GetCacheStats_VerboseSummaryIncludesTimestamps()
+        public void GetCacheStats_VerboseSummaryIncludesGroupedDlls()
         {
             var cacheDir = Temp.CreateDirectory().Path;
             var now = DateTime.UtcNow;
@@ -565,10 +566,32 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             File.WriteAllText(Path.Combine(entry, "created"), now.AddHours(-2).ToString("O"));
             File.WriteAllText(Path.Combine(entry, "last-used"), now.ToString("O"));
 
-            var stats = CompilationCache.GetCacheStats(cacheDir);
-            var summary = stats.FormatSummary(cacheDir, verbose: true);
+            var stats = CompilationCache.GetCacheStats(cacheDir, now);
+            var summary = stats.FormatSummary(cacheDir, verbosity: 1);
 
-            Assert.Contains("MyLib.dll: 1 entries", summary);
+            Assert.Contains("Hits (reused):  1", summary);
+            Assert.Contains("Hit details:", summary);
+            Assert.Contains("MyLib.dll (1)", summary);
+            // Verbosity 1 does not show individual hash keys
+            Assert.DoesNotContain("hash_abc", summary);
+        }
+
+        [Fact]
+        public void GetCacheStats_Verbosity2ShowsIndividualEntries()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var now = DateTime.UtcNow;
+
+            var entry = Path.Combine(cacheDir, "MyLib.dll", "hash_abc");
+            Directory.CreateDirectory(entry);
+            File.WriteAllBytes(Path.Combine(entry, "assembly"), [1]);
+            File.WriteAllText(Path.Combine(entry, "created"), now.AddHours(-2).ToString("O"));
+            File.WriteAllText(Path.Combine(entry, "last-used"), now.ToString("O"));
+
+            var stats = CompilationCache.GetCacheStats(cacheDir, now);
+            var summary = stats.FormatSummary(cacheDir, verbosity: 2);
+
+            Assert.Contains("MyLib.dll (1)", summary);
             Assert.Contains("hash_abc", summary);
             Assert.Contains("created:", summary);
             Assert.Contains("last used:", summary);
