@@ -4346,21 +4346,20 @@ public sealed class CSharpCompleteStatementCommandHandlerTests : AbstractComplet
             """);
 
     #region TopLevelCode
-
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
-    public void TopLevelStatement_ArgumentList1()
+    public void TopLevelStatement_EmptyArgList()
         => VerifyTypingSemicolon(
             "Console.WriteLine($$)",
             "Console.WriteLine();$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
-    public void TopLevelStatement_ArgumentList2()
+    public void TopLevelStatement_BeforeNonEmptyArgList()
         => VerifyTypingSemicolon(
             "Console.WriteLine($$\"Hello\")",
             "Console.WriteLine(\"Hello\");$$");
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/81795")]
-    public void TopLevelStatement_ArgumentList3()
+    public void TopLevelStatement_AfterNonEmptyArgList()
         => VerifyTypingSemicolon(
             "Console.WriteLine(\"Hello\"$$)",
             "Console.WriteLine(\"Hello\");$$");
