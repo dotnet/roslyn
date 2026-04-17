@@ -3050,10 +3050,7 @@ scoped scoped var b;
             UsingTree(source, TestOptions.Regular11,
                 // (1,15): error CS1003: Syntax error, ',' expected
                 // scoped scoped int a;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 15),
-                // (2,19): error CS1003: Syntax error, ',' expected
-                // scoped scoped var b;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "b").WithArguments(",").WithLocation(2, 19));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 15));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -3084,14 +3081,18 @@ scoped scoped var b;
                             N(SyntaxKind.ScopedType);
                             {
                                 N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                    N(SyntaxKind.ScopedKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "var");
+                                N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -3194,9 +3195,6 @@ scoped scoped var b;
 scoped scoped ref R z = ref x;
 ";
             UsingTree(source, TestOptions.RegularPreview,
-                // (1,17): error CS1003: Syntax error, ',' expected
-                // scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 17),
                 // (2,15): error CS1003: Syntax error, ',' expected
                 // scoped scoped ref R z = ref x;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(2, 15)
@@ -3213,14 +3211,26 @@ scoped scoped ref R z = ref x;
                             N(SyntaxKind.ScopedType);
                             {
                                 N(SyntaxKind.ScopedKeyword);
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ScopedType);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "scoped");
+                                    N(SyntaxKind.ScopedKeyword);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "R");
+                                    }
                                 }
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken, "R");
+                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.DefaultLiteralExpression);
+                                    {
+                                        N(SyntaxKind.DefaultKeyword);
+                                    }
+                                }
                             }
                         }
                         N(SyntaxKind.SemicolonToken);
@@ -11421,73 +11431,26 @@ readonly scoped record struct C();
             string source =
 @"delegate scoped int A();
 ";
-            UsingTree(source, TestOptions.Regular11,
-                // (1,17): error CS1001: Identifier expected
-                // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(1, 17),
-                // (1,17): error CS1003: Syntax error, '(' expected
-                // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments("(").WithLocation(1, 17),
-                // (1,22): error CS1003: Syntax error, ',' expected
-                // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments(",").WithLocation(1, 22),
-                // (1,23): error CS8124: Tuple must contain at least two elements.
-                // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 23),
-                // (1,24): error CS1001: Identifier expected
-                // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 24),
-                // (1,24): error CS1026: ) expected
-                // delegate scoped int A();
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 24));
+            UsingTree(source, TestOptions.Regular11);
 
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.DelegateDeclaration);
                 {
                     N(SyntaxKind.DelegateKeyword);
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ScopedType);
                     {
-                        N(SyntaxKind.IdentifierToken, "scoped");
+                        N(SyntaxKind.ScopedKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
                     }
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "A");
                     N(SyntaxKind.ParameterList);
                     {
-                        M(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
-                        M(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.TupleType);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                M(SyntaxKind.TupleElement);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                M(SyntaxKind.CommaToken);
-                                M(SyntaxKind.TupleElement);
-                                {
-                                    M(SyntaxKind.IdentifierName);
-                                    {
-                                        M(SyntaxKind.IdentifierToken);
-                                    }
-                                }
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.CloseParenToken);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.SemicolonToken);
                 }

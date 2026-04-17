@@ -2799,13 +2799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
 
-                // 'scoped' is a type-prefix, not a modifier.  Consume it here so the resulting type is
-                // wrapped in a ScopedType node (matching how ParseLocalDeclaration handles it).
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
-
                 TypeSyntax type = ParseReturnType();
-                if (scopedKeyword != null)
-                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -3362,16 +3356,10 @@ parse_member_name:;
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }
 
-                // 'scoped' is a type-prefix, not a modifier.  Consume it here so the resulting type
-                // is wrapped in a ScopedType node (matching how ParseLocalDeclaration handles it).
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
-
                 // Everything that's left -- methods, fields, properties, 
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void).
                 TypeSyntax type = ParseReturnType();
-                if (scopedKeyword != null)
-                    type = _syntaxFactory.ScopedType(scopedKeyword, type);
 
                 var afterTypeResetPoint = this.GetResetPoint();
 
@@ -3799,7 +3787,17 @@ parse_member_name:;
         {
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfReturnType;
+
+            // A leading 'scoped' on a return type is parsed into a ScopedType wrapping the
+            // underlying type, mirroring how 'ref'/'ref readonly' return types are handled inside
+            // ParseType. 'scoped' is not actually legal on a return type for any member kind, but
+            // accepting it here lets the binder emit a clean "modifier 'scoped' is not valid for
+            // this item" diagnostic instead of cascading parse errors.
+            var scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
             var type = this.ParseTypeOrVoid();
+            if (scopedKeyword != null)
+                type = _syntaxFactory.ScopedType(scopedKeyword, type);
+
             _termState = saveTerm;
             return type;
         }

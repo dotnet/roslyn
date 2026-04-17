@@ -13186,20 +13186,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source);
-            // Duplicate scoped modifiers result are parse errors rather than binding errors.
             comp.VerifyDiagnostics(
-                // (6,16): error CS0118: 'scoped' is a variable but is used like a type
+                // (6,16): error CS0106: The modifier 'scoped' is not valid for this item
                 //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(6, 16),
-                // (6,23): warning CS0168: The variable 'R' is declared but never used
-                //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(6, 23),
-                // (6,25): error CS1002: ; expected
-                //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(6, 25),
-                // (6,25): error CS0103: The name 'x' does not exist in the current context
-                //         scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(6, 16),
                 // (7,9): error CS0118: 'scoped' is a variable but is used like a type
                 //         scoped scoped ref R z = ref x;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(7, 9),
@@ -13208,10 +13198,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "scoped").WithArguments("scoped").WithLocation(7, 16),
                 // (7,23): error CS1002: ; expected
                 //         scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23),
-                // (7,37): error CS0103: The name 'x' does not exist in the current context
-                //         scoped scoped ref R z = ref x;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(7, 37)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23)
                 );
         }
 
@@ -13224,17 +13211,13 @@ scoped scoped ref R z = ref x;
 ref struct R { }
 ";
             var comp = CreateCompilation(source);
-            // Duplicate scoped modifiers result are parse errors rather than binding errors.
             comp.VerifyDiagnostics(
-                // (1,8): error CS0118: 'scoped' is a variable but is used like a type
+                // (1,8): error CS0106: The modifier 'scoped' is not valid for this item
                 // scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(1, 8),
-                // (1,15): warning CS0168: The variable 'R' is declared but never used
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(1, 8),
+                // (1,17): warning CS0219: The variable 'x' is assigned but its value is never used
                 // scoped scoped R x = default;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "R").WithArguments("R").WithLocation(1, 15),
-                // (1,17): error CS1003: Syntax error, ',' expected
-                // scoped scoped R x = default;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 17),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(1, 17),
                 // (2,1): error CS0118: 'scoped' is a variable but is used like a type
                 // scoped scoped ref R z = ref x;
                 Diagnostic(ErrorCode.ERR_BadSKknown, "scoped").WithArguments("scoped", "variable", "type").WithLocation(2, 1),
