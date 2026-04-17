@@ -11792,7 +11792,8 @@ readonly scoped record struct C();
         // 'scoped event' is syntactically unambiguous on every language version: 'event' is a
         // reserved keyword and cannot start any other member form, so the parser commits 'scoped'
         // as a modifier on the event declaration.  The binder then reports a single clean
-        // ERR_BadMemberFlag since 'scoped' is never valid on an event.
+        // ERR_BadMemberFlag on the 'scoped' keyword itself since 'scoped' is never valid on an
+        // event.
         [Fact]
         public void ScopedEvent()
         {
@@ -11804,9 +11805,9 @@ readonly scoped record struct C();
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (3,32): error CS0106: The modifier 'scoped' is not valid for this item
+                // (3,5): error CS0106: The modifier 'scoped' is not valid for this item
                 //     scoped event System.Action E;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("scoped").WithLocation(3, 32),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "scoped").WithArguments("scoped").WithLocation(3, 5),
                 // (3,32): warning CS0067: The event 'C.E' is never used
                 //     scoped event System.Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(3, 32));

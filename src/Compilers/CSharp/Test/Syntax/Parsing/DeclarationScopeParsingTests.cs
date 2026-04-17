@@ -14353,6 +14353,9 @@ ref struct R2
         [InlineData(LanguageVersion.CSharp11)]
         public void Event_01(LanguageVersion langVersion)
         {
+            // 'scoped event int F3;' parses cleanly as an event field declaration with 'scoped'
+            // sitting in the modifier list.  The binder reports a single ERR_BadMemberFlag on
+            // the 'scoped' keyword because 'scoped' is never valid on an event.
             string source =
 @"
 ref struct R2
@@ -14360,11 +14363,7 @@ ref struct R2
     scoped event int F3;
 }
 ";
-            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion),
-                // (4,12): error CS1519: Invalid token 'event' in class, record, struct, or interface member declaration
-                //     scoped event int F3;
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "event").WithArguments("event").WithLocation(4, 12)
-                );
+            UsingTree(source, TestOptions.Regular.WithLanguageVersion(langVersion));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -14374,15 +14373,9 @@ ref struct R2
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R2");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "scoped");
-                        }
-                    }
                     N(SyntaxKind.EventFieldDeclaration);
                     {
+                        N(SyntaxKind.ScopedKeyword);
                         N(SyntaxKind.EventKeyword);
                         N(SyntaxKind.VariableDeclaration);
                         {
