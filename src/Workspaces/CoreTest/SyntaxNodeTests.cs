@@ -131,8 +131,26 @@ public sealed partial class SyntaxNodeTests : TestBase
         return tree.GetRoot();
     }
 
+    #region FindTokenOnRightOfPosition
     [Fact]
-    public void FindTokenOnRightOfPosition_ReturnsDefaultAtEndOfFile()
+    public void FindTokenOnRightOfPosition_BeforeStartOfFile_ReturnsDefault()
+    {
+        var root = GetRootForFindTokenTests();
+        var token = root.FindTokenOnRightOfPosition(root.FullSpan.Start - 1);
+        Assert.Equal(default, token);
+    }
+
+    [Fact]
+    public void FindTokenOnRightOfPosition_AtStartOfFile_ReturnsTokenAtStartOfFile()
+    {
+        var root = GetRootForFindTokenTests();
+        var token = root.FindTokenOnRightOfPosition(root.FullSpan.Start);
+        Assert.NotEqual(default, token);
+        Assert.Equal("Console", token.Text);
+    }
+
+    [Fact]
+    public void FindTokenOnRightOfPosition_AtEof_ReturnsDefault()
     {
         var root = GetRootForFindTokenTests();
 
@@ -142,7 +160,7 @@ public sealed partial class SyntaxNodeTests : TestBase
     }
 
     [Fact]
-    public void FindTokenOnRightOfPosition_ReturnsDefaultPastEndOfFile()
+    public void FindTokenOnRightOfPosition_PastEof_ReturnsDefault()
     {
         var root = GetRootForFindTokenTests();
 
@@ -150,20 +168,19 @@ public sealed partial class SyntaxNodeTests : TestBase
         var token = root.FindTokenOnRightOfPosition(root.FullSpan.End + 1);
         Assert.Equal(default, token);
     }
+    #endregion FindTokenOnRightOfPosition
 
+    #region FindTokenOnLeftOfPosition
     [Fact]
-    public void FindTokenOnRightOfPosition_ReturnsTokenAtStartOfFile()
+    public void FindTokenOnLeftOfPosition_BeforeStartOfFile_ReturnsDefault()
     {
         var root = GetRootForFindTokenTests();
-
-        // position at the start of the file returns the first real token
-        var token = root.FindTokenOnRightOfPosition(0);
-        Assert.NotEqual(default, token);
-        Assert.Equal("Console", token.Text);
+        var token = root.FindTokenOnLeftOfPosition(root.FullSpan.Start - 1);
+        Assert.Equal(default, token);
     }
 
     [Fact]
-    public void FindTokenOnLeftOfPosition_ReturnsDefaultAtStartOfFile()
+    public void FindTokenOnLeftOfPosition_AtStartOfFile_ReturnsDefault()
     {
         var root = GetRootForFindTokenTests();
 
@@ -173,17 +190,7 @@ public sealed partial class SyntaxNodeTests : TestBase
     }
 
     [Fact]
-    public void FindTokenOnLeftOfPosition_ReturnsDefaultPastEndOfFile()
-    {
-        var root = GetRootForFindTokenTests();
-
-        // position past the end of the file has no token to the left
-        var token = root.FindTokenOnLeftOfPosition(root.FullSpan.End + 1);
-        Assert.Equal(default, token);
-    }
-
-    [Fact]
-    public void FindTokenOnLeftOfPosition_ReturnsLastTokenAtEndOfFile()
+    public void FindTokenOnLeftOfPosition_AtEof_ReturnsLastToken()
     {
         var root = GetRootForFindTokenTests();
 
@@ -192,4 +199,15 @@ public sealed partial class SyntaxNodeTests : TestBase
         Assert.NotEqual(default, token);
         Assert.Equal(")", token.Text);
     }
+
+    [Fact]
+    public void FindTokenOnLeftOfPosition_PastEof_ReturnsDefault()
+    {
+        var root = GetRootForFindTokenTests();
+
+        // position past the end of the file has no token to the left
+        var token = root.FindTokenOnLeftOfPosition(root.FullSpan.End + 1);
+        Assert.Equal(default, token);
+    }
+    #endregion FindTokenOnLeftOfPosition
 }
