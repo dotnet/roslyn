@@ -883,19 +883,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsPartialInNamespaceMemberDeclaration()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType())
-                {
-                    return true;
-                }
-                else if (this.PeekToken(1).Kind == SyntaxKind.NamespaceKeyword)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
+                && this.IsPartialModifierInDeclarationHead();
         }
 
         public bool IsEndOfNamespace()
@@ -1640,13 +1629,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
-            // Eat 'partial' and then any subsequent modifier tokens.  We want to allow 'partial' to
-            // appear anywhere in the modifier list, so we scan past all remaining modifier tokens
-            // (including other contextual modifier keywords like 'async', 'required', 'file', or
-            // additional 'partial' tokens) to reach the actual declaration head.
+            // Eat 'partial' and then scan past any subsequent modifier tokens.  We want to allow
+            // 'partial' to appear anywhere in the modifier list, so we walk forward looking for a
+            // declaration head that 'partial' could legally modify.
             this.EatToken();
-            while (GetModifierExcludingScoped(this.CurrentToken) != DeclarationModifiers.None)
+            while (true)
             {
+                var nextMod = GetModifierExcludingScoped(this.CurrentToken);
+                if (nextMod == DeclarationModifiers.None)
+                {
+                    break;
+                }
+
+                // A non-contextual modifier keyword (e.g. 'public', 'static', 'sealed', 'ref', ...)
+                // is a reserved word and cannot start any expression/statement or be an identifier.
+                // Seeing one after 'partial' therefore unambiguously proves we are in a declaration
+                // context, so we can commit to treating 'partial' as a modifier without further
+                // inspection.
+                if (this.CurrentToken.Kind != SyntaxKind.IdentifierToken)
+                {
+                    return true;
+                }
+
+                // Otherwise we saw a contextual modifier (another 'partial', 'async', 'required',
+                // or 'file').  These tokens can also be identifiers in non-declaration contexts, so
+                // we need to keep scanning until we either hit a reserved modifier or the actual
+                // declaration head.
                 this.EatToken();
             }
 
@@ -1704,75 +1712,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // (inside a reset-point, so the advance is local) to determine whether this looks like
             // a member declaration head.
             return this.ScanType() != ScanTypeFlags.NotType && IsPossibleMemberName();
-        }
-
-        private bool IsPartialType()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-            var nextToken = this.PeekToken(1);
-            switch (nextToken.Kind)
-            {
-                case SyntaxKind.StructKeyword:
-                case SyntaxKind.ClassKeyword:
-                case SyntaxKind.InterfaceKeyword:
-                    return true;
-            }
-
-            switch (nextToken.ContextualKind)
-            {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
-            }
-
-            return false;
-        }
-
-        private bool IsPartialMember()
-        {
-            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword);
-
-            // Check for:
-            //   partial event
-            if (this.PeekToken(1).Kind == SyntaxKind.EventKeyword)
-            {
-                return true;
-            }
-
-            // Check for constructor:
-            //   partial Identifier(
-            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                this.PeekToken(2).Kind == SyntaxKind.OpenParenToken)
-            {
-                return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
-            }
-
-            // Check for method/property:
-            //   partial ReturnType MemberName
-            using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-
-            this.EatToken(); // partial
-
-            if (this.ScanType() == ScanTypeFlags.NotType)
-            {
-                return false;
-            }
-
-            return IsPossibleMemberName();
         }
 
         private bool IsPossibleMemberName()
@@ -6168,15 +6107,8 @@ parse_member_name:;
 
         private bool IsCurrentTokenPartialKeywordOfPartialMemberOrType()
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-            {
-                if (this.IsPartialType() || this.IsPartialMember())
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword
+                && this.IsPartialModifierInDeclarationHead();
         }
 
         private bool IsCurrentTokenFieldInKeywordContext()
