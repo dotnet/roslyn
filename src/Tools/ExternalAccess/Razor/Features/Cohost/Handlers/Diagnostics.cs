@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -31,7 +33,9 @@ internal static class Diagnostics
         var diagnostics = await diagnosticAnalyzerService.GetDiagnosticsForSpanAsync(
             document, range: null, DiagnosticKind.All, cancellationToken).ConfigureAwait(false);
 
-        return GetLspDiagnostics(document, supportsVisualStudioExtensions, globalOptionsService, diagnostics);
+        var encDiagnostics = await EditAndContinueDiagnosticSource.GetDocumentDiagnosticsAsync(document, cancellationToken).ConfigureAwait(false);
+
+        return GetLspDiagnostics(document, supportsVisualStudioExtensions, globalOptionsService, diagnostics.Concat(encDiagnostics));
     }
 
     public static async Task<ImmutableArray<LSP.Diagnostic>> GetTaskListAsync(Document document, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)

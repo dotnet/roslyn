@@ -20,8 +20,8 @@ internal static class OptionsProvider
 {
     private sealed class OptionsReaderProvider<TOptions>(IOptionsReader optionsReader, Func<IOptionsReader, string, TOptions> reader) : OptionsProvider<TOptions>
     {
-        public ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
-            => ValueTask.FromResult(reader(optionsReader, languageServices.Language));
+        public async ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
+            => reader(optionsReader, languageServices.Language);
     }
 
     public static OptionsProvider<TOptions> GetProvider<TOptions>(this IOptionsReader optionsReader, Func<IOptionsReader, string, TOptions> reader)

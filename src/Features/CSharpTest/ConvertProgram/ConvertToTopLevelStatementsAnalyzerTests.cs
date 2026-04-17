@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -24,7 +25,7 @@ public sealed class ConvertToTopLevelStatementsAnalyzerTests
         get
         {
             yield return new object[] { "" };
-            yield return new object[] { "\r\n" };
+            yield return new object[] { Environment.NewLine };
         }
     }
 

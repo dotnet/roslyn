@@ -5,6 +5,7 @@
 // tests from: https://github.com/nst/JSONTestSuite
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json;
@@ -1462,7 +1463,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void n_array_newlines_unclosed_json()
         => TestNST("""
             @"[""a"",
@@ -1683,7 +1684,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
     </Diagnostics>
     """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = @"Diagnostic offsets differ due to \r\n vs \n line endings")]
     public void n_array_unclosed_with_new_lines_json()
         => TestNST("""
             @"[1,

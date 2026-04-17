@@ -33,7 +33,7 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
         await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
-    private static Task FindDocumentsAsync<TData>(
+    private static async Task FindDocumentsAsync<TData>(
         Project project,
         IImmutableSet<Document>? documents,
         PredefinedOperator op,
@@ -42,10 +42,10 @@ internal sealed class OperatorSymbolReferenceFinder : AbstractMethodOrPropertyOr
         CancellationToken cancellationToken)
     {
         if (op == PredefinedOperator.None)
-            return Task.CompletedTask;
+            return;
 
-        return FindDocumentsWithPredicateAsync(
-            project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken);
+        await FindDocumentsWithPredicateAsync(
+            project, documents, static (index, op) => index.ContainsPredefinedOperator(op), op, processResult, processResultData, cancellationToken).ConfigureAwait(false);
     }
 
     protected sealed override void FindReferencesInDocument<TData>(

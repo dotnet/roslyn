@@ -83,14 +83,15 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
 
         var solution = await _solution.GetValueOrNullAsync(cancellationToken).ConfigureAwait(true);
 
-        // From this point on, we start mutating the solution.  So make us non cancellable.
-        cancellationToken = CancellationToken.None;
-
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionPath = solution?.SolutionFileName;
         _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.SolutionTelemetryId = GetSolutionSessionId();
 
         var hostInfo = new ProjectSystemHostInfo(_dynamicFileInfoProviders, _analyzerAssemblyRedirectors);
-        var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo).ConfigureAwait(true);
+        var project = await _visualStudioWorkspaceImpl.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(projectSystemName, language, creationInfo, hostInfo, cancellationToken).ConfigureAwait(true);
+
+        // We have now created the project and added it to the solution -- we are committed at this point
+        // to returning a project or else we would never have a way to remove this project we created.
+        cancellationToken = CancellationToken.None;
 
         _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 

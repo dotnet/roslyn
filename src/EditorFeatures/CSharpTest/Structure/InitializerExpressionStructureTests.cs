@@ -25,10 +25,10 @@ public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNo
                 {
                     void M()
                     {
-                        var v = {|hint:new Dictionary<int, int>{|textspan: $${
+                        {|hint:var v = new Dictionary<int, int> {|textspan:$${
                             { 1, 2 },
                             { 1, 2 },
-                        }|}|};
+                        }|};|}
                     }
                 }
                 """,
@@ -48,6 +48,45 @@ public sealed class InitializerExpressionStructureTests : AbstractCSharpSyntaxNo
                             },|}|}
                             { 1, 2 },
                         };
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestOuterInitializerWithMultiLineArgumentList()
+        => VerifyBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        {|hint:using var v = new MailMessage(
+                            fromAddress,
+                            new MailAddress(member.Emails[0].Address))
+                        {|textspan:$${
+                            Subject = subject,
+                            Body = plainBody
+                        }|};|}
+                    }
+                }
+                """,
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+
+    [Fact]
+    public Task TestOuterInitializerWithMultiLineArgumentList_BraceOnSameLine()
+        => VerifyBlockSpansAsync(
+            """
+                class C
+                {
+                    void M()
+                    {
+                        {|hint:using var mailMessage = new MailMessage(
+                            DC.Data.FromEMailAddress,
+                            new MailAddress(member.Emails[0].Address)) {|textspan:$${
+                            Subject = subject,
+                            Body = plainBody
+                        }|};|}
                     }
                 }
                 """,

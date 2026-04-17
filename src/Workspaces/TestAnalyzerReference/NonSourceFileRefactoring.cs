@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings;
 [Shared]
 public sealed class NonSourceFileRefactoring : CodeRefactoringProvider
 {
-    public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         context.RegisterRefactoring(CodeAction.Create(nameof(NonSourceFileRefactoring),
             createChangedSolution: async ct =>
@@ -30,8 +30,6 @@ public sealed class NonSourceFileRefactoring : CodeRefactoringProvider
                     return document.Project.Solution.WithAdditionalDocumentText(document.Id, newText);
                 return document.Project.Solution.WithAnalyzerConfigDocumentText(document.Id, newText);
             }));
-
-        return Task.CompletedTask;
     }
 }
 

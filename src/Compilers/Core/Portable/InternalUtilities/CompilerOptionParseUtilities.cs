@@ -9,6 +9,9 @@ namespace Roslyn.Utilities
 {
     internal static class CompilerOptionParseUtilities
     {
+        internal const string CachePathEnvironmentVariable = "ROSLYN_CACHE_PATH";
+        internal const string UseGlobalCacheFeatureFlag = "use-global-cache";
+
         /// <summary>
         /// Parse the value provided to an MSBuild Feature option into a list of entries.  This will 
         /// leave name=value in their raw form.
@@ -34,13 +37,29 @@ namespace Roslyn.Utilities
             }
         }
 
+        internal static void PrependFeatureFlagFromEnvironment(List<string> arguments, Action<string>? log = null)
+        {
+            if (Environment.GetEnvironmentVariable(CachePathEnvironmentVariable) is not { Length: > 0 } cachePath)
+            {
+                return;
+            }
+
+            if (cachePath[0] != '"')
+            {
+                cachePath = $"\"{cachePath}\"";
+            }
+
+            log?.Invoke($"Normalizing {CachePathEnvironmentVariable} to /features:{UseGlobalCacheFeatureFlag}={cachePath}");
+            arguments.Insert(0, $"/features:{UseGlobalCacheFeatureFlag}={cachePath}");
+        }
+
         private static void ParseFeatureCore(IDictionary<string, string> builder, string feature)
         {
             int equals = feature.IndexOf('=');
             if (equals > 0)
             {
                 string name = feature.Substring(0, equals);
-                string value = feature.Substring(equals + 1);
+                string value = feature.Substring(equals + 1).Trim('"');
                 builder[name] = value;
             }
             else

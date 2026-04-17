@@ -102,6 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return 0; }
         }
 
+        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+
         public override ImmutableArray<ParameterSymbol> Parameters
         {
             get { return ImmutableArray<ParameterSymbol>.Empty; }

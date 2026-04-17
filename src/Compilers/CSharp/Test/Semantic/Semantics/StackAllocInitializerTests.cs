@@ -2571,7 +2571,7 @@ unsafe class Test
             Assert.Null(stackallocInfo.Symbol);
             Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int16*", stackallocInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
+            Assert.False(stackallocInfo.ImplicitConversion.Exists);
 
             var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
             Assert.Null(element0Info.Symbol);
@@ -2599,7 +2599,7 @@ unsafe class Test
             Assert.Null(stackallocInfo.Symbol);
             Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Span<System.Int16>", stackallocInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.NoConversion, stackallocInfo.ImplicitConversion);
+            Assert.False(stackallocInfo.ImplicitConversion.Exists);
 
             element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
             Assert.Equal("ref System.Int16 System.Span<System.Int16>.this[System.Int32 i] { get; }", element0Info.Symbol.ToTestDisplayString());

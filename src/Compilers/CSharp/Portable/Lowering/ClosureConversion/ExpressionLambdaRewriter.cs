@@ -683,6 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
                     conversionGroupOpt: conversion.ConversionGroupOpt,
+                    inConversionGroupFlags: conversion.InConversionGroupFlags,
                     constantValueOpt: conversion.ConstantValueOpt,
                     type: conversion.Type);
             }
@@ -699,6 +700,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var mg = (BoundMethodGroup)node.Operand;
                         return DelegateCreation(mg.ReceiverOpt, node.SymbolOpt, node.Type, !node.SymbolOpt.RequiresInstanceReceiver && !node.IsExtensionMethod);
                     }
+                case ConversionKind.Union:
+                    throw ExceptionUtilities.UnexpectedValue(node.ConversionKind);
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.IntPtr:

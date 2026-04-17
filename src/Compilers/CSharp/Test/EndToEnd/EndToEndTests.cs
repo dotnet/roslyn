@@ -892,7 +892,7 @@ $@"        if (F({i}))
         public void ManyBinaryPatterns_02()
         {
             const int numOfEnumMembers = 5_000;
-            const int capacity = 97973;
+            var capacity = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 97973 : 87960;
 
             var builder = new StringBuilder(capacity);
 
@@ -972,7 +972,7 @@ _{i},
         public void ManyBinaryPatterns_03()
         {
             const int numOfEnumMembers = 4_000;
-            const int capacity = 47065;
+            var capacity = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 47065 : 43055;
 
             var builder = new StringBuilder(capacity);
 

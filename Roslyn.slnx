@@ -394,6 +394,7 @@
     <Project Path="src/Workspaces/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <Project Path="src/Workspaces/CSharpTest/Microsoft.CodeAnalysis.CSharp.Workspaces.UnitTests.csproj" />
     <Project Path="src/Workspaces/MSBuild/BuildHost/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" />
+    <Project Path="src/Workspaces/MSBuild/Contracts/Microsoft.CodeAnalysis.Workspaces.MSBuild.Contracts.csproj" />
     <Project Path="src/Workspaces/MSBuild/Core/Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <Project Path="src/Workspaces/MSBuild/Test/Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests.csproj" />
     <Project Path="src/Workspaces/Remote/Core/Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />

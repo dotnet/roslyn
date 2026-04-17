@@ -138,7 +138,7 @@ internal abstract class VisualStudioOptionStorage
         {"indent_size", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.indentSize")},
         {"indent_style", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.character")},
         {"tab_width", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.tabSize")},
-        {"smart_indent", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%arp.tabs.indenting")},
+        {"smart_indent", new UnifiedSettingsManagerStorage("languages.%LANGUAGE%.tabs.indenting")},
 
         {"dotnet_analyze_copilot_changes", new FeatureFlagStorage(@"Roslyn.AnalyzeCopilotChanges")},
         {"dotnet_copilot_fix_code_format", new FeatureFlagStorage(@"Roslyn.Copilot.FixCodeFormat")},
@@ -170,6 +170,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_highlight_matching_portions_of_completion_list_items", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems")},
         {"dotnet_show_completion_item_filters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters")},
         {"dotnet_show_completion_items_from_unimported_namespaces", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowItemsFromUnimportedNamespaces")},
+        {"dotnet_completion_items_from_unimported_namespaces_commit_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ImportCompletionCommitBehavior")},
         {"dotnet_show_name_completion_suggestions", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions")},
         {"dotnet_show_new_snippet_experience_feature_flag", new FeatureFlagStorage(@"Roslyn.SnippetCompletion")},
         {"dotnet_show_new_snippet_experience", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowNewSnippetExperience")},
@@ -386,7 +387,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_event_hook_up", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Event Hookup")},
         {"dotnet_format_on_save", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "FormatOnSave")},
         {"dotnet_code_analysis_in_separate_process", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "DotnetCodeAnalysisInSeparateProcess")},
-        {"dotnet_enable_server_garbage_collection_in_code_analysis_process", new FeatureFlagStorage(@"Roslyn.OOPServerGC")},
         {"dotnet_remove_intellicode_recommendation_limit", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "RemoveRecommendationLimit")},
         {"dotnet_enable_rename_tracking", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Rename Tracking")},
         {"dotnet_enable_semantic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Semantic Colorizer")},
@@ -395,6 +395,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_snippets", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Snippets2")},
         {"dotnet_enable_syntactic_colorizer", new LocalUserProfileStorage(@"Roslyn\Internal\OnOff\Features", "Syntactic Colorizer")},
         {"dotnet_enable_solution_crawler", new LocalUserProfileStorage(@"Roslyn\Internal\SolutionCrawler", "Solution Crawler")},
+        {"dotnet_process_roslyn_source_generated_files_in_solution_crawler", new UnifiedSettingsManagerStorage("test.includeSourceGeneratedFilesInRealTimeDiscovery")},
         {"dotnet_colorize_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ColorizeJsonPatterns")},
         {"dotnet_unsupported_detect_and_offer_editor_features_for_probable_json_strings", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.DetectAndOfferEditorFeaturesForProbableJsonStrings")},
         {"dotnet_highlight_related_json_components", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightRelatedJsonComponentsUnderCursor")},
@@ -449,6 +450,5 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_validate_compilation_tracker_states", new FeatureFlagStorage(@"Roslyn.ValidateCompilationTrackerStates")},
         {"dotnet_source_generator_execution", new RoamingProfileStorage("TextEditor.Roslyn.Specific.SourceGeneratorExecution")},
         {"xaml_enable_lsp_intellisense", new FeatureFlagStorage(@"Xaml.EnableLspIntelliSense")},
-        {"razor_use_cohosting", new FeatureFlagStorage("Razor.LSP.UseRazorCohostServer")},
     };
 }

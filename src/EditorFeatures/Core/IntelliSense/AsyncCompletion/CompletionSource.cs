@@ -158,7 +158,7 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
         //The user may be trying to invoke snippets through question-tab.
         // We may provide a completion after that.
         // Otherwise, tab should not be a completion trigger.
-        if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\t')
+        if (trigger is { Reason: AsyncCompletionData.CompletionTriggerReason.Insertion, Character: '\t' })
         {
             return TryInvokeSnippetCompletion(triggerLocation.Snapshot.TextBuffer, triggerLocation.Position, sourceText, document.Project.Services, completionService.GetRules(options));
         }

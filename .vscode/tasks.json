@@ -171,7 +171,7 @@
       "type": "process",
       "options": {
         "env": {
-          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net9.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net10.0/Microsoft.CodeAnalysis.LanguageServer.dll"
         }
       },
       "dependsOn": [ "build language server" ]

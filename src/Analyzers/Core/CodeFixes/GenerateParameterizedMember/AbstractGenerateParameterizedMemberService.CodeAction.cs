@@ -86,9 +86,10 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 var result = await CodeGenerator.AddMethodDeclarationAsync(
                    new CodeGenerationSolutionContext(
                        _document.Project.Solution,
-                       new CodeGenerationContext(
-                           afterThisLocation: _state.Location,
-                           generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface)),
+                        new CodeGenerationContext(
+                            afterThisLocation: _state.Location,
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface,
+                            allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument)),
                     _state.TypeToGenerateIn,
                     method,
                     cancellationToken).ConfigureAwait(false);

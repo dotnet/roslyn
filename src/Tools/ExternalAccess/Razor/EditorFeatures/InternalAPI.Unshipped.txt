@@ -101,8 +101,6 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper.Ra
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassificationOptionsWrapper.RazorClassificationOptionsWrapper(Microsoft.CodeAnalysis.Classification.ClassificationOptions underlyingObject) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorClassifierAccessor
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpFormattingInteractionService
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.RazorCSharpInterceptionMiddleLayerWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorCSharpInterceptionMiddleLayer! razorCSharpInterceptionMiddleLayer) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpProximityExpressionResolverService
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentExcerptServiceWrapper.RazorDocumentExcerptServiceWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDocumentExcerptServiceImplementation! impl) -> void
@@ -121,11 +119,6 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.RazorDynamicFil
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.SourceCodeKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.TextLoader.get -> Microsoft.CodeAnalysis.TextLoader!
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfo.ToUpdatedDocumentInfo(Microsoft.CodeAnalysis.DocumentInfo! existingDocumentInfo) -> Microsoft.CodeAnalysis.DocumentInfo!
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.GetDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Host.DynamicFileInfo?>!
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.RazorDynamicFileInfoProviderWrapper(System.Lazy<Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorDynamicFileInfoProvider!>! innerDynamicFileInfoProvider) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.RemoveDynamicFileInfoAsync(Microsoft.CodeAnalysis.ProjectId! projectId, string? projectFilePath, string! filePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDynamicFileInfoProviderWrapper.Updated -> System.EventHandler<string!>?
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode.SingleLine = 0 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode.Tooltip = 1 -> Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorExcerptMode
@@ -232,9 +225,6 @@ override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageC
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostLanguageClient.ShowNotificationOnInitializeFailed.get -> bool
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorCohostRequestContext.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.RazorTextDocumentIdentifier.GetHashCode() -> int
-override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.CanHandle(string! methodName) -> bool
-override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleNotificationAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task!>! sendNotification) -> System.Threading.Tasks.Task!
-override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorCSharpInterceptionMiddleLayerWrapper.HandleRequestAsync(string! methodName, Newtonsoft.Json.Linq.JToken! methodParam, System.Func<Newtonsoft.Json.Linq.JToken!, System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!>! sendRequest) -> System.Threading.Tasks.Task<Newtonsoft.Json.Linq.JToken?>!
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorDocumentPropertiesServiceWrapper.DiagnosticsLspClientName.get -> string?
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorIndentationOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper.GetMappedTextChangesAsync(Microsoft.CodeAnalysis.Document! oldDocument, Microsoft.CodeAnalysis.Document! newDocument, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<(string! mappedFilePath, Microsoft.CodeAnalysis.Text.TextChange mappedTextChange)>>!

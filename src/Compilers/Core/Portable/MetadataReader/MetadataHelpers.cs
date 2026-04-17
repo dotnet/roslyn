@@ -35,6 +35,16 @@ namespace Microsoft.CodeAnalysis
         // See // https://github.com/dotnet/runtime/issues/68002#issuecomment-1942166436 for more details.
         public const System.Reflection.GenericParameterAttributes GenericParameterAttributesAllowByRefLike = (System.Reflection.GenericParameterAttributes)0x0020;
 
+        extension(System.Reflection.TypeAttributes)
+        {
+            public static System.Reflection.TypeAttributes ExtendedLayout => (System.Reflection.TypeAttributes)0x0018;
+        }
+
+        extension(System.Runtime.InteropServices.LayoutKind)
+        {
+            public static System.Runtime.InteropServices.LayoutKind Extended => (System.Runtime.InteropServices.LayoutKind)1;
+        }
+
         public const char DotDelimiter = '.';
         public const string DotDelimiterString = ".";
         public const char GenericTypeNameManglingChar = '`';

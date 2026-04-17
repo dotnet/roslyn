@@ -230,6 +230,32 @@ public sealed partial class OnAutoInsertTests(ITestOutputHelper testOutputHelper
             """, mutatingLspWorkspace);
 
     [Theory, CombinatorialData]
+    public Task OnAutoInsert_EnterKey3_WithIndentation(bool mutatingLspWorkspace)
+        => VerifyCSharpMarkupAndExpected("\n", """
+            class A
+            {
+                ///
+                {|type:|}
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, """
+            class A
+            {
+                /// <summary>
+                /// $0
+                /// </summary>
+                /// <param name="foo"></param>
+                /// <param name="bar"></param>
+                /// <returns></returns>    
+                string M(int foo, bool bar)
+                {
+                }
+            }
+            """, mutatingLspWorkspace);
+
+    [Theory, CombinatorialData]
     public Task OnAutoInsert_BraceFormatting(bool mutatingLspWorkspace)
         => VerifyCSharpMarkupAndExpected("\n", """
             class A

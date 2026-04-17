@@ -153,12 +153,50 @@ void M()
 
 See also https://github.com/dotnet/roslyn/issues/80954.
 
+## `nameof(this.)` in attributes is disallowed
+
+***Introduced in Visual Studio 2026 version 18.3 and .NET 10.0.200***
+
+Using `this` or `base` keyword inside `nameof` in an attribute was previously unintentionally allowed in Roslyn since C# 12
+and is [now properly disallowed](https://github.com/dotnet/roslyn/pull/81628) to match the language specification.
+This breaking change can be mitigated by removing `this.` and accessing the member without the qualifier. 
+
+See also https://github.com/dotnet/roslyn/issues/82251.
+
+```cs
+class C
+{
+    string P;
+    [System.Obsolete(nameof(this.P))] // now disallowed
+    [System.Obsolete(nameof(P))] // workaround
+    void M() { }
+}
+```
+
+## Parsing of 'with' within a switch-expression-arm
+
+***Introduced in Visual Studio 2026 version 18.4***
+
+See https://github.com/dotnet/roslyn/issues/81837 and https://github.com/dotnet/roslyn/pull/81863
+
+Previously, when seeing the following, the compiler would treat `(X.Y)when` as a cast-expression.  Specifically,
+casting the contextual identifier `when` to `(X.Y)`:  
+
+```c#
+x switch
+{
+    (X.Y) when
+}
+```
+
+This was undesirable, and meant a simple `when` check of the pattern (like `(X.Y) when a > b =>`) would not
+parse properly.  Now, this is treated as a constant pattern `(X.Y)` followed by a `when clause`.
+
 ## `with()` as a collection expression element is treated as collection construction *arguments*
 
-PROTOTYPE: Include proper version number here.
-***Introduced in Visual Studio 2022 version TBD***
+***Introduced in Visual Studio 2026 version 18.4***
 
-`with(...)` when used as an element in a collection expression, and when the LangVersion is set to PROTOTYPE, is bound as arguments passed to constructor or
+`with(...)` when used as an element in a collection expression, and when the LangVersion is set to 15 or greater, is bound as arguments passed to constructor or
 factory method used to create the collection, rather than as an invocation expression of a method named `with`.
 
 To bind to a method named `with`, use `@with` instead.
@@ -167,7 +205,7 @@ To bind to a method named `with`, use `@with` instead.
 object x, y, z = ...;
 object[] items;
 
-items = [with(x, y), z];  // C#14: call to with() method; PROTOTYPE C#14: error args not supported for object[]
+items = [with(x, y), z];  // C# 14: call to with() method; C# 15: error args not supported for object[]
 items = [@with(x, y), z]; // call to with() method
 object with(object a, object b) { ... }
 ```
