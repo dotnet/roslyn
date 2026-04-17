@@ -1629,39 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         private bool IsAtPartialCapableDeclarationHead()
         {
-            var kind = this.CurrentToken.Kind;
-            var contextualKind = this.CurrentToken.ContextualKind;
-
-            // Type declarations where 'partial' is legal.
-            if (kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword)
-            {
-                return true;
-            }
-
-            switch (contextualKind)
-            {
-                case SyntaxKind.RecordKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "record" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 9 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
-                    }
-
-                case SyntaxKind.UnionKeyword:
-                    {
-                        // This is an unusual use of LangVersion. Normally we only produce errors when the langversion
-                        // does not support a feature, but in this case we are effectively making a language breaking
-                        // change to consider "union" a type declaration in all ambiguous cases. To avoid breaking
-                        // older code that is not using C# 15 we conditionally parse based on langversion
-                        return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
-                    }
-            }
-
-            // Constructs where 'partial' is illegal but we still want to consume it so the binder
-            // can produce a targeted diagnostic instead of cascading parse errors.
-            if (kind is SyntaxKind.NamespaceKeyword or SyntaxKind.EnumKeyword or SyntaxKind.DelegateKeyword)
+            if (IsAtTypeDeclarationHead())
             {
                 return true;
             }
@@ -1669,13 +1637,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // Partial members.
 
             // 'partial event ...'
-            if (kind == SyntaxKind.EventKeyword)
+            if (this.CurrentToken.Kind == SyntaxKind.EventKeyword)
             {
                 return true;
             }
 
             // 'partial Identifier(...' -- partial constructor.
-            if (kind == SyntaxKind.IdentifierToken &&
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken &&
                 this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
                 return IsFeatureEnabled(MessageID.IDS_FeaturePartialEventsAndConstructors);
@@ -1749,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // At the end of the modifier chain, 'ref' is a type modifier if we're at a type
             // declaration head.  Whether the specific type kind actually accepts 'ref' (only
             // struct/record struct/union do) is the binder's concern.
-            if (IsAtRefCapableTypeDeclarationHead())
+            if (IsAtTypeDeclarationHead())
             {
                 return true;
             }
@@ -1765,18 +1733,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <summary>
         /// Assumes the current token is positioned at what should be the declaration head (after
         /// any modifier tokens have been skipped past).  Returns true if the current token begins
-        /// a type declaration that <c>ref</c> can plausibly precede as a modifier.  Struct/record
-        /// struct/union are the only type kinds for which <c>ref</c> is legal, but we accept the
-        /// broader set here so the binder can report targeted errors for things like
-        /// <c>ref class</c> rather than surfacing cascading parse errors.
+        /// a type-like declaration (type, namespace, enum, delegate).  We accept the broader set
+        /// -- including positions where a given modifier is not actually legal -- so that the
+        /// binder can report targeted diagnostics for things like <c>ref class</c> or
+        /// <c>partial namespace</c> instead of surfacing cascading parse errors.
         /// </summary>
-        private bool IsAtRefCapableTypeDeclarationHead()
+        private bool IsAtTypeDeclarationHead()
         {
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.StructKeyword:
                 case SyntaxKind.InterfaceKeyword:
+                case SyntaxKind.NamespaceKeyword:
                 case SyntaxKind.EnumKeyword:
                 case SyntaxKind.DelegateKeyword:
                     return true;
@@ -1785,8 +1754,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (this.CurrentToken.ContextualKind)
             {
                 case SyntaxKind.RecordKeyword:
+                    // This is an unusual use of LangVersion.  Normally we only produce errors when the
+                    // langversion does not support a feature, but in this case we are effectively making
+                    // a language breaking change to consider "record" a type declaration in all ambiguous
+                    // cases.  To avoid breaking older code that is not using C# 9 we conditionally parse
+                    // based on langversion.
                     return IsFeatureEnabled(MessageID.IDS_FeatureRecords);
+
                 case SyntaxKind.UnionKeyword:
+                    // Same rationale as for "record" above; conditional on the C# 15 unions feature.
                     return IsFeatureEnabled(MessageID.IDS_FeatureUnions);
             }
 
