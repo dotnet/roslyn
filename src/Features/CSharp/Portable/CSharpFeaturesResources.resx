@@ -607,6 +607,10 @@
     <value>path</value>
     <comment>'path' is a placeholder for a project file or directory path in a directive like '#:project path'.</comment>
   </data>
+  <data name="Include_directive_file_path" xml:space="preserve">
+    <value>path</value>
+    <comment>'path' is a placeholder for a file path or glob in a directive like '#:include path'.</comment>
+  </data>
   <data name="Adds_an_SDK_reference" xml:space="preserve">
     <value>Adds an SDK reference.</value>
   </data>
@@ -619,6 +623,9 @@
   <data name="Adds_a_project_reference" xml:space="preserve">
     <value>Adds a project reference.</value>
   </data>
+  <data name="Adds_a_file_reference" xml:space="preserve">
+    <value>Adds a file reference.</value>
+  </data>
   <data name="Add_using_0" xml:space="preserve">
     <value>Add 'using {0};'</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
@@ -626,5 +633,8 @@
   <data name="Add_using_0_and_simplify_all_occurrences" xml:space="preserve">
     <value>Add 'using {0};' and simplify all occurrences</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="unsafe_block" xml:space="preserve">
+    <value>unsafe block</value>
   </data>
 </root>

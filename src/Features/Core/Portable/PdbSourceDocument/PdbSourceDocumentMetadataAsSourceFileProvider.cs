@@ -14,6 +14,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -197,11 +198,11 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         }
 
         Encoding? defaultEncoding = null;
-        if (pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.DefaultEncoding, out var encodingString))
+        if (pdbCompilationOptions.TryGetValue(CompilationOptionNames.DefaultEncoding, out var encodingString))
         {
             defaultEncoding = Encoding.GetEncoding(encodingString);
         }
-        else if (pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.FallbackEncoding, out var fallbackEncodingString))
+        else if (pdbCompilationOptions.TryGetValue(CompilationOptionNames.FallbackEncoding, out var fallbackEncodingString))
         {
             defaultEncoding = Encoding.GetEncoding(fallbackEncodingString);
         }
@@ -295,7 +296,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     {
         // First we need the language name in order to get the services
         // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
-        if (!pdbCompilationOptions.TryGetValue(Cci.CompilationOptionNames.Language, out var languageName) || languageName is null)
+        if (!pdbCompilationOptions.TryGetValue(CompilationOptionNames.Language, out var languageName) || languageName is null)
         {
             _logger?.Log(FeaturesResources.Source_code_language_information_was_not_found_in_PDB);
             return null;

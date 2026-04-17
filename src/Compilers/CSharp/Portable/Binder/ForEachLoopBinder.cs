@@ -475,6 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.MoveNextInfo.Method));
             Debug.Assert(!IsDisallowedExtensionInOlderLangVer(builder.CurrentPropertyGetter));
 
+            builder.ReportDiagnosticsIfUnsafeMemberAccess(this, foreachKeyword, _syntax, diagnostics);
+
             // We want to convert from inferredType in the array/string case and builder.ElementType in the enumerator case,
             // but it turns out that these are equivalent (when both are available).
 
@@ -511,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 createConversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             }
 
-            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, iterationVariableType.Type, createConversionDiagnostics);
+            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, iterationVariableType.Type, createConversionDiagnostics);
 
             if (createConversionDiagnostics.AccumulatesDiagnostics && !createConversionDiagnostics.DiagnosticBag.IsEmptyWithoutResolution)
             {
@@ -567,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentConversionClassification.IsValid)
             {
                 builder.CurrentPlaceholder = new BoundValuePlaceholder(_syntax, builder.CurrentPropertyGetter.ReturnType).MakeCompilerGenerated();
-                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, builder.ElementType, diagnostics);
+                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, builder.ElementType, diagnostics);
             }
 
             if (IsAsync)
@@ -644,6 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We're wrapping the collection expression in a (non-synthesized) conversion so that its converted
             // type (i.e. builder.CollectionType) will be available in the binding API.
             Debug.Assert(!collectionConversionClassification.IsUserDefined);
+            Debug.Assert(!collectionConversionClassification.IsUnion);
 
             BoundExpression convertedCollectionExpression = CreateConversion(
                 collectionExpr.Syntax,
@@ -651,6 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 collectionConversionClassification,
                 isCast: false,
                 conversionGroupOpt: null,
+                InConversionGroupFlags.Unspecified,
                 collectionType,
                 diagnostics);
 
@@ -667,6 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,
                     conversionGroupOpt: null,
+                    InConversionGroupFlags.Unspecified,
                     ConstantValue.NotAvailable,
                     collectionType);
             }
@@ -1554,6 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Unconditionally convert here, to match what we set the ConvertedExpression to in the main BoundForEachStatement node.
                     Debug.Assert(!collectionConversion.IsUserDefined);
+                    Debug.Assert(!collectionConversion.IsUnion);
                     collectionExpr = new BoundConversion(
                         collectionExpr.Syntax,
                         collectionExpr,
@@ -1561,6 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: false,
                         conversionGroupOpt: null,
+                        InConversionGroupFlags.Unspecified,
                         ConstantValue.NotAvailable,
                         result.Parameters[0].Type);
 

@@ -189,22 +189,22 @@
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
         <source>Use 'RoslynDebug.Assert'.</source>
-        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <target state="translated">Utilisez « RoslynDebug.Assert ».</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
         <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
-        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <target state="translated">« Debug.Assert » sur .NET Framework crée immédiatement la valeur de chaîne. Cette action peut provoquer des erreurs de mémoire insuffisante (OOM) dans les tests, notamment pour les chaînes impliquant des nœuds de syntaxe. Utilisez « RoslynDebug.Assert » à la place, qui crée uniquement la chaîne si elle est nécessaire.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
         <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <target state="translated">N’utilisez pas de chaînes interpolées avec « Debug.Assert ». Utilisez « RoslynDebug.Assert » à la place.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
         <source>Do not use interpolated strings with 'Debug.Assert'</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <target state="translated">Ne pas utiliser de chaînes interpolées avec « Debug.Assert »</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">

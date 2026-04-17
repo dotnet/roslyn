@@ -4733,5 +4733,76 @@ public partial class Program
 
             Await TestAsync(workspace)
         End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/73498")>
+        Public Async Function TestCSharpGoToWithElementConstructor() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="preview">
+        <Document><![CDATA[
+            using System.Collections.Generic;
+
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(string s)
+                {
+                }
+
+                public [|MyCollection|](int i)
+                {
+                }
+            }
+            
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [$$with(1), ""];
+                }
+            }]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/73498")>
+        Public Async Function TestCSharpGoToWithElementCollectionBuilder() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
+        <Document><![CDATA[
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> [|Create|]<T>(int i, ReadOnlySpan<T> items) => new();
+            }
+            
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [$$with(1), ""];
+                }
+            }]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace

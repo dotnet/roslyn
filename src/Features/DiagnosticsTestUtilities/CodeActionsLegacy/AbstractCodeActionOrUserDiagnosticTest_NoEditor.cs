@@ -730,7 +730,7 @@ public abstract partial class AbstractCodeActionOrUserDiagnosticTest_NoEditor<
             }
             else
             {
-                AssertEx.EqualOrDiff(expected, actual);
+                AssertEx.EqualOrDiff(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
             }
         }
     }

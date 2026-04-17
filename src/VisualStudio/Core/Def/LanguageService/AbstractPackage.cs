@@ -5,22 +5,36 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 
 internal abstract class AbstractPackage : AsyncPackage
 {
-    private IComponentModel? _componentModel_doNotAccessDirectly;
-
     internal IComponentModel ComponentModel
     {
         get
         {
-            Assumes.Present(_componentModel_doNotAccessDirectly);
-            return _componentModel_doNotAccessDirectly;
+            if (field is null)
+            {
+                // We should have been initialized asynchronously, but somebody is asking earlier than we expected, so fetch it synchronously.
+                var componentModel = (IComponentModel?)GetService(typeof(SComponentModel));
+                Assumes.Present(componentModel);
+                field = componentModel;
+                return field;
+            }
+
+            return field;
+        }
+
+        set
+        {
+            Assumes.Present(value);
+            field = value;
         }
     }
 
@@ -52,24 +66,33 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected virtual void RegisterInitializeAsyncWork(PackageLoadTasks packageInitializationTasks)
     {
-        // This treatment of registering work on the bg/main threads is a bit unique as we want the component model initialized at the beginning
-        // of whichever context is invoked first. The current architecture doesn't execute any of the registered tasks concurrently,
-        // so that isn't a concern for calculating or setting _componentModel_doNotAccessDirectly multiple times.
+        // We have a legacy property to access the ComponentModel that is used across various parts of our load; we'll fetch this on the
+        // background thread as our first step so any later already has it available. If it were to be accessed by a UI-thread scheduled piece
+        // of work first, it'll still fetch it on demand.
         packageInitializationTasks.AddTask(isMainThreadTask: false, task: EnsureComponentModelAsync);
-        packageInitializationTasks.AddTask(isMainThreadTask: true, task: EnsureComponentModelAsync);
 
         async Task EnsureComponentModelAsync(PackageLoadTasks packageInitializationTasks, CancellationToken token)
         {
-            if (_componentModel_doNotAccessDirectly == null)
-            {
-                _componentModel_doNotAccessDirectly = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
-                Assumes.Present(_componentModel_doNotAccessDirectly);
-            }
+            var componentModel = (IComponentModel?)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(false);
+            Assumes.Present(componentModel);
+            ComponentModel = componentModel;
         }
     }
 
     protected virtual void RegisterOnAfterPackageLoadedAsyncWork(PackageLoadTasks afterPackageLoadedTasks)
     {
+        afterPackageLoadedTasks.AddTask(isMainThreadTask: false, async (packageLoadTasks, cancellationToken) =>
+        {
+            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
+            // Trying to await them will throw.
+            if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsZombie)
+            {
+                await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
+
+                // Kick off the work, but don't block
+                LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(cancellationToken).ReportNonFatalErrorUnlessCancelledAsync(cancellationToken).Forget();
+            }
+        });
     }
 
     /// <summary>
@@ -85,16 +108,8 @@ internal abstract class AbstractPackage : AsyncPackage
         ErrorHandler.ThrowOnFailure(registerEditors.RegisterEditor(editorFactory.GetType().GUID, editorFactory, out _));
     }
 
-    protected async Task LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(CancellationToken cancellationToken)
-    {
-        // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
-        // Trying to await them will throw.
-        if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsZombie)
-        {
-            await KnownUIContexts.SolutionExistsAndFullyLoadedContext;
-            await LoadComponentsAsync(cancellationToken).ConfigureAwait(false);
-        }
-    }
-
-    protected abstract Task LoadComponentsAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// A method called in the background once the solution has fully loaded. Offers a place for initialization to happen after package load.
+    /// </summary>
+    protected abstract Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken);
 }

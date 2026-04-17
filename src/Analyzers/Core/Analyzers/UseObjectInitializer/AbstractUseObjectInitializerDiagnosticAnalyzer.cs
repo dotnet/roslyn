@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer;
 
@@ -49,18 +50,26 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         isUnnecessary: false);
 
+    private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
+        IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+        EnforceOnBuildValues.UseObjectInitializer,
+        hasAnyCodeStyleOption: true,
+        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+        isUnnecessary: true);
+
     protected abstract bool FadeOutOperatorToken { get; }
     protected abstract TAnalyzer GetAnalyzer();
 
     protected AbstractUseObjectInitializerDiagnosticAnalyzer()
-        : base(
-            [
-                (s_descriptor, CodeStyleOptions2.PreferObjectInitializer)
-            ])
+        : base([(s_descriptor, CodeStyleOptions2.PreferObjectInitializer)])
     {
     }
 
     protected abstract ISyntaxFacts GetSyntaxFacts();
+
+    public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected sealed override void InitializeWorker(AnalysisContext context)
     {
@@ -122,45 +131,58 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
 
         var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-        var unnecessaryLocations = FadeOutCode(context, matches);
-
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+        context.ReportDiagnostic(DiagnosticHelper.Create(
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
             locations,
-            additionalUnnecessaryLocations: unnecessaryLocations));
+            properties: null));
+
+        FadeOutCode(context, matches, locations);
+
+        return;
     }
 
-    private ImmutableArray<Location> FadeOutCode(
+    private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
-        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
+        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
+        ImmutableArray<Location> locations)
     {
         var syntaxTree = context.Node.SyntaxTree;
 
         var syntaxFacts = GetSyntaxFacts();
-        using var locations = TemporaryArray<Location>.Empty;
 
         foreach (var match in matches)
         {
+            using var additionalUnnecessaryLocations = TemporaryArray<Location>.Empty;
+
             var end = FadeOutOperatorToken
                 ? syntaxFacts.GetOperatorTokenOfMemberAccessExpression(match.MemberAccessExpression).Span.End
                 : syntaxFacts.GetExpressionOfMemberAccessExpression(match.MemberAccessExpression)!.Span.End;
 
             var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                 match.MemberAccessExpression.SpanStart, end));
-            locations.Add(location1);
+            additionalUnnecessaryLocations.Add(location1);
 
             if (match.Statement.Span.End > match.Initializer.FullSpan.End)
             {
                 locations.Add(syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)));
             }
+
+            if (additionalUnnecessaryLocations.Count == 0)
+                continue;
+
+            // Report the diagnostic at the first unnecessary location. This is the location where the code fix
+            // will be offered.
+            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                s_unnecessaryCodeDescriptor,
+                additionalUnnecessaryLocations[0],
+                NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
+                context.Options,
+                additionalLocations: locations,
+                additionalUnnecessaryLocations: additionalUnnecessaryLocations.ToImmutableAndClear(),
+                properties: null));
         }
-
-        return locations.ToImmutableAndClear();
     }
-
-    public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 }

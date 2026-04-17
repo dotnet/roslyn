@@ -876,7 +876,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If haveGrantedAssemblies IsNot Nothing Then
                 For Each otherAssembly In haveGrantedAssemblies.Keys
-                    Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(otherAssembly)
+                    Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(otherAssembly, assertUnexpectedGiver:=True)
 
                     Debug.Assert(conclusion <> IVTConclusion.NoRelationshipClaimed)
 
@@ -1659,7 +1659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess)
+            Dim conclusion As IVTConclusion = MakeFinalIVTDetermination(potentialGiverOfAccess, assertUnexpectedGiver:=True)
             Return conclusion = IVTConclusion.Match
             ' Note that C#, for error recovery, includes OrElse conclusion = IVTConclusion.OneSignedOneNot
         End Function

@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public static SourceHashAlgorithm[] HashAlgorithms { get; } = new[]
         {
             SourceHashAlgorithm.Sha1,
-            SourceHashAlgorithm.Sha256
+            SourceHashAlgorithm.Sha256,
+            SourceHashAlgorithm.Sha384,
+            SourceHashAlgorithm.Sha512
         };
 
         protected static void AssertJson(
@@ -182,10 +184,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             var syntaxTree = ParseSyntaxTree("", fileName: "test", SourceHashAlgorithm.Sha256, (TParseOptions)parseOptions);
             var compilation = CreateCompilation(syntaxTrees: new SyntaxTree[] { syntaxTree });
-            var property = GetJsonProperty(compilation.GetDeterministicKey(), "compilation.syntaxTrees");
-            var trees = (JArray)property.Value;
-            var obj = (JObject)trees[0];
-            return (JObject)(obj.Property("parseOptions")?.Value!);
+            var key = compilation.GetDeterministicKey();
+            var treesProperty = GetJsonProperty(key, "compilation.syntaxTrees");
+            var trees = (JArray)treesProperty.Value;
+            var treeObj = (JObject)trees[0];
+            var parseOptionsIndex = treeObj.Value<int>("parseOptionsIndex");
+            var parseOptionsArray = (JArray)GetJsonProperty(key, "compilation.parseOptions").Value;
+            return (JObject)parseOptionsArray[parseOptionsIndex];
         }
 
         protected JArray GetReferenceValues(Compilation compilation)
@@ -258,6 +263,13 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             return builder.ToStringAndFree();
         }
 
+        protected static string GetChecksum(byte[] sourceLinkBytes)
+        {
+            using var hashAlgorithm = CryptographicHashProvider.TryGetAlgorithm(SourceHashAlgorithms.Default);
+            var hash = hashAlgorithm!.ComputeHash(sourceLinkBytes);
+            return DeterministicKeyBuilder.EncodeByteArrayValue(hash);
+        }
+
         protected abstract SyntaxTree ParseSyntaxTree(string content, string fileName, SourceHashAlgorithm hashAlgorithm, TParseOptions? parseOptions = null);
 
         protected abstract TCompilation CreateCompilation(
@@ -294,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     }}
   }}
 ]";
-                AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptions");
+                AssertJsonSection(expected, key, "compilation.syntaxTrees", "parseOptionsIndex");
             }
         }
 
@@ -499,7 +511,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""pdbChecksumAlgorithm"": ""SHA256"",
   ""runtimeMetadataVersion"": null,
   ""defaultSourceFileEncoding"": null,
-  ""fallbackSourceFileEncoding"": null
+  ""fallbackSourceFileEncoding"": null,
+  ""sourceLink"": null
 }
 ", obj.ToString(Formatting.Indented));
         }
@@ -537,7 +550,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""pdbChecksumAlgorithm"": ""SHA256"",
   ""runtimeMetadataVersion"": null,
   ""defaultSourceFileEncoding"": null,
-  ""fallbackSourceFileEncoding"": null
+  ""fallbackSourceFileEncoding"": null,
+  ""sourceLink"": null
 }}
 ", obj.ToString(Formatting.Indented));
         }

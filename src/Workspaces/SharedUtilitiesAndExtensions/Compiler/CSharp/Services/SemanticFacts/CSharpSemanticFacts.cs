@@ -468,7 +468,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         };
 
     private static IPreprocessingSymbol? CreatePreprocessingSymbol(SemanticModel model, SyntaxToken identifier)
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
         => model.Compilation.CreatePreprocessingSymbol(identifier.ValueText);
 #else
         => null;

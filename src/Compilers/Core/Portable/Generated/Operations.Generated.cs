@@ -3964,9 +3964,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Default values are supplied for optional arguments missing in source. <para />
         /// If this is a collection builder method, this will include all arguments to the method,
         /// except for the final <c>ReadOnlySpan</c> argument that receives the collection elements.
-        /// That final argument will be represented by an <see cref="ICollectionExpressionElementsPlaceholderOperation" />.
-        /// The actual elements passed to the creation method are contained in <see cref="Elements" />.
+        /// That final argument will be represented by an <see cref="IArgumentOperation" /> whose 'Value' is an
+        /// <see cref="ICollectionExpressionElementsPlaceholderOperation" />. The actual elements passed
+        /// to the creation method are contained in <see cref="Elements" />.
         /// </remarks>
+        [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
         ImmutableArray<IOperation> ConstructArguments { get; }
         /// <summary>
         /// Collection expression elements.
@@ -4014,9 +4016,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents the elements of a collection expression as they are passed to some construction method
     /// specified by a <c>[CollectionBuilder]</c> attribute.  This is distinct from <see cref="ICollectionExpressionOperation.Elements" />
-    /// which contains the elements as they appear in source.  This will appear in <see cref="ICollectionExpressionOperation.ConstructArguments" />
-    /// when the construction method is a collection builder method, representing the final <c>ReadOnlySpan</c> passed to that
-    /// construction method containing the fully evaluated elements of the collection expression.
+    /// which contains the elements as they appear in source.  This will appear as the 'Value' of an <see cref="IArgumentOperation" />
+    /// in <see cref="ICollectionExpressionOperation.ConstructArguments" /> when the construction method is a collection builder method,
+    /// representing the final <c>ReadOnlySpan</c> passed to that construction method containing the fully evaluated elements of the
+    /// collection expression.
     /// </summary>
     /// <remarks>
     /// <para>This node is associated with the following operation kinds:</para>
@@ -4026,6 +4029,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.</para>
     /// </remarks>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public interface ICollectionExpressionElementsPlaceholderOperation : IOperation
     {
     }
@@ -11618,6 +11622,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitInlineArrayAccess(IInlineArrayAccessOperation operation) => DefaultVisit(operation);
         public virtual void VisitCollectionExpression(ICollectionExpressionOperation operation) => DefaultVisit(operation);
         public virtual void VisitSpread(ISpreadOperation operation) => DefaultVisit(operation);
+        [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
         public virtual void VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
@@ -11758,6 +11763,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitCollectionExpression(ICollectionExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSpread(ISpreadOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
         public virtual TResult? VisitCollectionExpressionElementsPlaceholder(ICollectionExpressionElementsPlaceholderOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion

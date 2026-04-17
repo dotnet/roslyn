@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(false); // Getting here is unexpected.
+                Debug.Fail("Getting here is unexpected.");
                 return false;
             }
         }
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion UpdateOperand(BoundExpression operand)
         {
-            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type);
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.InConversionGroupFlags, this.Type);
         }
 
         /// <summary>
@@ -694,6 +694,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     action(argument, args);
                 }
+            }
+        }
+    }
+
+    internal partial class BoundValueForNullableAnalysis
+    {
+        public sealed override bool IsEquivalentToThisReference
+        {
+            get
+            {
+                Debug.Fail("Getting here is unexpected.");
+                return false;
             }
         }
     }

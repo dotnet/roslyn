@@ -8,7 +8,7 @@
   <ItemGroup>
     <!-- This needs to be a package reference to avoid attempting to use a newer compiler version than either the CLI or IDE has. -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="xunit" />
   </ItemGroup>

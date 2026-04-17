@@ -37,6 +37,7 @@
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\FileDownloader.cs" Link="Host\Storage\FileDownloader.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Services\ProcessTelemetry" />
+    <Compile Include="..\..\..\Compilers\Shared\ThrowingTraceListener.cs" Link="Host\ThrowingTraceListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />

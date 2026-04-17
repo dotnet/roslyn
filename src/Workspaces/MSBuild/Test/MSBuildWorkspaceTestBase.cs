@@ -24,13 +24,31 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
 {
-    protected readonly ITestOutputHelper TestOutput;
+    private readonly ITestOutputHelper _testOutputHelper;
+    private readonly TestOutputLoggerProvider _testOutputLoggerProvider;
     protected readonly ILoggerFactory LoggerFactory;
 
     protected MSBuildWorkspaceTestBase(ITestOutputHelper testOutput)
     {
-        TestOutput = testOutput;
-        LoggerFactory = new LoggerFactory([new TestOutputLoggerProvider(testOutput)]);
+        _testOutputHelper = testOutput;
+        _testOutputLoggerProvider = new TestOutputLoggerProvider(testOutput);
+        LoggerFactory = new LoggerFactory([_testOutputLoggerProvider]);
+    }
+
+    public override void Dispose()
+    {
+        // Dispose our LoggingFactory and providers. xunit validates that we don't write anything to ITestOutputHelper after a test is done,
+        // so we want to ensure our providers are all disposed so a broken test doesn't cause the entire test run to fail -- our implementation of
+        // TestOutputLoggerProvider stops forwarding messages once it's disposed.
+        //
+        // LoggerFactory's handling of lifetime is subtle -- providers passed to the LoggerFactorys' constructor are not owned and we have to dispose them;
+        // but providers added via AddLoggerProvider are owned and will be disposed by the LoggerFactory. Thus we need to dispose both here.
+        LoggerFactory.Dispose();
+
+        // We'll call ValidateNotAlreadyDisposedAndDispose() as a way to ensure this wasn't disposed prematurely, which would cause us to lose log output.
+        _testOutputLoggerProvider.ValidateNotAlreadyDisposedAndDispose();
+
+        base.Dispose();
     }
 
     protected const string MSBuildNamespace = "http://schemas.microsoft.com/developer/msbuild/2003";
@@ -160,7 +178,7 @@ public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
     {
         additionalProperties ??= [];
         var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
-        workspace.AddLoggerProvider(new TestOutputLoggerProvider(TestOutput));
+        workspace.AddLoggerProvider(new TestOutputLoggerProvider(_testOutputHelper));
 
         if (throwOnWorkspaceFailed)
         {

@@ -279,7 +279,7 @@
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesDescription">
         <source>PublicAPI.txt files should have `#nullable enable` to track nullability information, or this diagnostic should be suppressed. With nullability enabled, PublicAPI.txt records which types are nullable (suffix `?` on type) or non-nullable (suffix `!`). It also tracks any API that is still using an oblivious reference type (prefix `~` on line).</source>
-        <target state="translated">PublicAPI.txt 檔案必須具備 '#nullable enable'，才能追蹤可為 NULL 的資訊，否則應隱藏此診斷。若啟用可為 NULL，PublicAPI.txt 便能記錄型可為 Null (類型的尾碼為 '?') 或不可為 Null (尾碼為 '!') 的類型。其也會追蹤仍在使用未經察覺之參考型別的任何 API (行的首碼為 '~')。</target>
+        <target state="translated">PublicAPI.txt 檔案必須具備 '#nullable enable'，才能追蹤可為 NULL 的資訊，否則應隱藏此診斷。若啟用可為 NULL，PublicAPI.txt 便能記錄型可為 Null (類型的尾碼為 '?') 或不可為 Null (尾碼為 '!') 的類型。其也會追蹤仍在使用無警示參考類型的任何 API (行的首碼為 `~`)。</target>
         <note />
       </trans-unit>
       <trans-unit id="ShouldAnnotatePublicApiFilesMessage">

@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#clientCapabilities">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class WorkspaceClientCapabilities
+internal class WorkspaceClientCapabilities
 {
     // NOTE: these are kept in the same order as the spec to make them easier to update
 

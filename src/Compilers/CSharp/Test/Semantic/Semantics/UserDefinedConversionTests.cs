@@ -2290,5 +2290,35 @@ public struct S
                     { ""subkey"", ""subvalue"" },
                 }").WithArguments("new(System.StringComparer)").WithLocation(35, 34));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81984")]
+        public void TestAmbiguousUserDefinedConversion_DuplicateErrorMessage()
+        {
+            var source = """
+                public struct S1
+                {
+                    public static implicit operator S1(S2 x) => throw null;
+                }
+
+                public struct S2
+                {
+                    public static implicit operator S1(S2 x) => throw null;
+                }
+
+                class Program
+                {
+                    static S1 Test(S2 x)
+                    {
+                        return x;
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (15,16): error CS0457: Ambiguous user defined conversions 'S2.implicit operator S1(S2)' and 'S1.implicit operator S1(S2)' when converting from 'S2' to 'S1'
+                //         return x;
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "x").WithArguments("S2.implicit operator S1(S2)", "S1.implicit operator S1(S2)", "S2", "S1").WithLocation(15, 16)
+                );
+        }
     }
 }

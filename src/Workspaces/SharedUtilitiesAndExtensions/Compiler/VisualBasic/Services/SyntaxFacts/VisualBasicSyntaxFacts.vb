@@ -81,6 +81,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function SupportsKeyValuePairElement(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsKeyValuePairElement
+            Return False
+        End Function
+
         Public Function SupportsNullConditionalAssignment(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNullConditionalAssignment
             Return False
         End Function

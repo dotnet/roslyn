@@ -52,6 +52,7 @@ internal static class VSInternalExtensionUtilities
         AddOrReplaceConverter<RenameRange, VSInternalRenameRange>();
         AddOrReplaceConverter<RenameParams, VSInternalRenameParams>();
         AddOrReplaceConverter<DocumentSymbol, RoslynDocumentSymbol>();
+        AddOrReplaceConverter<WorkspaceClientCapabilities, VSInternalWorkspaceClientCapabilities>();
 
         void AddOrReplaceConverter<TBase, TExtension>()
             where TExtension : TBase

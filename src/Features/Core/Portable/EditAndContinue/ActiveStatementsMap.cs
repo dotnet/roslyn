@@ -115,12 +115,6 @@ internal sealed class ActiveStatementsMap
             }
         }
 
-        // TODO: Remove. Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830914.
-        if (EditAndContinueMethodDebugInfoReader.IgnoreCaseWhenComparingDocumentNames)
-        {
-            byDocumentPath = byDocumentPath.WithComparers(keyComparer: StringComparer.OrdinalIgnoreCase);
-        }
-
         return new ActiveStatementsMap(byDocumentPath, byInstruction.ToImmutableDictionary());
     }
 

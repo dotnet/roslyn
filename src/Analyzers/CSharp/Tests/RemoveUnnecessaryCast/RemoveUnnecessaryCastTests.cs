@@ -4588,7 +4588,7 @@ public sealed class RemoveUnnecessaryCastTests
         await VerifyCS.VerifyCodeFixAsync(source, source);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640136")]
+    [ConditionalFact(typeof(IsEnglishLocal)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640136")]
     public async Task RemoveUnnecessaryCastAndParseCorrect()
     {
         var fixedSource =

@@ -799,4 +799,33 @@ public sealed class CollectionExpressionTests_WithElement_ArraysAndSpans : CShar
             //         ReadOnlySpan<T> span = [with()];
             Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("System.ReadOnlySpan<T>").WithLocation(7, 33));
     }
+
+    [Theory]
+    [InlineData("string[]")]
+    [InlineData("System.ReadOnlySpan<string>")]
+    public void WithElement_GetSymbolInfo(string type)
+    {
+        var source = $$"""
+            class C
+            {
+                static void Main()
+                {
+                    string s = "";
+                    {{type}} list = [with(), s];
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (6,45): error CS9401: 'with(...)' elements are not supported for type 'ReadOnlySpan<string>'
+            //         System.ReadOnlySpan<string> list = [with(), s];
+            Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments(type));
+        var tree = compilation.SyntaxTrees.Single();
+        var semanticModel = compilation.GetSemanticModel(tree);
+        var withElement = tree.GetRoot().DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbol = semanticModel.GetSymbolInfo(withElement);
+        Assert.Null(symbol.Symbol);
+        Assert.Empty(symbol.CandidateSymbols);
+    }
 }

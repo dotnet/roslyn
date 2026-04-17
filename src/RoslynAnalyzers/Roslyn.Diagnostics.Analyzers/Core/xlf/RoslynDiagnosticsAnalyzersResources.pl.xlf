@@ -189,22 +189,22 @@
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
         <source>Use 'RoslynDebug.Assert'.</source>
-        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <target state="translated">Użyj „RoslynDebug.Assert'.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
         <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
-        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <target state="translated">„Debug.Assert” w komponencie .NET Framework od razu tworzy wartość ciągu. Może to powodować błędy OOM w testach, zwłaszcza dla ciągów zawierających węzły składni. Zamiast tego użyj „RoslynDebug.Assert”, który utworzy ciąg tylko wtedy, gdy będzie to potrzebne.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
         <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <target state="translated">Nie używaj ciągów interpolowanych z „Debug.Assert”. Zamiast tego użyj „RoslynDebug.Assert”.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
         <source>Do not use interpolated strings with 'Debug.Assert'</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <target state="translated">Nie używaj ciągów interpolowanych z „Debug.Assert”</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">

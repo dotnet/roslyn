@@ -33,9 +33,12 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (1,12): error CS0103: The name 'with' does not exist in the current context
+                // (1,12): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // int[] a = [with()];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(1, 12),
+                // (1,12): error CS9401: 'with(...)' elements are not supported for type 'int[]'
+                // int[] a = [with()];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsNotSupportedForType, "with").WithArguments("int[]").WithLocation(1, 12));
         }
         else
         {
@@ -58,12 +61,18 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (2,19): error CS0103: The name 'with' does not exist in the current context
+                // (2,19): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // List<int> l = [1, with(), 3, with(capacity: 4)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 19),
-                // (2,30): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 19),
+                // (2,19): error CS9400: 'with(...)' element must be the first element
                 // List<int> l = [1, with(), 3, with(capacity: 4)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 30));
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 19),
+                // (2,30): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // List<int> l = [1, with(), 3, with(capacity: 4)];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 30),
+                // (2,30): error CS9400: 'with(...)' element must be the first element
+                // List<int> l = [1, with(), 3, with(capacity: 4)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 30));
         }
         else
         {
@@ -89,12 +98,15 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (2,16): error CS0103: The name 'with' does not exist in the current context
+                // (2,16): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // List<int> l = [with(x: 1), with(y: 2)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 16),
-                // (2,28): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 16),
+                // (2,28): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // List<int> l = [with(x: 1), with(y: 2)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 28));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 28),
+                // (2,28): error CS9400: 'with(...)' element must be the first element
+                // List<int> l = [with(x: 1), with(y: 2)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(2, 28));
         }
         else
         {
@@ -138,15 +150,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (languageVersion == LanguageVersion.CSharp14)
         {
             comp.VerifyEmitDiagnostics(
-                // (2,5): error CS0103: The name 'with' does not exist in the current context
+                // (2,5): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     with(),
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(2, 5),
-                // (3,5): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(2, 5),
+                // (3,5): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     with(arg: 0),
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(3, 5),
-                // (4,5): error CS0103: The name 'with' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(3, 5),
+                // (3,5): error CS9400: 'with(...)' element must be the first element
+                //     with(arg: 0),
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(3, 5),
+                // (4,5): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     with(unknown: 1)];
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(4, 5),
+                // (4,5): error CS9400: 'with(...)' element must be the first element
+                //     with(unknown: 1)];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsMustBeFirst, "with").WithLocation(4, 5));
         }
         else
         {
@@ -173,10 +191,21 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 list.Report();
                 string with(int capacity) => $"with({capacity})";
                 """;
-        var verifier = CompileAndVerify([source, s_collectionExtensions],
-            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-            expectedOutput: (languageVersion == LanguageVersion.CSharp14 ? "[with(1), one], [with(2), two], " : "[one], [with(2), two], "));
-        verifier.VerifyDiagnostics();
+
+        if (languageVersion == LanguageVersion.CSharp14)
+        {
+            CreateCompilation([source, s_collectionExtensions], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                // (3,9): error CS8652: The feature 'collection expression arguments' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // list = [with(capacity: 1), "one"];
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "with").WithArguments("collection expression arguments").WithLocation(3, 9));
+        }
+        else
+        {
+            var verifier = CompileAndVerify([source, s_collectionExtensions],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                expectedOutput: "[one], [with(2), two], ");
+            verifier.VerifyDiagnostics();
+        }
     }
 
     [Fact]
@@ -1369,7 +1398,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (6,9): error CS0411: The type arguments for method 'Program.Identity<T>(MyCollection<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             //         Identity([with(default, 2), default]);
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Identity").WithArguments("Program.Identity<T>(MyCollection<T>)").WithLocation(6, 9),
-            // (7,18): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,18): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         Identity([with(default), default, 3]);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default), default, 3]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 18),
             // (7,24): error CS8716: There is no target type for the default literal.
@@ -1707,8 +1736,283 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             """, graph, symbol);
     }
 
+    private static string CreateCustomListDefinition(string constructors)
+    {
+        return $$"""
+            namespace System.Collections.Generic
+            {
+                public class List<T> : IList<T>
+                {
+                    {{constructors}}
+            
+                    public T this[int index] { get => throw null; set => throw null; }
+                    public int Count => throw null;
+                    public bool IsReadOnly => throw null;
+                    public void Add(T item) { }
+                    public void Clear() => throw null;
+                    public bool Contains(T item) => throw null;
+                    public void CopyTo(T[] array, int arrayIndex) => throw null;
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    public int IndexOf(T item) => throw null;
+                    public void Insert(int index, T item) => throw null;
+                    public bool Remove(T item) => throw null;
+                    public void RemoveAt(int index) => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public T[] ToArray() => throw null;
+                }
+            }
+            """;
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_DifferentCapacityName(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(cap: 6), 1, 2, 3];
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { System.Console.Write("empty "); } public List(int cap) { System.Console.Write(cap); }""")],
+            options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: "empty 6").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_DifferentCapacityName2(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(capacity: 6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(int cap) { }""")]).VerifyDiagnostics(
+            // (8,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+            //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_DifferentCapacityType(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(capacity: 6), 1, 2, 3];
+                    {{typeName}} z = [with(6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(long capacity) { }""")]).VerifyDiagnostics(
+                // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> y = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"),
+                // (9,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (9,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_ParamsCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(params int[] capacity) { }""")]).VerifyDiagnostics(
+            // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+            // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+            //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+            Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_OptionalIntCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(6), 1, 2, 3];
+                    {{typeName}} z = [with(capacity: 5), 1, 2, 3];
+                }
+            }
+            """;
+
+        var compilation = CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { System.Console.Write("empty "); } public List(int capacity = 0) { System.Console.Write(capacity + " "); }""")],
+            options: TestOptions.ReleaseExe);
+        CompileAndVerify(compilation, expectedOutput: "empty 6 5").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_OptionalNonIntCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} x = [with(), 1, 2, 3];
+                    {{typeName}} y = [with(6), 1, 2, 3];
+                    {{typeName}} z = [with(capacity: 6), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(long capacity = 0) { }""")]).VerifyDiagnostics(
+                // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> x = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+                //         ICollection<System.Int32> y = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"),
+                // (9,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> z = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (9,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> z = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"));
+    }
+
+    [Theory]
+    [InlineData("IList<System.Int32>")]
+    [InlineData("ICollection<System.Int32>")]
+    public void IList_With_OptionalParamsAfterCapacity(string typeName)
+    {
+        var source = $$"""
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    {{typeName}} a = [with(), 1, 2, 3];
+                    {{typeName}} b = [with(6), 1, 2, 3];
+                    {{typeName}} c = [with(capacity: 6), 1, 2, 3];
+                    {{typeName}} d = [with(6, 0), 1, 2, 3];
+                    {{typeName}} e = [with(capacity: 6, other: 0), 1, 2, 3];
+                    {{typeName}} f = [with(other: 6, capacity: 0), 1, 2, 3];
+                }
+            }
+            """;
+
+        CreateCompilation([
+            source,
+            CreateCustomListDefinition("""public List() { } public List(int capacity, int other = 0) { }""")]).VerifyDiagnostics(
+                // (7,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> a = [with(), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> b = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (8,40): error CS1729: 'List<int>' does not contain a constructor that takes 1 arguments
+                //         ICollection<System.Int32> b = [with(6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "1"),
+                // (9,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> c = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (9,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> c = [with(capacity: 6), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"),
+                // (10,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> d = [with(6, 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(6, 0), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (10,40): error CS1729: 'List<int>' does not contain a constructor that takes 2 arguments
+                //         ICollection<System.Int32> d = [with(6, 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "with").WithArguments("System.Collections.Generic.List<int>", "2"),
+                // (11,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> e = [with(capacity: 6, other: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(capacity: 6, other: 0), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (11,45): error CS1739: The best overload for 'List' does not have a parameter named 'capacity'
+                //         ICollection<System.Int32> e = [with(capacity: 6, other: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "capacity").WithArguments("List", "capacity"),
+                // (12,39): error CS0656: Missing compiler required member 'System.Collections.Generic.List`1..ctor'
+                //         ICollection<System.Int32> f = [with(other: 6, capacity: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "[with(other: 6, capacity: 0), 1, 2, 3]").WithArguments("System.Collections.Generic.List`1", ".ctor"),
+                // (12,45): error CS1739: The best overload for 'List' does not have a parameter named 'other'
+                //         ICollection<System.Int32> f = [with(other: 6, capacity: 0), 1, 2, 3];
+                Diagnostic(ErrorCode.ERR_BadNamedArgument, "other").WithArguments("List", "other"));
+    }
+
     [Fact]
-    public void CollectionBuilder_PrivateMethod()
+    public void CollectionBuilder_PrivateMethod1()
     {
         string sourceA = """
                 using System;
@@ -1754,7 +2058,259 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             targetFramework: TargetFramework.Net80).VerifyDiagnostics(
                 // (15,53): error CS9405: No overload for method 'Create' takes 1 'with(...)' element arguments
                 //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
-                Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1").WithLocation(15, 53));
+                Diagnostic(ErrorCode.ERR_BadCollectionArgumentsArgCount, "with(t)").WithArguments("Create", "1"));
+    }
+
+    [Fact]
+    public void CollectionBuilder_PrivateMethod2()
+    {
+        string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+                [CollectionBuilder(typeof(MyBuilder), "Create")]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    public readonly T Arg;
+                    private readonly List<T> _items;
+                    public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                    public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                static partial class MyBuilder
+                {
+                    private static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                    private static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+                }
+                """;
+        string sourceB = """
+                using System;
+                static partial class MyBuilder
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> c;
+                        c = EmptyArgs(1);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                        c = NonEmptyArgs<int>(2);
+                        Console.Write("{0}, ", c.Arg);
+                        c.Report();
+                    }
+                    static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                    static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+                }
+                """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_InternalMethod1()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            class MyBuilder
+            {
+                internal static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                internal static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_InternalMethod2()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            public class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            public class MyBuilder
+            {
+                internal static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                internal static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        var compilation1 = CreateCompilation(
+            [sourceA, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var compilation2 = CreateCompilation(
+            [sourceB, s_collectionExtensions],
+            references: [compilation1.ToMetadataReference()],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 49),
+            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 52));
+    }
+
+    [Fact]
+    public void CollectionBuilder_ProtectedMethod1()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            partial class MyBuilder
+            {
+                protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            partial class MyBuilder
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_ProtectedMethod2()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public readonly T Arg;
+                private readonly List<T> _items;
+                public MyCollection(T arg, ReadOnlySpan<T> items) { Arg = arg; _items = new(items.ToArray()); }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            partial class MyBuilder
+            {
+                protected static MyCollection<T> Create<T>(ReadOnlySpan<T> items) => new(default, items);
+                protected static MyCollection<T> Create<T>(T arg, ReadOnlySpan<T> items) => new(arg, items);
+            }
+            """;
+        string sourceB = """
+            using System;
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c;
+                    c = EmptyArgs(1);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                    c = NonEmptyArgs<int>(2);
+                    Console.Write("{0}, ", c.Arg);
+                    c.Report();
+                }
+                static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+                static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            }
+            """;
+
+        CreateCompilation(
+            [sourceA, sourceB, s_collectionExtensions],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,49): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> EmptyArgs<T>(T t) => [with(), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 49),
+            // (15,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t), t];
+            Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t), t]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 52));
     }
 
     [Fact]
@@ -1791,9 +2347,9 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (5,26): error CS9404: Element type of this collection may not be a ref struct or a type parameter allowing ref structs
                 //         MyCollection c = [];
                 Diagnostic(ErrorCode.ERR_CollectionRefLikeElementType, "[]").WithLocation(5, 26),
-                // (5,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<System.ReadOnlySpan<int>>' and return type 'MyCollection'.
+                // (5,26): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<System.ReadOnlySpan<int>>' and return type 'MyCollection'.
                 //         MyCollection c = [];
-                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "System.ReadOnlySpan<int>", "MyCollection").WithLocation(5, 26));
+                Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "System.ReadOnlySpan<int>", "MyCollection"));
     }
 
     [Fact]
@@ -1826,13 +2382,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (4,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (4,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(4, 46),
-            // (5,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (5,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 52),
-            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 38));
     }
@@ -1870,7 +2426,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (4,47): error CS7036: There is no argument given that corresponds to the required parameter 'arg' of 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "with()").WithArguments("arg", "MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(4, 47),
-            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 38));
     }
@@ -1915,16 +2471,16 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (8,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         Console.WriteLine(Params(3, 4).Arg);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Params(3, 4)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 27),
-            // (10,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 46),
-            // (11,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NonEmptyArgs<T>(T t) => [with(t)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 52),
-            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 38));
     }
@@ -1969,7 +2525,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 38));
     }
@@ -2017,22 +2573,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         Params(6).Args.Report();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "Params(6)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 9),
-            // (11,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArgs<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 46),
-            // (12,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,46): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> OneArg<T>(T t) => [with(t)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(t)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 46),
-            // (13,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (13,52): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> TwoArgs<T>(T x, T y) => [with(x, y)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(x, y)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(13, 52),
-            // (14,57): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (14,57): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> MultipleArgs<T>(T[] args) => [with(args)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 57),
-            // (15,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (15,38): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> Params<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 38));
     }
@@ -3743,43 +4299,43 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (2,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(2, 5),
             // (2,18): error CS8716: There is no target type for the default literal.
             // c = [with(items: default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 18),
-            // (3,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (3,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default, 1)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, 1)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(3, 5),
             // (3,18): error CS8716: There is no target type for the default literal.
             // c = [with(items: default, 1)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(3, 18),
-            // (4,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (4,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(items: default, arg: 2)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(items: default, arg: 2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(4, 5),
             // (4,18): error CS8716: There is no target type for the default literal.
             // c = [with(items: default, arg: 2)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(4, 18),
-            // (5,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (5,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(3, items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(3, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(5, 5),
             // (5,21): error CS8716: There is no target type for the default literal.
             // c = [with(3, items: default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(5, 21),
-            // (6,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(arg: 4, items: default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(arg: 4, items: default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 5),
             // (6,26): error CS8716: There is no target type for the default literal.
             // c = [with(arg: 4, items: default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 26),
-            // (7,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(default, 5)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, 5)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 5),
             // (7,11): error CS8716: There is no target type for the default literal.
             // c = [with(default, 5)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 11),
-            // (8,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,5): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             // c = [with(default, arg: 6)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default, arg: 6)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 5),
             // (8,11): error CS8716: There is no target type for the default literal.
@@ -4093,22 +4649,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
             // (8,19): error CS8716: There is no target type for the default literal.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 19),
-            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = F(1, 2);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13),
-            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33));
     }
@@ -4233,22 +4789,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(default)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
             // (8,19): error CS8716: There is no target type for the default literal.
             //         c = [with(default)];
             Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(8, 19),
-            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = F(1, 2);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13),
-            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33));
     }
@@ -4301,7 +4857,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (9,13): warning CS0612: 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)' is obsolete
             //         c = F(1, 2);
             Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "F(1, 2)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)").WithLocation(9, 13),
-            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,33): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> F<T>(params MyCollection<T> c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 33));
     }
@@ -4343,19 +4899,19 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 """;
         var comp = CreateCompilation([sourceA, sourceB], targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "int", "MyCollection").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "int", "MyCollection").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = [with(0)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(0)]").WithArguments("Create", "int", "MyCollection").WithLocation(8, 13),
-            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //         c = F(1, 2);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(1, 2)").WithArguments("Create", "int", "MyCollection").WithLocation(9, 13),
-            // (11,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
+            // (11,27): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<int>' and return type 'MyCollection'.
             //     static MyCollection F(params MyCollection c) => c;
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection c").WithArguments("Create", "int", "MyCollection").WithLocation(11, 27),
             // (15,19): error CS8894: Cannot use 'MyCollection' as a return type on a method attributed with 'UnmanagedCallersOnly'.
@@ -4577,25 +5133,25 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 13),
-            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<int>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<int>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 9),
-            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F(3);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(3)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(13, 9),
-            // (14,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (14,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F(4, 5);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(4, 5)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(14, 9),
-            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c) where T : struct
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(16, 22));
 
@@ -4620,22 +5176,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<object>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<object>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 9),
-            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F((object)3);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F((object)3)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 9),
-            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
     }
@@ -4693,7 +5249,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (16,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c) where T : struct
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(16, 22));
 
@@ -4733,7 +5289,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (10,9): error CS0453: The type 'object' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'MyBuilder.Create<T>(T, ReadOnlySpan<T>)'
             //         F((object)3);
             Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F((object)3)").WithArguments("MyBuilder.Create<T>(T, System.ReadOnlySpan<T>)", "T", "object").WithLocation(10, 9),
-            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
     }
@@ -4790,22 +5346,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB1, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2, 3)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2, 3)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 13),
-            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<int>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<int>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 9),
-            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (13,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F(4, 5);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F(4, 5)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(13, 9),
-            // (15,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (15,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c) where T : struct
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(15, 22));
 
@@ -4830,22 +5386,22 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB2],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (6,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(6, 13),
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(), 1];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), 1]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13),
-            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (8,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(2, 3)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(2, 3)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(8, 13),
-            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (9,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F<object>();
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F<object>()").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 9),
-            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,9): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         F((object)4, 5);
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "F((object)4, 5)").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 9),
-            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,22): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static void F<T>(params MyCollection<T> c)
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "params MyCollection<T> c").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 22));
     }
@@ -5014,13 +5570,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (10,65): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (10,65): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> NoArguments<T>(ReadOnlySpan<T> s) => [..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[..s]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(10, 65),
-            // (11,68): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (11,68): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> EmptyArguments<T>(ReadOnlySpan<T> s) => [with(), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), ..s]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(11, 68),
-            // (12,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (12,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //     static MyCollection<T> WithArguments<T>(ReadOnlySpan<T> s, params T[] args) => [with(args), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args), ..s]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(12, 84));
     }
@@ -5074,13 +5630,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (11,64): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (11,64): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayNoArguments<T>() => [];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(11, 64),
-            // (12,67): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (12,67): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayEmptyArguments<T>() => [with()];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with()]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(12, 67),
-            // (13,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (13,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayWithArguments<T>(params T[] args) => [with(args)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args)]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(13, 81));
     }
@@ -5134,13 +5690,13 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, s_collectionExtensions],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (12,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (12,81): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayNoArguments<T>(ReadOnlySpan<T> s) => [..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[..s]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(12, 81),
-            // (13,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (13,84): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayEmptyArguments<T>(ReadOnlySpan<T> s) => [with(), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(), ..s]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(13, 84),
-            // (14,100): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
+            // (14,100): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'ImmutableArray<T>'.
             //     static ImmutableArray<T> ImmutableArrayWithArguments<T>(ReadOnlySpan<T> s, params T[] args) => [with(args), ..s];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(args), ..s]").WithArguments("Create", "T", "System.Collections.Immutable.ImmutableArray<T>").WithLocation(14, 100));
     }
@@ -5242,7 +5798,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
         if (scopedInParameter || scopedOutArgument)
         {
             comp.VerifyEmitDiagnostics(
-                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         c = [with(out s), x, y];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(out s), x, y]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13));
         }
@@ -5255,7 +5811,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 // (8,30): error CS9203: A collection expression of type 'ReadOnlySpan<T>' cannot be used in this context because it may be exposed outside of the current scope.
                 //         c = MyBuilder.Create([x, y], out s);
                 Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[x, y]").WithArguments("System.ReadOnlySpan<T>").WithLocation(8, 30),
-                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+                // (9,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         c = [with(out s), x, y];
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(out s), x, y]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(9, 13));
         }
@@ -5570,7 +6126,7 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             [sourceA, sourceB, sourceC],
             targetFramework: TargetFramework.Net80);
         comp.VerifyEmitDiagnostics(
-            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
+            // (7,13): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method whose last parameter is of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
             //         c = [with(y: Identity(1), x: Identity(2)), Identity(3), Identity(4)];
             Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[with(y: Identity(1), x: Identity(2)), Identity(3), Identity(4)]").WithArguments("Create", "T", "MyCollection<T>").WithLocation(7, 13));
     }
@@ -6440,7 +6996,8 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
                 }
                 """;
         var comp = CreateCompilation(source);
-        // PROTOTYPE: Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
+        // https://github.com/dotnet/roslyn/issues/81860
+        // Handle collection arguments in flow analysis: report CS8620 for 'with(c3)'.
         comp.VerifyEmitDiagnostics(
             // (17,45): warning CS8620: Argument of type 'IEqualityComparer<K>' cannot be used for parameter 'comparer' of type 'IEqualityComparer<K?>' in 'Dictionary<K?, V>.Dictionary(IEqualityComparer<K?> comparer)' due to differences in the nullability of reference types.
             //         if (b) return new Dictionary<K?, V>(c3);
@@ -7833,11 +8390,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             targetFramework: TargetFramework.Net80).VerifyDiagnostics(
                 // (5,35): error CS0121: The call is ambiguous between the following methods or properties: 'MyBuilder.Create<string>(string, object, ReadOnlySpan<string>)' and 'MyBuilder.Create<string>(object, string, ReadOnlySpan<string>)'
                 //         MyCollection<string> c = [with("", ""), ""];
-                Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<string>(string, object, System.ReadOnlySpan<string>)", "MyBuilder.Create<string>(object, string, System.ReadOnlySpan<string>)").WithLocation(5, 35));
+                Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<string>(string, object, System.ReadOnlySpan<string>)", "MyBuilder.Create<string>(object, string, System.ReadOnlySpan<string>)"));
     }
 
     [Fact]
-    public void InterpolatedStringHandler()
+    public void InterpolatedStringHandler_Constructor()
     {
         var code = """
             using System;
@@ -7914,6 +8471,109 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
     }
 
     [Fact]
+    public void InterpolatedStringHandler_CollectionBuilder()
+    {
+        var code = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Collections.Generic;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(
+                    int i, string s, CustomHandler c,
+                    ReadOnlySpan<T> items)
+                {
+                    Console.WriteLine(c);
+
+                    foreach (var item in items)
+                        this.Add(item);
+                }
+            }
+
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, string s, [InterpolatedStringHandlerArgumentAttribute("i", "s")] CustomHandler c, ReadOnlySpan<T> items) => new(i, s, c, items);
+            }
+
+            public partial struct CustomHandler
+            {
+                public CustomHandler(int literalLength, int formattedCount, int i, string s) : this(literalLength, formattedCount)
+                {
+                    _builder.AppendLine("i:" + i.ToString());
+                    _builder.AppendLine("s:" + s);
+                }
+            }
+            """;
+
+        var executableCode = """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 10;
+                    string s = "arg";
+                    MyCollection<string> c = [with(i, s, $"" + $"literal"), "goo"];
+                }
+            }
+            """;
+
+        var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
+
+        CompileAndVerify(
+            [code, executableCode, handler],
+            targetFramework: TargetFramework.Net90,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+            i:10
+            s:arg
+            literal:literal
+            """))
+            .VerifyDiagnostics(
+                // (4,34): warning CS0436: The type 'InterpolatedStringHandlerAttribute' in '' conflicts with the imported type 'InterpolatedStringHandlerAttribute' in 'System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'. Using the type defined in ''.
+                // [System.Runtime.CompilerServices.InterpolatedStringHandler]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "InterpolatedStringHandler").WithArguments("", "System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute", "System.Runtime, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", "System.Runtime.CompilerServices.InterpolatedStringHandlerAttribute").WithLocation(4, 34))
+            .VerifyIL("Program.Main", """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  7
+                  .locals init (string V_0, //s
+                                string V_1,
+                                int V_2,
+                                string V_3,
+                                CustomHandler V_4)
+                  IL_0000:  ldc.i4.s   10
+                  IL_0002:  ldstr      "arg"
+                  IL_0007:  stloc.0
+                  IL_0008:  stloc.2
+                  IL_0009:  ldloc.2
+                  IL_000a:  ldloc.0
+                  IL_000b:  stloc.3
+                  IL_000c:  ldloc.3
+                  IL_000d:  ldloca.s   V_4
+                  IL_000f:  ldc.i4.7
+                  IL_0010:  ldc.i4.0
+                  IL_0011:  ldloc.2
+                  IL_0012:  ldloc.3
+                  IL_0013:  call       "CustomHandler..ctor(int, int, int, string)"
+                  IL_0018:  ldloca.s   V_4
+                  IL_001a:  ldstr      "literal"
+                  IL_001f:  call       "bool CustomHandler.AppendLiteral(string)"
+                  IL_0024:  pop
+                  IL_0025:  ldloc.s    V_4
+                  IL_0027:  ldstr      "goo"
+                  IL_002c:  stloc.1
+                  IL_002d:  ldloca.s   V_1
+                  IL_002f:  newobj     "System.ReadOnlySpan<string>..ctor(ref readonly string)"
+                  IL_0034:  call       "MyCollection<string> MyBuilder.Create<string>(int, string, CustomHandler, System.ReadOnlySpan<string>)"
+                  IL_0039:  pop
+                  IL_003a:  ret
+                }
+                """);
+    }
+
+    [Fact]
     public void WithOutsideCollectionIsAnInvocation()
     {
         var source = """
@@ -7932,5 +8592,978 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             // (6,11): error CS0103: The name 'with' does not exist in the current context
             //         N(with(capacity: 0), 1, 2, 3);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "with").WithArguments("with").WithLocation(6, 11));
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_CollectionBuilder_DynamicArguments(string parameterType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public {{parameterType}} Value;
+
+                private readonly List<T> _items;
+                public MyCollection({{parameterType}} value, ReadOnlySpan<T> items)
+                {
+                    Value = value;
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>({{parameterType}} value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    dynamic d = 42;
+                    MyCollection<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (parameterType == "dynamic")
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (23,97): error CS1978: Cannot use an expression of type 'ReadOnlySpan<T>' as an argument to a dynamically dispatched operation.
+                //     public static MyCollection<T> Create<T>(dynamic value, ReadOnlySpan<T> items) => new(value, items);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "items").WithArguments("System.ReadOnlySpan<T>").WithLocation(23, 97),
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+        else
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+    }
+
+    [Theory]
+    [InlineData("object")]
+    [InlineData("dynamic")]
+    public void WithElement_CollectionBuilder_DynamicParameters(string argumentType)
+    {
+        var source = $$"""
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : IEnumerable<T>
+            {
+                public object Value;
+            
+                private readonly List<T> _items;
+                public MyCollection(object value, ReadOnlySpan<T> items)
+                {
+                    Value = value;
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(object value, ReadOnlySpan<T> items) => new(value, items);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    {{argumentType}} d = 42;
+                    MyCollection<int> list = [with(d), 1];
+                    Console.WriteLine(list.Value);
+                }
+            }
+            """;
+
+        if (argumentType == "dynamic")
+        {
+            CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+                // (31,40): error CS9402: 'with(...)' element arguments cannot be dynamic
+                //         MyCollection<int> list = [with(d), 1];
+                Diagnostic(ErrorCode.ERR_CollectionArgumentsDynamicBinding, "d").WithLocation(31, 40));
+        }
+        else
+        {
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, verify: Verification.FailsPEVerify).VerifyIL("C.Main", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  IL_0000:  ldc.i4.s   42
+                  IL_0002:  box        "int"
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=4_Align=4 <PrivateImplementationDetails>.67ABDD721024F0FF4E0B3F4C2FC13BC5BAD42D0B7851D456D88D203D15AAA4504"
+                  IL_000c:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
+                  IL_0011:  call       "MyCollection<int> MyBuilder.Create<int>(object, System.ReadOnlySpan<int>)"
+                  IL_0016:  ldfld      "object MyCollection<int>.Value"
+                  IL_001b:  call       "void System.Console.WriteLine(object)"
+                  IL_0020:  ret
+                }
+                """);
+        }
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_ArgList()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (9,12): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_BadVarargs, "MyCollection").WithLocation(9, 12),
+            // (9,25): error CS0257: An __arglist parameter must be the last parameter in a parameter list
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(9, 25),
+            // (9,66): error CS0103: The name 'span' does not exist in the current context
+            //     public MyCollection(__arglist, ReadOnlySpan<T> items) : base(span.ToArray())
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "span").WithArguments("span").WithLocation(9, 66),
+            // (16,35): error CS0224: A method with vararg cannot be generic, be in a generic type, or have a params parameter
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadVarargs, "Create").WithLocation(16, 35),
+            // (16,45): error CS0257: An __arglist parameter must be the last parameter in a parameter list
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist").WithLocation(16, 45),
+            // (16,86): error CS1503: Argument 1: cannot convert from 'System.RuntimeArgumentHandle' to 'System.ReadOnlySpan<T>'
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadArgType, "__arglist").WithArguments("1", "System.RuntimeArgumentHandle", "System.ReadOnlySpan<T>").WithLocation(16, 86),
+            // (16,97): error CS1503: Argument 2: cannot convert from 'ReadOnlySpan<T>' to '__arglist'
+            //     public static MyCollection<T> Create<T>(__arglist, ReadOnlySpan<T> items) => new(__arglist, items);
+            Diagnostic(ErrorCode.ERR_BadArgType, "items").WithArguments("2", "System.ReadOnlySpan<T>", "__arglist").WithLocation(16, 97));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_ExactMatch()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(int capacity) : base(capacity)
+                {
+                    ConstructorUsed = "int";
+                }
+                
+                public MyList(long capacity) : base((int)capacity)
+                {
+                    ConstructorUsed = "long";
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list1 = [with(10), 1];
+                    MyList<int> list2 = [with(10L), 2];
+                    Console.WriteLine($"{list1.ConstructorUsed},{list2.ConstructorUsed}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int,long"), verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_Ambiguous()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(object value1, string value2)
+                {
+                    Console.WriteLine("object/string chosen");
+                }
+                
+                public MyList(string value1, object value2)
+                {
+                    Console.WriteLine("string/object chosen");
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(object value1, string value2, ReadOnlySpan<T> items) => new(value1, value2);
+                public static MyList<T> Create<T>(string value1, object value2, ReadOnlySpan<T> items) => new(value1, value2);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with("", "")];
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (29,29): error CS0121: The call is ambiguous between the following methods or properties: 'MyBuilder.Create<int>(object, string, System.ReadOnlySpan<int>)' and 'MyBuilder.Create<int>(string, object, System.ReadOnlySpan<int>)'
+            //         MyList<int> list = [with("", "")];
+            Diagnostic(ErrorCode.ERR_AmbigCall, @"with("""", """")").WithArguments("MyBuilder.Create<int>(object, string, System.ReadOnlySpan<int>)", "MyBuilder.Create<int>(string, object, System.ReadOnlySpan<int>)").WithLocation(29, 29));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch1()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(int capacity) : base(capacity)
+                {
+                    Console.WriteLine("int chosen");
+                }
+                
+                public MyList(long capacity) : base((int)capacity)
+                {
+                    Console.WriteLine("long chosen");
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+
+            class C
+            {
+                static void Main()
+                {
+                    short s = 10;
+                    MyList<int> list = [with(s)];
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int chosen"), verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_OverloadResolution_BestMatch2()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public string ConstructorUsed { get; }
+                
+                public MyList(object value) : base()
+                {
+                    ConstructorUsed = "object";
+                }
+                
+                public MyList(int value) : base()
+                {
+                    ConstructorUsed = "int";
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(int capacity, ReadOnlySpan<T> items) => new(capacity);
+                public static MyList<T> Create<T>(long capacity, ReadOnlySpan<T> items) => new(capacity);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(42), 1];
+                    Console.WriteLine(list.ConstructorUsed);
+                }
+            }
+            """;
+
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("int"), verify: Verification.FailsPEVerify);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_NoMatchingConstructor()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value);
+            }
+            
+            class C
+            {
+                void M()
+                {
+                    MyList<int> list = [with(42)];
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (20,34): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+            //         MyList<int> list = [with(42)];
+            Diagnostic(ErrorCode.ERR_BadArgType, "42").WithArguments("1", "int", "string").WithLocation(20, 34));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_UserDefinedConversion1()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(string value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(string value, ReadOnlySpan<T> items)
+                {
+                    Console.WriteLine("Factory called: " + value);
+                    return new(value);
+                }
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator string(C c)
+                {
+                    Console.WriteLine("Implicit operator called");
+                    return "converted";
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            source,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+                Implicit operator called
+                Factory called: converted
+                """)).VerifyIL("C.Main", """
+            {
+              // Code size       26 (0x1a)
+              .maxstack  2
+              .locals init (System.ReadOnlySpan<int> V_0)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "string C.op_Implicit(C)"
+              IL_000a:  ldloca.s   V_0
+              IL_000c:  initobj    "System.ReadOnlySpan<int>"
+              IL_0012:  ldloc.0
+              IL_0013:  call       "MyList<int> MyBuilder.Create<int>(string, System.ReadOnlySpan<int>)"
+              IL_0018:  pop
+              IL_0019:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_Constructor_UserDefinedConversion2()
+    {
+        var source = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyList<T> : List<T>
+            {
+                public MyList(long value) : base() { }
+            }
+            
+            class MyBuilder
+            {
+                public static MyList<T> Create<T>(long value, ReadOnlySpan<T> items) => new(value);
+            }
+            
+            class C
+            {
+                static void Main()
+                {
+                    MyList<int> list = [with(new C())];
+                }
+
+                public static implicit operator int(C c)
+                {
+                    Console.WriteLine("conversion called");
+                    return 0;
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            source,
+            targetFramework: TargetFramework.Net100,
+            verify: Verification.FailsPEVerify,
+            expectedOutput: IncludeExpectedOutput("""
+                conversion called
+                """)).VerifyIL("C.Main", """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  2
+              .locals init (System.ReadOnlySpan<int> V_0)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "int C.op_Implicit(C)"
+              IL_000a:  conv.i8
+              IL_000b:  ldloca.s   V_0
+              IL_000d:  initobj    "System.ReadOnlySpan<int>"
+              IL_0013:  ldloc.0
+              IL_0014:  call       "MyList<int> MyBuilder.Create<int>(long, System.ReadOnlySpan<int>)"
+              IL_0019:  pop
+              IL_001a:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_UnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class C<T> : List<T>
+            {
+                public C(out Span<string> egress, [UnscopedRef] out string ingress)
+                {
+                    ingress = "a";
+                    egress = new Span<string>(ref ingress);
+                }
+
+                Span<string> M()
+                {
+                    string y = "a";
+                    C<T> list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+            
+                Span<string> N()
+                {
+                    string y = "a";
+                    C<T> list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static C<T> Create<T>(out Span<string> egress, [UnscopedRef] out string ingress, ReadOnlySpan<T> items) => new(out egress, out ingress);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (19,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(19, 16),
+            // (26,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(26, 16));
+    }
+
+    [Fact]
+    public void WithElement_CollectionBuilder_NotUnscopedRef1()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+            
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class C<T> : List<T>
+            {
+                public C(out Span<string> egress, out string ingress)
+                {
+                    ingress = "a";
+                    egress = [];
+                }
+            
+                Span<string> M()
+                {
+                    string y = "a";
+                    C<T> list = [with(out Span<string> x, out y)];
+                    return x;
+                }
+
+                Span<string> N()
+                {
+                    string y = "a";
+                    C<T> list = new(out Span<string> x, out y);
+                    return x;
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static C<T> Create<T>(out Span<string> egress, out string ingress, ReadOnlySpan<T> items) => new(out egress, out ingress);
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilder_GetMemberGroup()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        // It is expected that we get 0 here.  GetMemberGroup returns nothing for a WithElementSyntax
+        // (same as for a ConstructorInitializerSyntax).
+        var memberGroup = semanticModel.GetMemberGroup(withElement);
+        Assert.Equal(0, memberGroup.Length);
+    }
+
+    [Fact]
+    public void CollectionBuilder_GetSpeculativeSymbolInfo()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            class MyCollection<T> : List<T>
+            {
+                public MyCollection()
+                {
+                }
+            }
+            
+            class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(int i, ReadOnlySpan<T> items) => new();
+                public static MyCollection<T> Create<T>(string s, ReadOnlySpan<T> items) => new();
+            }
+            """;
+        string sourceB = """
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<string> c = [with(""), ""];
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            [sourceA, sourceB],
+            targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+
+        var syntaxTree = comp.SyntaxTrees[1];
+        var semanticModel = comp.GetSemanticModel(syntaxTree);
+
+        var root = syntaxTree.GetRoot();
+        var withElement = root.DescendantNodes().OfType<WithElementSyntax>().Single();
+
+        var symbolInfo = semanticModel.GetSpeculativeSymbolInfo(withElement.SpanStart,
+            SyntaxFactory.WithElement(SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                SyntaxFactory.Argument(SyntaxFactory.ParseExpression("1"))))),
+            SpeculativeBindingOption.BindAsExpression);
+
+        // For now, we do not support speculating on a different WithElement.
+        Assert.Null(symbolInfo.Symbol);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+    }
+
+    [Fact]
+    public void CollectionBuilderFileLocalType1()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            file class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(string value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            file class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(string value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with(""), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            expectedOutput: IncludeExpectedOutput("1, 2"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionBuilderFileLocalType2()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(MyBuilder), "Create")]
+            file class MyCollection<T> : IEnumerable<T>
+            {
+                private readonly List<T> _items;
+                public MyCollection(Arg value, ReadOnlySpan<T> items)
+                {
+                    _items = new();
+                    _items.AddRange(items.ToArray());
+                }
+                public IEnumerator<T> GetEnumerator() => _items.GetEnumerator();
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            }
+
+            file class Arg {}
+
+            file class MyBuilder
+            {
+                public static MyCollection<T> Create<T>(Arg value, ReadOnlySpan<T> items) => new(value, items);
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    MyCollection<int> c = [with(new Arg()), 1, 2];
+                    Console.WriteLine(string.Join(", ", c));
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            expectedOutput: IncludeExpectedOutput("1, 2"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructibleTypeParameterNoArguments()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    T t = [with(), i];
+                    return t;
+                }
+            }
+            """;
+
+        CompileAndVerify(
+            sourceA,
+            expectedOutput: IncludeExpectedOutput("1"),
+            targetFramework: TargetFramework.Net80,
+            verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstructibleTypeParameterWithArgument1()
+    {
+        string sourceA = """
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+            
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    T t = [with(i)];
+                    return t;
+                }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (14,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T t = [with(i)];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, "with(i)").WithArguments("T").WithLocation(14, 16));
+    }
+
+    [Fact]
+    public void ConstructibleTypeParameterWithArgument2()
+    {
+        string sourceA = """
+            #nullable enable
+            using System;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    var v = M<List<int>>(1);
+                    Console.WriteLine(v[0]);
+                }
+            
+                static T M<T>(int i) where T : IList<int>, new()
+                {
+                    string? s;
+                    T t = [with(s = "")];
+                    Console.WriteLine(s);
+                    Goo(s);
+                    return t;
+                }
+            
+                static void Goo(string s) { }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (16,16): error CS0417: 'T': cannot provide arguments when creating an instance of a variable type
+            //         T t = [with(s = "")];
+            Diagnostic(ErrorCode.ERR_NewTyvarWithArgs, @"with(s = """")").WithArguments("T").WithLocation(16, 16));
+    }
+
+    [Theory]
+    [InlineData("IList<int>")]
+    [InlineData("ICollection<int>")]
+    public void InterfaceTypeWithArgument1(string type)
+    {
+        string sourceA = $$"""
+            #nullable enable
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static void Main()
+                {
+                    string? s;
+                    {{type}} t = [with(s = "")];
+                    Goo(s);
+                }
+
+                static void Goo(string s) { }
+            }
+            """;
+
+        CreateCompilation(sourceA, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
+            // (9,36): error CS1503: Argument 1: cannot convert from 'string' to 'int'
+            //         ICollection<int> t = [with(s = "")];
+            Diagnostic(ErrorCode.ERR_BadArgType, @"s = """"").WithArguments("1", "string", "int"));
+    }
+
+    [Fact]
+    public void TestAwait1()
+    {
+        string sourceA = $$"""
+            using System;
+            using System.Threading.Tasks;
+            using System.Collections.Generic;
+
+            class Program
+            {
+                static async Task Main()
+                {
+                    List<int> s = [with(await GetValue(42)), await GetValue(0), await GetValue(1)];
+                    Console.WriteLine(s.Capacity);
+                    Console.WriteLine(string.Join(", ", s));
+                }
+
+                static Task<int> GetValue(int value) => Task.FromResult(value);
+            }
+            """;
+
+        var compilation = CreateRuntimeAsyncCompilation(sourceA, TestOptions.ReleaseExe);
+        CompileAndVerify(compilation,
+            expectedOutput: ExecutionConditionUtil.IsCoreClr && RuntimeAsyncTestHelpers.IsRuntimeAsyncEnabled ? """
+                42
+                0, 1
+                """ : null,
+            verify: Verification.Fails with { ILVerifyMessage = "[Main]: Return value missing on the stack. { Offset = 0x53 }" })
+            .VerifyDiagnostics().VerifyIL("Program.Main", """
+            {
+              // Code size       84 (0x54)
+              .maxstack  3
+              .locals init (System.Collections.Generic.List<int> V_0, //s
+                            int V_1,
+                            int V_2)
+              IL_0000:  ldc.i4.s   42
+              IL_0002:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_0007:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_000c:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+              IL_0011:  dup
+              IL_0012:  ldc.i4.0
+              IL_0013:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_0018:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_001d:  stloc.1
+              IL_001e:  ldloc.1
+              IL_001f:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0024:  dup
+              IL_0025:  ldc.i4.1
+              IL_0026:  call       "System.Threading.Tasks.Task<int> Program.GetValue(int)"
+              IL_002b:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+              IL_0030:  stloc.2
+              IL_0031:  ldloc.2
+              IL_0032:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+              IL_0037:  stloc.0
+              IL_0038:  ldloc.0
+              IL_0039:  callvirt   "int System.Collections.Generic.List<int>.Capacity.get"
+              IL_003e:  call       "void System.Console.WriteLine(int)"
+              IL_0043:  ldstr      ", "
+              IL_0048:  ldloc.0
+              IL_0049:  call       "string string.Join<int>(string, System.Collections.Generic.IEnumerable<int>)"
+              IL_004e:  call       "void System.Console.WriteLine(string)"
+              IL_0053:  ret
+            }
+            """);
     }
 }

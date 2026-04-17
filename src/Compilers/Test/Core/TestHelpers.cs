@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -176,5 +177,18 @@ namespace Roslyn.Test.Utilities
 #endif
             }
         }
+
+        /// <summary>
+        /// Create an absolute path for the current OS platform with the given suffix.
+        /// NOTE: the path is not appropriate for actually writing files during tests, use TempRoot instead for that.
+        /// </summary>
+        public static string CreateAbsolutePath(string suffix)
+            => Path.Combine(Path.GetTempPath(), suffix);
+
+        public const string WindowsRoot = @"Q:\";
+        public const string UnixRoot = @"/q/";
+        public static string Root => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsRoot : UnixRoot;
+
+        public static string GetRootedPath(params string[] relativePath) => Path.Combine([Root, .. relativePath]);
     }
 }

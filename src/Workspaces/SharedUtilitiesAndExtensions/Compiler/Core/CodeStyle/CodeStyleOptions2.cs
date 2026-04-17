@@ -325,6 +325,11 @@ internal static class CodeStyleOptions2
                 return $"{value}{CodeStyleHelpers.GetEditorConfigStringNotificationPart(option, defaultValue)}";
             }));
 
+    internal static readonly Option2<CodeStyleOption2<bool>> PreferNonHiddenExplicitCastInSource = CreateOption(
+        CodeStyleOptionGroups.ExpressionLevelPreferences,
+        "dotnet_style_prefer_non_hidden_explicit_cast_in_source",
+        defaultValue: new CodeStyleOption2<bool>(value: true, notification: NotificationOption2.Suggestion));
+
     internal static readonly PerLanguageOption2<CodeStyleOption2<bool>> PreferSystemHashCode = CreatePerLanguageOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "dotnet_prefer_system_hash_code",

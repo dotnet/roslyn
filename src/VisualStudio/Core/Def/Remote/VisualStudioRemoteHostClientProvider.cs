@@ -85,7 +85,7 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
                 // If we have a cached vs instance, then we can return that instance since we know they have the same host services.
                 // Otherwise, create and cache an instance based on vs workspace for future callers with same services.
                 if (_cachedVSInstance is null)
-                    _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _globalOptions, _brokeredServiceContainer, _serviceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
+                    _cachedVSInstance = new VisualStudioRemoteHostClientProvider(_vsWorkspace.Services.SolutionServices, _brokeredServiceContainer, _serviceProvider, _threadingContext, _listenerProvider, _callbackDispatchers);
 
                 return _cachedVSInstance;
             }
@@ -93,7 +93,6 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
     }
 
     public readonly SolutionServices Services;
-    private readonly IGlobalOptionService _globalOptions;
     private readonly VSThreading.AsyncLazy<RemoteHostClient?> _lazyClient;
     private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
     private readonly IServiceProvider _serviceProvider;
@@ -104,7 +103,6 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
 
     private VisualStudioRemoteHostClientProvider(
         SolutionServices services,
-        IGlobalOptionService globalOptions,
         IVsService<IBrokeredServiceContainer> brokeredServiceContainer,
         IServiceProvider serviceProvider,
         IThreadingContext threadingContext,
@@ -112,7 +110,6 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
     {
         Services = services;
-        _globalOptions = globalOptions;
         _brokeredServiceContainer = brokeredServiceContainer;
         _serviceProvider = serviceProvider;
         _listenerProvider = listenerProvider;
@@ -131,12 +128,10 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
             var brokeredServiceContainer = await _brokeredServiceContainer.GetValueAsync().ConfigureAwait(false);
             var serviceBroker = brokeredServiceContainer.GetFullAccessServiceBroker();
 
-            var configuration =
-                _globalOptions.GetOption(RemoteHostOptionsStorage.OOPServerGCFeatureFlag) ? RemoteProcessConfiguration.ServerGC : 0;
             var localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
 
             // VS AsyncLazy does not currently support cancellation:
-            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, configuration, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, _threadingContext.DisposalToken).ConfigureAwait(false);
+            var client = await ServiceHubRemoteHostClient.CreateAsync(Services, localSettingsDirectory, _listenerProvider, serviceBroker, _callbackDispatchers, _threadingContext.DisposalToken).ConfigureAwait(false);
 
             // proffer in-proc brokered services:
             _ = brokeredServiceContainer.Proffer(SolutionAssetProvider.ServiceDescriptor, (_, _, _, _) => ValueTask.FromResult<object?>(new SolutionAssetProvider(Services)));

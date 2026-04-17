@@ -37,9 +37,9 @@ internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixPr
         {
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    CodeFixesResources.Make_method_synchronous,
+                    AnalyzersResources.Make_method_synchronous,
                     cancellationToken => FixNodeAsync(context.Document, node, cancellationToken),
-                    nameof(CodeFixesResources.Make_method_synchronous)),
+                    nameof(AnalyzersResources.Make_method_synchronous)),
                 context.Diagnostics);
         }
     }

@@ -153,21 +153,13 @@ internal static class SymbolSourceDocumentFinder
 
     private static void AddDocumentsFromTypeDefinitionDocuments(TypeDefinitionHandle typeDefHandle, MetadataReader pdbReader, HashSet<DocumentHandle> docList)
     {
-        var handles = pdbReader.GetCustomDebugInformation(typeDefHandle);
-        foreach (var cdiHandle in handles)
+        if (pdbReader.TryGetCustomDebugInformation(typeDefHandle, PortableCustomDebugInfoKinds.TypeDefinitionDocuments, out var cdi) &&
+            ((TypeDefinitionHandle)cdi.Parent).Equals(typeDefHandle))
         {
-            var cdi = pdbReader.GetCustomDebugInformation(cdiHandle);
-            var guid = pdbReader.GetGuid(cdi.Kind);
-            if (guid == PortableCustomDebugInfoKinds.TypeDefinitionDocuments)
+            var reader = pdbReader.GetBlobReader(cdi.Value);
+            while (reader.RemainingBytes > 0)
             {
-                if (((TypeDefinitionHandle)cdi.Parent).Equals(typeDefHandle))
-                {
-                    var reader = pdbReader.GetBlobReader(cdi.Value);
-                    while (reader.RemainingBytes > 0)
-                    {
-                        docList.Add(MetadataTokens.DocumentHandle(reader.ReadCompressedInteger()));
-                    }
-                }
+                docList.Add(MetadataTokens.DocumentHandle(reader.ReadCompressedInteger()));
             }
         }
     }

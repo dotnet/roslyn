@@ -211,6 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasCompilerLoweringPreserveAttribute => false;
 
+        internal override bool IsUnionTypeCore => false;
+
 #if !DEBUG
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
@@ -359,6 +361,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => ImmutableArray<TypeWithAnnotations>.Empty;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters => ImmutableArray<TypeParameterSymbol>.Empty;
+
+        public override bool IsAsync => UnderlyingMethod.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {

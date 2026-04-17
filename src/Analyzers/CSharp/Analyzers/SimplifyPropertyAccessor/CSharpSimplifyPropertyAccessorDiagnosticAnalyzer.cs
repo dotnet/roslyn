@@ -24,7 +24,7 @@ internal sealed class CSharpSimplifyPropertyAccessorDiagnosticAnalyzer : Abstrac
     }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-        => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
+        => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);

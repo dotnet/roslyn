@@ -33,7 +33,7 @@ internal sealed partial class FixAllState
             DocumentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
         }
 
-        public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
             var allDiagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
             ImmutableArray<Diagnostic> diagnostics;
@@ -53,27 +53,27 @@ internal sealed partial class FixAllState
                 allDiagnosticsBuilder.AddRange(diagnostics);
             }
 
-            return Task.FromResult<IEnumerable<Diagnostic>>(allDiagnosticsBuilder.ToImmutableAndFree());
+            return allDiagnosticsBuilder.ToImmutableAndFree();
         }
 
-        public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
         {
             if (DocumentDiagnosticsMap.TryGetValue(document, out var diagnostics))
             {
-                return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
+                return diagnostics;
             }
 
-            return SpecializedTasks.EmptyEnumerable<Diagnostic>();
+            return [];
         }
 
-        public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
         {
             if (ProjectDiagnosticsMap.TryGetValue(project, out var diagnostics))
             {
-                return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
+                return diagnostics;
             }
 
-            return SpecializedTasks.EmptyEnumerable<Diagnostic>();
+            return [];
         }
     }
 }
