@@ -171,6 +171,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+
         protected abstract int GetParameterCountFromSyntax();
 
         public sealed override ImmutableArray<ParameterSymbol> Parameters

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.RazorLspServer), Shared]
@@ -18,9 +19,9 @@ using Roslyn.LanguageServer.Protocol;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RazorInProcLanguageClientCapabilitiesProvider(DefaultCapabilitiesProvider defaultCapabilitiesProvider) : ICapabilitiesProvider
 {
-    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
-        var capabilities = defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+        var capabilities = defaultCapabilitiesProvider.GetCapabilities(clientCapabilities, lspServices);
 
         // Razor doesn't use workspace symbols, so disable to prevent duplicate results (with LiveshareLanguageClient) in liveshare.
         capabilities.WorkspaceSymbolProvider = false;

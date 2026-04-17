@@ -10,8 +10,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -127,13 +125,13 @@ namespace IdeBenchmarks.Lsp
 
             var sgIdentity = sourceGeneratedDocuments.Single().Identity;
             var sgUri = SourceGeneratedDocumentUri.Create(sgIdentity);
-            var sgText = await testServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(
-                SourceGeneratedDocumentGetTextHandler.MethodName,
-                new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { DocumentUri = sgUri }, ResultId: null),
+            var sgResult = await testServer.ExecuteRequestAsync<LSP.TextDocumentContentParams, LSP.TextDocumentContentResult>(
+                LSP.Methods.WorkspaceTextDocumentContentName,
+                new LSP.TextDocumentContentParams { Uri = sgUri },
                 CancellationToken.None);
 
-            AssertEx.NotNull(sgText);
-            Assert.Contains("public partial class C", sgText.Text);
+            AssertEx.NotNull(sgResult);
+            Assert.Contains("public partial class C", sgResult.Text);
         }
 
         [IterationCleanup]

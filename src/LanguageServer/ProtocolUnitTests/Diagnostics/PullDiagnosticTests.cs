@@ -769,6 +769,78 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
+    internal async Task TestRemovedOpenedSourceGeneratorFileReportsUpdatedDiagnostics(bool useVSDiagnostics, bool mutatingLspWorkspace, SourceGeneratorExecutionPreference executionPreference)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+
+        var configService = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<TestWorkspaceConfigurationService>();
+        configService.Options = new WorkspaceConfigurationOptions(SourceGeneratorExecution: executionPreference);
+
+        var iteration = 0;
+        var callbackGenerator = new CallbackGenerator(() =>
+        {
+            var result = ($"hintName-{iteration}.cs", $"Iteration{iteration}");
+            iteration++;
+            return result;
+        });
+        var generatorReference = await AddGeneratorAsync(callbackGenerator, testLspServer.TestWorkspace);
+
+        var sourceGeneratedDocuments = await testLspServer.GetCurrentSolution().Projects.Single().GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
+        var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
+
+        var originalSgText = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
+        AssertEx.NotNull(originalSgText);
+        Assert.Equal("Iteration0", originalSgText.Text);
+
+        // Open the document - this will cause the queue to generate frozen sg documents based on the LSP open text
+        // even if the source generated document is removed entirely.
+        await testLspServer.OpenDocumentAsync(sourceGeneratorDocumentUri, originalSgText.Text);
+
+        // First diagnostics request should report a diagnostic with 'Iteration0' as the identifier.
+        var initialDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri, useVSDiagnostics);
+        var firstResult = AssertEx.Single(initialDiagnostics);
+        var firstDiagnostic = AssertEx.Single(firstResult.Diagnostics!.Where(d => d.Code!.Value.Second == "CS0246"));
+        Assert.Contains("Iteration0", firstDiagnostic.Message);
+
+        // Updating the execution version should trigger source generators to run and generate a new document with new name.
+        await testLspServer.RefreshSourceGeneratorsAsync(forceRegeneration: true);
+
+        // The old source generated document should be removed and return empty text.
+        var newSgText = await testLspServer.GetSourceGeneratedDocumentTextAsync(sourceGeneratorDocumentUri);
+        Assert.NotNull(newSgText);
+        Assert.Empty(newSgText.Text);
+
+        // Before the client updates the file with the new text it retrieved, make a diagnostics request.
+        // This should recalculate diagnostics (source generator execution changed), but return the same diagnostics based on
+        // the original frozen text since the client hasn't told the server to update the frozen document.
+        var secondDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri, useVSDiagnostics, previousResultId: firstResult.ResultId);
+        var secondResult = AssertEx.Single(secondDiagnostics);
+        var secondDiagnostic = AssertEx.Single(secondResult.Diagnostics!.Where(d => d.Code!.Value.Second == "CS0246"));
+        Assert.Contains("Iteration0", secondDiagnostic.Message);
+        Assert.NotEqual(secondResult.ResultId, firstResult.ResultId);
+
+        // Now update the LSP text for the source generated document based on the new text we retrieved after the source generator re-ran.
+        var originalText = SourceText.From(originalSgText.Text);
+        var originalSpan = originalText.Lines.GetLinePositionSpan(new TextSpan(0, originalText.Length));
+
+        await testLspServer.ReplaceTextAsync(
+            sourceGeneratorDocumentUri,
+            (new LSP.Range
+            {
+                Start = new LSP.Position(originalSpan.Start.Line, originalSpan.Start.Character),
+                End = new LSP.Position(originalSpan.End.Line, originalSpan.End.Character)
+            }, newSgText.Text));
+
+        // We now have a new version of the frozen source generated document - diagnostics should be recalculated and returned
+        // based on the new frozen source generator contents (empty).
+        var thirdDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri, useVSDiagnostics);
+        var thirdResult = AssertEx.Single(thirdDiagnostics);
+        Assert.NotEqual(thirdResult.ResultId, secondResult.ResultId);
+        Assert.Empty(thirdResult.Diagnostics!);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestDocumentDiagnosticsWithFadingOptionOn(bool useVSDiagnostics, bool mutatingLspWorkspace)
     {
         var markup =

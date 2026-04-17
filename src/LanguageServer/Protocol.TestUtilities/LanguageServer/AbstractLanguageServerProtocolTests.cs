@@ -839,6 +839,14 @@ public abstract partial class AbstractLanguageServerProtocolTests
             await this.WaitForSourceGeneratorsAsync();
         }
 
+        public Task<TextDocumentContentResult?> GetSourceGeneratedDocumentTextAsync(DocumentUri documentUri)
+        {
+            return ExecuteRequestAsync<TextDocumentContentParams, TextDocumentContentResult>(
+                Methods.WorkspaceTextDocumentContentName,
+                new TextDocumentContentParams { Uri = documentUri },
+                CancellationToken.None);
+        }
+
         public async Task ShutdownTestServerAsync()
         {
             await _clientRpc.InvokeAsync(LSP.Methods.ShutdownName).ConfigureAwait(false);

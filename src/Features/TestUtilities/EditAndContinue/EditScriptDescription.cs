@@ -30,7 +30,7 @@ internal readonly struct EditScriptDescription(string oldMarkedSource, string ne
         => VerifyEdits(Array.Empty<string>());
 
     public void VerifyEdits(params string[] expected)
-        => AssertEx.Equal(expected, Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: static s =>
+        => AssertEx.Equal(expected.Select(e => e.NormalizeLineEndings()), Edits.Select(e => e.GetDebuggerDisplay().NormalizeLineEndings()), itemSeparator: ",\r\n", itemInspector: static s =>
         {
             var maxQuoteRun = 0;
             var currentRun = 0;
