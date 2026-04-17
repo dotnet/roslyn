@@ -10600,7 +10600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var toType = (NamedTypeSymbol)targetType.StrippedType();
 
             var match = toType.ForEachUnionFactoryMethod(
-                (factory, factoryDefinition) => factory.OriginalDefinition == (object)factoryDefinition,
+                static (factory, factoryDefinition) => factory.OriginalDefinition == (object)factoryDefinition,
                 factory.OriginalDefinition);
             Debug.Assert(match is not null);
             if (match is not null)

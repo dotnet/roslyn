@@ -1827,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 static bool addCaseType(MethodSymbol factory, ArrayBuilder<TypeSymbol> builder)
                 {
                     var candidate = factory.Parameters[0].Type;
-                    if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
+                    if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate)) // PROTOTYPE: Optimize this check?
                     {
                         builder.Add(candidate);
                     }
