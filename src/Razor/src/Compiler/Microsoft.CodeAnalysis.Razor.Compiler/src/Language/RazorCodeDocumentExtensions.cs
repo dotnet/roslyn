@@ -63,20 +63,45 @@ public static class RazorCodeDocumentExtensions
             return null;
         }
 
-        foreach (var node in syntaxTree.Root.DescendantNodes())
+        // Check the main document first -- its @inherits overrides any from imports.
+        var inheritsValue = FindInheritsDirective(syntaxTree);
+        if (inheritsValue is not null)
         {
-            if (node is RazorDirectiveSyntax
-                {
-                    DirectiveDescriptor: var descriptor,
-                    Body: RazorDirectiveBodySyntax { CSharpCode: { } csharpCode }
-                } &&
-                descriptor == InheritsDirective.Directive)
+            return inheritsValue;
+        }
+
+        // Check import syntax trees. The last import's @inherits wins (most specific scope).
+        if (codeDocument.TryGetImportSyntaxTrees(out var importSyntaxTrees))
+        {
+            for (var i = importSyntaxTrees.Length - 1; i >= 0; i--)
             {
-                return csharpCode.GetContent()?.Trim();
+                inheritsValue = FindInheritsDirective(importSyntaxTrees[i]);
+                if (inheritsValue is not null)
+                {
+                    return inheritsValue;
+                }
             }
         }
 
         return null;
+
+        static string? FindInheritsDirective(RazorSyntaxTree tree)
+        {
+            foreach (var node in tree.Root.DescendantNodes())
+            {
+                if (node is RazorDirectiveSyntax
+                    {
+                        DirectiveDescriptor: var descriptor,
+                        Body: RazorDirectiveBodySyntax { CSharpCode: { } csharpCode }
+                    } &&
+                    descriptor == InheritsDirective.Directive)
+                {
+                    return csharpCode.GetContent()?.Trim();
+                }
+            }
+
+            return null;
+        }
     }
 
     /// <summary>

@@ -711,4 +711,157 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
         Assert.Contains("u8)", indexSource);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_InheritsFromViewImports()
+    {
+        // Arrange - @inherits is in _ViewImports.cshtml, not in the page itself
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - @inherits from _ViewImports should be detected and UTF-8 used
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_InheritsFromViewImports_ShortNameWithUsing()
+    {
+        // Arrange - @inherits with short name + @using both in _ViewImports.cshtml.
+        // The page itself has neither directive.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/_ViewImports.cshtml"] = """
+                    @using MyApp.Infrastructure
+                    @inherits MyUtf8PageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - short name resolved via @using in _ViewImports should enable UTF-8
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_CascadingViewImports_MostSpecificWins()
+    {
+        // Arrange - root _ViewImports has @inherits with UTF-8 support,
+        // but Pages/_ViewImports overrides with a base that does NOT support UTF-8.
+        // A page in Pages/Admin/ has its own @inherits that DOES support UTF-8.
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["_ViewImports.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    """,
+                ["Pages/_ViewImports.cshtml"] = """
+                    @inherits MyRegularPageBase
+                    """,
+                ["Pages/Index.cshtml"] = """
+                    <h1>Hello</h1>
+                    """,
+                ["Pages/Admin/Dashboard.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyUtf8PageBase : RazorPage
+                    {
+                        public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                        {
+                            WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                        }
+                    }
+                    """,
+                ["MyRegularPageBase.cs"] = """
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    public abstract class MyRegularPageBase : RazorPage
+                    {
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert
+        Assert.Empty(result.Diagnostics);
+
+        // Pages/Index.cshtml inherits MyRegularPageBase (from Pages/_ViewImports) - no UTF-8
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.DoesNotContain("u8)", indexSource);
+
+        // Pages/Admin/Dashboard.cshtml has its own @inherits MyUtf8PageBase - UTF-8
+        var dashboardSource = result.GeneratedSources.Single(s => s.HintName.Contains("Dashboard")).SourceText.ToString();
+        Assert.Contains("u8)", dashboardSource);
+    }
 }
