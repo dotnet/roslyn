@@ -11476,9 +11476,10 @@ done:
 
                 if (IsAwaitExpression())
                 {
-                    return _syntaxFactory.AwaitExpression(
-                        this.EatContextualToken(SyntaxKind.AwaitKeyword),
-                        this.ParseSubExpression(GetPrecedence(SyntaxKind.AwaitExpression)));
+                    var awaitKeyword = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+                    var questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
+                    var operand = this.ParseSubExpression(GetPrecedence(SyntaxKind.AwaitExpression));
+                    return _syntaxFactory.AwaitExpression(awaitKeyword, questionToken, operand);
                 }
 
                 if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
