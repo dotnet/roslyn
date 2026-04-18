@@ -236,19 +236,17 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("int?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
-    // NRT-annotated Task operand. In NRT-on mode the flow analysis warns that `t` may be
-    // null on the way into the await (the short-circuit isn't modeled at the flow-analysis
-    // level). In NRT-off mode the outer `?` annotation on the parameter type is invalid
-    // outside an NRT context, so CS8632 fires. The result type is int? either way.
+    // NRT-annotated Task operand. In NRT-off mode the outer `?` annotation on the parameter
+    // type is invalid outside an NRT context, so CS8632 fires; in NRT-on mode no warning
+    // fires because the whole point of `await?` is to accept a null receiver. Either way
+    // the result type is int?.
     [Fact]
     public void Operand_NrtAnnotatedTaskOfInt_ResultIsNullableInt()
     {
         var source = InAsyncMethod("var v = await? t;", "Task<int>? t");
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
-        compNrtOn.VerifyDiagnostics(
-            // (7,24): warning CS8602: Dereference of a possibly null reference.
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 24));
+        compNrtOn.VerifyDiagnostics();
         Assert.Equal("int?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
@@ -264,9 +262,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("var v = await? t;", "Task<int?>? t");
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
-        compNrtOn.VerifyDiagnostics(
-            // (7,24): warning CS8602: Dereference of a possibly null reference.
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 24));
+        compNrtOn.VerifyDiagnostics();
         Assert.Equal("int?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
@@ -317,9 +313,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("var v = await? t;", "Task<string>? t");
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
-        compNrtOn.VerifyDiagnostics(
-            // (7,24): warning CS8602: Dereference of a possibly null reference.
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 24));
+        compNrtOn.VerifyDiagnostics();
         Assert.Equal("string?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
@@ -335,9 +329,7 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         var source = InAsyncMethod("var v = await? t;", "Task<string?>? t");
 
         var compNrtOn = CreateWithNullableReferenceTypesEnabled(source);
-        compNrtOn.VerifyDiagnostics(
-            // (7,24): warning CS8602: Dereference of a possibly null reference.
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 24));
+        compNrtOn.VerifyDiagnostics();
         Assert.Equal("string?", TypeOfLocalSymbol(compNrtOn, "v"));
 
         var compNrtOff = CreateWithNullableReferenceTypesDisabled(source);
@@ -904,14 +896,11 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     {
         // Two stacked `await?` applications. Inner awaits Task<Task<int>> producing Task<int>
         // (reference type, short-circuitable to null per the inner `?`); outer then does its
-        // own short-circuit and lifts the final int → int?. The flow analysis warns on the
-        // inner `await? outer` because it doesn't currently track that the outer `await?`
-        // itself handles the null case.
+        // own short-circuit on that possibly-null Task<int> and lifts the final int → int?.
+        // No warning fires on either `await?` because each one accepts a null receiver.
         var source = InAsyncMethod("var v = await? await? outer;", "Task<Task<int>> outer");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
-        comp.VerifyDiagnostics(
-            // (7,24): warning CS8602: Dereference of a possibly null reference.
-            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await? outer").WithLocation(7, 24));
+        comp.VerifyDiagnostics();
         Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
     }
 

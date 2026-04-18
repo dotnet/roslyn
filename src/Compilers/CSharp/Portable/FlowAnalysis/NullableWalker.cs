@@ -12988,13 +12988,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // type U while `node.Expression` (and _visitResult) has the operand type S which
             // may be Nullable<V>. Strip the Nullable<> so the placeholder's replacement
             // matches its declared type.
+            //
+            // Additionally, `await?` only evaluates the awaitable pattern on the non-null
+            // branch, so the placeholder's flow state is NotNull even when the operand
+            // itself is typed / tracked as possibly-null. Without this, visiting the
+            // awaitable info would synthesize spurious "dereference of possibly null
+            // reference" warnings on the receiver of the GetAwaiter call.
             var placeholderResult = _visitResult;
-            if (node.IsNullConditional && _visitResult.RValueType.Type?.IsNullableType() == true)
+            if (node.IsNullConditional)
             {
-                var strippedType = _visitResult.RValueType.Type.StrippedType();
-                var strippedState = TypeWithState.Create(strippedType, NullableFlowState.NotNull);
-                var strippedLValue = TypeWithAnnotations.Create(strippedType);
-                placeholderResult = new VisitResult(strippedState, strippedLValue);
+                var operandType = _visitResult.RValueType.Type;
+                var underlyingType = operandType?.IsNullableType() == true ? operandType.StrippedType() : operandType;
+                placeholderResult = new VisitResult(
+                    TypeWithState.Create(underlyingType, NullableFlowState.NotNull),
+                    TypeWithAnnotations.Create(underlyingType));
             }
 
             AddPlaceholderReplacement(placeholder, node.Expression, placeholderResult);
