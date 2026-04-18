@@ -109,6 +109,7 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
     {
         var nodeType = node.Expression.Type;
         Debug.Assert(nodeType is not null);
+        Debug.Assert(!node.IsNullConditional, "null-conditional await should have been lowered by LocalRewriter");
 
         var awaitableInfo = node.AwaitableInfo;
 
