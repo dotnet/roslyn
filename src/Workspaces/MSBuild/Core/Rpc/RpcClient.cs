@@ -72,9 +72,9 @@ internal sealed class RpcClient
                     Contract.ThrowIfFalse(_outstandingRequests.TryRemove(response.Id, out var completionSourceAndExpectedType), $"We got a response for request ID {response.Id} but that was already completed.");
                     var (completionSource, expectedType) = completionSourceAndExpectedType;
 
-                    if (response.Exception != null)
+                    if (response.ExceptionMessage != null)
                     {
-                        completionSource.SetException(new RemoteInvocationException(response.Exception));
+                        completionSource.SetException(new RemoteInvocationException(response.ExceptionMessage, response.ExceptionStackTrace));
                     }
                     else
                     {
