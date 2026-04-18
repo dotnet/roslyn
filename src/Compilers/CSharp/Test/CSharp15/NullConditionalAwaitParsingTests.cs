@@ -16,7 +16,7 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
 {
     public NullConditionalAwaitParsingTests(ITestOutputHelper output) : base(output) { }
 
-    // Most tests wrap their body in a top-level local function so the parser's IsInAsync
+    // Most tests wrap their body in a top-level local function so the surrounding async
     // context is what we expect. Context matters because in async code `await? X` is the
     // new null-conditional-await expression, while in non-async code `await` stays an
     // identifier and the `?` is handled by ordinary expression parsing.
@@ -536,7 +536,7 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
 
     #endregion
 
-    #region Async context: every IsAwaitExpression operand-start kind (identifiers)
+    #region Async context: every contextual-identifier operand
 
     // A shape-uniform theory over every contextual-identifier operand. `await <id>` and
     // `await? <id>` both produce an AwaitExpression with IdentifierName operand. The same
@@ -681,8 +681,8 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     public void SyncContext_AwaitNoQuestion_IdentifierOperand(string operand)
     {
         // `_ = await <id>;` in non-async: operand starts with an identifier (not `with`), so
-        // the existing IsAwaitExpression switch still produces an AwaitExpression (binding
-        // will later diagnose "await requires an async function").
+        // the parser still produces an AwaitExpression (binding will later diagnose
+        // "await requires an async function").
         UsingTree(InNonAsync($"_ = await {operand};"));
         WalkTopLevelNonAsyncLocalFunctionPreamble();
         N(SyntaxKind.ExpressionStatement);
@@ -710,9 +710,10 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
 
     #endregion
 
-    #region Async context: every IsAwaitExpression operand-start kind (keywords / literals)
+    #region Async context: every keyword / literal operand start
 
-    // Each of these operands triggers a different branch of the IsAwaitExpression switch
+    // Each of these operands exercises a different first-token case of the parser's
+    // await-expression recognition
     // (keyword or literal) and produces a distinct operand sub-tree, so each gets its own
     // fact. The facts collectively confirm that every kind listed in the switch is
     // accepted as an operand of the `await?` form.
@@ -1240,10 +1241,9 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     [Fact]
     public void SyncContext_AwaitWithIdentifier_IsIdentifier()
     {
-        // `with` is the explicit exception in IsAwaitExpression's identifier case: in a
-        // non-async context, `await with { }` does not parse as an await expression because
-        // `with` is an identifier that could legally follow the identifier `await`.
-        // Instead it parses as a `with` expression on the identifier `await`.
+        // `with` is the explicit exception among identifier operands in non-async context:
+        // `await with { }` parses as a `with`-expression on the identifier `await`, not as
+        // an await expression, because `with` can legally follow the identifier `await`.
         UsingTree(InNonAsync("_ = await with { };"));
         WalkTopLevelNonAsyncLocalFunctionPreamble();
         N(SyntaxKind.ExpressionStatement);
@@ -1277,8 +1277,8 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     [Fact]
     public void SyncContext_Await_Invocation_IsIdentifier()
     {
-        // `(` after `await` is not in the switch, so `await(x)` is an invocation on the
-        // identifier `await`, not an await expression.
+        // In non-async context, `await(x)` parses as an invocation on the identifier
+        // `await`, not as an await expression.
         UsingTree(InNonAsync("_ = await(x);"));
         WalkTopLevelNonAsyncLocalFunctionPreamble();
         N(SyntaxKind.ExpressionStatement);
@@ -1676,9 +1676,9 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     #region Precedence / disambiguation (async context)
 
     // These use UsingExpression for non-`?` forms (which parse in a default non-async
-    // context but still produce AwaitExpressions since the operand starts with a
-    // switch-allowed token), and UsingExpressionInAsync for `?` forms (which require
-    // IsInAsync=true to be recognized as null-conditional awaits).
+    // context but still produce AwaitExpressions since the operand starts with a token
+    // that's unambiguous after `await`), and UsingExpressionInAsync for `?` forms (which
+    // require an async context to be recognized as null-conditional awaits).
 
     [Fact]
     public void Precedence_AwaitVsTernary_NoQuestion()
@@ -2215,8 +2215,8 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     [Fact]
     public void AwaitQuestion_ParenthesizedOperand_InAsync()
     {
-        // `(` is not in the IsAwaitExpression switch, but IsInAsync short-circuits to true,
-        // so `await? (t)` parses as AwaitExpression{?, (t)}.
+        // In async context `await? (t)` parses as an AwaitExpression whose operand is the
+        // parenthesized expression `(t)`.
         UsingTree(InAsync("await? (t);"));
         WalkTopLevelAsyncLocalFunctionPreamble();
         N(SyntaxKind.ExpressionStatement);
@@ -2249,11 +2249,10 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     //  (b) `await? (.x)` / `await? ([0])` — the new null-conditional await on an operand
     //      starting with `.` or `[`.
     //
-    // The parser resolves this by context: in non-async, IsAwaitExpression returns false
-    // for operand `?` (the switch doesn't cover `?`), so `await` stays an identifier and
-    // the outer `?.`/`?[` is ordinary null-conditional access. In async, IsAwaitExpression
-    // unconditionally returns true, and the `?` is eaten as the null-conditional-await
-    // marker; the remaining `.x` or `[0]` is then parsed as the operand.
+    // The parser resolves this by context: in non-async, `await` stays an identifier and
+    // the outer `?.`/`?[` is ordinary null-conditional access. In async, the `?` is eaten
+    // as the null-conditional-await marker; the remaining `.x` or `[0]` is then parsed as
+    // the operand (where it produces a syntax error for missing identifier).
 
     [Fact]
     public void AwaitQuestionDotX_InNonAsync_IsConditionalMemberAccessOnAwaitIdentifier()
@@ -2567,7 +2566,7 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     }
 
     // Parses the given expression text inside a top-level async local function so the
-    // parser's IsInAsync context is true, then walks just the expression subtree via
+    // parse happens in an async context, then walks just the expression subtree via
     // UsingNode. This is the async counterpart to UsingExpression (which parses in a
     // default non-async context).
     private void UsingExpressionInAsync(string expressionText, params DiagnosticDescription[] expectedErrors)
