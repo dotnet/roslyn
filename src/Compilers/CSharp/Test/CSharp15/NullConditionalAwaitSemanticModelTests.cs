@@ -118,6 +118,7 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
         var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
         var info = model.GetTypeInfo(GetAwaitExpression(comp));
         Assert.Equal("System.Int32?", info.Type.ToTestDisplayString());
+        Assert.Equal("System.Int32?", info.ConvertedType!.ToTestDisplayString());
     }
 
     [Fact]
@@ -189,7 +190,8 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     {
         // Operand is Nullable<ValueTask<int>> — the binder strips Nullable<> and resolves
         // the awaitable pattern against ValueTask<int> (the underlying V). The API surfaces
-        // that resolution unchanged.
+        // that resolution unchanged. Assert every member so a bug that wires up the right
+        // GetAwaiter but the wrong GetResult/IsCompleted doesn't slip through.
         var source = """
             using System.Threading.Tasks;
             class C { async Task M(ValueTask<int>? t) { var v = await? t; } }
@@ -201,8 +203,98 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
         var info = model.GetAwaitExpressionInfo(GetAwaitExpression(comp));
 
         Assert.NotNull(info.GetAwaiterMethod);
-        // Containing type is ValueTask<int>, NOT Nullable<ValueTask<int>>.
         Assert.Equal("System.Threading.Tasks.ValueTask<System.Int32>", info.GetAwaiterMethod!.ContainingType.ToTestDisplayString());
+        Assert.NotNull(info.GetResultMethod);
+        Assert.Equal("System.Int32", info.GetResultMethod!.ReturnType.ToTestDisplayString());
+        Assert.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>", info.GetResultMethod.ContainingType.ToTestDisplayString());
+        Assert.NotNull(info.IsCompletedProperty);
+        Assert.Equal("System.Runtime.CompilerServices.ValueTaskAwaiter<System.Int32>", info.IsCompletedProperty!.ContainingType.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void GetTypeInfo_TaskOfAlreadyNullableInt_ResultIsInt_NotDoubleLifted()
+    {
+        // Spec Table B row: if R is already Nullable<V>, `await?` keeps it unchanged (no
+        // double-lift). Pin via the public Type so a regression that eagerly wraps any R in
+        // another Nullable<> would fail here.
+        var source = """
+            using System.Threading.Tasks;
+            class C { async Task M(Task<int?> t) { var v = await? t; } }
+            """;
+        var comp = CreateCompilationUnderTest(source);
+        comp.VerifyDiagnostics();
+
+        var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var info = model.GetTypeInfo(GetAwaitExpression(comp));
+        Assert.Equal("System.Int32?", info.Type.ToTestDisplayString());
+
+        var op = model.GetOperation(GetAwaitExpression(comp));
+        Assert.Equal("System.Int32?", ((IAwaitOperation)op!).Type!.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void GetTypeInfo_UnconstrainedT_StatementPosition_DegradesToVoid()
+    {
+        // Spec: in statement position where a Nullable<T> return would be required on an
+        // unconstrained T, the result type degrades to void (instead of erroring).
+        var source = """
+            using System.Threading.Tasks;
+            class C { async Task M<T>(Task<T> t) { await? t; } }
+            """;
+        var comp = CreateCompilationUnderTest(source);
+        comp.VerifyDiagnostics();
+
+        var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var info = model.GetTypeInfo(GetAwaitExpression(comp));
+        Assert.Equal("System.Void", info.Type.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void GetTypeInfo_UnconstrainedT_ValuePosition_IsErrorType_WithDiagnostic()
+    {
+        // Mirror of the statement case but at value position: CS8978 fires because we can't
+        // form `Nullable<T>`. Unlike CS9379 (bad operand) — which produces a
+        // BoundBadExpression / IInvalidOperation — this error keeps the IAwaitOperation but
+        // uses an error type as the result. Pin that shape so analyzers know to expect an
+        // IAwaitOperation (not IInvalidOperation) on this error path.
+        var source = """
+            using System.Threading.Tasks;
+            class C { async Task M<T>(Task<T> t) { var v = await? t; System.Console.WriteLine(v); } }
+            """;
+        var comp = CreateCompilationUnderTest(source);
+        comp.VerifyDiagnostics(
+            // (2,53): error CS8978: 'T' cannot be made nullable.
+            // class C { async Task M<T>(Task<T> t) { var v = await? t; System.Console.WriteLine(v); } }
+            Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, "?").WithArguments("T").WithLocation(2, 53));
+
+        var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var op = model.GetOperation(GetAwaitExpression(comp));
+        var awaitOp = Assert.IsAssignableFrom<IAwaitOperation>(op);
+        Assert.Equal(TypeKind.Error, awaitOp.Type!.TypeKind);
+    }
+
+    [Fact]
+    public void GetAwaitExpressionInfo_ConfigureAwaitFalseOnValueTask_IsRejected()
+    {
+        // `await? task.ConfigureAwait(false)` is the classic ConfigureAwait misuse when the
+        // task is non-nullable. The operand is a ConfiguredTaskAwaitable (struct), which
+        // triggers CS9379. The await info should be default/empty (binding produced a bad
+        // expression).
+        var source = """
+            using System.Threading.Tasks;
+            class C { async Task M(Task t) { await? t.ConfigureAwait(false); } }
+            """;
+        var comp = CreateCompilationUnderTest(source);
+        comp.VerifyDiagnostics(
+            // (2,39): error CS9379: 'await?' cannot be applied to an operand of non-nullable value type 'ConfiguredTaskAwaitable'.
+            // class C { async Task M(Task t) { await? t.ConfigureAwait(false); } }
+            Diagnostic(ErrorCode.ERR_AwaitConditionalNonNullableValueType, "?").WithArguments("System.Runtime.CompilerServices.ConfiguredTaskAwaitable").WithLocation(2, 39));
+
+        var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+        var info = model.GetAwaitExpressionInfo(GetAwaitExpression(comp));
+        Assert.Null(info.GetAwaiterMethod);
+        Assert.Null(info.GetResultMethod);
+        Assert.Null(info.IsCompletedProperty);
     }
 
     [Fact]
@@ -398,15 +490,20 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     public void ClassifyConversion_LiftedResultToObject_IsImplicitReference()
     {
         // The int? the `await?` produces can be assigned to `object` (boxing).
+        // Use a multi-line source so the warning location doesn't shift if the test harness's
+        // preceding bytes change.
         var source = """
             using System.Threading.Tasks;
-            class C { async Task M(Task<int> t) { object o = await? t; } }
+            class C
+            {
+                async Task M(Task<int> t) { object o = await? t; }
+            }
             """;
         var comp = CreateCompilationUnderTest(source);
         comp.VerifyDiagnostics(
-            // (2,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
-            // class C { async Task M(Task<int> t) { object o = await? t; } }
-            Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "await? t").WithLocation(2, 50));
+            // (4,44): warning CS8600: Converting null literal or possible null value to non-nullable type.
+            //     async Task M(Task<int> t) { object o = await? t; }
+            Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "await? t").WithLocation(4, 44));
 
         var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
         var await_ = GetAwaitExpression(comp);
@@ -444,6 +541,63 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
         Assert.True(analysis.Succeeded);
         Assert.Contains(analysis.ReadInside, s => s.Name == "t");
         Assert.Contains(analysis.VariablesDeclared, s => s.Name == "v");
+    }
+
+    [Fact]
+    public void AnalyzeDataFlow_AwaitQuestion_AsCallArgument_ArgumentsReadInside()
+    {
+        // `await?` as an argument triggers SpillSequenceSpiller. Data-flow must still see
+        // both arguments as read inside the region.
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static void F(int a, int? b) { }
+                async Task M(Task<int> t, int a) { F(a, await? t); }
+            }
+            """;
+        var comp = CreateCompilationUnderTest(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(n => ((IdentifierNameSyntax)n.Expression).Identifier.Text == "F");
+        var analysis = model.AnalyzeDataFlow(call);
+
+        Assert.True(analysis.Succeeded);
+        Assert.Contains(analysis.ReadInside, s => s.Name == "a");
+        Assert.Contains(analysis.ReadInside, s => s.Name == "t");
+    }
+
+    [Fact]
+    public void AnalyzeDataFlow_AwaitQuestion_InTryBlock_Succeeds()
+    {
+        // Flow analysis through a try/catch that contains `await?` should succeed and see
+        // the operand as read inside the try.
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(Task<int> t)
+                {
+                    try
+                    {
+                        var v = await? t;
+                        System.Console.WriteLine(v);
+                    }
+                    catch { }
+                }
+            }
+            """;
+        var comp = CreateCompilationUnderTest(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var tryBlock = tree.GetRoot().DescendantNodes().OfType<TryStatementSyntax>().Single().Block;
+        var analysis = model.AnalyzeDataFlow(tryBlock);
+        Assert.True(analysis.Succeeded);
+        Assert.Contains(analysis.ReadInside, s => s.Name == "t");
     }
 
     [Fact]

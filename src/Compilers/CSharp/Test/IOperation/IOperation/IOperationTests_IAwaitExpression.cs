@@ -772,6 +772,128 @@ IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? awai
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_TaskOfAlreadyNullableInt_NotDoubleLifted()
+        {
+            // Pin the "R is already Nullable<V>" row of the spec's Table B. The result type
+            // stays int? (not Nullable<Nullable<int>> — which isn't even a legal form, but a
+            // buggy factory could surface some variant of it here).
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(Task<int?> t)
+    {
+        var v = /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Int32?>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_NullableValueTask_VoidResult()
+        {
+            // Void-result case on a Nullable<V> operand — distinct from Task void because
+            // the binder has to strip Nullable<> off the operand to find the awaitable.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M(ValueTask? t)
+    {
+        /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.ValueTask?) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.NetCoreApp);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_GenericTaskOfTStruct_LiftsToNullableT()
+        {
+            // Generic `Task<T>` with `T : struct` — spec requires Nullable<T> as the result.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task M<T>(Task<T> t) where T : struct
+    {
+        var v = /*<bind>*/await? t/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: T?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<T>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestAwaitQuestionExpression_AsCallArgument_Spills()
+        {
+            // `await?` as a call argument goes through spilling (like `await`). The
+            // IOperation tree for the await node is still a single flat IAwaitOperation —
+            // the spilling happens during lowering and is not visible here.
+            string source = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static void F(int a, int? b, int c) { }
+    static async Task M(Task<int> t)
+    {
+        F(1, /*<bind>*/await? t/*</bind>*/, 2);
+    }
+}
+";
+            string expectedOperationTree = @"
+IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
+  Expression: 
+    IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 't')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AwaitExpressionSyntax>(
+                source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Mscorlib46Extended);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
         [CompilerTrait(CompilerFeature.Dataflow)]
         [Fact]
         public void TestAwaitQuestionExpression_FlowGraph_NoShortCircuitBranch()
