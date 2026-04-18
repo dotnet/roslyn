@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -28,12 +28,12 @@ internal abstract class AbstractBuildHost :
     /// <summary>
     /// The global properties to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
     /// </summary>
-    private ImmutableDictionary<string, string>? _globalMSBuildProperties;
+    private Dictionary<string, string>? _globalMSBuildProperties;
 
     /// <summary>
     /// Should not be changed once the <see cref="_buildManager"/> is initialized.
     /// </summary>
-    private ImmutableArray<string> _knownCommandLineParserLanguages;
+    private string[] _knownCommandLineParserLanguages = [];
 
     /// <summary>
     /// The binary log path to use for all builds; should not be changed once the <see cref="_buildManager"/> is initialized.
@@ -113,7 +113,7 @@ internal abstract class AbstractBuildHost :
         Contract.ThrowIfFalse(TryEnsureMSBuildLoaded(projectFilePath), $"We don't have an MSBuild to use; {nameof(HasUsableMSBuild)} should have been called first to check.");
     }
 
-    public void ConfigureGlobalState(ImmutableArray<string> knownCommandLineParserLanguages, ImmutableDictionary<string, string> globalProperties, string? binlogPath)
+    public void ConfigureGlobalState(string[] knownCommandLineParserLanguages, Dictionary<string, string> globalProperties, string? binlogPath)
     {
         lock (_gate)
         {
