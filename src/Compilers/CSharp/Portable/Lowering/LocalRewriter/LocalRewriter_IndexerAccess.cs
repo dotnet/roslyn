@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool needSpecialExtensionPropertyReceiverReadOrder = false;
                 ArrayBuilder<BoundExpression>? storesOpt = null;
 
+                bool receiverIsAlreadyStable = false;
                 if (IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(rewrittenReceiver, indexer))
                 {
                     // The receiver has location, but extension indexer takes receiver by value.
@@ -174,6 +175,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     needSpecialExtensionPropertyReceiverReadOrder = true;
                     storesOpt = ArrayBuilder<BoundExpression>.GetInstance();
+
+                    // If the receiver is already a stable ref temp produced by an enclosing capture
+                    // (ie. by GetUnderlyingIndexerOrSliceAccess for an implicit Index pattern), we still
+                    // need the special read-order treatment of the arguments but we don't need to
+                    // re-capture the receiver. This avoids producing a second BoundComplexConditionalReceiver.
+                    receiverIsAlreadyStable =
+                        CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(rewrittenReceiver);
                 }
 
 #if DEBUG
@@ -181,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder,
+                    forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder && !receiverIsAlreadyStable,
                     arguments,
                     indexer,
                     argsToParamsOpt,
@@ -192,11 +200,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (needSpecialExtensionPropertyReceiverReadOrder)
                 {
 #if DEBUG
-                    Debug.Assert(rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
+                    Debug.Assert(receiverIsAlreadyStable || rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
 #endif
                     Debug.Assert(storesOpt is { });
-                    Debug.Assert(storesOpt.Count != 0);
-                    Debug.Assert(temps is not null);
+                    temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
 
                     // Store everything that is non-trivial into a temporary; record the
                     // stores in storesToTemps and make the actual argument a reference to the temp.
