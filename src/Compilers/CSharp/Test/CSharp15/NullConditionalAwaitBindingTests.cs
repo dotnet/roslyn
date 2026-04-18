@@ -236,10 +236,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("int?", TypeOfLocalSymbol(compNrtOff, "v"));
     }
 
-    // NRT-annotated Task operand — walker can't model the `await?` short-circuit yet (phase 5)
-    // so NRT-on produces a WRN_NullReferenceReceiver on `t`. In NRT-off the outer `?` annotation
-    // is invalid outside an NRT context, so WRN_MissingNonNullTypesContextForAnnotation fires.
-    // The result-type rule still produces int? either way.
+    // NRT-annotated Task operand. In NRT-on mode the flow analysis warns that `t` may be
+    // null on the way into the await (the short-circuit isn't modeled at the flow-analysis
+    // level). In NRT-off mode the outer `?` annotation on the parameter type is invalid
+    // outside an NRT context, so CS8632 fires. The result type is int? either way.
     [Fact]
     public void Operand_NrtAnnotatedTaskOfInt_ResultIsNullableInt()
     {
@@ -471,9 +471,9 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     [Fact]
     public void ResultType_UnconstrainedTypeParameterResult_StatementPosition_OK()
     {
-        // Same operand (Task<T>) but used at statement position. ResultIsUsed returns
-        // false, so no CannotBeMadeNullable error; result becomes void under the statement
-        // equivalence.
+        // Same operand (Task<T>) but used at statement position. Per the spec, unused
+        // unconditional-T results degrade to void in statement position instead of
+        // reporting CS8978.
         var source = """
             using System.Threading.Tasks;
             public class C
@@ -858,8 +858,8 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     [Fact]
     public void InExpressionBodiedAsyncMethod()
     {
-        // Expression-bodied async method returning `Task<int?>`. Exercises the ResultIsUsed
-        // path through `ArrowExpressionClause`.
+        // Expression-bodied async method returning `Task<int?>`. The expression body is the
+        // method's return value, so the `await?` result is used (classified as int?).
         var source = """
             using System.Threading.Tasks;
             public class C
@@ -904,9 +904,9 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     {
         // Two stacked `await?` applications. Inner awaits Task<Task<int>> producing Task<int>
         // (reference type, short-circuitable to null per the inner `?`); outer then does its
-        // own short-circuit and lifts the final int → int?. The walker warns about the inner
-        // result being possibly null when the outer `await?` dereferences it (phase-5 gap —
-        // the walker doesn't yet track that the outer `?` itself handles the null case).
+        // own short-circuit and lifts the final int → int?. The flow analysis warns on the
+        // inner `await? outer` because it doesn't currently track that the outer `await?`
+        // itself handles the null case.
         var source = InAsyncMethod("var v = await? await? outer;", "Task<Task<int>> outer");
         var comp = CreateWithNullableReferenceTypesEnabled(source);
         comp.VerifyDiagnostics(
@@ -923,11 +923,9 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     public void Operand_TypeParameter_NotNullConstraint_RefTypeInstance()
     {
         // `where T : notnull` does NOT imply `T` is a reference type — it could be a struct.
-        // So `T` falls into the "neither IsReferenceType nor IsNullableType proves it's
-        // nullable-capable" bucket. The operand-nullability rule currently only rejects
-        // operands where `IsValueType && !IsNullableType`. `notnull` doesn't imply IsValueType,
-        // so the `?` is accepted; the operand is then subject to the standard awaitable check,
-        // which produces the usual missing-GetAwaiter diagnostic — not CS9379.
+        // Per the operand-nullability rule, only a *known* non-nullable value type is
+        // rejected with CS9379; a type parameter that isn't known to be a value type passes,
+        // and the missing-GetAwaiter diagnostic is what surfaces.
         var source = """
             using System.Threading.Tasks;
             public class C
@@ -1119,12 +1117,10 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
 
     #region Pointer and function-pointer result types
 
-    // Pointers (regular and function pointers) are neither reference types nor ordinary value
-    // types for lifting purposes: ComputeConditionalAccessResultType treats them specially
-    // (comment: "Pointers ... are allowed because they can represent null (as the zero value)")
-    // and leaves the result type unchanged — no Nullable<int*> wrapping. These tests validate
-    // the bind path runs cleanly through the pointer branch and documents the interaction with
-    // the normal "await cannot appear in unsafe context" restriction.
+    // Pointer (and function-pointer) result types are left unchanged by the result-type
+    // rule — they already represent null as the zero value, so no `Nullable<int*>` wrapping
+    // happens. These tests validate the bind and also pin the interaction with the normal
+    // "await cannot appear in unsafe context" restriction.
 
     private const string PointerAwaitableSource = """
         using System;
@@ -1186,8 +1182,8 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
             // (22,21): error CS4004: Cannot await in an unsafe context
             //             var v = await? t;
             Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await? t").WithLocation(22, 21));
-        // Despite the error, the await expression still binds and `v` still receives a type
-        // from the lifting helper. Pointers are kept as-is (no Nullable<int*> wrapping).
+        // Despite the error the binder still assigns a type to `v`: pointers are left
+        // unchanged (no Nullable<int*> wrapping).
         Assert.Equal("int*", TypeOfLocalSymbol(comp, "v"));
     }
 
@@ -1263,18 +1259,11 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     [Fact]
     public void ResultType_RefStructR_CannotBeMadeNullable()
     {
-        // Exercises the `IsRestrictedType()` arm of ComputeConditionalAccessResultType's
-        // `(!IsReferenceType && !IsValueType) || IsRestrictedType()` gate. Unlike the
-        // unconstrained-type-parameter case (which fails the first conjunct), a ref struct
-        // like Span<int> satisfies IsValueType but is still "restricted" — it cannot be
-        // stored as a Nullable<> generic argument. The helper treats it the same way as the
-        // unconstrained-T case: CS8978 in value position, degrades to void in statement
-        // position.
-        //
-        // Note that the usual "ref struct can't cross an await boundary" error
-        // (ERR_BadSpecialByRefLocal family) does NOT win here because the result-type-rule
-        // error in the binder fires first, against the `?` token, before any async-specific
-        // liveness check.
+        // Ref structs (e.g. `Span<int>`) cannot be stored as a `Nullable<>` generic
+        // argument. Per the spec, `await?` of a ref-struct R behaves like the unconstrained-T
+        // case: CS8978 in value position (pinned here), degrades to void in statement
+        // position (pinned in the next test). Note the CS8978 anchors on `?`, which means
+        // it fires ahead of the usual "ref struct can't cross an await boundary" error.
         var source = """
             using System;
             using System.Runtime.CompilerServices;
@@ -1310,9 +1299,9 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     [Fact]
     public void ResultType_RefStructR_StatementPosition_DegradesToVoid()
     {
-        // Parallel to ResultType_UnconstrainedTypeParameterResult_StatementPosition_OK: when
-        // the await result is unused, `ComputeConditionalAccessResultType` takes the
-        // degrade-to-void branch instead of reporting CS8978.
+        // Parallel to ResultType_UnconstrainedTypeParameterResult_StatementPosition_OK:
+        // in statement position the unused result degrades to void instead of reporting
+        // CS8978.
         var source = """
             using System;
             using System.Runtime.CompilerServices;
