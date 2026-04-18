@@ -12983,11 +12983,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholder = awaitableInfo.AwaitableInstancePlaceholder;
             Debug.Assert(placeholder is object);
 
-            AddPlaceholderReplacement(placeholder, node.Expression, _visitResult);
+            // For `await? e`, the awaitable pattern is resolved on the underlying type U
+            // (V when e : Nullable<V>, otherwise e's type). The placeholder therefore has
+            // type U while `node.Expression` (and _visitResult) has the operand type S which
+            // may be Nullable<V>. Strip the Nullable<> so the placeholder's replacement
+            // matches its declared type.
+            var placeholderResult = _visitResult;
+            if (node.IsNullConditional && _visitResult.RValueType.Type?.IsNullableType() == true)
+            {
+                var strippedType = _visitResult.RValueType.Type.StrippedType();
+                var strippedState = TypeWithState.Create(strippedType, NullableFlowState.NotNull);
+                var strippedLValue = TypeWithAnnotations.Create(strippedType);
+                placeholderResult = new VisitResult(strippedState, strippedLValue);
+            }
+
+            AddPlaceholderReplacement(placeholder, node.Expression, placeholderResult);
             Visit(awaitableInfo);
             RemovePlaceholderReplacement(placeholder);
 
-            if (awaitableInfo is { GetResult: null, RuntimeAsyncAwaitCall: not null })
+            if (node.IsNullConditional)
+            {
+                // For `await? e`, node.Type is the lifted result type (Nullable<R> for a
+                // non-nullable value-type R, R with NRT annotation for a reference type, etc.
+                // per spec §11.8.8.3). Use it directly; the proper null-flow modeling of the
+                // short-circuit lands with a later phase. This tracks as MaybeDefault because
+                // `await? e` evaluates to null when e is null.
+                SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.MaybeDefault));
+            }
+            else if (awaitableInfo is { GetResult: null, RuntimeAsyncAwaitCall: not null })
             {
                 // This is AsyncHelpers.Await. We can directly use `_visitResult`
                 SetResult(node, _visitResult, updateAnalyzedNullability: true, isLvalue: false);

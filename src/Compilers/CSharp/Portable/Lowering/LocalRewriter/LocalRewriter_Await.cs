@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteAwaitExpression(SyntaxNode syntax, BoundExpression rewrittenExpression, BoundAwaitableInfo awaitableInfo, TypeSymbol type, BoundAwaitExpressionDebugInfo debugInfo, bool used)
         {
-            return RewriteAwaitExpression(new BoundAwaitExpression(syntax, rewrittenExpression, awaitableInfo, debugInfo, type) { WasCompilerGenerated = true }, used);
+            return RewriteAwaitExpression(new BoundAwaitExpression(syntax, rewrittenExpression, awaitableInfo, debugInfo, isNullConditional: false, type) { WasCompilerGenerated = true }, used);
         }
 
         /// <summary>
