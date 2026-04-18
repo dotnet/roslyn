@@ -81,8 +81,9 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     [Fact]
     public void GetTypeInfo_TaskOfString_NRTDisabled_TypeIsStringNotAnnotated()
     {
-        // With NRT disabled, the Type is plain "String" (no annotation), but the flow state
-        // is still MaybeNull because the short-circuit is a runtime fact independent of NRT.
+        // With NRT disabled, the Type is plain "String" (no annotation). The nullable-flow
+        // analysis doesn't run in NRT-disabled contexts, so the flow state is None as well —
+        // both are pinned so neither can regress silently.
         var source = """
             using System.Threading.Tasks;
             class C { async System.Threading.Tasks.Task M(Task<string> t) { var v = await? t; } }
@@ -99,6 +100,7 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
 
         Assert.Equal("System.String", info.Type.ToTestDisplayString());
         Assert.Equal(CodeAnalysis.NullableAnnotation.None, info.Nullability.Annotation);
+        Assert.Equal(CodeAnalysis.NullableFlowState.None, info.Nullability.FlowState);
     }
 
     [Fact]
