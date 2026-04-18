@@ -512,15 +512,11 @@ public sealed class NullConditionalAwaitEmitTests : CSharpTestBase
     [Fact]
     public void IL_RuntimeAsync_UnusedNonVoidResult_NullableWrappingElided()
     {
-        // `await? Task<int>;` at statement position — the int? result is unused. When `used` is
-        // false `RewriteNullConditionalAwaitExpression` routes through the same void-shaped
-        // path as genuinely void-R operands: the inner await is wrapped in an empty spill
-        // sequence, the outer BoundLoweredConditionalAccess has Type=void, and the spiller
-        // emits `if (receiver != null) ExpressionStatement(await);`. The Nullable<R> wrapper,
-        // a Nullable<R> temp, and an R-typed await-result temp are ALL eliminated; what
-        // remains is the receiver copy (evaluate-once for the null check) plus `call ...; pop`
-        // — byte-for-byte the same code a plain `await t;` would produce, guarded by the
-        // null-check prologue.
+        // `await? Task<int>;` at statement position — the int? result is unused. The emitted
+        // IL must NOT contain a Nullable<int> wrapper (no `newobj int?..ctor`, no Nullable<int>
+        // local), a Nullable<int> local, or an int-typed await-result temp: what remains is
+        // the receiver copy, a single null-check branch, the call to the Await helper, and
+        // `pop`. Shape-equivalent to a plain `await t;` plus the null-check prologue.
         var source = """
             using System.Threading.Tasks;
 

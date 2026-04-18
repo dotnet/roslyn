@@ -474,9 +474,8 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
     public void EvaluateOnce_Receiver_HasSideEffects_NullableOperand()
     {
         // Same evaluate-once guarantee as the reference-operand test above, but for a
-        // Nullable<V> receiver. The spec's lowering uses the underlying value on the non-null
-        // branch (via either `.Value` or `.GetValueOrDefault()` — either way the `Nullable<V>`
-        // source expression must not be re-evaluated). A side-effecting factory confirms.
+        // Nullable<V> receiver. The side-effecting factory must be called exactly once per
+        // `await?` even though the lowering both null-checks the source and reads its value.
         var source = """
             using System;
             using System.Threading.Tasks;
