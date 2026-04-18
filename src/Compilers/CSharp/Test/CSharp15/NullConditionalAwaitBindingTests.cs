@@ -904,6 +904,31 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
         Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
     }
 
+    [Fact]
+    public void NullableAnalysis_OperandIsStillAnalyzed()
+    {
+        // The `await?` null-receiver suppression must not leak outward and silence nullable
+        // analysis INSIDE the operand expression. A `null` literal passed to a non-nullable
+        // reference-type parameter of the operand must still produce the usual warning.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public Task<int> Something(string s) => Task.FromResult(s.Length);
+                public async Task M()
+                {
+                    var v = await? Something(null);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (7,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
+            //         var v = await? Something(null);
+            Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 34));
+        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+    }
+
     #endregion
 
     #region Type-parameter constraint variants
