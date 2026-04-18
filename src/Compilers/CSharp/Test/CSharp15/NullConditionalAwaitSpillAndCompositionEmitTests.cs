@@ -385,15 +385,30 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
     public void Composition_AwaitQuestion_Inside_NullConditionalCall()
     {
         // `x?.M(await? y)` — null-conditional call composed with null-conditional await. If x is
-        // null, no call (and the await doesn't run). If x is non-null, the `await?` evaluates the
-        // argument and only awaits y when y is also non-null.
+        // null the enclosing `?.` short-circuits and the `await?` must NOT be evaluated at all.
+        // To prove that, the third case uses a throwing awaitable as `y`: if the argument were
+        // evaluated while `rn == null`, GetAwaiter would throw and the test would fail.
         var source = """
             using System;
+            using System.Runtime.CompilerServices;
             using System.Threading.Tasks;
 
             class Receiver
             {
                 public string M(int? value) => $"M({value?.ToString() ?? "null"})";
+            }
+
+            class ThrowingAwaitable
+            {
+                public ThrowingAwaiter GetAwaiter()
+                    => throw new InvalidOperationException("GetAwaiter must not be called when the outer `?.` short-circuits.");
+            }
+
+            struct ThrowingAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public int GetResult() => 0;
+                public void OnCompleted(Action continuation) { }
             }
 
             class C
@@ -409,7 +424,8 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
                     Console.WriteLine(r?.M(await? t2) ?? "r-null");
 
                     Receiver rn = null;
-                    Console.WriteLine(rn?.M(await? t1) ?? "r-null");
+                    ThrowingAwaitable thrower = new();
+                    Console.WriteLine(rn?.M(await? thrower) ?? "r-null");
                     Console.Write("done");
                 }
             }
