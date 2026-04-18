@@ -17,14 +17,10 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
 {
     // Tests here pin the SemanticModel / IOperation / flow-analysis behavior observable by
     // IDE features and analyzers on an `await? e` expression. Binding/emit correctness is
-    // covered by NullConditionalAwait{Binding,Emit,ILMatrixEmit,SpillAndCompositionEmit}Tests;
-    // this file focuses on the public SemanticModel APIs that those earlier files don't
-    // already cover (or don't cover exhaustively).
-    //
-    // Key invariant: the binder's result-type rule (§11.8.8.3) produces the lifted type X
-    // as the `BoundAwaitExpression.Type`. Every SemanticModel API that surfaces the expression
-    // type (`GetTypeInfo`, `GetOperation` / `IAwaitOperation.Type`, `GetDeclaredSymbol(var)`)
-    // must report that lifted type consistently; a divergence would confuse IDE refactorings.
+    // covered by the other NullConditionalAwait* test files; this file focuses on the public
+    // SemanticModel APIs. The key invariant is that every API that reports the type of the
+    // `await?` expression (GetTypeInfo, GetOperation / IAwaitOperation.Type,
+    // GetDeclaredSymbol(var)) reports the same lifted result type the spec describes.
 
     private CSharpCompilation CreateCompilationUnderTest(string source)
     {
@@ -253,10 +249,9 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     public void GetTypeInfo_UnconstrainedT_ValuePosition_IsErrorType_WithDiagnostic()
     {
         // Mirror of the statement case but at value position: CS8978 fires because we can't
-        // form `Nullable<T>`. Unlike CS9379 (bad operand) — which produces a
-        // BoundBadExpression / IInvalidOperation — this error keeps the IAwaitOperation but
-        // uses an error type as the result. Pin that shape so analyzers know to expect an
-        // IAwaitOperation (not IInvalidOperation) on this error path.
+        // form `Nullable<T>`. Unlike CS9379 (which produces IInvalidOperation), this error
+        // still produces an IAwaitOperation whose Type is an error type. Pin that shape so
+        // analyzers know what to expect on this path.
         var source = """
             using System.Threading.Tasks;
             class C { async Task M<T>(Task<T> t) { var v = await? t; System.Console.WriteLine(v); } }
@@ -435,8 +430,9 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     {
         // Intentional parity pin. Analyzers walking the IOperation tree can only distinguish
         // `await` from `await?` via `IAwaitOperation.Type` or the underlying
-        // `AwaitExpressionSyntax.QuestionToken`. Updating this test (or the IOperation API)
-        // to expose IsNullConditional is a design question beyond the scope of phase 3/4.
+        // `AwaitExpressionSyntax.QuestionToken`. Exposing an `IsNullConditional` flag on
+        // IAwaitOperation is a separate design question (see the matching note in
+        // IOperationTests_IAwaitExpression.cs).
         var source = """
             using System.Threading.Tasks;
             class C
@@ -546,8 +542,8 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     [Fact]
     public void AnalyzeDataFlow_AwaitQuestion_AsCallArgument_ArgumentsReadInside()
     {
-        // `await?` as an argument triggers SpillSequenceSpiller. Data-flow must still see
-        // both arguments as read inside the region.
+        // `await?` as a call argument is a common spilling scenario. Data-flow must still
+        // see both arguments as read inside the region.
         var source = """
             using System.Threading.Tasks;
             class C
@@ -603,9 +599,9 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     [Fact]
     public void AnalyzeControlFlow_Succeeds_OverAwaitQuestionBlock()
     {
-        // Control-flow analysis over the method body should succeed. The IOperation-level
-        // CFG doesn't expose the short-circuit as a distinct branch (see
-        // ControlFlowGraphBuilder.VisitAwait), so this test just pins "no failure".
+        // Smoke test: control-flow analysis over a block containing `await?` should
+        // succeed. The IOperation-level CFG doesn't expose the short-circuit as a distinct
+        // branch (see the matching CFG test in IOperationTests_IAwaitExpression.cs).
         var source = """
             using System.Threading.Tasks;
             class C { async Task M(Task<int> t) { var v = await? t; } }

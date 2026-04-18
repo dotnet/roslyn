@@ -542,16 +542,14 @@ IAwaitOperation (OperationKind.Await, Type: System.String) (Syntax: 'await M2()'
         }
 
         // =========================================================================================
-        // Null-conditional await (`await? e`). See src/Compilers/CSharp/Test/CSharp15/
-        // NullConditionalAwaitSemanticModelTests.cs for the rest of the public SemanticModel
-        // surface. The tests below pin the IOperation shape specifically.
+        // Null-conditional await (`await? e`). See NullConditionalAwaitSemanticModelTests.cs
+        // (in the CSharp15 test project) for the rest of the public SemanticModel surface.
+        // The tests below pin the IOperation shape specifically.
         //
-        // Design note: IAwaitOperation does NOT currently expose IsNullConditional. The factory
-        // (CSharpOperationFactory.CreateBoundAwaitExpressionOperation) ignores the field on
-        // BoundAwaitExpression. So analyzers walking IOperation see `await e` and `await? e`
-        // as the same OperationKind.Await with a child expression; the observable difference
-        // is the (lifted) Type and the Syntax text. Exposing IsNullConditional on the public
-        // API is a separate design question tracked with the feature.
+        // Design note: IAwaitOperation does NOT currently expose an "is null-conditional" flag.
+        // Analyzers walking the tree see `await e` and `await? e` as the same OperationKind.Await
+        // with a child expression; the observable difference is the (lifted) `Type` and the
+        // syntax text. Exposing a flag is a separate design question tracked with the feature.
         // =========================================================================================
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -705,10 +703,10 @@ IAwaitOperation (OperationKind.Await, Type: dynamic) (Syntax: 'await? d')
         [Fact]
         public void TestAwaitQuestionExpression_NonNullableValueTypeOperand_IsInvalid()
         {
-            // `await?` on a non-nullable value type (ValueTask) is rejected by the binder
-            // with CS9379. The binder produces a BoundBadExpression in that case, which the
-            // IOperation factory maps to IInvalidOperation — NOT an IAwaitOperation. Pinning
-            // this so analyzers know to expect IInvalidOperation for this error path.
+            // `await?` on a non-nullable value type (ValueTask) is rejected with CS9379.
+            // On this error path the IOperation factory reports the overall expression as
+            // IInvalidOperation — NOT an IAwaitOperation. Pinned here so analyzers know
+            // what to expect.
             string source = @"
 using System.Threading.Tasks;
 
@@ -898,10 +896,11 @@ IAwaitOperation (OperationKind.Await, Type: System.Int32?) (Syntax: 'await? t')
         [Fact]
         public void TestAwaitQuestionExpression_FlowGraph_NoShortCircuitBranch()
         {
-            // ControlFlowGraphBuilder.VisitAwait does not introduce a branch for the short-
-            // circuit of `await?`; at the IOperation/CFG level it's a single linear block
-            // containing the IAwaitOperation, just like `await`. Analyzers that want to
-            // observe the short-circuit need to look at the surrounding syntax/bound tree.
+            // The IOperation CFG for `await?` does NOT introduce a branch for the short-
+            // circuit: the whole expression shows up as a single linear block containing an
+            // IAwaitOperation, just like a plain `await`. Analyzers that want to observe
+            // the short-circuit need to look at the AwaitExpressionSyntax.QuestionToken
+            // instead.
             string source = @"
 using System.Threading.Tasks;
 
