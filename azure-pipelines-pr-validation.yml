@@ -355,7 +355,7 @@ extends:
             autoComplete: false
             insertToolset: ${{ parameters.InsertToolset }}
             devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            dncEngAzdoToken: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: $(PRTitlePrefix)
             sourceBranch: $(ComponentBranchName)

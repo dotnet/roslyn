@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -27,6 +28,7 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
     {
         ShowImportCompletionItemsOptionValue = true;
         ForceExpandedCompletionIndexCreation = true;
+        ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImport;
     }
 
     [InlineData(null)]
@@ -1892,6 +1894,88 @@ public sealed class TypeImportCompletionProviderTests : AbstractCSharpCompletion
 
             enum E : $$
             """);
+
+    [WpfTheory, CombinatorialData]
+    internal async Task TestCommitBehaviorOption(
+        ImportCompletionCommitBehavior commitBehavior,
+        [CombinatorialValues(' ', null)] char? commitChar,
+        [CombinatorialValues(SourceCodeKind.Regular, SourceCodeKind.Script)] SourceCodeKind sourceCodeKind)
+    {
+        ImportCompletionCommitBehaviorValue = commitBehavior;
+
+        var file1 = """
+            namespace Foo
+            {
+                public class Bar
+                {
+                }
+            }
+            """;
+
+        var file2 = $$"""
+            namespace Baz
+            {
+                class Bat
+                {
+                    $$
+                }
+            }
+            """;
+
+        var usingStatement = (commitBehavior is ImportCompletionCommitBehavior.AlwaysAddImport ||
+            (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted && commitChar is null))
+            ? $"using Foo;{Environment.NewLine}{Environment.NewLine}"
+            : "";
+
+        var expected = $$"""
+            {{usingStatement}}namespace Baz
+            {
+                class Bat
+                {
+                    Bar{{(commitChar is null ? "" : " ")}}
+                }
+            }
+            """;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+        await VerifyProviderCommitAsync(markup, "Bar", expected, commitChar: commitChar, sourceCodeKind: sourceCodeKind);
+    }
+
+    [WpfTheory, CombinatorialData]
+    internal async Task TestCommitBehaviorOptionInUsingDirectiveNeverAddUsing(
+        ImportCompletionCommitBehavior commitBehavior,
+        [CombinatorialValues(' ', null)] char? commitChar,
+        [CombinatorialValues(SourceCodeKind.Regular, SourceCodeKind.Script)] SourceCodeKind sourceCodeKind)
+    {
+        ImportCompletionCommitBehaviorValue = commitBehavior;
+        var file1 = $$"""
+            namespace Foo
+            {
+                public class Bar
+                {
+                }
+            }
+            """;
+
+        var file2 = """
+            namespace Baz
+            {
+                using Local = Bar$$
+            }
+            """;
+        var markup = CreateMarkupForSingleProject(file2, file1, LanguageNames.CSharp);
+
+        var qualifiedPart = (commitBehavior is ImportCompletionCommitBehavior.AlwaysAddImport ||
+            (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted && commitChar is null))
+            ? $"Foo."
+            : "";
+
+        await VerifyProviderCommitAsync(markup, "Bar", $$"""
+            namespace Baz
+            {
+                using Local = {{qualifiedPart}}Bar{{(commitChar is null ? "" : " ")}}
+            }
+            """, commitChar: commitChar, sourceCodeKind: sourceCodeKind);
+    }
 
     private Task VerifyTypeImportItemExistsAsync(string markup, string expectedItem, int glyph, string inlineDescription, string displayTextSuffix = null, string expectedDescriptionOrNull = null, CompletionItemFlags? flags = null)
         => VerifyItemExistsAsync(markup, expectedItem, displayTextSuffix: displayTextSuffix, glyph: (Glyph)glyph, inlineDescription: inlineDescription, expectedDescriptionOrNull: expectedDescriptionOrNull, isComplexTextEdit: true, flags: flags);

@@ -496,6 +496,11 @@ stages:
         displayName: Validate Generated Syntax Files
         condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['compilerChange'], 'true'))
 
+      - script: dotnet build-server shutdown
+        displayName: Shutdown Build Server
+        continueOnError: true
+        condition: always()
+
       - template: eng/pipelines/publish-logs.yml
         parameters:
           jobName: Correctness_Build_Artifacts

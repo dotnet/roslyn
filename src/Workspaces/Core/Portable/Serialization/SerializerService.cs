@@ -40,7 +40,7 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
     // compute project state checksums). So lazily instantiate the storage service to avoid attempting to get the
     // TemporaryStorageService when not available.
 
-    private readonly Lazy<TemporaryStorageService> _storageService = new(() => (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>());
+    private readonly Lazy<ITemporaryStorageServiceInternal> _storageService = new(() => workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>());
     private readonly ITextFactoryService _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
     private readonly IDocumentationProviderService? _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
     private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();

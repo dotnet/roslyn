@@ -342,7 +342,7 @@ public sealed partial class CSharpRegexParserTests
     private static string Not(string regex)
         => $"(?({regex})[0-[0]]|.*)";
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Deep recursion test relies on Windows stack size (~1MB) to trigger stack overflow; Linux has 8MB stack")]
     public void TestDeepRecursion()
     {
         var (token, tree, chars) =

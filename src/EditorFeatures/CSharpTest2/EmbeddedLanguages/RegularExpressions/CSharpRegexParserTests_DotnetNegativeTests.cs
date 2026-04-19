@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Text.RegularExpressions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions;
@@ -1284,7 +1285,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest41()
         => Test("""
             @"(?(?i))"
@@ -1356,7 +1357,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest43()
         => Test("""
             @"(?(?I))"
@@ -1395,7 +1396,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest44()
         => Test("""
             @"(?(?M))"
@@ -1434,7 +1435,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest45()
         => Test("""
             @"(?(?s))"
@@ -1473,7 +1474,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest46()
         => Test("""
             @"(?(?S))"
@@ -1512,7 +1513,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest47()
         => Test("""
             @"(?(?x))"
@@ -1551,7 +1552,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest48()
         => Test("""
             @"(?(?X))"
@@ -1590,7 +1591,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest49()
         => Test("""
             @"(?(?n))"
@@ -1629,7 +1630,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest50()
         => Test("""
             @"(?(?m))"
@@ -2319,7 +2320,7 @@ public sealed partial class CSharpRegexParserTests
             </Tree>
             """, RegexOptions.None);
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void NegativeTest69()
         => Test("""
             @"(?(?N))"
