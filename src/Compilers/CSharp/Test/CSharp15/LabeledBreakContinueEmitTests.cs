@@ -376,6 +376,202 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
 
     #endregion
 
+    #region try/finally
+
+    [Fact]
+    public void Break_Finally_Single()
+    {
+        var source = """
+            outer: for (int i = 0; ; i++)
+            {
+                try
+                {
+                    System.Console.Write("A ");
+                    break outer;
+                }
+                finally { System.Console.Write("F "); }
+            }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A F done");
+    }
+
+    [Fact]
+    public void Break_Finally_Multiple_InnermostFirst()
+    {
+        var source = """
+            outer: for (int i = 0; ; i++)
+            {
+                try
+                {
+                    try
+                    {
+                        try
+                        {
+                            System.Console.Write("A ");
+                            break outer;
+                        }
+                        finally { System.Console.Write("F3 "); }
+                    }
+                    finally { System.Console.Write("F2 "); }
+                }
+                finally { System.Console.Write("F1 "); }
+            }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A F3 F2 F1 done");
+    }
+
+    [Fact]
+    public void Break_Finally_AcrossNestedLoops()
+    {
+        var source = """
+            outer: for (int i = 0; ; i++)
+            {
+                try
+                {
+                    for (int j = 0; ; j++)
+                    {
+                        try
+                        {
+                            System.Console.Write("A ");
+                            break outer;
+                        }
+                        finally { System.Console.Write("Finner "); }
+                    }
+                }
+                finally { System.Console.Write("Fouter "); }
+            }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A Finner Fouter done");
+    }
+
+    [Fact]
+    public void Break_Finally_OuterTryNotExited()
+    {
+        var source = """
+            try
+            {
+                outer: for (int i = 0; ; i++)
+                {
+                    try
+                    {
+                        System.Console.Write("A ");
+                        break outer;
+                    }
+                    finally { System.Console.Write("Finner "); }
+                }
+                System.Console.Write("after-loop ");
+            }
+            finally { System.Console.Write("Fouter "); }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A Finner after-loop Fouter done");
+    }
+
+    [Fact]
+    public void Continue_Finally_Single()
+    {
+        var source = """
+            int count = 0;
+            outer: while (count < 3)
+            {
+                count++;
+                try
+                {
+                    System.Console.Write($"A{count} ");
+                    continue outer;
+                }
+                finally { System.Console.Write("F "); }
+            }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A1 F A2 F A3 F done");
+    }
+
+    [Fact]
+    public void Continue_Finally_Multiple_InnermostFirst()
+    {
+        var source = """
+            int count = 0;
+            outer: while (count < 2)
+            {
+                count++;
+                try
+                {
+                    try
+                    {
+                        try
+                        {
+                            System.Console.Write($"A{count} ");
+                            continue outer;
+                        }
+                        finally { System.Console.Write("F3 "); }
+                    }
+                    finally { System.Console.Write("F2 "); }
+                }
+                finally { System.Console.Write("F1 "); }
+            }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A1 F3 F2 F1 A2 F3 F2 F1 done");
+    }
+
+    [Fact]
+    public void Continue_Finally_AcrossNestedLoops()
+    {
+        var source = """
+            int count = 0;
+            outer: while (count < 2)
+            {
+                count++;
+                try
+                {
+                    for (int j = 0; ; j++)
+                    {
+                        try
+                        {
+                            System.Console.Write($"A{count} ");
+                            continue outer;
+                        }
+                        finally { System.Console.Write("Finner "); }
+                    }
+                }
+                finally { System.Console.Write("Fouter "); }
+            }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A1 Finner Fouter A2 Finner Fouter done");
+    }
+
+    [Fact]
+    public void Continue_Finally_OuterTryNotExited()
+    {
+        var source = """
+            int count = 0;
+            try
+            {
+                outer: while (count < 2)
+                {
+                    count++;
+                    try
+                    {
+                        System.Console.Write($"A{count} ");
+                        continue outer;
+                    }
+                    finally { System.Console.Write("Finner "); }
+                }
+                System.Console.Write("after-loop ");
+            }
+            finally { System.Console.Write("Fouter "); }
+            System.Console.Write("done");
+            """;
+        CompileAndVerify(source, expectedOutput: "A1 Finner A2 Finner after-loop Fouter done");
+    }
+
+    #endregion
+
     #region IL verification
 
     [Fact]
