@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -14,6 +16,7 @@ internal sealed class InitializeManager : IInitializeManager
     }
 
     private InitializeParams? _initializeParams;
+    private ImmutableArray<string> _workspaceFolderPathsOpt;
 
     public ClientCapabilities GetClientCapabilities()
     {
@@ -29,11 +32,33 @@ internal sealed class InitializeManager : IInitializeManager
     {
         Contract.ThrowIfFalse(_initializeParams == null);
         _initializeParams = initializeParams;
+        _workspaceFolderPathsOpt = initializeParams.WorkspaceFolders is [_, ..] workspaceFolders ? GetFolderPaths(workspaceFolders) : [];
+
+        static ImmutableArray<string> GetFolderPaths(WorkspaceFolder[] workspaceFolders)
+        {
+            var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
+            foreach (var workspaceFolder in workspaceFolders)
+            {
+                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
+                    continue;
+
+                var workspaceFolderPath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
+                builder.Add(workspaceFolderPath);
+            }
+
+            return builder.ToImmutableAndFree();
+        }
     }
 
     public InitializeParams? TryGetInitializeParams()
     {
         return _initializeParams;
+    }
+
+    public ImmutableArray<string> GetRequiredWorkspaceFolderPaths()
+    {
+        Contract.ThrowIfTrue(_workspaceFolderPathsOpt.IsDefault, $"{nameof(_workspaceFolderPathsOpt)} was not initialized. Was this accessed before the OnInitialized event ran?");
+        return _workspaceFolderPathsOpt;
     }
 
     public ClientCapabilities? TryGetClientCapabilities()

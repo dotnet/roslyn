@@ -250,8 +250,19 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
                     using var languageScope = _logger.CreateLanguageContext(language);
 
-                    // Now that we know the actual language, we can deserialize the request and start creating the request context.
-                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);
+                    // Now that we know the actual language, we can try to find the appropriate handler.
+                    var resolvedLanguage = language ?? LanguageServerConstants.DefaultLanguageName;
+                    if (!TryGetHandlerForRequest(work, resolvedLanguage, out var handlerResult))
+                    {
+                        // No handler found for this method+language combination.  This can happen if:
+                        // 1. We were unable to determine the language and there is no default handler for this method.
+                        // 2. A client sends a request for a method the server does not handle for this language.
+                        // In either case, we should not crash - just fail the request gracefully.
+                        work.FailRequest($"Missing handler for {work.MethodName} and language {resolvedLanguage}");
+                        continue;
+                    }
+
+                    var (metadata, handler, methodInfo) = handlerResult;
 
                     // We had an issue determining the language.  Generally this is very rare and only occurs
                     // when a client sends us requests for files where we haven't saved the languageId.
@@ -413,16 +424,18 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         return;
     }
 
-    private (RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo) GetHandlerForRequest(QueueItem<TRequestContext> work, string language)
+    private bool TryGetHandlerForRequest(QueueItem<TRequestContext> work, string language, out (RequestHandlerMetadata Metadata, IMethodHandler Handler, MethodInfo MethodInfo) result)
     {
         var handlersForMethod = _handlerInfoMap[work.MethodName];
         if (handlersForMethod.TryGetValue(language, out var lazyData) ||
             handlersForMethod.TryGetValue(LanguageServerConstants.DefaultLanguageName, out lazyData))
         {
-            return lazyData.Value;
+            result = lazyData.Value;
+            return true;
         }
 
-        throw new InvalidOperationException($"Missing default or language handler for {work.MethodName} and language {language}");
+        result = default;
+        return false;
     }
 
     /// <summary>
