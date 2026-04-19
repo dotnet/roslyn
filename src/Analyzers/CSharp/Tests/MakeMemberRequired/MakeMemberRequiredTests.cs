@@ -455,6 +455,38 @@ public sealed class MakeMemberRequiredTests
         }.RunAsync();
 
     [Fact]
+    public Task NotOnStaticPropertyDeclaration()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public static string {|CS8618:MyProperty|} { get; set; }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task NotOnStaticFieldDeclaration()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            #nullable enable
+            
+            class MyClass
+            {
+                public static string {|CS8618:_myField|};
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
     public Task FixAll1()
         => new VerifyCS.Test
         {
@@ -474,6 +506,52 @@ public sealed class MakeMemberRequiredTests
                     public required string MyProperty1 { get; set; }
                 }
                 """,
+            LanguageVersion = LanguageVersion.CSharp11,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70
+        }.RunAsync();
+
+    [Fact]
+    public Task FixAllIgnoresStaticMembers()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                class MyClass
+                {
+                    public string {|CS8618:MyProperty|} { get; set; }
+                    public static string {|CS8618:MyStaticProperty|} { get; set; }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+                class MyClass
+                {
+                    public required string MyProperty { get; set; }
+                    public static string MyStaticProperty { get; set; }
+                }
+                """,
+            BatchFixedCode = """
+                #nullable enable
+                class MyClass
+                {
+                    public required string MyProperty { get; set; }
+                    public static string MyStaticProperty { get; set; }
+                }
+                """,
+            FixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(5, 26, 5, 42).WithSpan(5, 26, 5, 42).WithArguments("property", "MyStaticProperty"),
+                }
+            },
+            BatchFixedState =
+            {
+                ExpectedDiagnostics =
+                {
+                    DiagnosticResult.CompilerError("CS8618").WithSpan(5, 26, 5, 42).WithSpan(5, 26, 5, 42).WithArguments("property", "MyStaticProperty"),
+                }
+            },
             LanguageVersion = LanguageVersion.CSharp11,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70
         }.RunAsync();

@@ -101,7 +101,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         var position = new LSP.Position { Line = 5, Character = 18 };
         var results = await RunGotoDefinitionAsync(testLspServer, new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri($"C:\\{TestSpanMapper.GeneratedFileName}"),
+            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = position, End = position }
         });
         AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);

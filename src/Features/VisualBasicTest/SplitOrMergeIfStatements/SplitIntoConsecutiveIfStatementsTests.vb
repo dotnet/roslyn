@@ -2,26 +2,20 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
-Imports Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements
+Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
+    Microsoft.CodeAnalysis.VisualBasic.SplitOrMergeIfStatements.VisualBasicSplitIntoConsecutiveIfStatementsCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitOrMergeIfStatements
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoConsecutiveIfStatements)>
     Public NotInheritable Class SplitIntoConsecutiveIfStatementsTests
-        Inherits AbstractVisualBasicCodeActionTest_NoEditor
-
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicSplitIntoConsecutiveIfStatementsCodeRefactoringProvider()
-        End Function
-
         <Theory>
         <InlineData("a [||]orelse b")>
         <InlineData("a ore[||]lse b")>
         <InlineData("a orelse[||] b")>
         <InlineData("a [|orelse|] b")>
         Public Async Function SplitOnOrElseOperatorSpans(condition As String) As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 $"class C
     sub M(a as boolean, b as boolean)
         if {condition} then
@@ -42,7 +36,7 @@ end class")
         <InlineData("a[| orelse|] b")>
         <InlineData("a[||] orelse b")>
         Public Async Function NotSplitOnOrElseOperatorSpans(condition As String) As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 $"class C
     sub M(a as boolean, b as boolean)
         if {condition} then
@@ -53,7 +47,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitOnIfKeyword() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         [||]if a orelse b then
@@ -64,7 +58,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitOnAndAlsoOperator() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]andalso b then
@@ -75,7 +69,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitOnBitwiseOrOperator() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]or b then
@@ -86,7 +80,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitOnOrElseOperatorOutsideIfStatement() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         dim v = a [||]orelse b
@@ -96,11 +90,11 @@ end class")
 
         <Fact>
         Public Async Function NotSplitOnOrElseOperatorInIfStatementBody() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a orelse b then
-            a [||]orelse b
+            {|BC30454:a|} {|BC30201:|}[||]{|BC30800:orelse b|}
         end if
     end sub
 end class")
@@ -108,7 +102,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitOnSingleLineIf() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then System.Console.WriteLine()
@@ -118,7 +112,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithChainedOrElseExpression1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a [||]orelse b orelse c orelse d then
@@ -136,7 +130,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithChainedOrElseExpression2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse b [||]orelse c orelse d then
@@ -154,7 +148,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithChainedOrElseExpression3() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse b orelse c [||]orelse d then
@@ -172,7 +166,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitInsideParentheses1() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if (a [||]orelse b) orelse c orelse d then
@@ -183,7 +177,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitInsideParentheses2() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse b orelse (c [||]orelse d) then
@@ -194,7 +188,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitInsideParentheses3() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if (a orelse b [||]orelse c orelse d) then
@@ -205,7 +199,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithOtherExpressionInsideParentheses1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a [||]orelse (b orelse c) orelse d then
@@ -223,7 +217,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithOtherExpressionInsideParentheses2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a orelse (b orelse c) [||]orelse d then
@@ -241,7 +235,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithMixedAndAlsoExpression1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a [||]orelse b andalso c then
@@ -259,7 +253,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithMixedAndAlsoExpression2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a andalso b [||]orelse c then
@@ -277,7 +271,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitWithMixedExclusiveOrExpression1() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a [||]orelse b xor c then
@@ -288,7 +282,7 @@ end class")
 
         <Fact>
         Public Async Function NotSplitWithMixedExclusiveOrExpression2() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a xor b [||]orelse c then
@@ -299,7 +293,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithMixedExclusiveOrExpressionInsideParentheses1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if a [||]orelse (b xor c) then
@@ -317,7 +311,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithMixedExclusiveOrExpressionInsideParentheses2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean, c as boolean, d as boolean)
         if (a xor b) [||]orelse c then
@@ -335,7 +329,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithStatement() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -356,7 +350,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithNestedIfStatement() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -380,7 +374,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithElseStatement() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -405,7 +399,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithElseNestedIfStatement() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -432,7 +426,7 @@ end class")
 
         <Fact>
         Public Async Function SplitWithElseIfElse() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -461,7 +455,7 @@ end class")
 
         <Fact>
         Public Async Function SplitAsPartOfElseIfElse() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if true then
@@ -490,7 +484,7 @@ end class")
 
         <Fact>
         Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits1() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -513,7 +507,7 @@ end class")
 
         <Fact>
         Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -536,7 +530,7 @@ end class")
 
         <Fact>
         Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits3() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         while true
@@ -563,7 +557,7 @@ end class")
 
         <Fact>
         Public Async Function SplitIntoSeparateStatementsIfControlFlowQuits4() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         while true
@@ -602,7 +596,7 @@ end class")
 
         <Fact>
         Public Async Function SplitIntoSeparateStatementsIfControlFlowQuitsInCaseBlock() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         select a
@@ -638,7 +632,7 @@ end class")
             ' Even though there are no statements inside, we still can't split this into separate statements
             ' because it would change the semantics from short-circuiting to always evaluating the second condition,
             ' breaking code like 'If a Is Nothing OrElse a.InstanceMethod()'.
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -656,7 +650,7 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues2() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -683,7 +677,7 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues3() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -710,7 +704,7 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsIfControlFlowContinues4() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         while a <> b
@@ -741,7 +735,7 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsWithElseIfControlFlowQuits() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -766,7 +760,7 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsWithElseIfIfControlFlowQuits() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -791,7 +785,7 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsWithElseIfElseIfControlFlowQuits() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if a [||]orelse b then
@@ -820,7 +814,7 @@ end class")
 
         <Fact>
         Public Async Function SplitNotIntoSeparateStatementsAsPartOfElseIfIfControlFlowQuits() As Task
-            Await TestInRegularAndScriptAsync(
+            Await VerifyVB.VerifyRefactoringAsync(
 "class C
     sub M(a as boolean, b as boolean)
         if true then
