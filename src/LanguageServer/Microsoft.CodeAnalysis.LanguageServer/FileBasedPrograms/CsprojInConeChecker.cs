@@ -31,25 +31,8 @@ internal sealed class CsprojInConeChecker : ILspService, IOnInitialized
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         var initializeManager = context.GetRequiredService<IInitializeManager>();
-        var initializeParams = initializeManager.TryGetInitializeParams();
-        Contract.ThrowIfNull(initializeParams);
-        _workspaceFolders = initializeParams.WorkspaceFolders is [_, ..] workspaceFolders ? GetFolderPaths(workspaceFolders) : [];
+        _workspaceFolders = initializeManager.GetRequiredWorkspaceFolderPaths();
         return Task.CompletedTask;
-
-        static ImmutableArray<string> GetFolderPaths(WorkspaceFolder[] workspaceFolders)
-        {
-            var builder = ArrayBuilder<string>.GetInstance(workspaceFolders.Length);
-            foreach (var workspaceFolder in workspaceFolders)
-            {
-                if (workspaceFolder.DocumentUri.ParsedUri is not { } parsedUri)
-                    continue;
-
-                var workspaceFolderPath = ProtocolConversions.GetDocumentFilePathFromUri(parsedUri);
-                builder.Add(workspaceFolderPath);
-            }
-
-            return builder.ToImmutableAndFree();
-        }
     }
 
     public bool IsContainedInCsprojCone(string csFilePath)

@@ -276,7 +276,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         {
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"), (5, 0, "        // this builds on that\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"), (5, 0, $"        // this builds on that{Environment.NewLine}"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -345,7 +345,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
         {
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
-            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, "        // this builds on that\r\n"), (4, 8, "// hi there"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, $"        // this builds on that{Environment.NewLine}"), (4, 8, "// hi there"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 
@@ -424,7 +424,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
             await DidOpen(testLspServer, locationTyped.DocumentUri);
 
             await DidChange(testLspServer, locationTyped.DocumentUri, (4, 8, "// hi there"));
-            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, "        // this builds on that\r\n"));
+            await DidChange(testLspServer, locationTyped.DocumentUri, (5, 0, $"        // this builds on that{Environment.NewLine}"));
 
             var document = testLspServer.GetTrackedTexts().FirstOrDefault();
 

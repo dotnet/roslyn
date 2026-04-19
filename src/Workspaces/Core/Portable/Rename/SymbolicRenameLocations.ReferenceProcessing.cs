@@ -236,8 +236,9 @@ internal sealed partial class SymbolicRenameLocations
 
                 // If the location is in a source generated file, we won't rename it. Our assumption in this case is we
                 // have cascaded to this symbol from our original source symbol, and the generator will update this file
-                // based on the renamed symbol.
-                if (document is not SourceGeneratedDocument || document.IsRazorSourceGeneratedDocument())
+                // based on the renamed symbol. Razor source generated documents are an exception - we include them only
+                // when a span mapping service is available to map edits back to the original .razor files.
+                if (document is not SourceGeneratedDocument || CanMapSourceGeneratedDocument(solution, document))
                     results.Add(new RenameLocation(location, document.Id, isRenamableAccessor: isRenamableAccessor));
             }
         }
@@ -246,8 +247,9 @@ internal sealed partial class SymbolicRenameLocations
             ISymbol referencedSymbol, ISymbol originalSymbol, ReferenceLocation location, Solution solution, CancellationToken cancellationToken)
         {
             // We won't try to update references in source generated files; we'll assume the generator will rerun
-            // and produce an updated document with the new name.
-            if (location.Document is SourceGeneratedDocument && !location.Document.IsRazorSourceGeneratedDocument())
+            // and produce an updated document with the new name. Razor source generated documents are an exception -
+            // we include them only when a span mapping service is available to map edits back to the original files.
+            if (location.Document is SourceGeneratedDocument && !CanMapSourceGeneratedDocument(solution, location.Document))
                 return [];
 
             var shouldIncludeSymbol = await ShouldIncludeSymbolAsync(referencedSymbol, originalSymbol, solution, true, cancellationToken).ConfigureAwait(false);
@@ -431,6 +433,13 @@ internal sealed partial class SymbolicRenameLocations
                     renameLocations.Add(renameLocation);
                 }
             }
+        }
+
+        private static bool CanMapSourceGeneratedDocument(Solution solution, Document document)
+        {
+            return document is SourceGeneratedDocument sourceGeneratedDocument
+                && solution.Services.GetService<ISourceGeneratedDocumentSpanMappingService>() is { } mappingService
+                && mappingService.CanMapSpans(sourceGeneratedDocument);
         }
     }
 }
