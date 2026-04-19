@@ -209,6 +209,68 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     }
 
     [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_EntryPointClosed_RemainsLoadedWhenDiscoveryEnabled(bool mutatingLspWorkspace)
+    {
+        // When automatic discovery is enabled, closing the entry point file should not unload the project.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
+            #:sdk Microsoft.Net.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        await testLspServer.CloseDocumentAsync(looseFileUri);
+
+        // Project remains loaded because automatic discovery is enabled (default).
+        (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFileBasedProgram_EntryPointClosed_UnloadedWhenDiscoveryDisabled(bool mutatingLspWorkspace)
+    {
+        // When automatic discovery is disabled, closing the entry point file should unload the project.
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
+        });
+
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+        var tempDir = _tempRoot.CreateDirectory();
+        var sourceText = """
+            #:sdk Microsoft.Net.Sdk
+            Console.WriteLine("Hello World!");
+            """;
+        var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
+        var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(sourceFile.Path);
+        await testLspServer.OpenDocumentAsync(looseFileUri, sourceText).ConfigureAwait(false);
+        await WaitForProjectLoad(looseFileUri, testLspServer);
+
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.True(document.Project.State.HasAllInformation);
+
+        await testLspServer.CloseDocumentAsync(looseFileUri);
+
+        // Project is unloaded because automatic discovery is disabled.
+        (workspace, document) = await GetLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
+        Assert.Null(workspace);
+        Assert.Null(document);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestLooseFilesInCanonicalProject(bool mutatingLspWorkspace)
     {
         // Create a server that supports LSP misc files and verify no misc files present.

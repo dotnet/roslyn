@@ -63,6 +63,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             var loader = new AnalyzerAssemblyLoader(pathResolvers, assemblyResolvers, compilerLoadContext: null);
+
+            // Ensure that test infrastructure assemblies (e.g. DiffPlex and its transitive
+            // dependencies such as Microsoft.Win32.Registry) are already loaded before we
+            // take the snapshot below.  AssertEx has static fields that initialize DiffPlex
+            // on first use; if that first use happens *after* the snapshot is taken then
+            // those assemblies show up as unexpected additions and the assertion at the end
+            // of this method fails intermittently (most visibly in the LoadStream variant).
+            RuntimeHelpers.RunClassConstructor(typeof(AssertEx).TypeHandle);
+
             var compilerContextAssemblies = loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName);
             try
             {

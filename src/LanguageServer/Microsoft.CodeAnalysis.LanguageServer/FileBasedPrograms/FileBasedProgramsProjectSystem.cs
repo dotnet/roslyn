@@ -206,19 +206,52 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         var documentFilePath = GetDocumentFilePath(documentUri);
-        var projectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
-        var workspace = _workspaceFactory.MiscellaneousFilesWorkspace;
         var sourceTextLoader = new SourceTextLoader(documentInfo.SourceText, documentFilePath);
-        var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
-        var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-            workspace, documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, workspace.Services.SolutionServices, [], enableFileBasedPrograms);
-        projectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(projectInfo));
-        var projectId = projectInfo.Id;
-        var project = workspace.CurrentSolution.GetRequiredProject(projectId);
-        var primordialDoc = project.Documents.SingleOrDefault() ?? project.AdditionalDocuments.Single();
         var doDesignTimeBuild = !ClassifyAsMiscellaneousFileWithNoReferences(documentFilePath, languageInformation);
-        await BeginLoadingProjectWithPrimordialAsync(documentFilePath, projectFactory, primordialProjectId: projectId, doDesignTimeBuild);
-        return primordialDoc;
+        return await this.GetOrLoadEntryPointDocumentAsync(
+            documentFilePath, sourceTextLoader, languageInformation, documentInfo.SourceText.ChecksumAlgorithm, doDesignTimeBuild);
+    }
+
+    /// <summary>
+    /// Used to begin loading a file-based app project for a file-based app on disk, if it hasn't started already,
+    /// when the caller doesn't need to use any results of the loading process.
+    /// </summary>
+    public async ValueTask TryBeginLoadingFileBasedAppAsync(string documentFilePath)
+    {
+        Contract.ThrowIfFalse(PathUtilities.IsAbsolute(documentFilePath));
+        var sourceTextLoader = new WorkspaceFileTextLoader(_workspaceFactory.HostWorkspace.CurrentSolution.Services, documentFilePath, defaultEncoding: null);
+        var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+        if (!languageInfoProvider.TryGetLanguageInformation(ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath), lspLanguageId: "csharp", out var languageInformation))
+        {
+            Contract.Fail($"Could not find language information for '{documentFilePath}'");
+        }
+
+        await GetOrLoadEntryPointDocumentAsync(documentFilePath, sourceTextLoader, languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: true);
+    }
+
+    public async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
+    {
+        var project = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
+        return project is null ? null : LookupExistingDocument(project);
+
+        TextDocument? LookupExistingDocument(Project project)
+        {
+            var document = project.Documents.FirstOrDefault(document => document.FilePath == documentFilePath)
+                ?? project.AdditionalDocuments.FirstOrDefault(document => document.FilePath == documentFilePath);
+            if (document is null)
+            {
+                _logger.LogWarning("Could not get a document for '{documentFilePath}' because its project doesn't contain a document for it", documentFilePath);
+            }
+
+            return document;
+        }
+
+        ProjectInfo CreatePrimordialProjectInfo(ProjectSystemProjectFactory projectFactory)
+        {
+            var enableFileBasedPrograms = GlobalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms);
+            return MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+                projectFactory.Workspace, documentFilePath, textLoader, languageInformation, checksumAlgorithm, projectFactory.Workspace.Services.SolutionServices, [], enableFileBasedPrograms);
+        }
     }
 
     public async ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
@@ -231,8 +264,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask CloseDocumentAsync(DocumentUri uri)
     {
+        // If automatic discovery is enabled, we don't want to unload a file-based app upon closing a document.
+        var unloadFromProjectFactory = GlobalOptionService.GetOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery)
+            ? _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory
+            : null;
+
         var documentPath = GetDocumentFilePath(uri);
-        await TryUnloadProjectAsync(documentPath);
+        await TryUnloadProjectAsync(documentPath, unloadFromProjectFactory);
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
