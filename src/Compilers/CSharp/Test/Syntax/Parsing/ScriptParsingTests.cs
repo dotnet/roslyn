@@ -10246,16 +10246,16 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         public void ShebangNotFirstCharacter()
         {
             ParseAndValidate(" #!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 1, Column = 2 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 1, Column = 2 });
 
             ParseAndValidate("\n#!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 2, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 2, Column = 1 });
 
             ParseAndValidate("\r\n#!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 2, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 2, Column = 1 });
 
             ParseAndValidate("#!/bin/sh\r\n#!/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 2, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 2, Column = 1 });
 
             ParseAndValidate("a #!/usr/bin/env csi", TestOptions.Script,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 1, Column = 3 });
@@ -10272,7 +10272,7 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
         public void ShebangSpaceBang()
         {
             ParseAndValidate("# !/usr/bin/env csi", TestOptions.Script,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_BadDirectivePlacement, Line = 1, Column = 1 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangNotOnFirstLine, Line = 1, Column = 1 });
         }
 
         [Fact]

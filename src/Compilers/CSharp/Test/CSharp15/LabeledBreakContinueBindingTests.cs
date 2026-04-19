@@ -290,7 +290,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,15): warning CS0164: This label has not been referenced
             //         a: b: c: while (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "c").WithLocation(5, 15),
-            // (7,19): error CS9378: No enclosing loop or switch statement with the label 'b' out of which to break or continue
+            // (7,19): error CS9379: No enclosing loop or switch statement with the label 'b' out of which to break or continue
             //             break b;
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "b").WithArguments("b").WithLocation(7, 19));
     }
@@ -773,7 +773,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         L: { break L; }
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
-            // (5,20): error CS9378: The label 'L' does not refer to a containing loop or switch statement
+            // (5,20): error CS9379: The label 'L' does not refer to a containing loop or switch statement
             //         L: { break L; }
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(5, 20));
     }
@@ -795,7 +795,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         L: if (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
-            // (6,19): error CS9378: The label 'L' does not refer to a containing loop or switch statement
+            // (6,19): error CS9379: The label 'L' does not refer to a containing loop or switch statement
             //             break L;
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(6, 19));
     }
@@ -817,7 +817,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         L: ;
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
-            // (6,28): error CS9378: The label 'L' does not refer to a containing loop or switch statement
+            // (6,28): error CS9379: The label 'L' does not refer to a containing loop or switch statement
             //         while (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(6, 28));
     }
@@ -839,7 +839,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         L: System.Console.WriteLine();
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
-            // (6,25): error CS9378: The label 'L' does not refer to a containing loop or switch statement
+            // (6,25): error CS9379: The label 'L' does not refer to a containing loop or switch statement
             //         if (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(6, 25));
     }
@@ -861,7 +861,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         L: var y = x switch { _ => 1 };
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
-            // (6,28): error CS9378: The label 'L' does not refer to a containing loop or switch statement
+            // (6,28): error CS9379: The label 'L' does not refer to a containing loop or switch statement
             //         while (true) break L;
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(6, 28));
     }
@@ -882,7 +882,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         L: lock (o) { break L; }
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9),
-            // (5,29): error CS9378: The label 'L' does not refer to a containing loop or switch statement
+            // (5,29): error CS9379: The label 'L' does not refer to a containing loop or switch statement
             //         L: lock (o) { break L; }
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(5, 29));
     }
@@ -1172,7 +1172,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (5,9): warning CS0164: This label has not been referenced
             //         outer: while (true)
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(5, 9),
-            // (7,30): error CS9378: No enclosing loop or switch statement with the label 'outer' out of which to break or continue
+            // (7,30): error CS9379: No enclosing loop or switch statement with the label 'outer' out of which to break or continue
             //             void F() { break outer; }
             Diagnostic(ErrorCode.ERR_NoBreakOrContId, "outer").WithArguments("outer").WithLocation(7, 30));
     }

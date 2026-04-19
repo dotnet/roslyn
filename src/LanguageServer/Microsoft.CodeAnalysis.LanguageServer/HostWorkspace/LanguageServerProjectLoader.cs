@@ -406,24 +406,47 @@ internal abstract class LanguageServerProjectLoader
         }
     }
 
-    /// <summary>
-    /// Begins loading a project with an associated primordial project. Must not be called for a project which has already begun loading.
-    /// </summary>
-    protected async ValueTask BeginLoadingProjectWithPrimordialAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, ProjectId primordialProjectId, bool doDesignTimeBuild)
+    protected async ValueTask<Project?> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
     {
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
-            // If this project has already begun loading, we need to throw.
-            // This is because we can't ensure that the workspace and project system will remain in a consistent state after this call.
-            // For example, there could be a need for the project system to track both a primordial project and list of loaded targets, which we don't support.
-            if (_loadedProjects.ContainsKey(projectPath))
+            if (_loadedProjects.TryGetValue(projectPath, out var existingState))
             {
-                Contract.Fail($"Cannot begin loading project '{projectPath}' because it has already begun loading.");
+                // Note: this generally only happens if we fall through to the "add to misc workspace" path,
+                // and we lose a race to begin loading the miscellaneous file project.
+                return LookupExistingProject(existingState);
             }
 
-            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectId));
+            var primordialProjectInfo = createPrimordialProjectInfo(primordialProjectFactory);
+            primordialProjectFactory.ApplyChangeToWorkspace(workspace => workspace.OnProjectAdded(primordialProjectInfo));
+            _loadedProjects.Add(projectPath, new ProjectLoadState.Primordial(primordialProjectFactory, primordialProjectInfo.Id));
             if (doDesignTimeBuild)
                 _projectsToReload.AddWork(new ProjectToLoad(projectPath, ProjectGuid: null, ReportTelemetry: true));
+
+            return primordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordialProjectInfo.Id);
+        }
+
+        Project? LookupExistingProject(ProjectLoadState loadState)
+        {
+            if (loadState is ProjectLoadState.Primordial primordial)
+            {
+                return primordial.PrimordialProjectFactory.Workspace.CurrentSolution.GetRequiredProject(primordial.PrimordialProjectId);
+            }
+            else if (loadState is ProjectLoadState.LoadedTargets loadedTargets)
+            {
+                var target = loadedTargets.LoadedProjectTargets.FirstOrDefault();
+                if (target is null)
+                {
+                    _logger.LogWarning("Could not get a project for '{projectPath}' because it loaded with no targets", projectPath);
+                    return null;
+                }
+
+                return target.ProjectFactory.Workspace.CurrentSolution.GetRequiredProject(target.ProjectId);
+            }
+            else
+            {
+                throw ExceptionUtilities.UnexpectedValue(loadState);
+            }
         }
     }
 

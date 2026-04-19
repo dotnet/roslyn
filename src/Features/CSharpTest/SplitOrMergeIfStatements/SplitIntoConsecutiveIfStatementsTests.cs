@@ -2,44 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements;
 
-[Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoConsecutiveIfStatements)]
-public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeActionTest_NoEditor
-{
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
-        => new CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider();
+using VerifyCS = CSharpCodeRefactoringVerifier<CSharpSplitIntoConsecutiveIfStatementsCodeRefactoringProvider>;
 
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.CodeActionsSplitIntoConsecutiveIfStatements)]
+public sealed class SplitIntoConsecutiveIfStatementsTests
+{
     [Theory]
     [InlineData("a [||]|| b")]
     [InlineData("a |[||]| b")]
     [InlineData("a ||[||] b")]
     [InlineData("a [||||] b")]
     public Task SplitOnOrOperatorSpans(string condition)
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M(bool a, bool b)
                 {
-                    if (
-            """ + condition + """
-            )
+                    if ({{condition}})
                     {
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -59,15 +54,12 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
     [InlineData("a[| |||] b")]
     [InlineData("a[||] || b")]
     public Task NotSplitOnOrOperatorSpans(string condition)
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync($$"""
             class C
             {
                 void M(bool a, bool b)
                 {
-                    if (
-            """ + condition + """
-            )
+                    if ({{condition}})
                     {
                     }
                 }
@@ -76,8 +68,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitOnIfKeyword()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -91,8 +82,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitOnAndOperator()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -106,8 +96,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitOnBitwiseOrOperator()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -121,8 +110,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitOnOrOperatorOutsideIfStatement()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -134,22 +122,20 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitOnOrOperatorInIfStatementBody()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
                 {
                     if (a || b)
-                        a [||]|| b;
+                        {|CS0201:a [||]|| b|};
                 }
             }
             """);
 
     [Fact]
     public Task SplitWithChainedOrExpression1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -159,8 +145,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -177,8 +162,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithChainedOrExpression2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -188,8 +172,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -206,8 +189,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithChainedOrExpression3()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -217,8 +199,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -235,8 +216,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitInsideParentheses1()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -250,8 +230,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitInsideParentheses2()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -265,8 +244,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitInsideParentheses3()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -280,8 +258,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithOtherExpressionInsideParentheses1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -291,8 +268,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -309,8 +285,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithOtherExpressionInsideParentheses2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -320,8 +295,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c, bool d)
@@ -338,8 +312,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithMixedAndExpression1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -349,8 +322,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -367,8 +339,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithMixedAndExpression2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -378,8 +349,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -396,8 +366,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitWithMixedConditionalExpression1()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -411,8 +380,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task NotSplitWithMixedConditionalExpression2()
-        => TestMissingInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -426,8 +394,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithMixedConditionalExpressionInsideParentheses1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -437,8 +404,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -455,8 +421,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithMixedConditionalExpressionInsideParentheses2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -466,8 +431,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b, bool c)
@@ -484,8 +448,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithStatementInsideBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -496,8 +459,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -516,8 +478,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithStatementWithoutBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -526,8 +487,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         System.Console.WriteLine(a || b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -542,8 +502,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithNestedIfStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -552,8 +511,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         if (true) { }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -570,8 +528,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithNestedIfStatementInWhileLoop()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -582,8 +539,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                                 using (null) { }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -604,8 +560,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithNestedIfStatementInsideBlockInWhileLoop()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -618,8 +573,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -642,8 +596,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithNestedIfStatementInsideBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -654,8 +607,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -674,31 +626,34 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithMissingStatement()
-        => TestInRegularAndScriptAsync(
-            """
-            class C
-            {
-                void M(bool a, bool b)
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
                 {
-                    if (a [||]|| b)
+                    void M(bool a, bool b)
+                    {
+                        if (a [||]|| b)
+                    }
                 }
-            }
-            """,
-            """
-            class C
-            {
-                void M(bool a, bool b)
+                """,
+            FixedCode = """
+                class C
                 {
-                    if (a)
-            else if (b)
+                    void M(bool a, bool b)
+                    {
+                        if (a)
+                else if (b)
+                    }
                 }
-            }
-            """);
+                """,
+            CompilerDiagnostics = CompilerDiagnostics.None,
+            CodeActionValidationMode = CodeActionValidationMode.None,
+        }.RunAsync();
 
     [Fact]
     public Task SplitWithElseStatementInsideBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -711,8 +666,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -731,8 +685,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithElseStatementWithoutBlock()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -743,8 +696,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         System.Console.WriteLine(a || b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -761,8 +713,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithElseNestedIfStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -772,8 +723,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     else if (true) { }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -789,8 +739,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithElseIfElse()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -803,8 +752,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         System.Console.WriteLine(b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -823,8 +771,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitAsPartOfElseIfElse()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -837,8 +784,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         System.Console.WriteLine(b);
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -857,19 +803,17 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitWithMissingElseStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
                 {
                     if (a [||]|| b)
                         System.Console.WriteLine();
-                    else
+                    else{|CS1002:|}{|CS1525:|}
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -878,15 +822,14 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         System.Console.WriteLine();
                     else if (b)
                         System.Console.WriteLine();
-                    else
+                    else{|CS1002:|}{|CS1525:|}
                 }
             }
             """);
 
     [Fact]
     public Task SplitWithPreservedSingleLineFormatting()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -894,8 +837,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     if (a [||]|| b) System.Console.WriteLine();
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -908,8 +850,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -918,8 +859,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         return;
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -934,8 +874,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -944,8 +883,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         throw new System.Exception();
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -960,8 +898,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits3()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -973,8 +910,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -992,8 +928,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits4()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1010,8 +945,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1040,8 +974,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuits5()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1057,8 +990,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1085,8 +1017,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuitsInSwitchSection()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1100,8 +1031,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1121,8 +1051,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuitsWithNestedIfStatement()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1132,8 +1061,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                             return;
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1150,8 +1078,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsIfControlFlowQuitsWithPreservedSingleLineFormatting()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1159,8 +1086,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     if (a [||]|| b) return;
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1173,8 +1099,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitNotIntoSeparateStatementsIfControlFlowContinues1()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1184,8 +1109,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1202,8 +1126,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitNotIntoSeparateStatementsIfControlFlowContinues2()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1215,8 +1138,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1237,8 +1159,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitNotIntoSeparateStatementsIfControlFlowContinues3()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1250,8 +1171,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1272,8 +1192,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitNotIntoSeparateStatementsIfControlFlowContinues4()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1289,8 +1208,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1316,8 +1234,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitNotIntoSeparateStatementsWithElseIfControlFlowQuits()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1328,8 +1245,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         return;
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1346,8 +1262,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoSeparateStatementsAsEmbeddedStatementIfControlFlowQuits()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1357,8 +1272,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                             return;
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1376,8 +1290,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitNotIntoSeparateStatementsAsElseIfIfControlFlowQuits()
-        => TestInRegularAndScriptAsync(
-            """
+        => VerifyCS.VerifyRefactoringAsync("""
             class C
             {
                 void M(bool a, bool b)
@@ -1388,8 +1301,7 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
                         return;
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 void M(bool a, bool b)
@@ -1406,18 +1318,28 @@ public sealed class SplitIntoConsecutiveIfStatementsTests : AbstractCSharpCodeAc
 
     [Fact]
     public Task SplitIntoConsecutiveIfStatements_TopLevelStatement()
-        => TestInRegularAndScriptAsync(
-            """
-            if (a [||]|| b)
-            {
-            }
-            """,
-            """
-            if (a)
-            {
-            }
-            else if (b)
-            {
-            }
-            """);
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                var a = true;
+                var b = true;
+
+                if (a [||]|| b)
+                {
+                }
+                """,
+            FixedCode = """
+                var a = true;
+                var b = true;
+
+                if (a)
+                {
+                }
+                else if (b)
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
+        }.RunAsync();
 }
