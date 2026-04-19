@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <!-- Test our primary scenarios: VS OOP, VS Code, devenv -->
-    <TargetFrameworks>$(NetRoslynWindowsTests);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetVSShared);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
