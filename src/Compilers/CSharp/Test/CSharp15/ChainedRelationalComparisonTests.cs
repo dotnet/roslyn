@@ -87,6 +87,169 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void Chain_EmbeddedInStringConcat_LowersExactlyOnce()
+    {
+        // Chain as a nested expression inside a non-chained binary (string +). Exercises
+        // LocalRewriter_BinaryOperator's left-spine stack walker that was taught to stop
+        // on `current.IsChainedRelational` - otherwise it would flatten the chained node
+        // into the + spine and both misbehave and drop the chain's lowered form.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    Console.WriteLine("r=" + (0 <= 5 < 10));
+                    Console.WriteLine("r=" + (0 <= 5 < 2));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                r=True
+                r=False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_ResultConvertedToNullableBool_CompilesAndRuns()
+    {
+        // The chain's compile-time type is `bool` (§11.11.13 "classified as a value of
+        // type bool"). Assigning to `bool?` exercises an implicit boxing / null-coalesce
+        // conversion sitting atop the chained node's result in the bound tree.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    bool? a = 0 <= 5 < 10;
+                    bool? b = 0 <= 5 < 2;
+                    Console.WriteLine($"a={a}, b={b}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "a=True, b=False")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_WithOperandShapes_NullCoalescingAndConditionalAccess_Works()
+    {
+        // Exercise operand shapes that are themselves complex lowered expressions. The
+        // lowering's `VisitExpression(y)` and `VisitExpression(node.Right)` calls must
+        // correctly lower these operands inside the chain's temp-assignment structure.
+        var src = """
+            #nullable enable
+            using System;
+
+            class P
+            {
+                static int Fallback() { Console.Write("fb "); return 5; }
+
+                static void Main()
+                {
+                    int? maybe = null;
+                    int[] arr = { 1, 2, 3 };
+                    int[]? maybeArr = null;
+
+                    // Middle operand is `??` expression - takes the fallback since maybe is null.
+                    Console.WriteLine(0 < (maybe ?? Fallback()) < 10);   // "fb True"
+
+                    // Middle operand is `?.` - null-conditional access on a null array gives null;
+                    // the lifted `<` yields false; chain short-circuits.
+                    Console.WriteLine(0 < maybeArr?.Length < 10);         // "False"
+
+                    // Right operand uses conditional access.
+                    Console.WriteLine(0 < arr.Length < maybeArr?.Length); // "False"
+                }
+            }
+            """;
+        // The `int < int? < int` and `int < int < int?` chains are asymmetric
+        // (the lifted operators give the middle a Nullable<int> type on one link
+        // and a non-nullable int on the other), so they hit the same deferred
+        // IL-verify failure as the other asymmetric-conversion chain tests.
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                fb True
+                False
+                False
+                """,
+            verify: Verification.FailsILVerify)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_WithOperandShapes_ConditionalExpression_Works()
+    {
+        // A `? :` ternary in the middle of a chain. Lowering's VisitExpression handles
+        // BoundConditionalOperator already; just pin that the chain's temp-capture site
+        // doesn't interfere.
+        var src = """
+            using System;
+
+            class P
+            {
+                static int A() { Console.Write("A "); return 5; }
+                static int B() { Console.Write("B "); return 10; }
+
+                static void Main()
+                {
+                    bool cond = true;
+                    Console.WriteLine(0 < (cond ? A() : B()) < 100);  // "A True"
+                    cond = false;
+                    Console.WriteLine(0 < (cond ? A() : B()) < 100);  // "B True"
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                A True
+                B True
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_UsedAsGenericArgumentOfFuncTakingBool_Works()
+    {
+        // Nothing special expected - chain result is bool, so method-group conversion to
+        // Func<bool> or passing as a bool argument should just work. Pinning regardless
+        // because the binder's speculative chain-fallback attempt could in theory
+        // interact oddly with argument type-inference.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Accept(bool b) => Console.WriteLine($"b={b}");
+                static void AcceptFunc(Func<bool> f) => Console.WriteLine($"f()={f()}");
+
+                static void Main()
+                {
+                    Accept(0 <= 5 < 10);
+                    AcceptFunc(() => 0 <= 5 < 10);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                b=True
+                f()=True
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Chain_FourAndFiveOperands_WorkNAry()
     {
         // The chain rule is recursive, so arbitrary-length chains fall out.
