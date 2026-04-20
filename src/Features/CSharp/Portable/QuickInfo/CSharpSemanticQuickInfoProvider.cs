@@ -113,6 +113,19 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         if (invocation is null)
             return null;
 
+        // Only show interceptor info when hovering over the method name itself,
+        // not other parts of the invocation expression (like the receiver type).
+        var nameSyntax = invocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccess => (SyntaxNode)memberAccess.Name,
+            MemberBindingExpressionSyntax memberBinding => memberBinding.Name,
+            SimpleNameSyntax name => name,
+            _ => null
+        };
+
+        if (nameSyntax is null || !nameSyntax.Span.Contains(token.Span))
+            return null;
+
         var interceptor = semanticModel.GetInterceptorMethod(invocation, cancellationToken);
         if (interceptor is null)
             return null;
@@ -128,7 +141,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
                 var typeArguments = GetInterceptorTypeArguments(resolvedMethod);
                 if (typeArguments.Length == interceptor.TypeParameters.Length)
                 {
-                    interceptor = interceptor.Construct([.. typeArguments]);
+                    interceptor = interceptor.Construct(typeArguments, default);
                 }
             }
         }

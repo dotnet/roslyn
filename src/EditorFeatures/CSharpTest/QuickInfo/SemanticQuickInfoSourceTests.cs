@@ -10337,8 +10337,7 @@ AnonymousTypes(
             var location = locations[i];
             if (location != null)
             {
-                var attrSyntax = $@"[global::System.Runtime.CompilerServices.InterceptsLocationAttribute({location.Version}, ""{location.Data}"")]";
-                interceptorCode = interceptorCode.Replace($"{{INTERCEPTS_LOCATION_{i}}}", attrSyntax);
+                interceptorCode = interceptorCode.Replace($"{{INTERCEPTS_LOCATION_{i}}}", location.GetInterceptsLocationAttributeSyntax());
             }
         }
 
