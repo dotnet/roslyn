@@ -1037,8 +1037,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     CheckFeatureAvailability(node, MessageID.IDS_FeatureChainedRelationalComparison, diagnostics);
 
+                    // Y is the inner node's right operand: the shared middle operand of the
+                    // chain. For `a op' b op c` we treat the outer `op` as `Y op c`, i.e.
+                    // `b op c`, re-running overload resolution against that isolated pair.
                     BoundExpression y = leftBinaryOperator.Right;
 
+                    // Run the isolated `Y op Right` overload resolution speculatively. Route
+                    // its diagnostics and its OperatorResolutionForReporting state into scratch
+                    // buffers so that, if the chain interpretation is rejected below, nothing
+                    // from this attempt leaks into the caller's diagnostics (we will instead
+                    // fall through and report either the specific chained-relational error or
+                    // the original CS0019 from the outer resolution). If the chain succeeds
+                    // we commit the attempted diagnostics wholesale (see the
+                    // `chainReturnsBool` branch below).
                     var attemptDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
                     OperatorResolutionForReporting chainOperatorResolutionForReporting = default;
 
@@ -1047,6 +1058,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         out ImmutableArray<MethodSymbol> chainOriginalUserDefinedOperators,
                         out BinaryOperatorSignature chainSignature, out BinaryOperatorAnalysisResult chainBest);
 
+                    // We never report the CS0019-style error from this speculative attempt, so
+                    // the reporting state is always freed here regardless of outcome.
                     chainOperatorResolutionForReporting.Free();
 
                     bool chainReturnsBool = chainFoundOperator &&
