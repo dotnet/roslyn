@@ -1036,17 +1036,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // String / UserDefined). We keep the operator bits so downstream passes still
                 // see *which* operator was written, but clear the operand-type bits so no
                 // consumer concludes that we successfully bound to a specific signature.
-                // The chain shape requires `A` (the left operand) to be *syntactically* an
-                // operation of the form `X op' Y` - not a parenthesized / checked / conditional
-                // expression that happens to bind to a bool-returning BoundBinaryOperator. See
-                // the "Parentheses around the left-hand operand prevent the chain interpretation"
-                // note in spec §11.11.13: wrapping the inner link in parens or any other
-                // expression form blocks the chain. The bound tree collapses
-                // ParenthesizedExpression wrappers, so we check the *syntax* node directly.
-                if (kind.IsChainableRelational() &&
-                    node.Left is BinaryExpressionSyntax &&
+                // The chain shape is gated entirely on *syntax*: both the outer operator and
+                // the left operand must be user-written relational comparisons with one of the
+                // four chainable SyntaxKinds (<, <=, >, >=). Checking the BoundBinaryOperator's
+                // semantic OperatorKind would also match compiler-synthesized bound nodes that
+                // happen to carry a relational kind, which is not the user-visible situation
+                // §11.11.13 governs. Similarly, spec §11.11.13's "Parentheses around the
+                // left-hand operand prevent the chain interpretation" note is automatically
+                // satisfied because a ParenthesizedExpressionSyntax is not itself one of the
+                // chainable SyntaxKinds.
+                if (node.Kind().IsChainableRelationalExpression() &&
+                    node.Left is BinaryExpressionSyntax innerSyntax &&
+                    innerSyntax.Kind().IsChainableRelationalExpression() &&
                     left is BoundBinaryOperator leftBinaryOperator &&
-                    leftBinaryOperator.OperatorKind.IsChainableRelational() &&
                     left.Type is { SpecialType: SpecialType.System_Boolean })
                 {
                     CheckFeatureAvailability(node, MessageID.IDS_FeatureChainedRelationalComparison, diagnostics);

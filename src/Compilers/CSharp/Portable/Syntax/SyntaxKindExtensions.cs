@@ -8,6 +8,32 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class SyntaxKindExtensions
     {
+        /// <summary>
+        /// True if this is one of the four relational-expression SyntaxKinds that may
+        /// participate in a chained relational comparison (spec §11.11.13):
+        /// <see cref="SyntaxKind.LessThanExpression"/>, <see cref="SyntaxKind.LessThanOrEqualExpression"/>,
+        /// <see cref="SyntaxKind.GreaterThanExpression"/>, <see cref="SyntaxKind.GreaterThanOrEqualExpression"/>.
+        /// Equality operators (<c>==</c>, <c>!=</c>) are intentionally excluded.
+        ///
+        /// This check is deliberately syntactic: the chain rule only fires for relational
+        /// comparisons the user wrote in source. Compiler-synthesized BoundBinaryOperator
+        /// nodes that happen to carry a relational <see cref="BinaryOperatorKind"/> must not
+        /// trigger the chain interpretation.
+        /// </summary>
+        internal static bool IsChainableRelationalExpression(this SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         internal static SpecialType GetSpecialType(this SyntaxKind kind)
         {
             switch (kind)
