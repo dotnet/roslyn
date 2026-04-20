@@ -40,7 +40,6 @@ internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyz
         EnforceOnBuild enforceOnBuild,
         LocalizableString title,
         LocalizableString messageFormat,
-        bool hasAnyCodeStyleOption,
         bool isUnnecessary,
         bool isEnabledByDefault = true,
         bool isConfigurable = true,
@@ -55,6 +54,6 @@ internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyz
                 isEnabledByDefault,
                 description,
                 helpLinkUri: helpLinkUri ?? DiagnosticHelper.GetHelpLinkForDiagnosticId(id),
-                customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, isCustomConfigurable: hasAnyCodeStyleOption, enforceOnBuild));
+                customTags: DiagnosticCustomTags.Create(isUnnecessary, isConfigurable, isCustomConfigurable: false, enforceOnBuild));
 #pragma warning restore RS0030 // Do not use banned APIs
 }

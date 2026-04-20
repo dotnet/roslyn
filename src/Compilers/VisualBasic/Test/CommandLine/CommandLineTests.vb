@@ -10201,14 +10201,21 @@ End Class"
         End Sub
 
         <WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")>
-        <CombinatorialData, Theory>
+        <InlineData(DiagnosticSeverity.Hidden, False, False)>
+        <InlineData(DiagnosticSeverity.Hidden, False, True)>
+        <InlineData(DiagnosticSeverity.Hidden, True, False)>
+        <InlineData(DiagnosticSeverity.Hidden, True, True)>
+        <InlineData(DiagnosticSeverity.Info, False, False)>
+        <InlineData(DiagnosticSeverity.Info, True, False)>
+        <InlineData(DiagnosticSeverity.Warning, False, False)>
+        <InlineData(DiagnosticSeverity.Warning, True, False)>
+        <Theory>
         Public Sub TestAnalyzerFilteringBasedOnSeverity(defaultSeverity As DiagnosticSeverity, errorlog As Boolean, customConfigurable As Boolean)
             ' This test verifies that analyzer execution is skipped at build time for the following:
             '   1. Analyzer reporting Hidden diagnostics
             '   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            ' However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
-            Dim analyzerShouldBeSkipped = (defaultSeverity = DiagnosticSeverity.Hidden OrElse
-                defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog) AndAlso Not customConfigurable
+            Dim analyzerShouldBeSkipped = defaultSeverity = DiagnosticSeverity.Hidden OrElse
+                defaultSeverity = DiagnosticSeverity.Info AndAlso Not errorlog
 
             ' We use an analyzer that throws an exception on every analyzer callback.
             ' So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
@@ -10237,17 +10244,23 @@ End Class")
         End Sub
 
         <WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")>
-        <CombinatorialData, Theory>
+        <InlineData(DiagnosticSeverity.Hidden, False, False)>
+        <InlineData(DiagnosticSeverity.Hidden, False, True)>
+        <InlineData(DiagnosticSeverity.Hidden, True, False)>
+        <InlineData(DiagnosticSeverity.Hidden, True, True)>
+        <InlineData(DiagnosticSeverity.Info, False, False)>
+        <InlineData(DiagnosticSeverity.Info, True, False)>
+        <InlineData(DiagnosticSeverity.Warning, False, False)>
+        <InlineData(DiagnosticSeverity.Warning, True, False)>
+        <Theory>
         Public Sub TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(defaultSeverity As DiagnosticSeverity, isEnabledByDefault As Boolean, customConfigurable As Boolean)
             ' This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped.
             ' Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             '   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             '   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            ' However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
-            Dim analyzerShouldBeSkipped = (Not isEnabledByDefault OrElse
+            Dim analyzerShouldBeSkipped = Not isEnabledByDefault OrElse
                 defaultSeverity = DiagnosticSeverity.Hidden OrElse
-                defaultSeverity = DiagnosticSeverity.Info) AndAlso
-                Not customConfigurable
+                defaultSeverity = DiagnosticSeverity.Info
 
             Dim analyzer = New NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, customConfigurable, throwOnAllNamedTypes:=analyzerShouldBeSkipped)
             Dim diagnosticId = analyzer.Descriptor.Id
@@ -10267,8 +10280,7 @@ End Class")
             Assert.Equal(expectedExitCode, exitCode)
 
             Dim output = outWriter.ToString()
-            If analyzerShouldBeSkipped OrElse
-               (customConfigurable AndAlso (defaultSeverity = DiagnosticSeverity.Hidden OrElse defaultSeverity = DiagnosticSeverity.Info)) Then
+            If analyzerShouldBeSkipped Then
                 Assert.Empty(output)
             Else
                 Dim prefix = If(defaultSeverity = DiagnosticSeverity.Warning, "warning", "error")
@@ -10282,10 +10294,6 @@ End Class")
         <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
         <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error)>
         <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Warning)>
-        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
-        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
-        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)>
-        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)>
         <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
         <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Warning)>
         <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, Nothing, DiagnosticSeverity.Error)>
@@ -10298,14 +10306,6 @@ End Class")
         <InlineData(True, False, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
         <InlineData(False, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
         <InlineData(True, True, DiagnosticSeverity.Info, DiagnosticSeverity.Error, Nothing, DiagnosticSeverity.Error)>
-        <InlineData(False, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, False, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(False, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, True, DiagnosticSeverity.Info, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(False, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, False, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(False, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
-        <InlineData(True, True, DiagnosticSeverity.Warning, Nothing, DiagnosticSeverity.Error, DiagnosticSeverity.Error)>
         Public Sub TestWarnAsErrorMinusDoesNotNullifyEditorConfig(warnAsErrorMinus As Boolean,
                                                                   useGlobalConfig As Boolean,
                                                                   defaultSeverity As DiagnosticSeverity,

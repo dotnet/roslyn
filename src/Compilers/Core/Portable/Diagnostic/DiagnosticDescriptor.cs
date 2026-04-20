@@ -181,6 +181,8 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(title));
             }
 
+            Debug.Assert(!customTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable) || defaultSeverity == DiagnosticSeverity.Hidden);
+
             this.Id = id;
             this.Title = title;
             this.Category = category;

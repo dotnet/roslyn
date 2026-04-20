@@ -13314,11 +13314,8 @@ dotnet_analyzer_diagnostic.category-{category}.severity = none";
 
         [WorkItem(38674, "https://github.com/dotnet/roslyn/issues/38674")]
         [InlineData(DiagnosticSeverity.Warning, false, false)]
-        [InlineData(DiagnosticSeverity.Warning, false, true)]
         [InlineData(DiagnosticSeverity.Info, true, false)]
         [InlineData(DiagnosticSeverity.Info, false, false)]
-        [InlineData(DiagnosticSeverity.Info, true, true)]
-        [InlineData(DiagnosticSeverity.Info, false, true)]
         [InlineData(DiagnosticSeverity.Hidden, false, false)]
         [InlineData(DiagnosticSeverity.Hidden, false, true)]
         [Theory]
@@ -13328,8 +13325,7 @@ dotnet_analyzer_diagnostic.category-{category}.severity = none";
 
             var diagnosticId = analyzer.Descriptor.Id;
 
-            // Verify bulk configuration without any diagnostic ID configuration is respected,
-            // unless analyzer reports 'CustomConfigurable' diagnostics, which explicitly disables bulk configuration.
+            // Verify bulk configuration without any diagnostic ID configuration is respected
             var defaultReportDiagnostic = DiagnosticDescriptor.MapSeverityToReport(defaultSeverity);
             var expectedDiagnosticSeverity = customConfigurable ? defaultReportDiagnostic : ReportDiagnostic.Error;
             var analyzerConfigText = $@"
@@ -13691,19 +13687,19 @@ class C
         public void AnalyzerConfigRespectedForNoLocationDiagnostic(ReportDiagnostic reportDiagnostic, bool isEnabledByDefault, bool noWarn, bool errorlog)
         {
             var analyzer = new AnalyzerWithNoLocationDiagnostics(isEnabledByDefault);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog, customConfigurable: false);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, reportDiagnostic, noWarn, errorlog);
         }
 
         [WorkItem(37876, "https://github.com/dotnet/roslyn/issues/37876")]
         [Theory]
         [CombinatorialData]
-        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog, bool customConfigurable)
+        public void AnalyzerConfigRespectedForDisabledByDefaultDiagnostic(ReportDiagnostic analyzerConfigSeverity, bool isEnabledByDefault, bool noWarn, bool errorlog)
         {
-            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity: DiagnosticSeverity.Warning, customConfigurable, throwOnAllNamedTypes: false);
-            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn, errorlog, customConfigurable);
+            var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity: DiagnosticSeverity.Warning, customConfigurable: false, throwOnAllNamedTypes: false);
+            TestAnalyzerConfigRespectedCore(analyzer, analyzer.Descriptor, analyzerConfigSeverity, noWarn, errorlog);
         }
 
-        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn, bool errorlog, bool customConfigurable)
+        private void TestAnalyzerConfigRespectedCore(DiagnosticAnalyzer analyzer, DiagnosticDescriptor descriptor, ReportDiagnostic analyzerConfigSeverity, bool noWarn, bool errorlog)
         {
             if (analyzerConfigSeverity == ReportDiagnostic.Default)
             {
@@ -13716,10 +13712,6 @@ class C
             var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText($@"
 [*.cs]
 dotnet_diagnostic.{descriptor.Id}.severity = {analyzerConfigSeverity.ToAnalyzerConfigString()}");
-
-            // Severity of 'CustomSeverityConfigurable' diagnostics should not be affected by editorconfig entries.
-            if (customConfigurable)
-                analyzerConfigSeverity = DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity);
 
             var arguments = new[] {
                 "/nologo",
@@ -13808,15 +13800,22 @@ generated_code = auto");
         }
 
         [WorkItem(42166, "https://github.com/dotnet/roslyn/issues/42166")]
-        [CombinatorialData, Theory]
+        [InlineData(DiagnosticSeverity.Hidden, false, false)]
+        [InlineData(DiagnosticSeverity.Hidden, false, true)]
+        [InlineData(DiagnosticSeverity.Hidden, true, false)]
+        [InlineData(DiagnosticSeverity.Hidden, true, true)]
+        [InlineData(DiagnosticSeverity.Info, false, false)]
+        [InlineData(DiagnosticSeverity.Info, true, false)]
+        [InlineData(DiagnosticSeverity.Warning, false, false)]
+        [InlineData(DiagnosticSeverity.Warning, true, false)]
+        [Theory]
         public void TestAnalyzerFilteringBasedOnSeverity(DiagnosticSeverity defaultSeverity, bool errorlog, bool customConfigurable)
         {
             // This test verifies that analyzer execution is skipped at build time for the following:
             //   1. Analyzer reporting Hidden diagnostics
             //   2. Analyzer reporting Info diagnostics, when /errorlog is not specified
-            // However, an analyzer that reports diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
-            var analyzerShouldBeSkipped = (defaultSeverity == DiagnosticSeverity.Hidden ||
-                defaultSeverity == DiagnosticSeverity.Info && !errorlog) && !customConfigurable;
+            var analyzerShouldBeSkipped = defaultSeverity == DiagnosticSeverity.Hidden ||
+                defaultSeverity == DiagnosticSeverity.Info && !errorlog;
 
             // We use an analyzer that throws an exception on every analyzer callback.
             // So an AD0001 analyzer exception diagnostic is reported if analyzer executed, otherwise not.
@@ -13845,16 +13844,23 @@ generated_code = auto");
         }
 
         [WorkItem(47017, "https://github.com/dotnet/roslyn/issues/47017")]
-        [CombinatorialData, Theory]
+        [InlineData(DiagnosticSeverity.Hidden, false, false)]
+        [InlineData(DiagnosticSeverity.Hidden, false, true)]
+        [InlineData(DiagnosticSeverity.Hidden, true, false)]
+        [InlineData(DiagnosticSeverity.Hidden, true, true)]
+        [InlineData(DiagnosticSeverity.Info, false, false)]
+        [InlineData(DiagnosticSeverity.Info, true, false)]
+        [InlineData(DiagnosticSeverity.Warning, false, false)]
+        [InlineData(DiagnosticSeverity.Warning, true, false)]
+        [Theory]
         public void TestWarnAsErrorMinusDoesNotEnableDisabledByDefaultAnalyzers(DiagnosticSeverity defaultSeverity, bool isEnabledByDefault, bool customConfigurable)
         {
             // This test verifies that '/warnaserror-:DiagnosticId' does not affect if analyzers are executed or skipped..
             // Setup the analyzer to always throw an exception on analyzer callbacks for cases where we expect analyzer execution to be skipped:
             //   1. Disabled by default analyzer, i.e. 'isEnabledByDefault == false'.
             //   2. Default severity Hidden/Info: We only execute analyzers reporting Warning/Error severity diagnostics on command line builds.
-            // However, an analyzer reporting diagnostics with "CustomSeverityConfigurable" tag should never be skipped for execution.
-            var analyzerShouldBeSkipped = (!isEnabledByDefault ||
-                defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info) && !customConfigurable;
+            var analyzerShouldBeSkipped = !isEnabledByDefault ||
+                defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info;
 
             var analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault, defaultSeverity, customConfigurable, throwOnAllNamedTypes: analyzerShouldBeSkipped);
             var diagnosticId = analyzer.Descriptor.Id;
@@ -13872,7 +13878,7 @@ generated_code = auto");
             Assert.Equal(expectedExitCode, exitCode);
 
             var output = outWriter.ToString();
-            if (analyzerShouldBeSkipped || customConfigurable && defaultSeverity is DiagnosticSeverity.Hidden or DiagnosticSeverity.Info)
+            if (analyzerShouldBeSkipped)
             {
                 Assert.Empty(output);
             }
@@ -13890,11 +13896,6 @@ generated_code = auto");
         [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
         [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error)]
         [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Warning)]
-        // Verify '/warnaserror-:ID' prevents escalation to 'Error' when custom configured analyzer bumps severity to 'Warning'
-        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
-        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Warning, DiagnosticSeverity.Warning)]
         // Verify '/warnaserror-:ID' prevents escalation to 'Error' when default severity is 'Warning' and no config file or custom configured setting is specified.
         [InlineData(false, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Error)]
         [InlineData(true, false, DiagnosticSeverity.Warning, null, null, DiagnosticSeverity.Warning)]
@@ -13910,15 +13911,6 @@ generated_code = auto");
         [InlineData(true, false, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
         [InlineData(false, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
         [InlineData(true, true, DiagnosticSeverity.Info, DiagnosticSeverity.Error, null, DiagnosticSeverity.Error)]
-        // Verify '/warnaserror-:ID' has no effect when default severity is 'Info' or 'Warning' and custom configured severity is 'Error'
-        [InlineData(false, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(false, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Info, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(false, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, false, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(false, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
-        [InlineData(true, true, DiagnosticSeverity.Warning, null, DiagnosticSeverity.Error, DiagnosticSeverity.Error)]
         public void TestWarnAsErrorMinusDoesNotNullifyEditorConfig(
             bool warnAsErrorMinus,
             bool useGlobalConfig,

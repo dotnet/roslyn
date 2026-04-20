@@ -1030,43 +1030,8 @@ public sealed partial class UseObjectInitializerTests
     [WorkItem("https://github.com/dotnet/roslyn/issues/72094")]
     public async Task TestWithConflictingSeverityConfigurationEntries(bool enabled)
     {
-        string testCode, fixedCode;
-        if (enabled)
-        {
-            testCode =
-                """
-                class C
-                {
-                    int i;
-            
-                    void M()
-                    {
-                        var c = [|new|] C();
-                        c.i = 1;
-                    }
-                }
-                """;
-
-            fixedCode =
-                """
-                class C
-                {
-                    int i;
-            
-                    void M()
-                    {
-                        var c = new C
-                        {
-                            i = 1
-                        };
-                    }
-                }
-                """;
-        }
-        else
-        {
-            testCode =
-                """
+        var testCode =
+            """
                 class C
                 {
                     int i;
@@ -1078,8 +1043,7 @@ public sealed partial class UseObjectInitializerTests
                     }
                 }
                 """;
-            fixedCode = testCode;
-        }
+        var fixedCode = testCode;
 
         var globalConfig =
             $"""

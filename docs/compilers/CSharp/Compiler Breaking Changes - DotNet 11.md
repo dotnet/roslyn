@@ -209,3 +209,26 @@ items = [with(x, y), z];  // C# 14: call to with() method; C# 15: error args not
 items = [@with(x, y), z]; // call to with() method
 object with(object a, object b) { ... }
 ```
+
+## `dotnet_diagnostic` severity now takes precedence over inline code style notification for code style diagnostics
+
+***Introduced in Visual Studio 2026 version 18.7***
+
+For C# code style diagnostics, Roslyn previously could still report a diagnostic when the
+code style option included an inline notification level, even if the same diagnostic was
+explicitly disabled with `dotnet_diagnostic.<diagnostic-id>.severity = none`.
+
+For example:
+
+```editorconfig
+[*.cs]
+dotnet_style_object_initializer = true:suggestion
+dotnet_diagnostic.IDE0017.severity = none
+```
+
+Previously, `IDE0017` could still be reported because the inline `:suggestion` notification
+on `dotnet_style_object_initializer` could cause the diagnostic to appear. Now, the explicit
+`dotnet_diagnostic.IDE0017.severity = none` setting is honored, and `IDE0017` is not reported.
+
+If your configuration relied on the inline notification continuing to surface code style diagnostics,
+remove the `dotnet_diagnostic.IDEXXXX.severity = none` entry or set it to the desired severity.

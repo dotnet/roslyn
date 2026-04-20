@@ -372,13 +372,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
                 }
-                else if (diag.IsCustomSeverityConfigurable())
-                {
-                    // Analyzer supports custom ways for configuring diagnostic severity that may not be understood by the compiler.
-                    // We always consider such analyzers to be non-suppressed. Analyzer is responsible for bailing out early if
-                    // it has been suppressed by some custom configuration.
-                    return false;
-                }
 
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;

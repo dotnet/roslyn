@@ -18,7 +18,7 @@ internal sealed class CSharpMakeStructFieldsWritableDiagnosticAnalyzer : Abstrac
         EnforceOnBuildValues.MakeStructFieldsWritable,
         new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
         new LocalizableResourceString(nameof(CSharpAnalyzersResources.Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-        hasAnyCodeStyleOption: false, isUnnecessary: false);
+        isUnnecessary: false);
 
     public CSharpMakeStructFieldsWritableDiagnosticAnalyzer()
         : base([s_diagnosticDescriptor], GeneratedCodeAnalysisFlags.ReportDiagnostics)
