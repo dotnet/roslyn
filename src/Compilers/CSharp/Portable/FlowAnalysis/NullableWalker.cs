@@ -12901,42 +12901,71 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftFalse = this.StateWhenFalse;
                 SetState(isAnd ? leftTrue : leftFalse);
 
-                // TODO(chained-relational, deferred):
-                //
-                // For a chained relational comparison (spec §11.11.13), the outer comparison
-                // is semantically `Y op B` where Y is `node.ChainedRelationalLeftOperand` -
-                // NOT `inner op B`. That affects this method in two ways:
-                //
-                //  1. `leftType` captured above is the inner bool-typed result, but
-                //     InferResultNullability for user-defined chained operators with
-                //     nullable-aware return annotations (e.g. [NotNullIfNotNull("left")])
-                //     would want Y's TypeWithState. Spec §11.11.13 rule 2(b) forces the
-                //     result type to be `bool` anyway, so in practice annotations have no
-                //     effect here and the wrong `leftType` is a theoretical concern only.
-                //
-                //  2. The classical AfterLeftChildHasBeenVisited path runs the
-                //     `SplitAndLearnFromNonNullTest` refinement for `<`/`<=`/`>`/`>=`
-                //     comparisons - the "one side non-null, the other maybe-null, and the
-                //     comparison is true, so the maybe-null side is non-null" rule. Chained
-                //     nodes route through *this* method instead and therefore don't get that
-                //     refinement, so an NRT `s?.Length` used as the outer right operand of a
-                //     chain won't refine `s` to non-null in the chain's when-true branch.
-                //
-                // The natural fix for both is to re-visit Y under the `leftTrue` state to
-                // recover its TypeWithState, then apply the same refinement the classical
-                // path does. That cannot be done today because ChainedRelationalLeftOperand
-                // lives on UncommonData, not as a regular child, and DebugVerifier validates
-                // that every analyzed node is also visited by the verifier's bound-tree
-                // walk - a straightforward `VisitWithoutDiagnostics(ChainedRelationalLeftOperand)`
-                // trips the verifier with "analyzed N nodes but DebugVerifier expects N-1".
-                // Teaching DebugVerifier about ChainedRelationalLeftOperand (and any other
-                // UncommonData-embedded expressions) is the right fix but is out of scope
-                // for the binding-foundation PR.
-
                 Visit(node.Right);
                 TypeWithState rightType = ResultType;
                 SetResultType(node, InferResultNullability(node.OperatorKind, node.BinaryOperatorMethod, node.Type, leftType, rightType));
-                AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
+
+                if (node.IsChainedRelational && node.OperatorKind.IsLifted())
+                {
+                    // Chained lifted relational comparison (spec §11.11.13 + §11.4.8): the
+                    // outer link's semantics are `Y op B` where Y is
+                    // `((BoundBinaryOperator)node.Left).Right`, not `inner op B`. A lifted
+                    // relational returns true iff neither operand was null, so we refine
+                    // both Y and node.Right to non-null in the chain's when-true branch -
+                    // the same refinement ReinferAndVisitBinaryOperator applies for the
+                    // classical non-chained lifted case.
+                    //
+                    // Inlines AfterRightChildOfBinaryLogicalOperatorHasBeenVisited's flow
+                    // because the stock helper ends with an Unsplit that would clobber the
+                    // refinement. Y is on the standard tree-descent path (via
+                    // `node.Left.Right`), and the slot-based MarkSlotsAsNotNull helper does
+                    // not call Visit, so DebugVerifier's analyzed-vs-walked invariant is
+                    // preserved automatically.
+                    afterChainedLiftedRelationalRightChildHasBeenVisited(node, leftFalse);
+                }
+                else
+                {
+                    AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node.Right, isAnd, isBool, ref leftTrue, ref leftFalse);
+                }
+            }
+
+            void afterChainedLiftedRelationalRightChildHasBeenVisited(BoundBinaryOperator node, LocalState leftFalse)
+            {
+                // Mirrors AfterRightChildOfBinaryLogicalOperatorHasBeenVisited for the
+                // chained-lifted case (isAnd=true, isBool=false), with the refinement
+                // applied to resultTrue between the Unsplit/Split cycle and the final
+                // SetConditionalState.
+                AdjustConditionalState(node.Right);
+                this.Unsplit();
+                this.Split();
+
+                var resultTrue = this.StateWhenTrue;
+                var resultFalse = this.StateWhenFalse;
+
+                // isAnd=true: the chain's when-false is joined with the inner's when-false
+                // (false ∨ false, short-circuited). The chain's when-true is the inner's
+                // when-true combined with the outer link's when-true - which is the current
+                // resultTrue, since visiting node.Right in the inner's when-true state
+                // carried refinements through.
+                Join(ref resultFalse, ref leftFalse);
+
+                var innerLink = (BoundBinaryOperator)node.Left;
+                var slots = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(innerLink.Right, slots);
+                GetSlotsToMarkAsNotNullable(node.Right, slots);
+                if (slots.Count != 0)
+                {
+                    MarkSlotsAsNotNull(slots, ref resultTrue);
+                }
+                slots.Free();
+
+                SetConditionalState(resultTrue, resultFalse);
+
+                // Deliberately NOT calling the final Unsplit that
+                // AfterRightChildOfBinaryLogicalOperatorHasBeenVisited does for !isBool.
+                // Leaving split state here is what lets the refinement flow through the
+                // chain's consumer (e.g. `if (chain) { ... }`) - the same shape classical
+                // lifted relational operators leave state in.
             }
 
             void afterLeftChildOfBoundUserDefinedConditionalLogicalOperatorHasBeenVisited(BoundUserDefinedConditionalLogicalOperator binary, BoundExpression leftOperand, Conversion leftConversion)
