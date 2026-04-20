@@ -40,14 +40,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             .VerifyDiagnostics();
     }
 
-    // All 216 combinations of {short, short?, int, int?, long, long?} at the three
-    // operand positions. The chain must bind, run, and produce the correct result for
-    // every combination, and IL must verify cleanly in every case: the shared middle
-    // operand is captured in a temp at Y's inner-link type and the outer link applies
-    // its own conversion on load, so the inner operator's operand type always matches
-    // the temp's type - including asymmetric-width shapes like `short, int, long` and
-    // nullable-lifting shapes like `int, int, int?`, where the outer link otherwise
-    // would drive the temp to a different type than the inner link consumes.
+    // Every permutation of `{short, short?, int, int?, long, long?}` at the three
+    // operand positions (216 rows).
     public static IEnumerable<object[]> AllShortIntLongNullablePermutations()
     {
         var types = new[] { "short", "short?", "int", "int?", "long", "long?" };
@@ -61,8 +55,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [MemberData(nameof(AllShortIntLongNullablePermutations))]
     public void Chain_AllShortIntLongNullablePermutations(string aType, string bType, string cType)
     {
-        // Values a=0, b=5, c=10 satisfy a < b < c for every combination and fit every
-        // type in the grid, so expectedOutput is uniformly "True".
+        // a=0, b=5, c=10 satisfy `a < b < c` for every row in the grid.
         var src = $$"""
             using System;
 
@@ -84,19 +77,12 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Theory]
-    // In the "all three nullable" case, a null at ANY position forces at least one
-    // lifted comparison to return false (spec §11.4.8). A null on the outer right
-    // makes the outer link false AFTER the inner link was true; a null at the other
-    // positions makes the inner link false and short-circuits. Either way the chain
-    // yields False, which is what this Theory pins.
-    //
-    // aVal/bVal/cVal of "null" vs a number lets us drive every single-null scenario.
-    [InlineData("null", "5", "10", "False")]    // null in a
-    [InlineData("0", "null", "10", "False")]    // null in b
-    [InlineData("0", "5", "null", "False")]     // null in c (inner true, outer false)
-    [InlineData("null", "null", "10", "False")] // nulls in a and b
-    [InlineData("null", "null", "null", "False")] // all null
-    [InlineData("0", "5", "10", "True")]        // no nulls, control
+    [InlineData("null", "5", "10", "False")]
+    [InlineData("0", "null", "10", "False")]
+    [InlineData("0", "5", "null", "False")]
+    [InlineData("null", "null", "10", "False")]
+    [InlineData("null", "null", "null", "False")]
+    [InlineData("0", "5", "10", "True")]
     public void Chain_AllNullableOperands_NullInAnyPositionShortCircuitsToFalse(string aVal, string bVal, string cVal, string expected)
     {
         var src = $$"""
@@ -122,10 +108,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_Nullable_LiftedOperatorsReturnBool()
     {
-        // Lifted relational operators return bool (not bool?) per spec §11.4.8, so a chain
-        // over int? / double? operands classifies each link as bool and the chain is
-        // accepted. A null operand makes the corresponding comparison yield false, which
-        // short-circuits the chain.
+        // Lifted relational operators return `bool`, not `bool?` (spec §11.4.8).
         var src = """
             using System;
 
@@ -147,8 +130,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_MixedDirection_InterpretedAsAnd()
     {
-        // `a < b > c` means `a < b && b > c` per the chain rule; there is no requirement
-        // that all links go the same direction.
         var src = """
             using System;
 
@@ -169,10 +150,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_EmbeddedInStringConcat_LowersExactlyOnce()
     {
-        // Chain as a nested expression inside a non-chained binary (string +). Exercises
-        // LocalRewriter_BinaryOperator's left-spine stack walker that was taught to stop
-        // on `current.IsChainedRelational` - otherwise it would flatten the chained node
-        // into the + spine and both misbehave and drop the chain's lowered form.
+        // Chain nested inside a non-chained binary (`+`).
         var src = """
             using System;
 
@@ -197,9 +175,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_ResultConvertedToNullableBool_CompilesAndRuns()
     {
-        // The chain's compile-time type is `bool` (§11.11.13 "classified as a value of
-        // type bool"). Assigning to `bool?` exercises an implicit boxing / null-coalesce
-        // conversion sitting atop the chained node's result in the bound tree.
+        // Chain's compile-time type is `bool`; implicit conversion to `bool?` applies.
         var src = """
             using System;
 
@@ -222,9 +198,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_WithOperandShapes_NullCoalescingAndConditionalAccess_Works()
     {
-        // Exercise operand shapes that are themselves complex lowered expressions. The
-        // lowering's `VisitExpression(y)` and `VisitExpression(node.Right)` calls must
-        // correctly lower these operands inside the chain's temp-assignment structure.
+        // Operands that are themselves lowered expressions (`??`, `?.`).
         var src = """
             #nullable enable
             using System;
@@ -239,14 +213,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                     int[] arr = { 1, 2, 3 };
                     int[]? maybeArr = null;
 
-                    // Middle operand is `??` expression - takes the fallback since maybe is null.
                     Console.WriteLine(0 < (maybe ?? Fallback()) < 10);   // "fb True"
-
-                    // Middle operand is `?.` - null-conditional access on a null array gives null;
-                    // the lifted `<` yields false; chain short-circuits.
-                    Console.WriteLine(0 < maybeArr?.Length < 10);         // "False"
-
-                    // Right operand uses conditional access.
+                    Console.WriteLine(0 < maybeArr?.Length < 10);        // "False"
                     Console.WriteLine(0 < arr.Length < maybeArr?.Length); // "False"
                 }
             }
@@ -264,28 +232,21 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_WithOperandShapes_ConditionalExpression_Works()
     {
-        // A `? :` ternary in the middle of a chain. Lowering's VisitExpression handles
-        // BoundConditionalOperator already; just pin that the chain's temp-capture site
-        // doesn't interfere.
-        //
-        // A() returns an in-range value and B() returns an out-of-range value, so the
-        // chain's bool result distinguishes which branch was taken. A wrong impl that
-        // e.g. evaluated both branches, or took the wrong branch, would show a wrong
-        // label/result pair.
+        // Ternary middle operand. `A()` returns in-range; `B()` returns out-of-range.
         var src = """
             using System;
 
             class P
             {
-                static int A() { Console.Write("A "); return 5; }      // inside (0, 100)
-                static int B() { Console.Write("B "); return 200; }    // outside (0, 100)
+                static int A() { Console.Write("A "); return 5; }
+                static int B() { Console.Write("B "); return 200; }
 
                 static void Main()
                 {
                     bool cond = true;
-                    Console.WriteLine(0 < (cond ? A() : B()) < 100);   // "A True"  — A picked, 0 < 5 < 100
+                    Console.WriteLine(0 < (cond ? A() : B()) < 100);
                     cond = false;
-                    Console.WriteLine(0 < (cond ? A() : B()) < 100);   // "B False" — B picked, 0 < 200 but NOT < 100
+                    Console.WriteLine(0 < (cond ? A() : B()) < 100);
                 }
             }
             """;
@@ -301,10 +262,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_UsedAsGenericArgumentOfFuncTakingBool_Works()
     {
-        // Nothing special expected - chain result is bool, so method-group conversion to
-        // Func<bool> or passing as a bool argument should just work. Pinning regardless
-        // because the binder's speculative chain-fallback attempt could in theory
-        // interact oddly with argument type-inference.
         var src = """
             using System;
 
@@ -332,7 +289,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_FourAndFiveOperands_WorkNAry()
     {
-        // The chain rule is recursive, so arbitrary-length chains fall out.
         var src = """
             using System;
 
@@ -361,13 +317,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_MiddleOperandEvaluatedOnce()
     {
-        // The single-evaluation guarantee: the shared middle operand in `min <= M() <= max`
-        // is evaluated exactly once even though it appears syntactically at the right of
-        // one comparison and the left of the next.
-        //
-        // Cover both the inner-true and inner-false paths. A bug that double-evaluated M()
-        // on either path would show calls=2 in the corresponding case; a bug that skipped
-        // M() entirely on short-circuit would show calls=0.
+        // The shared middle is evaluated exactly once on every path.
         var src = """
             using System;
 
@@ -380,9 +330,9 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
                 static void Main()
                 {
-                    calls = 0; Report(0 <= M() <= 10);   // inner true, outer true
-                    calls = 0; Report(0 <= M() <= 2);    // inner true, outer false
-                    calls = 0; Report(100 <= M() <= 10); // inner false, outer skipped
+                    calls = 0; Report(0 <= M() <= 10);
+                    calls = 0; Report(0 <= M() <= 2);
+                    calls = 0; Report(100 <= M() <= 10);
                 }
             }
             """;
@@ -399,18 +349,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_MatchesHandWrittenAndChain_SingleEvaluationPinned()
     {
-        // Spec §11.11.13 note: "equivalent in result to (e0 op1 e1) && (e1 op2 e2) && ...
-        // with each ei evaluated at most once." This pins the exact evaluation-count
-        // difference between the chained form and the naive `&&`-rewrite users currently
-        // have to write today:
-        //
-        //   chained:      min <= M() <= max             -> M called 1 time
-        //   hand-written: min <= M() && M() <= max      -> M called 2 times (every time)
-        //
-        // The chain's correctness-benefit over the naive rewrite is that the two
-        // evaluations of M() in the hand-written form can disagree when M has side
-        // effects or is non-deterministic. This test is the concrete illustration of
-        // the spec's motivating example.
+        // Chain calls `M()` once; hand-written `&&` form calls it twice.
         var src = """
             using System;
 
@@ -444,11 +383,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_SameTypeEquivalence_MatchesHandWrittenAndChain()
     {
-        // Complement to AsymmetricConversion_EquivalentToHandWrittenShortCircuit_AllCombinations
-        // (which grid-tests short/int/long): this one pins the same-type case, which
-        // exercises the "identity conversion on Y everywhere" path in the lowering. If
-        // the chain's same-type behaviour ever diverges from the hand-written && equivalent
-        // this test catches it.
+        // Same-type counterpart to AsymmetricConversion_EquivalentToHandWrittenShortCircuit_AllCombinations.
         var src = """
             using System;
 
@@ -479,10 +414,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_AllOperandsAreMethodCalls_EachEvaluatedOnceInLeftToRightOrder()
     {
-        // `A() < B() < C()` must evaluate each of A, B, C exactly once and in source order.
-        // In particular B() - the shared middle - must not be evaluated twice as the naive
-        // `A() < B() && B() < C()` rewrite would do. C() (and anything under it) is only
-        // evaluated when the inner link was true.
         var src = """
             using System;
             using System.Collections.Generic;
@@ -502,8 +433,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 static void Main()
                 {
                     log = new(); Report("1<2<3", A() < B() < C());
-                    log = new(); Report("3<2<1", C() < B() < A()); // inner false -> outer skipped
-                    log = new(); Report("1<3<2", A() < C() < B()); // inner true, outer false; still evaluates all three
+                    log = new(); Report("3<2<1", C() < B() < A());
+                    log = new(); Report("1<3<2", A() < C() < B());
                 }
             }
             """;
@@ -520,17 +451,14 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_ShortCircuit_DoesNotEvaluateArgumentsNestedInsideRightOperand()
     {
-        // When the inner link is false, the outer-right operand and ALL its
-        // sub-expressions (method arguments, nested calls, property accesses,
-        // etc.) must be skipped entirely. This test pins the nested case:
-        // `C(D())` at the outer-right must not invoke either `C` or `D`.
+        // When inner is false, neither `C(...)` nor its argument `D()` runs.
         var src = """
             using System;
 
             class P
             {
                 static int aCalls, bCalls, cCalls, dCalls;
-                static int A() { aCalls++; return 100; }   // chosen so A() > B(), inner is false
+                static int A() { aCalls++; return 100; }
                 static int B() { bCalls++; return 1; }
                 static int C(int x) { cCalls++; return x; }
                 static int D() { dCalls++; return 5; }
@@ -543,8 +471,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 }
             }
             """;
-        // Inner link `A() < B()` = 100 < 1 = false; outer must short-circuit.
-        // Both C(...) and its argument D() must be skipped.
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
             expectedOutput: "r=False, a=1, b=1, c=0, d=0")
@@ -554,11 +480,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_NoShortCircuit_ArgumentsInsideRightOperandRunInSourceOrder()
     {
-        // Companion to the short-circuit test: when the inner link is true the
-        // outer-right operand DOES run, and its nested sub-expressions evaluate
-        // in source order before the enclosing call is invoked. So for `C(D())`
-        // at the outer right the expected log is D then C, after A and B from
-        // the inner link.
+        // When inner is true, the outer-right's sub-expressions run in source order.
         var src = """
             using System;
             using System.Collections.Generic;
@@ -579,8 +501,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 }
             }
             """;
-        // Inner: 1 < 2 = true; outer runs. D evaluates to 5 and is passed to C,
-        // which returns 5. Outer compares 2 < 5 = true. Chain = true.
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
             expectedOutput: "r=True, log=[A,B,D,C]")
@@ -590,9 +510,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_ShortCircuit_InMiddleOfFourOperand_SkipsAllRemainingArgumentsToo()
     {
-        // Generalise: in `A() < B() < C() < D(E())`, if the middle link
-        // `B() < C()` is false, neither the outer link's call D(...) nor its
-        // argument E() should be evaluated. Pinned via per-call counters.
+        // Middle link false -> outer link's call and its argument never run.
         var src = """
             using System;
 
@@ -600,7 +518,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             {
                 static int aCalls, bCalls, cCalls, dCalls, eCalls;
                 static int A() { aCalls++; return 1; }
-                static int B() { bCalls++; return 10; }   // B() > C(), middle link false
+                static int B() { bCalls++; return 10; }
                 static int C() { cCalls++; return 5; }
                 static int D(int x) { dCalls++; return x; }
                 static int E() { eCalls++; return 100; }
@@ -613,8 +531,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 }
             }
             """;
-        // Evaluation order: A=1, B=10 (inner true), C=5 (middle false), STOP.
-        // D and E never run.
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
             expectedOutput: "r=False, a=1, b=1, c=1, d=0, e=0")
@@ -624,9 +540,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_FourMethodCalls_EachSharedMiddleEvaluatedOnce()
     {
-        // In `A() < B() < C() < D()`, both B and C are shared middle operands (B across
-        // links 1-2, C across links 2-3). Each must be evaluated exactly once, in source
-        // order, with short-circuit at the first false link.
+        // Four-operand chain: each shared middle (B, C) is evaluated at most once.
         var src = """
             using System;
             using System.Collections.Generic;
@@ -646,13 +560,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
                 static void Main()
                 {
-                    // All links true -> all four evaluated in order.
                     log = new(); Report("1<2<3<4", A() < B() < C() < D());
-
-                    // Inner link false -> remaining operands skipped.
                     log = new(); Report("2<1<3<4 (inner false)", B() < A() < C() < D());
-
-                    // Middle link false -> last operand skipped.
                     log = new(); Report("1<3<2<4 (middle false)", A() < C() < B() < D());
                 }
             }
@@ -670,9 +579,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_UserDefinedBoolReturningOperator_Works()
     {
-        // A user type with a bool-returning `operator <` chains via the normal fallback
-        // (classical binding fails on `bool < T`, then isolated `T < T` resolves and
-        // returns bool, so the chain is accepted).
         var src = """
             using System;
 
@@ -715,10 +621,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ParensBlockChainShape_ReportsOrdinaryCS0019()
     {
-        // `(a < b) < c` has a parenthesized_expression as its left operand, not a
-        // relational_expression of the chain shape. Therefore the chain rule does not
-        // apply (spec §11.11.13 and its parentheses note) and the user sees the
-        // ordinary CS0019 for `bool < int`.
+        // Parens break the chain shape: `(a < b) < c` falls back to ordinary CS0019.
         var src = """
             class P
             {
@@ -735,9 +638,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void EqualityOperators_DoNotChain()
     {
-        // `a == b == c` parses as `(a == b) == c`, i.e. a comparison of a bool to a
-        // non-bool. That has always been a CS0019 and remains one; the chain rule only
-        // applies to the relational operators `<`, `<=`, `>`, `>=`.
+        // The chain rule applies only to `<`, `<=`, `>`, `>=`.
         var src = """
             class P
             {
@@ -754,10 +655,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ChainInsideExpressionTree_ReportsCS9381()
     {
-        // Chained relational comparisons cannot be represented as System.Linq.Expressions
-        // trees while preserving the single-evaluation guarantee, so any attempt to convert
-        // one to an expression tree produces the specific diagnostic
-        // ERR_ExpressionTreeContainsChainedRelationalComparison.
         var src = """
             using System;
             using System.Linq.Expressions;
@@ -777,17 +674,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Dynamic_IsBoundDynamically_NoChainFallback()
     {
-        // When any operand is `dynamic`, each relational_expression node is dynamically
-        // bound per spec §11.11.1; dynamic binding never produces a binding-time error,
-        // so overload resolution of `A op B` "succeeds" at compile time and §11.11.13
-        // does not apply. The chain is therefore classical left-associative:
-        //
-        //   `a < b < c`   compiles as   `(a < b) < c`
-        //
-        // with each link dispatched at run time through the DLR. Since `a < b` yields a
-        // bool and `bool < int` is not a valid operation for the dynamic binder, the
-        // second dispatch throws RuntimeBinderException. The chain feature is
-        // intentionally not in play here - this test pins that behaviour.
+        // `dynamic` operands bypass the chain rule entirely. The runtime binder then
+        // throws on `bool < int` (the outer link's Left is the inner bool result).
         var src = """
             using System;
             using Microsoft.CSharp.RuntimeBinder;
@@ -823,10 +711,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ChainRequiresPreviewLanguageVersion()
     {
-        // The feature is gated on LanguageVersion.Preview via
-        // IDS_FeatureChainedRelationalComparison. Using an older language version produces
-        // ERR_FeatureInPreview; the chain is still bound so the user does not see a
-        // cascade of unrelated CS0019 errors.
         var src = """
             class P
             {
@@ -844,22 +728,10 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
     #region Asymmetric conversions of a shared middle operand
     //
-    // These tests pin the behaviour of the "Asymmetric conversions" open question
-    // in the spec: when a shift_expression Y appears as the right operand of one
-    // comparison and as the left operand of the next, the two overload resolutions
-    // can ask for different conversions on Y. The spec defers the final choice to
-    // LDM, but documents the current Roslyn implementation as **Option A (permissive)**:
-    // Y is evaluated exactly once; each link's conversion is applied at that link's
-    // point of use, so the chain is equivalent to an ordinary short-circuit `&&`
-    // chain where Y sits in a temp of Y's natural type.
+    // Option A (permissive) per the spec's open question: when a shared middle Y
+    // needs different conversions at its two adjacent links, Y is evaluated once
+    // and each link applies its own conversion at its point of use.
 
-    // All 3^3 = 27 permutations of {short, int, long} at the three operand positions,
-    // including same-type combos like short/short/short (no asymmetry to test but keeps
-    // the grid uniform) and the two hard asymmetric cases where the middle is strictly
-    // "in between" (`short, int, long` and `int, short, long`), which would otherwise
-    // have the inner operator and temp disagree on type. Under Option A the shared
-    // middle operand is captured at Y's inner-link type and the outer link applies its
-    // own conversion on load, so every permutation emits verifiable IL.
     public static IEnumerable<object[]> AllShortIntLongPermutations()
     {
         var types = new[] { "short", "int", "long" };
@@ -873,10 +745,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [MemberData(nameof(AllShortIntLongPermutations))]
     public void AsymmetricConversion_AllPermutationsOfShortIntLong(string aType, string bType, string cType)
     {
-        // a=1, b=5, c=10 fits every permutation of (short, int, long) and produces a
-        // chain result of True. The test also asserts single-evaluation of each
-        // operand via per-call counters - asymmetric conversions must not cause any
-        // operand to be evaluated twice.
+        // a=1, b=5, c=10 fits every row; per-call counters pin single-evaluation.
         var src = $$"""
             using System;
 
@@ -904,9 +773,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void AsymmetricConversion_WideningOnOuterLink_IntIntLong()
     {
-        // Inner `a < b`: int < int (no conversion on b).
-        // Outer `b < c`: resolved in isolation as `int < long` -> `long < long`, applying int->long to b.
-        // Under Option A: b evaluates once; inner uses b as int; outer uses (long)b.
+        // Inner resolves as `int<int`, outer as `long<long` widening b on load.
         var src = """
             using System;
 
@@ -934,9 +801,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void AsymmetricConversion_WideningOnInnerLink_ShortIntInt()
     {
-        // Inner `a < b`: short < int -> int < int (applies short->int on a, identity on b).
-        // Outer `b < c`: int < int (identity both sides).
-        // No disagreement on b's conversion; both options accept this.
+        // Inner widens `a` to int; outer is pure `int<int`. No asymmetry on b.
         var src = """
             using System;
 
@@ -964,9 +829,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void AsymmetricConversion_BothLinksDiffer_ShortIntLong()
     {
-        // The worst case: inner resolves short < int as int<int (no conv on b), outer
-        // resolves int < long as long<long (int->long on b). Under Option A, b
-        // evaluates once and each link uses its own view of the value.
+        // Inner is `int<int`, outer is `long<long`. b is evaluated once, converted on each link.
         var src = """
             using System;
 
@@ -994,9 +857,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void AsymmetricConversion_NegativeLowerBound_DoesNotTruncate()
     {
-        // Sanity: if the widening chain were silently truncating, int.MinValue would
-        // misbehave. Verify it produces the same result as the equivalent hand-written
-        // short-circuit form.
+        // int.MinValue at the lower bound of a widening chain preserves its sign.
         var src = """
             using System;
 
@@ -1025,10 +886,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void AsymmetricConversion_EquivalentToHandWrittenShortCircuit_AllCombinations()
     {
-        // Exhaustive check over a small grid of (short, int, long) operand values:
-        // the chained form must agree with the equivalent hand-written
-        // `(a < b) && ((long)b < c)` for every combination. If Option A's semantic
-        // ever drifts, the assertion below will catch it.
+        // Chain must equal hand-written `(a < b) && ((long)b < c)` on a full grid.
         var src = """
             using System;
 
@@ -1063,10 +921,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void AsymmetricConversion_ShortCircuitOfRightHandSide_NotEvaluated()
     {
-        // When the inner link is false, the outer operand (and anything under it)
-        // must not be evaluated, even when an asymmetric widening conversion is
-        // involved. This test keeps Option A honest about the short-circuit
-        // guarantee under widening.
+        // Short-circuit still holds under asymmetric widening.
         var src = """
             using System;
 
@@ -1079,7 +934,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
                 static void Main()
                 {
-                    int a = 100; // a > B(), so the inner link is false and outer is skipped.
+                    int a = 100;
                     bCalls = cCalls = 0;
                     bool r = a < B() < C();
                     Console.WriteLine($"r={r}, bCalls={bCalls}, cCalls={cCalls}");
@@ -1095,19 +950,11 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     #endregion
 
     #region operator true / operator false interactions
-    //
-    // The chained-relational feature does not involve `operator true`/`operator false` at any
-    // layer: §11.11.13 rule 2(b) requires every link's isolated overload resolution to select
-    // a bool-returning operator, and the chain is combined via plain `LogicalBoolAnd`. So
-    // the truth-operator slot on BoundBinaryOperator (LeftTruthOperatorMethod) is never
-    // non-null for a chained-relational node. These tests pin that invariant.
 
     [Fact]
     public void OperatorTrueFalse_DefinedOnOperandType_DoesNotAffectChain()
     {
-        // S defines `operator <` returning bool AND `operator true`/`operator false`.
-        // The chain should resolve normally (bool-returning `<` on both links) and the
-        // truth operators should not be invoked: the chain's &&-combination is over bools.
+        // The chain's `&&`-combination is over bools; `operator true`/`false` on S must not run.
         var src = """
             using System;
 
@@ -1141,8 +988,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 }
             }
             """;
-        // No "op_true" / "op_false" lines should appear in the output - the chain uses a
-        // plain bool `&&`, not the user-defined conditional logical.
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
             expectedOutput: """
@@ -1160,12 +1005,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void NonBoolReturningOperator_PreservesClassicalBinding()
     {
-        // S defines `operator <(S, S)` returning S (a custom "comparison result" type).
-        // Ordinary overload resolution succeeds at every chain link: `a < b` binds to the
-        // user-defined operator, yielding an S; `(S) < c` binds to the same operator,
-        // yielding an S. Chain fallback (§11.11.13) therefore never activates - back-compat
-        // is preserved, and any diagnostic comes from using the S result where a bool is
-        // required (CS0029), not from the chain feature.
+        // Non-bool-returning `operator <` binds classically; chain fallback never triggers.
         var src = """
             struct S
             {
@@ -1194,12 +1034,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ChainFallback_OuterLinkResolvesToNonBoolOperator_ReportsCS9380()
     {
-        // `a < b` resolves to a bool-returning `operator <(S, S)` so the chain shape exists
-        // and classical `(bool) < int` fails. The chain fallback then runs isolated `b < c`
-        // against (S, int), which resolves successfully to `operator <(S, int)` - but that
-        // operator returns S, not bool. Spec §11.11.13 rule 2(b) requires a bool-returning
-        // operator, so the chain must be rejected with the specific diagnostic
-        // (ERR_NoChainedRelationalComparison / CS9380), not CS0019 or CS0029.
+        // Outer `b < c` resolves but its operator returns S, not bool -> CS9380.
         var src = """
             struct S
             {
@@ -1210,8 +1045,6 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 public static bool operator ==(S a, S b) => true;
                 public static bool operator !=(S a, S b) => false;
 
-                // Non-bool-returning overload against int - picks up during isolated
-                // resolution of `S < int` in the chain fallback.
                 public static S operator <(S a, int b) => default;
                 public static S operator >(S a, int b) => default;
                 public static S operator <=(S a, int b) => default;
@@ -1228,25 +1061,15 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (23,45): error CS9380: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
+                // (21,45): error CS9380: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
                 //     static bool F(S a, S b, int c) => a < b < c;
-                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "int").WithLocation(23, 45));
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "int").WithLocation(21, 45));
     }
 
     [Fact]
     public void ChainFallback_OuterLinkResolutionIsAmbiguous_ReportsCS9380()
     {
-        // Third rule-2(b) failure mode: the isolated `Y op B` overload resolution finds
-        // multiple applicable user-defined operators, none better than the others. For the
-        // chain feature this is indistinguishable from the "no applicable operator" case -
-        // neither succeeds in selecting a bool-returning operator, so both must produce
-        // ERR_NoChainedRelationalComparison (not CS0034 or CS0019).
-        //
-        // Construction: S has a bool-returning `operator <(S, S)` so the chain shape exists.
-        // `int` implicitly converts to Wrap1 and to Wrap2 (unrelated struct wrappers), and
-        // S defines `operator <` against each wrapper. Isolated `S < int` therefore has two
-        // applicable user-defined operators and no tiebreaker, so overload resolution is
-        // ambiguous.
+        // Ambiguous `Y op B` overload resolution also routes through CS9380.
         var src = """
             struct Wrap1
             {
@@ -1296,16 +1119,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ChainFallback_OnOlderLanguageVersion_ReportsBothPreviewAndRule2Errors()
     {
-        // When both the language-version gate AND rule 2(b) would reject the chain, the
-        // current implementation emits BOTH CS8652 (ERR_FeatureInPreview) and CS9380
-        // (ERR_NoChainedRelationalComparison). The preview-gating call runs before the
-        // chain attempt and reports unconditionally; the chain attempt then runs, fails
-        // rule 2(b), and reports its own error.
-        //
-        // This is a deliberate pin: each diagnostic describes a distinct, non-redundant
-        // problem. If LDM later prefers to suppress the second diagnostic when the first
-        // has already fired, this test switches to asserting a single CS8652 and the
-        // binder gains an early-out after CheckFeatureAvailability.
+        // Both CS8652 (preview-gate) and CS9380 (rule 2(b)) fire on an older langver.
         var src = """
             struct S
             {
@@ -1339,23 +1153,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ChainFallback_InnerConversionShapesYAwayFromCompatibleRawType_ReportsCS9380()
     {
-        // Spec §11.11.13 "Conversions on the shared middle operand": the isolated outer
-        // overload resolution is applied against `Y`'s classification *as the right operand
-        // of `X op' Y`* - i.e. the inner link's conversion is already baked in. A
-        // consequence: if the inner link's conversion promotes `Y` into a type that is
-        // incompatible with `c`, the chain is rejected, *even if `Y`'s original type would
-        // have a compatible operator with `c` in isolation*.
-        //
-        // Construction: `B` has both an `implicit -> int` and a bool-returning
-        // `operator <(B, string)`. For `int a, B b, string c`:
-        //   - Inner `a < b` (int < B) resolves to the predefined `int < int`, with B -> int
-        //     applied to `b`. So Y is an `int` in the bound tree.
-        //   - Outer isolated `int < string` has no applicable operator anywhere -> rule 2(b)
-        //     fails -> ERR_NoChainedRelationalComparison.
-        // Notice that a hypothetical "look at raw b" interpretation would have picked the
-        // B.operator<(B, string) overload and the chain would have succeeded. The current
-        // spec explicitly says we don't do that. If LDM later tweaks the spec to reconsider
-        // `Y`'s raw type, this test gets updated accordingly; for now it pins the rejection.
+        // The outer resolution sees Y *as classified by the inner link*. The inner link
+        // converts `b` from B to int, and outer `int < string` has no operator -> CS9380.
         var src = """
             struct B
             {
@@ -1391,13 +1190,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [InlineData(">=")]
     public void ChainFallback_OuterLinkError_ReportsCS9380_ForEveryChainableOperator(string op)
     {
-        // The ERR_NoChainedRelationalComparison path is shared across all four chainable
-        // relational operators. The other error-case tests all pin `<` specifically; this
-        // parameterized test ensures the other three operators route through the same
-        // diagnostic (correct OperatorToken text, correct argument substitution) rather
-        // than accidentally fall through to CS0019. Assertion is location-independent
-        // (each op has a different column) since we only care the diagnostic fires once
-        // with the right code, text, and arguments.
+        // Cross-check the CS9380 path on each of the four chainable operators.
         var src = $$"""
             struct S
             {
@@ -1426,12 +1219,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void ChainFallback_OuterLinkHasNoApplicableOperator_ReportsCS9380()
     {
-        // `a < b` is a bool-returning user-defined comparison on S, so the chain shape
-        // exists and classical binding of `(bool) < c` fails. The chain fallback then tries
-        // isolated `b < c` (i.e. `S < Point`), which has no applicable operator. That is
-        // exactly the §11.11.13 rule 2(b) failure, so the specific
-        // ERR_NoChainedRelationalComparison must be reported here rather than the generic
-        // CS0019. No operator true / operator false on S interferes.
+        // Outer `S < Point` has no applicable operator -> CS9380 (not CS0019).
         var src = """
             struct S
             {
@@ -1470,15 +1258,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void DefiniteAssignment_MiddleOperandAssignsLocalReadByOuterRight()
     {
-        // Spec §11.11.13 lowers `a op1 Y op2 B` to the short-circuit form
-        // `a op1 Y' && Y' op2 B` where Y' is Y evaluated once. So when Y contains an
-        // assignment to a previously-unassigned local, that local must be definitely
-        // assigned inside B: if we ever reach B, the inner link finished evaluating Y
-        // and therefore the assignment in Y ran.
-        //
-        // The test also pins the runtime semantic: B reads the local directly, and
-        // since Y evaluates exactly once, B must see the value Y assigned (not a
-        // second evaluation of Y, and not a stale value).
+        // If the middle operand assigns to a local, that local is definitely assigned
+        // when the outer-right operand runs.
         var src = """
             using System;
 
@@ -1491,15 +1272,9 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 static void Main()
                 {
                     int a = 0;
-
-                    // b is unassigned here. The chain reads b inside D(b) on the outer
-                    // link's right operand, but b is definitely assigned by the inner
-                    // link's `(b = C())` before D(b) is evaluated.
                     int b;
                     bool r = a < (b = C()) < D(b);
 
-                    // Proves: C() ran exactly once, D received the value C() returned,
-                    // and the chain's truth value matches 0 < 5 && 5 < 15.
                     Console.WriteLine($"r={r}, cCalls={cCalls}, b={b}");
                 }
             }
@@ -1514,35 +1289,9 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
     #region Generic constrained operands (static abstract interface operators)
     //
-    // C# 11 static abstract interface members let a generic interface declare
-    // operators (e.g. `static abstract bool operator <(T, T)`), and a type parameter
-    // constrained to such an interface can participate in those operators. The
-    // chained-relational feature doesn't know or care about generic math: it simply
-    // uses standard binary operator overload resolution at each link, which already
-    // threads `ConstrainedToTypeOpt` through `BinaryOperatorSignature`. So chains
-    // like `a < b < c` over such a T should "just work" - both links resolve via
-    // the constrained interface call, and the shared-middle-operand temp keeps
-    // single-evaluation semantics the same as for any other operand type.
-    //
-    // These tests exercise three constraint shapes crossed with the operand being
-    // `T` vs. `T?`:
-    //
-    //   1. `where T : ILT<T>`            - T may be a reference type or a value type.
-    //   2. `where T : class, ILT<T>`     - T is a reference type; `T?` is a
-    //                                       nullable-annotated reference (no lifting).
-    //   3. `where T : struct, ILT<T>`    - T is a value type; `T?` means `Nullable<T>`
-    //                                       and each link uses the spec §11.4.8
-    //                                       lifted-relational form built on top of
-    //                                       the constrained dispatch.
-    //
-    // IL-level pins for each shape live in
-    // <see cref="ChainedRelationalComparisonEmitTests"/>.
-    //
-    // The shared interface/types used by these tests. `using System;` and
-    // `#nullable enable` are emitted first so that the body each test appends
-    // (which uses Console and may declare nullable annotations) sits in the
-    // expected context - C# requires `using` directives to precede all type
-    // declarations in a compilation unit.
+    // Chains over a generic `T` constrained to an interface with static-abstract
+    // relational operators. IL-level pins live in ChainedRelationalComparisonEmitTests.
+
     private const string GenericConstrainedHarness = """
         #nullable enable
         using System;
@@ -1578,34 +1327,14 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
     [Theory]
     // (constraintPrefix, nullabilitySuffix, typeArgument)
-    // Interface-only T, exercised against both a ref-type and a value-type
-    // instantiation - unconstrained T accepts both. `T?` is a pure NRT
-    // annotation here (CLR type is still T), so we only exercise it against
-    // RefImpl (value-type instantiations wouldn't meaningfully differ):
     [InlineData("", "", "RefImpl")]
     [InlineData("", "", "ValImpl")]
     [InlineData("", "?", "RefImpl")]
-    // Class-constrained T (reference type only):
     [InlineData("class, ", "", "RefImpl")]
     [InlineData("class, ", "?", "RefImpl")]
-    // Struct-constrained T with plain `T` operands (value type only; the lifted
-    // `T?` = `Nullable<T>` case has its own test below because it also covers
-    // null-propagation scenarios the unlifted rows can't):
     [InlineData("struct, ", "", "ValImpl")]
     public void GenericConstraint_ConstrainedDispatch_ChainBindsAndRuns(string constraintPrefix, string nullabilitySuffix, string typeArgument)
     {
-        // One test body that exercises all five unlifted-IL rows (see
-        // ChainedRelationalComparisonEmitTests.GenericConstraint_ConstrainedDispatch_UnliftedIL
-        // for the parallel IL pin theory). Each row builds a generic method
-        //
-        //     static bool Chain<T>(T{nullabilitySuffix} a, T{nullabilitySuffix} b, T{nullabilitySuffix} c)
-        //         where T : {constraintPrefix}ILT<T> => a < b < c;
-        //
-        // and invokes it with three representative scenarios against the given
-        // concrete type argument: the true path, the outer-false path, and the
-        // inner-false (short-circuit) path. All rows must produce the same
-        // observable output, which is the runtime-level analogue of the IL
-        // pin's "identical-IL-across-rows" guarantee.
         var src = GenericConstrainedHarness + $$"""
 
             class P
@@ -1638,13 +1367,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void GenericConstraint_InterfaceAndStruct_NullableT_ChainBindsAndRunsWithLifting()
     {
-        // With `struct, ILT<T>`, `T?` is `Nullable<T>`, so the chain composes with
-        // spec §11.4.8 lifted-relational semantics: each link's lifted form is
-        // "both operands HasValue AND their values compare true"; any null operand
-        // at any position makes that link - and thus the whole chain - false.
-        //
-        // This exercises the full interaction: chained relational + generic
-        // constrained-to-interface operator + Nullable<T> lifting.
+        // `T? a, T? b, T? c` with `where T : struct, ILT<T>` uses lifted relational semantics.
         var src = GenericConstrainedHarness + """
 
             class P
@@ -1654,15 +1377,10 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
                 static void Main()
                 {
-                    // Happy path: all non-null, true chain.
                     Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), new ValImpl(5), new ValImpl(10)));
-                    // Null at inner-left: lifted inner link is false, short-circuits.
                     Console.WriteLine(ChainNullable<ValImpl>(null, new ValImpl(5), new ValImpl(10)));
-                    // Null at middle: both links see the null operand, both false.
                     Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), null, new ValImpl(10)));
-                    // Null at outer-right: inner link true, outer link false (right is null).
                     Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), new ValImpl(5), null));
-                    // Outer-false with non-null values: 0 < 5 < 2 -> False.
                     Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), new ValImpl(5), new ValImpl(2)));
                 }
             }
@@ -1684,11 +1402,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void GenericConstraint_InterfaceAndStruct_NullableT_MiddleOperandEvaluatedOnce()
     {
-        // Single-evaluation of the shared middle operand applies to the
-        // lifted-over-generic-constrained case too. If the middle position is a
-        // method call that increments a counter, a 3-operand chain should
-        // call it exactly once - proving the temp shared by the two links holds
-        // the `T?` (Nullable<T>) once.
+        // Single-evaluation also holds under lifted-over-generic-constrained dispatch.
         var src = GenericConstrainedHarness + """
 
             class P
