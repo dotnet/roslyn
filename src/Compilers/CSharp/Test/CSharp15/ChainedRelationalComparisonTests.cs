@@ -952,6 +952,54 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void ChainFallback_InnerConversionShapesYAwayFromCompatibleRawType_ReportsCS9379()
+    {
+        // Spec §11.11.13 "Conversions on the shared middle operand": the isolated outer
+        // overload resolution is applied against `Y`'s classification *as the right operand
+        // of `X op' Y`* - i.e. the inner link's conversion is already baked in. A
+        // consequence: if the inner link's conversion promotes `Y` into a type that is
+        // incompatible with `c`, the chain is rejected, *even if `Y`'s original type would
+        // have a compatible operator with `c` in isolation*.
+        //
+        // Construction: `B` has both an `implicit -> int` and a bool-returning
+        // `operator <(B, string)`. For `int a, B b, string c`:
+        //   - Inner `a < b` (int < B) resolves to the predefined `int < int`, with B -> int
+        //     applied to `b`. So Y is an `int` in the bound tree.
+        //   - Outer isolated `int < string` has no applicable operator anywhere -> rule 2(b)
+        //     fails -> ERR_NoChainedRelationalComparison.
+        // Notice that a hypothetical "look at raw b" interpretation would have picked the
+        // B.operator<(B, string) overload and the chain would have succeeded. The current
+        // spec explicitly says we don't do that. If LDM later tweaks the spec to reconsider
+        // `Y`'s raw type, this test gets updated accordingly; for now it pins the rejection.
+        var src = """
+            struct B
+            {
+                public static implicit operator int(B b) => 0;
+
+                public static bool operator <(B a, string b) => true;
+                public static bool operator >(B a, string b) => false;
+                public static bool operator <=(B a, string b) => true;
+                public static bool operator >=(B a, string b) => false;
+                public static bool operator ==(B a, string b) => false;
+                public static bool operator !=(B a, string b) => true;
+
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            class P
+            {
+                static bool F(int a, B b, string c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (18,50): error CS9379: Operator '<' cannot be applied to operands of type 'int' and 'string' as a chained relational comparison.
+                //     static bool F(int a, B b, string c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "int", "string").WithLocation(18, 50));
+    }
+
+    [Fact]
     public void ChainFallback_OuterLinkHasNoApplicableOperator_ReportsCS9379()
     {
         // `a < b` is a bool-returning user-defined comparison on S, so the chain shape
