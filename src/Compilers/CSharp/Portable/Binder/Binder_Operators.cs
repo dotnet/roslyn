@@ -933,6 +933,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        /// <summary>
+        /// True if this is one of the four relational-expression SyntaxKinds that may
+        /// participate in a chained relational comparison (spec §11.11.13):
+        /// <see cref="SyntaxKind.LessThanExpression"/>, <see cref="SyntaxKind.LessThanOrEqualExpression"/>,
+        /// <see cref="SyntaxKind.GreaterThanExpression"/>, <see cref="SyntaxKind.GreaterThanOrEqualExpression"/>.
+        /// Equality operators (<c>==</c>, <c>!=</c>) are intentionally excluded. The check is
+        /// deliberately syntactic so the chain rule only fires on relational comparisons the
+        /// user wrote in source; a compiler-synthesised <see cref="BoundBinaryOperator"/> that
+        /// happens to carry a relational <see cref="BinaryOperatorKind"/> must not trigger it.
+        /// </summary>
+        private static bool IsChainableRelationalExpression(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics,
             BoundExpression left, BoundExpression right, bool leaveUnconvertedIfInterpolatedString)
         {
@@ -1045,9 +1069,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // left-hand operand prevent the chain interpretation" note is automatically
                 // satisfied because a ParenthesizedExpressionSyntax is not itself one of the
                 // chainable SyntaxKinds.
-                if (node.Kind().IsChainableRelationalExpression() &&
+                if (IsChainableRelationalExpression(node.Kind()) &&
                     node.Left is BinaryExpressionSyntax innerSyntax &&
-                    innerSyntax.Kind().IsChainableRelationalExpression() &&
+                    IsChainableRelationalExpression(innerSyntax.Kind()) &&
                     left is BoundBinaryOperator leftBinaryOperator &&
                     left.Type is { SpecialType: SpecialType.System_Boolean })
                 {
