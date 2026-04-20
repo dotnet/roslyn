@@ -39,6 +39,88 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             .VerifyDiagnostics();
     }
 
+    [Theory]
+    // Every permutation of (int, int?) at the three operand positions. The chain should
+    // bind, run, and produce the correct result for all eight. Seven of the eight have
+    // both links resolving to the same operator kind (either classical `int<int` or
+    // lifted `int?<int?`), so the temp type and the inner operator agree and IL verifies
+    // cleanly. The one exception is `int, int, int?`: inner resolves to `int<int` (no
+    // nullable operand there) but outer resolves to lifted `int?<int?`, so the temp is
+    // `int?` while the inner link expects `int`. That is the same asymmetric-widening
+    // shape documented on AsymmetricConversion_*; it runs correctly on RyuJIT but fails
+    // formal IL verification. When the Option A fix lands (keep temp at Y's inner type,
+    // convert on load for the outer link), that one row flips to Passes and the
+    // parameter can go away.
+    //
+    // Values a=0, b=5, c=10 satisfy a < b < c for every permutation, so expectedOutput
+    // is uniformly "True".
+    [InlineData("int",  "int",  "int",  true)]
+    [InlineData("int?", "int",  "int",  true)]
+    [InlineData("int",  "int?", "int",  true)]
+    [InlineData("int",  "int",  "int?", false)]
+    [InlineData("int?", "int?", "int",  true)]
+    [InlineData("int?", "int",  "int?", true)]
+    [InlineData("int",  "int?", "int?", true)]
+    [InlineData("int?", "int?", "int?", true)]
+    public void Chain_NullableVsNonNullable_AllEightPermutations(string aType, string bType, string cType, bool ilVerifies)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    {{aType}} a = 0;
+                    {{bType}} b = 5;
+                    {{cType}} c = 10;
+                    Console.WriteLine(a < b < c);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True",
+            verify: ilVerifies ? Verification.Passes : Verification.FailsILVerify)
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    // In the "all three nullable" case, a null at ANY position forces at least one
+    // lifted comparison to return false (spec §11.4.8). A null on the outer right
+    // makes the outer link false AFTER the inner link was true; a null at the other
+    // positions makes the inner link false and short-circuits. Either way the chain
+    // yields False, which is what this Theory pins.
+    //
+    // aVal/bVal/cVal of "null" vs a number lets us drive every single-null scenario.
+    [InlineData("null",  "5",    "10",   "False")]    // null in a
+    [InlineData("0",     "null", "10",   "False")]    // null in b
+    [InlineData("0",     "5",    "null", "False")]    // null in c (inner true, outer false)
+    [InlineData("null",  "null", "10",   "False")]    // nulls in a and b
+    [InlineData("null",  "null", "null", "False")]    // all null
+    [InlineData("0",     "5",    "10",   "True")]     // no nulls, control
+    public void Chain_AllNullableOperands_NullInAnyPositionShortCircuitsToFalse(string aVal, string bVal, string cVal, string expected)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    int? a = {{aVal}};
+                    int? b = {{bVal}};
+                    int? c = {{cVal}};
+                    Console.WriteLine(a < b < c);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: expected)
+            .VerifyDiagnostics();
+    }
+
     [Fact]
     public void Chain_Nullable_LiftedOperatorsReturnBool()
     {
