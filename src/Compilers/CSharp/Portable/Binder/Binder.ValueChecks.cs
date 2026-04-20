@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // the bool-typed inner BoundBinaryOperator, NOT Y, so it must not be paired
                 // with `binaryOperatorMethod`'s first parameter for escape analysis.
                 BoundExpression leftArg = binaryOperator.IsChainedRelational
-                    ? binaryOperator.ChainedRelationalLeftOperand!
+                    ? binaryOperator.ChainedRelationalLeftOperand
                     : binaryOperator.Left;
 
                 return new MethodInvocationInfo

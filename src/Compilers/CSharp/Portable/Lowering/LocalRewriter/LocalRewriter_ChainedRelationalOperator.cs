@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // link consumes for that operand. The inner link's right slot is filled with
                 // an inline-assign into this temp, so the operand is evaluated exactly once and
                 // the captured value is then reused as this link's left operand.
-                BoundExpression y = node.ChainedRelationalLeftOperand!;
+                BoundExpression y = node.ChainedRelationalLeftOperand;
                 LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
                 locals.Add(tempSym);
                 BoundLocal temp = _factory.Local(tempSym);

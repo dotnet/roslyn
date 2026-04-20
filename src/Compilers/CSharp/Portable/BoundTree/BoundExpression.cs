@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -443,6 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// At lowering time the node is rewritten to a short-circuit &amp;&amp; chain with the
         /// middle operand evaluated once and reused.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(ChainedRelationalLeftOperand))]
         internal bool IsChainedRelational => ChainedRelationalLeftOperand is not null;
 
         /// <summary>
