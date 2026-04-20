@@ -121,6 +121,53 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
         // The single-evaluation guarantee: the shared middle operand in `min <= M() <= max`
         // is evaluated exactly once even though it appears syntactically at the right of
         // one comparison and the left of the next.
+        //
+        // Cover both the inner-true and inner-false paths. A bug that double-evaluated M()
+        // on either path would show calls=2 in the corresponding case; a bug that skipped
+        // M() entirely on short-circuit would show calls=0.
+        var src = """
+            using System;
+
+            class P
+            {
+                static int calls;
+                static int M() { calls++; return 5; }
+
+                static void Report(bool r) => Console.WriteLine($"r={r}, calls={calls}");
+
+                static void Main()
+                {
+                    calls = 0; Report(0 <= M() <= 10);   // inner true, outer true
+                    calls = 0; Report(0 <= M() <= 2);    // inner true, outer false
+                    calls = 0; Report(100 <= M() <= 10); // inner false, outer skipped
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                r=True, calls=1
+                r=False, calls=1
+                r=False, calls=1
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_MatchesHandWrittenAndChain_SingleEvaluationPinned()
+    {
+        // Spec §11.11.13 note: "equivalent in result to (e0 op1 e1) && (e1 op2 e2) && ...
+        // with each ei evaluated at most once." This pins the exact evaluation-count
+        // difference between the chained form and the naive `&&`-rewrite users currently
+        // have to write today:
+        //
+        //   chained:      min <= M() <= max             -> M called 1 time
+        //   hand-written: min <= M() && M() <= max      -> M called 2 times (every time)
+        //
+        // The chain's correctness-benefit over the naive rewrite is that the two
+        // evaluations of M() in the hand-written form can disagree when M has side
+        // effects or is non-deterministic. This test is the concrete illustration of
+        // the spec's motivating example.
         var src = """
             using System;
 
@@ -131,15 +178,58 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
                 static void Main()
                 {
-                    calls = 0;
-                    bool r = 0 <= M() <= 10;
-                    Console.WriteLine($"result={r}, calls={calls}");
+                    calls = 0; bool chained = 0 <= M() <= 10;
+                    int chainedCalls = calls;
+
+                    calls = 0; bool andForm = 0 <= M() && M() <= 10;
+                    int andFormCalls = calls;
+
+                    Console.WriteLine($"chained={chained} calls={chainedCalls}");
+                    Console.WriteLine($"&&-form={andForm} calls={andFormCalls}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "result=True, calls=1")
+            expectedOutput: """
+                chained=True calls=1
+                &&-form=True calls=2
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_SameTypeEquivalence_MatchesHandWrittenAndChain()
+    {
+        // Complement to AsymmetricConversion_EquivalentToHandWrittenShortCircuit_AllCombinations
+        // (which grid-tests short/int/long): this one pins the same-type case, which
+        // exercises the "identity conversion on Y everywhere" path in the lowering. If
+        // the chain's same-type behaviour ever diverges from the hand-written && equivalent
+        // this test catches it.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    int total = 0, mismatched = 0;
+                    for (int a = 0; a < 4; a++)
+                    for (int b = 0; b < 4; b++)
+                    for (int c = 0; c < 4; c++)
+                    {
+                        bool chained = a < b < c;
+                        bool handWritten = a < b && b < c;
+                        total++;
+                        if (chained != handWritten) mismatched++;
+                    }
+                    Console.WriteLine($"total={total}, mismatched={mismatched}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "total=64, mismatched=0")
             .VerifyDiagnostics();
     }
 
@@ -997,6 +1087,45 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 // (18,50): error CS9380: Operator '<' cannot be applied to operands of type 'int' and 'string' as a chained relational comparison.
                 //     static bool F(int a, B b, string c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "int", "string").WithLocation(18, 50));
+    }
+
+    [Theory]
+    [InlineData("<")]
+    [InlineData("<=")]
+    [InlineData(">")]
+    [InlineData(">=")]
+    public void ChainFallback_OuterLinkError_ReportsCS9380_ForEveryChainableOperator(string op)
+    {
+        // The ERR_NoChainedRelationalComparison path is shared across all four chainable
+        // relational operators. The other error-case tests all pin `<` specifically; this
+        // parameterized test ensures the other three operators route through the same
+        // diagnostic (correct OperatorToken text, correct argument substitution) rather
+        // than accidentally fall through to CS0019. Assertion is location-independent
+        // (each op has a different column) since we only care the diagnostic fires once
+        // with the right code, text, and arguments.
+        var src = $$"""
+            struct S
+            {
+                public static bool operator <(S a, S b) => true;
+                public static bool operator >(S a, S b) => false;
+                public static bool operator <=(S a, S b) => true;
+                public static bool operator >=(S a, S b) => false;
+                public static bool operator ==(S a, S b) => true;
+                public static bool operator !=(S a, S b) => false;
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            struct Point { }
+
+            class P
+            {
+                static bool F(S a, S b, Point c) => a {{op}} b {{op}} c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, op).WithArguments(op, "S", "Point"));
     }
 
     [Fact]
