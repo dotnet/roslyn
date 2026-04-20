@@ -2591,6 +2591,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression right, bool isAnd, bool isBool, ref TLocalState leftTrue, ref TLocalState leftFalse)
         {
+            ComputeBinaryLogicalRightChildConditionalState(right, isAnd, isBool, ref leftTrue, ref leftFalse, out var resultTrue, out var resultFalse);
+            SetConditionalState(resultTrue, resultFalse);
+
+            if (!isBool)
+            {
+                this.Unsplit();
+            }
+        }
+
+        /// <summary>
+        /// Phase one of <see cref="AfterRightChildOfBinaryLogicalOperatorHasBeenVisited"/>:
+        /// adjusts the conditional state around the right operand's visit, normalizes via
+        /// <see cref="Unsplit"/> / <see cref="Split"/> for non-bool operators, and computes
+        /// the final (<paramref name="resultTrue"/>, <paramref name="resultFalse"/>) pair
+        /// without installing the conditional state or calling the trailing
+        /// <see cref="Unsplit"/>.
+        ///
+        /// Callers that need to mutate one of the result branches between the join and the
+        /// final state installation (e.g. NullableWalker's chained-lifted-relational refinement,
+        /// which marks operand slots non-null only on the when-true branch and must avoid the
+        /// trailing <see cref="Unsplit"/>) can compose this helper directly and take over the
+        /// rest of the sequence themselves.
+        /// </summary>
+        protected void ComputeBinaryLogicalRightChildConditionalState(
+            BoundExpression right, bool isAnd, bool isBool,
+            ref TLocalState leftTrue, ref TLocalState leftFalse,
+            out TLocalState resultTrue, out TLocalState resultFalse)
+        {
             AdjustConditionalState(right); // Second part of VisitCondition
 
             if (!isBool)
@@ -2599,8 +2627,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Split();
             }
 
-            var resultTrue = this.StateWhenTrue;
-            var resultFalse = this.StateWhenFalse;
+            resultTrue = this.StateWhenTrue;
+            resultFalse = this.StateWhenFalse;
             if (isAnd)
             {
                 Join(ref resultFalse, ref leftFalse);
@@ -2608,12 +2636,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Join(ref resultTrue, ref leftTrue);
-            }
-            SetConditionalState(resultTrue, resultFalse);
-
-            if (!isBool)
-            {
-                this.Unsplit();
             }
         }
 
