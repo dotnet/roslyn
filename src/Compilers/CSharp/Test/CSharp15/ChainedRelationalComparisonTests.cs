@@ -1617,6 +1617,126 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             .VerifyDiagnostics();
     }
 
+    // Every permutation of {short, int, long} at the three operand positions, as constants.
+    // Each chain must both fold (compile as a `const bool` field initializer) AND produce
+    // the same value that the equivalent runtime-evaluated chain does. Values 0/5/10 fit
+    // every listed type and produce True for every chain. This is the fold-time analog of
+    // AsymmetricConversion_AllPermutationsOfShortIntLong.
+    public static IEnumerable<object[]> AllSignedIntegralPermutations()
+    {
+        var types = new[] { "short", "int", "long" };
+        foreach (var a in types)
+            foreach (var b in types)
+                foreach (var c in types)
+                    yield return new object[] { a, b, c };
+    }
+
+    [Theory]
+    [MemberData(nameof(AllSignedIntegralPermutations))]
+    public void ConstantFolding_SignedIntegralPermutations_FoldMatchesRuntime(string aType, string bType, string cType)
+    {
+        // The const line proves the fold compiles: `const bool` requires the RHS to be a
+        // constant expression, so CS0133 fires if folding returns null. The runtime line
+        // lets us print both side-by-side, so a silent value drift between fold-time and
+        // run-time would show up as a mismatched expected output.
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool ConstResult = ({{aType}})0 < ({{bType}})5 < ({{cType}})10;
+
+                static void Main()
+                {
+                    {{aType}} a = 0;
+                    {{bType}} b = 5;
+                    {{cType}} c = 10;
+                    bool runtimeResult = a < b < c;
+                    Console.Write($"const={ConstResult},runtime={runtimeResult}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "const=True,runtime=True")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    // Unsigned + signed widening permutations that produce a bindable chain and exercise
+    // the unsigned -> signed ConstantValue widening path on the shared middle operand. The
+    // grid below was chosen so every row's inner and outer links have applicable predefined
+    // operators (no signed/unsigned ambiguity at binding). Every row folds to True, and the
+    // runtime variable form must agree.
+    [InlineData("uint", "uint", "uint")]
+    [InlineData("uint", "uint", "long")]   // outer `uint -> long` widening on Y
+    [InlineData("uint", "int", "long")]    // outer widening across signedness
+    [InlineData("int", "uint", "long")]    // inner `int < uint -> long<long`; outer identity
+    [InlineData("ulong", "ulong", "ulong")]
+    [InlineData("uint", "ulong", "ulong")]
+    public void ConstantFolding_UnsignedWideningPermutations_FoldMatchesRuntime(string aType, string bType, string cType)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool ConstResult = ({{aType}})0 < ({{bType}})5 < ({{cType}})10;
+
+                static void Main()
+                {
+                    {{aType}} a = 0;
+                    {{bType}} b = 5;
+                    {{cType}} c = 10;
+                    bool runtimeResult = a < b < c;
+                    Console.Write($"const={ConstResult},runtime={runtimeResult}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "const=True,runtime=True")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstantFolding_UnsignedWideningToSigned_PreservesMagnitude()
+    {
+        // The regression trap if a fold bypassed FoldConstantConversion and relied on
+        // ConstantValue's default Int64Value fallback: a `uint` constant's Int64Value
+        // would sign-extend through Int32Value, producing the WRONG long value for any
+        // uint with the high bit set. Pin that the fold of a chain whose shared middle
+        // operand is `uint.MaxValue` correctly widens to 4_294_967_295L (not -1L).
+        //
+        // The chain `(uint)4_000_000_000 < uint.MaxValue < 5L` distinguishes the two
+        // interpretations: inner `4_000_000_000u < 4_294_967_295u` is true regardless,
+        // but the outer widening decides the chain's value.
+        //   Correct widening:   4_294_967_295L < 5L => false.
+        //   Sign-extend bug:    -1L           < 5L => true.
+        // So the observed result directly tells us which one the fold used.
+        var src = """
+            using System;
+
+            class P
+            {
+                const bool B = (uint)4_000_000_000 < uint.MaxValue < 5L;
+
+                static void Main()
+                {
+                    // Runtime evaluation uses widening-correct IL.
+                    uint a = 4_000_000_000;
+                    uint b = uint.MaxValue;
+                    bool runtime = a < b < 5L;
+                    Console.Write($"const={B},runtime={runtime}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "const=False,runtime=False")
+            .VerifyDiagnostics();
+    }
+
     [Fact]
     public void ConstantFolding_UsedAsDefaultParameterValue()
     {

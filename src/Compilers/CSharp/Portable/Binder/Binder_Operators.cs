@@ -1404,10 +1404,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConstantValue.False;
             }
 
-            // Inner folded to true; the chain's value is `Y' op B`. Wrap the converted Y
-            // constant in a BoundLiteral so FoldBinaryOperator reads it through its usual
-            // `ConstantValueOpt`/`Type` channels. This synthetic node exists only for the
-            // fold call and is not inserted into the bound tree.
+            // Inner folded to true; the chain's value is `Y' op B`. We must wrap the
+            // outer-converted Y constant in a BoundLiteral rather than pass
+            // chainedRelationalLeftOperand through directly, because FoldBinaryOperator's
+            // fold helpers dispatch on BinaryOperatorKind and read ConstantValue accessors
+            // that ASSUME the underlying discriminator matches the operator's operand type
+            // (e.g. LongLessThan calls Int64Value, which has a virtual fallback through
+            // Int32Value - correct for signed widening but WRONG for unsigned-to-signed
+            // widening: a ConstantValueU32 of uint.MaxValue would go through the Int32Value
+            // fallback and arrive as -1L, not the correct 4_294_967_295L). Routing Y's
+            // constant through FoldConstantConversion first produces a ConstantValue with
+            // the right SpecialType and the right widened value, so the fold helper sees
+            // identical inputs to what the classical (non-chained) path would have
+            // constructed via CreateConversion. The synthetic BoundLiteral is never
+            // inserted into the bound tree.
             var outerLeftProxy = new BoundLiteral(
                 chainedRelationalLeftOperand.Syntax,
                 yOuterConstant,
