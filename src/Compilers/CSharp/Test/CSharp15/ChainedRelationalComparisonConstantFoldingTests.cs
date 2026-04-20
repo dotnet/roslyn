@@ -573,4 +573,176 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
             expectedOutput: "True,True,True,False")
             .VerifyDiagnostics();
     }
+
+    [Theory]
+    // Mixed signed/unsigned integral types at different positions. Classical C# accepts
+    // these because every operand is a constant that fits the other side's type (via
+    // binary numeric promotion to long, or the implicit constant-expression conversion
+    // from a non-negative int to an unsigned type, etc.), and the chained fold has to
+    // match that behavior. Picking constants that fit every reasonable promotion path so
+    // the whole chain folds and prints True.
+    //
+    // For each row: the declared types determine the inner link's operands and the outer
+    // link's right operand; the chain must fold to True.
+    [InlineData("0 < 1 < 2u",                  "True")]      // int, int, uint - outer int<uint
+    [InlineData("0u < 1 < 2u",                 "True")]      // uint, int-literal-fits, uint
+    [InlineData("0 < 1u < 2",                  "True")]      // middle is uint; 0/2 int literals fit
+    [InlineData("0u < 1 < 2L",                 "True")]      // outer uint<long (widening on Y)
+    [InlineData("0 < 1L < 2ul",                "True")]      // outer long<ulong with NON-NEGATIVE long - Roslyn folds
+    [InlineData("0 < 5 < 10ul",                "True")]      // outer int<ulong; literal 5 fits in ulong
+    [InlineData("-1 < 5u < 10",                "True")]      // inner -1<5u: promotes to long; outer uint<int also long
+    [InlineData("-1 < 0u < 10",                "True")]      // -1 < 0u: promotes to long, -1<0 true
+    [InlineData("(byte)0 < (short)5 < 10L",    "True")]      // byte->int, short->int, outer int<long
+    [InlineData("(byte)0 < (sbyte)5 < 10",     "True")]      // byte and sbyte both promote to int
+    [InlineData("'a' < 100 < 200",             "True")]      // char -> int
+    [InlineData("(sbyte)(-1) < (byte)0 < 10",  "True")]      // sbyte/byte/int all go through int
+    [InlineData("int.MinValue < 0u < 10",      "True")]      // inner promotes int.MinValue + 0u to long
+    [InlineData("0 < uint.MaxValue < long.MaxValue", "True")] // uint.MaxValue widens to long
+    public void MixedSignedUnsigned_ChainsThatClassicalBindingAccepts_Fold(string chain, string expected)
+    {
+        // If a fold for any of these reverts back to the raw Int64Value accessor trick or
+        // skips the outer LeftConversion, at least one of the above rows will print the
+        // wrong value or fail to compile as a `const`.
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool B = {{chain}};
+
+                static void Main()
+                {
+                    Console.WriteLine(B);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: expected)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void MixedSignedUnsigned_NegativeLongAgainstUlongOuter_ReportsCS9380()
+    {
+        // The classical `long < ulong` binding is ambiguous (CS0034) when neither operand
+        // is a non-negative compile-time constant that fits the other side. A chain whose
+        // outer link hits that shape -> the chain fallback cannot find a bool-returning
+        // operator for the isolated `Y op B`, so the specific chained-relational
+        // diagnostic CS9380 is reported (spec §11.11.13 rule 2(b) failure), NOT the
+        // classical CS0034 that non-chained code would see.
+        var src = """
+            class P
+            {
+                const bool B = 0 < (long)(-5) < 10ul;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (3,35): error CS9380: Operator '<' cannot be applied to operands of type 'long' and 'ulong' as a chained relational comparison.
+                //     const bool B = 0 < (long)(-5) < 10ul;
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "long", "ulong").WithLocation(3, 35));
+    }
+
+    [Fact]
+    public void MixedSignedUnsigned_InnerClassicalFailure_SurfacesClassicalError()
+    {
+        // Dual of the above: when the INNER link's classical binding is the thing that
+        // fails (here, ambiguous `long < ulong`), chain fallback is not even entered -
+        // it only triggers when the OUTER link fails. So the user sees the classical
+        // CS0034 from the inner link, NOT CS9380. Pin this so the error taxonomy stays
+        // clear: CS9380 is specifically about "outer link would not resolve", not "any
+        // chained shape failed somewhere".
+        var src = """
+            class P
+            {
+                static bool F(long a, ulong b)
+                {
+                    // Inner `a < b` is long < ulong -> CS0034 before any chain considers it.
+                    return a < b < 100;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (6,16): error CS0034: Operator '<' is ambiguous on operands of type 'long' and 'ulong'
+                //         return a < b < 100;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a < b").WithArguments("<", "long", "ulong").WithLocation(6, 16));
+    }
+
+    [Fact]
+    public void MixedSignedUnsigned_ConstantFoldsButRuntimeFails_NonConstantLongUlongChain()
+    {
+        // Specifically contrasts const and runtime behavior: with CONSTANTS, `0 < 1L < 2ul`
+        // folds - Roslyn's classical constant-folding accepts `1L < 2ul` because 1L is a
+        // non-negative compile-time constant that fits in ulong, and the chain's outer
+        // link inherits that constant acceptance. With VARIABLES of the same declared
+        // types, there's no compile-time-constant rescue and the outer `long < ulong`
+        // falls back to CS0034-equivalent rejection, which at the chain position surfaces
+        // as CS9380.
+        //
+        // Pinning both sides so the contrast is explicit: the chained fold's flexibility
+        // is bounded by what classical constant folding permits, and no wider.
+        var src = """
+            class P
+            {
+                const bool B = 0 < 1L < 2ul;  // const: folds
+                static bool F(long b, ulong c) => 0 < b < c;  // runtime: outer fails
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (4,45): error CS9380: Operator '<' cannot be applied to operands of type 'long' and 'ulong' as a chained relational comparison.
+                //     static bool F(long b, ulong c) => 0 < b < c;
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "long", "ulong").WithLocation(4, 45));
+    }
+
+    [Fact]
+    public void MixedSignedUnsigned_FoldResultMatchesRuntime()
+    {
+        // Cross-check: for every shape that folds AND runs, the folded value must equal
+        // the runtime-evaluated value. This is the mixed-type analog of the signed /
+        // unsigned side-by-side tests above, spanning shapes chosen to exercise different
+        // conversion paths (explicitly excluding shapes like `long < ulong` where the
+        // non-constant variant can't bind - those are covered by
+        // MixedSignedUnsigned_ConstantFoldsButRuntimeFails_NonConstantLongUlongChain).
+        var src = """
+            using System;
+
+            class P
+            {
+                const bool F1 = 0 < 1 < 2u;
+                const bool F2 = -1 < 5u < 10;
+                const bool F3 = (byte)0 < (short)5 < 10L;
+                const bool F4 = 'a' < 100 < 200;
+                const bool F5 = 0 < uint.MaxValue < long.MaxValue;
+
+                static void Main()
+                {
+                    int    a1 = 0;   int    b1 = 1;              uint c1 = 2;
+                    int    a2 = -1;  uint   b2 = 5;              int  c2 = 10;
+                    byte   a3 = 0;   short  b3 = 5;              long c3 = 10;
+                    char   a4 = 'a'; int    b4 = 100;            int  c4 = 200;
+                    int    a5 = 0;   uint   b5 = uint.MaxValue;  long c5 = long.MaxValue;
+
+                    bool r1 = a1 < b1 < c1;
+                    bool r2 = a2 < b2 < c2;
+                    bool r3 = a3 < b3 < c3;
+                    bool r4 = a4 < b4 < c4;
+                    bool r5 = a5 < b5 < c5;
+
+                    Console.Write($"F1={F1},r1={r1} ");
+                    Console.Write($"F2={F2},r2={r2} ");
+                    Console.Write($"F3={F3},r3={r3} ");
+                    Console.Write($"F4={F4},r4={r4} ");
+                    Console.Write($"F5={F5},r5={r5}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput:
+                "F1=True,r1=True F2=True,r2=True F3=True,r3=True F4=True,r4=True F5=True,r5=True")
+            .VerifyDiagnostics();
+    }
 }
