@@ -598,31 +598,31 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     // binary numeric promotion to long, or the implicit constant-expression conversion
     // from a non-negative int to an unsigned type, etc.), and the chained fold has to
     // match that behavior. Picking constants that fit every reasonable promotion path so
-    // the whole chain folds and prints True.
+    // the whole chain folds to True.
     //
-    // Each row carries the chained form (x), the equivalent hand-written expansion
-    // `(x < y) && (y < z)` (y), and the expected bool value (z). Both forms are placed
-    // into `const bool` initializers and printed at runtime so a fold drift would show
-    // up as a mismatched output.
-    [InlineData("0 < 1 < 2u",                        "(0 < 1) && (1 < 2u)",                            "True")]
-    [InlineData("0u < 1 < 2u",                       "(0u < 1) && (1 < 2u)",                           "True")]
-    [InlineData("0 < 1u < 2",                        "(0 < 1u) && (1u < 2)",                           "True")]
-    [InlineData("0u < 1 < 2L",                       "(0u < 1) && (1 < 2L)",                           "True")]
-    [InlineData("0 < 1L < 2ul",                      "(0 < 1L) && (1L < 2ul)",                         "True")]
-    [InlineData("0 < 5 < 10ul",                      "(0 < 5) && (5 < 10ul)",                          "True")]
-    [InlineData("-1 < 5u < 10",                      "(-1 < 5u) && (5u < 10)",                         "True")]
-    [InlineData("-1 < 0u < 10",                      "(-1 < 0u) && (0u < 10)",                         "True")]
-    [InlineData("(byte)0 < (short)5 < 10L",          "((byte)0 < (short)5) && ((short)5 < 10L)",       "True")]
-    [InlineData("(byte)0 < (sbyte)5 < 10",           "((byte)0 < (sbyte)5) && ((sbyte)5 < 10)",        "True")]
-    [InlineData("'a' < 100 < 200",                   "('a' < 100) && (100 < 200)",                     "True")]
-    [InlineData("(sbyte)(-1) < (byte)0 < 10",        "((sbyte)(-1) < (byte)0) && ((byte)0 < 10)",      "True")]
-    [InlineData("int.MinValue < 0u < 10",            "(int.MinValue < 0u) && (0u < 10)",               "True")]
-    [InlineData("0 < uint.MaxValue < long.MaxValue", "(0 < uint.MaxValue) && (uint.MaxValue < long.MaxValue)", "True")]
-    public void MixedSignedUnsigned_ChainsThatClassicalBindingAccepts_Fold(string chain, string expanded, string expected)
+    // Each row carries the chained form and the equivalent hand-written expansion
+    // `(a op b) && (b op c)`. Both forms are placed into `const bool` initializers and
+    // printed at runtime, so a fold drift would show up as a mismatched output.
+    [InlineData("0 < 1 < 2u",                        "(0 < 1) && (1 < 2u)")]
+    [InlineData("0u < 1 < 2u",                       "(0u < 1) && (1 < 2u)")]
+    [InlineData("0 < 1u < 2",                        "(0 < 1u) && (1u < 2)")]
+    [InlineData("0u < 1 < 2L",                       "(0u < 1) && (1 < 2L)")]
+    [InlineData("0 < 1L < 2ul",                      "(0 < 1L) && (1L < 2ul)")]
+    [InlineData("0 < 5 < 10ul",                      "(0 < 5) && (5 < 10ul)")]
+    [InlineData("-1 < 5u < 10",                      "(-1 < 5u) && (5u < 10)")]
+    [InlineData("-1 < 0u < 10",                      "(-1 < 0u) && (0u < 10)")]
+    [InlineData("(byte)0 < (short)5 < 10L",          "((byte)0 < (short)5) && ((short)5 < 10L)")]
+    [InlineData("(byte)0 < (sbyte)5 < 10",           "((byte)0 < (sbyte)5) && ((sbyte)5 < 10)")]
+    [InlineData("'a' < 100 < 200",                   "('a' < 100) && (100 < 200)")]
+    [InlineData("(sbyte)(-1) < (byte)0 < 10",        "((sbyte)(-1) < (byte)0) && ((byte)0 < 10)")]
+    [InlineData("int.MinValue < 0u < 10",            "(int.MinValue < 0u) && (0u < 10)")]
+    [InlineData("0 < uint.MaxValue < long.MaxValue", "(0 < uint.MaxValue) && (uint.MaxValue < long.MaxValue)")]
+    public void MixedSignedUnsigned_ChainsThatClassicalBindingAccepts_Fold(string chain, string expanded)
     {
         // Pin that the chained fold and the classical hand-written expansion produce the
-        // same constant value. If a fold reverts to the raw Int64Value accessor trick or
-        // skips the outer LeftConversion, at least one row will show `c != e`.
+        // same constant value (True for every row - every operand is chosen to satisfy
+        // a < b < c). If a fold reverts to the raw Int64Value accessor trick or skips
+        // the outer LeftConversion, at least one row will show `c != e`.
         var src = $$"""
             using System;
 
@@ -639,7 +639,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: $"c={expected},e={expected}")
+            expectedOutput: "c=True,e=True")
             .VerifyDiagnostics();
     }
 
