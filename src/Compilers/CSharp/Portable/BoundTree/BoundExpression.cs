@@ -425,6 +425,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal InterpolatedStringHandlerData? InterpolatedStringHandlerData => Data?.InterpolatedStringHandlerData;
 
         /// <summary>
+        /// For a chained relational comparison (spec §11.11.13), the Y value (the shared
+        /// middle operand of the chain link) with all conversions required by this node's
+        /// selected operator already applied. Non-null exactly when this node is a chained
+        /// relational comparison; the lowerer hoists it into a temp and feeds it to the
+        /// chain link. See <see cref="IsChainedRelational"/> for the boolean shortcut.
+        /// </summary>
+        internal BoundExpression? ChainedRelationalLeftOperand => Data?.ChainedRelationalLeftOperand;
+
+        /// <summary>
         /// True when this node represents one comparison of a chained relational comparison
         /// (spec §11.11.13), e.g. the outer `&lt;` in `a &lt; b &lt; c`. When true, the node's left
         /// operand is a bool-typed <see cref="BoundBinaryOperator"/> whose right operand is the
@@ -434,15 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// At lowering time the node is rewritten to a short-circuit &amp;&amp; chain with the
         /// middle operand evaluated once and reused.
         /// </summary>
-        internal bool IsChainedRelational => Data?.IsChainedRelational ?? false;
-
-        /// <summary>
-        /// For a chained relational comparison (<see cref="IsChainedRelational"/>), the Y
-        /// value with all conversions required by this node's selected operator already
-        /// applied. This is what the lowerer hoists into a temp and feeds to the chain link.
-        /// Non-null iff <see cref="IsChainedRelational"/> is true.
-        /// </summary>
-        internal BoundExpression? ChainedRelationalLeftOperand => Data?.ChainedRelationalLeftOperand;
+        internal bool IsChainedRelational => ChainedRelationalLeftOperand is not null;
 
         /// <summary>
         /// True when this node has short-circuit semantics on its right operand: either it is a

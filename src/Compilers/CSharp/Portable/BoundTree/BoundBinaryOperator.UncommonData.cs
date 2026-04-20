@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalUserDefinedOperatorsOpt: default,
                     isUnconvertedInterpolatedStringAddition: true,
                     interpolatedStringHandlerData: null,
-                    isChainedRelational: false,
                     chainedRelationalLeftOperand: null);
 
             public static UncommonData InterpolatedStringHandlerAddition(InterpolatedStringHandlerData data)
@@ -48,7 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalUserDefinedOperatorsOpt: default,
                     isUnconvertedInterpolatedStringAddition: false,
                     data,
-                    isChainedRelational: false,
                     chainedRelationalLeftOperand: null);
 
             public static UncommonData ChainedRelational(ConstantValue? constantValue, MethodSymbol? method, TypeSymbol? constrainedToType, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression chainedRelationalLeftOperand)
@@ -59,14 +57,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalUserDefinedOperatorsOpt,
                     isUnconvertedInterpolatedStringAddition: false,
                     interpolatedStringHandlerData: null,
-                    isChainedRelational: true,
                     chainedRelationalLeftOperand);
 
             public static UncommonData? CreateIfNeeded(ConstantValue? constantValue, MethodSymbol? method, TypeSymbol? constrainedToType, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt)
             {
                 if (constantValue != null || method is not null || constrainedToType is not null || !originalUserDefinedOperatorsOpt.IsDefault)
                 {
-                    return new UncommonData(constantValue, method, constrainedToType, originalUserDefinedOperatorsOpt, isUnconvertedInterpolatedStringAddition: false, interpolatedStringHandlerData: null, isChainedRelational: false, chainedRelationalLeftOperand: null);
+                    return new UncommonData(constantValue, method, constrainedToType, originalUserDefinedOperatorsOpt, isUnconvertedInterpolatedStringAddition: false, interpolatedStringHandlerData: null, chainedRelationalLeftOperand: null);
                 }
 
                 return null;
@@ -78,19 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly bool IsUnconvertedInterpolatedStringAddition;
             public readonly InterpolatedStringHandlerData? InterpolatedStringHandlerData;
 
-            // True when this BoundBinaryOperator is a chained relational comparison
-            // (spec §11.11.13). The left operand is a bool-typed BoundBinaryOperator whose
-            // right operand (call it Y) is the shared middle operand, and this node's Method
-            // is the operator selected by isolated overload resolution on `Y op Right`.
-            // At lowering time, such a node is rewritten to a short-circuit && form.
-            public readonly bool IsChainedRelational;
-
-            // The converted Y value (the shared middle operand of the chain link): Y is the
-            // right operand of <see cref="BoundBinaryOperator.Left"/> with the conversion
-            // required by <see cref="Method"/> (or by the resolved operator's signature)
-            // applied. Stored at bind time so the lowerer does not need to re-run overload
-            // resolution to figure out how to combine Y with the outer node's right operand.
-            // Non-null iff <see cref="IsChainedRelational"/> is true.
+            // The converted Y value for a chained relational comparison (spec §11.11.13):
+            // Y is the right operand of <see cref="BoundBinaryOperator.Left"/> with the
+            // conversion required by the isolated overload resolution on `Y op Right`
+            // already applied. Non-null exactly when this node is a chained relational
+            // comparison; presence of a non-null value is therefore the canonical marker
+            // for "this node is chained" (see <see cref="BoundBinaryOperator.IsChainedRelational"/>).
+            // Stored at bind time so the lowerer does not need to re-run overload resolution
+            // to figure out how to combine Y with the outer node's right operand.
             public readonly BoundExpression? ChainedRelationalLeftOperand;
 
             // The set of method symbols from which this operator's method was chosen.
@@ -98,11 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // was unable to choose a best method.
             public readonly ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt;
 
-            private UncommonData(ConstantValue? constantValue, MethodSymbol? method, TypeSymbol? constrainedToType, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, bool isUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData? interpolatedStringHandlerData, bool isChainedRelational, BoundExpression? chainedRelationalLeftOperand)
+            private UncommonData(ConstantValue? constantValue, MethodSymbol? method, TypeSymbol? constrainedToType, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, bool isUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData? interpolatedStringHandlerData, BoundExpression? chainedRelationalLeftOperand)
             {
                 Debug.Assert(interpolatedStringHandlerData is null || !isUnconvertedInterpolatedStringAddition);
-                Debug.Assert(!isChainedRelational || (interpolatedStringHandlerData is null && !isUnconvertedInterpolatedStringAddition));
-                Debug.Assert(isChainedRelational == (chainedRelationalLeftOperand is not null));
+                Debug.Assert(chainedRelationalLeftOperand is null || (interpolatedStringHandlerData is null && !isUnconvertedInterpolatedStringAddition));
                 Debug.Assert(method is null or ErrorMethodSymbol { ParameterCount: 0 } or { MethodKind: MethodKind.UserDefinedOperator } or { ParameterCount: 2 });
 
                 ConstantValue = constantValue;
@@ -111,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
                 IsUnconvertedInterpolatedStringAddition = isUnconvertedInterpolatedStringAddition;
                 InterpolatedStringHandlerData = interpolatedStringHandlerData;
-                IsChainedRelational = isChainedRelational;
                 ChainedRelationalLeftOperand = chainedRelationalLeftOperand;
             }
 
@@ -122,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this;
                 }
 
-                return new UncommonData(ConstantValue, method, ConstrainedToType, OriginalUserDefinedOperatorsOpt, IsUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData, IsChainedRelational, ChainedRelationalLeftOperand);
+                return new UncommonData(ConstantValue, method, ConstrainedToType, OriginalUserDefinedOperatorsOpt, IsUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData, ChainedRelationalLeftOperand);
             }
         }
     }
