@@ -212,6 +212,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        /// <summary>
+        /// True if this is one of the relational operators that can participate in a
+        /// chained relational comparison (spec §11.11.13): <c>&lt;</c>, <c>&lt;=</c>, <c>&gt;</c>,
+        /// <c>&gt;=</c>. Equality operators (<c>==</c>, <c>!=</c>) are intentionally excluded.
+        /// </summary>
+        public static bool IsChainableRelational(this BinaryOperatorKind kind)
+        {
+            switch (kind.Operator())
+            {
+                case BinaryOperatorKind.GreaterThan:
+                case BinaryOperatorKind.GreaterThanOrEqual:
+                case BinaryOperatorKind.LessThan:
+                case BinaryOperatorKind.LessThanOrEqual:
+                    return true;
+            }
+            return false;
+        }
+
         public static bool IsChecked(this BinaryOperatorKind kind)
         {
             return 0 != (kind & BinaryOperatorKind.Checked);

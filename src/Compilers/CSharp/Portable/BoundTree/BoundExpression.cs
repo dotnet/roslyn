@@ -424,6 +424,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal InterpolatedStringHandlerData? InterpolatedStringHandlerData => Data?.InterpolatedStringHandlerData;
 
+        /// <summary>
+        /// True when this node represents one comparison of a chained relational comparison
+        /// (spec §11.11.13), e.g. the outer `&lt;` in `a &lt; b &lt; c`. When true, the node's left
+        /// operand is a bool-typed <see cref="BoundBinaryOperator"/> whose right operand is the
+        /// shared middle operand, and <see cref="BinaryOperatorMethod"/> (together with
+        /// <see cref="OperatorKind"/>) describes the isolated resolution of
+        /// `Y op Right`, where Y is that shared middle operand.
+        /// At lowering time the node is rewritten to a short-circuit &amp;&amp; chain with the
+        /// middle operand evaluated once and reused.
+        /// </summary>
+        internal bool IsChainedRelational => Data?.IsChainedRelational ?? false;
+
+        /// <summary>
+        /// For a chained relational comparison (<see cref="IsChainedRelational"/>), the Y
+        /// value with all conversions required by this node's selected operator already
+        /// applied. This is what the lowerer hoists into a temp and feeds to the chain link.
+        /// Non-null iff <see cref="IsChainedRelational"/> is true.
+        /// </summary>
+        internal BoundExpression? ChainedRelationalLeftOperand => Data?.ChainedRelationalLeftOperand;
+
+        /// <summary>
+        /// True when this node has short-circuit semantics on its right operand: either it is a
+        /// conditional logical operator (<c>&amp;&amp;</c> / <c>||</c>), or it is a chained
+        /// relational comparison (<see cref="IsChainedRelational"/>). Callers that gate
+        /// behaviour on short-circuit semantics (flow analysis, lowering, codegen backstops)
+        /// should prefer this helper over <c>OperatorKind.IsLogical()</c>.
+        /// </summary>
+        internal bool IsShortCircuiting => OperatorKind.IsLogical() || IsChainedRelational;
+
         internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
     }
 
