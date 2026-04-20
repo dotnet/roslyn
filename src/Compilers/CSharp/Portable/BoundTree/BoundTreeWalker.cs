@@ -104,7 +104,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.Left is not BoundBinaryOperator binary)
+            // Short-circuit binary operators (conditional `&&` / `||` and chained
+            // relational comparisons; see BoundBinaryOperator.IsShortCircuiting) don't
+            // unconditionally evaluate their right operand. Flattening a left spine that
+            // contains them into a straight-line visit order drops the short-circuit
+            // control-flow information, which analyses built on this walker (notably
+            // ref-safety) need to reason correctly about escape scopes. Fall through to
+            // the base class's default Left/Right visit, which preserves that structure
+            // and is still stack-guarded by BoundTreeWalkerWithStackGuard.
+            if (node.Left is not BoundBinaryOperator binary || node.IsShortCircuiting)
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -121,6 +129,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (current.Kind == BoundKind.BinaryOperator)
             {
                 binary = (BoundBinaryOperator)current;
+
+                // Same rule applies mid-spine: don't flatten past a short-circuit node;
+                // visit it and its descendants via the base walker instead.
+                if (binary.IsShortCircuiting)
+                {
+                    break;
+                }
+
                 BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
                 rightOperands.Push(binary.Right);
                 current = binary.Left;
