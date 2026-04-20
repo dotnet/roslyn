@@ -885,24 +885,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)reference.Syntax);
                 return syntax.Parent is CSharp.Syntax.BinaryExpressionSyntax innerBinary
                     && innerBinary.Right == syntax
-                    && isChainableRelationalCS(innerBinary.Kind())
+                    && CSharp.SyntaxFacts.IsChainableRelationalExpression(innerBinary.Kind())
                     && innerBinary.Parent is CSharp.Syntax.BinaryExpressionSyntax outerBinary
                     && outerBinary.Left == innerBinary
-                    && isChainableRelationalCS(outerBinary.Kind());
+                    && CSharp.SyntaxFacts.IsChainableRelationalExpression(outerBinary.Kind());
             }
-
-            // Shared chainable-relational classifier used by both chained-
-            // relational carve-outs below (isChainedRelationalMiddleOperandReference
-            // above and isChainedRelationalMiddleOperandCapture further down).
-            // Mirrors the <c>IsChainableRelationalExpression</c> predicate in
-            // <c>CSharp/Binder/Binder_Operators.cs</c>, which gates whether a
-            // binary expression participates in the C# chained-relational
-            // feature (spec §11.11.13).
-            static bool isChainableRelationalCS(CSharp.SyntaxKind kind)
-                => kind is CSharp.SyntaxKind.LessThanExpression
-                        or CSharp.SyntaxKind.LessThanOrEqualExpression
-                        or CSharp.SyntaxKind.GreaterThanExpression
-                        or CSharp.SyntaxKind.GreaterThanOrEqualExpression;
 
             bool isCoalesceAssignmentTarget(IFlowCaptureReferenceOperation reference)
             {
@@ -1186,10 +1173,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     // another chainable relational.
                     if (syntax.Parent is CSharp.Syntax.BinaryExpressionSyntax innerBinary &&
                         innerBinary.Right == syntax &&
-                        isChainableRelationalCS(innerBinary.Kind()) &&
+                        CSharp.SyntaxFacts.IsChainableRelationalExpression(innerBinary.Kind()) &&
                         innerBinary.Parent is CSharp.Syntax.BinaryExpressionSyntax outerBinary &&
                         outerBinary.Left == innerBinary &&
-                        isChainableRelationalCS(outerBinary.Kind()))
+                        CSharp.SyntaxFacts.IsChainableRelationalExpression(outerBinary.Kind()))
                     {
                         return true;
                     }
