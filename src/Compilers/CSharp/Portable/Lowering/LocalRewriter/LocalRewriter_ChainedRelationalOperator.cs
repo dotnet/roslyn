@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteChainedRelationalOperator(BoundBinaryOperator node)
         {
-            Debug.Assert(node.IsChainedRelational);
+            Debug.Assert(node.IsChainedRelational(out _));
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
@@ -90,20 +90,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression thisRight,
             ArrayBuilder<LocalSymbol> locals)
         {
-            if (node.IsChainedRelational)
+            if (node.IsChainedRelational(out BoundExpression? y))
             {
                 // `y` is the shared middle operand with only the *inner* link's conversion
-                // applied. On a chained outer node, `node.Left` is guaranteed to be the
-                // bool-typed inner `BoundBinaryOperator`, and its `Right` is Y. Reading Y
-                // from there (instead of a dedicated UncommonData field) keeps Y on the
-                // standard bound-tree descent path. The temp holds the value the inner
+                // applied - `IsChainedRelational`'s out parameter delivers it directly so
+                // we don't re-cast `node.Left` here. The temp holds the value the inner
                 // link's operator consumes directly - critically, its type is Y's
                 // inner-link type, NOT the outer link's wider LeftType. That invariant is
                 // what makes asymmetric chains like `short < int < long` emit verifiable
                 // IL: the inner operator is `int<int` and the temp is also `int`, so the
                 // stack types agree.
                 var innerLink = (BoundBinaryOperator)node.Left;
-                BoundExpression y = innerLink.Right;
                 LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
                 locals.Add(tempSym);
                 BoundLocal temp = _factory.Local(tempSym);

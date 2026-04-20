@@ -12895,7 +12895,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(IsConditionalState);
                 TypeWithState leftType = ResultType;
 
-                getBinaryConditionalOperatorInfo(node.OperatorKind, node.IsChainedRelational, out bool isAnd, out bool isBool);
+                bool isChainedRelational = node.IsChainedRelational(out BoundExpression? chainedY);
+                getBinaryConditionalOperatorInfo(node.OperatorKind, isChainedRelational, out bool isAnd, out bool isBool);
 
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
@@ -12905,23 +12906,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithState rightType = ResultType;
                 SetResultType(node, InferResultNullability(node.OperatorKind, node.BinaryOperatorMethod, node.Type, leftType, rightType));
 
-                if (node.IsChainedRelational && node.OperatorKind.IsLifted())
+                if (chainedY is not null && node.OperatorKind.IsLifted())
                 {
                     // Chained lifted relational comparison (spec §11.11.13 + §11.4.8): the
-                    // outer link's semantics are `Y op B` where Y is
-                    // `((BoundBinaryOperator)node.Left).Right`, not `inner op B`. A lifted
-                    // relational returns true iff neither operand was null, so we refine
-                    // both Y and node.Right to non-null in the chain's when-true branch -
-                    // the same refinement ReinferAndVisitBinaryOperator applies for the
-                    // classical non-chained lifted case.
+                    // outer link's semantics are `Y op B` where Y is the shared middle
+                    // operand (`chainedY` from IsChainedRelational above), not `inner op B`.
+                    // A lifted relational returns true iff neither operand was null, so we
+                    // refine both Y and node.Right to non-null in the chain's when-true
+                    // branch - the same refinement ReinferAndVisitBinaryOperator applies
+                    // for the classical non-chained lifted case.
                     //
                     // Inlines AfterRightChildOfBinaryLogicalOperatorHasBeenVisited's flow
                     // because the stock helper ends with an Unsplit that would clobber the
-                    // refinement. Y is on the standard tree-descent path (via
+                    // refinement. Y is on the standard tree-descent path (reachable via
                     // `node.Left.Right`), and the slot-based MarkSlotsAsNotNull helper does
                     // not call Visit, so DebugVerifier's analyzed-vs-walked invariant is
                     // preserved automatically.
-                    afterChainedLiftedRelationalRightChildHasBeenVisited(node, leftFalse);
+                    afterChainedLiftedRelationalRightChildHasBeenVisited(node, chainedY, leftFalse);
                 }
                 else
                 {
@@ -12929,7 +12930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void afterChainedLiftedRelationalRightChildHasBeenVisited(BoundBinaryOperator node, LocalState leftFalse)
+            void afterChainedLiftedRelationalRightChildHasBeenVisited(BoundBinaryOperator node, BoundExpression chainedY, LocalState leftFalse)
             {
                 // Mirrors AfterRightChildOfBinaryLogicalOperatorHasBeenVisited for the
                 // chained-lifted case (isAnd=true, isBool=false), with the refinement
@@ -12949,9 +12950,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // carried refinements through.
                 Join(ref resultFalse, ref leftFalse);
 
-                var innerLink = (BoundBinaryOperator)node.Left;
                 var slots = ArrayBuilder<int>.GetInstance();
-                GetSlotsToMarkAsNotNullable(innerLink.Right, slots);
+                GetSlotsToMarkAsNotNullable(chainedY, slots);
                 GetSlotsToMarkAsNotNullable(node.Right, slots);
                 if (slots.Count != 0)
                 {

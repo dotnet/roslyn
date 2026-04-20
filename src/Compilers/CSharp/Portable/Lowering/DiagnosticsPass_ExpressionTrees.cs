@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckBinaryOperator(current);
 
-                if (_inExpressionLambda && current.IsChainedRelational)
+                if (_inExpressionLambda && current.IsChainedRelational(out _))
                 {
                     // Chained relational comparisons (spec §11.11.13) cannot be faithfully
                     // expressed in a System.Linq.Expressions tree while preserving the

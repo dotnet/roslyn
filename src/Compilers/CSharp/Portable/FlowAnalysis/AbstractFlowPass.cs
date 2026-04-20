@@ -2544,7 +2544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var binOp = (BoundBinaryOperator)binary;
                         kind = binOp.OperatorKind;
                         right = binOp.Right;
-                        isChainedRelational = binOp.IsChainedRelational;
+                        isChainedRelational = binOp.IsChainedRelational(out _);
                         break;
                     case BoundKind.UserDefinedConditionalLogicalOperator:
                         var udBinOp = (BoundUserDefinedConditionalLogicalOperator)binary;

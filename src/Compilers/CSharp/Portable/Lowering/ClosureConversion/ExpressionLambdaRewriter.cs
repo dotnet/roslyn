@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!binOp.OperatorKind.IsDynamic());
                     // Chained relational comparisons are rejected by DiagnosticsPass_ExpressionTrees
                     // (ERR_ExpressionTreeContainsChainedRelationalComparison) before the rewriter runs.
-                    Debug.Assert(!binOp.IsChainedRelational);
+                    Debug.Assert(!binOp.IsChainedRelational(out _));
                     return VisitBinaryOperator(binOp.OperatorKind, binOp.BinaryOperatorMethod, binOp.Type, binOp.Left, binOp.Right);
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var userDefCondLogOp = (BoundUserDefinedConditionalLogicalOperator)node;

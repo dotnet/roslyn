@@ -1489,7 +1489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // silently drop ChainedRelationalLeftOperand when it calls
             // `node.Update(..., ConstantValueOpt, BinaryOperatorMethod, ...)` further
             // down in this method.
-            Debug.Assert(!node.IsChainedRelational);
+            Debug.Assert(!node.IsChainedRelational(out _));
 
             BoundExpression child = node.Left;
 

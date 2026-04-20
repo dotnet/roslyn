@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // `node.Update(..., ConstantValueOpt, ..., BinaryOperatorMethod, ...)` below
             // would silently drop ChainedRelationalLeftOperand via CreateIfNeeded,
             // corrupting the bound tree.
-            Debug.Assert(!node.IsChainedRelational);
+            Debug.Assert(!node.IsChainedRelational(out _));
 
             BoundSpillSequenceBuilder builder = null;
             var right = VisitExpression(ref builder, node.Right);

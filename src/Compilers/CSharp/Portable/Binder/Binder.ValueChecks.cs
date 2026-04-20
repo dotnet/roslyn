@@ -224,12 +224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For a chained relational comparison (spec §11.11.13), BinaryOperatorMethod
                 // is the operator selected for `Y op Right`, where Y is the shared middle
-                // operand - i.e. the right operand of the inner (bool-typed) BoundBinaryOperator.
-                // The node's own `Left` is that inner node, NOT Y, so for escape analysis we
-                // must descend `Left.Right` to pair with `binaryOperatorMethod`'s first
-                // parameter.
-                BoundExpression leftArg = binaryOperator.IsChainedRelational
-                    ? ((BoundBinaryOperator)binaryOperator.Left).Right
+                // operand. The node's own `Left` is the inner bool-typed link, NOT Y, so
+                // for escape analysis we must use Y (retrieved via IsChainedRelational's
+                // out parameter) when pairing with `binaryOperatorMethod`'s first parameter.
+                BoundExpression leftArg = binaryOperator.IsChainedRelational(out var chainedY)
+                    ? chainedY
                     : binaryOperator.Left;
 
                 return new MethodInvocationInfo
