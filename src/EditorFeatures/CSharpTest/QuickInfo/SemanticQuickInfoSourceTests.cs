@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -10287,4 +10288,211 @@ AnonymousTypes(
             }
             """,
             MainDescription($"MyCollection<string> MyBuilder.Create<string>(int i, ReadOnlySpan<string> items)"));
+
+    #region Interceptors
+
+    private static readonly CSharpParseOptions s_parseOptionsWithInterceptors =
+        CSharpParseOptions.Default.WithFeature("InterceptorsNamespaces", "global");
+
+    private static readonly string s_interceptsLocationAttributeSource = """
+        namespace System.Runtime.CompilerServices
+        {
+            [AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
+            public sealed class InterceptsLocationAttribute : Attribute
+            {
+                public InterceptsLocationAttribute(int version, string data) { }
+            }
+        }
+        """;
+
+    private static async Task TestInterceptorQuickInfoAsync(
+        string sourceCode,
+        string interceptorCodeTemplate,
+        params Action<QuickInfoItem>[] expectedResults)
+    {
+        // Phase 1: Compute the interceptable location from source.
+        // Strip the $$ cursor marker for compilation purposes.
+        var sourceCodeWithoutMarker = sourceCode.Replace("$$", "");
+        var parseOptions = s_parseOptionsWithInterceptors;
+        var sourceTree = CSharpSyntaxTree.ParseText(sourceCodeWithoutMarker, parseOptions, path: "Source.cs");
+        var attributeTree = CSharpSyntaxTree.ParseText(s_interceptsLocationAttributeSource, parseOptions, path: "Attributes.cs");
+
+        var compilation = CSharpCompilation.Create(
+            "TestAssembly",
+            [sourceTree, attributeTree],
+            TargetFrameworkUtil.GetReferences(TargetFramework.Net80),
+            new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+        var model = compilation.GetSemanticModel(sourceTree);
+        var root = sourceTree.GetRoot();
+        var invocations = root.DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+
+        // Get locations for all invocations
+        var locations = invocations.Select(inv => model.GetInterceptableLocation(inv)).ToArray();
+
+        // Build attribute arguments for template substitution
+        var interceptorCode = interceptorCodeTemplate;
+        for (var i = 0; i < locations.Length; i++)
+        {
+            var location = locations[i];
+            if (location != null)
+            {
+                var attrSyntax = $@"[global::System.Runtime.CompilerServices.InterceptsLocationAttribute({location.Version}, ""{location.Data}"")]";
+                interceptorCode = interceptorCode.Replace($"{{INTERCEPTS_LOCATION_{i}}}", attrSyntax);
+            }
+        }
+
+        // Phase 2: Create test workspace with the interceptor file using source markup ($$).
+        // The source code needs to have the cursor marker ($$) for QuickInfo positioning.
+        var xmlString = $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="InterceptorsNamespaces=global">
+                    <Document FilePath="Source.cs">{SecurityElement.Escape(sourceCode)}</Document>
+                    <Document FilePath="Attributes.cs">{SecurityElement.Escape(s_interceptsLocationAttributeSource)}</Document>
+                    <Document FilePath="Interceptor.cs">{SecurityElement.Escape(interceptorCode)}</Document>
+                </Project>
+            </Workspace>
+            """;
+
+        using var workspace = EditorTestWorkspace.Create(xmlString);
+        var testDocument = workspace.Documents.First(d => d.Name == "Source.cs");
+        var position = testDocument.CursorPosition!.Value;
+        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
+
+        var service = QuickInfoService.GetService(document);
+        Contract.ThrowIfNull(service);
+
+        var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
+
+        if (expectedResults.Length == 0)
+        {
+            Assert.Null(info);
+        }
+        else
+        {
+            AssertEx.NotNull(info);
+
+            foreach (var expected in expectedResults)
+            {
+                expected(info);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task TestInterceptorBasic()
+    {
+        await TestInterceptorQuickInfoAsync(
+            """
+            class C
+            {
+                public static void M() => throw null!;
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C.$$M();
+                }
+            }
+            """,
+            """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                {INTERCEPTS_LOCATION_0}
+                public static void Interceptor() { }
+            }
+            """,
+            MainDescription("void C.M()"),
+            InterceptedBy(string.Format(FeaturesResources.Intercepted_by_0, "void D.Interceptor()")));
+    }
+
+    [Fact]
+    public async Task TestInterceptorGenericMethod()
+    {
+        await TestInterceptorQuickInfoAsync(
+            """
+            class C
+            {
+                public static void M<T>(T t) => throw null!;
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C.$$M(42);
+                }
+            }
+            """,
+            """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                {INTERCEPTS_LOCATION_0}
+                public static void Interceptor<T>(T t) { }
+            }
+            """,
+            MainDescription("void C.M<int>(int t)"),
+            InterceptedBy(string.Format(FeaturesResources.Intercepted_by_0, "void D.Interceptor<int>(int t)")));
+    }
+
+    [Fact]
+    public async Task TestInterceptorNonGenericInterceptorForGenericMethod()
+    {
+        await TestInterceptorQuickInfoAsync(
+            """
+            class C
+            {
+                public static void M<T>(T t) => throw null!;
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C.$$M(42);
+                }
+            }
+            """,
+            """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                {INTERCEPTS_LOCATION_0}
+                public static void Interceptor(int t) { }
+            }
+            """,
+            MainDescription("void C.M<int>(int t)"),
+            InterceptedBy(string.Format(FeaturesResources.Intercepted_by_0, "void D.Interceptor(int t)")));
+    }
+
+    [Fact]
+    public async Task TestInterceptorNotIntercepted()
+    {
+        await TestWithOptionsAsync(
+            Options.Regular,
+            """
+            class C
+            {
+                public static void M() { }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C.$$M();
+                }
+            }
+            """,
+            MainDescription("void C.M()"));
+    }
+
+    #endregion
 }

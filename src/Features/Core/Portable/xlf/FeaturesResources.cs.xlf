@@ -1010,6 +1010,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Nedostatečné nebo neplatné šestnáctkové číslice</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \x</note>
       </trans-unit>
+      <trans-unit id="Intercepted_by_0">
+        <source>Intercepted by '{0}'.</source>
+        <target state="new">Intercepted by '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Introduce_constant">
         <source>Introduce constant</source>
         <target state="translated">Zavést konstantu</target>
