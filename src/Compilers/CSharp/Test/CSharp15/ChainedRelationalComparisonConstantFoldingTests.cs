@@ -32,46 +32,40 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTestBase
 {
     [Theory]
-    // Each row carries the chained form, the equivalent hand-written expansion
-    // `(op1) && (op2) && ...`, and the expected bool value. Both forms are placed into
-    // `const bool` initializers in the same compilation and printed side-by-side, so:
+    // Simple `a op b op c` chains where a single relational operator appears at both
+    // links. Each row supplies the three operand expressions (as strings), the operator,
+    // and the expected bool value. The chained form `a op b op c` and the hand-written
+    // expansion `(a op b) && (b op c)` are folded as separate const initializers in the
+    // same compilation, and both must agree. The test body builds both forms from the
+    // parameters so there's a single source of truth per row.
     //
-    //   1. CS0133 fires if either form fails to fold.
-    //   2. A silent value drift between the chained fold and the classical fold surfaces
-    //      as a mismatched expected output (one form True, the other False).
-    //
-    // Same-type chains: predefined int comparisons.
-    [InlineData("0 < 5 < 10",         "(0 < 5) && (5 < 10)",        "True")]
-    [InlineData("0 < 5 < 2",          "(0 < 5) && (5 < 2)",         "False")]  // inner true, outer false
-    [InlineData("10 < 5 < 100",       "(10 < 5) && (5 < 100)",      "False")]  // inner false
-    // Mixed relational operators.
-    [InlineData("0 <= 5 <= 10",       "(0 <= 5) && (5 <= 10)",      "True")]
-    [InlineData("10 >= 5 >= 0",       "(10 >= 5) && (5 >= 0)",      "True")]
-    [InlineData("1 < 2 > 0",          "(1 < 2) && (2 > 0)",         "True")]
-    // N-ary chains.
-    [InlineData("1 < 2 < 3 < 4",      "(1 < 2) && (2 < 3) && (3 < 4)",                  "True")]
-    [InlineData("1 < 2 < 3 < 4 < 5",  "(1 < 2) && (2 < 3) && (3 < 4) && (4 < 5)",       "True")]
-    [InlineData("1 < 2 < 3 < 2",      "(1 < 2) && (2 < 3) && (3 < 2)",                  "False")]  // n-ary with outer false
+    // Basic int chains.
+    [InlineData("0",            "5",        "10",           "<",  "True")]
+    [InlineData("0",            "5",        "2",            "<",  "False")]  // inner true, outer false
+    [InlineData("10",           "5",        "100",          "<",  "False")]  // inner false
+    // Other relational operators.
+    [InlineData("0",            "5",        "10",           "<=", "True")]
+    [InlineData("10",           "5",        "0",            ">=", "True")]
     // Boundary: equal operands.
-    [InlineData("0 <= 0 <= 0",        "(0 <= 0) && (0 <= 0)",       "True")]
-    [InlineData("0 < 0 < 0",          "(0 < 0) && (0 < 0)",         "False")]
-    // Asymmetric conversions in the chain: the outer LeftConversion must fold too.
-    [InlineData("0 < 5 < 10L",        "(0 < 5) && (5 < 10L)",       "True")]
-    [InlineData("0L < 5 < 10",        "(0L < 5) && (5 < 10)",       "True")]
-    [InlineData("(short)0 < 5 < 10L", "((short)0 < 5) && (5 < 10L)","True")]
-    [InlineData("0 < (short)5 < 10L", "(0 < (short)5) && ((short)5 < 10L)", "True")]
-    // Negative numbers and overflow-adjacent values.
-    [InlineData("int.MinValue < 0 < int.MaxValue", "(int.MinValue < 0) && (0 < int.MaxValue)", "True")]
-    [InlineData("-1 < 0 < 1",         "(-1 < 0) && (0 < 1)",        "True")]
-    public void PredefinedOperators_FoldsToExpectedValue(string chainExpression, string expandedExpression, string expectedValue)
+    [InlineData("0",            "0",        "0",            "<=", "True")]
+    [InlineData("0",            "0",        "0",            "<",  "False")]
+    // Negative and overflow-adjacent values.
+    [InlineData("-1",           "0",        "1",            "<",  "True")]
+    [InlineData("int.MinValue", "0",        "int.MaxValue", "<",  "True")]
+    // Asymmetric conversions (exercises the outer LeftConversion at fold time).
+    [InlineData("0",            "5",        "10L",          "<",  "True")]
+    [InlineData("0L",           "5",        "10",           "<",  "True")]
+    [InlineData("(short)0",     "5",        "10L",          "<",  "True")]
+    [InlineData("0",            "(short)5", "10L",          "<",  "True")]
+    public void ThreeOperandChain_ChainedAndExpandedFoldAgree(string a, string b, string c, string op, string expected)
     {
         var src = $$"""
             using System;
 
             class P
             {
-                const bool Chained  = {{chainExpression}};
-                const bool Expanded = {{expandedExpression}};
+                const bool Chained  = {{a}} {{op}} {{b}} {{op}} {{c}};
+                const bool Expanded = ({{a}} {{op}} {{b}}) && ({{b}} {{op}} {{c}});
 
                 static void Main()
                 {
@@ -81,7 +75,38 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: $"c={expectedValue},e={expectedValue}")
+            expectedOutput: $"c={expected},e={expected}")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    // Chain shapes that don't fit the simple `a op b op c` template: mixed relational
+    // operators at different positions, and n-ary chains of length 4+. Same side-by-side
+    // chained-vs-expanded assertion, but the chain and its expansion are supplied as
+    // full expressions rather than synthesized from parts.
+    [InlineData("1 < 2 > 0",         "(1 < 2) && (2 > 0)",                        "True")]
+    [InlineData("1 < 2 < 3 < 4",     "(1 < 2) && (2 < 3) && (3 < 4)",             "True")]
+    [InlineData("1 < 2 < 3 < 4 < 5", "(1 < 2) && (2 < 3) && (3 < 4) && (4 < 5)",  "True")]
+    [InlineData("1 < 2 < 3 < 2",     "(1 < 2) && (2 < 3) && (3 < 2)",             "False")]
+    public void MixedOperatorsOrNAryChain_ChainedAndExpandedFoldAgree(string chain, string expanded, string expected)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool Chained  = {{chain}};
+                const bool Expanded = {{expanded}};
+
+                static void Main()
+                {
+                    Console.Write($"c={Chained},e={Expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: $"c={expected},e={expected}")
             .VerifyDiagnostics();
     }
 
