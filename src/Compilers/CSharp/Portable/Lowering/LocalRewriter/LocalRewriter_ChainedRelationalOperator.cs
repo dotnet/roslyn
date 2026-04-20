@@ -4,7 +4,6 @@
 
 #nullable enable
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -54,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _factory.Sequence(
                 locals: locals.ToImmutableAndFree(),
-                sideEffects: ImmutableArray<BoundExpression>.Empty,
+                sideEffects: [],
                 result: chain);
         }
 
@@ -74,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <paramref name="innerRightReplacement"/> is the inline-assign that the chained node
         /// above this one injected. For the base case the replacement is non-null by
         /// construction; only the very top-level chained node passes a <c>null</c> replacement,
-        /// meaning "use your own <see cref="BoundBinaryOperator.Right"/>".
+        /// meaning "use your own <c>Right</c>".
         ///
         /// Any temp allocated at this level is appended to <paramref name="locals"/>.
         /// </summary>
@@ -148,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression AssignAndRead(BoundLocal temp, BoundExpression expression)
         {
             return _factory.Sequence(
-                locals: ImmutableArray<LocalSymbol>.Empty,
-                sideEffects: ImmutableArray.Create<BoundExpression>(_factory.AssignmentExpression(temp, expression)),
+                locals: [],
+                sideEffects: [_factory.AssignmentExpression(temp, expression)],
                 result: temp);
         }
     }
