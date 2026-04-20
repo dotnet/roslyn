@@ -1032,8 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (kind.IsChainableRelational() &&
                     left is BoundBinaryOperator leftBinaryOperator &&
                     leftBinaryOperator.OperatorKind.IsChainableRelational() &&
-                    (object)left.Type != null &&
-                    left.Type.SpecialType == SpecialType.System_Boolean)
+                    left.Type is { SpecialType: SpecialType.System_Boolean })
                 {
                     CheckFeatureAvailability(node, MessageID.IDS_FeatureChainedRelationalComparison, diagnostics);
 
@@ -1063,8 +1062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     chainOperatorResolutionForReporting.Free();
 
                     bool chainReturnsBool = chainFoundOperator &&
-                        (object)chainSignature.ReturnType != null &&
-                        chainSignature.ReturnType.SpecialType == SpecialType.System_Boolean;
+                        chainSignature.ReturnType is { SpecialType: SpecialType.System_Boolean };
 
                     if (chainReturnsBool)
                     {
