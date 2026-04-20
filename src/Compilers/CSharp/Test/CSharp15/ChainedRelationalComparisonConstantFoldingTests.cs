@@ -32,53 +32,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTestBase
 {
     [Theory]
+    // Each row carries the chained form, the equivalent hand-written expansion
+    // `(op1) && (op2) && ...`, and the expected bool value. Both forms are placed into
+    // `const bool` initializers in the same compilation and printed side-by-side, so:
+    //
+    //   1. CS0133 fires if either form fails to fold.
+    //   2. A silent value drift between the chained fold and the classical fold surfaces
+    //      as a mismatched expected output (one form True, the other False).
+    //
     // Same-type chains: predefined int comparisons.
-    [InlineData("0 < 5 < 10",           "True")]
-    [InlineData("0 < 5 < 2",            "False")]  // inner true, outer false
-    [InlineData("10 < 5 < 100",         "False")]  // inner false (short-circuit)
+    [InlineData("0 < 5 < 10",         "(0 < 5) && (5 < 10)",        "True")]
+    [InlineData("0 < 5 < 2",          "(0 < 5) && (5 < 2)",         "False")]  // inner true, outer false
+    [InlineData("10 < 5 < 100",       "(10 < 5) && (5 < 100)",      "False")]  // inner false
     // Mixed relational operators.
-    [InlineData("0 <= 5 <= 10",         "True")]
-    [InlineData("10 >= 5 >= 0",         "True")]
-    [InlineData("1 < 2 > 0",            "True")]
+    [InlineData("0 <= 5 <= 10",       "(0 <= 5) && (5 <= 10)",      "True")]
+    [InlineData("10 >= 5 >= 0",       "(10 >= 5) && (5 >= 0)",      "True")]
+    [InlineData("1 < 2 > 0",          "(1 < 2) && (2 > 0)",         "True")]
     // N-ary chains.
-    [InlineData("1 < 2 < 3 < 4",        "True")]
-    [InlineData("1 < 2 < 3 < 4 < 5",    "True")]
-    [InlineData("1 < 2 < 3 < 2",        "False")]  // n-ary with outer false
+    [InlineData("1 < 2 < 3 < 4",      "(1 < 2) && (2 < 3) && (3 < 4)",                  "True")]
+    [InlineData("1 < 2 < 3 < 4 < 5",  "(1 < 2) && (2 < 3) && (3 < 4) && (4 < 5)",       "True")]
+    [InlineData("1 < 2 < 3 < 2",      "(1 < 2) && (2 < 3) && (3 < 2)",                  "False")]  // n-ary with outer false
     // Boundary: equal operands.
-    [InlineData("0 <= 0 <= 0",          "True")]
-    [InlineData("0 < 0 < 0",            "False")]
+    [InlineData("0 <= 0 <= 0",        "(0 <= 0) && (0 <= 0)",       "True")]
+    [InlineData("0 < 0 < 0",          "(0 < 0) && (0 < 0)",         "False")]
     // Asymmetric conversions in the chain: the outer LeftConversion must fold too.
-    [InlineData("0 < 5 < 10L",          "True")]
-    [InlineData("0L < 5 < 10",          "True")]
-    [InlineData("(short)0 < 5 < 10L",   "True")]
-    [InlineData("0 < (short)5 < 10L",   "True")]
+    [InlineData("0 < 5 < 10L",        "(0 < 5) && (5 < 10L)",       "True")]
+    [InlineData("0L < 5 < 10",        "(0L < 5) && (5 < 10)",       "True")]
+    [InlineData("(short)0 < 5 < 10L", "((short)0 < 5) && (5 < 10L)","True")]
+    [InlineData("0 < (short)5 < 10L", "(0 < (short)5) && ((short)5 < 10L)", "True")]
     // Negative numbers and overflow-adjacent values.
-    [InlineData("int.MinValue < 0 < int.MaxValue", "True")]
-    [InlineData("-1 < 0 < 1",           "True")]
-    public void PredefinedOperators_FoldsToExpectedValue(string chainExpression, string expectedValue)
+    [InlineData("int.MinValue < 0 < int.MaxValue", "(int.MinValue < 0) && (0 < int.MaxValue)", "True")]
+    [InlineData("-1 < 0 < 1",         "(-1 < 0) && (0 < 1)",        "True")]
+    public void PredefinedOperators_FoldsToExpectedValue(string chainExpression, string expandedExpression, string expectedValue)
     {
-        // A `const bool` field initializer requires its right-hand side to be a
-        // constant expression. If the chain doesn't fold, the compiler reports CS0133
-        // ("requires a value that can be converted to the target type to a constant
-        // expression"). VerifyDiagnostics() with no expected diagnostics therefore
-        // pins BOTH that the chain is considered a constant expression AND that its
-        // folded value is what we print at runtime.
         var src = $$"""
             using System;
 
             class P
             {
-                const bool B = {{chainExpression}};
+                const bool Chained  = {{chainExpression}};
+                const bool Expanded = {{expandedExpression}};
 
                 static void Main()
                 {
-                    Console.WriteLine(B);
+                    Console.Write($"c={Chained},e={Expanded}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: expectedValue)
+            expectedOutput: $"c={expectedValue},e={expectedValue}")
             .VerifyDiagnostics();
     }
 
