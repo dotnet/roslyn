@@ -1040,14 +1040,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind resultOperatorKind = signature.Kind;
             bool hasErrors = false;
-            bool isChainedRelational = false;
+            // Chained relational comparison (spec §11.11.13) bind-time state. All three
+            // are all-or-nothing: chainedRelationalLeftOperand is non-null exactly on the
+            // chain-fallback success path, and when set, the other two describe the outer
+            // link's LeftConversion and its target type. Storing the conversion separately
+            // (rather than baking it into chainedRelationalLeftOperand) keeps the lowered
+            // temp at Y's inner-link type, which is required for verifiable IL on
+            // asymmetric-widening chains like `short < int < long`.
             BoundExpression chainedRelationalLeftOperand = null;
-            // For chained relational comparison: the outer link's LeftConversion and
-            // target type, captured at bind time so the lowerer can convert the
-            // shared-middle temp on its load side. Storing them (rather than baking
-            // them into chainedRelationalLeftOperand) keeps the temp at Y's inner-link
-            // type, which is required for verifiable IL on asymmetric-widening chains
-            // like `short < int < long`.
             Conversion chainedRelationalLeftConversion = Conversion.NoConversion;
             TypeSymbol chainedRelationalLeftConvertedType = null;
 
@@ -1117,7 +1117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.AddRangeAndFree(attemptDiagnostics);
 
                         foundOperator = true;
-                        isChainedRelational = true;
                         signature = chainSignature;
                         best = chainBest;
                         resultKind = chainResultKind;
@@ -1220,10 +1219,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For chained relational comparison, the outer node's Left is a bool-typed
                 // BoundBinaryOperator describing the inner link. The isolated `Y op Right`
-                // operator's LeftConversion was already applied to Y (stored in
-                // chainedRelationalLeftOperand above), so we leave the outer `resultLeft`
-                // as the original inner BoundBinaryOperator here.
-                if (!isChainedRelational)
+                // operator's LeftConversion is tracked via chainedRelationalLeftConversion
+                // and applied by the lowerer, so we leave the outer `resultLeft` as the
+                // original inner BoundBinaryOperator here.
+                if (chainedRelationalLeftOperand is null)
                 {
                     resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
                 }
@@ -1252,11 +1251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversionDiagnostics.Free();
                 }
 
-                // Constant folding for non-chained nodes happens here. Chained relational
-                // folding is handled below (it needs to combine the inner link's constant
-                // value with the outer link's constant, not treat the outer `bool op T` as a
-                // standalone constant expression).
-                if (!isChainedRelational)
+                // Constant folding. Chained relational folds combine the inner link's
+                // constant value with the outer `Y op B` constant (spec §11.20 analog
+                // applied to the `A && (Y op B)` short-circuit form), rather than treating
+                // the outer `bool op T` as a standalone constant expression.
+                if (chainedRelationalLeftOperand is null)
                 {
                     resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);
                 }
@@ -1284,9 +1283,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
 
-            if (isChainedRelational)
+            if (chainedRelationalLeftOperand is not null)
             {
-                Debug.Assert(chainedRelationalLeftOperand is not null);
+                // The three chained-relational locals are all-or-nothing; UncommonData
+                // mirrors the same invariant on its ctor-side asserts. resultType == bool
+                // falls out of spec §11.11.13 rule 2(b), which only accepts a chain when
+                // the isolated `Y op B` overload resolution yields a bool-returning
+                // operator.
                 Debug.Assert(chainedRelationalLeftConvertedType is not null);
                 Debug.Assert(chainedRelationalLeftConversion.Exists);
                 Debug.Assert(resultType.SpecialType == SpecialType.System_Boolean);
