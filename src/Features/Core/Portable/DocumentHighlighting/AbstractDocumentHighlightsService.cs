@@ -173,8 +173,8 @@ internal abstract partial class AbstractDocumentHighlightsService :
             var constructorParts1 = constructor.OriginalDefinition.GetAllMethodSymbolsOfPartialParts();
             references = references.WhereAsArray(r =>
             {
-                // FindReferences on a constructor cascades to the containing type; keep those
-                // non-method definitions as-is since the partial-parts dedup is method-only.
+                // For delegate constructors, FindReferences remaps the search to the delegate type,
+                // so r.Definition can be an INamedTypeSymbol. Skip the partial-parts dedup for those.
                 if (r.Definition is not IMethodSymbol methodSymbol)
                     return true;
 
