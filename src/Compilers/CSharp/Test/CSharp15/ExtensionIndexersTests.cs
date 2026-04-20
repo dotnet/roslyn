@@ -4,7 +4,6 @@
 #nullable disable
 
 using System.Linq;
-using ILVerify;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
