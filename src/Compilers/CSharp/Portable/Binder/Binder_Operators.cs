@@ -1028,7 +1028,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // chained relational comparison. §11.4.5 is re-applied to `Y op B` as an
                 // isolated binary operation; if it selects a bool-returning operator, `A op B`
                 // is classified as a chained relational comparison. Otherwise the specific
-                // ERR_NoChainedRelationalComparison diagnostic is produced.
+                // ERR_NoChainedRelationalComparison diagnostic is produced. If the node does not
+                // even have the chain shape, the ordinary CS0019 is reported as before.
+                //
+                // Either error-producing branch clears the operand-type bits of resultOperatorKind
+                // (BinaryOperatorKind packs OpMask, e.g. LessThan, and TypeMask, e.g. Int /
+                // String / UserDefined). We keep the operator bits so downstream passes still
+                // see *which* operator was written, but clear the operand-type bits so no
+                // consumer concludes that we successfully bound to a specific signature.
                 if (kind.IsChainableRelational() &&
                     left is BoundBinaryOperator leftBinaryOperator &&
                     leftBinaryOperator.OperatorKind.IsChainableRelational() &&
@@ -1045,10 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // its diagnostics and its OperatorResolutionForReporting state into scratch
                     // buffers so that, if the chain interpretation is rejected below, nothing
                     // from this attempt leaks into the caller's diagnostics (we will instead
-                    // fall through and report either the specific chained-relational error or
-                    // the original CS0019 from the outer resolution). If the chain succeeds
-                    // we commit the attempted diagnostics wholesale (see the
-                    // `chainReturnsBool` branch below).
+                    // fall through and report the specific chained-relational error). If the
+                    // chain succeeds we commit the attempted diagnostics wholesale.
                     var attemptDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
                     OperatorResolutionForReporting chainOperatorResolutionForReporting = default;
 
@@ -1061,17 +1066,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the reporting state is always freed here regardless of outcome.
                     chainOperatorResolutionForReporting.Free();
 
-                    bool chainReturnsBool = chainFoundOperator &&
-                        chainSignature.ReturnType is { SpecialType: SpecialType.System_Boolean };
-
-                    if (chainReturnsBool)
+                    if (chainFoundOperator &&
+                        chainSignature.ReturnType is { SpecialType: SpecialType.System_Boolean })
                     {
-                        // Chain fallback succeeded. Commit the attempted diagnostics, discard the
-                        // originally-collected operator resolution results (we never reported the
-                        // CS0019-style error), and build a chained-relational BoundBinaryOperator
-                        // with the Y-op-B operator selected above.
+                        // Chain fallback succeeded. Commit the attempted diagnostics and build a
+                        // chained-relational BoundBinaryOperator with the Y-op-B operator
+                        // selected above; the original overload-resolution state is discarded
+                        // with the shared .Free() below.
                         diagnostics.AddRangeAndFree(attemptDiagnostics);
-                        operatorResolutionForReporting.Free();
 
                         foundOperator = true;
                         isChainedRelational = true;
@@ -1098,32 +1100,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node.OperatorToken.Text,
                             y.Display,
                             right.Display);
-                        operatorResolutionForReporting.Free();
-
-                        // BinaryOperatorKind packs the operator (OpMask, e.g. LessThan) and the
-                        // operand-type choice (TypeMask, e.g. Int / String / UserDefined) into a
-                        // single value. When overload resolution fails we record the operator so
-                        // downstream passes still see *which* operator was written, but clear the
-                        // operand-type bits so no consumer concludes that we successfully bound to
-                        // a specific signature (e.g. IntLessThan). This mirrors the equivalent
-                        // clearing in the default overload-resolution-failure branch just below.
                         resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
                         hasErrors = true;
                     }
                 }
-
-                if (!foundOperator && !hasErrors)
+                else
                 {
+                    // No chain shape applies; report the ordinary CS0019.
                     ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind, ref operatorResolutionForReporting);
                     resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
                     hasErrors = true;
-                    operatorResolutionForReporting.Free();
                 }
             }
-            else
-            {
-                operatorResolutionForReporting.Free();
-            }
+
+            operatorResolutionForReporting.Free();
 
             switch (node.Kind())
             {
