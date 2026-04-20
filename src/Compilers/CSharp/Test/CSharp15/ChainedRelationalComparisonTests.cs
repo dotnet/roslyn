@@ -274,20 +274,25 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
         // A `? :` ternary in the middle of a chain. Lowering's VisitExpression handles
         // BoundConditionalOperator already; just pin that the chain's temp-capture site
         // doesn't interfere.
+        //
+        // A() returns an in-range value and B() returns an out-of-range value, so the
+        // chain's bool result distinguishes which branch was taken. A wrong impl that
+        // e.g. evaluated both branches, or took the wrong branch, would show a wrong
+        // label/result pair.
         var src = """
             using System;
 
             class P
             {
-                static int A() { Console.Write("A "); return 5; }
-                static int B() { Console.Write("B "); return 10; }
+                static int A() { Console.Write("A "); return 5; }      // inside (0, 100)
+                static int B() { Console.Write("B "); return 200; }    // outside (0, 100)
 
                 static void Main()
                 {
                     bool cond = true;
-                    Console.WriteLine(0 < (cond ? A() : B()) < 100);  // "A True"
+                    Console.WriteLine(0 < (cond ? A() : B()) < 100);   // "A True"  — A picked, 0 < 5 < 100
                     cond = false;
-                    Console.WriteLine(0 < (cond ? A() : B()) < 100);  // "B True"
+                    Console.WriteLine(0 < (cond ? A() : B()) < 100);   // "B False" — B picked, 0 < 200 but NOT < 100
                 }
             }
             """;
@@ -295,7 +300,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             parseOptions: TestOptions.RegularPreview,
             expectedOutput: """
                 A True
-                B True
+                B False
                 """)
             .VerifyDiagnostics();
     }
