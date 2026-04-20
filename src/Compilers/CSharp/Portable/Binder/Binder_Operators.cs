@@ -1042,6 +1042,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false;
             bool isChainedRelational = false;
             BoundExpression chainedRelationalLeftOperand = null;
+            // For chained relational comparison: the outer link's LeftConversion and
+            // target type, captured at bind time so the lowerer can convert the
+            // shared-middle temp on its load side. Storing them (rather than baking
+            // them into chainedRelationalLeftOperand) keeps the temp at Y's inner-link
+            // type, which is required for verifiable IL on asymmetric-widening chains
+            // like `short < int < long`.
+            Conversion chainedRelationalLeftConversion = Conversion.NoConversion;
+            TypeSymbol chainedRelationalLeftConvertedType = null;
 
             if (!foundOperator)
             {
@@ -1116,11 +1124,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         originalUserDefinedOperators = chainOriginalUserDefinedOperators;
                         resultOperatorKind = signature.Kind;
 
-                        // Pre-convert Y to the operator's left-operand type so that at lowering
-                        // time we can feed it directly to the operator without re-running
-                        // overload resolution. The conversion is whatever chainBest chose; in the
-                        // common same-type chain it will be identity.
-                        chainedRelationalLeftOperand = CreateConversion(y, chainBest.LeftConversion, signature.LeftType, diagnostics);
+                        // Store Y *with only the inner link's conversion applied* (i.e. `y`
+                        // itself, which is `leftBinaryOperator.Right` from the bound inner
+                        // link), together with the outer link's LeftConversion descriptor
+                        // and its target type. The lowerer will use Y as the temp's initial
+                        // value (temp type = Y's inner-link type) and apply the outer's
+                        // conversion on the temp's load when building the outer link's left
+                        // operand. Keeping the outer conversion off the stored Y is what
+                        // makes asymmetric chains like `short < int < long` emit verifiable
+                        // IL: the inner link operates on the temp's inner-link type, not on
+                        // the outer link's wider type.
+                        chainedRelationalLeftOperand = y;
+                        chainedRelationalLeftConversion = chainBest.LeftConversion;
+                        chainedRelationalLeftConvertedType = signature.LeftType;
                     }
                     else
                     {
@@ -1262,6 +1278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isChainedRelational)
             {
                 Debug.Assert(chainedRelationalLeftOperand is not null);
+                Debug.Assert(chainedRelationalLeftConvertedType is not null);
+                Debug.Assert(chainedRelationalLeftConversion.Exists);
                 Debug.Assert(resultType.SpecialType == SpecialType.System_Boolean);
                 return new BoundBinaryOperator(
                     node,
@@ -1271,7 +1289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         signature.Method,
                         signature.ConstrainedToTypeOpt,
                         originalUserDefinedOperators,
-                        chainedRelationalLeftOperand),
+                        chainedRelationalLeftOperand,
+                        chainedRelationalLeftConversion,
+                        chainedRelationalLeftConvertedType),
                     resultKind,
                     resultLeft,
                     resultRight,

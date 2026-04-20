@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -39,31 +40,29 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             .VerifyDiagnostics();
     }
 
-    [Theory]
-    // Every permutation of (int, int?) at the three operand positions. The chain should
-    // bind, run, and produce the correct result for all eight. Seven of the eight have
-    // both links resolving to the same operator kind (either classical `int<int` or
-    // lifted `int?<int?`), so the temp type and the inner operator agree and IL verifies
-    // cleanly. The one exception is `int, int, int?`: inner resolves to `int<int` (no
-    // nullable operand there) but outer resolves to lifted `int?<int?`, so the temp is
-    // `int?` while the inner link expects `int`. That is the same asymmetric-widening
-    // shape documented on AsymmetricConversion_*; it runs correctly on RyuJIT but fails
-    // formal IL verification. When the Option A fix lands (keep temp at Y's inner type,
-    // convert on load for the outer link), that one row flips to Passes and the
-    // parameter can go away.
-    //
-    // Values a=0, b=5, c=10 satisfy a < b < c for every permutation, so expectedOutput
-    // is uniformly "True".
-    [InlineData("int",  "int",  "int",  true)]
-    [InlineData("int?", "int",  "int",  true)]
-    [InlineData("int",  "int?", "int",  true)]
-    [InlineData("int",  "int",  "int?", false)]
-    [InlineData("int?", "int?", "int",  true)]
-    [InlineData("int?", "int",  "int?", true)]
-    [InlineData("int",  "int?", "int?", true)]
-    [InlineData("int?", "int?", "int?", true)]
-    public void Chain_NullableVsNonNullable_AllEightPermutations(string aType, string bType, string cType, bool ilVerifies)
+    // All 216 combinations of {short, short?, int, int?, long, long?} at the three
+    // operand positions. The chain must bind, run, and produce the correct result for
+    // every combination, and IL must verify cleanly in every case: the shared middle
+    // operand is captured in a temp at Y's inner-link type and the outer link applies
+    // its own conversion on load, so the inner operator's operand type always matches
+    // the temp's type - including asymmetric-width shapes like `short, int, long` and
+    // nullable-lifting shapes like `int, int, int?`, where the outer link otherwise
+    // would drive the temp to a different type than the inner link consumes.
+    public static IEnumerable<object[]> AllShortIntLongNullablePermutations()
     {
+        var types = new[] { "short", "short?", "int", "int?", "long", "long?" };
+        foreach (var a in types)
+            foreach (var b in types)
+                foreach (var c in types)
+                    yield return new object[] { a, b, c };
+    }
+
+    [Theory]
+    [MemberData(nameof(AllShortIntLongNullablePermutations))]
+    public void Chain_AllShortIntLongNullablePermutations(string aType, string bType, string cType)
+    {
+        // Values a=0, b=5, c=10 satisfy a < b < c for every combination and fit every
+        // type in the grid, so expectedOutput is uniformly "True".
         var src = $$"""
             using System;
 
@@ -80,8 +79,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "True",
-            verify: ilVerifies ? Verification.Passes : Verification.FailsILVerify)
+            expectedOutput: "True")
             .VerifyDiagnostics();
     }
 
@@ -253,18 +251,13 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 }
             }
             """;
-        // The `int < int? < int` and `int < int < int?` chains are asymmetric
-        // (the lifted operators give the middle a Nullable<int> type on one link
-        // and a non-nullable int on the other), so they hit the same deferred
-        // IL-verify failure as the other asymmetric-conversion chain tests.
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
             expectedOutput: """
                 fb True
                 False
                 False
-                """,
-            verify: Verification.FailsILVerify)
+                """)
             .VerifyDiagnostics();
     }
 
@@ -898,33 +891,21 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     // Y is evaluated exactly once; each link's conversion is applied at that link's
     // point of use, so the chain is equivalent to an ordinary short-circuit `&&`
     // chain where Y sits in a temp of Y's natural type.
-    //
-    // KNOWN ISSUE: the current lowering stores the outer-link's pre-converted Y in
-    // the temp (e.g. long for an int<int<long chain), which makes the inner link's
-    // compare ask for int32 on the stack while finding int64. The resulting IL runs
-    // correctly on RyuJIT (sign-extension happens to do the right thing for signed
-    // comparisons) but fails formal IL verification. The tests below therefore use
-    // Verification.FailsILVerify for the asymmetric cases; when LDM chooses Option A
-    // and the lowering is fixed to keep the temp at Y's inner type, these tests
-    // should switch to Verification.Passes. If LDM chooses Option B (strict), the
-    // tests should switch from CompileAndVerify + ExpectedOutput to a
-    // VerifyDiagnostics expectation on ERR_NoChainedRelationalComparison.
 
     [Theory]
-    // Every permutation of (short, int, long) at the three operand positions. The
-    // IL-verify outcome depends on whether the middle operand is the strictly-
-    // "in-between" type: if so, the inner operator is narrower than the temp's
-    // type and the current lowering produces unverifiable IL (ryujit accepts it
-    // via sign-extension; the fix for the spec's permissive rule will keep the
-    // temp at Y's inner type instead). Once that fix lands, every row below can
-    // flip to Verification.Passes.
-    [InlineData("short", "int", "long", false)]   // inner: short<int -> int<int; outer: int<long -> long<long (mismatch)
-    [InlineData("short", "long", "int", true)]    // inner: short<long -> long<long; outer: long<int -> long<long (match)
-    [InlineData("int", "short", "long", false)]   // inner: int<short -> int<int; outer: int<long -> long<long (mismatch)
-    [InlineData("int", "long", "short", true)]    // inner: int<long -> long<long; outer: long<short -> long<long (match)
-    [InlineData("long", "short", "int", true)]    // inner: long<short -> long<long; outer: long<int -> long<long (match)
-    [InlineData("long", "int", "short", true)]    // inner: long<int -> long<long; outer: long<short -> long<long (match)
-    public void AsymmetricConversion_AllPermutationsOfShortIntLong(string aType, string bType, string cType, bool ilVerifies)
+    // Every permutation of (short, int, long) at the three operand positions. Under
+    // Option A the shared middle operand is captured at Y's inner-link type and the
+    // outer link applies its own conversion on load, so every permutation emits
+    // verifiable IL - including the two where the middle is strictly "in between"
+    // (`short, int, long` and `int, short, long`), which would otherwise have the
+    // inner operator and temp disagree on type.
+    [InlineData("short", "int", "long")]   // inner: short<int -> int<int; outer: int<long -> long<long
+    [InlineData("short", "long", "int")]   // inner: short<long -> long<long; outer: long<int -> long<long
+    [InlineData("int", "short", "long")]   // inner: int<short -> int<int; outer: int<long -> long<long
+    [InlineData("int", "long", "short")]   // inner: int<long -> long<long; outer: long<short -> long<long
+    [InlineData("long", "short", "int")]   // inner: long<short -> long<long; outer: long<int -> long<long
+    [InlineData("long", "int", "short")]   // inner: long<int -> long<long; outer: long<short -> long<long
+    public void AsymmetricConversion_AllPermutationsOfShortIntLong(string aType, string bType, string cType)
     {
         // a=1, b=5, c=10 fits every permutation of (short, int, long) and produces a
         // chain result of True. The test also asserts single-evaluation of each
@@ -950,8 +931,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "r=True, a=1, b=1, c=1",
-            verify: ilVerifies ? Verification.Passes : Verification.FailsILVerify)
+            expectedOutput: "r=True, a=1, b=1, c=1")
             .VerifyDiagnostics();
     }
 
@@ -981,8 +961,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "r=True, evals=1",
-            verify: Verification.FailsILVerify)
+            expectedOutput: "r=True, evals=1")
             .VerifyDiagnostics();
     }
 
@@ -1042,8 +1021,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "r=True, evals=1",
-            verify: Verification.FailsILVerify)
+            expectedOutput: "r=True, evals=1")
             .VerifyDiagnostics();
     }
 
@@ -1074,8 +1052,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "chained=True, handWritten=True, match=True",
-            verify: Verification.FailsILVerify)
+            expectedOutput: "chained=True, handWritten=True, match=True")
             .VerifyDiagnostics();
     }
 
@@ -1113,8 +1090,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "total=150, mismatched=0",
-            verify: Verification.FailsILVerify)
+            expectedOutput: "total=150, mismatched=0")
             .VerifyDiagnostics();
     }
 
@@ -1146,8 +1122,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "r=False, bCalls=1, cCalls=0",
-            verify: Verification.FailsILVerify)
+            expectedOutput: "r=False, bCalls=1, cCalls=0")
             .VerifyDiagnostics();
     }
 
@@ -1520,6 +1495,53 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                 // (21,47): error CS9380: Operator '<' cannot be applied to operands of type 'S' and 'Point' as a chained relational comparison.
                 //     static bool F(S a, S b, Point c) => a < b < c;
                 Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "Point").WithLocation(21, 47));
+    }
+
+    #endregion
+
+    #region Definite assignment interactions
+
+    [Fact]
+    public void DefiniteAssignment_MiddleOperandAssignsLocalReadByOuterRight()
+    {
+        // Spec §11.11.13 lowers `a op1 Y op2 B` to the short-circuit form
+        // `a op1 Y' && Y' op2 B` where Y' is Y evaluated once. So when Y contains an
+        // assignment to a previously-unassigned local, that local must be definitely
+        // assigned inside B: if we ever reach B, the inner link finished evaluating Y
+        // and therefore the assignment in Y ran.
+        //
+        // The test also pins the runtime semantic: B reads the local directly, and
+        // since Y evaluates exactly once, B must see the value Y assigned (not a
+        // second evaluation of Y, and not a stale value).
+        var src = """
+            using System;
+
+            class P
+            {
+                static int cCalls;
+                static int C() { cCalls++; return 5; }
+                static int D(int x) { Console.Write($"D({x}) "); return x + 10; }
+
+                static void Main()
+                {
+                    int a = 0;
+
+                    // b is unassigned here. The chain reads b inside D(b) on the outer
+                    // link's right operand, but b is definitely assigned by the inner
+                    // link's `(b = C())` before D(b) is evaluated.
+                    int b;
+                    bool r = a < (b = C()) < D(b);
+
+                    // Proves: C() ran exactly once, D received the value C() returned,
+                    // and the chain's truth value matches 0 < 5 && 5 < 15.
+                    Console.WriteLine($"r={r}, cCalls={cCalls}, b={b}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "D(5) r=True, cCalls=1, b=5")
+            .VerifyDiagnostics();
     }
 
     #endregion

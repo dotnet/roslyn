@@ -426,13 +426,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal InterpolatedStringHandlerData? InterpolatedStringHandlerData => Data?.InterpolatedStringHandlerData;
 
         /// <summary>
-        /// For a chained relational comparison (spec §11.11.13), the Y value (the shared
-        /// middle operand of the chain link) with all conversions required by this node's
-        /// selected operator already applied. Non-null exactly when this node is a chained
-        /// relational comparison; the lowerer hoists it into a temp and feeds it to the
-        /// chain link. See <see cref="IsChainedRelational"/> for the boolean shortcut.
+        /// For a chained relational comparison (spec §11.11.13), the shared middle operand
+        /// `Y` with *only* the inner link's conversion applied. This is exactly what
+        /// <c>((BoundBinaryOperator)Left).Right</c> holds on the outer node; the property
+        /// exists for clarity and as the canonical chained-marker. The lowerer hoists this
+        /// value into a temp; the outer link's own LeftConversion (if any) is applied at
+        /// the outer comparison's point of use, not here, so the temp's type matches the
+        /// inner link's operator. See <see cref="IsChainedRelational"/> for the bool
+        /// shortcut and <see cref="ChainedRelationalLeftConversion"/> /
+        /// <see cref="ChainedRelationalLeftConvertedType"/> for the outer conversion info.
         /// </summary>
         internal BoundExpression? ChainedRelationalLeftOperand => Data?.ChainedRelationalLeftOperand;
+
+        /// <summary>
+        /// The conversion the outer link's isolated overload resolution selected for its
+        /// left operand (i.e. for <see cref="ChainedRelationalLeftOperand"/>). Applied at
+        /// lowering time to the load of the shared-middle temp to produce the outer link's
+        /// left operand. May be <see cref="Conversion.Identity"/> for same-type chains.
+        /// Exists iff <see cref="IsChainedRelational"/> is true.
+        /// </summary>
+        internal Conversion ChainedRelationalLeftConversion => Data?.ChainedRelationalLeftConversion ?? Conversion.NoConversion;
+
+        /// <summary>
+        /// The target type of <see cref="ChainedRelationalLeftConversion"/>: the outer
+        /// link's left-operand type. Non-null iff <see cref="IsChainedRelational"/> is true.
+        /// </summary>
+        internal TypeSymbol? ChainedRelationalLeftConvertedType => Data?.ChainedRelationalLeftConvertedType;
 
         /// <summary>
         /// True when this node represents one comparison of a chained relational comparison
@@ -445,6 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// middle operand evaluated once and reused.
         /// </summary>
         [MemberNotNullWhen(true, nameof(ChainedRelationalLeftOperand))]
+        [MemberNotNullWhen(true, nameof(ChainedRelationalLeftConvertedType))]
         internal bool IsChainedRelational => ChainedRelationalLeftOperand is not null;
 
         /// <summary>

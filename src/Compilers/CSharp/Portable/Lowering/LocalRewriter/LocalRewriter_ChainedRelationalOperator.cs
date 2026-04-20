@@ -92,10 +92,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.IsChainedRelational)
             {
-                // Allocate a temp for this level's shared middle operand, at the type the inner
-                // link consumes for that operand. The inner link's right slot is filled with
-                // an inline-assign into this temp, so the operand is evaluated exactly once and
-                // the captured value is then reused as this link's left operand.
+                // `y` is the shared middle operand with only the *inner* link's conversion
+                // applied (i.e. the right operand of the inner BoundBinaryOperator). The temp
+                // therefore holds the value the inner link's operator consumes directly -
+                // critically, its type is Y's inner-link type, NOT the outer link's wider
+                // LeftType. That invariant is what makes asymmetric chains like
+                // `short < int < long` emit verifiable IL: the inner operator is `int<int`
+                // and the temp is also `int`, so the stack types agree.
                 BoundExpression y = node.ChainedRelationalLeftOperand;
                 LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
                 locals.Add(tempSym);
@@ -109,6 +112,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
                     result: temp);
                 BoundExpression loweredInner = BuildChainLink((BoundBinaryOperator)node.Left, innerAssign, locals);
+
+                // Build the outer link's LEFT operand by applying the outer's stored
+                // LeftConversion to the temp. Without this wrapper the outer operator would
+                // see the temp at Y's inner-link type (e.g. `int`) while it expects its
+                // chosen LeftType (e.g. `long` for a widening chain link). MakeConversionNode
+                // already short-circuits Identity conversions (see LocalRewriter_Conversion's
+                // ConversionKind.Identity case), so the common same-type case produces no
+                // extra wrapper and the temp flows through unchanged.
+                BoundExpression thisLeftOperand = MakeConversionNode(
+                    oldNodeOpt: null,
+                    syntax: node.Syntax,
+                    rewrittenOperand: temp,
+                    conversion: node.ChainedRelationalLeftConversion,
+                    @checked: false,
+                    explicitCastInCode: false,
+                    constantValueOpt: null,
+                    rewrittenType: node.ChainedRelationalLeftConvertedType);
 
                 // oldNode: null so that constant values on the original chain node are not
                 // copied onto this rewritten link; the rewritten link carries a temp-assignment
@@ -125,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     oldNode: null,
                     node.Syntax,
                     node.OperatorKind,
-                    temp,
+                    thisLeftOperand,
                     thisRight,
                     node.Type!,
                     node.BinaryOperatorMethod,
