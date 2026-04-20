@@ -407,8 +407,12 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [InlineData(false, "file://c:\\valid", null)]
     [InlineData(false, null, "file://c:\\valid")]
     [InlineData(true, "file://c:\\valid", "file://c:\\valid")]
-    [InlineData(true, "file://c:\\valid", "file:///c:/valid")]
-    [InlineData(true, "file://c:\\valid", "file://c:\\VALID")]
+    // Under vscode-uri semantics, backslash vs forward-slash URIs are not equivalent (backslashes are only
+    // normalized in ParsedDocumentUri.File(), not in Parse()). Previously System.Uri normalized these.
+    [InlineData(false, "file://c:\\valid", "file:///c:/valid")]
+    // Under vscode-uri semantics, URI path comparison is case-sensitive. Previously System.Uri handled
+    // case-insensitive file path comparison on Windows.
+    [InlineData(false, "file://c:\\valid", "file://c:\\VALID")]
     [InlineData(false, "file://c:\\valid", "file://c:\\valid2")]
     public void TestUriEquality(bool areEqual, string? uriString1, string? uriString2)
     {
