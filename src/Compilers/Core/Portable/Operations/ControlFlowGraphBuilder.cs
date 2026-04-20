@@ -2348,13 +2348,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Debug.Assert(outerOp is BinaryOperation { IsChainedRelationalComparison: true });
             Debug.Assert(outerOp.LeftOperand is IBinaryOperation);
 
+            // Any operands of enclosing expressions already sitting on the eval
+            // stack must be spilled before we open Y sub-regions; otherwise their
+            // lifetimes would cross those regions and the CFG verifier would
+            // reject the resulting capture references.
             SpillEvalStack();
 
-            // The result capture lives in the enclosing region; both the true-path
-            // outermost check and the false-path literal write to it.
+            // The final bool result - written on the true path by the outermost
+            // link and on the false path by the short-circuit block - lives in
+            // the enclosing region so it outlives every Y sub-region we open.
             var resultCaptureRegion = CurrentRegionRequired;
             int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
+            // `shortCircuitBlock` is the single false-path landing pad shared by
+            // every link's `jump-if-false` branch below; `doneBlock` is the join
+            // point after either the full-true path or the short-circuit path
+            // has written `resultId`.
             var shortCircuitBlock = new BasicBlockBuilder(BasicBlockKind.Block);
             var doneBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
@@ -2404,12 +2413,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 IBinaryOperation node = spine[i];
                 bool isOutermost = i == spine.Count - 1;
 
+                // Open a fresh sub-region whose capture slots hold this level's
+                // Y (and any sub-expression captures produced by its visit).
+                // The region nesting matches the spine nesting: Y_i's region is
+                // strictly inside Y_{i-1}'s, which is what lets Y_{i-1}'s
+                // capture stay reachable inside Y_i's region for the middle
+                // check.
                 EvalStackFrame yFrame = PushStackFrame();
                 yFrames.Add(yFrame);
 
-                // At the innermost level we visit X and capture Y, then emit the
-                // base-case `X op' Y` check. At every level we capture the
-                // `node.LeftOperand.RightOperand` - which is Y for this level.
+                // At every level we capture `node.LeftOperand.RightOperand` -
+                // which is Y for this level. The innermost level additionally
+                // visits X and emits the base-case check; non-innermost levels
+                // only emit the middle check that pairs the captured prevY with
+                // the freshly captured myY.
                 var innerOp = (IBinaryOperation)node.LeftOperand;
 
                 if (i == 0)
@@ -2424,6 +2441,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                     IOperation baseCheck = rebuildNonChainedRelational((BinaryOperation)innerOp, visitedX, myY);
                     ConditionalBranch(baseCheck, jumpIfTrue: false, shortCircuitBlock);
+
+                    // After a conditional branch the "next statement" starts a
+                    // fresh block on the true-fallthrough path; clearing the
+                    // cursor makes the next AddStatement / ConditionalBranch
+                    // allocate that block automatically.
                     _currentBasicBlock = null;
 
                     prevY = myY;
@@ -2458,7 +2480,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            // Close all Y sub-regions in LIFO order before branching to done.
+            // The all-true path finished writing `resultId`. Close the Y
+            // sub-regions in LIFO order (outermost / innermost frame stack is
+            // strictly nested, so popping the last-pushed frame first is the
+            // only order that exits one region at a time).
             for (int i = yFrames.Count - 1; i >= 0; i--)
             {
                 PopStackFrameAndLeaveRegion(yFrames[i]);
@@ -2466,19 +2491,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             yFrames.Free();
             spine.Free();
 
+            // Jump from the true-path tail to the join.
             UnconditionalBranch(doneBlock);
 
-            // Short-circuit branch shared by every link's false path. `outerOp.Type`
-            // is always bool per spec §11.11.13 rule 2(b), so the literal is
-            // well-typed.
+            // Switch the cursor into the short-circuit landing pad. Every
+            // `jump-if-false` above targets this block; the Leaving: edges on
+            // each of those branches already tore down whatever Y sub-regions
+            // were open at that branch's point, so this block runs in the
+            // enclosing result region. `outerOp.Type` is always bool (spec
+            // §11.11.13 rule 2(b)) so the literal-false store is well-typed.
             AppendNewBlock(shortCircuitBlock);
             AddStatement(new FlowCaptureOperation(resultId, outerOp.Syntax,
                 new LiteralOperation(semanticModel: null, outerOp.Syntax, outerOp.Type,
                                      ConstantValue.Create(false), isImplicit: true)));
 
+            // The `AppendNewBlock(shortCircuitBlock)` above may have entered
+            // regions attached to the block's incoming leave edges; back out of
+            // any of those before branching to `doneBlock` so the join sits in
+            // `resultCaptureRegion` - matching where the true path ended.
             LeaveRegionsUpTo(resultCaptureRegion);
             AppendNewBlock(doneBlock);
 
+            // Both paths have written `resultId`; hand it back as the chain's
+            // value for the enclosing expression.
             return GetCaptureReference(resultId, outerOp);
 
             // Rebuild a non-chained IBinaryOperation with the given operands,
