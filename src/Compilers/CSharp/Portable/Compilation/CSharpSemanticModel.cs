@@ -3918,8 +3918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // GetSymbolInfo needs the outer operator's signature - `long < long`
                     // here - so we want the converted-to type, not Y's own type. The
                     // two coincide only for same-type chains (`int < int < int`).
-                    TypeSymbol leftOperandType = binaryOperator.IsChainedRelational
-                        ? binaryOperator.ChainedRelationalLeftConvertedType
+                    TypeSymbol leftOperandType = binaryOperator.IsChainedRelational(out _)
+                        ? binaryOperator.ChainedRelationalLeftConvertedType!
                         : binaryOperator.Left.Type;
 
                     symbols = OneOrMany.Create(GetIntrinsicOperatorSymbol(op, isDynamic,
