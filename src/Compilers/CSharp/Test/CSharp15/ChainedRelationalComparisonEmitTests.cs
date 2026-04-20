@@ -332,14 +332,14 @@ public sealed class ChainedRelationalComparisonEmitTests : CSharpTestBase
     [Theory]
     // (constraintPrefix, nullabilitySuffix)
     // Interface-only T:
-    [InlineData("",         "" )]
-    [InlineData("",         "?")]
+    [InlineData("", "")]
+    [InlineData("", "?")]
     // Class-constrained T (T? is a pure NRT annotation; runtime type is still T):
-    [InlineData("class, ",  "" )]
-    [InlineData("class, ",  "?")]
+    [InlineData("class, ", "")]
+    [InlineData("class, ", "?")]
     // Struct-constrained T (only plain T; `struct, ILT<T>` + T? is the lifted case
     // pinned separately below):
-    [InlineData("struct, ", "" )]
+    [InlineData("struct, ", "")]
     public void GenericConstraint_ConstrainedDispatch_UnliftedIL(string constraintPrefix, string nullabilitySuffix)
     {
         // Five constraint-shape x operand-annotation combinations all lower to
