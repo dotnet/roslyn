@@ -1263,13 +1263,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Fold a chained relational comparison `A op B` into a constant when its operands are
         // all compile-time constants. The chain is logically equivalent to
         // `A && (Y op B)`, where A is the already-folded inner chain result (bool) and Y is
-        // the shared middle operand. If A folds to false, the whole chain is false.
-        // Otherwise the chain's value is the value of `Y op B`.
+        // the shared middle operand. If A folds to false, the whole chain is false; otherwise
+        // the chain's value is the value of `Y op B`.
+        //
+        // Deferred: this is a deliberate no-op for the binding-foundation PR. The binder
+        // calls through here so the wiring is in place, but returning null simply means a
+        // chain of all-constant operands is not itself a constant expression yet (runtime
+        // behaviour is unaffected). Implementing the rule above is tracked as the follow-up
+        // "FoldBinaryOperator chain folding" todo; see the "Constant expressions" bullet under
+        // "Interactions with other features" in proposals/chained-relational-comparison.md.
         private ConstantValue FoldChainedRelationalOperator(BoundBinaryOperator leftBinaryOperator, BoundExpression chainedRelationalLeftOperand, BoundExpression resultRight, BinaryOperatorKind resultOperatorKind, TypeSymbol resultType)
         {
-            // TODO(chained-relational): implement proper constant folding for chained relational
-            // comparisons. See spec §11.11.13 "Constant expressions". Returning null means
-            // chained comparisons of constants are not themselves constant expressions yet.
             _ = leftBinaryOperator;
             _ = chainedRelationalLeftOperand;
             _ = resultRight;
