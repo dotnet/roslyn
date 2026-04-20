@@ -762,6 +762,48 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void ChainFallback_OuterLinkResolvesToNonBoolOperator_ReportsCS9379()
+    {
+        // `a < b` resolves to a bool-returning `operator <(S, S)` so the chain shape exists
+        // and classical `(bool) < int` fails. The chain fallback then runs isolated `b < c`
+        // against (S, int), which resolves successfully to `operator <(S, int)` - but that
+        // operator returns S, not bool. Spec §11.11.13 rule 2(b) requires a bool-returning
+        // operator, so the chain must be rejected with the specific diagnostic
+        // (ERR_NoChainedRelationalComparison / CS9379), not CS0019 or CS0029.
+        var src = """
+            struct S
+            {
+                public static bool operator <(S a, S b) => true;
+                public static bool operator >(S a, S b) => false;
+                public static bool operator <=(S a, S b) => true;
+                public static bool operator >=(S a, S b) => false;
+                public static bool operator ==(S a, S b) => true;
+                public static bool operator !=(S a, S b) => false;
+
+                // Non-bool-returning overload against int - picks up during isolated
+                // resolution of `S < int` in the chain fallback.
+                public static S operator <(S a, int b) => default;
+                public static S operator >(S a, int b) => default;
+                public static S operator <=(S a, int b) => default;
+                public static S operator >=(S a, int b) => default;
+
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            class P
+            {
+                static bool F(S a, S b, int c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (23,45): error CS9379: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
+                //     static bool F(S a, S b, int c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "int").WithLocation(23, 45));
+    }
+
+    [Fact]
     public void ChainFallback_OuterLinkHasNoApplicableOperator_ReportsCS9379()
     {
         // `a < b` is a bool-returning user-defined comparison on S, so the chain shape
