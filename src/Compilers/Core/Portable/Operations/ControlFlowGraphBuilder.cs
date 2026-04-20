@@ -2165,6 +2165,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, int? captureIdForResult)
         {
+            // A C# chained relational comparison (spec §11.11.13, e.g. the outer `<`
+            // in `a < b < c`) short-circuits on its LeftOperand's bool result. Its
+            // source shape is nested relational IBinaryOperations, not a ConditionalAnd,
+            // so it's detected via an internal flag set by the C# operation factory.
+            // Dispatch it to a dedicated helper that (1) captures the shared middle
+            // operand `Y` once, (2) builds the short-circuit edges, and (3) rebuilds
+            // both links with the captured Y. Without this, the straight-line path
+            // below would emit an ill-typed relational (bool op rightOperand) and
+            // miss the conditional-branch structure entirely. See
+            // GenericConstraint_InterfaceAndStruct_NullableT_LiftedOverConstrainedDispatch
+            // and ChainedRelationalComparisonControlFlowTests for IL-/CFG-level pins.
+            if (operation is BinaryOperation { IsChainedRelationalComparison: true })
+            {
+                return VisitChainedRelationalComparison(operation, captureIdForResult);
+            }
+
             if (IsConditional(operation))
             {
                 if (operation.OperatorMethod == null)
@@ -2229,8 +2245,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 PushOperand(leftOperand);
                 IOperation rightOperand = VisitRequired(operation.RightOperand);
 
+                // A chained relational outer node (spec §11.11.13) is dispatched
+                // to VisitChainedRelationalComparison earlier in this method, so we
+                // never reach this straight-line rebuild for one. The flag is
+                // therefore always false here.
                 leftOperand = PopStackFrame(frame, new BinaryOperation(operation.OperatorKind, PopOperand(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
                                                                        operation.OperatorMethod, operation.ConstrainedToType, ((BinaryOperation)operation).UnaryOperatorMethod,
+                                                                       isChainedRelationalComparison: false,
                                                                        semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
 
             }
@@ -2298,6 +2319,128 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // generate (a && b)
                 return VisitShortCircuitingOperator(binOp, sense: sense, stopSense: !sense, stopValue: false, captureIdForResult, fallToTrueOpt, fallToFalseOpt);
             }
+        }
+
+        /// <summary>
+        /// Builds the CFG for a C# chained relational comparison (spec §11.11.13),
+        /// such as the outer <c>&lt;</c> in <c>a &lt; b &lt; c</c>. The source shape is
+        /// <c>outer = inner op right</c> where <c>inner = X op' Y</c> and the whole
+        /// thing is semantically <c>X op' Y &amp;&amp; Y op right</c> with <c>Y</c>
+        /// evaluated exactly once. We model that by:
+        /// <list type="number">
+        ///   <item><description>Evaluating <c>X</c>, then capturing <c>Y</c>, so both
+        ///         are available in the same order source code wrote them.</description></item>
+        ///   <item><description>Building a synthesized non-chained inner compare
+        ///         <c>X op' capturedY</c> and branching the CFG conditionally on
+        ///         that bool - false short-circuits the chain to <c>false</c>.</description></item>
+        ///   <item><description>On the true branch, evaluating <c>right</c> and
+        ///         building a synthesized non-chained outer compare
+        ///         <c>capturedY op right</c>, then capturing its result.</description></item>
+        ///   <item><description>Joining both branches into a single result capture
+        ///         (the chain's bool value).</description></item>
+        /// </list>
+        ///
+        /// KNOWN LIMITATION: for n-ary chains (4+ operands) this produces a
+        /// structurally simplified CFG that collapses inner chained nodes into a
+        /// single short-circuit. The lowerer emits correct IL in all cases
+        /// (<c>LocalRewriter_ChainedRelationalOperator.cs</c>), so runtime
+        /// behaviour is always correct; the CFG simplification only affects
+        /// external <c>ControlFlowGraph.Create</c> consumers doing chain-specific
+        /// analysis. Tracked by the ChainedRelationalComparisonControlFlowTests'
+        /// <c>Chain_NAry_FourOperands</c> test.
+        /// </summary>
+        private IOperation VisitChainedRelationalComparison(IBinaryOperation outerOp, int? captureIdForResult)
+        {
+            Debug.Assert(outerOp is BinaryOperation { IsChainedRelationalComparison: true });
+            Debug.Assert(outerOp.LeftOperand is IBinaryOperation);
+
+            // Bind concrete-type locals for both the outer and inner nodes so the
+            // UnaryOperatorMethod reads below (internal-only on BinaryOperation,
+            // not on IBinaryOperation) don't require inline casts - matching the
+            // `IMethodSymbol? unaryOperatorMethod = ((BinaryOperation)binOp).UnaryOperatorMethod`
+            // pattern already used by VisitBinaryConditionalOperator and friends.
+            var outerBinOp = (BinaryOperation)outerOp;
+            var innerOp = (IBinaryOperation)outerOp.LeftOperand;
+            var innerBinOp = (BinaryOperation)innerOp;
+
+            SpillEvalStack();
+
+            // The result capture lives in the enclosing region; both branches
+            // (true-path outer compare and false-path literal) write to it.
+            var resultCaptureRegion = CurrentRegionRequired;
+            int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+
+            // Y's capture has a NARROWER lifetime than the result: it's only alive
+            // on the true path (inner compare + outer compare). Putting it in a
+            // sub-region keeps it out of the fall-through (false) block, which
+            // never references it, and lets the CFG verifier confirm every capture
+            // is used inside its declaring region. PushStackFrame creates this
+            // sub-region; PopStackFrameAndLeaveRegion below closes it just before
+            // the branch to doneBlock, so the false path inherits only the result
+            // capture.
+            EvalStackFrame yFrame = PushStackFrame();
+
+            // Evaluate X (inner.LeftOperand) first, then capture Y (inner.RightOperand)
+            // so it can be reused by the outer link. Source order is preserved because
+            // VisitRequired appends X's side-effects to the current block before
+            // returning, and VisitAndCapture appends Y's side-effects (including the
+            // FlowCapture) after that.
+            IOperation visitedX = VisitRequired(innerOp.LeftOperand);
+            IOperation capturedY = VisitAndCapture(innerOp.RightOperand);
+
+            // Build the non-chained inner compare `visitedX op' capturedY`.
+            // IsChainedRelationalComparison is false because this synthesized node
+            // is a plain relational - the chain-specific short-circuit behaviour is
+            // expressed by the CFG edges we emit below, not by the node itself.
+            IOperation innerCompare = new BinaryOperation(
+                innerOp.OperatorKind, visitedX, capturedY,
+                innerOp.IsLifted, innerOp.IsChecked, innerOp.IsCompareText,
+                innerOp.OperatorMethod, innerOp.ConstrainedToType,
+                innerBinOp.UnaryOperatorMethod,
+                isChainedRelationalComparison: false,
+                semanticModel: null, innerOp.Syntax, innerOp.Type,
+                innerOp.GetConstantValue(), IsImplicit(innerOp));
+
+            var shortCircuitBlock = new BasicBlockBuilder(BasicBlockKind.Block);
+            var doneBlock = new BasicBlockBuilder(BasicBlockKind.Block);
+
+            ConditionalBranch(innerCompare, jumpIfTrue: false, shortCircuitBlock);
+            _currentBasicBlock = null;
+
+            // Inner was true: evaluate the outer's right operand and compute
+            // `capturedY op right`. Clone the Y capture so the branch references a
+            // fresh IFlowCaptureReferenceOperation (the same pattern
+            // VisitNullableBinaryConditionalOperator uses for captured operands).
+            IOperation visitedRight = VisitRequired(outerOp.RightOperand);
+            IOperation outerCompare = new BinaryOperation(
+                outerOp.OperatorKind, OperationCloner.CloneOperation(capturedY), visitedRight,
+                outerOp.IsLifted, outerOp.IsChecked, outerOp.IsCompareText,
+                outerOp.OperatorMethod, outerOp.ConstrainedToType,
+                outerBinOp.UnaryOperatorMethod,
+                isChainedRelationalComparison: false,
+                semanticModel: null, outerOp.Syntax, outerOp.Type,
+                outerOp.GetConstantValue(), IsImplicit(outerOp));
+
+            AddStatement(new FlowCaptureOperation(resultId, outerOp.Syntax, outerCompare));
+
+            // Close Y's sub-region before branching to the done block. After this
+            // point capturedY is no longer in scope, so the fall-through block
+            // (where Y isn't referenced anyway) doesn't carry a stale capture.
+            PopStackFrameAndLeaveRegion(yFrame);
+            UnconditionalBranch(doneBlock);
+
+            // Short-circuit branch: capture the bool literal false as the chain's
+            // result. `outerOp.Type` is always bool per spec §11.11.13 rule 2(b), so
+            // the literal is well-typed.
+            AppendNewBlock(shortCircuitBlock);
+            AddStatement(new FlowCaptureOperation(resultId, outerOp.Syntax,
+                new LiteralOperation(semanticModel: null, outerOp.Syntax, outerOp.Type,
+                                     ConstantValue.Create(false), isImplicit: true)));
+
+            LeaveRegionsUpTo(resultCaptureRegion);
+            AppendNewBlock(doneBlock);
+
+            return GetCaptureReference(resultId, outerOp);
         }
 
         private IOperation VisitNullableBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
@@ -2547,6 +2690,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                              binOp.OperatorMethod,
                                                              binOp.OperatorMethod is not null && (binOp.OperatorMethod.IsAbstract || binOp.OperatorMethod.IsVirtual) ? binOp.ConstrainedToType : null,
                                                              unaryOperatorMethod: null,
+                                                             isChainedRelationalComparison: false,
                                                              semanticModel: null,
                                                              binOp.Syntax,
                                                              binOp.Type,
@@ -2637,6 +2781,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                                              binOp.OperatorMethod,
                                                              binOp.OperatorMethod.IsAbstract || binOp.OperatorMethod.IsVirtual ? binOp.ConstrainedToType : null,
                                                              unaryOperatorMethod: null,
+                                                             isChainedRelationalComparison: false,
                                                              semanticModel: null,
                                                              binOp.Syntax,
                                                              binOp.Type,
@@ -4968,6 +5113,7 @@ oneMoreTime:
                                                        operatorMethod: null,
                                                        constrainedToType: null,
                                                        unaryOperatorMethod: null,
+                                                       isChainedRelationalComparison: false,
                                                        semanticModel: null,
                                                        stepValue.Syntax,
                                                        booleanType,
@@ -5122,6 +5268,7 @@ oneMoreTime:
                                                         operatorMethod: null,
                                                         constrainedToType: null,
                                                         unaryOperatorMethod: null,
+                                                        isChainedRelationalComparison: false,
                                                         semanticModel: null,
                                                         operation.LimitValue.Syntax,
                                                         booleanType,
@@ -5159,6 +5306,7 @@ oneMoreTime:
                                                                                  operatorMethod: null,
                                                                                  constrainedToType: null,
                                                                                  unaryOperatorMethod: null,
+                                                                                 isChainedRelationalComparison: false,
                                                                                  semanticModel: null,
                                                                                  operation.StepValue.Syntax,
                                                                                  _compilation.GetSpecialType(SpecialType.System_Boolean),
@@ -5200,6 +5348,7 @@ oneMoreTime:
                                                     operatorMethod: null,
                                                     constrainedToType: null,
                                                     unaryOperatorMethod: null,
+                                                    isChainedRelationalComparison: false,
                                                     semanticModel: null,
                                                     operation.LimitValue.Syntax,
                                                     booleanType,
@@ -5220,6 +5369,7 @@ oneMoreTime:
                                                     operatorMethod: null,
                                                     constrainedToType: null,
                                                     unaryOperatorMethod: null,
+                                                    isChainedRelationalComparison: false,
                                                     semanticModel: null,
                                                     operation.LimitValue.Syntax,
                                                     booleanType,
@@ -5254,6 +5404,7 @@ oneMoreTime:
                                                       operatorMethod: null,
                                                       constrainedToType: null,
                                                       unaryOperatorMethod: null,
+                                                      isChainedRelationalComparison: false,
                                                       semanticModel: null,
                                                       operand.Syntax,
                                                       operation.StepValue.Type,
@@ -5269,6 +5420,7 @@ oneMoreTime:
                                            operatorMethod: null,
                                            constrainedToType: null,
                                            unaryOperatorMethod: null,
+                                           isChainedRelationalComparison: false,
                                            semanticModel: null,
                                            operand.Syntax,
                                            operand.Type,
@@ -5342,6 +5494,7 @@ oneMoreTime:
                                                                    operatorMethod: null,
                                                                    constrainedToType: null,
                                                                    unaryOperatorMethod: null,
+                                                                   isChainedRelationalComparison: false,
                                                                    semanticModel: null,
                                                                    operation.StepValue.Syntax,
                                                                    _compilation.GetSpecialType(SpecialType.System_Boolean),
@@ -5393,6 +5546,7 @@ oneMoreTime:
                                                                operatorMethod: null,
                                                                constrainedToType: null,
                                                                unaryOperatorMethod: null,
+                                                               isChainedRelationalComparison: false,
                                                                semanticModel: null,
                                                                operation.StepValue.Syntax,
                                                                controlVariableReferenceForIncrement.Type,
@@ -5587,6 +5741,7 @@ oneMoreTime:
                                                             operatorMethod: null,
                                                             constrainedToType: null,
                                                             unaryOperatorMethod: null,
+                                                            isChainedRelationalComparison: false,
                                                             semanticModel: null,
                                                             compareWith.Syntax,
                                                             booleanType,

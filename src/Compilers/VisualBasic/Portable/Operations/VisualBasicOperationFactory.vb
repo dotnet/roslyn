@@ -570,9 +570,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Dim constantValue As ConstantValue = currentBinary.ConstantValueOpt
                 Dim isImplicit As Boolean = currentBinary.WasCompilerGenerated
 
+                ' VB has no chained-relational feature; always false. C# sets this to
+                ' true for the outer link of `a < b < c` style expressions.
                 left = New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
                                            binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod, constrainedToType:=Nothing,
-                                           unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
+                                           unaryOperatorMethod:=Nothing, isChainedRelationalComparison:=False, _semanticModel, syntax, type, constantValue, isImplicit)
             End While
 
             Debug.Assert(left IsNot Nothing AndAlso stack.Count = 0)
@@ -590,7 +592,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundUserDefinedBinaryOperator.WasCompilerGenerated
             Return New BinaryOperation(binaryOperatorInfo.OperatorKind, left, right, binaryOperatorInfo.IsLifted,
                                        binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod, constrainedToType:=Nothing,
-                                       unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
+                                       unaryOperatorMethod:=Nothing, isChainedRelationalComparison:=False, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBinaryConditionalExpressionOperation(boundBinaryConditionalExpression As BoundBinaryConditionalExpression) As ICoalesceOperation
@@ -642,7 +644,8 @@ Namespace Microsoft.CodeAnalysis.Operations
             End If
 
             Return New BinaryOperation(operatorKind, left, right, binaryOperatorInfo.IsLifted, isChecked, isCompareText,
-                                       binaryOperatorInfo.OperatorMethod, constrainedToType:=Nothing, unaryOperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+                                       binaryOperatorInfo.OperatorMethod, constrainedToType:=Nothing, unaryOperatorMethod, isChainedRelationalComparison:=False,
+                                       _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation
