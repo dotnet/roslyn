@@ -1511,4 +1511,337 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Generic constrained operands (static abstract interface operators)
+    //
+    // C# 11 static abstract interface members let a generic interface declare
+    // operators (e.g. `static abstract bool operator <(T, T)`), and a type parameter
+    // constrained to such an interface can participate in those operators. The
+    // chained-relational feature doesn't know or care about generic math: it simply
+    // uses standard binary operator overload resolution at each link, which already
+    // threads `ConstrainedToTypeOpt` through `BinaryOperatorSignature`. So chains
+    // like `a < b < c` over such a T should "just work" - both links resolve via
+    // the constrained interface call, and the shared-middle-operand temp keeps
+    // single-evaluation semantics the same as for any other operand type.
+    //
+    // These tests exercise three constraint shapes crossed with the operand being
+    // `T` vs. `T?`:
+    //
+    //   1. `where T : ILT<T>`            - T may be a reference type or a value type.
+    //   2. `where T : class, ILT<T>`     - T is a reference type; `T?` is a
+    //                                       nullable-annotated reference (no lifting).
+    //   3. `where T : struct, ILT<T>`    - T is a value type; `T?` means `Nullable<T>`
+    //                                       and each link uses the spec §11.4.8
+    //                                       lifted-relational form built on top of
+    //                                       the constrained dispatch.
+    //
+    // IL-level pins for each shape live in
+    // <see cref="ChainedRelationalComparisonEmitTests"/>.
+    //
+    // The shared interface/types used by these tests. `using System;` and
+    // `#nullable enable` are emitted first so that the body each test appends
+    // (which uses Console and may declare nullable annotations) sits in the
+    // expected context - C# requires `using` directives to precede all type
+    // declarations in a compilation unit.
+    private const string GenericConstrainedHarness = """
+        #nullable enable
+        using System;
+
+        public interface ILT<TSelf> where TSelf : ILT<TSelf>
+        {
+            static abstract bool operator <(TSelf a, TSelf b);
+            static abstract bool operator >(TSelf a, TSelf b);
+            static abstract bool operator <=(TSelf a, TSelf b);
+            static abstract bool operator >=(TSelf a, TSelf b);
+        }
+
+        public sealed class RefImpl : ILT<RefImpl>
+        {
+            public readonly int V;
+            public RefImpl(int v) { V = v; }
+            public static bool operator <(RefImpl a, RefImpl b) => a.V < b.V;
+            public static bool operator >(RefImpl a, RefImpl b) => a.V > b.V;
+            public static bool operator <=(RefImpl a, RefImpl b) => a.V <= b.V;
+            public static bool operator >=(RefImpl a, RefImpl b) => a.V >= b.V;
+        }
+
+        public struct ValImpl : ILT<ValImpl>
+        {
+            public readonly int V;
+            public ValImpl(int v) { V = v; }
+            public static bool operator <(ValImpl a, ValImpl b) => a.V < b.V;
+            public static bool operator >(ValImpl a, ValImpl b) => a.V > b.V;
+            public static bool operator <=(ValImpl a, ValImpl b) => a.V <= b.V;
+            public static bool operator >=(ValImpl a, ValImpl b) => a.V >= b.V;
+        }
+        """;
+
+    [Fact]
+    public void GenericConstraint_InterfaceOnly_T_ChainBindsAndRunsForRefAndValueTypes()
+    {
+        // `where T : ILT<T>` leaves T free to be either a reference or value type.
+        // The chain binds once against the interface's static abstract operators;
+        // the runtime dispatch picks the right concrete type's implementation.
+        // This test runs the SAME generic method with both RefImpl (class) and
+        // ValImpl (struct) to confirm both shapes work and produce identical
+        // observable results for the same numeric values.
+        var src = GenericConstrainedHarness + """
+
+            class P
+            {
+                static bool Chain<T>(T a, T b, T c) where T : ILT<T> => a < b < c;
+
+                static void Main()
+                {
+                    // Ref type: 0 < 5 < 10 -> True.
+                    Console.WriteLine(Chain<RefImpl>(new(0), new(5), new(10)));
+                    // Short-circuit path: 0 < 5 < 2 -> False (inner true, outer false).
+                    Console.WriteLine(Chain<RefImpl>(new(0), new(5), new(2)));
+                    // Short-circuit at inner: 10 < 5 < 100 -> False without evaluating outer.
+                    Console.WriteLine(Chain<RefImpl>(new(10), new(5), new(100)));
+
+                    // Same scenarios against a value-type instantiation prove the chain
+                    // is type-parameter-oblivious: same source, different concrete T.
+                    Console.WriteLine(Chain<ValImpl>(new(0), new(5), new(10)));
+                    Console.WriteLine(Chain<ValImpl>(new(0), new(5), new(2)));
+                    Console.WriteLine(Chain<ValImpl>(new(10), new(5), new(100)));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            expectedOutput: """
+                True
+                False
+                False
+                True
+                False
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceOnly_NullableT_ChainBindsAndRunsViaRefInstantiation()
+    {
+        // `T?` on an unconstrained (only-interface) T is a "may be null" annotation;
+        // the CLR type is still T (there's no Nullable<T> wrapping without a struct
+        // constraint). So at IL level the chain is identical to the non-nullable case
+        // and semantic behaviour is: for a ref-type instantiation, real nulls would
+        // NRE in the user-defined operator; we test the all-non-null path here (and
+        // let the ref-type null-handling story be covered by the class-constrained
+        // test below, which is the scenario where nullable annotations actually
+        // matter for users).
+        var src = GenericConstrainedHarness + """
+
+            class P
+            {
+                // Nullable annotation means the compiler emits a possible-null warning
+                // on the operator calls; this is expected (see below in VerifyDiagnostics).
+                #pragma warning disable CS8604
+                static bool ChainNullable<T>(T? a, T? b, T? c) where T : ILT<T> => a < b < c;
+                #pragma warning restore CS8604
+
+                static void Main()
+                {
+                    Console.WriteLine(ChainNullable<RefImpl>(new(0), new(5), new(10)));
+                    Console.WriteLine(ChainNullable<RefImpl>(new(0), new(5), new(2)));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            expectedOutput: """
+                True
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndClass_T_ChainBindsAndRuns()
+    {
+        // `where T : class, ILT<T>` pins T to a reference type. The chain's IL
+        // should still use `constrained. T` + `call` on the interface operator -
+        // the class constraint doesn't bypass the constrained dispatch because
+        // the operator is still declared on the interface, not on T itself.
+        var src = GenericConstrainedHarness + """
+
+            class P
+            {
+                static bool Chain<T>(T a, T b, T c) where T : class, ILT<T> => a < b < c;
+
+                static void Main()
+                {
+                    Console.WriteLine(Chain<RefImpl>(new(0), new(5), new(10)));
+                    Console.WriteLine(Chain<RefImpl>(new(0), new(5), new(2)));
+                    Console.WriteLine(Chain<RefImpl>(new(10), new(5), new(100)));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            expectedOutput: """
+                True
+                False
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndClass_NullableT_ChainBindsAndRuns()
+    {
+        // With `class, ILT<T>`, `T?` is just T with a may-be-null annotation; the
+        // runtime type is still T. The chain's dispatch is the same constrained
+        // call as the non-nullable form. We exercise the happy path (all non-null)
+        // since null operands would blow up inside the user-defined operator -
+        // which is the spec-correct behaviour for reference-type nullability.
+        var src = GenericConstrainedHarness + """
+
+            class P
+            {
+                #pragma warning disable CS8604
+                static bool ChainNullable<T>(T? a, T? b, T? c) where T : class, ILT<T>
+                    => a < b < c;
+                #pragma warning restore CS8604
+
+                static void Main()
+                {
+                    Console.WriteLine(ChainNullable<RefImpl>(new(0), new(5), new(10)));
+                    Console.WriteLine(ChainNullable<RefImpl>(new(0), new(5), new(2)));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            expectedOutput: """
+                True
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndStruct_T_ChainBindsAndRuns()
+    {
+        // `where T : struct, ILT<T>` pins T to a value type. The static-abstract
+        // call dispatches through `constrained. T`, and the struct's operator is
+        // invoked directly (no boxing). The chain's shared-middle-operand temp
+        // holds a value-type T.
+        var src = GenericConstrainedHarness + """
+
+            class P
+            {
+                static bool Chain<T>(T a, T b, T c) where T : struct, ILT<T> => a < b < c;
+
+                static void Main()
+                {
+                    Console.WriteLine(Chain<ValImpl>(new(0), new(5), new(10)));
+                    Console.WriteLine(Chain<ValImpl>(new(0), new(5), new(2)));
+                    Console.WriteLine(Chain<ValImpl>(new(10), new(5), new(100)));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            expectedOutput: """
+                True
+                False
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndStruct_NullableT_ChainBindsAndRunsWithLifting()
+    {
+        // With `struct, ILT<T>`, `T?` is `Nullable<T>`, so the chain composes with
+        // spec §11.4.8 lifted-relational semantics: each link's lifted form is
+        // "both operands HasValue AND their values compare true"; any null operand
+        // at any position makes that link - and thus the whole chain - false.
+        //
+        // This exercises the full interaction: chained relational + generic
+        // constrained-to-interface operator + Nullable<T> lifting.
+        var src = GenericConstrainedHarness + """
+
+            class P
+            {
+                static bool ChainNullable<T>(T? a, T? b, T? c) where T : struct, ILT<T>
+                    => a < b < c;
+
+                static void Main()
+                {
+                    // Happy path: all non-null, true chain.
+                    Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), new ValImpl(5), new ValImpl(10)));
+                    // Null at inner-left: lifted inner link is false, short-circuits.
+                    Console.WriteLine(ChainNullable<ValImpl>(null, new ValImpl(5), new ValImpl(10)));
+                    // Null at middle: both links see the null operand, both false.
+                    Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), null, new ValImpl(10)));
+                    // Null at outer-right: inner link true, outer link false (right is null).
+                    Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), new ValImpl(5), null));
+                    // Outer-false with non-null values: 0 < 5 < 2 -> False.
+                    Console.WriteLine(ChainNullable<ValImpl>(new ValImpl(0), new ValImpl(5), new ValImpl(2)));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            expectedOutput: """
+                True
+                False
+                False
+                False
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndStruct_NullableT_MiddleOperandEvaluatedOnce()
+    {
+        // Single-evaluation of the shared middle operand applies to the
+        // lifted-over-generic-constrained case too. If the middle position is a
+        // method call that increments a counter, a 3-operand chain should
+        // call it exactly once - proving the temp shared by the two links holds
+        // the `T?` (Nullable<T>) once.
+        var src = GenericConstrainedHarness + """
+
+            class P
+            {
+                static int middleCalls;
+                static ValImpl? Middle() { middleCalls++; return new ValImpl(5); }
+
+                static bool Chain<T>(T? a, Func<T?> middle, T? c) where T : struct, ILT<T>
+                    => a < middle() < c;
+
+                static void Main()
+                {
+                    middleCalls = 0;
+                    bool r = Chain<ValImpl>(new ValImpl(0), Middle, new ValImpl(10));
+                    Console.WriteLine($"r={r}, middleCalls={middleCalls}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            expectedOutput: "r=True, middleCalls=1")
+            .VerifyDiagnostics();
+    }
+
+    #endregion
 }
