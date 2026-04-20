@@ -70,11 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 // if operator does not have side-effects itself and is not short-circuiting
-                // we can simply emit side-effects from the first operand and then from the second one.
-                // IsShortCircuiting covers both conditional-logical (`&&`/`||`) AND chained
-                // relational; the latter is defensive here because the assert above would
-                // already have caught any chained node that reached this point.
-                if (!used && !expression.IsShortCircuiting && !OperatorHasSideEffects(operatorKind))
+                // we can simply emit side-effects from the first operand and then from the second one
+                if (!used && !operatorKind.IsLogical() && !OperatorHasSideEffects(operatorKind))
                 {
                     EmitExpression(expression.Left, false);
                     EmitExpression(expression.Right, false);
