@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // them (e.g. the synthesized `Equals` body of a record with many fields -
             // `f0 == o.f0 && f1 == o.f1 && ...`) depend on this iterative flattening to
             // avoid recursing 1000+ levels deep via `Visit`.
-            if (node.Left is not BoundBinaryOperator binary || node.IsChainedRelational)
+            if (node.Left is not BoundBinaryOperator binary || node.IsChainedRelational(out _))
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Same rule applies mid-spine: don't flatten past a chained-relational
                 // node; its Left/Right pairing doesn't match the standard operand layout
                 // the surrounding flatten loop assumes.
-                if (binary.IsChainedRelational)
+                if (binary.IsChainedRelational(out _))
                 {
                     break;
                 }
