@@ -29,9 +29,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 { "namespaceanddescendants", TargetScope.NamespaceAndDescendants }
             };
 
-        private static bool TryGetTargetScope(SuppressMessageInfo info, out TargetScope scope)
-            => s_suppressMessageScopeTypes.TryGetValue(info.Scope ?? string.Empty, out scope);
-
         private readonly Compilation _compilation;
         private GlobalSuppressions? _lazyGlobalSuppressions;
         private readonly ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>> _localSuppressionsBySymbol;
@@ -48,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Dictionary<string, SuppressMessageInfo> _compilationWideSuppressions = new Dictionary<string, SuppressMessageInfo>();
             // Keep targeted suppressions grouped by diagnostic ID so we only resolve target symbols
             // for IDs that are actually queried.
-            private readonly Dictionary<string, List<(SuppressMessageInfo Info, TargetScope Scope)>> _unresolvedSuppressionsById = new Dictionary<string, List<(SuppressMessageInfo Info, TargetScope Scope)>>(StringComparer.Ordinal);
+            private readonly Dictionary<string, List<SuppressMessageInfo>> _unresolvedSuppressionsById = new Dictionary<string, List<SuppressMessageInfo>>(StringComparer.Ordinal);
             private readonly ConcurrentDictionary<string, FrozenDictionary<ISymbol, SuppressMessageInfo>> _lazyResolvedSuppressionsById = new ConcurrentDictionary<string, FrozenDictionary<ISymbol, SuppressMessageInfo>>(StringComparer.Ordinal);
 
             public void AddCompilationWideSuppression(SuppressMessageInfo info)
@@ -56,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 AddOrUpdate(info, _compilationWideSuppressions);
             }
 
-            public void AddGlobalSymbolSuppression(SuppressMessageInfo info, TargetScope scope)
+            public void AddGlobalSymbolSuppression(SuppressMessageInfo info)
             {
                 Debug.Assert(!_lazyResolvedSuppressionsById.ContainsKey(info.Id));
                 if (!_unresolvedSuppressionsById.TryGetValue(info.Id, out var suppressions))
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _unresolvedSuppressionsById.Add(info.Id, suppressions);
                 }
 
-                suppressions.Add((info, scope));
+                suppressions.Add(info);
             }
 
             public bool HasCompilationWideSuppression(string id, out SuppressMessageInfo info)
@@ -80,6 +77,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     id,
                     ResolveGlobalSymbolSuppressions);
 
+                Debug.Assert(symbol.IsDefinition);
                 if (suppressions.TryGetValue(symbol, out info))
                 {
                     if (symbol.Kind != SymbolKind.Namespace)
@@ -87,18 +85,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return true;
                     }
 
-                    if (TryGetTargetScope(info, out TargetScope targetScope))
+                    switch (info.Scope)
                     {
-                        switch (targetScope)
-                        {
-                            case TargetScope.Namespace:
-                                // Special case: Only suppress syntax diagnostics in namespace declarations if the namespace is the closest containing symbol.
-                                // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
-                                return isImmediatelyContainingSymbol;
+                        case TargetScope.Namespace:
+                            // Special case: Only suppress syntax diagnostics in namespace declarations if the namespace is the closest containing symbol.
+                            // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
+                            return isImmediatelyContainingSymbol;
 
-                            case TargetScope.NamespaceAndDescendants:
-                                return true;
-                        }
+                        case TargetScope.NamespaceAndDescendants:
+                            return true;
                     }
                 }
 
@@ -114,9 +109,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 var resolvedSuppressions = new Dictionary<ISymbol, SuppressMessageInfo>();
-                foreach (var (info, scope) in suppressions)
+                foreach (var info in suppressions)
                 {
-                    foreach (var target in ResolveTargetSymbols(_compilation, info.Target, scope))
+                    foreach (var target in ResolveTargetSymbols(_compilation, info.Target, info.Scope))
                     {
                         if (!resolvedSuppressions.ContainsKey(target))
                         {
@@ -353,9 +348,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                if (TryGetTargetScope(info, out TargetScope scope))
+                if (info.Scope != TargetScope.Invalid)
                 {
-                    if ((scope == TargetScope.Module || scope == TargetScope.None) && info.Target == null)
+                    if (info is { Scope: TargetScope.Module or TargetScope.None, Target: null })
                     {
                         // This suppression is applies to the entire compilation
                         globalSuppressions.AddCompilationWideSuppression(info);
@@ -374,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                globalSuppressions.AddGlobalSymbolSuppression(info, scope);
+                globalSuppressions.AddGlobalSymbolSuppression(info);
             }
         }
 
@@ -422,12 +417,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 info.Id = info.Id.Remove(separatorIndex);
             }
 
-            info.Scope = attribute.DecodeNamedArgument<string>("Scope", SpecialType.System_String);
+            var scopeString = attribute.DecodeNamedArgument<string>("Scope", SpecialType.System_String);
+            if (!tryGetTargetScope(scopeString, out var scope))
+            {
+                scope = TargetScope.Invalid;
+            }
+
+            info.Scope = scope;
             info.Target = attribute.DecodeNamedArgument<string>("Target", SpecialType.System_String);
             info.MessageId = attribute.DecodeNamedArgument<string>("MessageId", SpecialType.System_String);
             info.Attribute = attribute;
 
             return true;
+
+            static bool tryGetTargetScope(string? scopeString, out TargetScope scope)
+                => s_suppressMessageScopeTypes.TryGetValue(scopeString ?? string.Empty, out scope);
         }
     }
 }
