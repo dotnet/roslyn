@@ -40,23 +40,23 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     // parameters so there's a single source of truth per row.
     //
     // Basic int chains.
-    [InlineData("0",            "5",        "10",           "<",  "True")]
-    [InlineData("0",            "5",        "2",            "<",  "False")]  // inner true, outer false
-    [InlineData("10",           "5",        "100",          "<",  "False")]  // inner false
+    [InlineData("0", "5", "10", "<", "True")]
+    [InlineData("0", "5", "2", "<", "False")]    // inner true, outer false
+    [InlineData("10", "5", "100", "<", "False")] // inner false
     // Other relational operators.
-    [InlineData("0",            "5",        "10",           "<=", "True")]
-    [InlineData("10",           "5",        "0",            ">=", "True")]
+    [InlineData("0", "5", "10", "<=", "True")]
+    [InlineData("10", "5", "0", ">=", "True")]
     // Boundary: equal operands.
-    [InlineData("0",            "0",        "0",            "<=", "True")]
-    [InlineData("0",            "0",        "0",            "<",  "False")]
+    [InlineData("0", "0", "0", "<=", "True")]
+    [InlineData("0", "0", "0", "<", "False")]
     // Negative and overflow-adjacent values.
-    [InlineData("-1",           "0",        "1",            "<",  "True")]
-    [InlineData("int.MinValue", "0",        "int.MaxValue", "<",  "True")]
+    [InlineData("-1", "0", "1", "<", "True")]
+    [InlineData("int.MinValue", "0", "int.MaxValue", "<", "True")]
     // Asymmetric conversions (exercises the outer LeftConversion at fold time).
-    [InlineData("0",            "5",        "10L",          "<",  "True")]
-    [InlineData("0L",           "5",        "10",           "<",  "True")]
-    [InlineData("(short)0",     "5",        "10L",          "<",  "True")]
-    [InlineData("0",            "(short)5", "10L",          "<",  "True")]
+    [InlineData("0", "5", "10L", "<", "True")]
+    [InlineData("0L", "5", "10", "<", "True")]
+    [InlineData("(short)0", "5", "10L", "<", "True")]
+    [InlineData("0", "(short)5", "10L", "<", "True")]
     public void ThreeOperandChain_ChainedAndExpandedFoldAgree(string a, string b, string c, string op, string expected)
     {
         var src = $$"""
@@ -84,10 +84,10 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     // operators at different positions, and n-ary chains of length 4+. Same side-by-side
     // chained-vs-expanded assertion, but the chain and its expansion are supplied as
     // full expressions rather than synthesized from parts.
-    [InlineData("1 < 2 > 0",         "(1 < 2) && (2 > 0)",                        "True")]
-    [InlineData("1 < 2 < 3 < 4",     "(1 < 2) && (2 < 3) && (3 < 4)",             "True")]
-    [InlineData("1 < 2 < 3 < 4 < 5", "(1 < 2) && (2 < 3) && (3 < 4) && (4 < 5)",  "True")]
-    [InlineData("1 < 2 < 3 < 2",     "(1 < 2) && (2 < 3) && (3 < 2)",             "False")]
+    [InlineData("1 < 2 > 0", "(1 < 2) && (2 > 0)", "True")]
+    [InlineData("1 < 2 < 3 < 4", "(1 < 2) && (2 < 3) && (3 < 4)", "True")]
+    [InlineData("1 < 2 < 3 < 4 < 5", "(1 < 2) && (2 < 3) && (3 < 4) && (4 < 5)", "True")]
+    [InlineData("1 < 2 < 3 < 2", "(1 < 2) && (2 < 3) && (3 < 2)", "False")]
     public void MixedOperatorsOrNAryChain_ChainedAndExpandedFoldAgree(string chain, string expanded, string expected)
     {
         var src = $$"""
@@ -631,19 +631,19 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     // Each row carries the chained form and the equivalent hand-written expansion
     // `(a op b) && (b op c)`. Both forms are placed into `const bool` initializers and
     // printed at runtime, so a fold drift would show up as a mismatched output.
-    [InlineData("0 < 1 < 2u",                        "(0 < 1) && (1 < 2u)")]
-    [InlineData("0u < 1 < 2u",                       "(0u < 1) && (1 < 2u)")]
-    [InlineData("0 < 1u < 2",                        "(0 < 1u) && (1u < 2)")]
-    [InlineData("0u < 1 < 2L",                       "(0u < 1) && (1 < 2L)")]
-    [InlineData("0 < 1L < 2ul",                      "(0 < 1L) && (1L < 2ul)")]
-    [InlineData("0 < 5 < 10ul",                      "(0 < 5) && (5 < 10ul)")]
-    [InlineData("-1 < 5u < 10",                      "(-1 < 5u) && (5u < 10)")]
-    [InlineData("-1 < 0u < 10",                      "(-1 < 0u) && (0u < 10)")]
-    [InlineData("(byte)0 < (short)5 < 10L",          "((byte)0 < (short)5) && ((short)5 < 10L)")]
-    [InlineData("(byte)0 < (sbyte)5 < 10",           "((byte)0 < (sbyte)5) && ((sbyte)5 < 10)")]
-    [InlineData("'a' < 100 < 200",                   "('a' < 100) && (100 < 200)")]
-    [InlineData("(sbyte)(-1) < (byte)0 < 10",        "((sbyte)(-1) < (byte)0) && ((byte)0 < 10)")]
-    [InlineData("int.MinValue < 0u < 10",            "(int.MinValue < 0u) && (0u < 10)")]
+    [InlineData("0 < 1 < 2u", "(0 < 1) && (1 < 2u)")]
+    [InlineData("0u < 1 < 2u", "(0u < 1) && (1 < 2u)")]
+    [InlineData("0 < 1u < 2", "(0 < 1u) && (1u < 2)")]
+    [InlineData("0u < 1 < 2L", "(0u < 1) && (1 < 2L)")]
+    [InlineData("0 < 1L < 2ul", "(0 < 1L) && (1L < 2ul)")]
+    [InlineData("0 < 5 < 10ul", "(0 < 5) && (5 < 10ul)")]
+    [InlineData("-1 < 5u < 10", "(-1 < 5u) && (5u < 10)")]
+    [InlineData("-1 < 0u < 10", "(-1 < 0u) && (0u < 10)")]
+    [InlineData("(byte)0 < (short)5 < 10L", "((byte)0 < (short)5) && ((short)5 < 10L)")]
+    [InlineData("(byte)0 < (sbyte)5 < 10", "((byte)0 < (sbyte)5) && ((sbyte)5 < 10)")]
+    [InlineData("'a' < 100 < 200", "('a' < 100) && (100 < 200)")]
+    [InlineData("(sbyte)(-1) < (byte)0 < 10", "((sbyte)(-1) < (byte)0) && ((byte)0 < 10)")]
+    [InlineData("int.MinValue < 0u < 10", "(int.MinValue < 0u) && (0u < 10)")]
     [InlineData("0 < uint.MaxValue < long.MaxValue", "(0 < uint.MaxValue) && (uint.MaxValue < long.MaxValue)")]
     public void MixedSignedUnsigned_ChainsThatClassicalBindingAccepts_Fold(string chain, string expanded)
     {
