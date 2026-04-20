@@ -1582,16 +1582,16 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     // instantiation - unconstrained T accepts both. `T?` is a pure NRT
     // annotation here (CLR type is still T), so we only exercise it against
     // RefImpl (value-type instantiations wouldn't meaningfully differ):
-    [InlineData("",         "",  "RefImpl")]
-    [InlineData("",         "",  "ValImpl")]
-    [InlineData("",         "?", "RefImpl")]
+    [InlineData("", "", "RefImpl")]
+    [InlineData("", "", "ValImpl")]
+    [InlineData("", "?", "RefImpl")]
     // Class-constrained T (reference type only):
-    [InlineData("class, ",  "",  "RefImpl")]
-    [InlineData("class, ",  "?", "RefImpl")]
+    [InlineData("class, ", "", "RefImpl")]
+    [InlineData("class, ", "?", "RefImpl")]
     // Struct-constrained T with plain `T` operands (value type only; the lifted
     // `T?` = `Nullable<T>` case has its own test below because it also covers
     // null-propagation scenarios the unlifted rows can't):
-    [InlineData("struct, ", "",  "ValImpl")]
+    [InlineData("struct, ", "", "ValImpl")]
     public void GenericConstraint_ConstrainedDispatch_ChainBindsAndRuns(string constraintPrefix, string nullabilitySuffix, string typeArgument)
     {
         // One test body that exercises all five unlifted-IL rows (see
