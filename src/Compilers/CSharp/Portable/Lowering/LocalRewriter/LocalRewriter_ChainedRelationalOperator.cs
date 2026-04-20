@@ -114,6 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // copied onto this rewritten link; the rewritten link carries a temp-assignment
                 // side effect and therefore is not a compile-time constant even when the
                 // original operand folding said it was.
+                //
+                // BinaryOperatorMethod (and not LeftTruthOperatorMethod): a chained relational
+                // node's OperatorKind is always one of `<`/`<=`/`>`/`>=`, never a conditional
+                // logical, so LeftTruthOperatorMethod is provably null here. `operator true`/
+                // `operator false` never participate in chain lowering - each link resolves to
+                // a bool-returning operator (spec §11.11.13 rule 2(b)), and the chain is
+                // combined below with `_factory.LogicalAnd`, i.e. LogicalBoolAnd.
                 BoundExpression thisLink = MakeBinaryOperator(
                     oldNode: null,
                     node.Syntax,
@@ -121,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     temp,
                     thisRight,
                     node.Type!,
-                    node.LeftTruthOperatorMethod ?? node.BinaryOperatorMethod,
+                    node.BinaryOperatorMethod,
                     node.ConstrainedToType,
                     applyParentUnaryOperator: null);
 
@@ -131,6 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Classical (non-chained) base link: emit `lowered(left) op thisRight`. thisRight
             // is the inline-assign expression that the chained node immediately above us
             // supplied, which captures the shared middle operand into the temp allocated there.
+            // Same reasoning as above: this link is a plain relational comparison, so
+            // BinaryOperatorMethod is what MakeBinaryOperator wants.
             return MakeBinaryOperator(
                 oldNode: null,
                 node.Syntax,
@@ -138,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitExpression(node.Left),
                 thisRight,
                 node.Type!,
-                node.LeftTruthOperatorMethod ?? node.BinaryOperatorMethod,
+                node.BinaryOperatorMethod,
                 node.ConstrainedToType,
                 applyParentUnaryOperator: null);
         }

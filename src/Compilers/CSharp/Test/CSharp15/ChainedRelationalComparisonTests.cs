@@ -236,4 +236,143 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     #endregion
+
+    #region operator true / operator false interactions
+    //
+    // The chained-relational feature does not involve `operator true`/`operator false` at any
+    // layer: §11.11.13 rule 2(b) requires every link's isolated overload resolution to select
+    // a bool-returning operator, and the chain is combined via plain `LogicalBoolAnd`. So
+    // the truth-operator slot on BoundBinaryOperator (LeftTruthOperatorMethod) is never
+    // non-null for a chained-relational node. These tests pin that invariant.
+
+    [Fact]
+    public void OperatorTrueFalse_DefinedOnOperandType_DoesNotAffectChain()
+    {
+        // S defines `operator <` returning bool AND `operator true`/`operator false`.
+        // The chain should resolve normally (bool-returning `<` on both links) and the
+        // truth operators should not be invoked: the chain's &&-combination is over bools.
+        var src = """
+            using System;
+
+            struct S
+            {
+                public int V;
+                public S(int v) => V = v;
+
+                public static bool operator <(S a, S b) { Console.WriteLine($"  < {a.V} {b.V}"); return a.V < b.V; }
+                public static bool operator >(S a, S b) => a.V > b.V;
+                public static bool operator <=(S a, S b) => a.V <= b.V;
+                public static bool operator >=(S a, S b) => a.V >= b.V;
+                public static bool operator ==(S a, S b) => a.V == b.V;
+                public static bool operator !=(S a, S b) => a.V != b.V;
+
+                public static bool operator true(S s)  { Console.WriteLine($"  op_true called on {s.V}");  return s.V != 0; }
+                public static bool operator false(S s) { Console.WriteLine($"  op_false called on {s.V}"); return s.V == 0; }
+
+                public override bool Equals(object o) => o is S s && s.V == V;
+                public override int GetHashCode() => V;
+            }
+
+            class P
+            {
+                static void Main()
+                {
+                    Console.WriteLine("S(0) < S(1) < S(2):");
+                    Console.WriteLine("  result=" + (new S(0) < new S(1) < new S(2)));
+                    Console.WriteLine("S(5) < S(1) < S(2) (short-circuit):");
+                    Console.WriteLine("  result=" + (new S(5) < new S(1) < new S(2)));
+                }
+            }
+            """;
+        // No "op_true" / "op_false" lines should appear in the output - the chain uses a
+        // plain bool `&&`, not the user-defined conditional logical.
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                S(0) < S(1) < S(2):
+                  < 0 1
+                  < 1 2
+                  result=True
+                S(5) < S(1) < S(2) (short-circuit):
+                  < 5 1
+                  result=False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void NonBoolReturningOperator_PreservesClassicalBinding()
+    {
+        // S defines `operator <(S, S)` returning S (a custom "comparison result" type).
+        // Ordinary overload resolution succeeds at every chain link: `a < b` binds to the
+        // user-defined operator, yielding an S; `(S) < c` binds to the same operator,
+        // yielding an S. Chain fallback (§11.11.13) therefore never activates - back-compat
+        // is preserved, and any diagnostic comes from using the S result where a bool is
+        // required (CS0029), not from the chain feature.
+        var src = """
+            struct S
+            {
+                public static S operator <(S a, S b) => default;
+                public static S operator >(S a, S b) => default;
+                public static S operator <=(S a, S b) => default;
+                public static S operator >=(S a, S b) => default;
+                public static S operator ==(S a, S b) => default;
+                public static S operator !=(S a, S b) => default;
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            class P
+            {
+                static bool F(S a, S b, S c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (15,37): error CS0029: Cannot implicitly convert type 'S' to 'bool'
+                //     static bool F(S a, S b, S c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "a < b < c").WithArguments("S", "bool").WithLocation(15, 37));
+    }
+
+    [Fact]
+    public void ChainFallback_OuterLinkHasNoApplicableOperator_ReportsCS9379()
+    {
+        // `a < b` is a bool-returning user-defined comparison on S, so the chain shape
+        // exists and classical binding of `(bool) < c` fails. The chain fallback then tries
+        // isolated `b < c` (i.e. `S < Point`), which has no applicable operator. That is
+        // exactly the §11.11.13 rule 2(b) failure, so the specific
+        // ERR_NoChainedRelationalComparison must be reported here rather than the generic
+        // CS0019. No operator true / operator false on S interferes.
+        var src = """
+            struct S
+            {
+                public static bool operator <(S a, S b) => true;
+                public static bool operator >(S a, S b) => false;
+                public static bool operator <=(S a, S b) => true;
+                public static bool operator >=(S a, S b) => false;
+                public static bool operator ==(S a, S b) => true;
+                public static bool operator !=(S a, S b) => false;
+
+                public static bool operator true(S s)  => true;
+                public static bool operator false(S s) => false;
+
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            struct Point { }
+
+            class P
+            {
+                static bool F(S a, S b, Point c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (21,47): error CS9379: Operator '<' cannot be applied to operands of type 'S' and 'Point' as a chained relational comparison.
+                //     static bool F(S a, S b, Point c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "Point").WithLocation(21, 47));
+    }
+
+    #endregion
 }
