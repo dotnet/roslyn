@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression left = node.Left;
             BoundExpression loweredLeft;
+            bool receiverIsKnownToBeCaptured = false;
             switch (left.Kind)
             {
                 case BoundKind.PropertyAccess:
@@ -37,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     loweredLeft = VisitImplicitIndexerAccess(
                         (BoundImplicitIndexerAccess)left,
-                        isLeftOfAssignment: true);
+                        isLeftOfAssignment: true,
+                        out receiverIsKnownToBeCaptured);
                     break;
 
                 case BoundKind.EventAccess:
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used, AssignmentKind.SimpleAssignment);
+            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used, AssignmentKind.SimpleAssignment, receiverIsKnownToBeCaptured);
         }
 
         private enum AssignmentKind
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
 
                 default:
-                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used, assignmentKind);
+                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used, assignmentKind, receiverIsKnownToBeCaptured: false);
             }
         }
 
@@ -178,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenRight,
             bool isRef,
             bool used,
-            AssignmentKind assignmentKind)
+            AssignmentKind assignmentKind,
+            bool receiverIsKnownToBeCaptured)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -203,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default(ImmutableArray<int>),
                             rewrittenRight,
                             used,
-                            assignmentKind);
+                            assignmentKind,
+                            receiverIsKnownToBeCaptured);
                     }
 
                 case BoundKind.IndexerAccess:
@@ -224,7 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.ArgsToParamsOpt,
                             rewrittenRight,
                             used,
-                            assignmentKind);
+                            assignmentKind,
+                            receiverIsKnownToBeCaptured);
                     }
 
                 case BoundKind.Local:
@@ -261,7 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 rewrittenRight,
                                 isRef,
                                 used,
-                                assignmentKind),
+                                assignmentKind,
+                                receiverIsKnownToBeCaptured),
                             sequence.Type);
                     }
 
@@ -298,7 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BoundExpression rewrittenRight,
             bool used,
-            AssignmentKind assignmentKind)
+            AssignmentKind assignmentKind,
+            bool receiverIsKnownToBeCaptured)
         {
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();
@@ -343,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                 ref rewrittenReceiver,
-                forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder,
+                forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder && !receiverIsKnownToBeCaptured,
                 arguments,
                 property,
                 argsToParamsOpt,
@@ -354,11 +361,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (needSpecialExtensionPropertyReceiverReadOrder)
             {
 #if DEBUG
-                Debug.Assert(rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
+                Debug.Assert(receiverIsKnownToBeCaptured || rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
 #endif
                 Debug.Assert(storesOpt is { });
-                Debug.Assert(storesOpt.Count != 0);
-                Debug.Assert(argTempsBuilder is not null);
+                Debug.Assert(receiverIsKnownToBeCaptured || storesOpt.Count != 0);
+                Debug.Assert(receiverIsKnownToBeCaptured || argTempsBuilder is not null);
+                argTempsBuilder ??= ArrayBuilder<LocalSymbol>.GetInstance();
 
                 // Store everything that is non-trivial into a temporary; record the
                 // stores in storesToTemps and make the actual argument a reference to the temp.
