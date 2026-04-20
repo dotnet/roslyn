@@ -36,14 +36,7 @@ internal abstract class LanguageServerProjectLoader
     protected readonly ImmutableDictionary<string, string> AdditionalProperties;
 
     /// <summary>
-    /// Token created by <see cref="BeginWaitForNextProjectReloadAsync"/> to keep the <see cref="Listener"/>
-    /// active until the next project reload batch completes. Disposed in <see cref="ReloadProjectsAsync"/>.
-    /// Guarded by <see cref="_gate"/>.
-    /// </summary>
-    private IAsyncToken? _pendingReloadWaitToken;
-
-    /// <summary>
-    /// Guards access to <see cref="_loadedProjects"/> and <see cref="_pendingReloadWaitToken"/>.
+    /// Guards access to <see cref="_loadedProjects"/>.
     /// To keep the LSP queue responsive, <see cref="_gate"/> must not be held while performing design-time builds.
     /// </summary>
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
@@ -200,15 +193,6 @@ internal abstract class LanguageServerProjectLoader
         finally
         {
             _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
-
-            IAsyncToken? tokenToDispose;
-            using (await _gate.DisposableWaitAsync(CancellationToken.None))
-            {
-                tokenToDispose = _pendingReloadWaitToken;
-                _pendingReloadWaitToken = null;
-            }
-
-            tokenToDispose?.Dispose();
         }
     }
 
@@ -486,20 +470,11 @@ internal abstract class LanguageServerProjectLoader
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
-    /// <summary>
-    /// Used in tests to ensure that a subsequent async wait will not complete until the next project reload completes,
-    /// even if the next reload doesn't even start until an indefinite period of time later.
-    /// Only one wait can be active at a time.
-    /// </summary>
-    internal async ValueTask BeginWaitForNextProjectReloadAsync()
-    {
-        using (await _gate.DisposableWaitAsync(CancellationToken.None))
-        {
-            if (_pendingReloadWaitToken is not null)
-                throw new InvalidOperationException($"A previous {nameof(BeginWaitForNextProjectReloadAsync)} call is still active.");
+    internal TestAccessor GetTestAccessor() => new(this);
 
-            _pendingReloadWaitToken = Listener.BeginAsyncOperation(nameof(BeginWaitForNextProjectReloadAsync));
-        }
+    internal readonly struct TestAccessor(LanguageServerProjectLoader instance)
+    {
+        internal IFileChangeWatcher FileChangeWatcher => instance._fileChangeWatcher;
     }
 
     /// <summary>Unloads all projects associated with this project loader.</summary>
