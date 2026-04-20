@@ -889,13 +889,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     && innerBinary.Parent is CSharp.Syntax.BinaryExpressionSyntax outerBinary
                     && outerBinary.Left == innerBinary
                     && isChainableRelationalCS(outerBinary.Kind());
-
-                static bool isChainableRelationalCS(CSharp.SyntaxKind kind)
-                    => kind is CSharp.SyntaxKind.LessThanExpression
-                            or CSharp.SyntaxKind.LessThanOrEqualExpression
-                            or CSharp.SyntaxKind.GreaterThanExpression
-                            or CSharp.SyntaxKind.GreaterThanOrEqualExpression;
             }
+
+            // Shared chainable-relational classifier used by both chained-
+            // relational carve-outs below (isChainedRelationalMiddleOperandReference
+            // above and isChainedRelationalMiddleOperandCapture further down).
+            // Mirrors the <c>IsChainableRelationalExpression</c> predicate in
+            // <c>CSharp/Binder/Binder_Operators.cs</c>, which gates whether a
+            // binary expression participates in the C# chained-relational
+            // feature (spec §11.11.13).
+            static bool isChainableRelationalCS(CSharp.SyntaxKind kind)
+                => kind is CSharp.SyntaxKind.LessThanExpression
+                        or CSharp.SyntaxKind.LessThanOrEqualExpression
+                        or CSharp.SyntaxKind.GreaterThanExpression
+                        or CSharp.SyntaxKind.GreaterThanOrEqualExpression;
 
             bool isCoalesceAssignmentTarget(IFlowCaptureReferenceOperation reference)
             {
@@ -1191,12 +1198,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return false;
-
-                static bool isChainableRelationalCS(CSharp.SyntaxKind kind)
-                    => kind is CSharp.SyntaxKind.LessThanExpression
-                            or CSharp.SyntaxKind.LessThanOrEqualExpression
-                            or CSharp.SyntaxKind.GreaterThanExpression
-                            or CSharp.SyntaxKind.GreaterThanOrEqualExpression;
             }
 
             bool isLongLivedCaptureReferenceSyntax(SyntaxNode captureReferenceSyntax)

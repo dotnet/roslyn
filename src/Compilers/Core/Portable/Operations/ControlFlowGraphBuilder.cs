@@ -2379,18 +2379,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // frames so we can pop them in LIFO order after the outermost check
             // emits its result capture.
             //
-            // The first level (innermost chained node, e.g. `a<b<c`) also emits
-            // the base-case `X op' Y0` check inside its sub-region. Each
-            // subsequent level emits its own `Y_{i-1} op_i Y_i` check. The
-            // outermost level additionally emits the final `Y_n op_{n+1} right`
-            // check and captures the result.
+            // Each chained node's own OperatorKind / OperatorMethod / IsLifted /
+            // etc. describe ITS OWN outer link (the `<` in `(a<b) < c` for the
+            // node `a<b<c`). So for each emitted link we pick the metadata from
+            // the chained node whose outer operator that link represents:
+            //
+            //   - Innermost link (`a op_0 b`) uses the INNERMOST NON-CHAINED
+            //     relational `a op_0 b`'s metadata.
+            //   - Middle link between `Y_{i-1}` and `Y_i` uses spine[i]'s INNER
+            //     chained node (= spine[i].LeftOperand = spine[i-1])'s metadata,
+            //     because that node's outer operator IS the `Y_{i-1} op Y_i`
+            //     comparison we're emitting.
+            //   - Final (outermost) link uses spine.Last()'s own metadata -
+            //     its outer operator is the `Y_{n-1} op right` comparison.
+            //
+            // This matters for mixed-operator chains like `a <= b < c <= d`
+            // where each link's OperatorKind and OperatorMethod differ; getting
+            // the "which node owns which link" mapping wrong silently models
+            // the middle link with the wrong operator.
             var yFrames = ArrayBuilder<EvalStackFrame>.GetInstance();
             IOperation? prevY = null;
 
             for (int i = 0; i < spine.Count; i++)
             {
                 IBinaryOperation node = spine[i];
-                var nodeBinOp = (BinaryOperation)node;
                 bool isOutermost = i == spine.Count - 1;
 
                 EvalStackFrame yFrame = PushStackFrame();
@@ -2405,20 +2417,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     // Innermost level. innerOp is the non-chained base relational
                     // (e.g. `a<b`). Its LeftOperand is `a`, visited here; its
-                    // RightOperand is `b`, captured as Y0.
+                    // RightOperand is `b`, captured as Y0. The base-case check
+                    // `a op' b` IS innerOp's own relational, so template on it.
                     Debug.Assert(innerOp == innermostRelational);
                     IOperation visitedX = VisitRequired(innerOp.LeftOperand);
                     IOperation myY = VisitAndCapture(innerOp.RightOperand);
 
-                    var innerBinOp = (BinaryOperation)innerOp;
-                    IOperation baseCheck = new BinaryOperation(
-                        innerOp.OperatorKind, visitedX, myY,
-                        innerOp.IsLifted, innerOp.IsChecked, innerOp.IsCompareText,
-                        innerOp.OperatorMethod, innerOp.ConstrainedToType,
-                        innerBinOp.UnaryOperatorMethod,
-                        isChainedRelationalComparison: false,
-                        semanticModel: null, innerOp.Syntax, innerOp.Type,
-                        innerOp.GetConstantValue(), IsImplicit(innerOp));
+                    IOperation baseCheck = rebuildNonChainedRelational((BinaryOperation)innerOp, visitedX, myY);
                     ConditionalBranch(baseCheck, jumpIfTrue: false, shortCircuitBlock);
                     _currentBasicBlock = null;
 
@@ -2428,19 +2433,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 {
                     // Non-innermost level. innerOp is a chained node whose
                     // RightOperand is THIS level's Y. (innerOp's own checks were
-                    // emitted by a previous iteration.) Capture Y, emit
-                    // `prevY op Y` check.
-                    Debug.Assert(innerOp.RightOperand is not null);
+                    // emitted by a previous iteration.) Capture Y, emit the
+                    // `Y_{i-1} op Y_i` check. innerOp's OUTER operator is
+                    // exactly this middle link's operator - for `a<=b<c<=d`
+                    // that's innerOp=`a<=b<c` whose outer is `<`, giving us
+                    // `b < c` (NOT `b <= c` from node's outer `<=`).
                     IOperation myY = VisitAndCapture(innerOp.RightOperand);
 
-                    IOperation middleCheck = new BinaryOperation(
-                        node.OperatorKind, OperationCloner.CloneOperation(prevY!), myY,
-                        node.IsLifted, node.IsChecked, node.IsCompareText,
-                        node.OperatorMethod, node.ConstrainedToType,
-                        nodeBinOp.UnaryOperatorMethod,
-                        isChainedRelationalComparison: false,
-                        semanticModel: null, node.Syntax, node.Type,
-                        node.GetConstantValue(), IsImplicit(node));
+                    IOperation middleCheck = rebuildNonChainedRelational((BinaryOperation)innerOp, OperationCloner.CloneOperation(prevY!), myY);
                     ConditionalBranch(middleCheck, jumpIfTrue: false, shortCircuitBlock);
                     _currentBasicBlock = null;
 
@@ -2450,17 +2450,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (isOutermost)
                 {
                     // Outermost link: evaluate the chain's final RightOperand
-                    // (e.g. `d`) on the true path and capture `prevY op right` as
-                    // the overall result.
+                    // (e.g. `d`) on the true path and capture `prevY op right`
+                    // as the overall result. This link IS node's own outer
+                    // operator, so template on node directly.
                     IOperation visitedRight = VisitRequired(node.RightOperand);
-                    IOperation finalCheck = new BinaryOperation(
-                        node.OperatorKind, OperationCloner.CloneOperation(prevY!), visitedRight,
-                        node.IsLifted, node.IsChecked, node.IsCompareText,
-                        node.OperatorMethod, node.ConstrainedToType,
-                        nodeBinOp.UnaryOperatorMethod,
-                        isChainedRelationalComparison: false,
-                        semanticModel: null, node.Syntax, node.Type,
-                        node.GetConstantValue(), IsImplicit(node));
+                    IOperation finalCheck = rebuildNonChainedRelational((BinaryOperation)node, OperationCloner.CloneOperation(prevY!), visitedRight);
                     AddStatement(new FlowCaptureOperation(resultId, node.Syntax, finalCheck));
                 }
             }
@@ -2487,6 +2481,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             AppendNewBlock(doneBlock);
 
             return GetCaptureReference(resultId, outerOp);
+
+            // Rebuild a non-chained IBinaryOperation with the given operands,
+            // inheriting the operator kind / method / lifted-ness / syntax /
+            // type / etc. from `template`. The rebuilt node carries
+            // IsChainedRelationalComparison=false because the chain-specific
+            // short-circuit behaviour is expressed by the CFG edges we emit,
+            // not by the node itself; every synthesized link here is a plain
+            // relational once the surrounding CFG hands it the correct operands.
+            BinaryOperation rebuildNonChainedRelational(BinaryOperation template, IOperation left, IOperation right)
+                => new BinaryOperation(
+                    template.OperatorKind, left, right,
+                    template.IsLifted, template.IsChecked, template.IsCompareText,
+                    template.OperatorMethod, template.ConstrainedToType,
+                    template.UnaryOperatorMethod,
+                    isChainedRelationalComparison: false,
+                    semanticModel: null, template.Syntax, template.Type,
+                    template.GetConstantValue(), IsImplicit(template));
         }
 
         private IOperation VisitNullableBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)

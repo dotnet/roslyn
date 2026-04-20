@@ -451,7 +451,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
                                   Value:
                                     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
                             Jump if False (Regular) to Block[B4]
-                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c < d')
+                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c')
                                   Left:
                                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                                   Right:
@@ -511,11 +511,14 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
         // 3-operand case degenerates to a single-level structure, the 4-operand
         // case exercises the spine loop with 2 iterations (still might hide off-
         // by-one bugs), and THIS test forces 3 iterations to prove the loop is
-        // truly n-ary. Also pins the cross-region capture reference pattern at
-        // greater depth: capture [1] (b) is declared in {R2} (outermost Y sub-
-        // region) and referenced deep inside {R4} (innermost, for the b<c
-        // check) - exercising the `isChainedRelationalMiddleOperandReference`
-        // verifier carve-out across TWO enclosing-region layers.
+        // truly n-ary. Region structure: capture [1] (b) lives in {R2}, [2]
+        // (c) in {R3}, [3] (d) in {R4}. The middle `b < c` check runs in B2
+        // inside {R3} (crossing out of {R2} into the next-nested region, which
+        // is exactly what `isChainedRelationalMiddleOperandReference` accepts);
+        // the middle `c < d` check runs in B3 inside {R4} (same one-layer hop
+        // out of {R3}). At each spine level the same cross-region capture
+        // reference pattern applies - the carve-out applies uniformly, not
+        // just to the one middle that happens to sit deepest.
         string source = """
             class P
             {
@@ -561,7 +564,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
                                   Value:
                                     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
                             Jump if False (Regular) to Block[B5]
-                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c < d')
+                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c')
                                   Left:
                                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                                   Right:
@@ -579,7 +582,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
                                       Value:
                                         IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd')
                                 Jump if False (Regular) to Block[B5]
-                                    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c < d < e')
+                                    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c < d')
                                       Left:
                                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
                                       Right:
@@ -619,6 +622,120 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
             }
             Block[B7] - Exit
                 Predecessors: [B6*2]
+                Statements (0)
+            """;
+        var expectedDiagnostics = DiagnosticDescription.None;
+        VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+    }
+
+    [Fact]
+    public void Chain_NAry_MixedOperators_EachLinkKeepsItsOwnOperatorKind()
+    {
+        // `a <= b < c <= d` - each link uses a different relational operator.
+        // The binder gives each chained BoundBinaryOperator node its OWN outer
+        // operator (`<=` for the outermost `(a<=b<c) <= d`, `<` for the inner
+        // `(a<=b) < c`, and `<=` for the innermost `a<=b`). The emitted CFG
+        // checks must pair each operand pair with the RIGHT operator from the
+        // chained node whose outer op that link represents:
+        //   - Innermost link `a <= b` uses the non-chained base's `<=`.
+        //   - Middle link `b < c` uses the innerOp-of-outermost `<` (NOT the
+        //     outermost's `<=`).
+        //   - Final link `c <= d` uses the outermost's `<=`.
+        //
+        // This test exists because an earlier iteration of the CFG builder
+        // templated every link's BinaryOperation off the outermost node,
+        // silently emitting `b <= c` instead of `b < c` on mixed chains. Our
+        // same-operator tests couldn't see the bug because all three links
+        // would have coincidentally shared the same OperatorKind.
+        //
+        // Also doubles as a guard for OperatorMethod / IsLifted / ConstrainedToType
+        // mismatches in generic or user-defined-operator mixed chains: any
+        // field that can differ between links must flow from the correct
+        // chained node.
+        string source = """
+            class P
+            {
+                void M(int a, int b, int c, int d)
+            /*<bind>*/{
+                    if (a <= b < c <= d) { }
+                }/*</bind>*/
+            }
+            """;
+        string expectedGraph = """
+            Block[B0] - Entry
+                Statements (0)
+                Next (Regular) Block[B1]
+                    Entering: {R1} {R2}
+            .locals {R1}
+            {
+                CaptureIds: [0]
+                .locals {R2}
+                {
+                    CaptureIds: [1]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (1)
+                            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+                              Value:
+                                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                        Jump if False (Regular) to Block[B4]
+                            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a <= b')
+                              Left:
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+                              Right:
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                            Leaving: {R2}
+                        Next (Regular) Block[B2]
+                            Entering: {R3}
+                    .locals {R3}
+                    {
+                        CaptureIds: [2]
+                        Block[B2] - Block
+                            Predecessors: [B1]
+                            Statements (1)
+                                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+                                  Value:
+                                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+                            Jump if False (Regular) to Block[B4]
+                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a <= b < c')
+                                  Left:
+                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                                  Right:
+                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                                Leaving: {R3} {R2}
+                            Next (Regular) Block[B3]
+                        Block[B3] - Block
+                            Predecessors: [B2]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a <= b < c <= d')
+                                  Value:
+                                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a <= b < c <= d')
+                                      Left:
+                                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                                      Right:
+                                        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd')
+                            Next (Regular) Block[B5]
+                                Leaving: {R3} {R2}
+                    }
+                }
+                Block[B4] - Block
+                    Predecessors: [B1] [B2]
+                    Statements (1)
+                        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a <= b < c <= d')
+                          Value:
+                            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'a <= b < c <= d')
+                    Next (Regular) Block[B5]
+                Block[B5] - Block
+                    Predecessors: [B3] [B4]
+                    Statements (0)
+                    Jump if False (Regular) to Block[B6]
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a <= b < c <= d')
+                        Leaving: {R1}
+                    Next (Regular) Block[B6]
+                        Leaving: {R1}
+            }
+            Block[B6] - Exit
+                Predecessors: [B5*2]
                 Statements (0)
             """;
         var expectedDiagnostics = DiagnosticDescription.None;
