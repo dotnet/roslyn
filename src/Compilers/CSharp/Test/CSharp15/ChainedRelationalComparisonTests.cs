@@ -466,6 +466,51 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     // tests should switch from CompileAndVerify + ExpectedOutput to a
     // VerifyDiagnostics expectation on ERR_NoChainedRelationalComparison.
 
+    [Theory]
+    // Every permutation of (short, int, long) at the three operand positions. The
+    // IL-verify outcome depends on whether the middle operand is the strictly-
+    // "in-between" type: if so, the inner operator is narrower than the temp's
+    // type and the current lowering produces unverifiable IL (ryujit accepts it
+    // via sign-extension; the fix for the spec's permissive rule will keep the
+    // temp at Y's inner type instead). Once that fix lands, every row below can
+    // flip to Verification.Passes.
+    [InlineData("short", "int", "long", false)]   // inner: short<int -> int<int; outer: int<long -> long<long (mismatch)
+    [InlineData("short", "long", "int", true)]    // inner: short<long -> long<long; outer: long<int -> long<long (match)
+    [InlineData("int", "short", "long", false)]   // inner: int<short -> int<int; outer: int<long -> long<long (mismatch)
+    [InlineData("int", "long", "short", true)]    // inner: int<long -> long<long; outer: long<short -> long<long (match)
+    [InlineData("long", "short", "int", true)]    // inner: long<short -> long<long; outer: long<int -> long<long (match)
+    [InlineData("long", "int", "short", true)]    // inner: long<int -> long<long; outer: long<short -> long<long (match)
+    public void AsymmetricConversion_AllPermutationsOfShortIntLong(string aType, string bType, string cType, bool ilVerifies)
+    {
+        // a=1, b=5, c=10 fits every permutation of (short, int, long) and produces a
+        // chain result of True. The test also asserts single-evaluation of each
+        // operand via per-call counters - asymmetric conversions must not cause any
+        // operand to be evaluated twice.
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                static int aCalls, bCalls, cCalls;
+                static {{aType}} A() { aCalls++; return 1; }
+                static {{bType}} B() { bCalls++; return 5; }
+                static {{cType}} C() { cCalls++; return 10; }
+
+                static void Main()
+                {
+                    aCalls = bCalls = cCalls = 0;
+                    bool r = A() < B() < C();
+                    Console.WriteLine($"r={r}, a={aCalls}, b={bCalls}, c={cCalls}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "r=True, a=1, b=1, c=1",
+            verify: ilVerifies ? Verification.Passes : Verification.FailsILVerify)
+            .VerifyDiagnostics();
+    }
+
     [Fact]
     public void AsymmetricConversion_WideningOnOuterLink_IntIntLong()
     {
