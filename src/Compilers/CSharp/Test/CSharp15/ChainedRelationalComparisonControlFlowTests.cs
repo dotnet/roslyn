@@ -13,29 +13,16 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
-/// <see cref="ControlFlowGraph" /> tests for "chained relational comparison"
-/// (C# preview feature; spec §11.11.13). The chain's outer link short-circuits
-/// on its inner link's bool result, so the CFG must emit the same conditional
-/// edges as <c>&amp;&amp;</c>, with the shared middle operand Y evaluated exactly once
-/// via a flow capture reused by both links. See
-/// <c>ControlFlowGraphBuilder.VisitChainedRelationalComparison</c> in
-/// Microsoft.CodeAnalysis for the visitor logic.
-///
-/// Runtime / binding tests live in <see cref="ChainedRelationalComparisonTests" />;
-/// IL-emit pins in <see cref="ChainedRelationalComparisonEmitTests" />;
-/// semantic-model API tests in <see cref="ChainedRelationalComparisonSemanticModelTests" />.
+/// Control-flow-graph tests for "chained relational comparison" (C# preview feature;
+/// spec §11.11.13). The CFG must emit the same short-circuit edges as a hand-written
+/// <c>X op' Y &amp;&amp; Y op Z</c>, with Y evaluated once via a flow capture shared by
+/// both links.
 /// </summary>
 public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
 {
     [Fact]
     public void Chain_AsIfCondition_EmitsShortCircuitEdges()
     {
-        // `if (a < b < c)` - the minimal case proving the CFG builder routes
-        // chained relational nodes through the short-circuit path. The CFG
-        // must show: evaluate a and b, compute a<b, conditional branch on it,
-        // and only on the true edge evaluate c and compute Y<c. If the builder
-        // instead took the straight-line path, we'd see a single block doing
-        // an ill-typed `bool < int` compare.
         string source = """
             class P
             {
@@ -45,20 +32,6 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
                 }/*</bind>*/
             }
             """;
-        // Two nested regions with two flow captures:
-        //
-        //   {R1} holds the RESULT capture [0] (bool, written by both branches).
-        //   {R2} holds the SHARED MIDDLE OPERAND capture [1] (Y=b), alive only on
-        //       the true-path where both links reference it.
-        //
-        // B1 captures b, then conditionally branches on `a < b` (inner link) -
-        // if false it leaves {R2} and jumps to B3 (the short-circuit block).
-        // B2 is the true path: it stores the outer link `b < c` (using the
-        // captured Y) into result capture [0] then leaves {R2} into B4.
-        // B3 stores literal false into result capture [0] (Y already out of
-        // scope, which is why {R2} was closed before this point).
-        // B4 reads the result capture and branches on it for the surrounding
-        // `if` statement.
         string expectedGraph = """
             Block[B0] - Entry
                 Statements (0)
@@ -132,10 +105,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_AsAssignment_CaptureResultWithoutEnclosingCondition()
     {
-        // Standalone expression `bool r = a < b < c;` - the surrounding statement
-        // isn't a conditional, so the CFG has to capture the chain's result into
-        // capture [0] and store it into `r` at the end. This pins that the
-        // builder's capture-and-flow shape works outside a consuming conditional.
+        // Chain as a standalone expression (no consuming conditional).
         string source = """
             class P
             {
@@ -213,10 +183,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_InsideWhileLoop_LoopConditionEmitsShortCircuit()
     {
-        // `while (a < b < c)` - the chain is the loop's condition. The loop's
-        // back-edge re-enters {R1} {R2} on each iteration (B5 loops back to B1)
-        // so Y's capture is freshly established every pass; the short-circuit
-        // structure inside the chain is the same as the standalone `if` case.
+        // Chain as a `while` condition: the loop's back-edge re-enters Y's capture region.
         string source = """
             class P
             {
@@ -296,14 +263,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_WithSideEffectingMiddleOperand_YCapturedOncePerIteration()
     {
-        // `a < Middle() < c` where Middle() has side effects. The IInvocation
-        // for Middle() appears EXACTLY ONCE in the CFG (captured into capture
-        // [1] in B1, then referenced twice: once as the right operand of the
-        // inner compare, once as the left operand of the outer compare via a
-        // IFlowCaptureReferenceOperation). If the builder took the straight-line
-        // path or naively re-visited innerOp.RightOperand, Middle() would
-        // appear TWICE - the single-evaluation CFG invariant is what this test
-        // guards.
+        // Side-effecting middle operand: the invocation appears once, referenced twice via capture.
         string source = """
             class P
             {
@@ -385,27 +345,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_NAry_FourOperands_TwoNestedShortCircuits()
     {
-        // `a < b < c < d` - spec §11.11.13 expands to `(a<b) && (b<c) && (c<d)`
-        // with b and c each evaluated exactly once. Both intermediate chained
-        // nodes (`a<b<c` and `a<b<c<d`) carry IsChainedRelationalComparison=true,
-        // and the CFG builder walks the chain's spine emitting one short-circuit
-        // per inner link plus one final result capture for the outermost check.
-        //
-        // The generated CFG has:
-        //   - Two nested sub-regions {R2} and {R3} holding captures [1] (= b)
-        //     and [2] (= c) respectively, both nested inside the result region
-        //     {R1} which holds capture [0] (the chain's overall bool result).
-        //   - Two short-circuits (B1's Jump-if-False and B2's Jump-if-False),
-        //     each targeting the shared fall-through block that stores literal
-        //     false into the result capture.
-        //   - B3 is the all-true path: it captures `c < d` (using the captured
-        //     `c` from {R3}) as the final result.
-        //
-        // The `b` capture is declared in {R2} (outer sub-region) and referenced
-        // from blocks inside {R3} for the `b < c` check - a cross-region
-        // reference that the CFG verifier accepts via the
-        // isChainedRelationalMiddleOperandReference carve-out matching the
-        // syntactic shape of a chained shared middle operand.
+        // `a < b < c < d`: two nested Y sub-regions, two short-circuit branches.
         string source = """
             class P
             {
@@ -499,21 +439,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_NAry_FiveOperands_ThreeNestedShortCircuits()
     {
-        // `a < b < c < d < e` - five operands produce three shared middles
-        // (b, c, d) and four checks (a<b, b<c, c<d, d<e). The CFG has three
-        // nested Y sub-regions (R2, R3, R4), three short-circuits, and one
-        // final result capture for the outermost `d<e` check. Block count:
-        // 7 blocks (B1..B4 for the four checks, B5 for the false-literal
-        // capture, B6 for the if-branch, B7 = exit) plus entry B0 = 8 total.
-        //
-        // Region structure: capture [1] (b) lives in {R2}, [2] (c) in {R3},
-        // [3] (d) in {R4}. The middle `b < c` check runs in B2 inside {R3}
-        // (crossing out of {R2} into the next-nested region, which is what
-        // `isChainedRelationalMiddleOperandReference` accepts); the middle
-        // `c < d` check runs in B3 inside {R4} (same one-layer hop out of
-        // {R3}). At each spine level the same cross-region capture reference
-        // pattern applies - the carve-out applies uniformly, not just to the
-        // middle that happens to sit deepest.
+        // `a < b < c < d < e`: three nested Y sub-regions, three short-circuit branches.
         string source = """
             class P
             {
@@ -626,20 +552,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_NAry_MixedOperators_EachLinkKeepsItsOwnOperatorKind()
     {
-        // `a <= b < c <= d` - each link uses a different relational operator.
-        // The binder gives each chained BoundBinaryOperator node its OWN outer
-        // operator (`<=` for the outermost `(a<=b<c) <= d`, `<` for the inner
-        // `(a<=b) < c`, and `<=` for the innermost `a<=b`). The emitted CFG
-        // checks must pair each operand pair with the operator from the
-        // chained node whose outer op that link represents:
-        //   - Innermost link `a <= b` uses the non-chained base's `<=`.
-        //   - Middle link `b < c` uses the innerOp-of-outermost `<` (NOT the
-        //     outermost's `<=`).
-        //   - Final link `c <= d` uses the outermost's `<=`.
-        //
-        // Also covers OperatorMethod / IsLifted / ConstrainedToType mismatches
-        // in generic or user-defined-operator mixed chains: any field that
-        // can differ between links must flow from the correct chained node.
+        // `a <= b < c <= d`: each link keeps its own relational operator.
         string source = """
             class P
             {
@@ -733,13 +646,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_AsConditionalExpressionCondition_CapturesFlowIntoBothBranches()
     {
-        // `(a < b < c) ? x : y` - three nested regions: {R1} for the conditional's
-        // result (capture [2] = x or y), {R2} for the chain's result capture [0],
-        // and {R3} for Y (capture [1] = b). After the chain's capture [0] is
-        // decided, {R2} and {R3} are left; the remaining branch on capture [0]
-        // picks x (B5) or y (B6) into the result capture [2], which is then
-        // returned. This pins that the chain's capture structure nests cleanly
-        // inside an enclosing conditional expression's own capture region.
+        // Chain nested inside an enclosing ternary's capture region.
         string source = """
             class P
             {
@@ -838,12 +745,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_WithUserDefinedOperator_ShortCircuitsWithOperatorMethodOnEachLink()
     {
-        // Chain with user-defined `operator <` on a struct. Both the inner and
-        // outer IBinaryOperation carry OperatorMethod = S.op_LessThan(S, S).
-        // The CFG builder's chained-relational dispatch is independent of
-        // whether the operator is intrinsic or user-defined - it only cares
-        // about IsChainedRelationalComparison. So the short-circuit shape is
-        // the same as the int case, just with OperatorMethod populated.
+        // User-defined `operator <` on a struct: same CFG shape as the int case.
         string source = """
             struct S
             {
@@ -930,13 +832,7 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_LiftedNullable_CapturesNullableValueTypeOperand()
     {
-        // `int? a, b, c => a < b < c` - spec §11.4.8 lifted relational composed
-        // with chained short-circuit. The captured Y is the full `int?` value
-        // (type `System.Int32?`), not its underlying `int` - both links' lifted
-        // comparisons need the whole Nullable<int> to do their HasValue check.
-        // The `IsLifted` flag on each IBinaryOperation carries the lifted
-        // semantics forward; the CFG shape is otherwise identical to the
-        // non-nullable case.
+        // Lifted `int? a, b, c => a < b < c`: captured Y is the full `int?`.
         string source = """
             class P
             {

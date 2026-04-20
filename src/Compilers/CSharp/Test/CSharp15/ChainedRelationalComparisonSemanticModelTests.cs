@@ -15,23 +15,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
-/// Tests the SemanticModel / IOperation / flow-analysis shape of a chained
-/// relational comparison (spec §11.11.13, preview feature) — the behaviour IDE
-/// features and analyzers observe. Binding and emit correctness are covered by
-/// <c>ChainedRelationalComparisonTests</c>, <c>ChainedRelationalComparisonEmitTests</c>,
-/// <c>ChainedRelationalComparisonConstantFoldingTests</c>,
-/// <c>ChainedRelationalComparisonNullableAnalysisTests</c>, and
-/// <c>ChainedRelationalComparisonControlFlowTests</c>; this file focuses on the
-/// public <see cref="SemanticModel"/> APIs those earlier files don't already
-/// exercise (or don't exhaustively pin).
-///
-/// Key invariant pinned across the file: for a chained node <c>A op B</c> the
-/// symbol reported by <see cref="SemanticModel.GetSymbolInfo(SyntaxNode, System.Threading.CancellationToken)"/>
-/// is the <em>outer-link</em> operator <c>Y op B</c>, signed by the outer link's
-/// left-operand type (stored in <c>BoundBinaryOperator.ChainedRelationalLeftConvertedType</c>),
-/// NOT by <c>Left.Type</c> (which is always <see langword="bool"/> — the inner
-/// link's result type). A regression to the old behaviour would surface here
-/// as a synthesized <c>bool op_LessThan(bool, ...)</c> symbol.
+/// SemanticModel / IOperation / flow-analysis tests for "chained relational
+/// comparison" (C# preview feature; spec §11.11.13). The core invariant is that
+/// <see cref="SemanticModel.GetSymbolInfo(SyntaxNode, System.Threading.CancellationToken)"/>
+/// on a chained node reports the outer-link <c>Y op B</c> operator, not a
+/// synthesized <c>bool op_LessThan(bool, ...)</c> built off the inner link's
+/// bool result type.
 /// </summary>
 public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBase
 {
@@ -43,12 +32,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
             targetFramework: targetFramework);
     }
 
-    /// <summary>
-    /// Return the chain's <see cref="BinaryExpressionSyntax"/> nodes in
-    /// innermost-to-outermost order. For <c>a &lt; b &lt; c</c> returns
-    /// <c>[a&lt;b, a&lt;b&lt;c]</c>; for <c>a &lt; b &lt; c &lt; d</c> returns
-    /// <c>[a&lt;b, a&lt;b&lt;c, a&lt;b&lt;c&lt;d]</c>.
-    /// </summary>
+    // Return the chain's BinaryExpressionSyntax nodes innermost-to-outermost.
     private static BinaryExpressionSyntax[] GetChainSpineInnermostToOutermost(CSharpCompilation comp)
     {
         var tree = comp.SyntaxTrees.Single();
@@ -66,11 +50,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_SameTypeIntrinsicInt_InnerAndOuterBothMapToIntLessThan()
     {
-        // The canonical case: both links resolve to the built-in `int < int`
-        // operator. A regression to the old behaviour (outer mapped off
-        // BoundBinaryOperator.Left.Type) would surface here as
-        // `bool <(bool, int)` on the outer link - a symbol the runtime has
-        // no implementation for.
+        // Both links resolve to built-in `int < int`.
         var source = """
             class P { static bool M(int a, int b, int c) => a < b < c; }
             """;
@@ -97,12 +77,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_AsymmetricIntShortLong_InnerIsIntIntOuterIsLongLong()
     {
-        // The outer link's overload resolution sees the shared middle (Y,
-        // aka `b`) as the inner link classified it. For `int < short < long`
-        // the inner resolves to `int < int` (short widens to int). The outer
-        // then resolves against Y=int vs Right=long, selecting `long < long`
-        // and adding a second widening on Y. Pin both signatures; previously
-        // the outer would have reported `<(bool, long)` via Left.Type.
+        // Inner resolves as `int < int`; outer resolves as `long < long`.
         var source = """
             class P { static bool M(int a, short b, long c) => a < b < c; }
             """;
@@ -126,9 +101,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_AsymmetricShortIntLong_InnerIsIntIntOuterIsLongLong()
     {
-        // Same as above with a different permutation. The inner link's
-        // signature ends up `int < int` (both operands widen from short/int
-        // to int); the outer ends up `long < long`.
+        // Different permutation: inner `int < int`, outer `long < long`.
         var source = """
             class P { static bool M(short a, int b, long c) => a < b < c; }
             """;
@@ -150,8 +123,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_MixedOperators_EachLinkKeepsItsOwnOperatorName()
     {
-        // `a <= b < c` - each link carries its own op name. Both links are
-        // `(int, int)` here, but the Name differs per link.
+        // Each link carries its own operator name.
         var source = """
             class P { static bool M(int a, int b, int c) => a <= b < c; }
             """;
@@ -168,10 +140,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_NAryChain_EachLevelReportsItsOwnSignature()
     {
-        // 4-operand chain `int < short < int < long` - each BinaryExpression
-        // in the spine has its own signature. Inner link: int<int. Middle
-        // link: int<int. Outer link: long<long. A per-level outer-vs-Left
-        // confusion would flip any of the three.
+        // 4-operand chain: each spine node has its own signature.
         var source = """
             class P { static bool M(int a, short b, int c, long d) => a < b < c < d; }
             """;
@@ -196,13 +165,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_LiftedNullableIntrinsic_ReportsUnderlyingParametersWithIsLiftedOnOperation()
     {
-        // Lifted `int? < int? < int?`. Roslyn's synthesized built-in
-        // operator symbol reports the STRIPPED (non-nullable) operand
-        // types - matching GetSymbolInfo for a non-chained `int? < int?` -
-        // and surfaces the lifting via IBinaryOperation.IsLifted at the
-        // operation level. Both links look the same here; the previous
-        // buggy outer-link synthesis would have used Left.Type (bool) and
-        // produced a non-existent `bool op_LessThan(bool, int?)`.
+        // Lifted chain: symbol's params are stripped to non-nullable; IsLifted lives on the operation.
         var source = """
             class P { static bool M(int? a, int? b, int? c) => a < b < c; }
             """;
@@ -221,7 +184,6 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
             Assert.Equal("System.Boolean", method.ReturnType.ToTestDisplayString());
             Assert.Equal(["System.Int32", "System.Int32"], method.Parameters.Select(p => p.Type.ToTestDisplayString()).ToArray());
 
-            // Lifting is tracked on the operation itself.
             var op = (IBinaryOperation?)model.GetOperation(binary);
             Assert.NotNull(op);
             Assert.True(op.IsLifted);
@@ -258,9 +220,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_GenericConstrainedOperator_BothLinksResolveToConstrainedInterfaceMethod()
     {
-        // C# 11 static-abstract-in-interfaces: T is constrained to an
-        // interface that declares `<`. Both links bind to the constrained
-        // interface method, with ContainingType pointing at the interface.
+        // Constrained-to-interface-with-static-abstract-`<`: both links bind to the interface method.
         var source = """
             interface ILt<TSelf> where TSelf : ILt<TSelf>
             {
@@ -291,11 +251,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_OnChainFallbackThatFailsResolution_ReportsNoSymbol()
     {
-        // The chain interpretation requires `Y op B` to resolve to a
-        // bool-returning operator; when it cannot, we report
-        // ERR_NoChainedRelationalComparison and the outer binary has no
-        // bound operator. GetSymbolInfo on the outer link should reflect
-        // that cleanly (no symbol) rather than leaking a stale intrinsic.
+        // Outer link has no bool-returning operator -> GetSymbolInfo yields no symbol.
         var source = """
             class P { static bool M(int a, int b, string c) => a < b < c; }
             """;
@@ -308,13 +264,10 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
         var model = comp.GetSemanticModel(comp.SyntaxTrees.Single());
         var spine = GetChainSpineInnermostToOutermost(comp);
 
-        // Inner link still resolves successfully: int < int.
         var inner = (IMethodSymbol?)model.GetSymbolInfo(spine[0]).Symbol;
         Assert.NotNull(inner);
         Assert.Equal("op_LessThan", inner.Name);
 
-        // Outer link has no usable operator. Symbol is null, CandidateReason
-        // identifies the failure shape.
         var outer = model.GetSymbolInfo(spine[1]);
         Assert.Null(outer.Symbol);
     }
@@ -322,11 +275,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetSymbolInfo_ClassicallyBoundAlternative_DoesNotChain()
     {
-        // When ordinary binary operator overload resolution succeeds at the
-        // outer level the chain interpretation is NOT applied (spec §11.11.13
-        // is a fallback). A user-defined `<` whose Left accepts bool keeps
-        // its classical meaning, so GetSymbolInfo on the outer link reports
-        // the user-defined operator, not a chained Y-op-B signature.
+        // When classical binding succeeds, the chain interpretation is not applied.
         var source = """
             struct S
             {
@@ -345,9 +294,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
 
         var outer = (IMethodSymbol?)model.GetSymbolInfo(spine[1]).Symbol;
         Assert.NotNull(outer);
-        // Left param is bool - proof we took the classical `(bool, S)`
-        // overload, not the chain interpretation (which would have picked
-        // `(S, S)` via Y-op-B).
+        // Left param `bool` -> classical `(bool, S)` overload, not the chain's `(S, S)`.
         Assert.Equal("System.Boolean", outer.Parameters[0].Type.ToTestDisplayString());
         Assert.Equal("S", outer.Parameters[1].Type.ToTestDisplayString());
     }
@@ -380,8 +327,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetTypeInfo_LiftedNullable_ChainTypeIsStillBoolNotNullableBool()
     {
-        // Lifted relational operators propagate null by returning false,
-        // not by returning bool?. The chain's overall type must be bool.
+        // Lifted relational operators return bool (not bool?).
         var source = """
             class P { static bool M(int? a, int? b, int? c) => a < b < c; }
             """;
@@ -401,8 +347,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetTypeInfo_OnChainInNullableBoolContext_ConvertedTypeIsNullableBool()
     {
-        // The chain's result is bool, but the surrounding context converts
-        // it to bool?; GetTypeInfo's Type vs ConvertedType reflects that.
+        // Chain's Type is bool; ConvertedType is bool? in a nullable-bool context.
         var source = """
             class P { static bool? M(int a, int b, int c) => a < b < c; }
             """;
@@ -420,12 +365,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetTypeInfo_SharedMiddleOperand_TypeIsItsDeclaredType_ConvertedTypeIsInnerLinkClassification()
     {
-        // In `int < short < long`, the middle `b` is a short parameter.
-        // Syntactically `b` appears once (as the Right of the inner
-        // binary); the chain's conversion stack applies at the operator,
-        // not on the identifier. GetTypeInfo(b) reports Type=short (the
-        // declared type). ConvertedType is the inner-link classification
-        // (int) because that's what the inner `<` converted `b` to.
+        // Middle `b`'s Type is its declared `short`; ConvertedType is the inner link's `int`.
         var source = """
             class P { static bool M(int a, short b, long c) => a < b < c; }
             """;
@@ -450,9 +390,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetOperation_OnOuterSyntax_ReturnsChainedIBinaryOperation()
     {
-        // The outer syntax's IOperation is a chained IBinaryOperation
-        // whose internal IsChainedRelationalComparison flag is set. The
-        // Left operand is the inner IBinaryOperation (not chained).
+        // Outer is an IBinaryOperation whose LeftOperand is the inner IBinaryOperation.
         var source = """
             class P { static bool M(int a, int b, int c) => a < b < c; }
             """;
@@ -464,29 +402,19 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
 
         var outerOp = (IBinaryOperation?)model.GetOperation(spine[1]);
         Assert.NotNull(outerOp);
-        // Outer's LeftOperand IS the inner link's IBinaryOperation.
         Assert.IsAssignableFrom<IBinaryOperation>(outerOp.LeftOperand);
-        // Outer's Type is bool.
         Assert.Equal("System.Boolean", outerOp.Type!.ToTestDisplayString());
 
         var innerOp = (IBinaryOperation)outerOp.LeftOperand;
-        // The inner link produced from model.GetOperation on the inner
-        // syntax is the SAME bound node that lives as outer.LeftOperand.
-        // (Bound tree reuse - no duplication.)
+        // Same instance regardless of which syntax we query - no duplicate bound nodes.
         Assert.Same(innerOp, model.GetOperation(spine[0]));
-        // Inner's Left is the parameter `a`, not another IBinaryOperation.
         Assert.IsAssignableFrom<IParameterReferenceOperation>(innerOp.LeftOperand);
     }
 
     [Fact]
     public void GetOperation_SharedMiddleOperand_IsInnerOperationsRightOperand()
     {
-        // The shared middle operand's IOperation is reachable both as the
-        // inner link's RightOperand AND (equivalently) through the chain's
-        // pointer (BoundBinaryOperator.ChainedRelationalLeftOperand, which
-        // the public IOperation model surfaces via the standard tree
-        // because it's the same node). Pin this by checking they're the
-        // same instance.
+        // Middle operand's IOperation is the same instance whether reached via inner.RightOperand or GetOperation(b).
         var source = """
             class P { static bool M(int a, int b, int c) => a < b < c; }
             """;
@@ -500,10 +428,8 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
         var outerOp = (IBinaryOperation)model.GetOperation(spine[1])!;
         var innerOp = (IBinaryOperation)outerOp.LeftOperand;
 
-        // The inner RightOperand is `b`.
         Assert.Equal("b", ((IParameterReferenceOperation)innerOp.RightOperand).Parameter.Name);
 
-        // Asking GetOperation on `b`'s identifier syntax returns the same node.
         var bIdentifier = tree.GetRoot().DescendantNodes()
             .OfType<IdentifierNameSyntax>()
             .First(n => n.Identifier.ValueText == "b");
@@ -513,12 +439,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void GetOperation_IdenticalTreeShape_ToNonChainedBinaryPlusShortCircuit()
     {
-        // Pin that at the public-IOperation surface a chained node reads
-        // just like any other IBinaryOperation - it does NOT expose a
-        // different OperationKind. IDE tools that pattern-match on
-        // OperationKind.Binary will continue to see a binary op; only
-        // consumers that care about the short-circuit nuance check the
-        // (internal) IsChainedRelationalComparison flag.
+        // Chained nodes still report `OperationKind.Binary` on the public surface.
         var source = """
             class P { static bool M(int a, int b, int c) => a < b < c; }
             """;
@@ -542,9 +463,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
 
     private static T GetStatementWithBindMarker<T>(CSharpCompilation comp) where T : StatementSyntax
     {
-        // Pull the statement matching the /*<bind>*/.../*</bind>*/ markers.
-        // Mirrors the CompilationUtils pattern but invoked per-test since
-        // we often want more precise narrowing than that helper provides.
+        // Extract the statement bracketed by /*<bind>*/.../*</bind>*/ markers.
         var tree = comp.SyntaxTrees.Single();
         var source = tree.GetText().ToString();
         int start = source.IndexOf("/*<bind>*/", System.StringComparison.Ordinal) + "/*<bind>*/".Length;
@@ -558,8 +477,6 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void AnalyzeDataFlow_ChainAssignedToLocal_ReadsAllOperandsWritesOnlyLocal()
     {
-        // The chain reads all three operands and writes only the target
-        // local; nothing else should appear in ReadInside / WrittenInside.
         var source = """
             class P
             {
@@ -584,11 +501,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void AnalyzeDataFlow_ChainWithAssignmentInMiddleOperand_AssignmentIsCaptured()
     {
-        // A `b = expr` inside the middle operand is observable as an inside
-        // write: the chain evaluates the middle exactly once, and if control
-        // reaches the outer link (i.e. the inner was true) the assignment
-        // definitively ran. DefiniteAssignment elsewhere pins the full
-        // behaviour; this test pins only the raw read/write sets.
+        // Assignment inside the middle operand shows up as an inside write.
         var source = """
             class P
             {
@@ -616,9 +529,6 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void AnalyzeDataFlow_ChainInsideIf_TrackedLikeAnyBoolCondition()
     {
-        // An `if (chain) { ... }` treats the chain the same way it would
-        // treat any other bool condition - no chain-specific special casing
-        // at the data-flow API level.
         var source = """
             class P
             {
@@ -647,10 +557,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void AnalyzeControlFlow_ChainAsIfCondition_HasReturnExit()
     {
-        // Control flow over `if (a<b<c) { return 1; }` has the standard
-        // one-entry / one-return-exit shape of any if-with-return; the
-        // chain's internal short-circuit is modelled inside the condition
-        // expression, not as extra control flow on the statement.
+        // Chain's short-circuit is internal to the expression; statement-level flow is unchanged.
         var source = """
             class P
             {
@@ -677,10 +584,6 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void AnalyzeControlFlow_ChainWithShortCircuitingSideEffectInOperand_StillSingleStatementFlow()
     {
-        // Even when one of the operands has observable side effects that
-        // may or may not run (short-circuit), the statement-level control
-        // flow still looks the same; the short-circuit is internal to the
-        // expression, not a statement-level branch.
         var source = """
             class P
             {
@@ -711,10 +614,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void Speculative_GetSymbolInfo_OnNewChainReplacingOldExpression_ReportsOuterOperator()
     {
-        // Start with a non-chain expression, ask the speculative semantic
-        // model about a fresh `a < b < c` at the same position. The
-        // speculative result must match what the non-speculative API
-        // returns for the corresponding syntax at that position.
+        // Speculatively bind a fresh chain at a non-chain position.
         var source = """
             class P { static bool M(int a, int b, int c) { return a < b; } }
             """;
@@ -726,12 +626,7 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
         var original = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
         var speculative = (BinaryExpressionSyntax)SyntaxFactory.ParseExpression("a < b < c");
-        var speculativeOuter = speculative; // `a < b < c` is its own outer
-
-        // Speculative symbol info on the outer link reports the outer
-        // operator using ChainedRelationalLeftConvertedType, not the
-        // inner BoundBinaryOperator.Left.Type.
-        var info = model.GetSpeculativeSymbolInfo(original.SpanStart, speculativeOuter, SpeculativeBindingOption.BindAsExpression);
+        var info = model.GetSpeculativeSymbolInfo(original.SpanStart, speculative, SpeculativeBindingOption.BindAsExpression);
         var method = (IMethodSymbol?)info.Symbol;
         Assert.NotNull(method);
         Assert.Equal("op_LessThan", method.Name);
@@ -741,9 +636,6 @@ public sealed class ChainedRelationalComparisonSemanticModelTests : CSharpTestBa
     [Fact]
     public void Speculative_GetTypeInfo_OnNewChain_ReportsBool()
     {
-        // Same setup: at a position where the original compilation had
-        // some other expression, ask what the type of a chain would be.
-        // Result is bool, like every other chain in this file.
         var source = """
             class P { static bool M(int a, int b, int c) { return a < b; } }
             """;
