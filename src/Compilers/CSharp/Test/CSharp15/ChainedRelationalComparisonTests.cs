@@ -91,12 +91,12 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     // yields False, which is what this Theory pins.
     //
     // aVal/bVal/cVal of "null" vs a number lets us drive every single-null scenario.
-    [InlineData("null",  "5",    "10",   "False")]    // null in a
-    [InlineData("0",     "null", "10",   "False")]    // null in b
-    [InlineData("0",     "5",    "null", "False")]    // null in c (inner true, outer false)
-    [InlineData("null",  "null", "10",   "False")]    // nulls in a and b
-    [InlineData("null",  "null", "null", "False")]    // all null
-    [InlineData("0",     "5",    "10",   "True")]     // no nulls, control
+    [InlineData("null", "5", "10", "False")]    // null in a
+    [InlineData("0", "null", "10", "False")]    // null in b
+    [InlineData("0", "5", "null", "False")]     // null in c (inner true, outer false)
+    [InlineData("null", "null", "10", "False")] // nulls in a and b
+    [InlineData("null", "null", "null", "False")] // all null
+    [InlineData("0", "5", "10", "True")]        // no nulls, control
     public void Chain_AllNullableOperands_NullInAnyPositionShortCircuitsToFalse(string aVal, string bVal, string cVal, string expected)
     {
         var src = $$"""
