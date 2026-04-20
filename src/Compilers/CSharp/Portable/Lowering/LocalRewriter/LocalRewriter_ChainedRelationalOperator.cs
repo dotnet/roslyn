@@ -101,7 +101,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals.Add(tempSym);
                 BoundLocal temp = _factory.Local(tempSym);
 
-                BoundExpression innerAssign = AssignAndRead(temp, VisitExpression(y));
+                // Inline-assign idiom `(temp = Y, temp)`: evaluates Y once, stores into temp,
+                // and yields temp as the value of the expression. Used by `?.` lowering too;
+                // see LocalRewriter_ConditionalAccess.cs.
+                BoundExpression innerAssign = _factory.Sequence(
+                    locals: [],
+                    sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
+                    result: temp);
                 BoundExpression loweredInner = BuildChainLink((BoundBinaryOperator)node.Left, innerAssign, locals);
 
                 // oldNode: null so that constant values on the original chain node are not
@@ -135,19 +141,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.LeftTruthOperatorMethod ?? node.BinaryOperatorMethod,
                 node.ConstrainedToType,
                 applyParentUnaryOperator: null);
-        }
-
-        /// <summary>
-        /// Produces the expression <c>(t = e, t)</c>: assign <paramref name="expression"/> into the
-        /// local referenced by <paramref name="temp"/> and then read the local as the value.
-        /// Matches the inline-assign idiom used by <c>?.</c> (see LocalRewriter_ConditionalAccess.cs).
-        /// </summary>
-        private BoundExpression AssignAndRead(BoundLocal temp, BoundExpression expression)
-        {
-            return _factory.Sequence(
-                locals: [],
-                sideEffects: [_factory.AssignmentExpression(temp, expression)],
-                result: temp);
         }
     }
 }
