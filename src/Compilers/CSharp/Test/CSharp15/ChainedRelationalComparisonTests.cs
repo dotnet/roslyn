@@ -525,6 +525,110 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void Chain_ShortCircuit_DoesNotEvaluateArgumentsNestedInsideRightOperand()
+    {
+        // When the inner link is false, the outer-right operand and ALL its
+        // sub-expressions (method arguments, nested calls, property accesses,
+        // etc.) must be skipped entirely. This test pins the nested case:
+        // `C(D())` at the outer-right must not invoke either `C` or `D`.
+        var src = """
+            using System;
+
+            class P
+            {
+                static int aCalls, bCalls, cCalls, dCalls;
+                static int A() { aCalls++; return 100; }   // chosen so A() > B(), inner is false
+                static int B() { bCalls++; return 1; }
+                static int C(int x) { cCalls++; return x; }
+                static int D() { dCalls++; return 5; }
+
+                static void Main()
+                {
+                    aCalls = bCalls = cCalls = dCalls = 0;
+                    bool r = A() < B() < C(D());
+                    Console.WriteLine($"r={r}, a={aCalls}, b={bCalls}, c={cCalls}, d={dCalls}");
+                }
+            }
+            """;
+        // Inner link `A() < B()` = 100 < 1 = false; outer must short-circuit.
+        // Both C(...) and its argument D() must be skipped.
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "r=False, a=1, b=1, c=0, d=0")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_NoShortCircuit_ArgumentsInsideRightOperandRunInSourceOrder()
+    {
+        // Companion to the short-circuit test: when the inner link is true the
+        // outer-right operand DOES run, and its nested sub-expressions evaluate
+        // in source order before the enclosing call is invoked. So for `C(D())`
+        // at the outer right the expected log is D then C, after A and B from
+        // the inner link.
+        var src = """
+            using System;
+            using System.Collections.Generic;
+
+            class P
+            {
+                static List<string> log;
+                static int A() { log.Add("A"); return 1; }
+                static int B() { log.Add("B"); return 2; }
+                static int C(int x) { log.Add("C"); return x; }
+                static int D() { log.Add("D"); return 5; }
+
+                static void Main()
+                {
+                    log = new();
+                    bool r = A() < B() < C(D());
+                    Console.WriteLine($"r={r}, log=[{string.Join(",", log)}]");
+                }
+            }
+            """;
+        // Inner: 1 < 2 = true; outer runs. D evaluates to 5 and is passed to C,
+        // which returns 5. Outer compares 2 < 5 = true. Chain = true.
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "r=True, log=[A,B,D,C]")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_ShortCircuit_InMiddleOfFourOperand_SkipsAllRemainingArgumentsToo()
+    {
+        // Generalise: in `A() < B() < C() < D(E())`, if the middle link
+        // `B() < C()` is false, neither the outer link's call D(...) nor its
+        // argument E() should be evaluated. Pinned via per-call counters.
+        var src = """
+            using System;
+
+            class P
+            {
+                static int aCalls, bCalls, cCalls, dCalls, eCalls;
+                static int A() { aCalls++; return 1; }
+                static int B() { bCalls++; return 10; }   // B() > C(), middle link false
+                static int C() { cCalls++; return 5; }
+                static int D(int x) { dCalls++; return x; }
+                static int E() { eCalls++; return 100; }
+
+                static void Main()
+                {
+                    aCalls = bCalls = cCalls = dCalls = eCalls = 0;
+                    bool r = A() < B() < C() < D(E());
+                    Console.WriteLine($"r={r}, a={aCalls}, b={bCalls}, c={cCalls}, d={dCalls}, e={eCalls}");
+                }
+            }
+            """;
+        // Evaluation order: A=1, B=10 (inner true), C=5 (middle false), STOP.
+        // D and E never run.
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "r=False, a=1, b=1, c=1, d=0, e=0")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Chain_FourMethodCalls_EachSharedMiddleEvaluatedOnce()
     {
         // In `A() < B() < C() < D()`, both B and C are shared middle operands (B across
