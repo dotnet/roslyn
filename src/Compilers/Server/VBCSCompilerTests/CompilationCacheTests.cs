@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             File.WriteAllText(Path.Combine(entry3, "last-used"), now.AddHours(-1).ToString("O"));
 
             // Since = now => entry1 is a hit (created before, used after), entry2 is a store (created after), entry3 is untouched
-            var stats = CompilationCache.GetCacheStats(cacheDir, now);
+            var stats = CompilationCache.GetCacheStats(cacheDir, now, _logger);
             Assert.Equal(1, stats.Hits);
             Assert.Equal(1, stats.Stores);
             Assert.Equal(1, stats.Untouched);
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             File.WriteAllText(Path.Combine(entry, "created"), now.AddHours(-2).ToString("O"));
             File.WriteAllText(Path.Combine(entry, "last-used"), now.ToString("O"));
 
-            var stats = CompilationCache.GetCacheStats(cacheDir, now);
+            var stats = CompilationCache.GetCacheStats(cacheDir, now, _logger);
             var summary = stats.FormatSummary(cacheDir, verbosity: 1);
 
             Assert.Contains("Hits (reused):  1", summary);
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             File.WriteAllText(Path.Combine(entry, "created"), now.AddHours(-2).ToString("O"));
             File.WriteAllText(Path.Combine(entry, "last-used"), now.ToString("O"));
 
-            var stats = CompilationCache.GetCacheStats(cacheDir, now);
+            var stats = CompilationCache.GetCacheStats(cacheDir, now, _logger);
             var summary = stats.FormatSummary(cacheDir, verbosity: 2);
 
             Assert.Contains("MyLib.dll (1)", summary);

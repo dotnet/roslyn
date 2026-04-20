@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
-                TouchLastUsed(entryDir);
+                TouchLastUsed(entryDir, logger);
                 File.Copy(cachedAssemblyPath, outputFiles.AssemblyPath, overwrite: true);
                 copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath);
                 copyIfNeeded(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath);
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 Directory.Move(stagingDir, cacheDir);
                 stagingDir = null;
 
-                TouchLastUsed(cacheDir);
+                TouchLastUsed(cacheDir, logger);
                 logger.Log($"Cache stored: {dllName} [{hashKey}]");
             }
             catch (Exception ex)
@@ -440,16 +440,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// the file so that it survives copies/uploads that do not preserve file-system
         /// metadata.  Errors are silently ignored — this is best-effort bookkeeping.
         /// </summary>
-        private static void TouchLastUsed(string entryDir)
+        private static void TouchLastUsed(string entryDir, ICompilerServerLogger logger)
         {
             try
             {
                 var path = Path.Combine(entryDir, LastUsedFileName);
                 File.WriteAllText(path, DateTime.UtcNow.ToString("O"));
             }
-            catch
+            catch (Exception ex)
             {
                 // Best effort — don't fail a compilation because of bookkeeping.
+                logger.LogException(ex, $"Failed to update last-used for {entryDir}");
             }
         }
 
@@ -486,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                             continue;
                         }
 
-                        var lastUsed = GetLastUsedTimeUtc(entryDir);
+                        var lastUsed = GetLastUsedTimeUtc(entryDir, logger);
                         if (lastUsed >= cutoff)
                         {
                             totalKept++;
@@ -537,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// timestamp stored inside the <c>last-used</c> file.  Falls back to the
         /// directory creation time when the file is missing or unreadable.
         /// </summary>
-        internal static DateTime GetLastUsedTimeUtc(string entryDir)
+        internal static DateTime GetLastUsedTimeUtc(string entryDir, ICompilerServerLogger logger)
         {
             var lastUsedPath = Path.Combine(entryDir, LastUsedFileName);
             try
@@ -551,9 +552,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // Fall through to directory time.
+                logger.Log($"Failed to read last-used for {entryDir}: {ex.Message}");
             }
 
             return Directory.GetCreationTimeUtc(entryDir);
@@ -564,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <c>created</c> file.  Falls back to the directory creation time when the
         /// file is missing or unreadable.
         /// </summary>
-        internal static DateTime GetCreatedTimeUtc(string entryDir)
+        internal static DateTime GetCreatedTimeUtc(string entryDir, ICompilerServerLogger logger)
         {
             var createdPath = Path.Combine(entryDir, CreatedFileName);
             try
@@ -578,9 +580,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // Fall through to directory time.
+                logger.Log($"Failed to read created time for {entryDir}: {ex.Message}");
             }
 
             return Directory.GetCreationTimeUtc(entryDir);
@@ -593,7 +596,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// and used (last-used &gt;= since).  It is a <b>store</b> (miss) if created
         /// after <paramref name="since"/>.  Otherwise it is <b>untouched</b>.
         /// </summary>
-        internal static CacheStats GetCacheStats(string cachePath, DateTime since)
+        internal static CacheStats GetCacheStats(string cachePath, DateTime since, ICompilerServerLogger logger)
         {
             var stats = new CacheStats();
             if (!Directory.Exists(cachePath))
@@ -615,8 +618,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                             continue;
                         }
 
-                        var created = GetCreatedTimeUtc(entryDir);
-                        var lastUsed = GetLastUsedTimeUtc(entryDir);
+                        var created = GetCreatedTimeUtc(entryDir, logger);
+                        var lastUsed = GetLastUsedTimeUtc(entryDir, logger);
 
                         if (created >= since)
                         {
@@ -635,9 +638,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                 }
             }
-            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            catch (Exception ex)
             {
                 // Best effort.
+                logger.Log($"Failed to enumerate cache stats for {cachePath}: {ex.Message}");
             }
 
             return stats;

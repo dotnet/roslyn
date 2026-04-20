@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public void CacheStatsWithVerbosity()
             {
-                Assert.True(Parse("-cachestats", "-verbosity:1"));
+                Assert.True(Parse("-cachestats", "-cachestatsverbosity:1"));
                 Assert.Equal(DateTime.MinValue, _cacheStatsSince);
                 Assert.Equal(1, _cacheStatsVerbosity);
             }
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public void CacheStatsWithVerbosity2()
             {
-                Assert.True(Parse("-cachestats:2025-01-15T10:00:00Z", "-verbosity:2"));
+                Assert.True(Parse("-cachestats:2025-01-15T10:00:00Z", "-cachestatsverbosity:2"));
                 Assert.Equal(new DateTime(2025, 1, 15, 10, 0, 0, DateTimeKind.Utc), _cacheStatsSince);
                 Assert.Equal(2, _cacheStatsVerbosity);
             }
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public void CacheStatsBadVerbosity()
             {
-                Assert.False(Parse("-cachestats", "-verbosity:3"));
+                Assert.False(Parse("-cachestats", "-cachestatsverbosity:3"));
             }
 
             [Fact]
