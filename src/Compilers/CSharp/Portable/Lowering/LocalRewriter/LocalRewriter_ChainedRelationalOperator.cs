@@ -93,13 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.IsChainedRelational)
             {
                 // `y` is the shared middle operand with only the *inner* link's conversion
-                // applied (i.e. the right operand of the inner BoundBinaryOperator). The temp
-                // therefore holds the value the inner link's operator consumes directly -
-                // critically, its type is Y's inner-link type, NOT the outer link's wider
-                // LeftType. That invariant is what makes asymmetric chains like
-                // `short < int < long` emit verifiable IL: the inner operator is `int<int`
-                // and the temp is also `int`, so the stack types agree.
-                BoundExpression y = node.ChainedRelationalLeftOperand;
+                // applied. On a chained outer node, `node.Left` is guaranteed to be the
+                // bool-typed inner `BoundBinaryOperator`, and its `Right` is Y. Reading Y
+                // from there (instead of a dedicated UncommonData field) keeps Y on the
+                // standard bound-tree descent path. The temp holds the value the inner
+                // link's operator consumes directly - critically, its type is Y's
+                // inner-link type, NOT the outer link's wider LeftType. That invariant is
+                // what makes asymmetric chains like `short < int < long` emit verifiable
+                // IL: the inner operator is `int<int` and the temp is also `int`, so the
+                // stack types agree.
+                var innerLink = (BoundBinaryOperator)node.Left;
+                BoundExpression y = innerLink.Right;
                 LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
                 locals.Add(tempSym);
                 BoundLocal temp = _factory.Local(tempSym);
@@ -111,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locals: [],
                     sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
                     result: temp);
-                BoundExpression loweredInner = BuildChainLink((BoundBinaryOperator)node.Left, innerAssign, locals);
+                BoundExpression loweredInner = BuildChainLink(innerLink, innerAssign, locals);
 
                 // Build the outer link's LEFT operand by applying the outer's stored
                 // LeftConversion to the temp. Without this wrapper the outer operator would

@@ -37,7 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalUserDefinedOperatorsOpt: default,
                     isUnconvertedInterpolatedStringAddition: true,
                     interpolatedStringHandlerData: null,
-                    chainedRelationalLeftOperand: null,
                     chainedRelationalLeftConversion: Conversion.NoConversion,
                     chainedRelationalLeftConvertedType: null);
 
@@ -49,7 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalUserDefinedOperatorsOpt: default,
                     isUnconvertedInterpolatedStringAddition: false,
                     data,
-                    chainedRelationalLeftOperand: null,
                     chainedRelationalLeftConversion: Conversion.NoConversion,
                     chainedRelationalLeftConvertedType: null);
 
@@ -58,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol? method,
                 TypeSymbol? constrainedToType,
                 ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt,
-                BoundExpression chainedRelationalLeftOperand,
                 Conversion chainedRelationalLeftConversion,
                 TypeSymbol chainedRelationalLeftConvertedType)
                 => new UncommonData(
@@ -68,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     originalUserDefinedOperatorsOpt,
                     isUnconvertedInterpolatedStringAddition: false,
                     interpolatedStringHandlerData: null,
-                    chainedRelationalLeftOperand,
                     chainedRelationalLeftConversion,
                     chainedRelationalLeftConvertedType);
 
@@ -76,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constantValue != null || method is not null || constrainedToType is not null || !originalUserDefinedOperatorsOpt.IsDefault)
                 {
-                    return new UncommonData(constantValue, method, constrainedToType, originalUserDefinedOperatorsOpt, isUnconvertedInterpolatedStringAddition: false, interpolatedStringHandlerData: null, chainedRelationalLeftOperand: null, chainedRelationalLeftConversion: Conversion.NoConversion, chainedRelationalLeftConvertedType: null);
+                    return new UncommonData(constantValue, method, constrainedToType, originalUserDefinedOperatorsOpt, isUnconvertedInterpolatedStringAddition: false, interpolatedStringHandlerData: null, chainedRelationalLeftConversion: Conversion.NoConversion, chainedRelationalLeftConvertedType: null);
                 }
 
                 return null;
@@ -88,37 +84,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly bool IsUnconvertedInterpolatedStringAddition;
             public readonly InterpolatedStringHandlerData? InterpolatedStringHandlerData;
 
-            // The shared middle operand `Y` for a chained relational comparison
-            // (spec §11.11.13), with *only* the inner link's conversion already applied -
-            // i.e. exactly what <c>BoundBinaryOperator.Left.Right</c> is on the outer
-            // chained node. This is the value the lowerer hoists into a temp and feeds
-            // to the inner link's comparison. The outer link's own LeftConversion (if any)
-            // is applied at the outer comparison's point of use via
-            // <see cref="ChainedRelationalLeftConversion"/> and
-            // <see cref="ChainedRelationalLeftConvertedType"/>; it is NOT baked into the
-            // value stored here. Keeping the two separate is what makes
-            // <c>short &lt; int &lt; long</c> and similar asymmetric chains emit
-            // verifiable IL (the temp's type is Y's inner-link type, and the outer
-            // conversion lives on the load side).
-            //
-            // Non-null exactly when this node is a chained relational comparison
-            // (see <see cref="BoundBinaryOperator.IsChainedRelational"/>).
-            public readonly BoundExpression? ChainedRelationalLeftOperand;
-
             // The conversion the outer link's overload resolution selected for its left
-            // operand (i.e. the chain's shared middle operand Y, post-inner-link). Applied
+            // operand - i.e. the chain's shared middle operand `Y`, post-inner-link. Applied
             // at lowering time to the temp holding Y's inner-link value to produce the
             // outer link's left operand. May be <see cref="Conversion.Identity"/> (common
             // same-type chains), in which case the lowerer uses the temp directly.
-            // <see cref="Conversion.NoConversion"/> means "not chained" (no conversion
-            // info present); consumers should guard on
-            // <see cref="BoundBinaryOperator.IsChainedRelational"/> instead of inspecting
-            // this field directly.
+            //
+            // `Y` itself is always <c>((BoundBinaryOperator)BoundBinaryOperator.Left).Right</c>:
+            // the right operand of the (guaranteed-bool-typed) inner link. So we derive it
+            // at each use site rather than cache it on UncommonData - that keeps Y on the
+            // standard bound-tree descent path (which makes <c>NullableWalker.DebugVerifier</c>
+            // reach it automatically) and avoids any stale-state risk if the outer node
+            // is ever rebuilt with a different <c>Left</c>.
+            //
+            // <see cref="Conversion.NoConversion"/> means "not chained" (no conversion info
+            // present); consumers should guard on <see cref="BoundBinaryOperator.IsChainedRelational"/>
+            // instead of inspecting this field directly.
             public readonly Conversion ChainedRelationalLeftConversion;
 
-            // The target type of <see cref="ChainedRelationalLeftConversion"/>: i.e., the
-            // outer link's left-operand type (<c>signature.LeftType</c> at bind time).
-            // Non-null exactly when this node is a chained relational comparison.
+            // The target type of <see cref="ChainedRelationalLeftConversion"/>: the outer
+            // link's left-operand type (<c>signature.LeftType</c> at bind time). Non-null
+            // exactly when this node is a chained relational comparison; also doubles as
+            // the signal <see cref="BoundBinaryOperator.IsChainedRelational"/> keys off.
             public readonly TypeSymbol? ChainedRelationalLeftConvertedType;
 
             // The set of method symbols from which this operator's method was chosen.
@@ -133,15 +120,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt,
                 bool isUnconvertedInterpolatedStringAddition,
                 InterpolatedStringHandlerData? interpolatedStringHandlerData,
-                BoundExpression? chainedRelationalLeftOperand,
                 Conversion chainedRelationalLeftConversion,
                 TypeSymbol? chainedRelationalLeftConvertedType)
             {
                 Debug.Assert(interpolatedStringHandlerData is null || !isUnconvertedInterpolatedStringAddition);
-                Debug.Assert(chainedRelationalLeftOperand is null || (interpolatedStringHandlerData is null && !isUnconvertedInterpolatedStringAddition));
-                // The three chained-relational fields are all-or-nothing.
-                Debug.Assert((chainedRelationalLeftOperand is null) == (chainedRelationalLeftConvertedType is null));
-                Debug.Assert((chainedRelationalLeftOperand is null) == !chainedRelationalLeftConversion.Exists);
+                Debug.Assert(chainedRelationalLeftConvertedType is null || (interpolatedStringHandlerData is null && !isUnconvertedInterpolatedStringAddition));
+                // The two chained-relational fields are all-or-nothing.
+                Debug.Assert((chainedRelationalLeftConvertedType is null) == !chainedRelationalLeftConversion.Exists);
                 Debug.Assert(method is null or ErrorMethodSymbol { ParameterCount: 0 } or { MethodKind: MethodKind.UserDefinedOperator } or { ParameterCount: 2 });
 
                 ConstantValue = constantValue;
@@ -150,7 +135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 OriginalUserDefinedOperatorsOpt = originalUserDefinedOperatorsOpt;
                 IsUnconvertedInterpolatedStringAddition = isUnconvertedInterpolatedStringAddition;
                 InterpolatedStringHandlerData = interpolatedStringHandlerData;
-                ChainedRelationalLeftOperand = chainedRelationalLeftOperand;
                 ChainedRelationalLeftConversion = chainedRelationalLeftConversion;
                 ChainedRelationalLeftConvertedType = chainedRelationalLeftConvertedType;
             }
@@ -162,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this;
                 }
 
-                return new UncommonData(ConstantValue, method, ConstrainedToType, OriginalUserDefinedOperatorsOpt, IsUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData, ChainedRelationalLeftOperand, ChainedRelationalLeftConversion, ChainedRelationalLeftConvertedType);
+                return new UncommonData(ConstantValue, method, ConstrainedToType, OriginalUserDefinedOperatorsOpt, IsUnconvertedInterpolatedStringAddition, InterpolatedStringHandlerData, ChainedRelationalLeftConversion, ChainedRelationalLeftConvertedType);
             }
         }
     }
