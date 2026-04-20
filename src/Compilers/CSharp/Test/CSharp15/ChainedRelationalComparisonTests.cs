@@ -1893,6 +1893,94 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void ConstantFolding_NullableOperand_IsNotConstant()
+    {
+        // Nullable value types are not one of the constant-expression types permitted by
+        // §11.20, so a classical comparison involving a nullable operand is already
+        // non-constant in C#, e.g. `const bool b = (int?)5 < (int?)10;` reports CS0133.
+        //
+        // Chained comparisons inherit the same rule for free: FoldConstantConversion
+        // returns null for lifted (ImplicitNullable) conversions, which is what the outer
+        // link's LeftConversion is whenever Y is a value-type-and-nullable mix. So every
+        // chain where any operand is nullable-typed must fail to fold, at EVERY position
+        // (left / middle / right / all-nullable). Pin this by asserting CS0133 on all four
+        // positional variants.
+        var src = """
+            class P
+            {
+                const bool Left   = (int?)0 <       5  <       10 ;
+                const bool Middle =       0  < (int?)5  <       10 ;
+                const bool Right  =       0  <       5  < (int?)10 ;
+                const bool All    = (int?)0  < (int?)5  < (int?)10 ;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (3,25): error CS0133: The expression being assigned to 'P.Left' must be constant
+                //     const bool Left   = (int?)0 <       5  <       10 ;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)0 <       5  <       10").WithArguments("P.Left").WithLocation(3, 25),
+                // (4,31): error CS0133: The expression being assigned to 'P.Middle' must be constant
+                //     const bool Middle =       0  < (int?)5  <       10 ;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "0  < (int?)5  <       10").WithArguments("P.Middle").WithLocation(4, 31),
+                // (5,31): error CS0133: The expression being assigned to 'P.Right' must be constant
+                //     const bool Right  =       0  <       5  < (int?)10 ;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "0  <       5  < (int?)10").WithArguments("P.Right").WithLocation(5, 31),
+                // (6,25): error CS0133: The expression being assigned to 'P.All' must be constant
+                //     const bool All    = (int?)0  < (int?)5  < (int?)10 ;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)0  < (int?)5  < (int?)10").WithArguments("P.All").WithLocation(6, 25));
+    }
+
+    [Fact]
+    public void ConstantFolding_NullableNullOperand_IsNotConstant()
+    {
+        // A `null` literal promoted to int? is still a nullable-typed expression, so it
+        // too falls outside §11.20's constant-expression types and the chain must not
+        // fold, even though its runtime value is trivially False (any comparison against
+        // null via a lifted relational operator yields false). Pin that we don't silently
+        // fold to False based on "we know the answer at compile time": we don't, because
+        // the operand is not a constant expression.
+        var src = """
+            class P
+            {
+                const bool B = (int?)0 < (int?)null < (int?)10;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (3,20): error CS0133: The expression being assigned to 'P.B' must be constant
+                //     const bool B = (int?)0 < (int?)null < (int?)10;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "(int?)0 < (int?)null < (int?)10").WithArguments("P.B").WithLocation(3, 20));
+    }
+
+    [Fact]
+    public void ConstantFolding_NullableChain_StillRunsAtRuntime()
+    {
+        // Dual of the above: the chain is still a perfectly valid runtime expression -
+        // non-constant means it's not usable where a constant is required, NOT that it's
+        // rejected outright. Pin that `int < int? < int` still compiles and executes
+        // correctly at runtime, so the fold failure path is strictly about constant-ness
+        // and doesn't leak into normal use.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    int? a = 0;
+                    int  b = 5;
+                    int? c = 10;
+                    Console.WriteLine(a < b < c);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ConstantFolding_NonConstantOuterRight_InnerFalse_StillNotConstant()
     {
         // Edge case: inner is constant-false, so the chain's runtime value is known to be
