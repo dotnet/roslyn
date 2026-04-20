@@ -29,7 +29,8 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
     protected override TestComposition Composition => base.Composition.AddParts(typeof(CustomResolveHandler), typeof(LanguageSpecificHandler));
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "Uses Windows paths and Unicode encoding differs across platforms")]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/runtime/issues/89538")]
     public async Task TestMiscDocument_WithFileScheme(bool mutatingLspWorkspace)
     {
@@ -86,11 +87,12 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestWorkspaceDocument_WithFileScheme(bool mutatingLspWorkspace)
     {
-        var documentFilePath = @"C:\A.cs";
+        var documentFilePath = TestHelpers.GetRootedPath("A.cs");
+        var projectFilePath = TestHelpers.GetRootedPath("CSProj1.csproj");
         var markup =
             $$"""
             <Workspace>
-                <Project Language="C#" Name="CSProj1" CommonReferences="true" FilePath="C:\CSProj1.csproj">
+                <Project Language="C#" Name="CSProj1" CommonReferences="true" FilePath="{{projectFilePath}}">
                     <Document FilePath="{{documentFilePath}}">
                         public class A
                         {

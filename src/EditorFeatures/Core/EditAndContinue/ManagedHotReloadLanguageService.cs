@@ -4,31 +4,19 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 /// <summary>
 /// Wrapper of <see cref="ManagedHotReloadLanguageServiceImpl"/> implementing closed-source debugger contract interfaces.
+/// Created via <see cref="ManagedHotReloadLanguageServiceFactory"/> and manually proffered as a brokered service.
 /// </summary>
-[ExportBrokeredService(ManagedHotReloadLanguageServiceDescriptor.MonikerName, ManagedHotReloadLanguageServiceDescriptor.ServiceVersion, Audience = ServiceAudience.Local)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageServiceImpl impl) : IManagedHotReloadLanguageService3, IExportedBrokeredService
+internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageServiceImpl impl) : IManagedHotReloadLanguageService3
 {
-    ServiceRpcDescriptor IExportedBrokeredService.Descriptor
-        => ManagedHotReloadLanguageServiceDescriptor.Descriptor;
-
-    public Task InitializeAsync(CancellationToken cancellationToken)
-        => Task.CompletedTask;
-
     public ValueTask StartSessionAsync(CancellationToken cancellationToken)
         => impl.StartSessionAsync(cancellationToken);
 

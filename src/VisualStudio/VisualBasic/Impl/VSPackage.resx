@@ -266,4 +266,13 @@ Inheritance Margin;</value>
   <data name="Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
     <value>Only add new line on enter after end of fully typed word</value>
   </data>
+  <data name="Always_add_import" xml:space="preserve">
+    <value>Always add import</value>
+  </data>
+  <data name="Never_add_import" xml:space="preserve">
+    <value>Never add import</value>
+  </data>
+  <data name="Only_add_import_if_explicitly_completed" xml:space="preserve">
+    <value>Only add import if explicitly completed (via TAB or double-click)</value>
+  </data>
 </root>

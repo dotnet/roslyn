@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             End If
 
             Return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position - 1, includeDirectives:=True, includeDocumentationComments:=True)
+                position, includeDirectives:=True, includeDocumentationComments:=True)
         End Function
 
         Protected Overrides Function IsDocCommentNewLine(token As SyntaxToken) As Boolean
