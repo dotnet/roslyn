@@ -195,6 +195,11 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
 
         var adjustmentsProposed = false;
         var format = false;
+
+        // Required that no edit intersect this span (except a zero-length edit at its end), so we
+        // pass it to the adjuster to constrain its output.
+        var completionState = proposal.CompletionState;
+
         foreach (var editGroup in proposal.Edits.GroupBy(e => e.Span.Snapshot))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -207,13 +212,18 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
 
             var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
 
+            // The ApplicableToSpan should be on the same snapshot as the edits
+            var applicableToSpan = completionState is not null && completionState.ApplicableToSpan.Snapshot == snapshot
+                ? new TextSpan(completionState.ApplicableToSpan.Start, completionState.ApplicableToSpan.Length)
+                : (TextSpan?)null;
+
             var proposalAdjusterService = document.GetLanguageService<ICopilotProposalAdjusterService>();
             var (proposedEdits, formatGroup, adjustmentResults) = proposalAdjusterService is null
                 ? default
                 : await proposalAdjusterService.TryAdjustProposalAsync(
                     this._allowableAdjustments, document,
                     CopilotEditorUtilities.TryGetNormalizedTextChanges(editGroup),
-                    lineFormattingOptions, cancellationToken).ConfigureAwait(false);
+                    lineFormattingOptions, applicableToSpan, cancellationToken).ConfigureAwait(false);
 
             if (proposedEdits.IsDefault || adjustmentResults.IsDefault)
             {
@@ -239,6 +249,11 @@ internal sealed class RoslynProposalAdjusterProvider : ProposalAdjusterProviderB
         // No adjustments were made.  Don't touch anything.
         if (!adjustmentsProposed)
             return default;
+
+        // Ensure edits are ordered by position.
+        // This constraint may be enforced later and other
+        // downstream logic depends on edits being sorted
+        finalEdits.Sort(static (a, b) => a.Span.Span.Start - b.Span.Span.Start);
 
         // We have some changes we want to to make to the proposal.  See if the proposal system allows us merging
         // those changes in.  Note: we should generally always be producing edits that are safe to merge in.  However,
