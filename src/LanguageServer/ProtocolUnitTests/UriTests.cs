@@ -407,13 +407,22 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [InlineData(false, "file://c:\\valid", null)]
     [InlineData(false, null, "file://c:\\valid")]
     [InlineData(true, "file://c:\\valid", "file://c:\\valid")]
-    // Under vscode-uri semantics, backslash vs forward-slash URIs are not equivalent (backslashes are only
-    // normalized in ParsedDocumentUri.File(), not in Parse()). Previously System.Uri normalized these.
+    // Under vscode-uri semantics, backslash vs forward-slash URIs parse to different components
+    // (backslashes are only normalized in ParsedDocumentUri.File(), not in Parse()), so these are not equal.
     [InlineData(false, "file://c:\\valid", "file:///c:/valid")]
-    // Under vscode-uri semantics, URI path comparison is case-sensitive. Previously System.Uri handled
-    // case-insensitive file path comparison on Windows.
-    [InlineData(false, "file://c:\\valid", "file://c:\\VALID")]
+    // File URIs with UNC/DOS paths use case-insensitive comparison, matching System.Uri's IsUncOrDosPath behavior.
+    [InlineData(true, "file://c:\\valid", "file://c:\\VALID")]
     [InlineData(false, "file://c:\\valid", "file://c:\\valid2")]
+    // Scheme is always case-insensitive per RFC 3986.
+    [InlineData(true, "FILE:///c:/test", "file:///c:/test")]
+    // Non-file schemes are case-sensitive on path.
+    [InlineData(false, "git:/blah", "git:/Blah")]
+    // Unix-style file paths (no drive letter, no UNC) are case-sensitive.
+    [InlineData(false, "file:///usr/Home", "file:///usr/home")]
+    // DOS drive letter file paths are case-insensitive.
+    [InlineData(true, "file:///c:/Path/File.txt", "file:///c:/path/file.txt")]
+    // UNC file paths are case-insensitive.
+    [InlineData(true, "file://server/Share/Path", "file://server/share/path")]
     public void TestUriEquality(bool areEqual, string? uriString1, string? uriString2)
     {
         var documentUri1 = uriString1 != null ? new DocumentUri(uriString1) : null;

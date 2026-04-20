@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Roslyn.Utilities;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -78,15 +79,48 @@ internal sealed record class DocumentUri(string UriString)
         if (this.UriString == otherUri.UriString)
             return true;
 
-        // Compare using vscode-uri parsed components. ParsedDocumentUri.ToString() produces a deterministic
-        // encoded form, so comparing the struct components directly is equivalent (and avoids an allocation).
-        return this.ParsedDocUri.Equals(otherUri.ParsedDocUri);
+        // Compare using vscode-uri parsed components.
+        var thisParsed = this.ParsedDocUri;
+        var otherParsed = otherUri.ParsedDocUri;
+
+        // Schemes are always case-insensitive per RFC 3986 Section 3.1.
+        if (!string.Equals(thisParsed.Scheme, otherParsed.Scheme, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // For file URIs with UNC paths or DOS drive letter paths, compare case-insensitively.
+        // This matches System.Uri's behavior (IsUncOrDosPath flag). Unix-style file paths
+        // (e.g., file:///usr/home) remain case-sensitive.
+        var comparison = thisParsed.IsUncOrDosPath || otherParsed.IsUncOrDosPath
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        return string.Equals(thisParsed.Authority, otherParsed.Authority, comparison)
+            && string.Equals(thisParsed.Path, otherParsed.Path, comparison)
+            && string.Equals(thisParsed.Query, otherParsed.Query, comparison)
+            && string.Equals(thisParsed.Fragment, otherParsed.Fragment, comparison);
     }
 
     public override int GetHashCode()
     {
-        // Use the deterministic encoded form from ParsedDocumentUri for hashing. Hash case-insensitively
-        // to handle scheme/authority case differences (vscode-uri lowercases authority but preserves scheme case).
-        return StringComparer.OrdinalIgnoreCase.GetHashCode(this.ParsedDocUri.ToString());
+        var parsed = this.ParsedDocUri;
+
+        // For file URIs with UNC/DOS paths, use case-insensitive hashing to match the case-insensitive
+        // Equals behavior. For all other URIs, use case-sensitive hashing (except scheme, which is always
+        // case-insensitive per RFC 3986).
+        if (parsed.IsUncOrDosPath)
+        {
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(parsed.ToString());
+        }
+
+        // Scheme is always case-insensitive, so hash it that way. Other components are case-sensitive.
+        var schemeHash = StringComparer.OrdinalIgnoreCase.GetHashCode(parsed.Scheme ?? string.Empty);
+#if NET
+        return HashCode.Combine(schemeHash, parsed.Authority, parsed.Path, parsed.Query, parsed.Fragment);
+#else
+        return Hash.Combine(schemeHash,
+            Hash.Combine(parsed.Authority?.GetHashCode() ?? 0,
+            Hash.Combine(parsed.Path?.GetHashCode() ?? 0,
+            Hash.Combine(parsed.Query?.GetHashCode() ?? 0, parsed.Fragment?.GetHashCode() ?? 0))));
+#endif
     }
 }

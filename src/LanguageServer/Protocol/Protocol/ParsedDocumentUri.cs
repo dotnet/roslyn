@@ -600,6 +600,15 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
         => (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
 
     /// <summary>
+    /// Returns true if this is a file URI with a UNC host or DOS drive letter path.
+    /// Matches the behavior of System.Uri's internal IsUncOrDosPath flag, which determines
+    /// whether path comparison should be case-insensitive.
+    /// </summary>
+    internal bool IsUncOrDosPath
+        => Scheme == "file"
+        && (Authority.Length > 0 || (Path.Length >= 3 && Path[0] == '/' && IsLetter(Path[1]) && Path[2] == ':'));
+
+    /// <summary>
     /// Create the external version of a URI.
     /// </summary>
     private static string AsFormatted(ParsedDocumentUri uri, bool skipEncoding)
