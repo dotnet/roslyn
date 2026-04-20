@@ -62,7 +62,14 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     public void Chain_AllShortIntLongNullablePermutations(string aType, string bType, string cType)
     {
         // Values a=0, b=5, c=10 satisfy a < b < c for every combination and fit every
-        // type in the grid, so expectedOutput is uniformly "True".
+        // type in the grid, so both the chained and expanded forms yield True.
+        //
+        // Computing BOTH `a < b < c` (chained) and `(a < b) && (b < c)` (the hand-written
+        // expansion) on the same operand values pins the spec guarantee that a chain is
+        // semantically equivalent to the short-circuit `&&` form for every type
+        // combination - not just for the "obvious" same-type cases. Any divergence (e.g.
+        // if a future change accidentally narrowed Y to the wrong type for the outer
+        // link) would immediately show up as `chained != expanded`.
         var src = $$"""
             using System;
 
@@ -73,13 +80,15 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                     {{aType}} a = 0;
                     {{bType}} b = 5;
                     {{cType}} c = 10;
-                    Console.WriteLine(a < b < c);
+                    bool chained = a < b < c;
+                    bool expanded = (a < b) && (b < c);
+                    Console.Write($"chained={chained},expanded={expanded}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "True")
+            expectedOutput: "chained=True,expanded=True")
             .VerifyDiagnostics();
     }
 
@@ -99,6 +108,10 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [InlineData("0", "5", "10", "True")]        // no nulls, control
     public void Chain_AllNullableOperands_NullInAnyPositionShortCircuitsToFalse(string aVal, string bVal, string cVal, string expected)
     {
+        // Side-by-side assertion: the chained form and the classical expansion
+        // `(a < b) && (b < c)` must yield the same value for every null-position
+        // combination. Lifted relational operators return bool (not bool?) when any
+        // operand is null, so both forms compose through `&&` identically.
         var src = $$"""
             using System;
 
@@ -109,13 +122,15 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
                     int? a = {{aVal}};
                     int? b = {{bVal}};
                     int? c = {{cVal}};
-                    Console.WriteLine(a < b < c);
+                    bool chained = a < b < c;
+                    bool expanded = (a < b) && (b < c);
+                    Console.Write($"chained={chained},expanded={expanded}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: expected)
+            expectedOutput: $"chained={expected},expanded={expected}")
             .VerifyDiagnostics();
     }
 

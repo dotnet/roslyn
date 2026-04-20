@@ -100,30 +100,41 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [MemberData(nameof(AllSignedIntegralPermutations))]
     public void SignedIntegralPermutations_FoldMatchesRuntime(string aType, string bType, string cType)
     {
-        // The const line proves the fold compiles: `const bool` requires the RHS to be a
-        // constant expression, so CS0133 fires if folding returns null. The runtime line
-        // lets us print both side-by-side, so a silent value drift between fold-time and
-        // run-time would show up as a mismatched expected output.
+        // Four assertions per row, side-by-side:
+        //   constChained    - chained form as a `const bool` initializer (fails CS0133 if
+        //                     the chained fold returns null).
+        //   constExpanded   - hand-written `(a < b) && (b < c)` form as a `const bool`
+        //                     initializer, folded by classical FoldBinaryOperator.
+        //   runtimeChained  - chained form on runtime variables.
+        //   runtimeExpanded - hand-written form on runtime variables.
+        //
+        // All four must equal True. Any divergence between chained and expanded (at
+        // either fold-time or runtime) means the chain's semantics drifted from the
+        // spec's `A && (Y op B)` equivalence; any divergence between fold-time and
+        // runtime means the fold computed a value different from what the emitted IL
+        // would produce.
         var src = $$"""
             using System;
 
             class P
             {
-                const bool ConstResult = ({{aType}})0 < ({{bType}})5 < ({{cType}})10;
+                const bool ConstChained  = ({{aType}})0 < ({{bType}})5 < ({{cType}})10;
+                const bool ConstExpanded = (({{aType}})0 < ({{bType}})5) && (({{bType}})5 < ({{cType}})10);
 
                 static void Main()
                 {
                     {{aType}} a = 0;
                     {{bType}} b = 5;
                     {{cType}} c = 10;
-                    bool runtimeResult = a < b < c;
-                    Console.Write($"const={ConstResult},runtime={runtimeResult}");
+                    bool runtimeChained  = a < b < c;
+                    bool runtimeExpanded = (a < b) && (b < c);
+                    Console.Write($"cc={ConstChained},ce={ConstExpanded},rc={runtimeChained},re={runtimeExpanded}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "const=True,runtime=True")
+            expectedOutput: "cc=True,ce=True,rc=True,re=True")
             .VerifyDiagnostics();
     }
 
@@ -141,26 +152,33 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [InlineData("uint", "ulong", "ulong")]
     public void UnsignedWideningPermutations_FoldMatchesRuntime(string aType, string bType, string cType)
     {
+        // Same four-way side-by-side assertion as the signed grid: chained vs expanded
+        // at fold-time, chained vs expanded at runtime. For unsigned-widening rows, a
+        // mismatched sign-extension bug would show up as e.g. `cc=False,ce=True` - the
+        // hand-written expansion can't hit the bug because each `<` has its own
+        // FoldBinaryOperator call with the right operand types.
         var src = $$"""
             using System;
 
             class P
             {
-                const bool ConstResult = ({{aType}})0 < ({{bType}})5 < ({{cType}})10;
+                const bool ConstChained  = ({{aType}})0 < ({{bType}})5 < ({{cType}})10;
+                const bool ConstExpanded = (({{aType}})0 < ({{bType}})5) && (({{bType}})5 < ({{cType}})10);
 
                 static void Main()
                 {
                     {{aType}} a = 0;
                     {{bType}} b = 5;
                     {{cType}} c = 10;
-                    bool runtimeResult = a < b < c;
-                    Console.Write($"const={ConstResult},runtime={runtimeResult}");
+                    bool runtimeChained  = a < b < c;
+                    bool runtimeExpanded = (a < b) && (b < c);
+                    Console.Write($"cc={ConstChained},ce={ConstExpanded},rc={runtimeChained},re={runtimeExpanded}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: "const=True,runtime=True")
+            expectedOutput: "cc=True,ce=True,rc=True,re=True")
             .VerifyDiagnostics();
     }
 
@@ -582,43 +600,46 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     // match that behavior. Picking constants that fit every reasonable promotion path so
     // the whole chain folds and prints True.
     //
-    // For each row: the declared types determine the inner link's operands and the outer
-    // link's right operand; the chain must fold to True.
-    [InlineData("0 < 1 < 2u",                  "True")]      // int, int, uint - outer int<uint
-    [InlineData("0u < 1 < 2u",                 "True")]      // uint, int-literal-fits, uint
-    [InlineData("0 < 1u < 2",                  "True")]      // middle is uint; 0/2 int literals fit
-    [InlineData("0u < 1 < 2L",                 "True")]      // outer uint<long (widening on Y)
-    [InlineData("0 < 1L < 2ul",                "True")]      // outer long<ulong with NON-NEGATIVE long - Roslyn folds
-    [InlineData("0 < 5 < 10ul",                "True")]      // outer int<ulong; literal 5 fits in ulong
-    [InlineData("-1 < 5u < 10",                "True")]      // inner -1<5u: promotes to long; outer uint<int also long
-    [InlineData("-1 < 0u < 10",                "True")]      // -1 < 0u: promotes to long, -1<0 true
-    [InlineData("(byte)0 < (short)5 < 10L",    "True")]      // byte->int, short->int, outer int<long
-    [InlineData("(byte)0 < (sbyte)5 < 10",     "True")]      // byte and sbyte both promote to int
-    [InlineData("'a' < 100 < 200",             "True")]      // char -> int
-    [InlineData("(sbyte)(-1) < (byte)0 < 10",  "True")]      // sbyte/byte/int all go through int
-    [InlineData("int.MinValue < 0u < 10",      "True")]      // inner promotes int.MinValue + 0u to long
-    [InlineData("0 < uint.MaxValue < long.MaxValue", "True")] // uint.MaxValue widens to long
-    public void MixedSignedUnsigned_ChainsThatClassicalBindingAccepts_Fold(string chain, string expected)
+    // Each row carries the chained form (x), the equivalent hand-written expansion
+    // `(x < y) && (y < z)` (y), and the expected bool value (z). Both forms are placed
+    // into `const bool` initializers and printed at runtime so a fold drift would show
+    // up as a mismatched output.
+    [InlineData("0 < 1 < 2u",                        "(0 < 1) && (1 < 2u)",                            "True")]
+    [InlineData("0u < 1 < 2u",                       "(0u < 1) && (1 < 2u)",                           "True")]
+    [InlineData("0 < 1u < 2",                        "(0 < 1u) && (1u < 2)",                           "True")]
+    [InlineData("0u < 1 < 2L",                       "(0u < 1) && (1 < 2L)",                           "True")]
+    [InlineData("0 < 1L < 2ul",                      "(0 < 1L) && (1L < 2ul)",                         "True")]
+    [InlineData("0 < 5 < 10ul",                      "(0 < 5) && (5 < 10ul)",                          "True")]
+    [InlineData("-1 < 5u < 10",                      "(-1 < 5u) && (5u < 10)",                         "True")]
+    [InlineData("-1 < 0u < 10",                      "(-1 < 0u) && (0u < 10)",                         "True")]
+    [InlineData("(byte)0 < (short)5 < 10L",          "((byte)0 < (short)5) && ((short)5 < 10L)",       "True")]
+    [InlineData("(byte)0 < (sbyte)5 < 10",           "((byte)0 < (sbyte)5) && ((sbyte)5 < 10)",        "True")]
+    [InlineData("'a' < 100 < 200",                   "('a' < 100) && (100 < 200)",                     "True")]
+    [InlineData("(sbyte)(-1) < (byte)0 < 10",        "((sbyte)(-1) < (byte)0) && ((byte)0 < 10)",      "True")]
+    [InlineData("int.MinValue < 0u < 10",            "(int.MinValue < 0u) && (0u < 10)",               "True")]
+    [InlineData("0 < uint.MaxValue < long.MaxValue", "(0 < uint.MaxValue) && (uint.MaxValue < long.MaxValue)", "True")]
+    public void MixedSignedUnsigned_ChainsThatClassicalBindingAccepts_Fold(string chain, string expanded, string expected)
     {
-        // If a fold for any of these reverts back to the raw Int64Value accessor trick or
-        // skips the outer LeftConversion, at least one of the above rows will print the
-        // wrong value or fail to compile as a `const`.
+        // Pin that the chained fold and the classical hand-written expansion produce the
+        // same constant value. If a fold reverts to the raw Int64Value accessor trick or
+        // skips the outer LeftConversion, at least one row will show `c != e`.
         var src = $$"""
             using System;
 
             class P
             {
-                const bool B = {{chain}};
+                const bool Chained  = {{chain}};
+                const bool Expanded = {{expanded}};
 
                 static void Main()
                 {
-                    Console.WriteLine(B);
+                    Console.Write($"c={Chained},e={Expanded}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
-            expectedOutput: expected)
+            expectedOutput: $"c={expected},e={expected}")
             .VerifyDiagnostics();
     }
 
@@ -700,22 +721,27 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void MixedSignedUnsigned_FoldResultMatchesRuntime()
     {
-        // Cross-check: for every shape that folds AND runs, the folded value must equal
-        // the runtime-evaluated value. This is the mixed-type analog of the signed /
-        // unsigned side-by-side tests above, spanning shapes chosen to exercise different
-        // conversion paths (explicitly excluding shapes like `long < ulong` where the
-        // non-constant variant can't bind - those are covered by
-        // MixedSignedUnsigned_ConstantFoldsButRuntimeFails_NonConstantLongUlongChain).
+        // Cross-check across fold / runtime and chained / expanded: for every shape that
+        // folds AND runs, all four variants must agree. This is the mixed-type analog of
+        // the signed / unsigned side-by-side tests above, spanning shapes chosen to
+        // exercise different conversion paths (explicitly excluding shapes like
+        // `long < ulong` where the non-constant variant can't bind - those are covered
+        // by MixedSignedUnsigned_ConstantFoldsButRuntimeFails_NonConstantLongUlongChain).
         var src = """
             using System;
 
             class P
             {
-                const bool F1 = 0 < 1 < 2u;
-                const bool F2 = -1 < 5u < 10;
-                const bool F3 = (byte)0 < (short)5 < 10L;
-                const bool F4 = 'a' < 100 < 200;
-                const bool F5 = 0 < uint.MaxValue < long.MaxValue;
+                const bool Fc1 = 0 < 1 < 2u;
+                const bool Fe1 = (0 < 1) && (1 < 2u);
+                const bool Fc2 = -1 < 5u < 10;
+                const bool Fe2 = (-1 < 5u) && (5u < 10);
+                const bool Fc3 = (byte)0 < (short)5 < 10L;
+                const bool Fe3 = ((byte)0 < (short)5) && ((short)5 < 10L);
+                const bool Fc4 = 'a' < 100 < 200;
+                const bool Fe4 = ('a' < 100) && (100 < 200);
+                const bool Fc5 = 0 < uint.MaxValue < long.MaxValue;
+                const bool Fe5 = (0 < uint.MaxValue) && (uint.MaxValue < long.MaxValue);
 
                 static void Main()
                 {
@@ -725,24 +751,28 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
                     char   a4 = 'a'; int    b4 = 100;            int  c4 = 200;
                     int    a5 = 0;   uint   b5 = uint.MaxValue;  long c5 = long.MaxValue;
 
-                    bool r1 = a1 < b1 < c1;
-                    bool r2 = a2 < b2 < c2;
-                    bool r3 = a3 < b3 < c3;
-                    bool r4 = a4 < b4 < c4;
-                    bool r5 = a5 < b5 < c5;
+                    bool rc1 = a1 < b1 < c1; bool re1 = (a1 < b1) && (b1 < c1);
+                    bool rc2 = a2 < b2 < c2; bool re2 = (a2 < b2) && (b2 < c2);
+                    bool rc3 = a3 < b3 < c3; bool re3 = (a3 < b3) && (b3 < c3);
+                    bool rc4 = a4 < b4 < c4; bool re4 = (a4 < b4) && (b4 < c4);
+                    bool rc5 = a5 < b5 < c5; bool re5 = (a5 < b5) && (b5 < c5);
 
-                    Console.Write($"F1={F1},r1={r1} ");
-                    Console.Write($"F2={F2},r2={r2} ");
-                    Console.Write($"F3={F3},r3={r3} ");
-                    Console.Write($"F4={F4},r4={r4} ");
-                    Console.Write($"F5={F5},r5={r5}");
+                    Console.Write($"1:Fc={Fc1},Fe={Fe1},rc={rc1},re={re1} ");
+                    Console.Write($"2:Fc={Fc2},Fe={Fe2},rc={rc2},re={re2} ");
+                    Console.Write($"3:Fc={Fc3},Fe={Fe3},rc={rc3},re={re3} ");
+                    Console.Write($"4:Fc={Fc4},Fe={Fe4},rc={rc4},re={re4} ");
+                    Console.Write($"5:Fc={Fc5},Fe={Fe5},rc={rc5},re={re5}");
                 }
             }
             """;
         CompileAndVerify(src,
             parseOptions: TestOptions.RegularPreview,
             expectedOutput:
-                "F1=True,r1=True F2=True,r2=True F3=True,r3=True F4=True,r4=True F5=True,r5=True")
+                "1:Fc=True,Fe=True,rc=True,re=True " +
+                "2:Fc=True,Fe=True,rc=True,re=True " +
+                "3:Fc=True,Fe=True,rc=True,re=True " +
+                "4:Fc=True,Fe=True,rc=True,re=True " +
+                "5:Fc=True,Fe=True,rc=True,re=True")
             .VerifyDiagnostics();
     }
 }
