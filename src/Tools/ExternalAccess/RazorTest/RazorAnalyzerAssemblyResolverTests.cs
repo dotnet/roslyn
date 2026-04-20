@@ -46,7 +46,11 @@ public sealed class RazorAnalyzerAssemblyResolverTests : IDisposable
     {
         TempRoot.Dispose();
 
-        // This test should not change the set of assemblies loaded in the current context.
+        // This test should not be loading any of the razor assemblies into the test assembly load context. That
+        // would indicate a bug in our product code where it was incorrectly using the default load context.
+        // 
+        // Note: if this test fails due to a normal test assembly, like xunit.assert, being loaded after the 
+        // snapshot, then add that assembly to the list of assemblies loaded in the constructor above.
         var count = AssemblyLoadContext.GetLoadContext(this.GetType().Assembly)!.Assemblies.SelectAsArray(a => a.FullName);
         AssertEx.SetEqual(InitialAssemblies, count);
     }

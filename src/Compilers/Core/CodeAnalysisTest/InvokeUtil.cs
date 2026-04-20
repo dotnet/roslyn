@@ -81,6 +81,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 // When using the actual compiler load context (the one shared by all of our unit tests) the test
                 // did not load any additional assemblies that could interfere with later tests.
+                //
+                // If this assertion fails due to a normal test assembly, like xunit.assert, being loaded after the snapshot, then 
+                // add that assembly to the list of assemblies loaded before the snapshot is taken.
                 AssertEx.SetEqual(compilerContextAssemblies, loader.CompilerLoadContext.Assemblies.SelectAsArray(a => a.FullName));
             }
         }
