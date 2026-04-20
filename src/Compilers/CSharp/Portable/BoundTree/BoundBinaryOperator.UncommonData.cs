@@ -75,14 +75,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly bool IsUnconvertedInterpolatedStringAddition;
             public readonly InterpolatedStringHandlerData? InterpolatedStringHandlerData;
 
-            // The converted Y value for a chained relational comparison (spec §11.11.13):
-            // Y is the right operand of <see cref="BoundBinaryOperator.Left"/> with the
-            // conversion required by the isolated overload resolution on `Y op Right`
-            // already applied. Non-null exactly when this node is a chained relational
-            // comparison; presence of a non-null value is therefore the canonical marker
-            // for "this node is chained" (see <see cref="BoundBinaryOperator.IsChainedRelational"/>).
-            // Stored at bind time so the lowerer does not need to re-run overload resolution
-            // to figure out how to combine Y with the outer node's right operand.
+            // The shared middle operand Y for a chained relational comparison (spec §11.11.13),
+            // carrying the composition of two conversions: (1) the inner link's conversion,
+            // which is already reflected in `leftBinaryOperator.Right` at bind time, and
+            // (2) the isolated outer-link overload resolution's LeftConversion on top of that,
+            // applied via <c>CreateConversion</c>. So `ChainedRelationalLeftOperand` is the
+            // value the outer link's operator consumes on its left side, with all conversions
+            // required for that consumption already baked in.
+            //
+            // Non-null exactly when this node is a chained relational comparison; presence of
+            // a non-null value is therefore the canonical marker for "this node is chained"
+            // (see <see cref="BoundBinaryOperator.IsChainedRelational"/>). Stored at bind time
+            // so the lowerer does not need to re-run overload resolution to figure out how to
+            // combine Y with the outer node's right operand.
             public readonly BoundExpression? ChainedRelationalLeftOperand;
 
             // The set of method symbols from which this operator's method was chosen.
