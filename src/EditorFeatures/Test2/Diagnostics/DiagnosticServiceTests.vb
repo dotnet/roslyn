@@ -2494,6 +2494,111 @@ public class C
             End Using
         End Function
 
+        ''' <summary>
+        ''' Verifies that when incremental member-edit analysis falls back to full-document analysis
+        ''' (e.g. no prior cached document), diagnostics from both span-based and document-based
+        ''' semantic analyzers are returned AND that both ran in a single pass (same compilation clone).
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestSemanticPassMerge_BothAnalyzerCategoriesReturnDiagnosticsAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                ' Add a span-based semantic analyzer (IBuiltInAnalyzer with SemanticSpanAnalysis)
+                ' and a document-based semantic analyzer (IBuiltInAnalyzer with SemanticDocumentAnalysis).
+                ' These two categories are disjoint and normally run in separate passes.
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("SPAN01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim documentAnalyzer = New BuiltInFieldAnalyzer("DOC01", DiagnosticAnalyzerCategory.SemanticDocumentAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer, documentAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' Request full-document diagnostics (full span -> range becomes null -> incremental path).
+                ' With no prior cached document, the incremental analyzer falls back to full analysis
+                ' and merges both analyzer sets into a single pass.
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+
+                ' Both analyzers should report a diagnostic on _field
+                Dim diagnosticIds = diagnostics.Select(Function(d) d.Id).ToHashSet()
+                Assert.Contains("SPAN01", diagnosticIds)
+                Assert.Contains("DOC01", diagnosticIds)
+
+                ' Both analyzers should have been invoked with the same compilation clone,
+                ' proving they ran in a single merged pass rather than separate passes.
+                Dim spanCompilation = Assert.Single(spanAnalyzer.SeenCompilations)
+                Dim docCompilation = Assert.Single(documentAnalyzer.SeenCompilations)
+                Assert.Same(spanCompilation, docCompilation)
+            End Using
+        End Function
+
+        ''' <summary>
+        ''' Verifies that when only span-based semantic analyzers are present (no document-based
+        ''' analyzers), the merge optimization is not triggered and diagnostics are still returned
+        ''' correctly.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestSemanticPassMerge_OnlySpanAnalyzersReturnsDiagnosticsAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                ' Add only a span-based semantic analyzer — no document-based analyzer.
+                ' The merge optimization should not activate (nothing to merge).
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("SPAN01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+
+                Dim diagnostic = diagnostics.Single(Function(d) d.Id = "SPAN01")
+                Assert.NotNull(diagnostic)
+            End Using
+        End Function
+
         Private NotInheritable Class AllActionsAnalyzer
             Inherits DiagnosticAnalyzer
 
@@ -2538,6 +2643,57 @@ public class C
                                                                         codeBlockStartContext.RegisterSyntaxNodeAction(Sub(syntaxNodeContext) AnalyzedSyntaxNodesInsideCodeBlock.Add(syntaxNodeContext.Node), SyntaxKind.LocalDeclarationStatement)
                                                                         codeBlockStartContext.RegisterCodeBlockEndAction(Sub(codeBlockEndContext) AnalyzedCodeBlockEndSymbols.Add(codeBlockEndContext.OwningSymbol))
                                                                     End Sub)
+            End Sub
+        End Class
+
+        ''' <summary>
+        ''' Test analyzer that implements <see cref="IBuiltInAnalyzer"/> with a configurable
+        ''' <see cref="DiagnosticAnalyzerCategory"/> and reports a diagnostic on field symbols.
+        ''' Used to test the semantic pass merge optimization where span-based and document-based
+        ''' analyzers are merged into a single pass when incremental analysis falls back.
+        ''' </summary>
+        <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+        Private NotInheritable Class BuiltInFieldAnalyzer
+            Inherits DiagnosticAnalyzer
+            Implements IBuiltInAnalyzer
+
+            Private ReadOnly _category As DiagnosticAnalyzerCategory
+
+            ''' <summary>
+            ''' Compilation references observed during CompilationStartAction callbacks.
+            ''' Used to verify whether two analyzers ran in the same compilation clone (same pass).
+            ''' </summary>
+            Public SeenCompilations As List(Of CodeAnalysis.Compilation) = New List(Of CodeAnalysis.Compilation)()
+
+            Public Sub New(diagnosticId As String, category As DiagnosticAnalyzerCategory)
+                _category = category
+                Descriptor = New DiagnosticDescriptor(
+                    diagnosticId, "Title", "Message", "Category",
+                    defaultSeverity:=DiagnosticSeverity.Warning,
+                    isEnabledByDefault:=True)
+            End Sub
+
+            Public ReadOnly Property Descriptor As DiagnosticDescriptor
+            Public ReadOnly Property IsHighPriority As Boolean Implements IBuiltInAnalyzer.IsHighPriority
+
+            Public Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory Implements IBuiltInAnalyzer.GetAnalyzerCategory
+                Return _category
+            End Function
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterCompilationStartAction(
+                    Sub(compilationContext)
+                        SeenCompilations.Add(compilationContext.Compilation)
+                        compilationContext.RegisterSymbolAction(
+                            Sub(symbolContext) symbolContext.ReportDiagnostic(Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations(0))),
+                            SymbolKind.Field)
+                    End Sub)
             End Sub
         End Class
     End Class

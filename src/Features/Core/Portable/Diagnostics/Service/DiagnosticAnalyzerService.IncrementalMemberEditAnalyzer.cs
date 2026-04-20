@@ -51,9 +51,10 @@ internal sealed partial class DiagnosticAnalyzerService
         public void UpdateDocumentWithCachedDiagnostics(Document document)
             => _lastDocumentWithCachedDiagnostics.SetTarget(document);
 
-        public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsInProcessAsync(
+        public async Task<(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> results, bool didMergeAnalyzerComputations)> ComputeDiagnosticsInProcessAsync(
             DocumentAnalysisExecutor executor,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<DiagnosticAnalyzer> additionalAnalyzersToMergeOnFullAnalysis,
             VersionStamp version,
             CancellationToken cancellationToken)
         {
@@ -71,8 +72,9 @@ internal sealed partial class DiagnosticAnalyzerService
             if (changedMemberAndIdAndSpansAndDocument == null)
             {
                 // This is not a member-edit scenario, so compute full document diagnostics
-                // without incremental analysis.
-                return await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
+                // without incremental analysis. When document-based analyzers are provided,
+                // merge them into a single pass to avoid duplicate binding costs.
+                return await ComputeMergedDiagnosticsAsync(executor, analyzers, additionalAnalyzersToMergeOnFullAnalysis, cancellationToken).ConfigureAwait(false);
             }
 
             var (changedMember, changedMemberId, newMemberSpans, oldDocument) = changedMemberAndIdAndSpansAndDocument.Value;
@@ -108,7 +110,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 if (spanBasedAnalyzers.Count == 0 && (!compilerAnalyzerData.HasValue || !compilerAnalyzerData.Value.spanBased))
                 {
                     // No incremental span based-analysis to be performed.
-                    return await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
+                    return await ComputeMergedDiagnosticsAsync(executor, analyzers, additionalAnalyzersToMergeOnFullAnalysis, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Get or create the member spans for all member nodes in the old document.
@@ -120,7 +122,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 await ExecuteCompilerAnalyzerAsync(compilerAnalyzerData, oldMemberSpans, builder).ConfigureAwait(false);
                 await ExecuteSpanBasedAnalyzersAsync(spanBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
                 await ExecuteDocumentBasedAnalyzersAsync(documentBasedAnalyzers, oldMemberSpans, builder).ConfigureAwait(false);
-                return builder.ToImmutableDictionary();
+                return (builder.ToImmutableDictionary(), didMergeAnalyzerComputations: false);
             }
             finally
             {
@@ -260,6 +262,43 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 _savedMemberSpans = new MemberSpans(documentId, version, memberSpans);
             }
+        }
+
+        /// <summary>
+        /// Computes full-document diagnostics when incremental member-edit analysis is not applicable.
+        /// When <paramref name="documentAnalyzers"/> is non-empty,
+        /// merges both semantic analyzer sets into a single pass to avoid creating separate compilation
+        /// clones and the associated duplicated binding cost.
+        /// </summary>
+        private static async Task<(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> results, bool didMergeAnalyzerComputations)> ComputeMergedDiagnosticsAsync(
+            DocumentAnalysisExecutor executor,
+            ImmutableArray<DiagnosticAnalyzer> spanAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> documentAnalyzers,
+            CancellationToken cancellationToken)
+        {
+            var didMergeAnalyzerComputations = !documentAnalyzers.IsDefaultOrEmpty;
+            if (didMergeAnalyzerComputations)
+            {
+                Debug.Assert(
+                    spanAnalyzers.All(a => !documentAnalyzers.Contains(a)),
+                    "Span and document analyzer sets must be disjoint");
+
+                // Merge both semantic analyzer sets into a single full-document pass.
+                // If executed separately, each pass would create its own compilation clone and independently
+                // trigger binding (the dominant allocation cost for semantic analysis).
+                // By merging, we pay this cost only once.
+                var mergedAnalyzers = spanAnalyzers.AddRange(documentAnalyzers);
+                var mergedScope = new DocumentAnalysisScope(
+                    executor.AnalysisScope.TextDocument,
+                    span: null,
+                    mergedAnalyzers,
+                    executor.AnalysisScope.Kind);
+
+                executor = executor.With(mergedScope);
+            }
+
+            var results = await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
+            return (results, didMergeAnalyzerComputations);
         }
     }
 }
