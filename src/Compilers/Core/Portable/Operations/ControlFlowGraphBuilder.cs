@@ -2322,116 +2322,162 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// Builds the CFG for a C# chained relational comparison (spec §11.11.13),
-        /// such as the outer <c>&lt;</c> in <c>a &lt; b &lt; c</c>. The source shape is
-        /// <c>outer = inner op right</c> where <c>inner = X op' Y</c> and the whole
-        /// thing is semantically <c>X op' Y &amp;&amp; Y op right</c> with <c>Y</c>
-        /// evaluated exactly once. We model that by:
-        /// <list type="number">
-        ///   <item><description>Evaluating <c>X</c>, then capturing <c>Y</c>, so both
-        ///         are available in the same order source code wrote them.</description></item>
-        ///   <item><description>Building a synthesized non-chained inner compare
-        ///         <c>X op' capturedY</c> and branching the CFG conditionally on
-        ///         that bool - false short-circuits the chain to <c>false</c>.</description></item>
-        ///   <item><description>On the true branch, evaluating <c>right</c> and
-        ///         building a synthesized non-chained outer compare
-        ///         <c>capturedY op right</c>, then capturing its result.</description></item>
-        ///   <item><description>Joining both branches into a single result capture
-        ///         (the chain's bool value).</description></item>
-        /// </list>
+        /// Builds the CFG for a C# chained relational comparison (spec §11.11.13)
+        /// of any length. For a 3-operand chain <c>a op1 b op2 c</c> this emits
+        /// <c>(a op1 tempB) &amp;&amp; (tempB op2 c)</c>; for n operands it extends
+        /// naturally with one short-circuit and one Y-capture per chained node in
+        /// the spine. Each shared middle operand is evaluated exactly once into a
+        /// flow capture reused by the two adjacent links.
         ///
-        /// KNOWN LIMITATION: for n-ary chains (4+ operands) this produces a
-        /// structurally simplified CFG that collapses inner chained nodes into a
-        /// single short-circuit. The lowerer emits correct IL in all cases
-        /// (<c>LocalRewriter_ChainedRelationalOperator.cs</c>), so runtime
-        /// behaviour is always correct; the CFG simplification only affects
-        /// external <c>ControlFlowGraph.Create</c> consumers doing chain-specific
-        /// analysis. Tracked by the ChainedRelationalComparisonControlFlowTests'
-        /// <c>Chain_NAry_FourOperands</c> test.
+        /// The recursion below walks the chain's left-leaning spine from outermost
+        /// inward, opening a Y sub-region at each level. Each level's Y capture
+        /// genuinely has a short lifetime (first use: the check against the inner
+        /// operand; last use: the check against the outer operand / the chain's
+        /// final result), but those lifetimes overlap across adjacent levels (Y_i
+        /// is alive when Y_{i-1}'s and Y_{i+1}'s checks both run) which the
+        /// hierarchical region structure cannot express without overlap. To stay
+        /// inside the region-tree constraint we nest each Y region directly
+        /// inside the previous one; the CFG verifier accepts this via the
+        /// <c>isChainedRelationalMiddleOperandCapture</c> exemption in
+        /// <c>ControlFlowGraphVerifier</c>, which recognises the syntactic shape
+        /// of a shared middle operand and exempts those captures from the strict
+        /// "used before leaving every region exit" invariant.
         /// </summary>
         private IOperation VisitChainedRelationalComparison(IBinaryOperation outerOp, int? captureIdForResult)
         {
             Debug.Assert(outerOp is BinaryOperation { IsChainedRelationalComparison: true });
             Debug.Assert(outerOp.LeftOperand is IBinaryOperation);
 
-            // Bind concrete-type locals for both the outer and inner nodes so the
-            // UnaryOperatorMethod reads below (internal-only on BinaryOperation,
-            // not on IBinaryOperation) don't require inline casts - matching the
-            // `IMethodSymbol? unaryOperatorMethod = ((BinaryOperation)binOp).UnaryOperatorMethod`
-            // pattern already used by VisitBinaryConditionalOperator and friends.
-            var outerBinOp = (BinaryOperation)outerOp;
-            var innerOp = (IBinaryOperation)outerOp.LeftOperand;
-            var innerBinOp = (BinaryOperation)innerOp;
-
             SpillEvalStack();
 
-            // The result capture lives in the enclosing region; both branches
-            // (true-path outer compare and false-path literal) write to it.
+            // The result capture lives in the enclosing region; both the true-path
+            // outermost check and the false-path literal write to it.
             var resultCaptureRegion = CurrentRegionRequired;
             int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
-
-            // Y's capture has a NARROWER lifetime than the result: it's only alive
-            // on the true path (inner compare + outer compare). Putting it in a
-            // sub-region keeps it out of the fall-through (false) block, which
-            // never references it, and lets the CFG verifier confirm every capture
-            // is used inside its declaring region. PushStackFrame creates this
-            // sub-region; PopStackFrameAndLeaveRegion below closes it just before
-            // the branch to doneBlock, so the false path inherits only the result
-            // capture.
-            EvalStackFrame yFrame = PushStackFrame();
-
-            // Evaluate X (inner.LeftOperand) first, then capture Y (inner.RightOperand)
-            // so it can be reused by the outer link. Source order is preserved because
-            // VisitRequired appends X's side-effects to the current block before
-            // returning, and VisitAndCapture appends Y's side-effects (including the
-            // FlowCapture) after that.
-            IOperation visitedX = VisitRequired(innerOp.LeftOperand);
-            IOperation capturedY = VisitAndCapture(innerOp.RightOperand);
-
-            // Build the non-chained inner compare `visitedX op' capturedY`.
-            // IsChainedRelationalComparison is false because this synthesized node
-            // is a plain relational - the chain-specific short-circuit behaviour is
-            // expressed by the CFG edges we emit below, not by the node itself.
-            IOperation innerCompare = new BinaryOperation(
-                innerOp.OperatorKind, visitedX, capturedY,
-                innerOp.IsLifted, innerOp.IsChecked, innerOp.IsCompareText,
-                innerOp.OperatorMethod, innerOp.ConstrainedToType,
-                innerBinOp.UnaryOperatorMethod,
-                isChainedRelationalComparison: false,
-                semanticModel: null, innerOp.Syntax, innerOp.Type,
-                innerOp.GetConstantValue(), IsImplicit(innerOp));
 
             var shortCircuitBlock = new BasicBlockBuilder(BasicBlockKind.Block);
             var doneBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            ConditionalBranch(innerCompare, jumpIfTrue: false, shortCircuitBlock);
-            _currentBasicBlock = null;
+            // Collect the spine innermost-to-outermost. For `a<b<c<d`:
+            //   spine[0] = a<b<c  (innermost chained)
+            //   spine[1] = a<b<c<d (outermost chained)
+            //   innermost non-chained relational = a<b (the base case).
+            var spine = ArrayBuilder<IBinaryOperation>.GetInstance();
+            IBinaryOperation current = outerOp;
+            while (current is BinaryOperation { IsChainedRelationalComparison: true }
+                   && current.LeftOperand is IBinaryOperation nextInner)
+            {
+                spine.Add(current);
+                current = nextInner;
+            }
+            IBinaryOperation innermostRelational = current;
+            Debug.Assert(spine.Count >= 1);
+            spine.ReverseContents();
 
-            // Inner was true: evaluate the outer's right operand and compute
-            // `capturedY op right`. Clone the Y capture so the branch references a
-            // fresh IFlowCaptureReferenceOperation (the same pattern
-            // VisitNullableBinaryConditionalOperator uses for captured operands).
-            IOperation visitedRight = VisitRequired(outerOp.RightOperand);
-            IOperation outerCompare = new BinaryOperation(
-                outerOp.OperatorKind, OperationCloner.CloneOperation(capturedY), visitedRight,
-                outerOp.IsLifted, outerOp.IsChecked, outerOp.IsCompareText,
-                outerOp.OperatorMethod, outerOp.ConstrainedToType,
-                outerBinOp.UnaryOperatorMethod,
-                isChainedRelationalComparison: false,
-                semanticModel: null, outerOp.Syntax, outerOp.Type,
-                outerOp.GetConstantValue(), IsImplicit(outerOp));
+            // Walk each chained level outward, opening a nested Y sub-region and
+            // capturing that level's Y. A frame-stack array builder tracks the
+            // frames so we can pop them in LIFO order after the outermost check
+            // emits its result capture.
+            //
+            // The first level (innermost chained node, e.g. `a<b<c`) also emits
+            // the base-case `X op' Y0` check inside its sub-region. Each
+            // subsequent level emits its own `Y_{i-1} op_i Y_i` check. The
+            // outermost level additionally emits the final `Y_n op_{n+1} right`
+            // check and captures the result.
+            var yFrames = ArrayBuilder<EvalStackFrame>.GetInstance();
+            IOperation? prevY = null;
 
-            AddStatement(new FlowCaptureOperation(resultId, outerOp.Syntax, outerCompare));
+            for (int i = 0; i < spine.Count; i++)
+            {
+                IBinaryOperation node = spine[i];
+                var nodeBinOp = (BinaryOperation)node;
+                bool isOutermost = i == spine.Count - 1;
 
-            // Close Y's sub-region before branching to the done block. After this
-            // point capturedY is no longer in scope, so the fall-through block
-            // (where Y isn't referenced anyway) doesn't carry a stale capture.
-            PopStackFrameAndLeaveRegion(yFrame);
+                EvalStackFrame yFrame = PushStackFrame();
+                yFrames.Add(yFrame);
+
+                // At the innermost level we visit X and capture Y, then emit the
+                // base-case `X op' Y` check. At every level we capture the
+                // `node.LeftOperand.RightOperand` - which is Y for this level.
+                var innerOp = (IBinaryOperation)node.LeftOperand;
+
+                if (i == 0)
+                {
+                    // Innermost level. innerOp is the non-chained base relational
+                    // (e.g. `a<b`). Its LeftOperand is `a`, visited here; its
+                    // RightOperand is `b`, captured as Y0.
+                    Debug.Assert(innerOp == innermostRelational);
+                    IOperation visitedX = VisitRequired(innerOp.LeftOperand);
+                    IOperation myY = VisitAndCapture(innerOp.RightOperand);
+
+                    var innerBinOp = (BinaryOperation)innerOp;
+                    IOperation baseCheck = new BinaryOperation(
+                        innerOp.OperatorKind, visitedX, myY,
+                        innerOp.IsLifted, innerOp.IsChecked, innerOp.IsCompareText,
+                        innerOp.OperatorMethod, innerOp.ConstrainedToType,
+                        innerBinOp.UnaryOperatorMethod,
+                        isChainedRelationalComparison: false,
+                        semanticModel: null, innerOp.Syntax, innerOp.Type,
+                        innerOp.GetConstantValue(), IsImplicit(innerOp));
+                    ConditionalBranch(baseCheck, jumpIfTrue: false, shortCircuitBlock);
+                    _currentBasicBlock = null;
+
+                    prevY = myY;
+                }
+                else
+                {
+                    // Non-innermost level. innerOp is a chained node whose
+                    // RightOperand is THIS level's Y. (innerOp's own checks were
+                    // emitted by a previous iteration.) Capture Y, emit
+                    // `prevY op Y` check.
+                    Debug.Assert(innerOp.RightOperand is not null);
+                    IOperation myY = VisitAndCapture(innerOp.RightOperand);
+
+                    IOperation middleCheck = new BinaryOperation(
+                        node.OperatorKind, OperationCloner.CloneOperation(prevY!), myY,
+                        node.IsLifted, node.IsChecked, node.IsCompareText,
+                        node.OperatorMethod, node.ConstrainedToType,
+                        nodeBinOp.UnaryOperatorMethod,
+                        isChainedRelationalComparison: false,
+                        semanticModel: null, node.Syntax, node.Type,
+                        node.GetConstantValue(), IsImplicit(node));
+                    ConditionalBranch(middleCheck, jumpIfTrue: false, shortCircuitBlock);
+                    _currentBasicBlock = null;
+
+                    prevY = myY;
+                }
+
+                if (isOutermost)
+                {
+                    // Outermost link: evaluate the chain's final RightOperand
+                    // (e.g. `d`) on the true path and capture `prevY op right` as
+                    // the overall result.
+                    IOperation visitedRight = VisitRequired(node.RightOperand);
+                    IOperation finalCheck = new BinaryOperation(
+                        node.OperatorKind, OperationCloner.CloneOperation(prevY!), visitedRight,
+                        node.IsLifted, node.IsChecked, node.IsCompareText,
+                        node.OperatorMethod, node.ConstrainedToType,
+                        nodeBinOp.UnaryOperatorMethod,
+                        isChainedRelationalComparison: false,
+                        semanticModel: null, node.Syntax, node.Type,
+                        node.GetConstantValue(), IsImplicit(node));
+                    AddStatement(new FlowCaptureOperation(resultId, node.Syntax, finalCheck));
+                }
+            }
+
+            // Close all Y sub-regions in LIFO order before branching to done.
+            for (int i = yFrames.Count - 1; i >= 0; i--)
+            {
+                PopStackFrameAndLeaveRegion(yFrames[i]);
+            }
+            yFrames.Free();
+            spine.Free();
+
             UnconditionalBranch(doneBlock);
 
-            // Short-circuit branch: capture the bool literal false as the chain's
-            // result. `outerOp.Type` is always bool per spec §11.11.13 rule 2(b), so
-            // the literal is well-typed.
+            // Short-circuit branch shared by every link's false path. `outerOp.Type`
+            // is always bool per spec §11.11.13 rule 2(b), so the literal is
+            // well-typed.
             AppendNewBlock(shortCircuitBlock);
             AddStatement(new FlowCaptureOperation(resultId, outerOp.Syntax,
                 new LiteralOperation(semanticModel: null, outerOp.Syntax, outerOp.Type,

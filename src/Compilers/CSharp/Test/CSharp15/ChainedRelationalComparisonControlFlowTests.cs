@@ -385,22 +385,27 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_NAry_FourOperands_TwoNestedShortCircuits()
     {
-        // `a < b < c < d` - two chained outer nodes. Syntactically the tree is
-        // `((a < b) < c) < d`: the OUTERMOST chain is `outer2 = <inner2, d>` with
-        // `inner2 = <inner1, c>` and `inner1 = <a, b>`. When the outermost
-        // VisitChainedRelationalComparison runs, it visits innerOp (=inner2) as
-        // its LeftOperand - which is a NORMAL IBinaryOperation (inner2 isn't
-        // itself marked chained; only the final outer link has the flag). So
-        // the entire `a < b < c` sub-expression is visited in-place as part of
-        // constructing the inner compare for the outermost chain, giving us a
-        // single short-circuit on `(a<b<c) < d` - not two nested short-circuits.
-        // The shared middle operand Y captured here is `c` (inner2.RightOperand).
+        // `a < b < c < d` - spec §11.11.13 expands to `(a<b) && (b<c) && (c<d)`
+        // with b and c each evaluated exactly once. Both intermediate chained
+        // nodes (`a<b<c` and `a<b<c<d`) carry IsChainedRelationalComparison=true,
+        // and the CFG builder walks the chain's spine emitting one short-circuit
+        // per inner link plus one final result capture for the outermost check.
         //
-        // This pins the scoped-flag invariant: ONLY the final chained node
-        // carries IsChainedRelationalComparison=true; intermediate chained nodes
-        // in the syntactic tree are still relational but not marked, so the
-        // n-ary short-circuit is collapsed into a single outer-link branch by
-        // the CFG builder.
+        // The generated CFG has:
+        //   - Two nested sub-regions {R2} and {R3} holding captures [1] (= b)
+        //     and [2] (= c) respectively, both nested inside the result region
+        //     {R1} which holds capture [0] (the chain's overall bool result).
+        //   - Two short-circuits (B1's Jump-if-False and B2's Jump-if-False),
+        //     each targeting the shared fall-through block that stores literal
+        //     false into the result capture.
+        //   - B3 is the all-true path: it captures `c < d` (using the captured
+        //     `c` from {R3}) as the final result.
+        //
+        // The `b` capture is declared in {R2} (outer sub-region) and referenced
+        // from blocks inside {R3} for the `b < c` check - a cross-region
+        // reference that the CFG verifier accepts via the
+        // isChainedRelationalMiddleOperandReference carve-out matching the
+        // syntactic shape of a chained shared middle operand.
         string source = """
             class P
             {
@@ -424,52 +429,67 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
                     Block[B1] - Block
                         Predecessors: [B0]
                         Statements (1)
-                            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+                            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
                               Value:
-                                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
-                        Jump if False (Regular) to Block[B3]
-                            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c')
+                                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                        Jump if False (Regular) to Block[B4]
+                            IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b')
                               Left:
-                                IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b')
-                                  Left:
-                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
-                                  Right:
-                                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
                               Right:
-                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                             Leaving: {R2}
                         Next (Regular) Block[B2]
-                    Block[B2] - Block
-                        Predecessors: [B1]
-                        Statements (1)
-                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a < b < c < d')
-                              Value:
+                            Entering: {R3}
+                    .locals {R3}
+                    {
+                        CaptureIds: [2]
+                        Block[B2] - Block
+                            Predecessors: [B1]
+                            Statements (1)
+                                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+                                  Value:
+                                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+                            Jump if False (Regular) to Block[B4]
                                 IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c < d')
                                   Left:
-                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
                                   Right:
-                                    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd')
-                        Next (Regular) Block[B4]
-                            Leaving: {R2}
+                                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                                Leaving: {R3} {R2}
+                            Next (Regular) Block[B3]
+                        Block[B3] - Block
+                            Predecessors: [B2]
+                            Statements (1)
+                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a < b < c < d')
+                                  Value:
+                                    IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'a < b < c < d')
+                                      Left:
+                                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                                      Right:
+                                        IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd')
+                            Next (Regular) Block[B5]
+                                Leaving: {R3} {R2}
+                    }
                 }
-                Block[B3] - Block
-                    Predecessors: [B1]
+                Block[B4] - Block
+                    Predecessors: [B1] [B2]
                     Statements (1)
                         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a < b < c < d')
                           Value:
                             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'a < b < c < d')
-                    Next (Regular) Block[B4]
-                Block[B4] - Block
-                    Predecessors: [B2] [B3]
+                    Next (Regular) Block[B5]
+                Block[B5] - Block
+                    Predecessors: [B3] [B4]
                     Statements (0)
-                    Jump if False (Regular) to Block[B5]
+                    Jump if False (Regular) to Block[B6]
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a < b < c < d')
                         Leaving: {R1}
-                    Next (Regular) Block[B5]
+                    Next (Regular) Block[B6]
                         Leaving: {R1}
             }
-            Block[B5] - Exit
-                Predecessors: [B4*2]
+            Block[B6] - Exit
+                Predecessors: [B5*2]
                 Statements (0)
             """;
         var expectedDiagnostics = DiagnosticDescription.None;

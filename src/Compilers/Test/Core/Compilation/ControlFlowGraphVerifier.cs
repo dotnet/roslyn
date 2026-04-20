@@ -509,6 +509,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 isForEachEnumeratorCapture(region, block, id) ||
                                 isConditionalXMLAccessReceiverCapture(region, block, id) ||
                                 isConditionalAccessCaptureUsedAfterNullCheck(lastOperation, region, block, id) ||
+                                isChainedRelationalMiddleOperandCapture(region, block, id) ||
                                 (referencedIds.Contains(id) && isAggregateGroupCapture(lastOperation, region, block, id)))
                             {
                                 continue;
@@ -807,7 +808,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             || isCoalesceAssignmentTarget(reference)
                             || isObjectInitializerInitializedObjectTarget(reference)
                             || isInterpolatedStringArgumentCapture(reference)
-                            || isInterpolatedStringHandlerCapture(reference),
+                            || isInterpolatedStringHandlerCapture(reference)
+                            || isChainedRelationalMiddleOperandReference(reference),
                             $"Operation [{operationIndex}] in [{getBlockId(block)}] uses capture [{id.Value}] from another region. Should the regions be merged?", finalGraph);
                     }
                     else if (block.EnclosingRegion.EnclosingRegion?.EnclosingRegion.CaptureIds.Contains(id) ?? false)
@@ -855,6 +857,44 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return false;
+            }
+
+            bool isChainedRelationalMiddleOperandReference(IFlowCaptureReferenceOperation reference)
+            {
+                // C# chained relational comparisons (spec §11.11.13) capture each
+                // shared middle operand in its own sub-region so the inner check
+                // (against the next-inner operand) and the outer check (against
+                // the next-outer operand) can both see a single evaluation. The
+                // middle-operand capture is declared in the OUTER sub-region
+                // (where the inner check runs) but the outer check lives in a
+                // further-nested INNER sub-region (where the next level's Y is
+                // captured). That cross-region reference is legitimate - it's
+                // the whole point of shared-middle sharing - but wouldn't match
+                // any of the previously-listed patterns. This check recognises
+                // it by the syntactic shape of the reference: the capture
+                // reference's syntax is the Right operand of a chainable
+                // relational BinaryExpression whose parent is also a chainable
+                // relational BinaryExpression with that inner BinaryExpression
+                // as its Left. For `a<b<c<d` the shared middles `b` and `c`
+                // match; `d` (outer-right) does not.
+                if (reference.Language != LanguageNames.CSharp)
+                {
+                    return false;
+                }
+
+                CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)reference.Syntax);
+                return syntax.Parent is CSharp.Syntax.BinaryExpressionSyntax innerBinary
+                    && innerBinary.Right == syntax
+                    && isChainableRelationalCS(innerBinary.Kind())
+                    && innerBinary.Parent is CSharp.Syntax.BinaryExpressionSyntax outerBinary
+                    && outerBinary.Left == innerBinary
+                    && isChainableRelationalCS(outerBinary.Kind());
+
+                static bool isChainableRelationalCS(CSharp.SyntaxKind kind)
+                    => kind is CSharp.SyntaxKind.LessThanExpression
+                            or CSharp.SyntaxKind.LessThanOrEqualExpression
+                            or CSharp.SyntaxKind.GreaterThanExpression
+                            or CSharp.SyntaxKind.GreaterThanOrEqualExpression;
             }
 
             bool isCoalesceAssignmentTarget(IFlowCaptureReferenceOperation reference)
@@ -1087,6 +1127,76 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 return false;
+            }
+
+            bool isChainedRelationalMiddleOperandCapture(ControlFlowRegion region, BasicBlock block, CaptureId id)
+            {
+                // C# chained relational comparisons (spec §11.11.13, e.g. `a < b < c`
+                // or `a < b < c < d`) capture each shared middle operand so both
+                // adjacent links see a single evaluation of that operand. For an
+                // n-operand chain with (n-1) shared middles, every middle Y_k has a
+                // lifetime spanning the `X_k op Y_k` check (its first use) through
+                // the `Y_k op Y_{k+1}` or `Y_k op x_n` check (its last use). Those
+                // lifetimes OVERLAP across adjacent levels (Y_{k} is alive when Y_{k+1}
+                // starts and is still alive after Y_{k-1} ended) which the CFG's
+                // hierarchical region tree cannot express without overlap.
+                //
+                // <c>ControlFlowGraphBuilder.VisitChainedRelationalComparison</c>
+                // nests each Y sub-region directly inside the previous one to stay
+                // inside the region-tree constraint, but that means some exit paths
+                // (e.g. the false branch of the first link's check) leave a region
+                // that declares a later-level's Y capture which hasn't been used on
+                // that path. This exemption recognises such captures by their
+                // syntactic shape - a shared-middle operand is the Right operand of
+                // a chainable relational BinaryExpressionSyntax whose parent is
+                // ALSO a chainable relational BinaryExpressionSyntax with this node
+                // as its Left - and accepts them, matching the intent of the
+                // existing <c>isConditionalAccessCaptureUsedAfterNullCheck</c>
+                // carve-out for `?.` receiver captures.
+                foreach (IFlowCaptureOperation candidate in getFlowCaptureOperationsFromBlocksInRegion(region, region.LastBlockOrdinal))
+                {
+                    if (!candidate.Id.Equals(id))
+                    {
+                        continue;
+                    }
+
+                    if (candidate.Language != LanguageNames.CSharp)
+                    {
+                        return false;
+                    }
+
+                    CSharpSyntaxNode syntax = applyParenthesizedOrNullSuppressionIfAnyCS((CSharpSyntaxNode)candidate.Syntax);
+
+                    // The capture's syntax must itself be the Right operand of a
+                    // chainable relational BinaryExpression whose parent is ALSO a
+                    // chainable relational BinaryExpression with that inner
+                    // BinaryExpression as its Left. This is the syntactic pattern
+                    // of a shared middle operand in a chain - for `a<b<c<d` the
+                    // captures have syntax `b` (parent `a<b` is Left of `a<b<c`)
+                    // and `c` (parent `a<b<c` is Left of `a<b<c<d`); `d` (also
+                    // visited during the chain) is NOT a shared middle because
+                    // its parent `a<b<c<d` isn't itself the Left operand of
+                    // another chainable relational.
+                    if (syntax.Parent is CSharp.Syntax.BinaryExpressionSyntax innerBinary &&
+                        innerBinary.Right == syntax &&
+                        isChainableRelationalCS(innerBinary.Kind()) &&
+                        innerBinary.Parent is CSharp.Syntax.BinaryExpressionSyntax outerBinary &&
+                        outerBinary.Left == innerBinary &&
+                        isChainableRelationalCS(outerBinary.Kind()))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                return false;
+
+                static bool isChainableRelationalCS(CSharp.SyntaxKind kind)
+                    => kind is CSharp.SyntaxKind.LessThanExpression
+                            or CSharp.SyntaxKind.LessThanOrEqualExpression
+                            or CSharp.SyntaxKind.GreaterThanExpression
+                            or CSharp.SyntaxKind.GreaterThanOrEqualExpression;
             }
 
             bool isLongLivedCaptureReferenceSyntax(SyntaxNode captureReferenceSyntax)
