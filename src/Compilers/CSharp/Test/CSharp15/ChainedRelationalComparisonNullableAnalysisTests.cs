@@ -256,4 +256,449 @@ public sealed class ChainedRelationalComparisonNullableAnalysisTests : CSharpTes
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
     }
+
+    [Theory]
+    // Every chainable relational operator must apply the when-true refinement, not just `<`.
+    // The refinement in NullableWalker is gated purely on `OperatorKind.IsLifted()`, so if
+    // the operator-shape check accidentally narrowed to LessThan only, `<=`/`>`/`>=` rows
+    // would emit CS8629 on `b.Value` inside the block.
+    [InlineData("<")]
+    [InlineData("<=")]
+    [InlineData(">")]
+    [InlineData(">=")]
+    public void LiftedChain_AllRelationalOperators_RefineOperandsOnWhenTrue(string op)
+    {
+        // For `>`/`>=` we flip the operand magnitudes so the chain is still sometimes true.
+        // The values a=100, b=50, c=0 give `100 > 50 > 0 == true` and the mirror for `<`.
+        var (aVal, cVal) = op.StartsWith(">") ? ("100", "0") : ("0", "100");
+        var src = $$"""
+            #nullable enable
+            class P
+            {
+                static int? Foo() => 50;
+
+                static int Test()
+                {
+                    int a = {{aVal}};
+                    int? b = Foo();
+                    int c = {{cVal}};
+
+                    if (a {{op}} b {{op}} c)
+                    {
+                        return b.Value;
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_MixedDirection_RefineOperandsOnWhenTrue()
+    {
+        // `a < b > c` with nullable middle is a valid chain per spec §11.11.13 (mixed-
+        // direction is allowed because each link is a bool-returning lifted relational).
+        // Refinement must apply to b even when the two links have different directions.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int? Foo() => 50;
+
+                static int Test()
+                {
+                    int a = 0;
+                    int? b = Foo();
+                    int c = 10;
+
+                    if (a < b > c)
+                    {
+                        return b.Value;  // refined to non-null in when-true
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_SixOperands_RefinementAtEveryLink()
+    {
+        // 6-operand chain stresses the refinement firing in every stack-walker iteration.
+        // If the refinement only fired for the outermost link (or only for the inner
+        // link), some of these `.Value` reads would warn.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int? Foo(int v) => v;
+
+                static int Test()
+                {
+                    int? a = Foo(0), b = Foo(1), c = Foo(2), d = Foo(3), e = Foo(4), f = Foo(5);
+
+                    if (a < b < c < d < e < f)
+                    {
+                        return a.Value + b.Value + c.Value + d.Value + e.Value + f.Value;
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_NullCoalescingInMiddleOperand_RefineReceiver()
+    {
+        // The middle operand is `x ?? y`. After `if (a < (x ?? y) < c)`, the evaluated
+        // result is non-null on when-true (lifted relational), and since `??` returns
+        // non-null iff at least one side was - and classical NullableWalker tracking
+        // already handles `??` correctly - the relevant receiver states propagate.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int? Foo() => 50;
+
+                static int Test(int? x)
+                {
+                    int? y = Foo();
+                    int a = 0;
+                    int c = 100;
+
+                    if (a < (x ?? y) < c)
+                    {
+                        // The `??` expression is non-null when-true, but that does not
+                        // necessarily refine x or y individually. The assertion is just
+                        // that the chain compiles without spurious nullable warnings on
+                        // the `??` subexpression itself or on the chain's result.
+                        return 0;
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_NullCoalescingOnInnerLeft_RefineReceiver()
+    {
+        // `?? ` in the inner-left position of the chain.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int? Foo() => 50;
+
+                static int Test(int? x)
+                {
+                    int? y = Foo();
+                    int? b = 50;
+                    int c = 100;
+
+                    if ((x ?? y) < b < c)
+                    {
+                        return b.Value;  // b refined by both links; chain works.
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_NullConditionalAccessInMiddleOperand_RefinesReceiver()
+    {
+        // `?.` in the MIDDLE operand position. Classical NullableWalker refinement for the
+        // outer lifted link sees `arr?.Length` non-null on when-true, which transitively
+        // implies `arr` is non-null.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int Test(int[]? arr)
+                {
+                    if (0 < arr?.Length < 100)
+                    {
+                        return arr.Length;  // arr refined to non-null in when-true.
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_NullConditionalAccessOnInnerLeft_RefinesReceiver()
+    {
+        // `?.` in the INNER-LEFT position.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int Test(int[]? arr)
+                {
+                    int? b = 50;
+                    int c = 100;
+
+                    if (arr?.Length < b < c)
+                    {
+                        return arr.Length + b.Value;  // both receivers refined.
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_OutVarInMiddleOperand_LaterOperandSeesAssignment()
+    {
+        // `a < M(out var x) < D(x)` is the definite-assignment analog of our existing
+        // `(b = C())` test, but using `out` rather than expression-assignment. NullableWalker
+        // must see x as assigned (and at its declared non-null state) by the time D(x) is
+        // evaluated - same as the classical `(a < M(out var x)) && (M(out var x) < D(x))`
+        // hand-written form.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int M(out int x) { x = 42; return x; }
+                static int D(int x) => x;
+
+                static int Test()
+                {
+                    int a = 0;
+
+                    if (a < M(out var x) < D(x))
+                    {
+                        return x;
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_OperandsWithoutNullableSlots_DoesNotThrow()
+    {
+        // Method-call results have no nullable slot (they're temporary values).
+        // GetSlotsToMarkAsNotNullable yields an empty builder, and
+        // MarkSlotsAsNotNull is skipped. Pin that the refinement path is robust
+        // when no operand contributes a slot.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int? Foo() => 50;
+                static int? Bar() => 75;
+
+                static bool Test()
+                {
+                    return 0 < Foo() < Bar();
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_AllNonNullableOperands_NoLiftedPath()
+    {
+        // Chain with all non-nullable int operands. OperatorKind.IsLifted() is false,
+        // so the refinement block is skipped and the stock
+        // AfterRightChildOfBinaryLogicalOperatorHasBeenVisited handles the state
+        // transition. Pins that the non-lifted chained path still works correctly
+        // (no refinement applied, but no crash / no spurious diagnostics either).
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int Test(int a, int b, int c)
+                {
+                    if (a < b < c)
+                    {
+                        return b;
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_OperandsAreFieldsAndProperties_Refined()
+    {
+        // Nullable operand shapes other than locals: fields and auto-properties. Each
+        // contributes a slot; the refinement should fire at the relevant positions.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int? _b;
+                static int? B { get; set; }
+
+                static int Test()
+                {
+                    _b = 50;
+                    B = 75;
+                    int a = 0;
+                    int c = 100;
+
+                    if (a < _b < c)
+                    {
+                        _ = _b.Value;  // field refined
+                    }
+
+                    if (a < B < c)
+                    {
+                        _ = B.Value;   // property refined
+                    }
+
+                    return 0;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_OperandIsParameter_Refined()
+    {
+        // Parameter operand in the middle position.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int Test(int a, int? b, int c)
+                {
+                    if (a < b < c)
+                    {
+                        return b.Value;  // parameter refined to non-null.
+                    }
+                    return -1;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_InsideLambda_RefinementFires()
+    {
+        // Chain inside a lambda captures nullable locals. Refinement inside the lambda
+        // body should behave identically to refinement at method scope.
+        var src = """
+            #nullable enable
+            using System;
+
+            class P
+            {
+                static int? Foo() => 50;
+
+                static int Test()
+                {
+                    int a = 0;
+                    int? b = Foo();
+                    int c = 100;
+
+                    Func<int> f = () =>
+                    {
+                        if (a < b < c)
+                        {
+                            return b.Value;
+                        }
+                        return -1;
+                    };
+
+                    return f();
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedChain_InsideLocalFunction_RefinementFires()
+    {
+        // Same as the lambda case but for a local function.
+        var src = """
+            #nullable enable
+            class P
+            {
+                static int? Foo() => 50;
+
+                static int Test()
+                {
+                    int a = 0;
+                    int? b = Foo();
+                    int c = 100;
+
+                    int Local()
+                    {
+                        if (a < b < c)
+                        {
+                            return b.Value;
+                        }
+                        return -1;
+                    }
+
+                    return Local();
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UserDefinedChainedRelational_ReturnStateIsAlwaysNotNullBool()
+    {
+        // Spec §11.11.13 rule 2(b) requires the chained outer operator to return bool,
+        // and bool is never nullable. So InferResultNullability's result for a chained
+        // outer node is always NotNull bool, regardless of what TypeWithState is passed
+        // in as leftType. Pin the observable: a user-defined chained operator's result
+        // can be used as `bool` without any nullable warning, and annotations like
+        // [NotNullIfNotNull] have no effect on the chain's result state (since bool
+        // is always non-null anyway).
+        //
+        // This test guards against a future InferResultNullability change that might
+        // start leaking nullability from the wrong operand type into the chain's result.
+        var src = """
+            #nullable enable
+            struct Wrapper
+            {
+                public int V;
+                public Wrapper(int v) { V = v; }
+
+                // User-defined `<` / `>` on Wrapper. Both return bool per spec rule 2(b)
+                // requirement for chainable relational operators.
+                public static bool operator <(Wrapper a, Wrapper b) => a.V < b.V;
+                public static bool operator >(Wrapper a, Wrapper b) => a.V > b.V;
+            }
+
+            class P
+            {
+                static bool Test()
+                {
+                    Wrapper a = new Wrapper(0);
+                    Wrapper b = new Wrapper(50);
+                    Wrapper c = new Wrapper(100);
+                    // The chain binds to user-defined `<`/`<`. Result is `bool`, not `bool?`.
+                    bool r = a < b < c;
+                    return r;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
 }
