@@ -193,8 +193,19 @@ internal abstract class LanguageServerProjectLoader
         finally
         {
             _logger.LogInformation(string.Format(LanguageServerResources.Completed_reload_of_all_projects_in_0, stopwatch.Elapsed));
+
+            foreach (var project in projectsToLoadOrReload)
+            {
+                ProjectReloaded?.Invoke(this, project.Path);
+            }
         }
     }
+
+    /// <summary>
+    /// Raised after a project has been reloaded (or reload was attempted) by the batching work queue.
+    /// The argument is the project path (<see cref="ProjectToLoad.Path"/>).
+    /// </summary>
+    internal event EventHandler<string>? ProjectReloaded;
 
     internal sealed record RemoteProjectLoadResult
     {

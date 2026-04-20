@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
@@ -401,7 +402,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         }
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [Theory]
     [CombinatorialData]
     public async Task TestSemanticDiagnosticsEnabledWhenTopLevelStatementsAdded(bool mutatingLspWorkspace)
     {
@@ -438,10 +439,14 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         // Adding a top-level statement to a misc file causes it to report semantic errors.
         var textToInsert = $"""Console.WriteLine("Hello World!");{Environment.NewLine}""";
+        // Subscribe to the reload event *before* writing the file to disk,
+        // so we don't miss the FileSystemWatcher-triggered reload.
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var reloadTask = WaitForProjectReloadAsync(projectSystem, sourceFile.Path, CancellationToken.None);
         // Write updated content to disk so the project system can pick up the change.
         sourceFile.WriteAllText($"{textToInsert}{initialText}");
         await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
-        await Task.Delay(100);
+        await reloadTask;
         await WaitForProjectLoad(looseFileUriOne, testLspServer);
         var (workspace, canonicalDocumentTwo) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal("""
@@ -588,6 +593,31 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
     }
 
+    /// <summary>
+    /// Returns a task that completes the next time <paramref name="projectLoader"/> finishes reloading
+    /// the project at <paramref name="projectPath"/>.  Must be called <em>before</em> the action that
+    /// triggers the reload (e.g. writing a file to disk) so the subscription is in place before the
+    /// <see cref="LanguageServerProjectLoader.ProjectReloaded"/> event fires.
+    /// </summary>
+    private static Task WaitForProjectReloadAsync(LanguageServerProjectLoader projectLoader, string projectPath, CancellationToken cancellationToken)
+    {
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+
+        EventHandler<string> handler = null!;
+        handler = (sender, reloadedPath) =>
+        {
+            if (reloadedPath == projectPath)
+            {
+                projectLoader.ProjectReloaded -= handler;
+                tcs.TrySetResult(true);
+            }
+        };
+
+        projectLoader.ProjectReloaded += handler;
+        return tcs.Task;
+    }
+
     [Theory, CombinatorialData]
     public async Task TestEnableFileBasedProgramsChangedDynamically_02(bool mutatingLspWorkspace)
     {
@@ -713,7 +743,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         }
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [Theory]
     [CombinatorialData]
     public async Task TestFileBecomesFileBasedProgramWhenDirectiveAdded(bool mutatingLspWorkspace)
     {
@@ -749,6 +779,10 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         // Adding a #! directive to a misc file causes it to move to a file-based program project.
         var textToInsert = $"#!/usr/bin/env dotnet{Environment.NewLine}";
+        // Subscribe to the reload event *before* writing the file to disk,
+        // so we don't miss the FileSystemWatcher-triggered reload.
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var reloadTask = WaitForProjectReloadAsync(projectSystem, sourceFile.Path, CancellationToken.None);
         // Write updated content to disk so the build host can load it.
         sourceFile.WriteAllText($"#!/usr/bin/env dotnet{Environment.NewLine}{initialText}");
         await testLspServer.InsertTextAsync(looseFileUriOne, (Line: 0, Column: 0, Text: textToInsert));
@@ -764,6 +798,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Equal(document.Project.Id, document2.Project.Id);
 
         // Wait for the file-based program project to load.
+        await reloadTask;
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUriOne, testLspServer).ConfigureAwait(false);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
@@ -771,7 +806,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.True(document.Project.State.HasAllInformation);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83192"), CombinatorialData]
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/83192")]
     public async Task TestFileStopsBeingFileBasedProgramWhenDirectivesDeleted(bool mutatingLspWorkspace)
     {
         var tempDir = _tempRoot.CreateDirectory();
@@ -811,10 +848,13 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
         Assert.Equal(newAppCsText, (await document.GetTextAsync()).ToString());
 
+        // Subscribe to the reload event *before* writing the file to disk,
+        // so we don't miss the FileSystemWatcher-triggered reload.
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var reloadTask = WaitForProjectReloadAsync(projectSystem, appCsFile.Path, CancellationToken.None);
         // Flush the document change to disk to trigger a reload of the FBA project.
         appCsFile.WriteAllText(newAppCsText);
-        // Wait for the batching queue timeout.
-        await Task.Delay(100);
+        await reloadTask;
         await WaitForProjectLoad(appCsUri, testLspServer);
 
         // Now the document is a miscellaneous file
