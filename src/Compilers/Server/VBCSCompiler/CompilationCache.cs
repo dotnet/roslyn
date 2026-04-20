@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 tryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
 
                 File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
-                File.WriteAllText(Path.Combine(stagingDir, CreatedFileName), DateTime.UtcNow.ToString("O"));
+                File.WriteAllText(Path.Combine(stagingDir, CreatedFileName), DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
                 Directory.Move(stagingDir, cacheDir);
                 stagingDir = null;
 
@@ -438,14 +438,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// Writes the current UTC timestamp into the <c>last-used</c> marker file in the
         /// given cache entry directory.  The timestamp is stored as round-trip text inside
         /// the file so that it survives copies/uploads that do not preserve file-system
-        /// metadata.  Errors are silently ignored — this is best-effort bookkeeping.
+        /// metadata.  Errors are logged and otherwise ignored — this is best-effort
+        /// bookkeeping.
         /// </summary>
         private static void TouchLastUsed(string entryDir, ICompilerServerLogger logger)
         {
             try
             {
                 var path = Path.Combine(entryDir, LastUsedFileName);
-                File.WriteAllText(path, DateTime.UtcNow.ToString("O"));
+                File.WriteAllText(path, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
             }
             catch (Exception ex)
             {
@@ -519,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                     {
-                        // Best effort
+                        logger.Log($"Cache purge: failed to remove empty directory {dllName}: {ex.Message}");
                     }
                 }
             }
@@ -546,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (File.Exists(lastUsedPath))
                 {
                     var text = File.ReadAllText(lastUsedPath).Trim();
-                    if (DateTime.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed))
+                    if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return parsed.ToUniversalTime();
                     }
@@ -574,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (File.Exists(createdPath))
                 {
                     var text = File.ReadAllText(createdPath).Trim();
-                    if (DateTime.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed))
+                    if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return parsed.ToUniversalTime();
                     }

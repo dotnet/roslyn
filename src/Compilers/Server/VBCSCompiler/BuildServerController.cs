@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (arg == "-purgecache")
                 {
-                    purgeCacheCutoff = DateTime.UtcNow;
+                    purgeCacheCutoff = DateTime.MaxValue;
                 }
                 else if (argSpan.StartsWith("-purgecache:".AsSpan(), StringComparison.Ordinal))
                 {
