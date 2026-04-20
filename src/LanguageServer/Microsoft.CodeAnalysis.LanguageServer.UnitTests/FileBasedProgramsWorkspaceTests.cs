@@ -812,8 +812,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         // Set up a listener for file change events before writing to disk, so we can wait for
         // the FileSystemWatcher to deliver the event (which triggers the project reload enqueue).
-        var projectLoader = (LanguageServerProjectLoader)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
-        var fileChangeWatcher = projectLoader.GetTestAccessor().FileChangeWatcher;
+        var fileChangeWatcher = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IFileChangeWatcher>();
         using var fileChangeContext = fileChangeWatcher.CreateContext([new WatchedDirectory(Path.GetDirectoryName(appCsFile.Path)!, extensionFilters: [])]);
         var fileChangeTcs = new TaskCompletionSource();
         fileChangeContext.FileChanged += (_, path) =>

@@ -470,13 +470,6 @@ internal abstract class LanguageServerProjectLoader
 
     protected Task WaitForProjectsToFinishLoadingAsync() => _projectsToReload.WaitUntilCurrentBatchCompletesAsync();
 
-    internal TestAccessor GetTestAccessor() => new(this);
-
-    internal readonly struct TestAccessor(LanguageServerProjectLoader instance)
-    {
-        internal IFileChangeWatcher FileChangeWatcher => instance._fileChangeWatcher;
-    }
-
     /// <summary>Unloads all projects associated with this project loader.</summary>
     internal async ValueTask UnloadAllProjectsAsync()
     {
