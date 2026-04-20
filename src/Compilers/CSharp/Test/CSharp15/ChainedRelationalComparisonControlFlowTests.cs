@@ -499,26 +499,21 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
     [Fact]
     public void Chain_NAry_FiveOperands_ThreeNestedShortCircuits()
     {
-        // `a < b < c < d < e` - pins that the spine-walking loop scales to
-        // arbitrary n (not just 4). For 5 operands we get three shared middles
-        // (b, c, d) and four checks (a<b, b<c, c<d, d<e); the CFG should have
-        // three nested Y sub-regions (R2, R3, R4), three short-circuits, and
-        // one final result capture for the outermost `d<e` check. Block count:
-        // 7 blocks (B1..B4 for the four checks, B5 for the false-literal capture,
-        // B6 for the if-branch, B7 = exit) plus the entry B0 = 8 total.
+        // `a < b < c < d < e` - five operands produce three shared middles
+        // (b, c, d) and four checks (a<b, b<c, c<d, d<e). The CFG has three
+        // nested Y sub-regions (R2, R3, R4), three short-circuits, and one
+        // final result capture for the outermost `d<e` check. Block count:
+        // 7 blocks (B1..B4 for the four checks, B5 for the false-literal
+        // capture, B6 for the if-branch, B7 = exit) plus entry B0 = 8 total.
         //
-        // Guards against an "n=3 works, n=4 works by accident" regression: the
-        // 3-operand case degenerates to a single-level structure, the 4-operand
-        // case exercises the spine loop with 2 iterations (still might hide off-
-        // by-one bugs), and THIS test forces 3 iterations to prove the loop is
-        // truly n-ary. Region structure: capture [1] (b) lives in {R2}, [2]
-        // (c) in {R3}, [3] (d) in {R4}. The middle `b < c` check runs in B2
-        // inside {R3} (crossing out of {R2} into the next-nested region, which
-        // is exactly what `isChainedRelationalMiddleOperandReference` accepts);
-        // the middle `c < d` check runs in B3 inside {R4} (same one-layer hop
-        // out of {R3}). At each spine level the same cross-region capture
-        // reference pattern applies - the carve-out applies uniformly, not
-        // just to the one middle that happens to sit deepest.
+        // Region structure: capture [1] (b) lives in {R2}, [2] (c) in {R3},
+        // [3] (d) in {R4}. The middle `b < c` check runs in B2 inside {R3}
+        // (crossing out of {R2} into the next-nested region, which is what
+        // `isChainedRelationalMiddleOperandReference` accepts); the middle
+        // `c < d` check runs in B3 inside {R4} (same one-layer hop out of
+        // {R3}). At each spine level the same cross-region capture reference
+        // pattern applies - the carve-out applies uniformly, not just to the
+        // middle that happens to sit deepest.
         string source = """
             class P
             {
@@ -635,23 +630,16 @@ public sealed class ChainedRelationalComparisonControlFlowTests : CSharpTestBase
         // The binder gives each chained BoundBinaryOperator node its OWN outer
         // operator (`<=` for the outermost `(a<=b<c) <= d`, `<` for the inner
         // `(a<=b) < c`, and `<=` for the innermost `a<=b`). The emitted CFG
-        // checks must pair each operand pair with the RIGHT operator from the
+        // checks must pair each operand pair with the operator from the
         // chained node whose outer op that link represents:
         //   - Innermost link `a <= b` uses the non-chained base's `<=`.
         //   - Middle link `b < c` uses the innerOp-of-outermost `<` (NOT the
         //     outermost's `<=`).
         //   - Final link `c <= d` uses the outermost's `<=`.
         //
-        // This test exists because an earlier iteration of the CFG builder
-        // templated every link's BinaryOperation off the outermost node,
-        // silently emitting `b <= c` instead of `b < c` on mixed chains. Our
-        // same-operator tests couldn't see the bug because all three links
-        // would have coincidentally shared the same OperatorKind.
-        //
-        // Also doubles as a guard for OperatorMethod / IsLifted / ConstrainedToType
-        // mismatches in generic or user-defined-operator mixed chains: any
-        // field that can differ between links must flow from the correct
-        // chained node.
+        // Also covers OperatorMethod / IsLifted / ConstrainedToType mismatches
+        // in generic or user-defined-operator mixed chains: any field that
+        // can differ between links must flow from the correct chained node.
         string source = """
             class P
             {

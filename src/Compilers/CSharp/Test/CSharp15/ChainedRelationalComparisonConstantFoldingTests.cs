@@ -180,10 +180,10 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [InlineData("uint", "ulong", "ulong")]
     public void UnsignedWideningPermutations_FoldMatchesRuntime(string aType, string bType, string cType)
     {
-        // Same four-way side-by-side assertion as the signed grid: chained vs expanded
-        // at fold-time, chained vs expanded at runtime. For unsigned-widening rows, a
-        // mismatched sign-extension bug would show up as e.g. `cc=False,ce=True` - the
-        // hand-written expansion can't hit the bug because each `<` has its own
+        // Same four-way side-by-side assertion as the signed grid: chained vs
+        // expanded at fold-time, chained vs expanded at runtime. The two folds
+        // must agree for every unsigned-widening permutation, matching what the
+        // hand-written expansion produces when each `<` runs its own
         // FoldBinaryOperator call with the right operand types.
         var src = $$"""
             using System;
@@ -213,18 +213,17 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void UnsignedWideningToSigned_PreservesMagnitude()
     {
-        // The regression trap if a fold bypassed FoldConstantConversion and relied on
-        // ConstantValue's default Int64Value fallback: a `uint` constant's Int64Value
-        // would sign-extend through Int32Value, producing the WRONG long value for any
-        // uint with the high bit set. Pin that the fold of a chain whose shared middle
-        // operand is `uint.MaxValue` correctly widens to 4_294_967_295L (not -1L).
+        // Widening an unsigned constant to a signed wider type must preserve its
+        // magnitude (i.e., go through FoldConstantConversion), not sign-extend
+        // through the narrower signed representation. Pin that the fold of a chain
+        // whose shared middle operand is `uint.MaxValue` correctly widens to
+        // 4_294_967_295L (not -1L).
         //
         // The chain `(uint)4_000_000_000 < uint.MaxValue < 5L` distinguishes the two
         // interpretations: inner `4_000_000_000u < 4_294_967_295u` is true regardless,
         // but the outer widening decides the chain's value.
-        //   Correct widening:   4_294_967_295L < 5L => false.
-        //   Sign-extend bug:    -1L           < 5L => true.
-        // So the observed result directly tells us which one the fold used.
+        //   Magnitude-preserving:  4_294_967_295L < 5L => false.
+        //   Sign-extending:        -1L            < 5L => true.
         var src = """
             using System;
 
@@ -444,12 +443,12 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void NullableNullOperand_IsNotConstant()
     {
-        // A `null` literal promoted to int? is still a nullable-typed expression, so it
-        // too falls outside §11.20's constant-expression types and the chain must not
-        // fold, even though its runtime value is trivially False (any comparison against
-        // null via a lifted relational operator yields false). Pin that we don't silently
-        // fold to False based on "we know the answer at compile time": we don't, because
-        // the operand is not a constant expression.
+        // A `null` literal promoted to int? is still a nullable-typed expression, so
+        // it too falls outside §11.20's constant-expression types and the chain must
+        // not fold, even though its runtime value is trivially false (any comparison
+        // against null via a lifted relational operator yields false). Pin that we do
+        // not fold based on "we know the answer at compile time": the operand is not a
+        // constant expression.
         var src = """
             class P
             {

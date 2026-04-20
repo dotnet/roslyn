@@ -2393,10 +2393,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //   - Final (outermost) link uses spine.Last()'s own metadata -
             //     its outer operator is the `Y_{n-1} op right` comparison.
             //
-            // This matters for mixed-operator chains like `a <= b < c <= d`
-            // where each link's OperatorKind and OperatorMethod differ; getting
-            // the "which node owns which link" mapping wrong silently models
-            // the middle link with the wrong operator.
+            // Mixed-operator chains like `a <= b < c <= d` are the shape that
+            // most visibly needs this per-link selection - each link's
+            // OperatorKind and OperatorMethod genuinely differ.
             var yFrames = ArrayBuilder<EvalStackFrame>.GetInstance();
             IOperation? prevY = null;
 

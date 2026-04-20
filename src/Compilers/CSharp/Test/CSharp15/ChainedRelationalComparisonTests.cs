@@ -279,14 +279,11 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_WithOperandShapes_ConditionalExpression_Works()
     {
-        // A `? :` ternary in the middle of a chain. Lowering's VisitExpression handles
-        // BoundConditionalOperator already; just pin that the chain's temp-capture site
-        // doesn't interfere.
-        //
-        // A() returns an in-range value and B() returns an out-of-range value, so the
-        // chain's bool result distinguishes which branch was taken. A wrong impl that
-        // e.g. evaluated both branches, or took the wrong branch, would show a wrong
-        // label/result pair.
+        // A `? :` ternary in the middle of a chain. Lowering's VisitExpression
+        // handles BoundConditionalOperator already; just pin that the chain's
+        // temp-capture site doesn't interfere. A() returns an in-range value and
+        // B() returns an out-of-range value, so the chain's bool result
+        // distinguishes which branch was taken.
         var src = """
             using System;
 
@@ -376,13 +373,12 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void Chain_MiddleOperandEvaluatedOnce()
     {
-        // The single-evaluation guarantee: the shared middle operand in `min <= M() <= max`
-        // is evaluated exactly once even though it appears syntactically at the right of
-        // one comparison and the left of the next.
-        //
-        // Cover both the inner-true and inner-false paths. A bug that double-evaluated M()
-        // on either path would show calls=2 in the corresponding case; a bug that skipped
-        // M() entirely on short-circuit would show calls=0.
+        // The single-evaluation guarantee: the shared middle operand in
+        // `min <= M() <= max` is evaluated exactly once even though it appears
+        // syntactically at the right of one comparison and the left of the next.
+        // Cover both the inner-true and inner-false paths, and the short-circuit
+        // path where the outer link is skipped. Each case must observe exactly
+        // one call to M().
         var src = """
             using System;
 
@@ -460,10 +456,10 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     public void Chain_SameTypeEquivalence_MatchesHandWrittenAndChain()
     {
         // Complement to AsymmetricConversion_EquivalentToHandWrittenShortCircuit_AllCombinations
-        // (which grid-tests short/int/long): this one pins the same-type case, which
-        // exercises the "identity conversion on Y everywhere" path in the lowering. If
-        // the chain's same-type behaviour ever diverges from the hand-written && equivalent
-        // this test catches it.
+        // (which grid-tests short/int/long): this one pins the same-type case,
+        // which exercises the "identity conversion on Y everywhere" path in the
+        // lowering. Every (a, b, c) triple must match the hand-written `&&`
+        // equivalent.
         var src = """
             using System;
 
@@ -1009,9 +1005,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void AsymmetricConversion_NegativeLowerBound_DoesNotTruncate()
     {
-        // Sanity: if the widening chain were silently truncating, int.MinValue would
-        // misbehave. Verify it produces the same result as the equivalent hand-written
-        // short-circuit form.
+        // Verify a widening chain with `int.MinValue` as the lower bound produces
+        // the same result as the equivalent hand-written short-circuit form.
         var src = """
             using System;
 
