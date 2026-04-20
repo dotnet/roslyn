@@ -892,19 +892,24 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     // point of use, so the chain is equivalent to an ordinary short-circuit `&&`
     // chain where Y sits in a temp of Y's natural type.
 
+    // All 3^3 = 27 permutations of {short, int, long} at the three operand positions,
+    // including same-type combos like short/short/short (no asymmetry to test but keeps
+    // the grid uniform) and the two hard asymmetric cases where the middle is strictly
+    // "in between" (`short, int, long` and `int, short, long`), which would otherwise
+    // have the inner operator and temp disagree on type. Under Option A the shared
+    // middle operand is captured at Y's inner-link type and the outer link applies its
+    // own conversion on load, so every permutation emits verifiable IL.
+    public static IEnumerable<object[]> AllShortIntLongPermutations()
+    {
+        var types = new[] { "short", "int", "long" };
+        foreach (var a in types)
+            foreach (var b in types)
+                foreach (var c in types)
+                    yield return new object[] { a, b, c };
+    }
+
     [Theory]
-    // Every permutation of (short, int, long) at the three operand positions. Under
-    // Option A the shared middle operand is captured at Y's inner-link type and the
-    // outer link applies its own conversion on load, so every permutation emits
-    // verifiable IL - including the two where the middle is strictly "in between"
-    // (`short, int, long` and `int, short, long`), which would otherwise have the
-    // inner operator and temp disagree on type.
-    [InlineData("short", "int", "long")]   // inner: short<int -> int<int; outer: int<long -> long<long
-    [InlineData("short", "long", "int")]   // inner: short<long -> long<long; outer: long<int -> long<long
-    [InlineData("int", "short", "long")]   // inner: int<short -> int<int; outer: int<long -> long<long
-    [InlineData("int", "long", "short")]   // inner: int<long -> long<long; outer: long<short -> long<long
-    [InlineData("long", "short", "int")]   // inner: long<short -> long<long; outer: long<int -> long<long
-    [InlineData("long", "int", "short")]   // inner: long<int -> long<long; outer: long<short -> long<long
+    [MemberData(nameof(AllShortIntLongPermutations))]
     public void AsymmetricConversion_AllPermutationsOfShortIntLong(string aType, string bType, string cType)
     {
         // a=1, b=5, c=10 fits every permutation of (short, int, long) and produces a
