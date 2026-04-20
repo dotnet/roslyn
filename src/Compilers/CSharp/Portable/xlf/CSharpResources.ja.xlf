@@ -1497,10 +1497,10 @@
         <target state="translated">'#!' はファイルの最初の行の先頭に使用する必要があります</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
-        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="translated">RequiresUnsafeAttribute をこのシンボルに適用することはできません。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
+        <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
+        <target state="new">Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</target>
+        <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2733,14 +2733,14 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
-        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="translated">'{2}' の型パラメーター '{1}' の 'new()' 制約を満たすには、'requiresUnsafe' または 'extern' としてマークされたコンストラクター '{0}' に unsafe コンテキストが必要です</target>
-        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="needs-review-translation">'{2}' の型パラメーター '{1}' の 'new()' 制約を満たすには、'requiresUnsafe' または 'extern' としてマークされたコンストラクター '{0}' に unsafe コンテキストが必要です</target>
+        <note>'unsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="translated">'requiresUnsafe' または 'extern' としてマークされているため、'{0}' は安全でないコンテキストで使用する必要があります</target>
-        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</source>
+        <target state="needs-review-translation">'requiresUnsafe' または 'extern' としてマークされているため、'{0}' は安全でないコンテキストで使用する必要があります</target>
+        <note>'unsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
@@ -3931,16 +3931,6 @@
         <source>Struct member returns 'this' or other instance members by reference</source>
         <target state="translated">構造体メンバーは 'this' または他のインスタンス メンバーを参照渡しで返します</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute は、更新されたメモリの安全性規則でのみ有効です。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute は、更新されたメモリの安全性規則でのみ有効です。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>

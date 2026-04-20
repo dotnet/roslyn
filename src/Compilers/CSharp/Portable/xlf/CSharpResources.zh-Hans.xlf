@@ -1497,10 +1497,10 @@
         <target state="translated">"#!" 必须是文件第一行的第一个字符</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
-        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="translated">RequiresUnsafeAttribute 无法应用于此符号。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
+        <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
+        <target state="new">Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</target>
+        <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2733,14 +2733,14 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
-        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="translated">标记为 "RequiresUnsafe" 或 "extern" 的构造函数 "{0}" 需要不安全的上下文以满足 "{2}" 中类型参数 "{1}" 的 "new()" 约束</target>
-        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="needs-review-translation">标记为 "RequiresUnsafe" 或 "extern" 的构造函数 "{0}" 需要不安全的上下文以满足 "{2}" 中类型参数 "{1}" 的 "new()" 约束</target>
+        <note>'unsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="translated">“{0}”必须在不安全的上下文中使用，因为它标记为 "RequiresUnsafe" 或 "extern"</target>
-        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</source>
+        <target state="needs-review-translation">“{0}”必须在不安全的上下文中使用，因为它标记为 "RequiresUnsafe" 或 "extern"</target>
+        <note>'unsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
@@ -3931,16 +3931,6 @@
         <source>Struct member returns 'this' or other instance members by reference</source>
         <target state="translated">结构成员按引用返回“此”或其他实例成员</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute 仅在更新后的内存安全规则下有效。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">RequiresUnsafeAttribute 仅在更新后的内存安全规则下有效。</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>

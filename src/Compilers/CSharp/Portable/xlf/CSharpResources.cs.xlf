@@ -1497,10 +1497,10 @@
         <target state="translated">#! musí být první znaky na prvním řádku souboru.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiresUnsafeAttributeUnsupportedMemberTarget">
-        <source>RequiresUnsafeAttribute cannot be applied to this symbol.</source>
-        <target state="translated">Atribut RequiresUnsafeAttribute nelze pro tento symbol použít.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
+      <trans-unit id="ERR_RequiresUnsafeAttributeInSource">
+        <source>Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</source>
+        <target state="new">Do not use 'RequiresUnsafeAttribute' in source; use the 'unsafe' modifier instead.</target>
+        <note>'RequiresUnsafeAttribute' and 'unsafe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
         <source>The target runtime does not support extended layout types.</source>
@@ -2733,14 +2733,14 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeConstructorConstraint">
-        <source>An unsafe context is required for constructor '{0}' marked as 'RequiresUnsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
-        <target state="translated">Nezabezpečený kontext je vyžadován pro konstruktor {0} označený jako „RequiresUnsafe“ nebo „extern“, aby se vyhovělo omezení „new()“ parametru typu „{1}“ v „{2}“</target>
-        <note>'RequiresUnsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
+        <source>An unsafe context is required for constructor '{0}' marked as 'unsafe' or 'extern' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'</source>
+        <target state="needs-review-translation">Nezabezpečený kontext je vyžadován pro konstruktor {0} označený jako „RequiresUnsafe“ nebo „extern“, aby se vyhovělo omezení „new()“ parametru typu „{1}“ v „{2}“</target>
+        <note>'unsafe', 'extern', and 'new()' should not be localized. {2} is the generic method or type.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperation">
-        <source>'{0}' must be used in an unsafe context because it is marked as 'RequiresUnsafe' or 'extern'</source>
-        <target state="translated">{0} musí být použito v nebezpečném kontextu, protože je označeno jako RequiresUnsafe nebo extern.</target>
-        <note>'RequiresUnsafe' and 'extern' should not be localized.</note>
+        <source>'{0}' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'</source>
+        <target state="needs-review-translation">{0} musí být použito v nebezpečném kontextu, protože je označeno jako RequiresUnsafe nebo extern.</target>
+        <note>'unsafe' and 'extern' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_UnsafeMemberOperationCompat">
         <source>'{0}' must be used in an unsafe context because it has pointers in its signature</source>
@@ -3931,16 +3931,6 @@
         <source>Struct member returns 'this' or other instance members by reference</source>
         <target state="translated">Člen struktury vrací this nebo jiné členy instance pomocí odkazu</target>
         <note />
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">Atribut RequiresUnsafeAttribute je platný pouze v rámci aktualizovaných pravidel zabezpečení paměti.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
-      </trans-unit>
-      <trans-unit id="WRN_RequiresUnsafeAttributeLegacyRules_Title">
-        <source>RequiresUnsafeAttribute is only valid under the updated memory safety rules.</source>
-        <target state="translated">Atribut RequiresUnsafeAttribute je platný pouze v rámci aktualizovaných pravidel zabezpečení paměti.</target>
-        <note>'RequiresUnsafeAttribute' is not localizable</note>
       </trans-unit>
       <trans-unit id="WRN_ReturnNotNullIfNotNull">
         <source>Return value must be non-null because parameter '{0}' is non-null.</source>
