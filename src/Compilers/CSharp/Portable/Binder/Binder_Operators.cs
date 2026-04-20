@@ -1036,7 +1036,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // String / UserDefined). We keep the operator bits so downstream passes still
                 // see *which* operator was written, but clear the operand-type bits so no
                 // consumer concludes that we successfully bound to a specific signature.
+                // The chain shape requires `A` (the left operand) to be *syntactically* an
+                // operation of the form `X op' Y` - not a parenthesized / checked / conditional
+                // expression that happens to bind to a bool-returning BoundBinaryOperator. See
+                // the "Parentheses around the left-hand operand prevent the chain interpretation"
+                // note in spec §11.11.13: wrapping the inner link in parens or any other
+                // expression form blocks the chain. The bound tree collapses
+                // ParenthesizedExpression wrappers, so we check the *syntax* node directly.
                 if (kind.IsChainableRelational() &&
+                    node.Left is BinaryExpressionSyntax &&
                     left is BoundBinaryOperator leftBinaryOperator &&
                     leftBinaryOperator.OperatorKind.IsChainableRelational() &&
                     left.Type is { SpecialType: SpecialType.System_Boolean })

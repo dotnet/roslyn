@@ -17,6 +17,346 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 /// </summary>
 public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 {
+    #region Basic binding and runtime behaviour
+
+    [Fact]
+    public void Chain_Int_BasicHappyPath()
+    {
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    Console.WriteLine($"{0 <= 5 < 10},{0 <= 5 < 2},{10 <= 5 < 100},{1 < 2 < 3},{3 < 2 < 1}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True,False,False,True,False")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_Nullable_LiftedOperatorsReturnBool()
+    {
+        // Lifted relational operators return bool (not bool?) per spec §11.4.8, so a chain
+        // over int? / double? operands classifies each link as bool and the chain is
+        // accepted. A null operand makes the corresponding comparison yield false, which
+        // short-circuits the chain.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    int? a = 0, b = 5, c = 10, n = null;
+                    Console.WriteLine($"{a < b < c},{a < n < c},{n < b < c},{a < b < n}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True,False,False,False")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_MixedDirection_InterpretedAsAnd()
+    {
+        // `a < b > c` means `a < b && b > c` per the chain rule; there is no requirement
+        // that all links go the same direction.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    Console.WriteLine($"{1 < 5 > 2},{1 < 5 > 10},{5 < 1 > 10}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True,False,False")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_FourAndFiveOperands_WorkNAry()
+    {
+        // The chain rule is recursive, so arbitrary-length chains fall out.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    Console.WriteLine(1 < 2 < 3 < 4);
+                    Console.WriteLine(1 < 2 < 3 < 2);
+                    Console.WriteLine(1 < 2 < 3 < 4 < 5);
+                    Console.WriteLine(1 < 2 < 3 < 4 < 3);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                True
+                False
+                True
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_MiddleOperandEvaluatedOnce()
+    {
+        // The single-evaluation guarantee: the shared middle operand in `min <= M() <= max`
+        // is evaluated exactly once even though it appears syntactically at the right of
+        // one comparison and the left of the next.
+        var src = """
+            using System;
+
+            class P
+            {
+                static int calls;
+                static int M() { calls++; return 5; }
+
+                static void Main()
+                {
+                    calls = 0;
+                    bool r = 0 <= M() <= 10;
+                    Console.WriteLine($"result={r}, calls={calls}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "result=True, calls=1")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_IL_CanonicalBoundsCheckShape()
+    {
+        // Canonical shape `0 <= i < array.Length` demonstrates the lowered form: a single
+        // temp for the shared middle operand i (captured via inline-assign), followed by an
+        // &&-chain. This is a same-type chain with no asymmetric conversions, so the IL is
+        // clean and verifiable.
+        var src = """
+            class P
+            {
+                static bool InBounds(int i, int[] a) => 0 <= i < a.Length;
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics()
+            .VerifyIL("P.InBounds", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  .locals init (int V_0)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloc.0
+                  IL_0004:  bgt.s      IL_000d
+                  IL_0006:  ldloc.0
+                  IL_0007:  ldarg.1
+                  IL_0008:  ldlen
+                  IL_0009:  conv.i4
+                  IL_000a:  clt
+                  IL_000c:  ret
+                  IL_000d:  ldc.i4.0
+                  IL_000e:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void Chain_UserDefinedBoolReturningOperator_Works()
+    {
+        // A user type with a bool-returning `operator <` chains via the normal fallback
+        // (classical binding fails on `bool < T`, then isolated `T < T` resolves and
+        // returns bool, so the chain is accepted).
+        var src = """
+            using System;
+
+            struct T
+            {
+                public int V;
+                public T(int v) => V = v;
+                public static bool operator <(T a, T b) => a.V < b.V;
+                public static bool operator >(T a, T b) => a.V > b.V;
+                public static bool operator <=(T a, T b) => a.V <= b.V;
+                public static bool operator >=(T a, T b) => a.V >= b.V;
+                public static bool operator ==(T a, T b) => a.V == b.V;
+                public static bool operator !=(T a, T b) => a.V != b.V;
+                public override bool Equals(object o) => o is T t && t.V == V;
+                public override int GetHashCode() => V;
+            }
+
+            class P
+            {
+                static void Main()
+                {
+                    Console.WriteLine(new T(1) < new T(2) < new T(3));
+                    Console.WriteLine(new T(1) < new T(5) < new T(3));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                True
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region Back-compat and error cases
+
+    [Fact]
+    public void ParensBlockChainShape_ReportsOrdinaryCS0019()
+    {
+        // `(a < b) < c` has a parenthesized_expression as its left operand, not a
+        // relational_expression of the chain shape. Therefore the chain rule does not
+        // apply (spec §11.11.13 and its parentheses note) and the user sees the
+        // ordinary CS0019 for `bool < int`.
+        var src = """
+            class P
+            {
+                static bool F(int a, int b, int c) => (a < b) < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (3,43): error CS0019: Operator '<' cannot be applied to operands of type 'bool' and 'int'
+                //     static bool F(int a, int b, int c) => (a < b) < c;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(a < b) < c").WithArguments("<", "bool", "int").WithLocation(3, 43));
+    }
+
+    [Fact]
+    public void EqualityOperators_DoNotChain()
+    {
+        // `a == b == c` parses as `(a == b) == c`, i.e. a comparison of a bool to a
+        // non-bool. That has always been a CS0019 and remains one; the chain rule only
+        // applies to the relational operators `<`, `<=`, `>`, `>=`.
+        var src = """
+            class P
+            {
+                static bool F(int a, int b, int c) => a == b == c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (3,43): error CS0019: Operator '==' cannot be applied to operands of type 'bool' and 'int'
+                //     static bool F(int a, int b, int c) => a == b == c;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "a == b == c").WithArguments("==", "bool", "int").WithLocation(3, 43));
+    }
+
+    [Fact]
+    public void ChainInsideExpressionTree_ReportsCS9380()
+    {
+        // Chained relational comparisons cannot be represented as System.Linq.Expressions
+        // trees while preserving the single-evaluation guarantee, so any attempt to convert
+        // one to an expression tree produces the specific diagnostic
+        // ERR_ExpressionTreeContainsChainedRelationalComparison.
+        var src = """
+            using System;
+            using System.Linq.Expressions;
+
+            class P
+            {
+                static Expression<Func<int, int, int, bool>> F = (a, b, c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (6,67): error CS9380: An expression tree may not contain a chained relational comparison.
+                //     static Expression<Func<int, int, int, bool>> F = (a, b, c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsChainedRelationalComparison, "a < b < c").WithLocation(6, 67));
+    }
+
+    [Fact]
+    public void Dynamic_IsBoundDynamically_NoChainFallback()
+    {
+        // When any operand is `dynamic`, each relational_expression node is dynamically
+        // bound per spec §11.11.1; dynamic binding never produces a binding-time error,
+        // so overload resolution of `A op B` "succeeds" at compile time and §11.11.13
+        // does not apply. The chain is therefore classical left-associative:
+        //
+        //   `a < b < c`   compiles as   `(a < b) < c`
+        //
+        // with each link dispatched at run time through the DLR. Since `a < b` yields a
+        // bool and `bool < int` is not a valid operation for the dynamic binder, the
+        // second dispatch throws RuntimeBinderException. The chain feature is
+        // intentionally not in play here - this test pins that behaviour.
+        var src = """
+            using System;
+            using Microsoft.CSharp.RuntimeBinder;
+
+            class P
+            {
+                static void Main()
+                {
+                    dynamic a = 0, b = 5, c = 10;
+                    try
+                    {
+                        bool r = a < b < c;
+                        Console.WriteLine("no-throw");
+                    }
+                    catch (RuntimeBinderException)
+                    {
+                        Console.WriteLine("threw");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.StandardAndCSharp,
+            expectedOutput: "threw")
+            .VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region Language-version gating
+
+    [Fact]
+    public void ChainRequiresPreviewLanguageVersion()
+    {
+        // The feature is gated on LanguageVersion.Preview via
+        // IDS_FeatureChainedRelationalComparison. Using an older language version produces
+        // ERR_FeatureInPreview; the chain is still bound so the user does not see a
+        // cascade of unrelated CS0019 errors.
+        var src = """
+            class P
+            {
+                static bool F(int a, int b, int c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.Regular14)
+            .VerifyDiagnostics(
+                // (3,43): error CS8652: The feature 'chained relational comparison' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool F(int a, int b, int c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a < b < c").WithArguments("chained relational comparison").WithLocation(3, 43));
+    }
+
+    #endregion
+
     #region Asymmetric conversions of a shared middle operand
     //
     // These tests pin the behaviour of the "Asymmetric conversions" open question
