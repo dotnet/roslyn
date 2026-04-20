@@ -853,6 +853,62 @@ class C
             Assert.Equal("ABC" & vbCrLf & "DEF", result.ToString())
         End Sub
 
+        <WpfFact>
+        Public Sub TestCSharp_FixLineEndingBoundaries_InsertAtEndOfFileThatEndsWithCr()
+            ' File ends with \r, insert "\nWorld" at the very end.
+            ' span.Start == originalText.Length, so the inner check must guard against
+            ' reading past the end.
+            Dim originalText = SourceText.From("Hello" & vbCr)
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(6, 0), vbLf & "World"))
+
+            Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
+            Assert.Single(fixed)
+            ' The leading \n should be stripped to avoid creating \r\n at the boundary.
+            Assert.Equal(6, fixed(0).Span.Start)
+            Assert.Equal(6, fixed(0).Span.End)
+            Assert.Equal("World", fixed(0).NewText)
+
+            Dim result = originalText.WithChanges(fixed)
+            Assert.Equal("Hello" & vbCr & "World", result.ToString())
+        End Sub
+
+        <WpfFact>
+        Public Sub TestCSharp_FixLineEndingBoundaries_InsertAtStartOfFileThatStartsWithLf()
+            ' File starts with \n, insert "Hello\r" at position 0.
+            ' span.End == 0 initially, so the inner check must guard against
+            ' reading at position -1.
+            Dim originalText = SourceText.From(vbLf & "World")
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 0), "Hello" & vbCr))
+
+            Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
+            Assert.Single(fixed)
+            ' The trailing \r should be stripped to avoid creating \r\n at the boundary.
+            Assert.Equal(0, fixed(0).Span.Start)
+            Assert.Equal(0, fixed(0).Span.End)
+            Assert.Equal("Hello", fixed(0).NewText)
+
+            Dim result = originalText.WithChanges(fixed)
+            Assert.Equal("Hello" & vbLf & "World", result.ToString())
+        End Sub
+
+        <WpfFact>
+        Public Sub TestCSharp_FixLineEndingBoundaries_RepeatedTrailingCrBeforeLf()
+            ' newText ends with \r\r adjacent to \n.  Both trailing \r chars must be
+            ' stripped so the boundary doesn't form a \r\n pair.
+            Dim originalText = SourceText.From("AB" & vbLf & "CD")
+            Dim changes = ImmutableArray.Create(
+                New TextChange(New TextSpan(0, 2), "XY" & vbCr & vbCr))
+
+            Dim fixed = AbstractCopilotProposalAdjusterService.TestAccessor.FixLineEndingBoundaries(originalText, changes)
+            Assert.Single(fixed)
+            Assert.Equal("XY", fixed(0).NewText)
+
+            Dim result = originalText.WithChanges(fixed)
+            Assert.Equal("XY" & vbLf & "CD", result.ToString())
+        End Sub
+
 #End Region
 
 #Region "Visual Basic"
