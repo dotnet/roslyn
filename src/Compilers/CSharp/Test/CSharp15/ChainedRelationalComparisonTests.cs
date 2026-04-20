@@ -804,6 +804,109 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void ChainFallback_OuterLinkResolutionIsAmbiguous_ReportsCS9379()
+    {
+        // Third rule-2(b) failure mode: the isolated `Y op B` overload resolution finds
+        // multiple applicable user-defined operators, none better than the others. For the
+        // chain feature this is indistinguishable from the "no applicable operator" case -
+        // neither succeeds in selecting a bool-returning operator, so both must produce
+        // ERR_NoChainedRelationalComparison (not CS0034 or CS0019).
+        //
+        // Construction: S has a bool-returning `operator <(S, S)` so the chain shape exists.
+        // `int` implicitly converts to Wrap1 and to Wrap2 (unrelated struct wrappers), and
+        // S defines `operator <` against each wrapper. Isolated `S < int` therefore has two
+        // applicable user-defined operators and no tiebreaker, so overload resolution is
+        // ambiguous.
+        var src = """
+            struct Wrap1
+            {
+                public static implicit operator Wrap1(int i) => default;
+            }
+
+            struct Wrap2
+            {
+                public static implicit operator Wrap2(int i) => default;
+            }
+
+            struct S
+            {
+                public static bool operator <(S a, S b) => true;
+                public static bool operator >(S a, S b) => false;
+                public static bool operator <=(S a, S b) => true;
+                public static bool operator >=(S a, S b) => false;
+                public static bool operator ==(S a, S b) => true;
+                public static bool operator !=(S a, S b) => false;
+
+                public static bool operator <(S a, Wrap1 b) => true;
+                public static bool operator >(S a, Wrap1 b) => false;
+                public static bool operator <=(S a, Wrap1 b) => true;
+                public static bool operator >=(S a, Wrap1 b) => false;
+
+                public static bool operator <(S a, Wrap2 b) => true;
+                public static bool operator >(S a, Wrap2 b) => false;
+                public static bool operator <=(S a, Wrap2 b) => true;
+                public static bool operator >=(S a, Wrap2 b) => false;
+
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            class P
+            {
+                static bool F(S a, S b, int c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (36,45): error CS9379: Operator '<' cannot be applied to operands of type 'S' and 'int' as a chained relational comparison.
+                //     static bool F(S a, S b, int c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "int").WithLocation(36, 45));
+    }
+
+    [Fact]
+    public void ChainFallback_OnOlderLanguageVersion_ReportsBothPreviewAndRule2Errors()
+    {
+        // When both the language-version gate AND rule 2(b) would reject the chain, the
+        // current implementation emits BOTH CS8652 (ERR_FeatureInPreview) and CS9379
+        // (ERR_NoChainedRelationalComparison). The preview-gating call runs before the
+        // chain attempt and reports unconditionally; the chain attempt then runs, fails
+        // rule 2(b), and reports its own error.
+        //
+        // This is a deliberate pin: each diagnostic describes a distinct, non-redundant
+        // problem. If LDM later prefers to suppress the second diagnostic when the first
+        // has already fired, this test switches to asserting a single CS8652 and the
+        // binder gains an early-out after CheckFeatureAvailability.
+        var src = """
+            struct S
+            {
+                public static bool operator <(S a, S b) => true;
+                public static bool operator >(S a, S b) => false;
+                public static bool operator <=(S a, S b) => true;
+                public static bool operator >=(S a, S b) => false;
+                public static bool operator ==(S a, S b) => true;
+                public static bool operator !=(S a, S b) => false;
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            struct Point { }
+
+            class P
+            {
+                static bool F(S a, S b, Point c) => a < b < c;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.Regular14)
+            .VerifyDiagnostics(
+                // (17,41): error CS8652: The feature 'chained relational comparison' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool F(S a, S b, Point c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "a < b < c").WithArguments("chained relational comparison").WithLocation(17, 41),
+                // (17,47): error CS9379: Operator '<' cannot be applied to operands of type 'S' and 'Point' as a chained relational comparison.
+                //     static bool F(S a, S b, Point c) => a < b < c;
+                Diagnostic(ErrorCode.ERR_NoChainedRelationalComparison, "<").WithArguments("<", "S", "Point").WithLocation(17, 47));
+    }
+
+    [Fact]
     public void ChainFallback_OuterLinkHasNoApplicableOperator_ReportsCS9379()
     {
         // `a < b` is a bool-returning user-defined comparison on S, so the chain shape
