@@ -1262,7 +1262,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    resultConstant = FoldChainedRelationalOperator(leftBinaryOperator: (BoundBinaryOperator)left, chainedRelationalLeftOperand!, resultRight, resultOperatorKind, resultType);
+                    resultConstant = FoldChainedRelationalOperator(
+                        node,
+                        leftBinaryOperator: (BoundBinaryOperator)left,
+                        chainedRelationalLeftOperand,
+                        chainedRelationalLeftConversion,
+                        chainedRelationalLeftConvertedType,
+                        resultRight,
+                        resultOperatorKind,
+                        resultType,
+                        diagnostics);
                 }
             }
             else
@@ -1313,27 +1322,98 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        // Fold a chained relational comparison `A op B` into a constant when its operands are
-        // all compile-time constants. The chain is logically equivalent to
-        // `A && (Y op B)`, where A is the already-folded inner chain result (bool) and Y is
-        // the shared middle operand. If A folds to false, the whole chain is false; otherwise
-        // the chain's value is the value of `Y op B`.
+#nullable enable
+        // Fold a chained relational comparison `A op B` into a compile-time constant when
+        // every operand is itself a constant expression. The spec treats this exactly like
+        // the short-circuit `&&` form that the chain lowers to: per C#'s §11.20 constant-
+        // expression rules, `X && Y` is a constant only when both X and Y are constants, and
+        // the same "every operand must be a constant" requirement applies here. So the fold
+        // runs only when:
         //
-        // Deferred: this is a deliberate no-op for the binding-foundation PR. The binder
-        // calls through here so the wiring is in place, but returning null simply means a
-        // chain of all-constant operands is not itself a constant expression yet (runtime
-        // behaviour is unaffected). Implementing the rule above is tracked as the follow-up
-        // "FoldBinaryOperator chain folding" todo; see the "Constant expressions" bullet under
-        // "Interactions with other features" in proposals/chained-relational-comparison.md.
-        private ConstantValue FoldChainedRelationalOperator(BoundBinaryOperator leftBinaryOperator, BoundExpression chainedRelationalLeftOperand, BoundExpression resultRight, BinaryOperatorKind resultOperatorKind, TypeSymbol resultType)
+        //   1. The inner link (A) already has a bool constant value,
+        //   2. Y (the shared middle operand, stored raw on UncommonData) carries a constant
+        //      value that survives the outer link's LeftConversion, and
+        //   3. B (the outer link's right operand) has a constant value.
+        //
+        // When all three hold, the chain's value is `false` if A folded to false, otherwise
+        // the fold of `Y' op B` where Y' is Y-through-the-outer-LeftConversion. When any of
+        // them fails to fold, the chain is non-constant (null).
+        //
+        // Bad constants propagate: if any operand's constant value is Bad, the chain's
+        // constant is Bad too. This matches how FoldBinaryOperator handles Bad operands.
+        private ConstantValue? FoldChainedRelationalOperator(
+            CSharpSyntaxNode syntax,
+            BoundBinaryOperator leftBinaryOperator,
+            BoundExpression chainedRelationalLeftOperand,
+            Conversion chainedRelationalLeftConversion,
+            TypeSymbol chainedRelationalLeftConvertedType,
+            BoundExpression resultRight,
+            BinaryOperatorKind resultOperatorKind,
+            TypeSymbol resultType,
+            BindingDiagnosticBag diagnostics)
         {
-            _ = leftBinaryOperator;
-            _ = chainedRelationalLeftOperand;
-            _ = resultRight;
-            _ = resultOperatorKind;
-            _ = resultType;
-            return null;
+            // A is non-constant - chain is non-constant.
+            ConstantValue? innerConstant = leftBinaryOperator.ConstantValueOpt;
+            if (innerConstant is null)
+            {
+                return null;
+            }
+
+            // Spec §11.11.13 rule 2(b) guarantees A is bool-typed when the chain shape is
+            // accepted.
+            Debug.Assert(innerConstant.IsBad || innerConstant.SpecialType == SpecialType.System_Boolean);
+
+            // B is non-constant - chain is non-constant, even if inner folded to false.
+            // This matches the classical `&&` fold rule (FoldBinaryOperator returns null on
+            // any non-constant operand regardless of the other).
+            if (resultRight.ConstantValueOpt is null)
+            {
+                return null;
+            }
+
+            // Apply the outer link's LeftConversion to Y's constant value. The bound tree
+            // stores Y raw (i.e. `leftBinaryOperator.Right`, with only the inner link's
+            // conversion already applied) and carries the outer conversion on UncommonData;
+            // for folding we must apply that outer conversion here so the comparison runs
+            // against Y at the outer link's LeftType, exactly like the lowered form does at
+            // runtime.
+            ConstantValue? yOuterConstant = FoldConstantConversion(
+                chainedRelationalLeftOperand.Syntax,
+                chainedRelationalLeftOperand,
+                chainedRelationalLeftConversion,
+                chainedRelationalLeftConvertedType,
+                diagnostics);
+
+            if (yOuterConstant is null)
+            {
+                return null;
+            }
+
+            // Propagate Bad from any operand.
+            if (innerConstant.IsBad || yOuterConstant.IsBad || resultRight.ConstantValueOpt.IsBad)
+            {
+                return ConstantValue.Bad;
+            }
+
+            // All three operands fold; combine by short-circuit `&&` semantics.
+            if (!innerConstant.BooleanValue)
+            {
+                return ConstantValue.False;
+            }
+
+            // Inner folded to true; the chain's value is `Y' op B`. Wrap the converted Y
+            // constant in a BoundLiteral so FoldBinaryOperator reads it through its usual
+            // `ConstantValueOpt`/`Type` channels. This synthetic node exists only for the
+            // fold call and is not inserted into the bound tree.
+            var outerLeftProxy = new BoundLiteral(
+                chainedRelationalLeftOperand.Syntax,
+                yOuterConstant,
+                chainedRelationalLeftConvertedType)
+            { WasCompilerGenerated = true };
+
+            return FoldBinaryOperator(syntax, resultOperatorKind, outerLeftProxy, resultRight, resultType, diagnostics);
         }
+#nullable disable
 
         private bool BindSimpleBinaryOperatorParts(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, BinaryOperatorKind kind,
             ref OperatorResolutionForReporting operatorResolutionForReporting, out LookupResultKind resultKind,

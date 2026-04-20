@@ -1550,4 +1550,356 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Constant folding
+    //
+    // A chained relational comparison is a constant expression when every operand is a
+    // constant expression (spec §11.11.13, "Constant expressions" interaction bullet in
+    // proposals/chained-relational-comparison.md). This mirrors C#'s §11.20 rule that
+    // `X && Y` is a constant only when both X and Y are: the chain's value is
+    // `A && (Y op B)`, with A the inner link and (Y op B) the outer isolated comparison.
+    //
+    // The tests below pin two things at once:
+    //   1. That FoldChainedRelationalOperator computes the correct constant value.
+    //   2. That the resulting constant flows through all compile-time-constant consumers
+    //      (const fields, default parameter values, attribute arguments, case labels,
+    //      unreachable-code flow analysis), so the chain works anywhere a hand-written
+    //      `&&` chain would.
+
+    [Theory]
+    // Same-type chains: predefined int comparisons.
+    [InlineData("0 < 5 < 10",           "True")]
+    [InlineData("0 < 5 < 2",            "False")]  // inner true, outer false
+    [InlineData("10 < 5 < 100",         "False")]  // inner false (short-circuit)
+    // Mixed relational operators.
+    [InlineData("0 <= 5 <= 10",         "True")]
+    [InlineData("10 >= 5 >= 0",         "True")]
+    [InlineData("1 < 2 > 0",            "True")]
+    // N-ary chains.
+    [InlineData("1 < 2 < 3 < 4",        "True")]
+    [InlineData("1 < 2 < 3 < 4 < 5",    "True")]
+    [InlineData("1 < 2 < 3 < 2",        "False")]  // n-ary with outer false
+    // Boundary: equal operands.
+    [InlineData("0 <= 0 <= 0",          "True")]
+    [InlineData("0 < 0 < 0",            "False")]
+    // Asymmetric conversions in the chain: the outer LeftConversion must fold too.
+    [InlineData("0 < 5 < 10L",          "True")]
+    [InlineData("0L < 5 < 10",          "True")]
+    [InlineData("(short)0 < 5 < 10L",   "True")]
+    [InlineData("0 < (short)5 < 10L",   "True")]
+    // Negative numbers and overflow-adjacent values.
+    [InlineData("int.MinValue < 0 < int.MaxValue", "True")]
+    [InlineData("-1 < 0 < 1",           "True")]
+    public void ConstantFolding_PredefinedOperators_FoldsToExpectedValue(string chainExpression, string expectedValue)
+    {
+        // A `const bool` field initializer requires its right-hand side to be a
+        // constant expression. If the chain doesn't fold, the compiler reports CS0133
+        // ("requires a value that can be converted to the target type to a constant
+        // expression"). VerifyDiagnostics() with no expected diagnostics therefore
+        // pins BOTH that the chain is considered a constant expression AND that its
+        // folded value is what we print at runtime.
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool B = {{chainExpression}};
+
+                static void Main()
+                {
+                    Console.WriteLine(B);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: expectedValue)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstantFolding_UsedAsDefaultParameterValue()
+    {
+        // Default parameter values are compile-time constants. A chain that folds should
+        // be accepted here; a chain that doesn't fold would be rejected with CS1736.
+        var src = """
+            using System;
+
+            class P
+            {
+                static bool F(bool b = 0 < 5 < 10) => b;
+
+                static void Main()
+                {
+                    Console.WriteLine(F());
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstantFolding_UsedAsAttributeArgument()
+    {
+        // Named attribute-argument values must be constant expressions.
+        var src = """
+            using System;
+
+            class MyAttr : Attribute
+            {
+                public bool Flag { get; set; }
+            }
+
+            [MyAttr(Flag = 0 < 5 < 10)]
+            class P
+            {
+                static void Main()
+                {
+                    var attr = (MyAttr)Attribute.GetCustomAttribute(typeof(P), typeof(MyAttr));
+                    Console.WriteLine(attr.Flag);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstantFolding_UsedAsCaseLabel()
+    {
+        // `case` labels are constant expressions whose type must match the switch-expression
+        // type. A chain folded to bool should work as a case label for `switch (bool)`.
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    bool x = true;
+                    string result = x switch
+                    {
+                        0 < 5 < 10 => "inRange",
+                        _ => "otherwise",
+                    };
+                    Console.WriteLine(result);
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "inRange")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstantFolding_ConstantFalseChain_TriggersUnreachableCodeWarning()
+    {
+        // When the folded value is `false`, flow analysis treats `if (chain)` as having an
+        // unreachable body. This is the same treatment a hand-written `false` or
+        // `false && cond` gets, and is how the constant flows into data/control-flow passes.
+        var src = """
+            class P
+            {
+                static int F()
+                {
+                    if (10 < 5 < 100) // inner false
+                    {
+                        return 1; // unreachable
+                    }
+                    return 0;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (7,13): warning CS0162: Unreachable code detected
+                //             return 1; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void ConstantFolding_ConstantTrueChain_FallThroughFlaggedUnreachable()
+    {
+        // The dual of the above: when the chain folds to true, flow analysis treats the
+        // else / fall-through arm as unreachable, same as a hand-written `if (true)`.
+        // The then-branch itself must NOT be flagged; only the arm after the unconditional
+        // return is. This pins that the true-folded constant flows correctly.
+        var src = """
+            class P
+            {
+                static int F()
+                {
+                    if (1 < 2 < 3)
+                    {
+                        return 1;
+                    }
+                    return 0;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (9,9): warning CS0162: Unreachable code detected
+                //         return 0;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(9, 9));
+    }
+
+    [Fact]
+    public void ConstantFolding_NonConstantOperand_ChainIsNotConstant()
+    {
+        // Spec: every operand must be a constant expression for the chain to be one.
+        // Matches classical `&&`: `false && nonConst` is not a constant either.
+        var src = """
+            class P
+            {
+                static bool F(int x)
+                {
+                    const bool b = 0 < x < 10; // x is non-constant -> chain is non-constant
+                    return b;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (5,24): error CS0133: The expression being assigned to 'b' must be constant
+                //         const bool b = 0 < x < 10;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "0 < x < 10").WithArguments("b").WithLocation(5, 24));
+    }
+
+    [Fact]
+    public void ConstantFolding_NonConstantOuterRight_InnerFalse_StillNotConstant()
+    {
+        // Edge case: inner is constant-false, so the chain's runtime value is known to be
+        // false regardless of the outer right. But spec §11.20 (as applied via the spec's
+        // "Constant expressions" bullet) requires EVERY operand to be a constant. `false &&
+        // nonConst` is not a constant in C# today, so `false-inner < nonConst` must not be
+        // either.
+        var src = """
+            class P
+            {
+                static bool F(int x)
+                {
+                    const bool b = 10 > 5 > x; // inner `10 > 5` is true; but x is non-const
+                    return b;
+                }
+
+                static bool G(int x)
+                {
+                    const bool b = 5 > 10 > x; // inner `5 > 10` is false; x still non-const
+                    return b;
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (5,24): error CS0133: The expression being assigned to 'b' must be constant
+                //         const bool b = 10 > 5 > x;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "10 > 5 > x").WithArguments("b").WithLocation(5, 24),
+                // (11,24): error CS0133: The expression being assigned to 'b' must be constant
+                //         const bool b = 5 > 10 > x;
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "5 > 10 > x").WithArguments("b").WithLocation(11, 24));
+    }
+
+    [Fact]
+    public void ConstantFolding_UserDefinedOperator_NotConstant()
+    {
+        // User-defined relational operators never fold (§11.20 permits only the predefined
+        // operators). So even if every operand is a constant-looking expression, a chain
+        // that resolves to user-defined operators is not a constant expression.
+        var src = """
+            struct S
+            {
+                public static bool operator <(S a, S b) => true;
+                public static bool operator >(S a, S b) => false;
+                public static bool operator <=(S a, S b) => true;
+                public static bool operator >=(S a, S b) => false;
+                public static bool operator ==(S a, S b) => true;
+                public static bool operator !=(S a, S b) => false;
+
+                public override bool Equals(object o) => false;
+                public override int GetHashCode() => 0;
+            }
+
+            class P
+            {
+                static void F()
+                {
+                    const bool b = new S() < new S() < new S();
+                }
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (18,24): error CS0133: The expression being assigned to 'b' must be constant
+                //         const bool b = new S() < new S() < new S();
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "new S() < new S() < new S()").WithArguments("b").WithLocation(18, 24));
+    }
+
+    [Fact]
+    public void ConstantFolding_NestedInConstantExpression()
+    {
+        // A folded chain should itself be usable in other constant-expression forms,
+        // including combined with classical constants via `&&`, `||`, `?:`, etc.
+        var src = """
+            using System;
+
+            class P
+            {
+                const bool AllTrue   = (0 < 5 < 10) && (1 <= 1 <= 1);
+                const bool EitherWay = (1 > 2) || (0 < 5 < 10);
+                const int  PickedN   = (0 < 5 < 10) ? 42 : -1;
+
+                static void Main()
+                {
+                    Console.WriteLine($"{AllTrue},{EitherWay},{PickedN}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True,True,42")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ConstantFolding_AsymmetricWidening_FoldsWithOuterConversion()
+    {
+        // Pin that the outer LeftConversion is applied during folding. For
+        // `(short)5 < 100 < 10000L`:
+        //   - inner `(short)5 < 100`: short->int on left, identity on right; int<int true.
+        //   - outer `100 < 10000L`: Y is `(int)5` (inner-link type is int, value 5), outer
+        //     signature is long<long, LeftConversion is int->long. So the fold must widen
+        //     Y's constant value to long (still 100) before comparing to 10000L.
+        // If the outer LeftConversion is not applied during folding, the fold would either
+        // fail outright (operand-type mismatch) or compare Y at the wrong type. The const
+        // field below would then fail to compile.
+        var src = """
+            using System;
+
+            class P
+            {
+                const bool B1 = (short)0 < 5 < 10L;
+                const bool B2 = 0 < (short)5 < 10L;
+                const bool B3 = 0L < (short)5 < 10;
+                const bool B4 = (short)100 < 5 < 10L; // inner `100<5` false -> chain false
+
+                static void Main()
+                {
+                    Console.WriteLine($"{B1},{B2},{B3},{B4}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "True,True,True,False")
+            .VerifyDiagnostics();
+    }
+
+    #endregion
 }
