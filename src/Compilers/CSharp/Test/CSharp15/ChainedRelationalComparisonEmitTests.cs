@@ -293,6 +293,333 @@ public sealed class ChainedRelationalComparisonEmitTests : CSharpTestBase
                 """);
     }
 
+    // The IL pins below exercise chained relational comparisons where the operands
+    // are of a generic type parameter T constrained to a curiously-recurring
+    // interface that declares static abstract relational operators. This is the
+    // "generic math" shape (C# 11): the chain dispatches through
+    // `constrained. T` + `call` to the static-abstract interface operator on
+    // each link. Three constraint shapes are pinned, each with `T` and `T?`
+    // variants where meaningful:
+    //
+    //   1. `where T : ILT<T>`                          - T unconstrained beyond
+    //                                                     the interface.
+    //   2. `where T : class, ILT<T>` + `T` and `T?`    - reference-type constraint;
+    //                                                     `T?` is a pure NRT
+    //                                                     annotation, IL matches T.
+    //   3. `where T : struct, ILT<T>` + `T` and `T?`   - value-type constraint;
+    //                                                     `T?` is `Nullable<T>` and
+    //                                                     composes the lifted-
+    //                                                     relational pattern on
+    //                                                     top of each constrained
+    //                                                     dispatch.
+    //
+    // The harness type/interface used by these IL pins:
+    private const string GenericILHarness = """
+        public interface ILT<TSelf> where TSelf : ILT<TSelf>
+        {
+            static abstract bool operator <(TSelf a, TSelf b);
+            static abstract bool operator >(TSelf a, TSelf b);
+            static abstract bool operator <=(TSelf a, TSelf b);
+            static abstract bool operator >=(TSelf a, TSelf b);
+        }
+        """;
+
+    [Fact]
+    public void GenericConstraint_InterfaceOnly_ConstrainedDispatchAndSingleEvaluation()
+    {
+        // `where T : ILT<T>` - the chain's IL should show `constrained. T` +
+        // `call bool ILT<T>.op_LessThan(T, T)` on BOTH links, with the shared
+        // middle operand b stored once into a `T` temp and loaded twice (once
+        // per link). This is the structural invariant: generic constraint lookup
+        // threads through the chain exactly the same way it does for a single
+        // relational operator.
+        var src = GenericILHarness + """
+
+            public class P
+            {
+                public static bool F<T>(T a, T b, T c) where T : ILT<T> => a < b < c;
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics()
+            // Generic-constrained pin. The IL demonstrates:
+            //   - `stloc.0` stores b into a `T` temp (V_0 is `T`) - single
+            //     evaluation of the shared middle operand even when T is abstract.
+            //   - Two `constrained. "T"` prefixes, each followed by
+            //     `call "bool ILT<T>.op_LessThan(T, T)"`: one per link. The JIT
+            //     expands the constrained call to either a direct call (struct T)
+            //     or a virtual dispatch (class T) at instantiation time.
+            //   - `brfalse.s` between the two links is the short-circuit; without
+            //     it, the outer link would evaluate even if the inner failed,
+            //     violating spec §11.11.13.
+            .VerifyIL("P.F<T>", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloc.0
+                  IL_0004:  constrained. "T"
+                  IL_000a:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_000f:  brfalse.s  IL_001f
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldarg.2
+                  IL_0013:  constrained. "T"
+                  IL_0019:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_001e:  ret
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndClass_T_ConstrainedDispatchOnReferenceType()
+    {
+        // `where T : class, ILT<T>`. The class constraint pins T to a reference
+        // type but doesn't change the dispatch: the operator is still declared on
+        // ILT<T>, so the chain's IL uses `constrained. T` exactly like the
+        // interface-only case. The JIT will resolve the constrained call to a
+        // direct (or virtual) call at instantiation time.
+        var src = GenericILHarness + """
+
+            public class P
+            {
+                public static bool F<T>(T a, T b, T c) where T : class, ILT<T> => a < b < c;
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics()
+            // Class-constrained pin. Identical IL shape to the interface-only
+            // and struct-constrained cases: the chain's constrained dispatch is
+            // orthogonal to whether T is further constrained to reference or
+            // value types. This confirms the chain's generic operand handling is
+            // uniform across all three constraint shapes.
+            .VerifyIL("P.F<T>", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloc.0
+                  IL_0004:  constrained. "T"
+                  IL_000a:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_000f:  brfalse.s  IL_001f
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldarg.2
+                  IL_0013:  constrained. "T"
+                  IL_0019:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_001e:  ret
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndClass_NullableT_IdenticalToNonNullableIL()
+    {
+        // `where T : class, ILT<T>` with `T?` operands. At the IL level `T?` on a
+        // class-constrained T is a pure NRT annotation: the runtime type is still
+        // T, and there's no lifting. The emitted IL is byte-identical to the
+        // non-nullable variant above (see GenericConstraint_InterfaceAndClass_T).
+        // Pinning it here proves that the chain's `T?`-vs-`T` distinction is
+        // purely a flow-analysis concern and has no codegen consequence for
+        // reference-type constraints.
+        var src = "#nullable enable\n" + GenericILHarness + """
+
+            public class P
+            {
+                #pragma warning disable CS8604
+                public static bool F<T>(T? a, T? b, T? c) where T : class, ILT<T>
+                    => a < b < c;
+                #pragma warning restore CS8604
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics()
+            .VerifyIL("P.F<T>", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloc.0
+                  IL_0004:  constrained. "T"
+                  IL_000a:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_000f:  brfalse.s  IL_001f
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldarg.2
+                  IL_0013:  constrained. "T"
+                  IL_0019:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_001e:  ret
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndStruct_T_ConstrainedDispatchOnValueType()
+    {
+        // `where T : struct, ILT<T>`. The struct constraint doesn't change the
+        // shape of the chain's IL: static-abstract operators on the interface
+        // still dispatch via `constrained. T`. The JIT will devirtualise to a
+        // direct call at instantiation time, but the textual IL is identical
+        // to the interface-only case.
+        var src = GenericILHarness + """
+
+            public class P
+            {
+                public static bool F<T>(T a, T b, T c) where T : struct, ILT<T> => a < b < c;
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics()
+            // Struct-constrained pin. Same constrained-dispatch shape as the
+            // interface-only case - the `struct` constraint doesn't suppress the
+            // constrained prefix because the operator is still declared on ILT<T>,
+            // not on T itself.
+            .VerifyIL("P.F<T>", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloc.0
+                  IL_0004:  constrained. "T"
+                  IL_000a:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_000f:  brfalse.s  IL_001f
+                  IL_0011:  ldloc.0
+                  IL_0012:  ldarg.2
+                  IL_0013:  constrained. "T"
+                  IL_0019:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_001e:  ret
+                  IL_001f:  ldc.i4.0
+                  IL_0020:  ret
+                }
+                """);
+    }
+
+    [Fact]
+    public void GenericConstraint_InterfaceAndStruct_NullableT_LiftedOverConstrainedDispatch()
+    {
+        // `where T : struct, ILT<T>`, operands `T?`. Here the chain composes two
+        // orthogonal language features: chained relational (§11.11.13) on top of
+        // nullable lifted relational (§11.4.8) on top of generic constrained
+        // dispatch. Each link's lifted form expands to
+        // `(a.HasValue && b.HasValue) && (a.GetValueOrDefault() < b.GetValueOrDefault())`,
+        // where the underlying `<` is the constrained `ILT<T>.op_LessThan`.
+        // Any null operand at any link makes the chain false.
+        //
+        // This is the most complex interaction the feature supports; pinning it
+        // here guards against the three layers accidentally losing a piece
+        // (constrained prefix, HasValue gate, or short-circuit).
+        var src = GenericILHarness + """
+
+            public class P
+            {
+                public static bool F<T>(T? a, T? b, T? c) where T : struct, ILT<T>
+                    => a < b < c;
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            targetFramework: TargetFramework.NetCoreApp,
+            verify: Verification.Skipped,
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics()
+            // Lifted-over-constrained pin. The IL demonstrates the three layers:
+            //   - `constrained. "T"` + `call "bool ILT<T>.op_LessThan(T, T)"` on
+            //     each link - the static-abstract dispatch.
+            //   - HasValue is checked FIRST for both operands and short-circuits
+            //     the link to false if either is null, WITHOUT calling the
+            //     underlying operator. This differs from `int?` (see
+            //     NullableInt_HasValueAndShortCircuit above) because the generic
+            //     constrained call is emitted differently when the comparison
+            //     can be skipped: it's cheaper to skip the dispatch than to
+            //     always compute the comparison and then AND with HasValue.
+            //   - `brfalse.s` between the two lifted bools is the chained
+            //     short-circuit: if the inner link yielded false, the outer
+            //     link (and its constrained call) is skipped entirely.
+            // The shared middle operand b is stored once into V_0 and reused.
+            .VerifyIL("P.F<T>", """
+                {
+                  // Code size      104 (0x68)
+                  .maxstack  2
+                  .locals init (T? V_0,
+                                T? V_1,
+                                T? V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.1
+                  IL_0002:  ldarg.1
+                  IL_0003:  stloc.0
+                  IL_0004:  ldloc.0
+                  IL_0005:  stloc.2
+                  IL_0006:  ldloca.s   V_1
+                  IL_0008:  call       "readonly bool T?.HasValue.get"
+                  IL_000d:  ldloca.s   V_2
+                  IL_000f:  call       "readonly bool T?.HasValue.get"
+                  IL_0014:  and
+                  IL_0015:  brtrue.s   IL_001a
+                  IL_0017:  ldc.i4.0
+                  IL_0018:  br.s       IL_0033
+                  IL_001a:  ldloca.s   V_1
+                  IL_001c:  call       "readonly T T?.GetValueOrDefault()"
+                  IL_0021:  ldloca.s   V_2
+                  IL_0023:  call       "readonly T T?.GetValueOrDefault()"
+                  IL_0028:  constrained. "T"
+                  IL_002e:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_0033:  brfalse.s  IL_0066
+                  IL_0035:  ldloc.0
+                  IL_0036:  stloc.2
+                  IL_0037:  ldarg.2
+                  IL_0038:  stloc.1
+                  IL_0039:  ldloca.s   V_2
+                  IL_003b:  call       "readonly bool T?.HasValue.get"
+                  IL_0040:  ldloca.s   V_1
+                  IL_0042:  call       "readonly bool T?.HasValue.get"
+                  IL_0047:  and
+                  IL_0048:  brtrue.s   IL_004c
+                  IL_004a:  ldc.i4.0
+                  IL_004b:  ret
+                  IL_004c:  ldloca.s   V_2
+                  IL_004e:  call       "readonly T T?.GetValueOrDefault()"
+                  IL_0053:  ldloca.s   V_1
+                  IL_0055:  call       "readonly T T?.GetValueOrDefault()"
+                  IL_005a:  constrained. "T"
+                  IL_0060:  call       "bool ILT<T>.op_LessThan(T, T)"
+                  IL_0065:  ret
+                  IL_0066:  ldc.i4.0
+                  IL_0067:  ret
+                }
+                """);
+    }
+
     [Fact]
     public void UserDefinedOperator_CallsBothOperators()
     {
