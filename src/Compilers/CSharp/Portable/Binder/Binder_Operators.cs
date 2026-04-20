@@ -1102,6 +1102,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             right.Display);
                         operatorResolutionForReporting.Free();
 
+                        // BinaryOperatorKind packs the operator (OpMask, e.g. LessThan) and the
+                        // operand-type choice (TypeMask, e.g. Int / String / UserDefined) into a
+                        // single value. When overload resolution fails we record the operator so
+                        // downstream passes still see *which* operator was written, but clear the
+                        // operand-type bits so no consumer concludes that we successfully bound to
+                        // a specific signature (e.g. IntLessThan). This mirrors the equivalent
+                        // clearing in the default overload-resolution-failure branch just below.
                         resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
                         hasErrors = true;
                     }
