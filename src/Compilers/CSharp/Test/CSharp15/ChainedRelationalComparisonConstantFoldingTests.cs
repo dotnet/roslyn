@@ -14,45 +14,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 /// <summary>
 /// Constant-folding tests for "chained relational comparison" (C# preview feature;
-/// spec §11.11.13). See proposals/chained-relational-comparison.md in dotnet/csharplang.
-///
-/// A chained relational comparison is a constant expression when every operand is a
-/// constant expression (spec §11.11.13, "Constant expressions" interaction bullet).
-/// This mirrors C#'s §11.20 rule that <c>X &amp;&amp; Y</c> is a constant only when
-/// both X and Y are: the chain's value is <c>A &amp;&amp; (Y op B)</c>, with A the
-/// inner link and <c>(Y op B)</c> the outer isolated comparison.
-///
-/// The tests below pin two things at once:
-///   1. That FoldChainedRelationalOperator computes the correct constant value.
-///   2. That the resulting constant flows through all compile-time-constant consumers
-///      (const fields, default parameter values, attribute arguments, case labels,
-///      unreachable-code flow analysis), so the chain works anywhere a hand-written
-///      <c>&amp;&amp;</c> chain would.
+/// spec §11.11.13). A chain folds when every operand folds, matching the spec's
+/// <c>A &amp;&amp; (Y op B)</c> expansion.
 /// </summary>
 public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTestBase
 {
     [Theory]
-    // Simple `a op b op c` chains where a single relational operator appears at both
-    // links. Each row supplies the three operand expressions (as strings), the operator,
-    // and the expected bool value. The chained form `a op b op c` and the hand-written
-    // expansion `(a op b) && (b op c)` are folded as separate const initializers in the
-    // same compilation, and both must agree. The test body builds both forms from the
-    // parameters so there's a single source of truth per row.
-    //
-    // Basic int chains.
     [InlineData("0", "5", "10", "<", "True")]
-    [InlineData("0", "5", "2", "<", "False")]    // inner true, outer false
-    [InlineData("10", "5", "100", "<", "False")] // inner false
-    // Other relational operators.
+    [InlineData("0", "5", "2", "<", "False")]
+    [InlineData("10", "5", "100", "<", "False")]
     [InlineData("0", "5", "10", "<=", "True")]
     [InlineData("10", "5", "0", ">=", "True")]
-    // Boundary: equal operands.
     [InlineData("0", "0", "0", "<=", "True")]
     [InlineData("0", "0", "0", "<", "False")]
-    // Negative and overflow-adjacent values.
     [InlineData("-1", "0", "1", "<", "True")]
     [InlineData("int.MinValue", "0", "int.MaxValue", "<", "True")]
-    // Asymmetric conversions (exercises the outer LeftConversion at fold time).
     [InlineData("0", "5", "10L", "<", "True")]
     [InlineData("0L", "5", "10", "<", "True")]
     [InlineData("(short)0", "5", "10L", "<", "True")]
@@ -80,10 +56,6 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     }
 
     [Theory]
-    // Chain shapes that don't fit the simple `a op b op c` template: mixed relational
-    // operators at different positions, and n-ary chains of length 4+. Same side-by-side
-    // chained-vs-expanded assertion, but the chain and its expansion are supplied as
-    // full expressions rather than synthesized from parts.
     [InlineData("1 < 2 > 0", "(1 < 2) && (2 > 0)", "True")]
     [InlineData("1 < 2 < 3 < 4", "(1 < 2) && (2 < 3) && (3 < 4)", "True")]
     [InlineData("1 < 2 < 3 < 4 < 5", "(1 < 2) && (2 < 3) && (3 < 4) && (4 < 5)", "True")]
@@ -110,11 +82,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
             .VerifyDiagnostics();
     }
 
-    // Every permutation of {short, int, long} at the three operand positions, as constants.
-    // Each chain must both fold (compile as a `const bool` field initializer) AND produce
-    // the same value that the equivalent runtime-evaluated chain does. Values 0/5/10 fit
-    // every listed type and produce True for every chain. This is the fold-time analog of
-    // AsymmetricConversion_AllPermutationsOfShortIntLong.
+    // `{short, int, long}` at the three operand positions (27 rows).
     public static IEnumerable<object[]> AllSignedIntegralPermutations()
     {
         var types = new[] { "short", "int", "long" };
@@ -128,19 +96,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [MemberData(nameof(AllSignedIntegralPermutations))]
     public void SignedIntegralPermutations_FoldMatchesRuntime(string aType, string bType, string cType)
     {
-        // Four assertions per row, side-by-side:
-        //   constChained    - chained form as a `const bool` initializer (fails CS0133 if
-        //                     the chained fold returns null).
-        //   constExpanded   - hand-written `(a < b) && (b < c)` form as a `const bool`
-        //                     initializer, folded by classical FoldBinaryOperator.
-        //   runtimeChained  - chained form on runtime variables.
-        //   runtimeExpanded - hand-written form on runtime variables.
-        //
-        // All four must equal True. Any divergence between chained and expanded (at
-        // either fold-time or runtime) means the chain's semantics drifted from the
-        // spec's `A && (Y op B)` equivalence; any divergence between fold-time and
-        // runtime means the fold computed a value different from what the emitted IL
-        // would produce.
+        // Four assertions: chained vs expanded at fold-time and at runtime.
         var src = $$"""
             using System;
 
@@ -167,24 +123,15 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     }
 
     [Theory]
-    // Unsigned + signed widening permutations that produce a bindable chain and exercise
-    // the unsigned -> signed ConstantValue widening path on the shared middle operand. The
-    // grid below was chosen so every row's inner and outer links have applicable predefined
-    // operators (no signed/unsigned ambiguity at binding). Every row folds to True, and the
-    // runtime variable form must agree.
     [InlineData("uint", "uint", "uint")]
-    [InlineData("uint", "uint", "long")]   // outer `uint -> long` widening on Y
-    [InlineData("uint", "int", "long")]    // outer widening across signedness
-    [InlineData("int", "uint", "long")]    // inner `int < uint -> long<long`; outer identity
+    [InlineData("uint", "uint", "long")]
+    [InlineData("uint", "int", "long")]
+    [InlineData("int", "uint", "long")]
     [InlineData("ulong", "ulong", "ulong")]
     [InlineData("uint", "ulong", "ulong")]
     public void UnsignedWideningPermutations_FoldMatchesRuntime(string aType, string bType, string cType)
     {
-        // Same four-way side-by-side assertion as the signed grid: chained vs
-        // expanded at fold-time, chained vs expanded at runtime. The two folds
-        // must agree for every unsigned-widening permutation, matching what the
-        // hand-written expansion produces when each `<` runs its own
-        // FoldBinaryOperator call with the right operand types.
+        // Unsigned/signed widening counterpart to the signed grid above.
         var src = $$"""
             using System;
 
@@ -213,17 +160,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void UnsignedWideningToSigned_PreservesMagnitude()
     {
-        // Widening an unsigned constant to a signed wider type must preserve its
-        // magnitude (i.e., go through FoldConstantConversion), not sign-extend
-        // through the narrower signed representation. Pin that the fold of a chain
-        // whose shared middle operand is `uint.MaxValue` correctly widens to
-        // 4_294_967_295L (not -1L).
-        //
-        // The chain `(uint)4_000_000_000 < uint.MaxValue < 5L` distinguishes the two
-        // interpretations: inner `4_000_000_000u < 4_294_967_295u` is true regardless,
-        // but the outer widening decides the chain's value.
-        //   Magnitude-preserving:  4_294_967_295L < 5L => false.
-        //   Sign-extending:        -1L            < 5L => true.
+        // `uint.MaxValue` widens to 4_294_967_295L (not -1L) on the outer link.
         var src = """
             using System;
 
@@ -233,7 +170,6 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
 
                 static void Main()
                 {
-                    // Runtime evaluation uses widening-correct IL.
                     uint a = 4_000_000_000;
                     uint b = uint.MaxValue;
                     bool runtime = a < b < 5L;
@@ -250,8 +186,6 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void UsedAsDefaultParameterValue()
     {
-        // Default parameter values are compile-time constants. A chain that folds should
-        // be accepted here; a chain that doesn't fold would be rejected with CS1736.
         var src = """
             using System;
 
@@ -274,7 +208,6 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void UsedAsAttributeArgument()
     {
-        // Named attribute-argument values must be constant expressions.
         var src = """
             using System;
 
@@ -302,8 +235,6 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void UsedAsCaseLabel()
     {
-        // `case` labels are constant expressions whose type must match the switch-expression
-        // type. A chain folded to bool should work as a case label for `switch (bool)`.
         var src = """
             using System;
 
@@ -330,17 +261,14 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void ConstantFalseChain_TriggersUnreachableCodeWarning()
     {
-        // When the folded value is `false`, flow analysis treats `if (chain)` as having an
-        // unreachable body. This is the same treatment a hand-written `false` or
-        // `false && cond` gets, and is how the constant flows into data/control-flow passes.
         var src = """
             class P
             {
                 static int F()
                 {
-                    if (10 < 5 < 100) // inner false
+                    if (10 < 5 < 100)
                     {
-                        return 1; // unreachable
+                        return 1;
                     }
                     return 0;
                 }
@@ -349,17 +277,13 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
                 // (7,13): warning CS0162: Unreachable code detected
-                //             return 1; // unreachable
+                //             return 1;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 13));
     }
 
     [Fact]
     public void ConstantTrueChain_FallThroughFlaggedUnreachable()
     {
-        // The dual of the above: when the chain folds to true, flow analysis treats the
-        // else / fall-through arm as unreachable, same as a hand-written `if (true)`.
-        // The then-branch itself must NOT be flagged; only the arm after the unconditional
-        // return is. This pins that the true-folded constant flows correctly.
         var src = """
             class P
             {
@@ -383,14 +307,12 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void NonConstantOperand_ChainIsNotConstant()
     {
-        // Spec: every operand must be a constant expression for the chain to be one.
-        // Matches classical `&&`: `false && nonConst` is not a constant either.
         var src = """
             class P
             {
                 static bool F(int x)
                 {
-                    const bool b = 0 < x < 10; // x is non-constant -> chain is non-constant
+                    const bool b = 0 < x < 10;
                     return b;
                 }
             }
@@ -405,16 +327,8 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void NullableOperand_IsNotConstant()
     {
-        // Nullable value types are not one of the constant-expression types permitted by
-        // §11.20, so a classical comparison involving a nullable operand is already
-        // non-constant in C#, e.g. `const bool b = (int?)5 < (int?)10;` reports CS0133.
-        //
-        // Chained comparisons inherit the same rule for free: FoldConstantConversion
-        // returns null for lifted (ImplicitNullable) conversions, which is what the outer
-        // link's LeftConversion is whenever Y is a value-type-and-nullable mix. So every
-        // chain where any operand is nullable-typed must fail to fold, at EVERY position
-        // (left / middle / right / all-nullable). Pin this by asserting CS0133 on all four
-        // positional variants.
+        // Nullable value types fall outside §11.20's constant-expression types, so any
+        // nullable operand at any position makes the chain non-constant.
         var src = """
             class P
             {
@@ -443,12 +357,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void NullableNullOperand_IsNotConstant()
     {
-        // A `null` literal promoted to int? is still a nullable-typed expression, so
-        // it too falls outside §11.20's constant-expression types and the chain must
-        // not fold, even though its runtime value is trivially false (any comparison
-        // against null via a lifted relational operator yields false). Pin that we do
-        // not fold based on "we know the answer at compile time": the operand is not a
-        // constant expression.
+        // Even a trivially-false chain involving `(int?)null` is not a constant expression.
         var src = """
             class P
             {
@@ -465,11 +374,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void NullableChain_StillRunsAtRuntime()
     {
-        // Dual of the above: the chain is still a perfectly valid runtime expression -
-        // non-constant means it's not usable where a constant is required, NOT that it's
-        // rejected outright. Pin that `int < int? < int` still compiles and executes
-        // correctly at runtime, so the fold failure path is strictly about constant-ness
-        // and doesn't leak into normal use.
+        // Non-constant doesn't mean rejected - the nullable chain still runs.
         var src = """
             using System;
 
@@ -493,23 +398,19 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void NonConstantOuterRight_InnerFalse_StillNotConstant()
     {
-        // Edge case: inner is constant-false, so the chain's runtime value is known to be
-        // false regardless of the outer right. But spec §11.20 (as applied via the spec's
-        // "Constant expressions" bullet) requires EVERY operand to be a constant. `false &&
-        // nonConst` is not a constant in C# today, so `false-inner < nonConst` must not be
-        // either.
+        // Matches `X && nonConst`: non-constant operand makes the whole chain non-constant.
         var src = """
             class P
             {
                 static bool F(int x)
                 {
-                    const bool b = 10 > 5 > x; // inner `10 > 5` is true; but x is non-const
+                    const bool b = 10 > 5 > x;
                     return b;
                 }
 
                 static bool G(int x)
                 {
-                    const bool b = 5 > 10 > x; // inner `5 > 10` is false; x still non-const
+                    const bool b = 5 > 10 > x;
                     return b;
                 }
             }
@@ -527,9 +428,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void UserDefinedOperator_NotConstant()
     {
-        // User-defined relational operators never fold (§11.20 permits only the predefined
-        // operators). So even if every operand is a constant-looking expression, a chain
-        // that resolves to user-defined operators is not a constant expression.
+        // User-defined relational operators never fold (§11.20 permits only predefined ones).
         var src = """
             struct S
             {
@@ -562,8 +461,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void NestedInConstantExpression()
     {
-        // A folded chain should itself be usable in other constant-expression forms,
-        // including combined with classical constants via `&&`, `||`, `?:`, etc.
+        // Folded chain composes with `&&` / `||` / `?:` in other constant contexts.
         var src = """
             using System;
 
@@ -588,15 +486,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void AsymmetricWidening_FoldsWithOuterConversion()
     {
-        // Pin that the outer LeftConversion is applied during folding. For
-        // `(short)5 < 100 < 10000L`:
-        //   - inner `(short)5 < 100`: short->int on left, identity on right; int<int true.
-        //   - outer `100 < 10000L`: Y is `(int)5` (inner-link type is int, value 5), outer
-        //     signature is long<long, LeftConversion is int->long. So the fold must widen
-        //     Y's constant value to long (still 100) before comparing to 10000L.
-        // If the outer LeftConversion is not applied during folding, the fold would either
-        // fail outright (operand-type mismatch) or compare Y at the wrong type. The const
-        // field below would then fail to compile.
+        // Outer link's LeftConversion on Y applies during folding.
         var src = """
             using System;
 
@@ -605,7 +495,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
                 const bool B1 = (short)0 < 5 < 10L;
                 const bool B2 = 0 < (short)5 < 10L;
                 const bool B3 = 0L < (short)5 < 10;
-                const bool B4 = (short)100 < 5 < 10L; // inner `100<5` false -> chain false
+                const bool B4 = (short)100 < 5 < 10L;
 
                 static void Main()
                 {
@@ -620,16 +510,6 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     }
 
     [Theory]
-    // Mixed signed/unsigned integral types at different positions. Classical C# accepts
-    // these because every operand is a constant that fits the other side's type (via
-    // binary numeric promotion to long, or the implicit constant-expression conversion
-    // from a non-negative int to an unsigned type, etc.), and the chained fold has to
-    // match that behavior. Picking constants that fit every reasonable promotion path so
-    // the whole chain folds to True.
-    //
-    // Each row carries the chained form and the equivalent hand-written expansion
-    // `(a op b) && (b op c)`. Both forms are placed into `const bool` initializers and
-    // printed at runtime, so a fold drift would show up as a mismatched output.
     [InlineData("0 < 1 < 2u", "(0 < 1) && (1 < 2u)")]
     [InlineData("0u < 1 < 2u", "(0u < 1) && (1 < 2u)")]
     [InlineData("0 < 1u < 2", "(0 < 1u) && (1u < 2)")]
@@ -646,10 +526,6 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [InlineData("0 < uint.MaxValue < long.MaxValue", "(0 < uint.MaxValue) && (uint.MaxValue < long.MaxValue)")]
     public void MixedSignedUnsigned_ChainsThatClassicalBindingAccepts_Fold(string chain, string expanded)
     {
-        // Pin that the chained fold and the classical hand-written expansion produce the
-        // same constant value (True for every row - every operand is chosen to satisfy
-        // a < b < c). If a fold reverts to the raw Int64Value accessor trick or skips
-        // the outer LeftConversion, at least one row will show `c != e`.
         var src = $$"""
             using System;
 
@@ -673,12 +549,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void MixedSignedUnsigned_NegativeLongAgainstUlongOuter_ReportsCS9380()
     {
-        // The classical `long < ulong` binding is ambiguous (CS0034) when neither operand
-        // is a non-negative compile-time constant that fits the other side. A chain whose
-        // outer link hits that shape -> the chain fallback cannot find a bool-returning
-        // operator for the isolated `Y op B`, so the specific chained-relational
-        // diagnostic CS9380 is reported (spec §11.11.13 rule 2(b) failure), NOT the
-        // classical CS0034 that non-chained code would see.
+        // Outer `long < ulong` has no applicable operator -> chain reports CS9380 (not CS0034).
         var src = """
             class P
             {
@@ -695,47 +566,33 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void MixedSignedUnsigned_InnerClassicalFailure_SurfacesClassicalError()
     {
-        // Dual of the above: when the INNER link's classical binding is the thing that
-        // fails (here, ambiguous `long < ulong`), chain fallback is not even entered -
-        // it only triggers when the OUTER link fails. So the user sees the classical
-        // CS0034 from the inner link, NOT CS9380. Pin this so the error taxonomy stays
-        // clear: CS9380 is specifically about "outer link would not resolve", not "any
-        // chained shape failed somewhere".
+        // Chain fallback only runs for outer-link failures; inner-link failures surface classically.
         var src = """
             class P
             {
                 static bool F(long a, ulong b)
                 {
-                    // Inner `a < b` is long < ulong -> CS0034 before any chain considers it.
                     return a < b < 100;
                 }
             }
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
             .VerifyDiagnostics(
-                // (6,16): error CS0034: Operator '<' is ambiguous on operands of type 'long' and 'ulong'
+                // (5,16): error CS0034: Operator '<' is ambiguous on operands of type 'long' and 'ulong'
                 //         return a < b < 100;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a < b").WithArguments("<", "long", "ulong").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "a < b").WithArguments("<", "long", "ulong").WithLocation(5, 16));
     }
 
     [Fact]
     public void MixedSignedUnsigned_ConstantFoldsButRuntimeFails_NonConstantLongUlongChain()
     {
-        // Specifically contrasts const and runtime behavior: with CONSTANTS, `0 < 1L < 2ul`
-        // folds - Roslyn's classical constant-folding accepts `1L < 2ul` because 1L is a
-        // non-negative compile-time constant that fits in ulong, and the chain's outer
-        // link inherits that constant acceptance. With VARIABLES of the same declared
-        // types, there's no compile-time-constant rescue and the outer `long < ulong`
-        // falls back to CS0034-equivalent rejection, which at the chain position surfaces
-        // as CS9380.
-        //
-        // Pinning both sides so the contrast is explicit: the chained fold's flexibility
-        // is bounded by what classical constant folding permits, and no wider.
+        // Constant-folding accepts `1L < 2ul` (via the non-negative-constant rule); the
+        // equivalent runtime chain does not.
         var src = """
             class P
             {
-                const bool B = 0 < 1L < 2ul;  // const: folds
-                static bool F(long b, ulong c) => 0 < b < c;  // runtime: outer fails
+                const bool B = 0 < 1L < 2ul;
+                static bool F(long b, ulong c) => 0 < b < c;
             }
             """;
         CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
@@ -748,12 +605,7 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
     [Fact]
     public void MixedSignedUnsigned_FoldResultMatchesRuntime()
     {
-        // Cross-check across fold / runtime and chained / expanded: for every shape that
-        // folds AND runs, all four variants must agree. This is the mixed-type analog of
-        // the signed / unsigned side-by-side tests above, spanning shapes chosen to
-        // exercise different conversion paths (explicitly excluding shapes like
-        // `long < ulong` where the non-constant variant can't bind - those are covered
-        // by MixedSignedUnsigned_ConstantFoldsButRuntimeFails_NonConstantLongUlongChain).
+        // Fold-chained, fold-expanded, runtime-chained, runtime-expanded must all agree.
         var src = """
             using System;
 
