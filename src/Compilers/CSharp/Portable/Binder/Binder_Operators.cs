@@ -1072,8 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (IsChainableRelationalExpression(node.Kind()) &&
                     node.Left is BinaryExpressionSyntax innerSyntax &&
                     IsChainableRelationalExpression(innerSyntax.Kind()) &&
-                    left is BoundBinaryOperator leftBinaryOperator &&
-                    left.Type is { SpecialType: SpecialType.System_Boolean })
+                    left is BoundBinaryOperator { Type.SpecialType: SpecialType.System_Boolean } leftBinaryOperator)
                 {
                     CheckFeatureAvailability(node, MessageID.IDS_FeatureChainedRelationalComparison, diagnostics);
 

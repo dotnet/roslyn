@@ -144,6 +144,93 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void Chain_AllOperandsAreMethodCalls_EachEvaluatedOnceInLeftToRightOrder()
+    {
+        // `A() < B() < C()` must evaluate each of A, B, C exactly once and in source order.
+        // In particular B() - the shared middle - must not be evaluated twice as the naive
+        // `A() < B() && B() < C()` rewrite would do. C() (and anything under it) is only
+        // evaluated when the inner link was true.
+        var src = """
+            using System;
+            using System.Collections.Generic;
+
+            class P
+            {
+                static List<string> log;
+                static int A() { log.Add("A"); return 1; }
+                static int B() { log.Add("B"); return 2; }
+                static int C() { log.Add("C"); return 3; }
+
+                static void Report(string label, bool r)
+                {
+                    Console.WriteLine($"{label}: result={r}, log=[{string.Join(",", log)}]");
+                }
+
+                static void Main()
+                {
+                    log = new(); Report("1<2<3", A() < B() < C());
+                    log = new(); Report("3<2<1", C() < B() < A()); // inner false -> outer skipped
+                    log = new(); Report("1<3<2", A() < C() < B()); // inner true, outer false; still evaluates all three
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                1<2<3: result=True, log=[A,B,C]
+                3<2<1: result=False, log=[C,B]
+                1<3<2: result=False, log=[A,C,B]
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_FourMethodCalls_EachSharedMiddleEvaluatedOnce()
+    {
+        // In `A() < B() < C() < D()`, both B and C are shared middle operands (B across
+        // links 1-2, C across links 2-3). Each must be evaluated exactly once, in source
+        // order, with short-circuit at the first false link.
+        var src = """
+            using System;
+            using System.Collections.Generic;
+
+            class P
+            {
+                static List<string> log;
+                static int A() { log.Add("A"); return 1; }
+                static int B() { log.Add("B"); return 2; }
+                static int C() { log.Add("C"); return 3; }
+                static int D() { log.Add("D"); return 4; }
+
+                static void Report(string label, bool r)
+                {
+                    Console.WriteLine($"{label}: result={r}, log=[{string.Join(",", log)}]");
+                }
+
+                static void Main()
+                {
+                    // All links true -> all four evaluated in order.
+                    log = new(); Report("1<2<3<4", A() < B() < C() < D());
+
+                    // Inner link false -> remaining operands skipped.
+                    log = new(); Report("2<1<3<4 (inner false)", B() < A() < C() < D());
+
+                    // Middle link false -> last operand skipped.
+                    log = new(); Report("1<3<2<4 (middle false)", A() < C() < B() < D());
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                1<2<3<4: result=True, log=[A,B,C,D]
+                2<1<3<4 (inner false): result=False, log=[B,A]
+                1<3<2<4 (middle false): result=False, log=[A,C,B]
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
     public void Chain_IL_CanonicalBoundsCheckShape()
     {
         // Canonical shape `0 <= i < array.Length` demonstrates the lowered form: a single
