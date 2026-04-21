@@ -6615,6 +6615,7 @@ class Program
         System.Console.Write(Test1(default(S1)));
         System.Console.Write(Test1(new S1(""11"")));
         System.Console.Write(Test1(new S1(0)));
+        System.Console.Write(Test1(null));
 
         System.Console.Write(' ');
         System.Console.Write(Test2(new S1(10)));
@@ -6632,13 +6633,6 @@ class Program
         System.Console.Write(Test4(new S1(11)));
         System.Console.Write(Test4(default(S1)));
         System.Console.Write(Test4(new S1(""11"")));
-
-        System.Console.Write(' ');
-        System.Console.Write(Test5(new S1(10)));
-        System.Console.Write(Test5(default(S1)));
-        System.Console.Write(Test5(new S1(""11"")));
-        System.Console.Write(Test5(new S1(0)));
-        System.Console.Write(Test5(null));
     }
 
     static bool Test1(object u)
@@ -6660,43 +6654,11 @@ class Program
     {
         return u is S1 { Value: null };
     }   
-
-    static bool Test5(object u)
-    {
-        return u is S1 { Value: 10 };
-    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       44 (0x2c)
-  .maxstack  2
-  .locals init (S1 V_0,
-            object V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""S1""
-  IL_0006:  brfalse.s  IL_002a
-  IL_0008:  ldarg.0
-  IL_0009:  unbox.any  ""S1""
-  IL_000e:  stloc.0
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  call       ""object S1.Value.get""
-  IL_0016:  stloc.1
-  IL_0017:  ldloc.1
-  IL_0018:  isinst     ""int""
-  IL_001d:  brfalse.s  IL_002a
-  IL_001f:  ldloc.1
-  IL_0020:  unbox.any  ""int""
-  IL_0025:  ldc.i4.s   10
-  IL_0027:  ceq
-  IL_0029:  ret
-  IL_002a:  ldc.i4.0
-  IL_002b:  ret
-}
-");
-            verifier.VerifyIL("Program.Test5", @"
 {
   // Code size       44 (0x2c)
   .maxstack  2
@@ -6725,10 +6687,10 @@ class Program
 ");
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse TrueFalseFalseFalseFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseFalseFalseFalse TrueFalseFalseFalseTrue FalseFalseTrue FalseTrueFalse" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
         }
 
         [Fact]
