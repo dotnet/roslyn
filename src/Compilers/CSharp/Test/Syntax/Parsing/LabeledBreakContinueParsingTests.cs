@@ -583,6 +583,44 @@ public sealed class LabeledBreakContinueParsingTests : ParsingTests
     }
 
     [Fact]
+    public void Break_DefaultKeyword()
+    {
+        // Unlike `goto default;`, there is no `break default;` form. `default` is a reserved
+        // keyword so it is not accepted as a label identifier.
+        UsingStatement("break default;",
+            // (1,1): error CS1073: Unexpected token 'default'
+            // break default;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "break ").WithArguments("default").WithLocation(1, 1),
+            // (1,7): error CS1002: ; expected
+            // break default;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "default").WithLocation(1, 7));
+        N(SyntaxKind.BreakStatement);
+        {
+            N(SyntaxKind.BreakKeyword);
+            M(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Continue_DefaultKeyword()
+    {
+        UsingStatement("continue default;",
+            // (1,1): error CS1073: Unexpected token 'default'
+            // continue default;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "continue ").WithArguments("default").WithLocation(1, 1),
+            // (1,10): error CS1002: ; expected
+            // continue default;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "default").WithLocation(1, 10));
+        N(SyntaxKind.ContinueStatement);
+        {
+            N(SyntaxKind.ContinueKeyword);
+            M(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void Break_ThisKeyword()
     {
         UsingStatement("break this;",
