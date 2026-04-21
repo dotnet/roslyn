@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitIndexerAccess(node, isLeftOfAssignment: false);
         }
 
-        private BoundExpression VisitIndexerAccess(BoundIndexerAccess node, bool isLeftOfAssignment)
+        private BoundExpression VisitIndexerAccess(BoundIndexerAccess node, bool isLeftOfAssignment, bool receiverIsKnownToBeCaptured = false)
         {
             PropertySymbol indexer = node.Indexer;
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ArgsToParamsOpt,
                 node.DefaultArguments,
                 node,
-                isLeftOfAssignment);
+                isLeftOfAssignment,
+                receiverIsKnownToBeCaptured);
         }
 
         private BoundExpression MakeIndexerAccess(
@@ -110,7 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             BoundExpression oldNode,
-            bool isLeftOfAssignment)
+            bool isLeftOfAssignment,
+            bool receiverIsKnownToBeCaptured = false)
         {
             Debug.Assert(oldNode is BoundIndexerAccess or BoundObjectInitializerMember);
             Debug.Assert(arguments.Length != 0);
@@ -163,7 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool needSpecialExtensionPropertyReceiverReadOrder = false;
                 ArrayBuilder<BoundExpression>? storesOpt = null;
 
-                bool receiverIsAlreadyStable = false;
                 if (IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(rewrittenReceiver, indexer))
                 {
                     // The receiver has location, but extension indexer takes receiver by value.
@@ -175,13 +176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     needSpecialExtensionPropertyReceiverReadOrder = true;
                     storesOpt = ArrayBuilder<BoundExpression>.GetInstance();
-
-                    // If the receiver is already a stable ref temp produced by an enclosing capture
-                    // (ie. by GetUnderlyingIndexerOrSliceAccess for an implicit Index pattern), we still
-                    // need the special read-order treatment of the arguments but we don't need to
-                    // re-capture the receiver. This avoids producing a second BoundComplexConditionalReceiver.
-                    receiverIsAlreadyStable =
-                        CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(rewrittenReceiver);
                 }
 
 #if DEBUG
@@ -189,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
                     ref rewrittenReceiver,
-                    forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder && !receiverIsAlreadyStable,
+                    forceReceiverCapturing: needSpecialExtensionPropertyReceiverReadOrder && !receiverIsKnownToBeCaptured,
                     arguments,
                     indexer,
                     argsToParamsOpt,
@@ -200,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (needSpecialExtensionPropertyReceiverReadOrder)
                 {
 #if DEBUG
-                    Debug.Assert(receiverIsAlreadyStable || rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
+                    Debug.Assert(receiverIsKnownToBeCaptured || rewrittenReceiverBeforePossibleCapture != (object?)rewrittenReceiver);
 #endif
                     Debug.Assert(storesOpt is { });
                     temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
@@ -671,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
-                    rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment);
+                    rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment, receiverIsKnownToBeCaptured: true);
                 }
             }
             else
