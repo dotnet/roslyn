@@ -2484,11 +2484,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsafeConstructorConstraint = 9376,
         WRN_UnsafeMeaningless = 9377,
 
+<<<<<<< HEAD
         ERR_ClosedTypeNameDisallowed = 9600, // PROTOTYPE(cc): pack
         ERR_ClosedSealedStatic = 9601,
         ERR_ClosedBaseTypeBaseFromOtherAssembly = 9602,
         ERR_UnderspecifiedClosedSubtype = 9603,
 
+||||||| 18365a98a5f
+=======
+        ERR_PPShebangNotOnFirstLine = 9378,
+
+>>>>>>> upstream/main
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx

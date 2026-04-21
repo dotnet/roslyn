@@ -168,7 +168,7 @@ public sealed partial class CSharpRegexParserTests
         if (!tree.Diagnostics.IsEmpty)
         {
             var expectedDiagnostics = CreateDiagnosticsElement(sourceText, tree);
-            Assert.False(true, "Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace("""
+            Assert.Fail("Expected diagnostics: \r\n" + expectedDiagnostics.ToString().Replace("""
                 "
                 """, """
                 ""
@@ -313,7 +313,7 @@ public sealed partial class CSharpRegexParserTests
             case RegexKind.WhitespaceTrivia:
                 break;
             default:
-                Assert.False(true, "Incorrect trivia kind");
+                Assert.Fail("Incorrect trivia kind");
                 return;
         }
 

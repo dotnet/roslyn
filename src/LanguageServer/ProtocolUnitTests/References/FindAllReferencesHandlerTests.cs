@@ -324,7 +324,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/83187")]
     public async Task TestFindReferencesAsync_UsingAlias(bool mutatingLspWorkspace)
     {
         var markup =

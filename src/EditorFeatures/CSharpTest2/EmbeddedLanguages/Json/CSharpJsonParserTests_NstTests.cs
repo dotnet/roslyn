@@ -52,7 +52,7 @@ public sealed partial class CSharpJsonParserNstTests : CSharpJsonParserTests
         }
         else
         {
-            Assert.False(true, "Unexpected test name.");
+            Assert.Fail("Unexpected test name.");
         }
     }
 

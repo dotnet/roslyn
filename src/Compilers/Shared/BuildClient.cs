@@ -217,10 +217,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             try
             {
                 var requestId = Guid.NewGuid().ToString();
+                var buildRequestArguments = new List<string>(arguments);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, _logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     _language,
-                    arguments,
+                    buildRequestArguments,
                     workingDirectory: buildPaths.WorkingDirectory,
                     tempDirectory: buildPaths.TempDirectory,
                     keepAlive: keepAlive,

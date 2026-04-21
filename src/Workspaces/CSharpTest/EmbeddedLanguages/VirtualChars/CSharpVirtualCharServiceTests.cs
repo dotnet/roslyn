@@ -45,6 +45,8 @@ public sealed class CSharpVirtualCharServiceTests
 
     private static void Test(string stringText, string expected, ParseOptions? options = null)
     {
+        // Normalize line endings so multi-line raw string expectations (authored with \r\n) work on all platforms.
+        stringText = stringText.NormalizeLineEndings();
         var tokens = GetStringTokens(stringText, allowFailure: false, options);
         Contract.ThrowIfNull(tokens);
         foreach (var token in tokens)

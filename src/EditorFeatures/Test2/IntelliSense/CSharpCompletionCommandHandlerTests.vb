@@ -6983,6 +6983,7 @@ namespace NS2
                         <ProjectReference>RefProj</ProjectReference>
                         <Document FilePath="C.cs"><![CDATA[
 namespace NS1
+{
     public class C1
     {
         void M(int x)
@@ -7018,10 +7019,6 @@ namespace NS2
                 Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
 
                 Await state.AssertCompletionItemsContain(displayText:="IntegerExtMethod", displayTextSuffix:="")
-
-                ' Make sure any background work would be completed.
-                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(document.Project, CancellationToken.None)
-                Await state.WaitForAsynchronousOperationsAsync()
             End Using
         End Function
 
@@ -13846,5 +13843,330 @@ internal class Program
                 Await state.AssertCompletionItemsContain(Function(i) i.DisplayText = "Age" AndAlso i.Tags.Contains(WellKnownTags.Property))
             End Using
         End Function
+
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, " ")>
+        <InlineData(ImportCompletionCommitBehavior.AlwaysAddImport, Nothing)>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, " ")>
+        <InlineData(ImportCompletionCommitBehavior.NeverAddImport, Nothing)>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, vbTab)>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, " ")>
+        <InlineData(ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted, Nothing)>
+        Friend Async Function OnlyAddMissingImportWithCorrectCombinationOfOptionAndCommitChar(options As ImportCompletionCommitBehavior, commitCharString As String) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            bar$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, options)
+
+                Dim commitChar As Char?
+                If commitCharString IsNot Nothing Then
+                    commitChar = CChar(commitCharString)
+                Else
+                    commitChar = New Char?()
+                End If
+                Dim addedUsing As String = If(options = ImportCompletionCommitBehavior.AlwaysAddImport OrElse (options = ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted AndAlso (commitChar.HasValue = False OrElse commitChar.Value = vbTab)),
+                    "using NS2;
+
+", String.Empty)
+                Dim afterBar As String = If(commitChar = " "c, " ", String.Empty)
+
+                Dim expectedText As String = $"
+{addedUsing}namespace NS1
+{{
+    class C
+    {{
+        public void Foo()
+        {{
+            Bar{afterBar}
+        }}
+    }}
+}}
+
+namespace NS2
+{{
+    public class Bar
+    {{
+    }}
+}}
+"
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                If commitChar.HasValue = False Then
+                    Dim session = Await state.GetCompletionSession()
+                    session.Commit(CChar(vbNullChar), CancellationToken.None)
+                ElseIf commitChar.Value = vbTab Then
+                    state.SendTab()
+                Else
+                    state.SendTypeChars(commitChar.Value)
+                End If
+                Assert.Equal(expectedText, state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Friend Async Function TestChangingImportCompletionCommitBehaviorForType() As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                        <Document FilePath="C.cs"><![CDATA[
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            bar$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+]]></Document>
+                    </Project>
+                </Workspace>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.NeverAddImport)
+                Dim documentID = state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id
+                Dim service = state.Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of ITypeImportCompletionService)()
+
+                Dim expectedText1 As String = "
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+
+                service.QueueCacheWarmUpTask(state.Workspace.CurrentSolution.GetDocument(documentID).Project)
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' Even though the initial cache contains items created with default commit behavior (always add using), 
+                ' we should not add using with TAB for this option
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal(expectedText1, state.GetDocumentText())
+
+                Dim expectedText2 As String = "
+using NS2;
+
+namespace NS1
+{
+    class C
+    {
+        public void Foo()
+        {
+            Bar
+        }
+    }
+}
+
+namespace NS2
+{
+    public class Bar
+    {
+    }
+}
+"
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.AlwaysAddImport)
+                state.SendBackspaces("Bar".Length)
+                state.SendEscape()
+
+                state.SendTypeChars("bar")
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' Now we changed the option to "always add using"
+                Await state.AssertSelectedCompletionItem(displayText:="Bar", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                Assert.Equal(expectedText2, state.GetDocumentText())
+
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestChangingImportCompletionCommitBehaviorForExtensionMethod() As Task
+
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" LanguageVersion="Preview" CommonReferences="true">
+                        <Document FilePath="C.cs"><![CDATA[
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExt$$
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+]]></Document>
+                    </Project>
+                </Workspace>)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.NeverAddImport)
+                Dim documentID = state.Workspace.Documents.Single(Function(d) d.Name = "C.cs").Id
+
+                Dim completionService = state.Workspace.CurrentSolution.GetDocument(documentID).GetLanguageService(Of CompletionService)()
+                completionService.GetTestAccessor().SuppressPartialSemantics()
+
+                Await ExtensionMemberImportCompletionHelper.WarmUpCacheAsync(state.Workspace.CurrentSolution.GetDocument(documentID).Project, CancellationToken.None)
+                Await state.WaitForAsynchronousOperationsAsync()
+
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                Await state.AssertSelectedCompletionItem(displayText:="IntegerExtMethod", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                Dim expectedText1 As String = "
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExtMethod
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+"
+                ' Even though the initial cache contains items created with default commit behavior (always add using), 
+                ' we should not add a using with TAB for this option
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Equal(expectedText1, state.GetDocumentText())
+                Dim expectedText2 As String = "
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExt
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+"
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ImportCompletionCommitBehavior, LanguageNames.CSharp, ImportCompletionCommitBehavior.AlwaysAddImport)
+                state.SendBackspaces("x.IntegerExtMethod".Length)
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars("x.IntegerExt")
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                Assert.Equal(expectedText2, state.GetDocumentText())
+
+                Dim expectedText3 As String = "
+using NS2;
+
+namespace NS1
+{
+    public class C1
+    {
+        void M(int x)
+        {
+            x.IntegerExtMethod
+        }
+    }
+}
+
+namespace NS2
+{
+    public static class Ext
+    {
+        public static bool IntegerExtMethod(this int x) => false;
+    }
+}
+"
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.SendInvokeCompletionListAndWaitForUiRenderAsync()
+
+                ' Now we changed the option to "always add using"
+                Await state.AssertSelectedCompletionItem(displayText:="IntegerExtMethod", inlineDescription:="NS2")
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+
+                Assert.Equal(expectedText3, state.GetDocumentText())
+            End Using
+        End Function
+
     End Class
 End Namespace
