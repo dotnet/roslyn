@@ -323,12 +323,17 @@ internal sealed partial class DiagnosticAnalyzerService
             var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
             var computeTask = incrementalAnalysis
-                ? service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(executor, analyzers, version, cancellationToken)
+                ? service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(executor, analyzers, cancellationToken)
                 : ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken);
             var diagnosticsMap = await computeTask.ConfigureAwait(false);
 
             if (incrementalAnalysis)
-                service._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+            {
+                // Save the analysis results so subsequent member-only edits can reuse diagnostics
+                // outside the edited member, and retrieve the document snapshot for diffing.
+                var memberSpans = await IncrementalMemberEditAnalyzer.CreateMemberSpansAsync((Document)document, cancellationToken).ConfigureAwait(false);
+                service._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document, version, diagnosticsMap, memberSpans);
+            }
 
             list.AddRange(diagnosticsMap.SelectMany(kvp => kvp.Value));
         }
