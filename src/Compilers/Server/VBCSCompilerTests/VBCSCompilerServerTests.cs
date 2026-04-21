@@ -407,8 +407,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private string _pipeName;
             private bool _shutdown;
-            private DateTime? _purgeCacheCutoff;
-            private DateTime? _cacheStatsSince;
+            private DateTimeOffset? _purgeCacheCutoff;
+            private DateTimeOffset? _cacheStatsSince;
             private int _cacheStatsVerbosity;
             private TimeSpan? _timeout;
             private string _logFilePath;
@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 Assert.True(Parse("-purgecache:2026-04-10T12:00:00Z"));
                 Assert.NotNull(_purgeCacheCutoff);
-                Assert.Equal(new DateTime(2026, 4, 10, 12, 0, 0, DateTimeKind.Utc), _purgeCacheCutoff.Value);
+                Assert.Equal(new DateTimeOffset(2026, 4, 10, 12, 0, 0, TimeSpan.Zero), _purgeCacheCutoff.Value);
             }
 
             [Fact]
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void CacheStats()
             {
                 Assert.True(Parse("-cachestats"));
-                Assert.Equal(DateTime.MinValue, _cacheStatsSince);
+                Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
                 Assert.Equal(0, _cacheStatsVerbosity);
                 Assert.False(_shutdown);
                 Assert.Null(_purgeCacheCutoff);
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void CacheStatsWithTimestamp()
             {
                 Assert.True(Parse("-cachestats:2025-01-15T10:00:00Z"));
-                Assert.Equal(new DateTime(2025, 1, 15, 10, 0, 0, DateTimeKind.Utc), _cacheStatsSince);
+                Assert.Equal(new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), _cacheStatsSince);
                 Assert.Equal(0, _cacheStatsVerbosity);
             }
 
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void CacheStatsWithVerbosity()
             {
                 Assert.True(Parse("-cachestats", "-cachestatsverbosity:1"));
-                Assert.Equal(DateTime.MinValue, _cacheStatsSince);
+                Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
                 Assert.Equal(1, _cacheStatsVerbosity);
             }
 
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void CacheStatsWithVerbosity2()
             {
                 Assert.True(Parse("-cachestats:2025-01-15T10:00:00Z", "-cachestatsverbosity:2"));
-                Assert.Equal(new DateTime(2025, 1, 15, 10, 0, 0, DateTimeKind.Utc), _cacheStatsSince);
+                Assert.Equal(new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), _cacheStatsSince);
                 Assert.Equal(2, _cacheStatsVerbosity);
             }
 
@@ -535,7 +535,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 Assert.True(Parse("-pipename:test", "-cachestats"));
                 Assert.Equal("test", _pipeName);
-                Assert.Equal(DateTime.MinValue, _cacheStatsSince);
+                Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
             }
 
             [Fact]

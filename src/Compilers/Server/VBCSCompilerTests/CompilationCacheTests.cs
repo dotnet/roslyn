@@ -515,16 +515,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var createdPath = Path.Combine(entryDir, "created");
             Assert.True(File.Exists(createdPath));
             var text = File.ReadAllText(createdPath).Trim();
-            Assert.True(DateTime.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed));
-            Assert.True(parsed <= DateTime.UtcNow);
-            Assert.True(parsed > DateTime.UtcNow.AddMinutes(-1));
+            Assert.True(DateTimeOffset.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed));
+            Assert.True(parsed <= DateTimeOffset.UtcNow);
+            Assert.True(parsed > DateTimeOffset.UtcNow.AddMinutes(-1));
         }
 
         [Fact]
         public void GetCacheStats_CountsAllEntries()
         {
             var cacheDir = Temp.CreateDirectory().Path;
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             // Create several entries
             var entry1 = Path.Combine(cacheDir, "A.dll", "hash1");
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void GetCacheStats_VerboseSummaryIncludesGroupedDlls()
         {
             var cacheDir = Temp.CreateDirectory().Path;
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             var entry = Path.Combine(cacheDir, "MyLib.dll", "hash_abc");
             Directory.CreateDirectory(entry);
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void GetCacheStats_Verbosity2ShowsIndividualEntries()
         {
             var cacheDir = Temp.CreateDirectory().Path;
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             var entry = Path.Combine(cacheDir, "MyLib.dll", "hash_abc");
             Directory.CreateDirectory(entry);
@@ -605,14 +605,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var oldEntry = Path.Combine(cacheDir, "Old.dll", "hash_old");
             Directory.CreateDirectory(oldEntry);
             File.WriteAllBytes(Path.Combine(oldEntry, "assembly"), [1, 2, 3]);
-            File.WriteAllText(Path.Combine(oldEntry, "last-used"), DateTime.UtcNow.AddHours(-2).ToString("O"));
+            File.WriteAllText(Path.Combine(oldEntry, "last-used"), DateTimeOffset.UtcNow.AddHours(-2).ToString("O"));
 
             var newEntry = Path.Combine(cacheDir, "New.dll", "hash_new");
             Directory.CreateDirectory(newEntry);
             File.WriteAllBytes(Path.Combine(newEntry, "assembly"), [4, 5, 6]);
-            File.WriteAllText(Path.Combine(newEntry, "last-used"), DateTime.UtcNow.ToString("O"));
+            File.WriteAllText(Path.Combine(newEntry, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
 
-            var result = CompilationCache.PurgeEntries(cacheDir, DateTime.UtcNow.AddHours(-1), _logger);
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
 
             Assert.Contains("Deleted: 1", result);
             Assert.Contains("Kept: 1", result);
@@ -629,12 +629,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var entry2 = Path.Combine(cacheDir, "B.dll", "hash2");
             Directory.CreateDirectory(entry1);
             File.WriteAllBytes(Path.Combine(entry1, "assembly"), [1]);
-            File.WriteAllText(Path.Combine(entry1, "last-used"), DateTime.UtcNow.ToString("O"));
+            File.WriteAllText(Path.Combine(entry1, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
             Directory.CreateDirectory(entry2);
             File.WriteAllBytes(Path.Combine(entry2, "assembly"), [2]);
-            File.WriteAllText(Path.Combine(entry2, "last-used"), DateTime.UtcNow.ToString("O"));
+            File.WriteAllText(Path.Combine(entry2, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
 
-            var result = CompilationCache.PurgeEntries(cacheDir, DateTime.UtcNow.AddHours(-1), _logger);
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
 
             Assert.Contains("Deleted: 0", result);
             Assert.Contains("Kept: 2", result);
@@ -651,9 +651,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var entryDir = Path.Combine(dllDir, "hash_orphan");
             Directory.CreateDirectory(entryDir);
             File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [1]);
-            File.WriteAllText(Path.Combine(entryDir, "last-used"), DateTime.UtcNow.AddHours(-2).ToString("O"));
+            File.WriteAllText(Path.Combine(entryDir, "last-used"), DateTimeOffset.UtcNow.AddHours(-2).ToString("O"));
 
-            var result = CompilationCache.PurgeEntries(cacheDir, DateTime.UtcNow.AddHours(-1), _logger);
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
 
             Assert.Contains("Deleted: 1", result);
             Assert.False(Directory.Exists(dllDir), "Empty DLL directory should be removed");
@@ -671,9 +671,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var usedDir = Path.Combine(dllDir, "hash_used");
             Directory.CreateDirectory(usedDir);
             File.WriteAllBytes(Path.Combine(usedDir, "assembly"), [1]);
-            File.WriteAllText(Path.Combine(usedDir, "last-used"), DateTime.UtcNow.ToString("O"));
+            File.WriteAllText(Path.Combine(usedDir, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
 
-            var result = CompilationCache.PurgeEntries(cacheDir, DateTime.UtcNow.AddHours(-1), _logger);
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
 
             Assert.Contains("Deleted: 0", result);
             Assert.True(Directory.Exists(stagingDir), "Staging directories should not be deleted");
@@ -688,14 +688,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var oldEntry = Path.Combine(dllDir, "hash_old");
             Directory.CreateDirectory(oldEntry);
             File.WriteAllBytes(Path.Combine(oldEntry, "assembly"), [1]);
-            File.WriteAllText(Path.Combine(oldEntry, "last-used"), DateTime.UtcNow.AddHours(-2).ToString("O"));
+            File.WriteAllText(Path.Combine(oldEntry, "last-used"), DateTimeOffset.UtcNow.AddHours(-2).ToString("O"));
 
             var newEntry = Path.Combine(dllDir, "hash_current");
             Directory.CreateDirectory(newEntry);
             File.WriteAllBytes(Path.Combine(newEntry, "assembly"), [2]);
-            File.WriteAllText(Path.Combine(newEntry, "last-used"), DateTime.UtcNow.ToString("O"));
+            File.WriteAllText(Path.Combine(newEntry, "last-used"), DateTimeOffset.UtcNow.ToString("O"));
 
-            var result = CompilationCache.PurgeEntries(cacheDir, DateTime.UtcNow.AddHours(-1), _logger);
+            var result = CompilationCache.PurgeEntries(cacheDir, DateTimeOffset.UtcNow.AddHours(-1), _logger);
 
             Assert.Contains("Deleted: 1", result);
             Assert.Contains("Kept: 1", result);

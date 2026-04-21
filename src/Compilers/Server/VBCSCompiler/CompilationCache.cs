@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 tryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
 
                 File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
-                File.WriteAllText(Path.Combine(stagingDir, CreatedFileName), DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+                File.WriteAllText(Path.Combine(stagingDir, CreatedFileName), DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture));
                 Directory.Move(stagingDir, cacheDir);
                 stagingDir = null;
 
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 var path = Path.Combine(entryDir, LastUsedFileName);
-                File.WriteAllText(path, DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+                File.WriteAllText(path, DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture));
             }
             catch (Exception ex)
             {
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// use the directory creation time instead.
         /// Returns a human-readable summary.
         /// </summary>
-        internal static string PurgeEntries(string cachePath, DateTime cutoff, ICompilerServerLogger logger)
+        internal static string PurgeEntries(string cachePath, DateTimeOffset cutoff, ICompilerServerLogger logger)
         {
             if (!Directory.Exists(cachePath))
             {
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// timestamp stored inside the <c>last-used</c> file.  Falls back to the
         /// directory creation time when the file is missing or unreadable.
         /// </summary>
-        internal static DateTime GetLastUsedTimeUtc(string entryDir, ICompilerServerLogger logger)
+        internal static DateTimeOffset GetLastUsedTimeUtc(string entryDir, ICompilerServerLogger logger)
         {
             var lastUsedPath = Path.Combine(entryDir, LastUsedFileName);
             try
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (File.Exists(lastUsedPath))
                 {
                     var text = File.ReadAllText(lastUsedPath).Trim();
-                    if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return parsed.ToUniversalTime();
                     }
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 logger.Log($"Failed to read last-used for {entryDir}: {ex.Message}");
             }
 
-            return Directory.GetCreationTimeUtc(entryDir);
+            return new DateTimeOffset(Directory.GetCreationTimeUtc(entryDir), TimeSpan.Zero);
         }
 
         /// <summary>
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <c>created</c> file.  Falls back to the directory creation time when the
         /// file is missing or unreadable.
         /// </summary>
-        internal static DateTime GetCreatedTimeUtc(string entryDir, ICompilerServerLogger logger)
+        internal static DateTimeOffset GetCreatedTimeUtc(string entryDir, ICompilerServerLogger logger)
         {
             var createdPath = Path.Combine(entryDir, CreatedFileName);
             try
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (File.Exists(createdPath))
                 {
                     var text = File.ReadAllText(createdPath).Trim();
-                    if (DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    if (DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return parsed.ToUniversalTime();
                     }
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 logger.Log($"Failed to read created time for {entryDir}: {ex.Message}");
             }
 
-            return Directory.GetCreationTimeUtc(entryDir);
+            return new DateTimeOffset(Directory.GetCreationTimeUtc(entryDir), TimeSpan.Zero);
         }
 
         /// <summary>
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// and used (last-used &gt;= since).  It is a <b>store</b> (miss) if created
         /// after <paramref name="since"/>.  Otherwise it is <b>untouched</b>.
         /// </summary>
-        internal static CacheStats GetCacheStats(string cachePath, DateTime since, ICompilerServerLogger logger)
+        internal static CacheStats GetCacheStats(string cachePath, DateTimeOffset since, ICompilerServerLogger logger)
         {
             var stats = new CacheStats();
             if (!Directory.Exists(cachePath))
@@ -657,8 +657,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public int Hits { get; set; }
         public int Stores { get; set; }
         public int Untouched { get; set; }
-        public List<(string DllName, string HashKey, DateTime Created, DateTime LastUsed)> HitDetails { get; } = new();
-        public List<(string DllName, string HashKey, DateTime Created, DateTime LastUsed)> StoreDetails { get; } = new();
+        public List<(string DllName, string HashKey, DateTimeOffset Created, DateTimeOffset LastUsed)> HitDetails { get; } = new();
+        public List<(string DllName, string HashKey, DateTimeOffset Created, DateTimeOffset LastUsed)> StoreDetails { get; } = new();
 
         /// <summary>
         /// Formats a human-readable summary of the statistics.
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return sb.ToString().TrimEnd();
         }
 
-        private static void FormatGrouped(StringBuilder sb, string label, List<(string DllName, string HashKey, DateTime Created, DateTime LastUsed)> details, int verbosity)
+        private static void FormatGrouped(StringBuilder sb, string label, List<(string DllName, string HashKey, DateTimeOffset Created, DateTimeOffset LastUsed)> details, int verbosity)
         {
             if (details.Count == 0)
             {

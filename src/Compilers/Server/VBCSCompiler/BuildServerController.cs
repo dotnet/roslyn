@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _logger = logger;
         }
 
-        internal int Run(string? pipeName, bool shutdown, DateTime? purgeCacheCutoff, DateTime? cacheStatsSince, int cacheStatsVerbosity, TimeSpan? keepAlive)
+        internal int Run(string? pipeName, bool shutdown, DateTimeOffset? purgeCacheCutoff, DateTimeOffset? cacheStatsSince, int cacheStatsVerbosity, TimeSpan? keepAlive)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// Purges cache entries from the default cache directory.
         /// Entries whose <c>last-used</c> timestamp is older than <paramref name="cutoff"/> are deleted.
         /// </summary>
-        internal int RunPurgeCache(DateTime cutoff)
+        internal int RunPurgeCache(DateTimeOffset cutoff)
         {
             var cachePath = CompilationCache.GetDefaultCachePath();
             if (cachePath is null)
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Displays cache statistics from the default cache directory.
         /// </summary>
-        internal int RunCacheStats(DateTime since, int verbosity)
+        internal int RunCacheStats(DateTimeOffset since, int verbosity)
         {
             var cachePath = CompilationCache.GetDefaultCachePath();
             if (cachePath is null)
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///   <item><description><c>-cachestatsverbosity:&lt;0|1|2&gt;</c> — cache stats verbosity level (0 = totals, 1 = grouped by DLL, 2 = individual entries). Defaults to 0.</description></item>
         /// </list>
         /// </remarks>
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out DateTime? purgeCacheCutoff, out DateTime? cacheStatsSince, out int cacheStatsVerbosity, out TimeSpan? timeout, out string? logFilePath)
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out DateTimeOffset? purgeCacheCutoff, out DateTimeOffset? cacheStatsSince, out int cacheStatsVerbosity, out TimeSpan? timeout, out string? logFilePath)
         {
             pipeName = null;
             shutdown = false;
@@ -268,12 +268,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (arg == "-purgecache")
                 {
-                    purgeCacheCutoff = DateTime.MaxValue;
+                    purgeCacheCutoff = DateTimeOffset.MaxValue;
                 }
                 else if (argSpan.StartsWith("-purgecache:".AsSpan(), StringComparison.Ordinal))
                 {
                     var value = argSpan["-purgecache:".Length..].ToString();
-                    if (!DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return false;
                     }
@@ -282,12 +282,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else if (arg == "-cachestats")
                 {
-                    cacheStatsSince = DateTime.MinValue;
+                    cacheStatsSince = DateTimeOffset.MinValue;
                 }
                 else if (argSpan.StartsWith("-cachestats:".AsSpan(), StringComparison.Ordinal))
                 {
                     var value = argSpan["-cachestats:".Length..].ToString();
-                    if (!DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return false;
                     }
