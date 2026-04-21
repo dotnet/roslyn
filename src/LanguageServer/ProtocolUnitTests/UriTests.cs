@@ -419,6 +419,25 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [InlineData(true, "file:///c:/Path/File.txt", "file:///c:/path/file.txt")]
     // UNC file paths are case-insensitive.
     [InlineData(true, "file://server/Share/Path", "file://server/share/path")]
+    // Encoded vs unencoded: percent-encoded characters should be decoded before comparison.
+    // Spaces encoded as %20.
+    [InlineData(true, "file:///c:/test%20file.txt", "file:///c:/test file.txt")]
+    // Hash character %23: unencoded # starts a fragment, so these parse to different components (not equal).
+    [InlineData(false, "file:///c:/code/c%23/project", "file:///c:/code/c#/project")]
+    // Unicode characters encoded as UTF-8 percent sequences.
+    [InlineData(true, "file:///c:/Source/Z%C3%BCrich", "file:///c:/Source/Zürich")]
+    // Mixed encoding in authority (UNC path).
+    [InlineData(true, "file://sh%C3%A4res/path", "file://shäres/path")]
+    // Encoded vs unencoded in HTTP query strings.
+    [InlineData(true, "http://example.com/path?q%3D1", "http://example.com/path?q=1")]
+    // Encoded vs unencoded in fragments.
+    [InlineData(true, "http://example.com/path#frag%20ment", "http://example.com/path#frag ment")]
+    // Double-encoded percent: %25 decodes to %, which is different from a literal %.
+    [InlineData(false, "file:///c:/test%2520file.txt", "file:///c:/test%20file.txt")]
+    // Encoded colon in path (vscode-uri encodes drive letter colons).
+    [InlineData(true, "file:///c%3A/test", "file:///c:/test")]
+    // Encoded slash %2F in query (not a path separator in query context).
+    [InlineData(true, "http://example.com/path?url%3Dhttp%3A%2F%2Fother", "http://example.com/path?url=http://other")]
     public void TestUriEquality(bool areEqual, string? uriString1, string? uriString2)
     {
         var documentUri1 = uriString1 != null ? new DocumentUri(uriString1) : null;
