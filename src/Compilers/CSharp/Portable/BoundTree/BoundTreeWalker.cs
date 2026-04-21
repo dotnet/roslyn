@@ -104,7 +104,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.Left is not BoundBinaryOperator binary)
+            // Chained relational comparisons (spec §11.11.13) have structural semantics
+            // different from ordinary binary operators: the outer node's `Left` is the
+            // inner link's BoundBinaryOperator, and the outer link's first argument (Y)
+            // is `((BoundBinaryOperator)Left).Right`, not `Left`. Consumers of this
+            // walker that reason about operand positions (notably ref-safety) use that
+            // invariant directly (e.g. Binder.ValueChecks' FromBinaryOperator), so we
+            // must not flatten the chained-node's spine into a sequence of Left/Right
+            // visits that would let a downstream pairing pass mis-associate operands
+            // with operator parameters. Fall through to the base class's default
+            // Left/Right visit, which preserves structure and is still stack-guarded
+            // by BoundTreeWalkerWithStackGuard.
+            //
+            // Classical short-circuit `&&`/`||` can still flatten safely: those operators
+            // have the standard "Left, Right" operand layout, and deep left-spines of
+            // them (e.g. the synthesized `Equals` body of a record with many fields -
+            // `f0 == o.f0 && f1 == o.f1 && ...`) depend on this iterative flattening to
+            // avoid recursing 1000+ levels deep via `Visit`.
+            if (node.Left is not BoundBinaryOperator binary || node.IsChainedRelational(out _))
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -121,6 +138,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (current.Kind == BoundKind.BinaryOperator)
             {
                 binary = (BoundBinaryOperator)current;
+
+                // Same rule applies mid-spine: don't flatten past a chained-relational
+                // node; its Left/Right pairing doesn't match the standard operand layout
+                // the surrounding flatten loop assumes.
+                if (binary.IsChainedRelational(out _))
+                {
+                    break;
+                }
+
                 BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
                 rightOperands.Push(binary.Right);
                 current = binary.Left;

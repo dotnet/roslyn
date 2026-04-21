@@ -1481,6 +1481,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
+            // Chained relational comparisons are always rewritten by
+            // LocalRewriter_ChainedRelationalOperator into a BoundSequence containing a
+            // short-circuit && chain before CodeGen runs. If one reaches the Optimizer,
+            // a prior pass missed its lowering and the subsequent walker would both
+            // misbehave (via the IsLogical-keyed branch cookie / stack scheduling) and
+            // silently drop ChainedRelationalLeftOperand when it calls
+            // `node.Update(..., ConstantValueOpt, BinaryOperatorMethod, ...)` further
+            // down in this method.
+            Debug.Assert(!node.IsChainedRelational(out _));
+
             BoundExpression child = node.Left;
 
             if (child.Kind != BoundKind.BinaryOperator || child.ConstantValueOpt != null)
