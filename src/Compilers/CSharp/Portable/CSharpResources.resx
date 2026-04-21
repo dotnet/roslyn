@@ -8108,6 +8108,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PPShebangInProjectBasedProgram" xml:space="preserve">
     <value>'#!' directives can be only used in scripts or file-based programs</value>
   </data>
+  <data name="ERR_PPShebangNotOnFirstLine" xml:space="preserve">
+    <value>'#!' must be the first characters on the first line of the file</value>
+  </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
     <value>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</value>
   </data>

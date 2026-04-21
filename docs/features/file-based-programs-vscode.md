@@ -156,6 +156,38 @@ This uses the file-based program entry point file, translates it to a virtual ms
 
 It uses file watchers to watch the project globs and redo the design time build on relevant changes, such as changes to `#:` directives.
 
+## Automatic discovery
+
+The Roslyn LSP will automatically discover and load file-based apps in the opened workspace folders. The user can opt out of this discovery process by setting `"dotnet.fileBasedApps.enableAutomaticDiscovery": false`.
+For the first release of the feature in the VS Code C# extension, the setting will be disabled-by-default in the stable release channel and enabled-by-default in the prerelease channel.
+
+Certain subfolders in a workspace are excluded from this discovery process:
+- Any folders which contain a `.csproj` file.
+- Any folders with names conventionally reserved for build artifacts, such as `artifacts`, `bin`, and `obj`.
+- Any folders marked "hidden" in the file system. `.git` and `.vs` typically fall into this.
+
+The first time discovery is performed in a workspace, the LSP will read all `.cs` files in the opened workspace folders which are not excluded by the above conditions. If the file content starts with `#!`, it is marked as a file-based app and loaded.
+
+A cache file is created after each discovery pass and stored in the user temp directory. This file holds:
+- The time that the previous discovery pass started.
+- Paths of file-based apps found during the last discovery pass.
+- Paths of folders that were found to contain `.csproj` files during the last discovery pass.
+
+The cache data allows the following optimizations in subsequent discovery passes:
+- Allows not reading any C# files whose last write time is older than the cached time.
+- Allows reducing the number of times we list files in directories whose last write time is older than the cached time.
+
+### `#!` requirement
+
+This design requires files to start with `#!` in order to participate in discovery.
+Specifically, a discoverable file must start with either the byte sequence `0x23, 0x21` (ASCII/UTF-8 `#!`), or the byte sequence `0xEF, 0xBB, 0xBF, 0x23, 0x21` (UTF-8 BOM followed by `#!`).
+
+The reason for this is: we anticipate adding support for `#:` to non-entry-point files. This means that having `#:` is not going to be enough to identify a file as definitely the entry point.
+
+Instead, it will be necessary to search for both `#:` and top-level statements at a minimum. This cost is acceptable for files that were explicitly opened in the editor, but is a bit steep for a broad discovery pass.
+
+For this reason, we intend to put `#!`-at-start as a standard for entry points of file-based apps. We plan on shipping an analyzer which reports a warning in files which contain both `#:include` and top-level statements, but do not have `#!` at the top.
+
 ## Future considerations
 
 This section is not intended to serve as permanent documentation but as more of a roadmap for a series of changes we may make in this area in the near future. It should not be necessary to read/understand this in order to evaluate a PR currently under review. i.e. anything that the current PR is actually implementing is covered in previous sections.
@@ -168,21 +200,10 @@ We may want to make a change in the future, to stop using this designation for f
 
 ### Allowing non-entry-point files to contain `#:` directives
 
-We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points. We think we want users to use a `#!` at the top of the file, in this case, to indicate that it is an entry point.
+We are considering adding support for non-entry-point files to contain `#:` in the future. In this case, we would need an additional bit of information to distinguish entry points from non-entry-points.
+For *multi-file file-based apps*, users should use a `#!` at the top of the entry point file to make it easy to identify.
+For *single-file file-based apps*, we think that just using `#:` and top-level statements together should be enough, to identify a file that was explicitly opened in the editor as an entry point.
 
 ### Checking top-level statements presence without doing a full parse
 
 Currently there are cases where we may end up needing to do an additional parse of a file just to check if it contains top-level statements. This is generally a situation we'd like to avoid, and, would prefer to either use a pattern where the file already exists in some project and has a syntax tree we can check incrementally, or, that we devise some other solution for performing our heuristics which doesn't require a full parse.
-
-### Automatic discovery
-
-Currently, the main way file-based apps are discovered is: a classification is performed when a document is requested for a file which was not found in the host workspace. If the classification indicates the file is a file-based app entry point, then a load is initiated for it.
-
-In situations where the user opens an ordinary file `#:include`d by a file-based app, there is a desire to somehow discover the file-based app entry points which haven't been opened, in order to give full information about the file that was opened.
-
-We are considering various methods for accomplishing this, such as:
-- performing a "crawl" of `.cs` files in the workspace which are outside any `.csproj` cone, and:
-   - cracking the `.cs` files to check for `#:` or `#!` directives, or, possibly requiring a naming convention such as `MyTool.app.cs`
-- or introducing some convention for listing the paths of file-based apps in a discoverable location. (smells very strongly like a solution file).
-
-It feels like "low-configuration, low-ceremony, simple conventions", is the norm for file-based apps. So, it feels like doing a crawl which includes some heuristics to ignore files that are very likely not file-based app entry points, may be viable here. We just need to do the work and prove it out.

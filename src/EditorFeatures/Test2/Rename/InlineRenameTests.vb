@@ -2445,7 +2445,7 @@ public class GeneratedClass
                                 }
                             </Document>
                         </Project>
-                    </Workspace>, host)
+                    </Workspace>, host, GetType(TestRazorSourceGeneratedDocumentSpanMappingService))
 
                 Dim project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(New TestGeneratorReference(razorGenerator))
                 workspace.TryApplyChanges(project.Solution)
