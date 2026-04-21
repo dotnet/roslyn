@@ -1097,6 +1097,23 @@
         </summary>
       </Comments>
     </Property>
+    <Property Name="IsChainedRelationalComparison" Type="bool" Internal="true">
+      <Comments>
+        <summary>
+          <see langword="true" /> if this operation represents the outer link of a C#
+          chained relational comparison (spec §11.11.13, e.g. the outer <c>&lt;</c> in
+          <c>a &lt; b &lt; c</c>). When true, the operation short-circuits on its
+          <see cref="LeftOperand" />'s bool result: if the inner link is <see langword="false" />,
+          the right operand is not evaluated. The <see cref="OperatorMethod" /> and
+          <see cref="OperatorKind" /> describe the isolated resolution of
+          <c>Y op RightOperand</c>, where <c>Y</c> is the shared middle operand
+          (reachable as <c>((IBinaryOperation)LeftOperand).RightOperand</c>).
+          This is an internal signal consumed by <c>ControlFlowGraphBuilder</c> so the
+          CFG emits the correct short-circuit edges; see
+          https://github.com/dotnet/roslyn/issues/XXXXX for tracking public-API exposure.
+        </summary>
+      </Comments>
+    </Property>
   </Node>
   <Node Name="IConditionalOperation" Base="IOperation" ChildrenOrder="Condition,WhenTrue,WhenFalse" HasType="true" HasConstantValue="true">
     <Comments>
