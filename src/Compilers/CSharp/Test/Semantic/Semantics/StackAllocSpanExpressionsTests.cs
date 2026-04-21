@@ -402,21 +402,17 @@ class Test
         [Fact]
         public void StackAllocSyntaxProducesUnsafeErrorInSafeCode()
         {
-            var source = @"
+            CreateCompilation(@"
 class Test
 {
     void M()
     {
         var x = stackalloc int[10];
     }
-}";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var x = stackalloc int[10];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[10]").WithLocation(6, 17));
-
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]

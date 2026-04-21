@@ -1494,7 +1494,7 @@ class Test
         [Fact]
         public void StackAllocSyntaxProducesUnsafeErrorInSafeCode()
         {
-            var source = @"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -1503,8 +1503,7 @@ class Test
         var x2 = stackalloc int [ ] { 1, 2, 3 };
         var x3 = stackalloc     [ ] { 1, 2, 3 };
     }
-}";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var x1 = stackalloc int [3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int [3] { 1, 2, 3 }").WithLocation(6, 18),
@@ -1515,9 +1514,6 @@ class Test
                 //         var x3 = stackalloc     [ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(8, 18)
                 );
-
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1821,7 +1817,7 @@ unsafe public class Test
         [Fact]
         public void StackAllocWithDynamic()
         {
-            var source = @"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -1831,8 +1827,7 @@ class Program
         var d2 = stackalloc dynamic [ ] { d };
         var d3 = stackalloc         [ ] { d };
     }
-}";
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+}").VerifyDiagnostics(
                 // (7,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 //         var d1 = stackalloc dynamic [3] { d };
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 29),
@@ -1849,25 +1844,6 @@ class Program
                 //         var d3 = stackalloc         [ ] { d };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc         [ ] { d }").WithLocation(9, 18)
                 );
-
-            var expectedPreviewDiagnostics = new[]
-            {
-                // (7,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                //         var d1 = stackalloc dynamic [3] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 29),
-                // (7,18): error CS0847: An array initializer of length '3' is expected
-                //         var d1 = stackalloc dynamic [3] { d };
-                Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc dynamic [3] { d }").WithArguments("3").WithLocation(7, 18),
-                // (8,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                //         var d2 = stackalloc dynamic [ ] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(8, 29),
-                // (9,18): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
-                //         var d3 = stackalloc         [ ] { d };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc         [ ] { d }").WithArguments("dynamic").WithLocation(9, 18)
-            };
-
-            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

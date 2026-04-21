@@ -20076,16 +20076,11 @@ unsafe static class E
     }
 }
 """;
-        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics(
             // (1,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // D d = object.M;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "object.M").WithLocation(1, 7));
-
-        comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
-        comp.VerifyEmitDiagnostics();
-        comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe);
-        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]

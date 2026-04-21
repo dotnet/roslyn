@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
+        {
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, static node => node.GetLocation());
+        }
+
         internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location)
         {
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l);
@@ -38,11 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
         {
-            if (!this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
-            {
-                return;
-            }
-
             ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, arg, location, forConstructorConstraint: false);
 
             if (ShouldCheckConstraints)
@@ -102,8 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
         {
-            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules);
-
             var callerUnsafeMode = symbol.CallerUnsafeMode;
             if (callerUnsafeMode != CallerUnsafeMode.None)
             {
@@ -248,25 +246,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (!this.InUnsafeRegion)
             {
-                var featureDiag = MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
-
                 if (disallowedUnder is MemorySafetyRules.Legacy)
                 {
                     Debug.Assert(customErrorCode is null && customArgs is null);
 
-                    // Feature available: pointer types are safe.
-                    if (featureDiag is null)
-                    {
-                        return null;
-                    }
-
-                    // Feature not available but opted in: report feature availability error.
                     if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
                     {
-                        return featureDiag;
+                        return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
                     }
 
-                    // Legacy rules.
                     return ((object?)sizeOfTypeOpt == null)
                         ? new CSDiagnosticInfo(ErrorCode.ERR_UnsafeNeeded)
                         : new CSDiagnosticInfo(ErrorCode.ERR_SizeofUnsafe, sizeOfTypeOpt);
@@ -274,16 +262,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(disallowedUnder is MemorySafetyRules.Updated);
 
-                // Feature available: pointer operations are unsafe.
-                if (featureDiag is null)
-                {
-                    return new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation, customArgs ?? []);
-                }
-
-                // Feature not available but opted in: report feature availability error.
                 if (this.Compilation.SourceModule.UseUpdatedMemorySafetyRules)
                 {
-                    return featureDiag;
+                    return MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation)
+                        ?? new CSDiagnosticInfo(customErrorCode ?? ErrorCode.ERR_UnsafeOperation, customArgs ?? []);
                 }
 
                 // This location is disallowed only under updated memory safety rules which are not enabled.
