@@ -2332,8 +2332,9 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     #endregion
 
     #region Grammar type positions
-    // These tests pin behavior at every distinct parser call site where a type can appear (derived from the
-    // set of `ParseType`, `ParseReturnType`, `ParseTypeArgument`, and `ParseUnderlyingType` callers).
+    // These tests pin behavior at every distinct parser call site where a type or name can appear
+    // (derived from the set of `ParseType`, `ParseReturnType`, `ParseTypeArgument`,
+    // `ParseUnderlyingType`, `ParseQualifiedName`, and `ParseAliasQualifiedName` callers).
     //
     // Summary of what the parser currently does with a leading `.`:
     //
@@ -3162,6 +3163,265 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
                     M(SyntaxKind.IdentifierToken);
                 }
                 M(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarName_NamespaceDeclaration_NotSupported()
+    {
+        // Namespace names are parsed via `ParseQualifiedName`, which does not accept a leading `.`.
+        // The parser emits `ERR_IdentifierExpected`, synthesizes a missing identifier for the left side,
+        // and builds a `QualifiedName(<missing>, ., X)` — NOT a `TargetTypedQualifiedName`.
+        UsingTree("namespace .X { }",
+            // (1,11): error CS1001: Identifier expected
+            // namespace .X { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 11));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.NamespaceDeclaration);
+            {
+                N(SyntaxKind.NamespaceKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarName_UsingDirective_NotSupported()
+    {
+        // Non-alias using directives parse the name via `ParseQualifiedName`, which does not accept a
+        // leading `.`.  (Alias using directives — `using A = .Foo;` — take a different path through
+        // `ParseType` and DO accept it.  See `GrammarType_UsingAlias` above.)
+        UsingTree("using .X;",
+            // (1,7): error CS1001: Identifier expected
+            // using .X;
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 7));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.QualifiedName);
+                {
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarName_Attribute_NotSupported()
+    {
+        // Attribute names are parsed via `ParseQualifiedName`; leading `.` produces an identifier-expected
+        // diagnostic and a `QualifiedName(<missing>, ., MyAttr)`.
+        UsingTree("""
+            [.MyAttr] class C { }
+            """,
+            // (1,2): error CS1001: Identifier expected
+            // [.MyAttr] class C { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 2));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.AttributeList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Attribute);
+                    {
+                        N(SyntaxKind.QualifiedName);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "MyAttr");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_BaseList_WithTargetTypedGenericArgument()
+    {
+        // `class C : X<.Y> { }` — the base-type position goes through `ParseType`, which routes generic
+        // type arguments through `ParseTypeArgument` → `ParseType` → `ParseUnderlyingType`, so the
+        // inner `.Y` is accepted as a `TargetTypedQualifiedName`.  Contrast with the expression-scope
+        // case `Foo<.Bar>(x)` (see `GrammarType_TypeArgument_NotSupported`) where `<` / `>` ambiguity
+        // prevents the same parse.
+        UsingTree("class C : X<.Y> { }");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.TargetTypedQualifiedName);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_GenericConstraint_WithTargetTypedGenericArgument()
+    {
+        // `where T : I<.Y>` — generic constraint with a target-typed type argument.  Same route as
+        // `GrammarType_BaseList_WithTargetTypedGenericArgument`.
+        UsingTree("class C<T> where T : I<.Y> { }");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.TypeParameterList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.TypeParameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+                N(SyntaxKind.TypeParameterConstraintClause);
+                {
+                    N(SyntaxKind.WhereKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.TypeConstraint);
+                    {
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "I");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.TargetTypedQualifiedName);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Y");
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_NewGenericType_WithTargetTypedGenericArgument()
+    {
+        // `new X<.Y>()` — generic object creation with a target-typed type argument.
+        UsingExpression("new X<.Y>()");
+
+        N(SyntaxKind.ObjectCreationExpression);
+        {
+            N(SyntaxKind.NewKeyword);
+            N(SyntaxKind.GenericName);
+            {
+                N(SyntaxKind.IdentifierToken, "X");
+                N(SyntaxKind.TypeArgumentList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.TargetTypedQualifiedName);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+            }
+            N(SyntaxKind.ArgumentList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
             }
         }
         EOF();
