@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement;
@@ -87,9 +86,9 @@ public abstract class AbstractCompleteStatementTests
     {
         return () =>
         {
-            var caretPosition = textView.Caret.Position.BufferPosition;
-            var newSpanshot = textView.TextBuffer.Insert(caretPosition, text);
-            textView.Caret.MoveTo(new SnapshotPoint(newSpanshot, caretPosition + text.Length));
+            // `Insert` moves the caret forward by the length of the inserted text,
+            // so we don't need to move it manually here
+            textView.TextBuffer.Insert(textView.Caret.Position.BufferPosition, text);
         };
     }
 

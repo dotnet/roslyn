@@ -106,3 +106,7 @@ Several core data structures are generated from XML definitions — never edit g
 - `src/Compilers/CSharp/Portable/Syntax/Syntax.xml` — Syntax tree node definitions
 - `src/Compilers/CSharp/Portable/BoundTree/BoundNodes.xml` — Bound tree node definitions
 - `docs/wiki/Roslyn-Overview.md` — Architecture deep-dive
+
+## Code Review
+
+When performing a code review, follow the review process, priorities, conventions, and output format defined in the [code-review skill](/.github/skills/code-review/SKILL.md).
