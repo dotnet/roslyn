@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var candidateBaseType = candidateSubtype.BaseTypeNoUseSiteDiagnostics;
             Debug.Assert(TypeSymbol.Equals(candidateBaseType.OriginalDefinition, closedType.OriginalDefinition, TypeCompareKind.CLRSignatureCompareOptions));
 
+            // PROTOTYPE(cc): This call tends to attempt the unification by substituting types from the LHS into type parameters of the RHS.
+            // However, for cases where the unification can't be performed this way, it might try to substitute a type parameter from the RHS to the LHS.
+            // This results in a type which is invalid at the use site of 'closedType'.
             if (!CanUnify(candidateBaseType, closedType, out var substitution))
                 return null;
 
