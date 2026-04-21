@@ -2331,6 +2331,665 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
 
     #endregion
 
+    #region Grammar type positions
+    // These tests pin behavior at every distinct parser call site where a type can appear (derived from the
+    // set of `ParseType`, `ParseReturnType`, `ParseTypeArgument`, and `ParseUnderlyingType` callers).
+    //
+    // Summary of what the parser currently does with a leading `.`:
+    //
+    // * Positions that flow through `ParseUnderlyingType` (type operators + a handful of declaration contexts
+    //   that aren't dispatched on the first token) accept `.X` as a `TargetTypedQualifiedName`:
+    //     `new .Foo()`, `typeof(.Foo)`, `default(.Foo)`, `x as .Foo`, `x is .Foo`, `sizeof(.Foo)`,
+    //     `stackalloc .Foo[N]`, `catch (.Ex e)`, `using A = .Foo`, `where T : .I`, base list `: .B`,
+    //     `ref .T M()`.
+    // * Declaration contexts whose first-token dispatcher rejects `.` (class members) produce a correct
+    //   member-declaration tree plus an `ERR_InvalidMemberDecl` diagnostic at the `.`.
+    // * Argument-list / parameter-list parsers reject `.` at the start of a parameter with
+    //   `ERR_IdentifierExpected`.
+    // * Statement positions (`.T x;`, `.T Local() { }`, `.T* p;`, `.T[] x;`, `.T? x = null;`,
+    //   `foreach (.T x in y)`) are NOT supported: `.T` is parsed as an expression, and the tokens that
+    //   would have named the variable become follow-on errors. No target-typed *type* is produced.
+    //   These positions don't have a target type by construction, so target-typed static member access
+    //   is not expected to work there; they are intentionally not covered below.
+    //
+    // Ambiguities the parser can't resolve:
+    // * `Foo<.Bar>(x)` is parsed as a less-than / greater-than comparison chain, not as a generic
+    //   invocation with `.Bar` as a type argument.
+
+    [Fact]
+    public void GrammarType_MethodReturnType_NotSupported()
+    {
+        // At class-body scope, the first-token dispatcher rejects `.` with `ERR_InvalidMemberDecl` and
+        // SKIPS the `.` as invalid syntax.  The following `R M() { }` parses as a normal method
+        // declaration with `R` (not `.R`) as the return type.  No `TargetTypedQualifiedName` is produced.
+        UsingTree("""
+            class C
+            {
+                .R M() { }
+            }
+            """,
+            // (3,5): error CS1519: Invalid token '.' in a member declaration
+            //     .R M() { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 5));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "R");
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_MethodParameterType_NotSupported()
+    {
+        // Parameter-list parsing rejects `.` with `ERR_IdentifierExpected` and skips it.  The parameter
+        // type ends up as a plain `IdentifierName T` — no `TargetTypedQualifiedName` is produced.
+        UsingTree("""
+            class C
+            {
+                void M(.T p) { }
+            }
+            """,
+            // (3,12): error CS1001: Identifier expected
+            //     void M(.T p) { }
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(3, 12));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                            N(SyntaxKind.IdentifierToken, "p");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_FieldDeclarationType_NotSupported()
+    {
+        // Like method-return-type at class scope, `.` is rejected and skipped.  The field parses as
+        // `T F;` with no `TargetTypedQualifiedName`.
+        UsingTree("""
+            class C
+            {
+                .T F;
+            }
+            """,
+            // (3,5): error CS1519: Invalid token '.' in a member declaration
+            //     .T F;
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 5));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_PropertyDeclarationType_NotSupported()
+    {
+        UsingTree("""
+            class C
+            {
+                .T P { get; set; }
+            }
+            """,
+            // (3,5): error CS1519: Invalid token '.' in a member declaration
+            //     .T P { get; set; }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 5));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.PropertyDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.IdentifierToken, "P");
+                    N(SyntaxKind.AccessorList);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.GetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.GetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_IndexerType_NotSupported()
+    {
+        UsingTree("""
+            class C
+            {
+                .T this[int i] => default;
+            }
+            """,
+            // (3,5): error CS1519: Invalid token '.' in a member declaration
+            //     .T this[int i] => default;
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ".").WithArguments(".").WithLocation(3, 5));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.IndexerDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.ThisKeyword);
+                    N(SyntaxKind.BracketedParameterList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.DefaultLiteralExpression);
+                        {
+                            N(SyntaxKind.DefaultKeyword);
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_GenericConstraint()
+    {
+        UsingTree("""
+            class C<T> where T : .I { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.TypeParameterList);
+                {
+                    N(SyntaxKind.LessThanToken);
+                    N(SyntaxKind.TypeParameter);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.GreaterThanToken);
+                }
+                N(SyntaxKind.TypeParameterConstraintClause);
+                {
+                    N(SyntaxKind.WhereKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.TypeConstraint);
+                    {
+                        N(SyntaxKind.TargetTypedQualifiedName);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "I");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_BaseList()
+    {
+        UsingTree("class C : .B { }");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.TargetTypedQualifiedName);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "B");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_TypeArgument_NotSupported()
+    {
+        // `Foo<.Bar>(x)` — the `<` / `>` generic-argument-list disambiguation heuristic does not recognize
+        // a target-typed name as a valid type argument, so the expression is parsed as a comparison chain
+        // `(Foo < .Bar) > (x)` rather than `Foo<.Bar>(x)`.
+        UsingExpression("Foo<.Bar>(x)");
+
+        N(SyntaxKind.GreaterThanExpression);
+        {
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Foo");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Bar");
+                    }
+                }
+            }
+            N(SyntaxKind.GreaterThanToken);
+            N(SyntaxKind.ParenthesizedExpression);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_AsExpression()
+    {
+        UsingExpression("x as .Foo");
+
+        N(SyntaxKind.AsExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.AsKeyword);
+            N(SyntaxKind.TargetTypedQualifiedName);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Foo");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_SizeOf()
+    {
+        UsingExpression("sizeof(.Foo)");
+
+        N(SyntaxKind.SizeOfExpression);
+        {
+            N(SyntaxKind.SizeOfKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedQualifiedName);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Foo");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_CatchExceptionType()
+    {
+        UsingStatement("try { } catch (.Ex e) { }");
+
+        N(SyntaxKind.TryStatement);
+        {
+            N(SyntaxKind.TryKeyword);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.CatchClause);
+            {
+                N(SyntaxKind.CatchKeyword);
+                N(SyntaxKind.CatchDeclaration);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.TargetTypedQualifiedName);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Ex");
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "e");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_UsingAlias()
+    {
+        UsingTree("using A = .Foo;");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.UsingDirective);
+            {
+                N(SyntaxKind.UsingKeyword);
+                N(SyntaxKind.NameEquals);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                }
+                N(SyntaxKind.TargetTypedQualifiedName);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Foo");
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_StackAllocElementType()
+    {
+        UsingExpression("stackalloc .Foo[10]");
+
+        N(SyntaxKind.StackAllocArrayCreationExpression);
+        {
+            N(SyntaxKind.StackAllocKeyword);
+            N(SyntaxKind.ArrayType);
+            {
+                N(SyntaxKind.TargetTypedQualifiedName);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "Foo");
+                    }
+                }
+                N(SyntaxKind.ArrayRankSpecifier);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "10");
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_DelegateDeclaration()
+    {
+        // `delegate .R D(.T p);` — the return-type position accepts `.R` via `ParseReturnType` and produces
+        // a `TargetTypedQualifiedName`, but the parameter-list parser rejects `.` with
+        // `ERR_IdentifierExpected` and skips it, leaving the parameter type as a plain `IdentifierName T`.
+        UsingTree("delegate .R D(.T p);",
+            // (1,15): error CS1001: Identifier expected
+            // delegate .R D(.T p);
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 15));
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.DelegateDeclaration);
+            {
+                N(SyntaxKind.DelegateKeyword);
+                N(SyntaxKind.TargetTypedQualifiedName);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "R");
+                    }
+                }
+                N(SyntaxKind.IdentifierToken, "D");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.IdentifierToken, "p");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_RefMethodReturnType()
+    {
+        UsingTree("""
+            class C
+            {
+                ref .T M() => throw null;
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.TargetTypedQualifiedName);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "T");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.ThrowExpression);
+                        {
+                            N(SyntaxKind.ThrowKeyword);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    #endregion
+
     #region Pattern positions
 
     [Fact]
