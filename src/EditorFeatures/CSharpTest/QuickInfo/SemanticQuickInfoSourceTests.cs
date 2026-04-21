@@ -10507,7 +10507,7 @@ AnonymousTypes(
             {
                 static void Main()
                 {
-                    C<int>.$$M("hello");
+                    C<int>.$$M(42, "hello");
                 }
             }
             """,
@@ -10541,7 +10541,7 @@ AnonymousTypes(
             {
                 static void Main()
                 {
-                    Outer<int>.Inner<bool>.$$M("hello");
+                    Outer<int>.Inner<bool>.$$M(42, true, "hello");
                 }
             }
             """,
@@ -10572,7 +10572,7 @@ AnonymousTypes(
             {
                 static void Main()
                 {
-                    C<int>.$$M("hello");
+                    C<int>.$$M(42, "hello");
                 }
             }
             """,
