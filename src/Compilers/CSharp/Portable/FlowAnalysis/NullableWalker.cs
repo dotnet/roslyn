@@ -2055,14 +2055,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // For union types where none of the case types are nullable, the default state for Value is "not null" rather than "maybe null".
                         var result = NullableFlowState.NotNull;
 
-                        foreach (var ctor in unionType.InstanceConstructors)
-                        {
-                            if (NamedTypeSymbol.IsSuitableUnionConstructor(ctor))
+                        unionType.ForEachUnionFactoryMethod(
+                            (factory, _) =>
                             {
-                                var parameter = ctor.Parameters[0];
+                                var parameter = factory.Parameters[0];
                                 result = result.Join(GetParameterState(parameter.TypeWithAnnotations, parameter.FlowAnalysisAnnotations).State);
-                            }
-                        }
+                                return false;
+                            },
+                            (object?)null);
 
                         return result;
                     }
@@ -4446,6 +4446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (constructor is not null &&
                         constructor.ContainingType.Equals(type, TypeCompareKind.AllIgnoreOptions) &&
                         type is NamedTypeSymbol { IsUnionType: true } unionType &&
+                        unionType.GetMemberProviderInterfaceForDefinition() is null &&
                         NamedTypeSymbol.IsSuitableUnionConstructor(constructor))
                     {
                         valueProperty = Binder.GetUnionTypeValuePropertyNoUseSiteDiagnostics(unionType);
@@ -9606,7 +9607,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 fromExplicitCast: fromExplicitCast,
                                 useLegacyWarnings: false,
                                 assignmentKind,
-                                parameterOpt,
                                 reportTopLevelWarnings: reportWarnings,
                                 reportRemainingWarnings: reportWarnings,
                                 trackMembers: true,
@@ -9930,7 +9930,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fromExplicitCast: fromExplicitCast,
                             useLegacyWarnings,
                             assignmentKind,
-                            parameterOpt,
                             reportTopLevelWarnings,
                             reportRemainingWarnings,
                             trackMembers: trackMembers,
@@ -10486,20 +10485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // method parameter type -> method return type
-            var methodReturnType = method.ReturnTypeWithAnnotations;
-            operandType = GetLiftedReturnTypeIfNecessary(isLiftedConversion, methodReturnType, operandState);
-            if (!isLiftedConversion || operandState.IsNotNull())
-            {
-                var returnNotNull = operandState.IsNotNull() && method.ReturnNotNullIfParameterNotNull.Contains(parameter.Name);
-                if (returnNotNull)
-                {
-                    operandType = operandType.WithNotNullState();
-                }
-                else
-                {
-                    operandType = ApplyUnconditionalAnnotations(operandType, GetRValueAnnotations(method));
-                }
-            }
+            operandType = GetConversionReturnTypeWithState(method, isLiftedConversion, operandState);
 
             // method return type -> conversion "to" type
             // May be distinct from method return type for Nullable<T>.
@@ -10544,6 +10530,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return operandType;
         }
 
+        private TypeWithState GetConversionReturnTypeWithState(MethodSymbol method, bool isLiftedConversion, NullableFlowState operandState)
+        {
+            var methodReturnType = method.ReturnTypeWithAnnotations;
+            TypeWithState returnType = GetLiftedReturnTypeIfNecessary(isLiftedConversion, methodReturnType, operandState);
+            if (!isLiftedConversion || operandState.IsNotNull())
+            {
+                var returnNotNull = operandState.IsNotNull() && method.ReturnNotNullIfParameterNotNull.Contains(method.Parameters[0].Name);
+                if (returnNotNull)
+                {
+                    returnType = returnType.WithNotNullState();
+                }
+                else
+                {
+                    returnType = ApplyUnconditionalAnnotations(returnType, GetRValueAnnotations(method));
+                }
+            }
+
+            return returnType;
+        }
+
         private TypeWithState VisitUnionConversion(
             BoundConversion? conversionOpt,
             BoundExpression conversionOperand,
@@ -10553,7 +10559,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool fromExplicitCast,
             bool useLegacyWarnings,
             AssignmentKind assignmentKind,
-            ParameterSymbol? parameterOpt,
             bool reportTopLevelWarnings,
             bool reportRemainingWarnings,
             bool trackMembers,
@@ -10570,9 +10575,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
 
             Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
-            Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+            Debug.Assert(analysis.Operator is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
             Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
-            Debug.Assert(TypeSymbol.Equals(targetTypeWithNullability.Type.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(targetTypeWithNullability.Type.StrippedType(), analysis.Operator.MethodKind == MethodKind.Constructor ? analysis.Operator.ContainingType : analysis.Operator.ReturnType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(TypeSymbol.Equals(targetTypeWithNullability.Type.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
 
@@ -10590,31 +10595,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(conversionOpt is null);
             }
 
-            MethodSymbol constructor = analysis.Operator;
+            MethodSymbol factory = analysis.Operator;
             TypeSymbol targetType = targetTypeWithNullability.Type;
             var toType = (NamedTypeSymbol)targetType.StrippedType();
 
-#if DEBUG
-            bool found = false;
-#endif
-            foreach (var ctor in toType.InstanceConstructors)
+            var match = toType.ForEachUnionFactoryMethod(
+                static (factory, factoryDefinition) => factory.OriginalDefinition == (object)factoryDefinition,
+                factory.OriginalDefinition);
+            Debug.Assert(match is not null);
+            if (match is not null)
             {
-                if (ctor.OriginalDefinition == (object)constructor.OriginalDefinition)
-                {
-                    constructor = ctor;
-#if DEBUG
-                    found = true;
-#endif
-                    break;
-                }
+                factory = match;
             }
 
-#if DEBUG
-            Debug.Assert(found);
-#endif
-
             // operand -> conversion "from" type
-            var parameter = constructor.Parameters[0];
+            var parameter = factory.Parameters[0];
             var parameterAnnotations = GetParameterAnnotations(parameter);
             var parameterType = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
 
@@ -10653,7 +10648,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // toType -> target type
             var unionInstance = new BoundValueForNullableAnalysis((unionConstructionConversion ?? conversionOperand).Syntax, unionConstructionConversion, toType);
-            var unionTypeWithState = TypeWithState.Create(toType, NullableFlowState.NotNull);
+            TypeWithState unionTypeWithState;
+
+            if (factory.ReturnsVoid)
+            {
+                Debug.Assert(factory.MethodKind == MethodKind.Constructor);
+                unionTypeWithState = TypeWithState.Create(toType, NullableFlowState.NotNull);
+            }
+            else
+            {
+                Debug.Assert(factory is { IsStatic: true, ContainingType.IsInterface: true });
+                unionTypeWithState = GetConversionReturnTypeWithState(factory, isLiftedConversion: false, operandType.State); // PROTOTYPE: Add test coverage
+            }
 
             if (unionConstructionConversion is { })
             {
@@ -11762,9 +11768,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/29961 Update conversion method based on operand type.
                 if (node.OperandConversion is BoundConversion { Conversion: ({ IsUserDefined: true } or { IsUnion: true }) and { Method.ParameterCount: 1 } operandConversion })
                 {
-                    if (operandConversion.IsUserDefined)
+                    if (!operandConversion.Method.ReturnsVoid)
                     {
-                        targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations;
+                        targetTypeOfOperandConversion = operandConversion.Method.ReturnTypeWithAnnotations; // PROTOTYPE: Add test coverage for Unions.
                     }
                     else
                     {

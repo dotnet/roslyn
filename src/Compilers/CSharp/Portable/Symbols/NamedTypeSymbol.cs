@@ -1820,63 +1820,83 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return [];
                 }
 
-                NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
-
                 var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-
-                if (membersInterfaceForDefinition is not null)
-                {
-                    var definition = this.OriginalDefinition;
-                    NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(this);
-
-                    foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
-                    {
-                        if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
-                        {
-                            addCaseType(builder, method.AsMember(membersInterface));
-                        }
-                    }
-                }
-                else
-                {
-                    foreach (var ctor in this.InstanceConstructors)
-                    {
-                        if (IsSuitableUnionConstructor(ctor))
-                        {
-                            addCaseType(builder, ctor);
-                        }
-                    }
-                }
-
+                ForEachUnionFactoryMethod(addCaseType, builder);
                 return builder.ToImmutableAndFree();
 
-                static void addCaseType(ArrayBuilder<TypeSymbol> builder, MethodSymbol factory)
+                static bool addCaseType(MethodSymbol factory, ArrayBuilder<TypeSymbol> builder)
                 {
                     var candidate = factory.Parameters[0].Type;
-                    if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate))
+                    if (!builder.Any(static (t1, t2) => t1.Equals(t2, TypeCompareKind.AllIgnoreOptions), candidate)) // PROTOTYPE: Optimize this check?
                     {
                         builder.Add(candidate);
                     }
-                }
 
-                static bool isSuitableUnionFactory(NamedTypeSymbol unionType, MethodSymbol factory)
+                    return false;
+                }
+            }
+        }
+
+        /// <param name="action">If the action returns true, the iteration stops.</param>
+        /// <returns>MethodSymbol for factory method for which action returned true; otherwise, null.</returns>
+        internal MethodSymbol? ForEachUnionFactoryMethod<TArg>(Func<MethodSymbol, TArg, bool> action, TArg arg)
+        {
+            Debug.Assert(IsUnionType);
+
+            NamedTypeSymbol? membersInterfaceForDefinition = GetMemberProviderInterfaceForDefinition();
+
+            if (membersInterfaceForDefinition is not null)
+            {
+                var definition = this.OriginalDefinition;
+                NamedTypeSymbol membersInterface = membersInterfaceForDefinition.AsMember(this);
+
+                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.UnionFactoryMethodName))
                 {
-                    Debug.Assert(unionType.IsDefinition);
-                    Debug.Assert(unionType.IsUnionType);
-                    Debug.Assert(factory.IsDefinition);
-
-                    return factory is
+                    if (member is MethodSymbol method && isSuitableUnionFactory(definition, method))
                     {
-                        IsStatic: true,
-                        MethodKind: MethodKind.Ordinary,
-                        DeclaredAccessibility: Accessibility.Public,
-                        ReturnsVoid: false,
-                        RefKind: RefKind.None,
-                        ParameterCount: 1,
-                        Parameters: [{ RefKind: RefKind.In or RefKind.None }]
-                    } &&
-                    unionType.Equals(factory.ReturnType, TypeCompareKind.AllIgnoreOptions);
+                        method = method.AsMember(membersInterface);
+
+                        if (action(method, arg))
+                        {
+                            return method;
+                        }
+                    }
                 }
+            }
+            else
+            {
+                foreach (var ctor in this.InstanceConstructors)
+                {
+                    if (IsSuitableUnionConstructor(ctor))
+                    {
+                        if (action(ctor, arg))
+                        {
+                            return ctor;
+                        }
+                    }
+                }
+            }
+
+            return null;
+
+            static bool isSuitableUnionFactory(NamedTypeSymbol unionType, MethodSymbol factory)
+            {
+                Debug.Assert(unionType.IsDefinition);
+                Debug.Assert(unionType.IsUnionType);
+                Debug.Assert(factory.IsDefinition);
+
+                return factory is
+                {
+                    IsStatic: true,
+                    Arity: 0, // PROTOTYPE: Add test coverage
+                    MethodKind: MethodKind.Ordinary,
+                    DeclaredAccessibility: Accessibility.Public,
+                    ReturnsVoid: false,
+                    RefKind: RefKind.None,
+                    ParameterCount: 1,
+                    Parameters: [{ RefKind: RefKind.In or RefKind.None }]
+                } &&
+                unionType.Equals(factory.ReturnType, TypeCompareKind.AllIgnoreOptions);
             }
         }
 

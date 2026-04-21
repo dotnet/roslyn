@@ -501,6 +501,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (conversion.IsUnion)
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUnions, diagnostics);
+
+                    if (conversion.Method is { IsStatic: true } method &&
+                        (method.IsAbstract || method.IsVirtual) &&
+                        (Compilation.SourceModule != method.ContainingModule) &&
+                        !Compilation.Assembly.RuntimeSupportsStaticAbstractMembersInInterfaces)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfaces, syntax);
+                    }
                 }
                 else if (conversion.IsInlineArray)
                 {
@@ -2697,11 +2705,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             UserDefinedConversionAnalysis analysis = conversion.BestUnionConversionAnalysis;
 
             Debug.Assert(analysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm);
-            Debug.Assert(analysis.Operator is { MethodKind: MethodKind.Constructor, ParameterCount: 1 });
+            Debug.Assert(analysis.Operator is { ParameterCount: 1 } and ({ MethodKind: MethodKind.Constructor } or { MethodKind: MethodKind.Ordinary, IsStatic: true, ContainingType.IsInterface: true }));
             Debug.Assert(TypeSymbol.Equals(analysis.FromType, analysis.Operator.GetParameterType(0), TypeCompareKind.AllIgnoreOptions));
-            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.Operator.ContainingType, TypeCompareKind.AllIgnoreOptions));
+            Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.Operator.MethodKind == MethodKind.Constructor ? analysis.Operator.ContainingType : analysis.Operator.ReturnType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(TypeSymbol.Equals(destination.StrippedType(), analysis.ToType, TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(analysis.TargetConversion is { IsIdentity: true } or { IsNullable: true, IsImplicit: true });
+            Debug.Assert(source.Type?.IsDynamic() != true);
 
             conversion.MarkUnderlyingConversionsChecked();
 
