@@ -4492,6 +4492,90 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     }
 
     [Fact]
+    public void Conditional_CaseLabelWhenClauseWithNestedTernary_IsStillTernary()
+    {
+        // Counter-case to `Conditional_CaseLabelWhenClauseWithNullConditionalAccess_NotReinterpreted`:
+        // when the ternary `?` sits INSIDE a nested delimited construct (here `Foo(...)`), the inner
+        // `:` is the ternary's separator and the outer `:` terminates the case label.  The when-clause
+        // reparse-with-ForceConditionalAccessExpression must NOT fire, because the naive parse is
+        // already at the correct `:`.
+        UsingExpression("Foo(x > 0 ? .Y : .Z)");
+
+        N(SyntaxKind.InvocationExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "Foo");
+            }
+            N(SyntaxKind.ArgumentList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.ConditionalExpression);
+                    {
+                        N(SyntaxKind.GreaterThanExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.GreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Z");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Conditional_CaseLabelWhenClauseWithNestedTernary_TopLevel()
+    {
+        // End-to-end: ternary with target-typed branches nested inside `Foo(...)` in a when-clause.
+        // The inner ternary's `:` is consumed by the ternary; the outer case-label `:` remains to
+        // terminate the case label.  Verifies that the `ParseWhenClause` reparse-with-force logic does
+        // NOT fire here (the naive parse is already correct because the inner `:` is exactly where the
+        // ternary wants it).
+        CreateCompilation("""
+            class C
+            {
+                bool Foo(int i) => true;
+                void M(object v, int x)
+                {
+                    switch (v)
+                    {
+                        case int i when Foo(x > 0 ? .Y : .Z): break;
+                    }
+                }
+            }
+            """).GetParseDiagnostics().Verify();
+    }
+
+    [Fact]
     public void Conditional_CaseLabelWhenClauseWithNullConditionalAccess_NotReinterpreted()
     {
         // Regression: the `:` at the end of the case label must NOT be interpreted as a ternary
