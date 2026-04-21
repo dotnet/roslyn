@@ -10493,5 +10493,101 @@ AnonymousTypes(
             MainDescription("void C.M()"));
     }
 
+    [Fact]
+    public async Task TestInterceptorGenericMethodInGenericClass()
+    {
+        await TestInterceptorQuickInfoAsync(
+            """
+            class C<T1>
+            {
+                public static void M<T2>(T1 t1, T2 t2) => throw null!;
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C<int>.$$M("hello");
+                }
+            }
+            """,
+            """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                {INTERCEPTS_LOCATION_0}
+                public static void Interceptor<T1, T2>(T1 t1, T2 t2) { }
+            }
+            """,
+            MainDescription("void C<int>.M<string>(int t1, string t2)"),
+            InterceptedBy(string.Format(FeaturesResources.Intercepted_by_0, "void D.Interceptor<int, string>(int t1, string t2)")));
+    }
+
+    [Fact]
+    public async Task TestInterceptorGenericMethodInNestedGenericClasses()
+    {
+        await TestInterceptorQuickInfoAsync(
+            """
+            class Outer<T1>
+            {
+                public class Inner<T2>
+                {
+                    public static void M<T3>(T1 t1, T2 t2, T3 t3) => throw null!;
+                }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    Outer<int>.Inner<bool>.$$M("hello");
+                }
+            }
+            """,
+            """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                {INTERCEPTS_LOCATION_0}
+                public static void Interceptor<T1, T2, T3>(T1 t1, T2 t2, T3 t3) { }
+            }
+            """,
+            MainDescription("void Outer<int>.Inner<bool>.M<string>(int t1, bool t2, string t3)"),
+            InterceptedBy(string.Format(FeaturesResources.Intercepted_by_0, "void D.Interceptor<int, bool, string>(int t1, bool t2, string t3)")));
+    }
+
+    [Fact]
+    public async Task TestInterceptorNonGenericInterceptorForGenericMethodInGenericClass()
+    {
+        await TestInterceptorQuickInfoAsync(
+            """
+            class C<T>
+            {
+                public static void M<U>(T t, U u) => throw null!;
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    C<int>.$$M("hello");
+                }
+            }
+            """,
+            """
+            using System.Runtime.CompilerServices;
+
+            static class D
+            {
+                {INTERCEPTS_LOCATION_0}
+                public static void Interceptor(int t, string u) { }
+            }
+            """,
+            MainDescription("void C<int>.M<string>(int t, string u)"),
+            InterceptedBy(string.Format(FeaturesResources.Intercepted_by_0, "void D.Interceptor(int t, string u)")));
+    }
+
     #endregion
 }

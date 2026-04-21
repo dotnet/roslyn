@@ -86,7 +86,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-    protected override string? GetInterceptorSymbolDisplayString(
+    protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(
         SemanticModel semanticModel,
         SyntaxToken token,
         CancellationToken cancellationToken)
@@ -111,7 +111,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         }
 
         if (invocation is null)
-            return null;
+            return default;
 
         // Only show interceptor info when hovering over the method name itself,
         // not other parts of the invocation expression (like the receiver type).
@@ -124,11 +124,11 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         };
 
         if (nameSyntax is null || !nameSyntax.Span.Contains(token.Span))
-            return null;
+            return default;
 
         var interceptor = semanticModel.GetInterceptorMethod(invocation, cancellationToken);
         if (interceptor is null)
-            return null;
+            return default;
 
         // If the interceptor is generic, substitute type arguments from the original call.
         // Per the interceptors spec, type arguments are passed from outermost containing type
@@ -146,7 +146,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
             }
         }
 
-        return interceptor.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+        return interceptor.ToDisplayParts(SymbolDisplayFormat.MinimallyQualifiedFormat).ToTaggedText();
     }
 
     /// <summary>
