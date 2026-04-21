@@ -206,25 +206,40 @@ internal sealed partial class DiagnosticAnalyzerService
             }
 
             var lastDocument = snapshot.Document;
-
-            var documentDifferenceService = document.GetRequiredLanguageService<IDocumentDifferenceService>();
-            var changedMember = await documentDifferenceService.GetChangedMemberAsync(lastDocument, document, cancellationToken).ConfigureAwait(false);
-            if (changedMember is null)
-            {
-                return null;
-            }
-
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+            // Try the text-change-tracking-based approach first. This works when the old and new
+            // SourceTexts are related through incremental edits (WithChanges), giving precise
+            // text change ranges to locate the edited member.
+            var documentDifferenceService = document.GetRequiredLanguageService<IDocumentDifferenceService>();
+            var changedMember = await documentDifferenceService.GetChangedMemberAsync(lastDocument, document, cancellationToken).ConfigureAwait(false);
+
+            // Collect method-level members from the new document. This is needed both for the
+            // text-tracking path (to find the member index) and the structural fallback.
             // Specifies false for discardLargeInstances as these objects commonly exceed the default ArrayBuilder capacity threshold.
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var members);
             syntaxFacts.AddMethodLevelMembers(root, members);
+
+            if (changedMember is null)
+            {
+                // Text-change-tracking did not identify a changed member. This happens when:
+                //  - The old and new SourceTexts are unrelated (e.g., source-generated documents where
+                //    each generation creates a fresh SourceText without WithChanges tracking)
+                //  - The edit was genuinely structural (new member, changed signature, etc.)
+                //
+                // Fall back to structural comparison of method-level members between old and new roots.
+                changedMember = await TryGetChangedMemberByStructuralComparisonAsync(
+                    lastDocument, root, syntaxFacts, members, cancellationToken).ConfigureAwait(false);
+
+                if (changedMember is null)
+                    return null;
+            }
 
             var memberSpans = members.SelectAsArray(member => member.FullSpan);
             var changedMemberId = members.IndexOf(changedMember);
 
             // The changed member might not be a method level member (e.g. a class).
-            // We can't perform method analysis  on these so we bail out.
+            // We can't perform method analysis on these so we bail out.
             if (changedMemberId == -1)
             {
                 return null;
@@ -233,6 +248,75 @@ internal sealed partial class DiagnosticAnalyzerService
             return (changedMember, changedMemberId, memberSpans, lastDocument);
         }
 
+        /// <summary>
+        /// Attempts to identify a single changed method-level member by structurally comparing
+        /// the old and new syntax trees. Returns the changed member from the new root, or <see langword="null"/>
+        /// if the change cannot be identified as a single member-body edit.
+        /// <para>
+        /// This is used as a fallback when text-change-tracking is unavailable (e.g., in OOP where
+        /// <see cref="IDocumentDifferenceService"/> returns null, or for source-generated documents
+        /// whose texts lack incremental change tracking).
+        /// </para>
+        /// <para>
+        /// The method first verifies that the top-level declaration structure (types, members, attributes,
+        /// using directives, etc.) is unchanged between old and new roots. It then finds exactly one
+        /// method-level member whose body differs. If zero or more than one member differs, or if
+        /// any top-level structure changed, it returns null to force full document analysis.
+        /// </para>
+        /// </summary>
+        private static async Task<SyntaxNode?> TryGetChangedMemberByStructuralComparisonAsync(
+            Document oldDocument,
+            SyntaxNode newRoot,
+            ISyntaxFactsService syntaxFacts,
+            ArrayBuilder<SyntaxNode> newMembers,
+            CancellationToken cancellationToken)
+        {
+            var oldRoot = await oldDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (oldRoot is null)
+                return null;
+
+            // Bail out if either tree has parse errors that produced skipped text.
+            // Structural comparison is unreliable with skipped text nodes.
+            if (oldRoot.ContainsSkippedText || newRoot.ContainsSkippedText)
+                return null;
+
+            // The top-level declaration structure must be identical between old and new roots.
+            // This catches changes to using directives, type declarations, member signatures,
+            // attributes, and nullable directives — all of which require full document analysis.
+            //
+            // Note: IsEquivalentTo does not compare non-nullable preprocessor directive trivia
+            // (e.g., #pragma warning, #line). For source-generated documents (the primary consumer
+            // of this fallback), these directives are typically static and don't change between edits.
+            if (!oldRoot.IsEquivalentTo(newRoot, topLevel: true))
+                return null;
+
+            // Collect method-level members from the old document.
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(discardLargeInstances: false, out var oldMembers);
+            syntaxFacts.AddMethodLevelMembers(oldRoot, oldMembers);
+
+            // Member count must match — a difference means members were added or removed,
+            // which is a structural change requiring full analysis.
+            if (oldMembers.Count != newMembers.Count)
+                return null;
+
+            // Find exactly one member whose body differs. We use full equivalence (topLevel: false)
+            // to detect any body changes. The earlier root-level topLevel:true check already verified
+            // that all member signatures are unchanged, so any difference here is a body-only edit.
+            SyntaxNode? changedNewMember = null;
+            for (var i = 0; i < oldMembers.Count; i++)
+            {
+                if (!oldMembers[i].IsEquivalentTo(newMembers[i]))
+                {
+                    // More than one member changed — cannot do incremental analysis.
+                    if (changedNewMember is not null)
+                        return null;
+
+                    changedNewMember = newMembers[i];
+                }
+            }
+
+            return changedNewMember;
+        }
 
         private static async Task<ImmutableArray<DiagnosticData>> GetUpdatedDiagnosticsForMemberEditAsync(
             ImmutableArray<DiagnosticData> diagnostics,
@@ -305,8 +389,17 @@ internal sealed partial class DiagnosticAnalyzerService
             // regular case
             using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var resultBuilder);
 
+            // The splicing logic below assumes the changed member's start position is the same
+            // in both old and new trees. This holds for text-change-tracking edits (body-only changes
+            // preserve start positions) but can fail with the structural comparison fallback when
+            // trivia shifts alter positions without changing structure. Fall back to full analysis.
+            if (member.FullSpan.Start != oldSpan.Start)
+            {
+                updatedDiagnostics = default;
+                return false;
+            }
+
             // update member location
-            Contract.ThrowIfFalse(member.FullSpan.Start == oldSpan.Start);
             var delta = member.FullSpan.End - oldSpan.End;
 
             var replaced = false;
@@ -391,6 +484,43 @@ internal sealed partial class DiagnosticAnalyzerService
                     return location.WithSpan(new TextSpan(start, end - start), tree);
                 }
             }
+        }
+
+        /// <summary>
+        /// Computes full-document diagnostics when incremental member-edit analysis is not applicable.
+        /// When <paramref name="documentAnalyzers"/> is non-empty,
+        /// merges both semantic analyzer sets into a single pass to avoid creating separate compilation
+        /// clones and the associated duplicated binding cost.
+        /// </summary>
+        private static async Task<(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> results, bool didMergeAnalyzerComputations)> ComputeMergedDiagnosticsAsync(
+            DocumentAnalysisExecutor executor,
+            ImmutableArray<DiagnosticAnalyzer> spanAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> documentAnalyzers,
+            CancellationToken cancellationToken)
+        {
+            var didMergeAnalyzerComputations = !documentAnalyzers.IsDefaultOrEmpty;
+            if (didMergeAnalyzerComputations)
+            {
+                Debug.Assert(
+                    spanAnalyzers.All(a => !documentAnalyzers.Contains(a)),
+                    "Span and document analyzer sets must be disjoint");
+
+                // Merge both semantic analyzer sets into a single full-document pass.
+                // If executed separately, each pass would create its own compilation clone and independently
+                // trigger binding (the dominant allocation cost for semantic analysis).
+                // By merging, we pay this cost only once.
+                var mergedAnalyzers = spanAnalyzers.AddRange(documentAnalyzers);
+                var mergedScope = new DocumentAnalysisScope(
+                    executor.AnalysisScope.TextDocument,
+                    span: null,
+                    mergedAnalyzers,
+                    executor.AnalysisScope.Kind);
+
+                executor = executor.With(mergedScope);
+            }
+
+            var results = await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
+            return (results, didMergeAnalyzerComputations);
         }
 
         public static async Task<ImmutableArray<TextSpan>> CreateMemberSpansAsync(Document document, CancellationToken cancellationToken)

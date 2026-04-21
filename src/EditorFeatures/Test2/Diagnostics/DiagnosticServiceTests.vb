@@ -2541,4 +2541,79 @@ public class C
             End Sub
         End Class
     End Class
+
+        ''' <summary>
+        ''' Verifies that when the structural comparison fallback identifies a body-only change
+        ''' but trivia changes have shifted member positions (e.g., a comment was added before
+        ''' the class), the splicing logic correctly falls back to full analysis instead of
+        ''' asserting on mismatched start positions.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestPositionMismatchFallback_TriviaShiftWithUnrelatedSourceTextAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    int _before;
+
+    void M()
+    {
+        int x = 0;
+    }
+
+    int _after;
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim docId = project.Documents.Single().Id
+
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("FIELD01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' First call: primes the IncrementalMemberEditAnalyzer cache.
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics1 = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+                Assert.Equal(2, diagnostics1.Where(Function(d) d.Id = "FIELD01").Count())
+
+                ' Second call: edit the method body AND add a leading comment that shifts all
+                ' member positions. Use SourceText.From() to create an unrelated SourceText so
+                ' the structural comparison fallback is used. The body change is detected by
+                ' structural comparison, but member.FullSpan.Start won't match oldSpan.Start
+                ' because the comment shifted everything down. The splicing logic should
+                ' gracefully fall back to full analysis instead of throwing.
+                Dim modifiedCode = "
+// This comment shifts all member positions down
+class MyClass
+{
+    int _before;
+
+    void M()
+    {
+        int x = 1;
+    }
+
+    int _after;
+}
+"
+                Dim modifiedSolution = project.Solution.WithDocumentText(docId, SourceText.From(modifiedCode))
+                Dim modifiedDocument = modifiedSolution.GetDocument(docId)
+                Dim modifiedRoot = Await modifiedDocument.GetSyntaxRootAsync()
+                Dim diagnostics2 = Await GetDiagnosticsForSpanAsync(diagnosticService, modifiedDocument, modifiedRoot.FullSpan)
+
+                ' Diagnostics should still be correct — no crash, both fields reported.
+                Assert.Equal(2, diagnostics2.Where(Function(d) d.Id = "FIELD01").Count())
+            End Using
+        End Function
 End Namespace
