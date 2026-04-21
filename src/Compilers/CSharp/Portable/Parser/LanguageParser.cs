@@ -10741,9 +10741,24 @@ done:
                 return null;
             }
 
-            return _syntaxFactory.WhenClause(
-                this.EatContextualToken(SyntaxKind.WhenKeyword),
-                ParseSubExpression(precedence));
+            // Set the termination flag so that speculative parses (e.g. `?.` / `?[` disambiguation in
+            // `TryParseConditionalAccessExpression`) can detect that the `:` terminating the case label
+            // is not a ternary separator.  The flag is set during the pattern part of the case label in
+            // `ParseExpressionOrPatternForSwitchStatement`; it must also be set while parsing the
+            // when-clause expression so that `case X x when x?.Y == 0:` continues to parse as a
+            // null-conditional access rather than a malformed ternary.
+            var savedState = _termState;
+            _termState |= TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement;
+            try
+            {
+                return _syntaxFactory.WhenClause(
+                    this.EatContextualToken(SyntaxKind.WhenKeyword),
+                    ParseSubExpression(precedence));
+            }
+            finally
+            {
+                _termState = savedState;
+            }
         }
 
 #nullable enable
@@ -12441,7 +12456,19 @@ done:
 
                 // If we see a colon, then do not parse this as a conditional-access-expression, pop up to the caller
                 // and have it reparse this as a conditional-expression instead.
-                return this.CurrentToken.Kind != SyntaxKind.ColonToken;
+                if (this.CurrentToken.Kind != SyntaxKind.ColonToken)
+                    return true;
+
+                // If the `:` we're looking at is actually a terminator of an enclosing construct — for
+                // example the `:` of a case label in a switch statement — then it is NOT a ternary
+                // separator. Treating it as one would cause valid null-conditional or collection-indexer
+                // expressions like `case X x when x?.Y == 0:` / `case X x when x?[0] == 0:` to be
+                // misinterpreted as ternaries and fail to parse. Preserve legacy conditional-access
+                // behavior in those contexts.
+                if (_termState.HasFlag(TerminatorState.IsExpressionOrPatternInCaseLabelOfSwitchStatement))
+                    return true;
+
+                return false;
             }
 
             ExpressionSyntax parseWhenNotNull(ExpressionSyntax expr)
