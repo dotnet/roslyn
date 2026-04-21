@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     foreach (var target in ResolveTargetSymbols(_compilation, info.Target, info.Scope))
                     {
+                        Debug.Assert(target.IsDefinition);
                         if (!resolvedSuppressions.ContainsKey(target))
                         {
                             resolvedSuppressions.Add(target, info);
@@ -194,6 +195,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     foreach (var symbol in declaredSymbols)
                     {
+                        if (!symbol.IsDefinition || symbol.Kind == SymbolKind.Local)
+                        {
+                            // This symbol cannot be a target of a SuppressMessageAttribute.
+                            continue;
+                        }
+
                         if (symbol.Kind == SymbolKind.Namespace)
                         {
                             return hasNamespaceSuppression((INamespaceSymbol)symbol, inImmediatelyContainingSymbol);
