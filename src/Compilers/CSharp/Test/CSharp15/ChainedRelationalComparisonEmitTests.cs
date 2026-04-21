@@ -237,7 +237,8 @@ public sealed class ChainedRelationalComparisonEmitTests : CSharpTestBase
         }
         """;
 
-    [Theory]
+    // CoreClrOnly: NetCoreApp-referenced binary can't load on desktop.
+    [ConditionalTheory(typeof(CoreClrOnly))]
     // (constraintPrefix, nullabilitySuffix)
     [InlineData("", "")]
     [InlineData("", "?")]
@@ -288,7 +289,7 @@ public sealed class ChainedRelationalComparisonEmitTests : CSharpTestBase
                 """);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void GenericConstraint_InterfaceAndStruct_NullableT_LiftedOverConstrainedDispatch()
     {
         // `where T : struct, ILT<T>`, operands `T?`: chain + lifted-relational + constrained dispatch.

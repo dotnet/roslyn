@@ -1325,7 +1325,8 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
         }
         """;
 
-    [Theory]
+    // CoreClrOnly: NetCoreApp-referenced binary can't execute on desktop.
+    [ConditionalTheory(typeof(CoreClrOnly))]
     // (constraintPrefix, nullabilitySuffix, typeArgument)
     [InlineData("", "", "RefImpl")]
     [InlineData("", "", "ValImpl")]
@@ -1364,7 +1365,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             .VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void GenericConstraint_InterfaceAndStruct_NullableT_ChainBindsAndRunsWithLifting()
     {
         // `T? a, T? b, T? c` with `where T : struct, ILT<T>` uses lifted relational semantics.
@@ -1399,7 +1400,7 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             .VerifyDiagnostics();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(CoreClrOnly))]
     public void GenericConstraint_InterfaceAndStruct_NullableT_MiddleOperandEvaluatedOnce()
     {
         // Single-evaluation also holds under lifted-over-generic-constrained dispatch.
