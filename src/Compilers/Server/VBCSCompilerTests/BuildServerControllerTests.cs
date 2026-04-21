@@ -6,8 +6,9 @@
 
 using System;
 using System.Collections.Specialized;
+using System.Threading;
+using Microsoft.CodeAnalysis.CommandLine;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -18,34 +19,28 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             NamedPipeTestUtil.DisposeAll();
         }
 
-        public sealed class GetKeepAliveTimeoutTests
+        public sealed class GetDefaultKeepAliveTests
         {
             private readonly NameValueCollection _appSettings = new NameValueCollection();
-            private readonly BuildServerController _controller;
-
-            public GetKeepAliveTimeoutTests(ITestOutputHelper testOutputHelper)
-            {
-                _controller = new BuildServerController(_appSettings, new XunitCompilerServerLogger(testOutputHelper));
-            }
 
             [Fact]
             public void Simple()
             {
                 _appSettings[BuildServerController.KeepAliveSettingName] = "42";
-                Assert.Equal(TimeSpan.FromSeconds(42), _controller.GetKeepAliveTimeout());
+                Assert.Equal(TimeSpan.FromSeconds(42), BuildServerController.GetDefaultKeepAlive(EmptyCompilerServerLogger.Instance, _appSettings));
             }
 
             [Fact]
             public void InvalidNumber()
             {
                 _appSettings[BuildServerController.KeepAliveSettingName] = "dog";
-                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, BuildServerController.GetDefaultKeepAlive(EmptyCompilerServerLogger.Instance, _appSettings));
             }
 
             [Fact]
             public void NoSetting()
             {
-                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, _controller.GetKeepAliveTimeout());
+                Assert.Equal(ServerDispatcher.DefaultServerKeepAlive, BuildServerController.GetDefaultKeepAlive(EmptyCompilerServerLogger.Instance, _appSettings));
             }
         }
     }

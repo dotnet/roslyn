@@ -2667,7 +2667,7 @@ _Lambda$__0
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotOnMonoCore))>
+        <ConditionalFact(GetType(NotOnMonoCore), GetType(IsEnglishLocal))>
         Public Sub CeaseCapture_LastLocal()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(

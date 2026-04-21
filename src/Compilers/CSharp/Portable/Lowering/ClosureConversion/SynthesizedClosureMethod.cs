@@ -172,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 mods |= DeclarationModifiers.Extern;
             }
 
+            if (originalMethod is LocalFunctionOrSourceMemberMethodSymbol { IsUnsafe: true })
+            {
+                mods |= DeclarationModifiers.Unsafe;
+            }
+
             return mods;
         }
 
@@ -217,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal int ExtraSynthesizedParameterCount => this._structEnvironments.IsDefault ? 0 : this._structEnvironments.Length;
 
         internal override bool InheritsBaseMethodAttributes => true;
-        internal override bool GenerateDebugInfo => !this.IsAsync;
+        internal override bool GenerateDebugInfo => !this.IsAsync || DeclaringCompilation.IsRuntimeAsyncEnabledIn(this);
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

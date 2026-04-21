@@ -8630,7 +8630,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (16,27): error CS0233: 'S' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //         Console.WriteLine(sizeof(S));   // CS0233
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S"),
@@ -8638,6 +8638,15 @@ public class MyClass
                 // (15,11): warning CS0219: The variable 'myS' is assigned but its value is never used
                 //         S myS = new S();
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "myS").WithArguments("myS"));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,11): warning CS0219: The variable 'myS' is assigned but its value is never used
+                //         S myS = new S();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "myS").WithArguments("myS")
+            };
+            CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -16158,7 +16167,7 @@ class Test
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.Write(inst.field.buffer[0]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),
@@ -16166,6 +16175,20 @@ class Test
                 //         return (field.buffer[0] = 7);   // OK
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field.buffer").WithLocation(20, 17)
                  );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (13,47): error CS9360: This operation may only be used in an unsafe context
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(13, 47),
+                // (20,29): error CS9360: This operation may only be used in an unsafe context
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "[").WithLocation(20, 29)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedPreviewDiagnostics);
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

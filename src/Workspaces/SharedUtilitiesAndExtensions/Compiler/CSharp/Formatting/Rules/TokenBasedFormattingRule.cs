@@ -380,7 +380,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                     or SyntaxKind.DefaultKeyword
                     or SyntaxKind.BaseKeyword
                     or SyntaxKind.ThisKeyword
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
                     or SyntaxKind.ExtensionKeyword
 #endif
                 || previousToken.IsGenericGreaterThanToken()

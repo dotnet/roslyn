@@ -14,13 +14,19 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.TextDocumentContent;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
-[Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
-internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
+/// <summary>
+/// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP.
+/// </summary>
+[Export(typeof(DefaultCapabilitiesProvider)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.Any)]
+internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
     private readonly ImmutableArray<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
@@ -28,7 +34,7 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ExperimentalCapabilitiesProvider(
+    public DefaultCapabilitiesProvider(
         [ImportMany] IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> completionProviders,
         [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
         [ImportMany] IEnumerable<Lazy<ILspWillRenameListener, ILspWillRenameListenerMetadata>> renameListeners)
@@ -38,22 +44,7 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
         _renameListeners = renameListeners;
     }
 
-    public void Initialize()
-    {
-        // Force completion providers to resolve in initialize, because it means MEF parts will be loaded.
-        // We need to do this before GetCapabilities is called as that is on the UI thread, and loading MEF parts
-        // could cause assembly loads, which we want to do off the UI thread.
-        foreach (var completionProvider in _completionProviders)
-        {
-            _ = completionProvider.Value;
-        }
-        foreach (var signatureHelpProvider in _signatureHelpProviders)
-        {
-            _ = signatureHelpProvider.Value;
-        }
-    }
-
-    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
         var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
         var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
@@ -95,11 +86,18 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
         };
 
         capabilities.FoldingRangeProvider = true;
+        capabilities.SelectionRangeProvider = true;
+        capabilities.CallHierarchyProvider = true;
+        capabilities.TypeHierarchyProvider = true;
         capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
         capabilities.TextDocumentSync = new TextDocumentSyncOptions
         {
             Change = TextDocumentSyncKind.Incremental,
-            OpenClose = true
+            OpenClose = true,
+            Save = new SaveOptions
+            {
+                IncludeText = false,
+            }
         };
 
         capabilities.HoverProvider = true;
@@ -148,8 +146,19 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
             };
         }
 
-        if (clientCapabilities.Workspace?.FileOperations?.WillRename ?? false)
+        capabilities.Workspace = new WorkspaceServerCapabilities
         {
+            FileOperations = GetWorkspaceFileOperationsCapabilities(),
+            TextDocumentContent = GetTextDocumentContentCapabilities(),
+        };
+
+        return capabilities;
+
+        WorkspaceFileOperationsServerCapabilities? GetWorkspaceFileOperationsCapabilities()
+        {
+            if (clientCapabilities.Workspace?.FileOperations is null)
+                return null;
+
             // Register for file rename notifications based on the registered rename listeners.
             using var _ = PooledObjects.ArrayBuilder<FileOperationFilter>.GetInstance(out var filters);
             foreach (var listener in _renameListeners)
@@ -160,22 +169,34 @@ internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
                 });
             }
 
-            if (filters.Count > 0)
+            if (filters.Count == 0)
+                return null;
+
+            return new WorkspaceFileOperationsServerCapabilities()
             {
-                capabilities.Workspace = new WorkspaceServerCapabilities
+                WillRename = new FileOperationRegistrationOptions()
                 {
-                    FileOperations = new WorkspaceFileOperationsServerCapabilities()
-                    {
-                        WillRename = new FileOperationRegistrationOptions()
-                        {
-                            Filters = filters.ToArray()
-                        }
-                    }
-                };
-            }
+                    Filters = filters.ToArray()
+                }
+            };
         }
 
-        return capabilities;
+        TextDocumentContentOptions? GetTextDocumentContentCapabilities()
+        {
+            if (clientCapabilities.Workspace?.TextDocumentContent is null)
+                return null;
+
+            // Client supports textDocumentContent - register the schemes from all providers so the client
+            // can use workspace/textDocumentContent to retrieve virtual document contents.
+            var schemes = lspServices.GetRequiredServices<ITextDocumentContentProvider>().Select(p => p.Scheme).ToArray();
+            if (schemes.Length == 0)
+                return null;
+
+            return new TextDocumentContentOptions
+            {
+                Schemes = schemes
+            };
+        }
     }
 
     private static VSInternalServerCapabilities GetVSServerCapabilities()

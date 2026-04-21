@@ -30,9 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Parameter = 1 << 7,
         Return = 1 << 8,
         TypeParameter = 1 << 9,
+        Extension = 1 << 10,
 
         // must be the last:
-        Unknown = 1 << 10,
+        Unknown = 1 << 11,
     }
 
     internal static class AttributeLocationExtensions
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             result.Append("typevar");
                             break;
 
+                        case AttributeLocation.Extension:
                         default:
                             throw ExceptionUtilities.UnexpectedValue(i);
                     }

@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.ContainsPointerOrFunctionPointer())
                 {
-                    ReportUnsafeIfNotAllowed(node, diagnostics);
+                    ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
-            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, type);
+            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, sizeOfTypeOpt: type, disallowedUnder: MemorySafetyRules.Legacy);
             return new BoundSizeOfOperator(node, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
@@ -2054,10 +2054,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNonMethod(SimpleNameSyntax node, Symbol symbol, BindingDiagnosticBag diagnostics, LookupResultKind resultKind, bool indexed, bool isError)
         {
-            // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
+            // Events are handled later as we don't know yet if we are binding to the event or its backing field.
             if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node);
             }
 
             switch (symbol.Kind)
@@ -3724,7 +3725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.ContainsPointerOrFunctionPointer())
                 {
                     // CONSIDER: dev10 uses the call syntax, but this seems clearer.
-                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics);
+                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -5102,10 +5103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Don't worry about double reporting (i.e. for both the argument and the parameter)
                     // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics);
+                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
                 }
 
                 ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, resultMember, nonNullSyntax);
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
 
@@ -5399,6 +5401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         iteratorBody: null,
                         hasErrors);
                 }
+
+                builder.ReportDiagnosticsIfUnsafeMemberAccess(@this, syntax.OperatorToken, syntax, diagnostics);
 
                 Debug.Assert(expression.Type is { });
 
@@ -5787,13 +5791,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (syntax.Kind())
             {
                 case SyntaxKind.ObjectInitializerExpression:
-                    // Uses a special binder to produce customized diagnostics for the object initializer
                     return BindObjectInitializerExpression(
-                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: true);
+                        syntax, type, diagnostics, implicitReceiver);
 
                 case SyntaxKind.WithInitializerExpression:
                     return BindObjectInitializerExpression(
-                        syntax, type, diagnostics, implicitReceiver, useObjectInitDiagnostics: false);
+                        syntax, type, diagnostics, implicitReceiver);
 
                 case SyntaxKind.CollectionInitializerExpression:
                     return BindCollectionInitializerExpression(syntax, type, diagnostics, implicitReceiver);
@@ -5830,8 +5833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initializerSyntax,
             TypeSymbol initializerType,
             BindingDiagnosticBag diagnostics,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            bool useObjectInitDiagnostics)
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
             // SPEC:    7.6.10.2 Object initializers
             //
@@ -5846,16 +5848,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initializerSyntax.Kind() == SyntaxKind.ObjectInitializerExpression)
                 MessageID.IDS_FeatureObjectInitializer.CheckFeatureAvailability(diagnostics, initializerSyntax.OpenBraceToken);
 
-            // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
-            //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
-            //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
-            //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
-            // Note that this is only used for the LHS of the assignment - these diagnostics do not apply on the RHS.
-            // For this reason, we will actually need two binders: this and this.WithAdditionalFlags.
-            var objectInitializerMemberBinder = useObjectInitDiagnostics
-                ? this.WithAdditionalFlags(BinderFlags.ObjectInitializerMember)
-                : this;
-
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
             // Member name map to report duplicate assignments to a field/property.
@@ -5863,7 +5855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
                 BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
-                    memberInitializer, objectInitializerMemberBinder, diagnostics, implicitReceiver);
+                    memberInitializer, diagnostics, implicitReceiver);
 
                 initializers.Add(boundMemberInitializer);
 
@@ -5879,7 +5871,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindInitializerMemberAssignment(
             ExpressionSyntax memberInitializer,
-            Binder objectInitializerMemberBinder,
             BindingDiagnosticBag diagnostics,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver)
         {
@@ -5891,15 +5882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var initializer = (AssignmentExpressionSyntax)memberInitializer;
 
-                        // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
-                        //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
-                        //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
-                        //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
-                        // See comments in BindObjectInitializerExpression for more details.
-
-                        Debug.Assert(objectInitializerMemberBinder != null);
-
-                        BoundExpression boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
+                        BoundExpression boundLeft = BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
 
                         if (boundLeft != null)
                         {
@@ -5931,9 +5914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
 
                         var identifierName = (IdentifierNameSyntax)memberInitializer;
-                        Debug.Assert(objectInitializerMemberBinder != null);
-
-                        var boundNode = objectInitializerMemberBinder.BindObjectInitializerMemberMissingAssignment(identifierName, implicitReceiver, diagnostics);
+                        var boundNode = BindObjectInitializerMemberMissingAssignment(identifierName, implicitReceiver, diagnostics);
 
                         var badRight = new BoundBadExpression(
                             identifierName,
@@ -6136,7 +6117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (handlerPlaceholders.Any(static placeholder => placeholder.ArgumentIndex is BoundInterpolatedStringArgumentPlaceholder.InstanceParameter or BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, argument.Syntax.Location);
-                                    hasErrors = true;
                                 }
                             }
                         }
@@ -6443,8 +6423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE:    collectionInitializerAddMethodBinder is used only for binding the Add method invocation expression, but not the entire initializer.
                 // NOTE:    Hence it is being passed as a parameter to BindCollectionInitializerElement().
                 // NOTE:    Ideally we would want to avoid this and bind the entire initializer with the collectionInitializerAddMethodBinder.
-                // NOTE:    However, this approach has few issues. These issues also occur when binding object initializer member assignment.
-                // NOTE:    See comments for objectInitializerMemberBinder in BindObjectInitializerExpression method for details about the pitfalls of alternate approaches.
+                // NOTE:    However, this approach has few issues. These same issues also occur when binding object initializer member assignments.
 
                 BoundExpression boundElementInitializer = BindCollectionInitializerElement(elementInitializer, initializerType,
                     hasEnumerableInitializerType, collectionInitializerAddMethodBinder, diagnostics, implicitReceiver);
@@ -6974,10 +6953,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                hasError = ReportUnsafeIfNotAllowed(node, diagnostics) || hasError;
+                hasError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) || hasError;
             }
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
             // NOTE: Use-site diagnostics were reported during overload resolution.
 
             ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor()) ?
@@ -7658,6 +7638,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
+
+                    if (!boundLeft.HasErrors)
+                    {
+                        ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
+                    }
                 }
             }
 
@@ -8074,6 +8059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, type, node);
 
                         return new BoundTypeExpression(node, null, type);
                     }
@@ -8678,11 +8664,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(symbol.Kind != SymbolKind.Method);
                 left = ReplaceTypeOrValueReceiver(left, symbol.IsStatic || symbol.Kind == SymbolKind.NamedType, diagnostics);
 
-                // Events are handled later as we don't know yet if we are binding to the event or it's backing field.
+                // Events are handled later as we don't know yet if we are binding to the event or its backing field.
                 // Properties are handled in BindPropertyAccess
                 if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node);
                 }
 
                 switch (symbol.Kind)
@@ -9300,6 +9287,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
 
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
+            Debug.Assert(propertySymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
+                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode) ||
+                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.CallerUnsafeMode == propertySymbol.CallerUnsafeMode));
+
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
             if (!propertySymbol.IsStatic)
@@ -9383,6 +9375,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isUsableAsField = eventSymbol.HasAssociatedField && this.IsAccessible(eventSymbol.AssociatedField, ref useSiteInfo, (receiver != null) ? receiver.Type : null);
             diagnostics.Add(node, useSiteInfo);
 
+            // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
+            Debug.Assert(eventSymbol.CallerUnsafeMode == CallerUnsafeMode.None ||
+                (eventSymbol.AddMethod is null || eventSymbol.AddMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode) ||
+                (eventSymbol.RemoveMethod is null || eventSymbol.RemoveMethod.CallerUnsafeMode == eventSymbol.CallerUnsafeMode));
+
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);
 
             if (!eventSymbol.IsStatic)
@@ -9432,7 +9429,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!IsInsideNameof)
                     {
-                        ErrorCode errorCode = this.Flags.Includes(BinderFlags.ObjectInitializerMember) ?
+                        // Binding object initializer field/property access needs object initializer specific diagnostics:
+                        //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
+                        //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
+                        //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
+                        // These only apply on the left side of an object initializer member assignment, not the RHS.
+                        ErrorCode errorCode = IsObjectInitializerMemberTarget(node) ?
                             ErrorCode.ERR_StaticMemberInObjectInitializer :
                             ErrorCode.ERR_ObjectProhibited;
                         Error(diagnostics, errorCode, node, symbol);
@@ -9590,7 +9592,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindElementAccess(ElementAccessExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             BoundExpression receiver = BindExpression(node.Expression, diagnostics: diagnostics, invoked: false, indexed: true);
-            return BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
+            var result = BindElementAccess(node, receiver, node.ArgumentList, allowInlineArrayElementAccess: true, diagnostics);
+
+            if (!result.HasErrors && receiver.Type?.IsPointerOrFunctionPointer() == true)
+            {
+                Debug.Assert(receiver.Type?.IsFunctionPointer() != true, "There should have been an error reported for indexing into a function pointer.");
+                ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRules.Updated);
+            }
+
+            return result;
         }
 
         private BoundExpression BindElementAccess(ExpressionSyntax node, BoundExpression receiver, BracketedArgumentListSyntax argumentList, bool allowInlineArrayElementAccess, BindingDiagnosticBag diagnostics)
@@ -9809,6 +9819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureInlineArrays, diagnostics);
                 diagnostics.ReportUseSite(elementField, node);
+                AssertNotUnsafeMemberAccess(elementField); // https://github.com/dotnet/roslyn/issues/82546: Support unsafe fields?
 
                 TypeSymbol resultType;
 
@@ -10464,6 +10475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 PropertySymbol property = resolutionResult.Member;
 
                 ReportDiagnosticsIfObsolete(diagnostics, property, syntax, hasBaseReceiver: receiver != null && receiver.Kind == BoundKind.BaseReference);
+                // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
 
                 // Make sure that the result of overload resolution is valid.
                 var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
@@ -10679,7 +10691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!argIsIndex);
                     // Look for Substring
-                    var substring = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_String__Substring, diagnostics, syntax);
+                    var substring = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_String__SubstringIntInt, diagnostics, syntax);
                     if (substring is object)
                     {
                         makeCall(syntax, receiver, substring, out indexerOrSliceAccess, out argumentPlaceholders);

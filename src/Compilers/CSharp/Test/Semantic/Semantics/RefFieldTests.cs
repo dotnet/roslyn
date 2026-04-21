@@ -749,7 +749,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
                 // (14,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S* s, // 1
@@ -773,6 +773,28 @@ class C
                 //         C* c) // 7
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(23, 12)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (15,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         S2* s2, // 2, 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s2").WithArguments("S2").WithLocation(15, 13),
+                // (16,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         C* c) // 4, 5
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(16, 12),
+                // (22,13): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         S2* s2, // 6
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "s2").WithArguments("S2").WithLocation(22, 13),
+                // (23,12): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         C* c) // 7
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("C").WithLocation(23, 12)
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -1025,7 +1047,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
                 // (13,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(void* p)
@@ -1079,6 +1101,28 @@ class C
                 //         _ = (C*)p; // 5
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 14)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (16,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         _ = (S2*)p; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(16, 14),
+                // (17,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         _ = (C*)p; // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(17, 14),
+                // (23,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         _ = (S2*)p; // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S2*").WithArguments("S2").WithLocation(23, 14),
+                // (24,14): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C')
+                //         _ = (C*)p; // 5
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "C*").WithArguments("C").WithLocation(24, 14)
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -1259,7 +1303,7 @@ unsafe class C2
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
             comp.VerifyEmitDiagnostics(
                 // (15,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var x = &s; // 1
@@ -1286,6 +1330,34 @@ unsafe class C2
                 //         var x = &s; // 5
                 Diagnostic(ErrorCode.ERR_FixedNeeded, "&s").WithLocation(39, 17)
                 );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (19,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 2
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(19, 17),
+                // (23,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 3
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(23, 17),
+                // (23,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         var x = &s; // 3
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s").WithLocation(23, 17),
+                // (35,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 4
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(35, 17),
+                // (39,17): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S2')
+                //         var x = &s; // 5
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("S2").WithLocation(39, 17),
+                // (39,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //         var x = &s; // 5
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s").WithLocation(39, 17)
+            };
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(expectedPreviewDiagnostics);
 
             source = @"
 ref struct S2
@@ -26939,20 +27011,23 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             var comp = CreateCompilation(sourceB, references: new[] { refA });
             if (version == 11)
             {
-                comp.VerifyDiagnostics();
+                comp.VerifyEmitDiagnostics();
             }
             else
             {
                 comp.VerifyDiagnostics(
                     // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
                     //     static ref int F2(out int i) => ref A.F1(out i);
-                    Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+                    Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.F1").WithArguments("A.F1(out int)", "System.Runtime.CompilerServices.RefSafetyRulesAttribute", "11").WithLocation(3, 41));
             }
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
             VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, version == 11 ? ScopedKind.ScopedRef : ScopedKind.None);
 
             Assert.Equal(version == 11, method.ContainingModule.UseUpdatedEscapeRules);
+
+            // 'A.F1' not used => no error
+            CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
         }
 
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
@@ -26986,12 +27061,15 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             comp.VerifyDiagnostics(
                 // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
                 //     static ref int F2(out int i) => ref A.F1(out i);
-                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.F1").WithArguments("A.F1(out int)", "System.Runtime.CompilerServices.RefSafetyRulesAttribute", "11").WithLocation(3, 41));
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
             VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
 
             Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
+
+            // 'A.F1' not used => no error
+            CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
         }
 
         [WorkItem(64507, "https://github.com/dotnet/roslyn/issues/64507")]
@@ -27025,12 +27103,15 @@ $@".assembly extern mscorlib {{ .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 3
             comp.VerifyDiagnostics(
                 // (3,41): error CS9103: 'A.F1(out int)' is defined in a module with an unrecognized RefSafetyRulesAttribute version, expecting '11'.
                 //     static ref int F2(out int i) => ref A.F1(out i);
-                Diagnostic(ErrorCode.ERR_UnrecognizedRefSafetyRulesAttributeVersion, "A.F1").WithArguments("A.F1(out int)").WithLocation(3, 41));
+                Diagnostic(ErrorCode.ERR_UnrecognizedAttributeVersion, "A.F1").WithArguments("A.F1(out int)", "System.Runtime.CompilerServices.RefSafetyRulesAttribute", "11").WithLocation(3, 41));
 
             var method = comp.GetMember<MethodSymbol>("A.F1");
             VerifyParameterSymbol(method.Parameters[0], "out System.Int32 i", RefKind.Out, ScopedKind.None);
 
             Assert.False(method.ContainingModule.UseUpdatedEscapeRules);
+
+            // 'A.F1' not used => no error
+            CreateCompilation("class C;", references: [refA]).VerifyEmitDiagnostics();
         }
 
         /// <summary>

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsImplicitlyDeclared => true;
         internal override ManagedKind GetManagedKind(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo) => ManagedKind.Managed;
         public override NamedTypeSymbol ConstructedFrom => this;
-        public override bool MightContainExtensionMethods => false;
+        public override bool MightContainExtensions => false;
         internal override bool HasDeclaredRequiredMembers => false;
         public override Accessibility DeclaredAccessibility => Accessibility.Internal;
         public override TypeKind TypeKind => TypeKind.Class;
@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override FileIdentifier? AssociatedFileIdentifier => null;
         internal override bool HasCodeAnalysisEmbeddedAttribute => true;
         internal override bool HasCompilerLoweringPreserveAttribute => false;
+        internal override bool IsUnionTypeCore => false;
         internal override bool IsInterpolatedStringHandlerType => false;
         internal sealed override ParameterSymbol? ExtensionParameter => null;
         internal override bool HasSpecialName => false;

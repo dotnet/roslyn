@@ -210,7 +210,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
             return (completionList, isIncomplete, isHardSelection);
 
         // Use pattern matching to determine which items are most relevant out of the calculated items.
-        using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
+        using var _ = ArrayBuilder<MatchResult>.GetInstance(discardLargeInstances: false, out var matchResultsBuilder);
         var index = 0;
         using var helper = new PatternMatchHelper(filterText);
         foreach (var item in completionList.ItemsList)
@@ -233,11 +233,8 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         matchResultsBuilder.Sort(MatchResult.SortingComparer);
 
         // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
-        var filteredList = matchResultsBuilder
-            .Take(completionListMaxSize)
-            .Concat(matchResultsBuilder.Skip(completionListMaxSize).Where(match => match.CompletionItem.Rules.MatchPriority == MatchPriority.Preselect))
-            .SelectAsArray(matchResult => matchResult.CompletionItem);
-        var newCompletionList = completionList.WithItemsList(filteredList);
+        var filteredArray = GetFilteredArray(completionListMaxSize, matchResultsBuilder);
+        var newCompletionList = completionList.WithItemsList(filteredArray);
 
         // Per the LSP spec, the completion list should be marked with isIncomplete = false when further insertions will
         // not generate any more completion items.  This means that we should be checking if the matchedResults is larger
@@ -253,7 +250,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         // VS bug here - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1335142
         isIncomplete |= completionCapabilityHelper.SupportVSInternalClientCapabilities
             ? completionList.ItemsList.Count > newCompletionList.ItemsList.Count
-            : matchResultsBuilder.Count > filteredList.Length;
+            : matchResultsBuilder.Count > filteredArray.Length;
 
         return (newCompletionList, isIncomplete, isHardSelection);
 
@@ -265,6 +262,45 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
                 CompletionTriggerKind.Deletion => CompletionFilterReason.Deletion,
                 _ => CompletionFilterReason.Other,
             };
+        }
+
+        static ImmutableArray<CompletionItem> GetFilteredArray(int completionListMaxSize, ArrayBuilder<MatchResult> matchResultsBuilder)
+        {
+            var takeCount = Math.Min(completionListMaxSize, matchResultsBuilder.Count);
+            var preselectCount = 0;
+
+            // Count how many preselected items are beyond takeCount
+            for (var i = takeCount; i < matchResultsBuilder.Count; i++)
+            {
+                if (matchResultsBuilder[i].CompletionItem.Rules.MatchPriority == MatchPriority.Preselect)
+                {
+                    preselectCount++;
+                }
+            }
+
+            // Allocate the final array to hold the filtered items
+            FixedSizeArrayBuilder<CompletionItem> filteredBuilder = new(takeCount + preselectCount);
+
+            // Add the first takeCount items
+            for (var i = 0; i < takeCount; i++)
+            {
+                filteredBuilder.Add(matchResultsBuilder[i].CompletionItem);
+            }
+
+            if (preselectCount > 0)
+            {
+                // Find the preselected items beyond takeCount and add them
+                for (var i = takeCount; i < matchResultsBuilder.Count; i++)
+                {
+                    var item = matchResultsBuilder[i].CompletionItem;
+                    if (item.Rules.MatchPriority == MatchPriority.Preselect)
+                    {
+                        filteredBuilder.Add(item);
+                    }
+                }
+            }
+
+            return filteredBuilder.MoveToImmutable();
         }
     }
 }

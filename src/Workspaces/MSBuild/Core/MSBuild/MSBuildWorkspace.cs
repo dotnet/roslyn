@@ -31,12 +31,15 @@ public sealed class MSBuildWorkspace : Workspace
 
     private readonly MSBuildProjectLoader _loader;
 
+    private readonly ImmutableArray<string> _knownCommandLineParserLanguages;
+
     private MSBuildWorkspace(
         HostServices hostServices,
         ImmutableDictionary<string, string> properties)
         : base(hostServices, WorkspaceKind.MSBuild)
     {
         _loader = new MSBuildProjectLoader(this, properties);
+        _knownCommandLineParserLanguages = Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>();
     }
 
     /// <summary>
@@ -93,6 +96,13 @@ public sealed class MSBuildWorkspace : Workspace
     internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider)
         => _loader.LoggerFactory.AddProvider(loggerProvider);
 
+    protected override void Dispose(bool finalize)
+    {
+        // Dispose the LoggerFactory to ensure any logger providers added via AddLoggerProvider are disposed.
+        _loader.LoggerFactory.Dispose();
+        base.Dispose(finalize);
+    }
+
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
     /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.
@@ -127,8 +137,7 @@ public sealed class MSBuildWorkspace : Workspace
     /// An project is unrecognized if it either has 
     ///   a) an invalid file path, 
     ///   b) a non-existent project file,
-    ///   c) has an unrecognized file extension or 
-    ///   d) a file extension associated with an unsupported language.
+    ///   c) has an unrecognized file extension
     /// 
     /// If unrecognized projects cannot be skipped a corresponding exception is thrown.
     /// </summary>
@@ -313,7 +322,7 @@ public sealed class MSBuildWorkspace : Workspace
             try
             {
                 Debug.Assert(_applyChangesBuildHostProcessManager == null);
-                _applyChangesBuildHostProcessManager = new BuildHostProcessManager(Properties, loggerFactory: _loader.LoggerFactory);
+                _applyChangesBuildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, loggerFactory: _loader.LoggerFactory);
 
                 return base.TryApplyChanges(newSolution, progressTracker);
             }
