@@ -1222,20 +1222,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!IsClosed)
                     return [];
 
-                var subtypesBuilder = ArrayBuilder<EntityHandle>.GetInstance();
+                var subtypeDefinitionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                var metadataReader = ContainingPEModule.Module.MetadataReader;
+                var decoder = new MetadataDecoder(ContainingPEModule);
                 try
                 {
-                    ContainingPEModule.Module.GetSubtypeDefinitionsOrThrow(Handle, subtypesBuilder);
+                    foreach (var candidateTypeDefHandle in metadataReader.TypeDefinitions)
+                    {
+                        var typeDef = metadataReader.GetTypeDefinition(candidateTypeDefHandle);
+                        var baseTypeHandle = typeDef.BaseType;
+                        if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
+                        {
+                            if (baseTypeHandle == this.Handle)
+                                subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
+
+                            continue;
+                        }
+
+                        // PROTOTYPE(cc): Perhaps we should write a helper to dig thru the signature,
+                        // filter for GenericTypeInstance, and get the TypeDef token representing the original definition, to compare against 'this.Handle'.
+                        // This would reduce how often we need to call 'GetTypeOfToken'.
+                        Debug.Assert(baseTypeHandle.Kind is HandleKind.TypeSpecification or HandleKind.TypeReference);
+                        var candidateSubtype = decoder.GetTypeOfToken(candidateTypeDefHandle);
+                        if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                            subtypeDefinitionsBuilder.Add((NamedTypeSymbol)candidateSubtype);
+                    }
                 }
                 catch (BadImageFormatException)
                 {
+                    // PROTOTYPE(cc): Perhaps we should mark the type as having import errors somehow.
                 }
 
-                var decoder = new MetadataDecoder(ContainingPEModule);
-                var subtypes = subtypesBuilder.SelectAsArray(
-                    static (subtypeHandle, decoder) => (NamedTypeSymbol)decoder.GetTypeOfToken(subtypeHandle), decoder);
-                subtypesBuilder.Free();
-                return subtypes;
+                return subtypeDefinitionsBuilder.ToImmutableAndFree();
             }
         }
 

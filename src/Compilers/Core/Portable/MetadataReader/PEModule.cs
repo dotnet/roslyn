@@ -890,26 +890,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        /// <summary>Get TypeDef handles whose BaseType is equal to 'baseTypeHandle'.</summary>
-        internal void GetSubtypeDefinitionsOrThrow(EntityHandle baseTypeHandle, ArrayBuilder<EntityHandle> subtypesBuilder)
-        {
-            Debug.Assert(baseTypeHandle.Kind is HandleKind.TypeDefinition);
-            foreach (var subtypeHandle in MetadataReader.TypeDefinitions)
-            {
-                var subtype = MetadataReader.GetTypeDefinition(subtypeHandle);
-                // TODO2: this is probably wrong for generics.
-                // CAn/should we dig thru TypeSpecs to find
-                var candidateBaseTypeHandle = subtype.BaseType;
-                if (candidateBaseTypeHandle.Kind == HandleKind.TypeSpecification)
-                {
-                    var typeSpec = MetadataReader.GetTypeSpecification(candidateBaseTypeHandle);
-                    typeSpec.DecodeSignature();
-                }
-                if (candidateBaseTypeHandle == baseTypeHandle)
-                    subtypesBuilder.Add(subtypeHandle);
-            }
-        }
-
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         internal ImmutableArray<TypeDefinitionHandle> GetNestedTypeDefsOrThrow(TypeDefinitionHandle container)
         {
