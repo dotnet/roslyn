@@ -2439,9 +2439,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.OperatorKind.IsLogical())
+            if (node.IsShortCircuiting)
             {
-                Debug.Assert(!node.OperatorKind.IsUserDefined());
+                // Chained relational comparison nodes (IsChainedRelational==true) are short-
+                // circuiting like `&&` even though their OperatorKind is `<`/`<=`/`>`/`>=`
+                // rather than `LogicalBoolAnd`. Flow walkers that key off IsLogical() for
+                // split-state handling of the right operand must also handle these nodes
+                // through the same path.
+                Debug.Assert(!node.OperatorKind.IsLogical() || !node.OperatorKind.IsUserDefined());
                 VisitBinaryLogicalOperatorChildren(node);
             }
             else if (node.InterpolatedStringHandlerData is { } data)
@@ -2478,12 +2483,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var binOp = (BoundBinaryOperator)child;
 
-                    if (!binOp.OperatorKind.IsLogical())
+                    if (!binOp.IsShortCircuiting)
                     {
                         break;
                     }
 
-                    Debug.Assert(!binOp.OperatorKind.IsUserDefined());
+                    Debug.Assert(!binOp.OperatorKind.IsLogical() || !binOp.OperatorKind.IsUserDefined());
                     binary = child;
                     child = binOp.Left;
                 }
@@ -2532,12 +2537,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BinaryOperatorKind kind;
                 BoundExpression right;
+                bool isChainedRelational = false;
                 switch (binary.Kind)
                 {
                     case BoundKind.BinaryOperator:
                         var binOp = (BoundBinaryOperator)binary;
                         kind = binOp.OperatorKind;
                         right = binOp.Right;
+                        isChainedRelational = binOp.IsChainedRelational;
                         break;
                     case BoundKind.UserDefinedConditionalLogicalOperator:
                         var udBinOp = (BoundUserDefinedConditionalLogicalOperator)binary;
@@ -2548,12 +2555,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(binary.Kind);
                 }
 
+                // A chained relational comparison node behaves like a short-circuit `&&`
+                // on its left (bool) operand, even though its operator kind is a relational
+                // one (`<`, `<=`, `>`, `>=`). Treat isAnd==true; the right operand's type
+                // is not `bool`, so isBool==false forces the Unsplit/Split cycle that
+                // synthesises the `Y op B` conditional state after visiting the right operand.
                 var op = kind.Operator();
-                var isAnd = op == BinaryOperatorKind.And;
-                var isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
+                var isAnd = isChainedRelational || op == BinaryOperatorKind.And;
+                var isBool = !isChainedRelational && kind.OperandTypes() == BinaryOperatorKind.Bool;
                 Debug.Assert(!isBool || binary.Kind != BoundKind.UserDefinedConditionalLogicalOperator);
 
-                Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
+                Debug.Assert(isChainedRelational || isAnd || op == BinaryOperatorKind.Or);
 
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
@@ -2621,7 +2633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterRegionIfNeeded(binary);
                 binary = binary.Left as BoundBinaryOperator;
             }
-            while (binary != null && !binary.OperatorKind.IsLogical() && binary.InterpolatedStringHandlerData is null);
+            while (binary != null && !binary.IsShortCircuiting && binary.InterpolatedStringHandlerData is null);
 
             VisitBinaryOperatorChildren(stack);
             stack.Free();

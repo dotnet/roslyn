@@ -8315,4 +8315,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnionConstructorCallsDefaultConstructor" xml:space="preserve">
     <value>A constructor declared in a 'union' declaration must have a 'this' initializer that calls a synthesized constructor or an explicitly declared constructor.</value>
   </data>
+  <data name="IDS_FeatureChainedRelationalComparison" xml:space="preserve">
+    <value>chained relational comparison</value>
+  </data>
+  <data name="ERR_NoChainedRelationalComparison" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' as a chained relational comparison.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsChainedRelationalComparison" xml:space="preserve">
+    <value>An expression tree may not contain a chained relational comparison.</value>
+  </data>
 </root>

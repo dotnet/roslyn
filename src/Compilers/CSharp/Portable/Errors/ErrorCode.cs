@@ -2486,6 +2486,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
+        // Note: 9379 is reserved for the labeled-break-and-continue feature
+        // (`ERR_NoBreakOrContId`). When that feature merges, our two codes below
+        // stay at 9380/9381 and no renumber is needed.
+        ERR_NoChainedRelationalComparison = 9380,
+        ERR_ExpressionTreeContainsChainedRelationalComparison = 9381,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
