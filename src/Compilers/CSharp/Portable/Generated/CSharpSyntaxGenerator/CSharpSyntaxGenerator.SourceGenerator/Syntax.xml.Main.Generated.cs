@@ -21,6 +21,10 @@ public partial class CSharpSyntaxVisitor<TResult>
     /// <summary>Called when the visitor visits a QualifiedNameSyntax node.</summary>
     public virtual TResult? VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a TargetTypedQualifiedNameSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public virtual TResult? VisitTargetTypedQualifiedName(TargetTypedQualifiedNameSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a GenericNameSyntax node.</summary>
     public virtual TResult? VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
 
@@ -98,6 +102,10 @@ public partial class CSharpSyntaxVisitor<TResult>
 
     /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
     public virtual TResult? VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a TargetTypedMemberAccessExpressionSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public virtual TResult? VisitTargetTypedMemberAccessExpression(TargetTypedMemberAccessExpressionSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
     public virtual TResult? VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
@@ -769,6 +777,10 @@ public partial class CSharpSyntaxVisitor
     /// <summary>Called when the visitor visits a QualifiedNameSyntax node.</summary>
     public virtual void VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
 
+    /// <summary>Called when the visitor visits a TargetTypedQualifiedNameSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public virtual void VisitTargetTypedQualifiedName(TargetTypedQualifiedNameSyntax node) => this.DefaultVisit(node);
+
     /// <summary>Called when the visitor visits a GenericNameSyntax node.</summary>
     public virtual void VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
 
@@ -846,6 +858,10 @@ public partial class CSharpSyntaxVisitor
 
     /// <summary>Called when the visitor visits a MemberBindingExpressionSyntax node.</summary>
     public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+
+    /// <summary>Called when the visitor visits a TargetTypedMemberAccessExpressionSyntax node.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public virtual void VisitTargetTypedMemberAccessExpression(TargetTypedMemberAccessExpressionSyntax node) => this.DefaultVisit(node);
 
     /// <summary>Called when the visitor visits a ElementBindingExpressionSyntax node.</summary>
     public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
@@ -1517,6 +1533,10 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
     public override SyntaxNode? VisitQualifiedName(QualifiedNameSyntax node)
         => node.Update((NameSyntax?)Visit(node.Left) ?? throw new ArgumentNullException("left"), VisitToken(node.DotToken), (SimpleNameSyntax?)Visit(node.Right) ?? throw new ArgumentNullException("right"));
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public override SyntaxNode? VisitTargetTypedQualifiedName(TargetTypedQualifiedNameSyntax node)
+        => node.Update(VisitToken(node.DotToken), (SimpleNameSyntax?)Visit(node.Right) ?? throw new ArgumentNullException("right"));
+
     public override SyntaxNode? VisitGenericName(GenericNameSyntax node)
         => node.Update(VisitToken(node.Identifier), (TypeArgumentListSyntax?)Visit(node.TypeArgumentList) ?? throw new ArgumentNullException("typeArgumentList"));
 
@@ -1593,6 +1613,10 @@ public partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<SyntaxNode?>
         => node.Update((ExpressionSyntax?)Visit(node.Expression) ?? throw new ArgumentNullException("expression"), VisitToken(node.OperatorToken), (ExpressionSyntax?)Visit(node.WhenNotNull) ?? throw new ArgumentNullException("whenNotNull"));
 
     public override SyntaxNode? VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
+        => node.Update(VisitToken(node.OperatorToken), (SimpleNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"));
+
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public override SyntaxNode? VisitTargetTypedMemberAccessExpression(TargetTypedMemberAccessExpressionSyntax node)
         => node.Update(VisitToken(node.OperatorToken), (SimpleNameSyntax?)Visit(node.Name) ?? throw new ArgumentNullException("name"));
 
     public override SyntaxNode? VisitElementBindingExpression(ElementBindingExpressionSyntax node)
@@ -2285,6 +2309,20 @@ public static partial class SyntaxFactory
     public static QualifiedNameSyntax QualifiedName(NameSyntax left, SimpleNameSyntax right)
         => SyntaxFactory.QualifiedName(left, SyntaxFactory.Token(SyntaxKind.DotToken), right);
 
+    /// <summary>Creates a new TargetTypedQualifiedNameSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public static TargetTypedQualifiedNameSyntax TargetTypedQualifiedName(SyntaxToken dotToken, SimpleNameSyntax right)
+    {
+        if (dotToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (right == null) throw new ArgumentNullException(nameof(right));
+        return (TargetTypedQualifiedNameSyntax)Syntax.InternalSyntax.SyntaxFactory.TargetTypedQualifiedName((Syntax.InternalSyntax.SyntaxToken)dotToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)right.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new TargetTypedQualifiedNameSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public static TargetTypedQualifiedNameSyntax TargetTypedQualifiedName(SimpleNameSyntax right)
+        => SyntaxFactory.TargetTypedQualifiedName(SyntaxFactory.Token(SyntaxKind.DotToken), right);
+
     /// <summary>Creates a new GenericNameSyntax instance.</summary>
     public static GenericNameSyntax GenericName(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
     {
@@ -2716,6 +2754,20 @@ public static partial class SyntaxFactory
     /// <summary>Creates a new MemberBindingExpressionSyntax instance.</summary>
     public static MemberBindingExpressionSyntax MemberBindingExpression(SimpleNameSyntax name)
         => SyntaxFactory.MemberBindingExpression(SyntaxFactory.Token(SyntaxKind.DotToken), name);
+
+    /// <summary>Creates a new TargetTypedMemberAccessExpressionSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public static TargetTypedMemberAccessExpressionSyntax TargetTypedMemberAccessExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
+    {
+        if (operatorToken.Kind() != SyntaxKind.DotToken) throw new ArgumentException(nameof(operatorToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+        return (TargetTypedMemberAccessExpressionSyntax)Syntax.InternalSyntax.SyntaxFactory.TargetTypedMemberAccessExpression((Syntax.InternalSyntax.SyntaxToken)operatorToken.Node!, (Syntax.InternalSyntax.SimpleNameSyntax)name.Green).CreateRed();
+    }
+
+    /// <summary>Creates a new TargetTypedMemberAccessExpressionSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/csharplang/issues/9138")]
+    public static TargetTypedMemberAccessExpressionSyntax TargetTypedMemberAccessExpression(SimpleNameSyntax name)
+        => SyntaxFactory.TargetTypedMemberAccessExpression(SyntaxFactory.Token(SyntaxKind.DotToken), name);
 
     /// <summary>Creates a new ElementBindingExpressionSyntax instance.</summary>
     public static ElementBindingExpressionSyntax ElementBindingExpression(BracketedArgumentListSyntax argumentList)

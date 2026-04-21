@@ -300,9 +300,18 @@ class C
                     // (8,26): error CS8918: Identifier or a simple member access expected.
                     //         _ = new C() is { Prop1!.Prop2: {} };
                     Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1!").WithLocation(8, 26),
-                    // (9,26): error CS8918: Identifier or a simple member access expected.
+                    // (9,26): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop1?.Prop2:  }'
                     //         _ = new C() is { Prop1?.Prop2: {} };
-                    Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Prop1?.Prop2").WithLocation(9, 26),
+                    Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop1?.Prop2: ").WithArguments("Prop1?.Prop2: ").WithLocation(9, 26),
+                    // (9,26): error CS0103: The name 'Prop1' does not exist in the current context
+                    //         _ = new C() is { Prop1?.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "Prop1").WithArguments("Prop1").WithLocation(9, 26),
+                    // (9,40): error CS1525: Invalid expression term '{'
+                    //         _ = new C() is { Prop1?.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(9, 40),
+                    // (9,40): error CS1003: Syntax error, ',' expected
+                    //         _ = new C() is { Prop1?.Prop2: {} };
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(9, 40),
                     // (10,26): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Prop1[0] }'
                     //         _ = new C() is { Prop1[0]: {} };
                     Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Prop1[0]").WithArguments("Prop1[0]").WithLocation(10, 26),
@@ -745,18 +754,27 @@ class C
 ";
             var compilation = CreateCompilation(program, parseOptions: TestOptions.RegularWithExtendedPropertyPatterns);
             compilation.VerifyEmitDiagnostics(
-                // (4,7): warning CS0169: The field 'C.Field1' is never used
+                // (4,7): warning CS0649: Field 'C.Field1' is never assigned to, and will always have its default value null
                 //     C Field1, Field2, Field3;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field1").WithArguments("C.Field1").WithLocation(4, 7),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field1").WithArguments("C.Field1", "null").WithLocation(4, 7),
                 // (4,15): warning CS0169: The field 'C.Field2' is never used
                 //     C Field1, Field2, Field3;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Field2").WithArguments("C.Field2").WithLocation(4, 15),
                 // (4,23): warning CS0649: Field 'C.Field3' is never assigned to, and will always have its default value null
                 //     C Field1, Field2, Field3;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field3").WithArguments("C.Field3", "null").WithLocation(4, 23),
-                // (7,26): error CS8918: Identifier or a simple member access expected.
+                // (7,26): error CS8503: A property subpattern requires a reference to the property or field to be matched, e.g. '{ Name: Field1?.Field2:  }'
                 //         _ = new C() is { Field1?.Field2: {} }; // 1
-                Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Field1?.Field2").WithLocation(7, 26),
+                Diagnostic(ErrorCode.ERR_PropertyPatternNameMissing, "Field1?.Field2: ").WithArguments("Field1?.Field2: ").WithLocation(7, 26),
+                // (7,26): error CS0120: An object reference is required for the non-static field, method, or property 'C.Field1'
+                //         _ = new C() is { Field1?.Field2: {} }; // 1
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Field1").WithArguments("C.Field1").WithLocation(7, 26),
+                // (7,42): error CS1525: Invalid expression term '{'
+                //         _ = new C() is { Field1?.Field2: {} }; // 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(7, 42),
+                // (7,42): error CS1003: Syntax error, ',' expected
+                //         _ = new C() is { Field1?.Field2: {} }; // 1
+                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(7, 42),
                 // (8,26): error CS8918: Identifier or a simple member access expected.
                 //         _ = new C() is { Field1!.Field2: {} }; // 2
                 Diagnostic(ErrorCode.ERR_InvalidNameInSubpattern, "Field1!").WithLocation(8, 26),

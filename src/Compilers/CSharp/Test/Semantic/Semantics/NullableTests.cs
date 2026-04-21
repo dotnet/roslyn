@@ -2092,7 +2092,6 @@ class Test
             // Roslyn: (9,18): error CS0119: 'int?' is a type, which is not valid in the given context
             // Roslyn: (9,33): error CS0571: 'int?.implicit operator int?(int)': cannot explicitly call operator or accessor
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments("."),
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Nullable<int>").WithArguments("int?", "type"),
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "op_Implicit").WithArguments("int?.implicit operator int?(int)")
             );

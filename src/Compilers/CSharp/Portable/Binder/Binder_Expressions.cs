@@ -867,6 +867,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.WithExpression:
                         return BindWithExpression((WithExpressionSyntax)node, diagnostics);
 
+                    case SyntaxKind.TargetTypedMemberAccessExpression:
+                    case SyntaxKind.TargetTypedQualifiedName:
+                        // Full binder support for target-typed static member access (csharplang #9138) will land in a
+                        // follow-up PR.  For now, produce a bad expression so the compiler does not crash when these
+                        // nodes reach the binder; diagnostics come from the parser and from later binder work.
+                        return BadExpression(node);
+
                     default:
                         // NOTE: We could probably throw an exception here, but it's conceivable
                         // that a non-parser syntax tree could reach this point with an unexpected

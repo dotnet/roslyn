@@ -196,6 +196,85 @@ internal sealed partial class QualifiedNameSyntax : NameSyntax
         => new QualifiedNameSyntax(this.Kind, this.left, this.dotToken, this.right, GetDiagnostics(), annotations);
 }
 
+/// <summary>Class which represents the syntax node for a target-typed qualified name, i.e. a name of the form <c>.Identifier</c> where the type of the left side is inferred from context.</summary>
+internal sealed partial class TargetTypedQualifiedNameSyntax : NameSyntax
+{
+    internal readonly SyntaxToken dotToken;
+    internal readonly SimpleNameSyntax right;
+
+    internal TargetTypedQualifiedNameSyntax(SyntaxKind kind, SyntaxToken dotToken, SimpleNameSyntax right, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(right);
+        this.right = right;
+    }
+
+    internal TargetTypedQualifiedNameSyntax(SyntaxKind kind, SyntaxToken dotToken, SimpleNameSyntax right, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(right);
+        this.right = right;
+    }
+
+    internal TargetTypedQualifiedNameSyntax(SyntaxKind kind, SyntaxToken dotToken, SimpleNameSyntax right)
+      : base(kind)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(dotToken);
+        this.dotToken = dotToken;
+        this.AdjustFlagsAndWidth(right);
+        this.right = right;
+    }
+
+    /// <summary>SyntaxToken representing the dot.</summary>
+    public SyntaxToken DotToken => this.dotToken;
+    /// <summary>SimpleNameSyntax node representing the name on the right side of the dot token of the target-typed qualified name.</summary>
+    public SimpleNameSyntax Right => this.right;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.dotToken,
+            1 => this.right,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TargetTypedQualifiedNameSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTargetTypedQualifiedName(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTargetTypedQualifiedName(this);
+
+    public TargetTypedQualifiedNameSyntax Update(SyntaxToken dotToken, SimpleNameSyntax right)
+    {
+        if (dotToken != this.DotToken || right != this.Right)
+        {
+            var newNode = SyntaxFactory.TargetTypedQualifiedName(dotToken, right);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new TargetTypedQualifiedNameSyntax(this.Kind, this.dotToken, this.right, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new TargetTypedQualifiedNameSyntax(this.Kind, this.dotToken, this.right, GetDiagnostics(), annotations);
+}
+
 /// <summary>Class which represents the syntax node for generic name.</summary>
 internal sealed partial class GenericNameSyntax : SimpleNameSyntax
 {
@@ -2466,6 +2545,85 @@ internal sealed partial class MemberBindingExpressionSyntax : ExpressionSyntax
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
         => new MemberBindingExpressionSyntax(this.Kind, this.operatorToken, this.name, GetDiagnostics(), annotations);
+}
+
+/// <summary>Class which represents the syntax node for a target-typed static member access expression, e.g. <c>.Identifier</c> where the type of the containing expression is inferred from context.</summary>
+internal sealed partial class TargetTypedMemberAccessExpressionSyntax : ExpressionSyntax
+{
+    internal readonly SyntaxToken operatorToken;
+    internal readonly SimpleNameSyntax name;
+
+    internal TargetTypedMemberAccessExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+      : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(operatorToken);
+        this.operatorToken = operatorToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+    }
+
+    internal TargetTypedMemberAccessExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name, SyntaxFactoryContext context)
+      : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(operatorToken);
+        this.operatorToken = operatorToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+    }
+
+    internal TargetTypedMemberAccessExpressionSyntax(SyntaxKind kind, SyntaxToken operatorToken, SimpleNameSyntax name)
+      : base(kind)
+    {
+        this.SlotCount = 2;
+        this.AdjustFlagsAndWidth(operatorToken);
+        this.operatorToken = operatorToken;
+        this.AdjustFlagsAndWidth(name);
+        this.name = name;
+    }
+
+    /// <summary>SyntaxToken representing dot.</summary>
+    public SyntaxToken OperatorToken => this.operatorToken;
+    /// <summary>SimpleNameSyntax node representing the member being accessed.</summary>
+    public SimpleNameSyntax Name => this.name;
+
+    internal override GreenNode? GetSlot(int index)
+        => index switch
+        {
+            0 => this.operatorToken,
+            1 => this.name,
+            _ => null,
+        };
+
+    internal override SyntaxNode CreateRed(SyntaxNode? parent, int position) => new CSharp.Syntax.TargetTypedMemberAccessExpressionSyntax(this, parent, position);
+
+    public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitTargetTypedMemberAccessExpression(this);
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitTargetTypedMemberAccessExpression(this);
+
+    public TargetTypedMemberAccessExpressionSyntax Update(SyntaxToken operatorToken, SimpleNameSyntax name)
+    {
+        if (operatorToken != this.OperatorToken || name != this.Name)
+        {
+            var newNode = SyntaxFactory.TargetTypedMemberAccessExpression(operatorToken, name);
+            var diags = GetDiagnostics();
+            if (diags?.Length > 0)
+                newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = GetAnnotations();
+            if (annotations?.Length > 0)
+                newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
+        => new TargetTypedMemberAccessExpressionSyntax(this.Kind, this.operatorToken, this.name, diagnostics, GetAnnotations());
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
+        => new TargetTypedMemberAccessExpressionSyntax(this.Kind, this.operatorToken, this.name, GetDiagnostics(), annotations);
 }
 
 /// <summary>Class which represents the syntax node for element binding expression.</summary>
@@ -27022,6 +27180,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
 {
     public virtual TResult VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitTargetTypedQualifiedName(TargetTypedQualifiedNameSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
@@ -27048,6 +27207,7 @@ internal partial class CSharpSyntaxVisitor<TResult>
     public virtual TResult VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual TResult VisitTargetTypedMemberAccessExpression(TargetTypedMemberAccessExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual TResult VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
@@ -27274,6 +27434,7 @@ internal partial class CSharpSyntaxVisitor
 {
     public virtual void VisitIdentifierName(IdentifierNameSyntax node) => this.DefaultVisit(node);
     public virtual void VisitQualifiedName(QualifiedNameSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitTargetTypedQualifiedName(TargetTypedQualifiedNameSyntax node) => this.DefaultVisit(node);
     public virtual void VisitGenericName(GenericNameSyntax node) => this.DefaultVisit(node);
     public virtual void VisitTypeArgumentList(TypeArgumentListSyntax node) => this.DefaultVisit(node);
     public virtual void VisitAliasQualifiedName(AliasQualifiedNameSyntax node) => this.DefaultVisit(node);
@@ -27300,6 +27461,7 @@ internal partial class CSharpSyntaxVisitor
     public virtual void VisitMemberAccessExpression(MemberAccessExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitMemberBindingExpression(MemberBindingExpressionSyntax node) => this.DefaultVisit(node);
+    public virtual void VisitTargetTypedMemberAccessExpression(TargetTypedMemberAccessExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitElementBindingExpression(ElementBindingExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitRangeExpression(RangeExpressionSyntax node) => this.DefaultVisit(node);
     public virtual void VisitImplicitElementAccess(ImplicitElementAccessSyntax node) => this.DefaultVisit(node);
@@ -27530,6 +27692,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
     public override CSharpSyntaxNode VisitQualifiedName(QualifiedNameSyntax node)
         => node.Update((NameSyntax)Visit(node.Left), (SyntaxToken)Visit(node.DotToken), (SimpleNameSyntax)Visit(node.Right));
 
+    public override CSharpSyntaxNode VisitTargetTypedQualifiedName(TargetTypedQualifiedNameSyntax node)
+        => node.Update((SyntaxToken)Visit(node.DotToken), (SimpleNameSyntax)Visit(node.Right));
+
     public override CSharpSyntaxNode VisitGenericName(GenericNameSyntax node)
         => node.Update((SyntaxToken)Visit(node.Identifier), (TypeArgumentListSyntax)Visit(node.TypeArgumentList));
 
@@ -27606,6 +27771,9 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update((ExpressionSyntax)Visit(node.Expression), (SyntaxToken)Visit(node.OperatorToken), (ExpressionSyntax)Visit(node.WhenNotNull));
 
     public override CSharpSyntaxNode VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
+        => node.Update((SyntaxToken)Visit(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
+
+    public override CSharpSyntaxNode VisitTargetTypedMemberAccessExpression(TargetTypedMemberAccessExpressionSyntax node)
         => node.Update((SyntaxToken)Visit(node.OperatorToken), (SimpleNameSyntax)Visit(node.Name));
 
     public override CSharpSyntaxNode VisitElementBindingExpression(ElementBindingExpressionSyntax node)
@@ -28324,6 +28492,27 @@ internal partial class ContextAwareSyntax
         return result;
     }
 
+    public TargetTypedQualifiedNameSyntax TargetTypedQualifiedName(SyntaxToken dotToken, SimpleNameSyntax right)
+    {
+#if DEBUG
+        if (dotToken == null) throw new ArgumentNullException(nameof(dotToken));
+        if (dotToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (right == null) throw new ArgumentNullException(nameof(right));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.TargetTypedQualifiedName, dotToken, right, this.context, out hash);
+        if (cached != null) return (TargetTypedQualifiedNameSyntax)cached;
+
+        var result = new TargetTypedQualifiedNameSyntax(SyntaxKind.TargetTypedQualifiedName, dotToken, right, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
     public GenericNameSyntax GenericName(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
     {
 #if DEBUG
@@ -28948,6 +29137,27 @@ internal partial class ContextAwareSyntax
         if (cached != null) return (MemberBindingExpressionSyntax)cached;
 
         var result = new MemberBindingExpressionSyntax(SyntaxKind.MemberBindingExpression, operatorToken, name, this.context);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public TargetTypedMemberAccessExpressionSyntax TargetTypedMemberAccessExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
+    {
+#if DEBUG
+        if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+        if (operatorToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(operatorToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+#endif
+
+        int hash;
+        var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.TargetTypedMemberAccessExpression, operatorToken, name, this.context, out hash);
+        if (cached != null) return (TargetTypedMemberAccessExpressionSyntax)cached;
+
+        var result = new TargetTypedMemberAccessExpressionSyntax(SyntaxKind.TargetTypedMemberAccessExpression, operatorToken, name, this.context);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
@@ -33723,6 +33933,27 @@ internal static partial class SyntaxFactory
         return result;
     }
 
+    public static TargetTypedQualifiedNameSyntax TargetTypedQualifiedName(SyntaxToken dotToken, SimpleNameSyntax right)
+    {
+#if DEBUG
+        if (dotToken == null) throw new ArgumentNullException(nameof(dotToken));
+        if (dotToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(dotToken));
+        if (right == null) throw new ArgumentNullException(nameof(right));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TargetTypedQualifiedName, dotToken, right, out hash);
+        if (cached != null) return (TargetTypedQualifiedNameSyntax)cached;
+
+        var result = new TargetTypedQualifiedNameSyntax(SyntaxKind.TargetTypedQualifiedName, dotToken, right);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
     public static GenericNameSyntax GenericName(SyntaxToken identifier, TypeArgumentListSyntax typeArgumentList)
     {
 #if DEBUG
@@ -34347,6 +34578,27 @@ internal static partial class SyntaxFactory
         if (cached != null) return (MemberBindingExpressionSyntax)cached;
 
         var result = new MemberBindingExpressionSyntax(SyntaxKind.MemberBindingExpression, operatorToken, name);
+        if (hash >= 0)
+        {
+            SyntaxNodeCache.AddNode(result, hash);
+        }
+
+        return result;
+    }
+
+    public static TargetTypedMemberAccessExpressionSyntax TargetTypedMemberAccessExpression(SyntaxToken operatorToken, SimpleNameSyntax name)
+    {
+#if DEBUG
+        if (operatorToken == null) throw new ArgumentNullException(nameof(operatorToken));
+        if (operatorToken.Kind != SyntaxKind.DotToken) throw new ArgumentException(nameof(operatorToken));
+        if (name == null) throw new ArgumentNullException(nameof(name));
+#endif
+
+        int hash;
+        var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.TargetTypedMemberAccessExpression, operatorToken, name, out hash);
+        if (cached != null) return (TargetTypedMemberAccessExpressionSyntax)cached;
+
+        var result = new TargetTypedMemberAccessExpressionSyntax(SyntaxKind.TargetTypedMemberAccessExpression, operatorToken, name);
         if (hash >= 0)
         {
             SyntaxNodeCache.AddNode(result, hash);
