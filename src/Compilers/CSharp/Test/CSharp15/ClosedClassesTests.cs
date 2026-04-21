@@ -1034,8 +1034,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
         comp.VerifyEmitDiagnostics();
 
         verify(comp);
-        verify(CreateCompilation([], references: [comp.ToMetadataReference()]));
-        verify(CreateCompilation([], references: [comp.EmitToImageReference()]));
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
 
         void verify(CSharpCompilation comp)
         {
@@ -1073,24 +1073,31 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
-        var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal("C<T>", classC.ToTestDisplayString());
-        // Note: 'D2<U>' reflects a weird scenario here.
-        // Basically, when we encounter a value 'C<X>', and 'X' constraints permit its type to be some 'ImmutableArray<Y>',
-        // then we know 'C<X>' could be some 'D2'. But we don't actually have the ability to speak that 'D2' in the given context.
-        Assert.Equal(["D1<T>", "D2<U>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
 
-        var immutableArrayOfInt = comp
-            .GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)
-            .Construct(comp.GetSpecialType(SpecialType.System_Int32));
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C<T>", classC.ToTestDisplayString());
+            // Note: 'D2<U>' reflects a weird scenario here.
+            // Basically, when we encounter a value 'C<X>', and 'X' constraints permit its type to be some 'ImmutableArray<Y>',
+            // then we know 'C<X>' could be some 'D2'. But we don't actually have the ability to speak that 'D2' in the given context.
+            Assert.Equal(["D1<T>", "D2<U>"], classC.ClosedSubtypes.ToTestDisplayStrings());
 
-        var cOfImmutableArray = classC.Construct(immutableArrayOfInt);
-        Assert.Equal("C<System.Collections.Immutable.ImmutableArray<System.Int32>>", cOfImmutableArray.ToTestDisplayString());
-        Assert.Equal(["D1<System.Collections.Immutable.ImmutableArray<System.Int32>>", "D2<System.Int32>"], cOfImmutableArray.ClosedSubtypes.ToTestDisplayStrings());
+            var immutableArrayOfInt = comp
+                .GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)
+                .Construct(comp.GetSpecialType(SpecialType.System_Int32));
 
-        var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
-        Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
-        Assert.Equal(["D1<System.Int32>"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+            var cOfImmutableArray = classC.Construct(immutableArrayOfInt);
+            Assert.Equal("C<System.Collections.Immutable.ImmutableArray<System.Int32>>", cOfImmutableArray.ToTestDisplayString());
+            Assert.Equal(["D1<System.Collections.Immutable.ImmutableArray<System.Int32>>", "D2<System.Int32>"], cOfImmutableArray.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
+            Assert.Equal(["D1<System.Int32>"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+        }
     }
 
     [Fact]
@@ -1137,17 +1144,24 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
-        var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal("C<T1, T2>", classC.ToTestDisplayString());
-        Assert.Equal(["D1<T1>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
 
-        var cOfStringInt = classC.Construct(comp.GetSpecialType(SpecialType.System_String), comp.GetSpecialType(SpecialType.System_Int32));
-        Assert.Equal("C<System.String, System.Int32>", cOfStringInt.ToTestDisplayString());
-        Assert.Equal(["D1<System.String>"], cOfStringInt.ClosedSubtypes.ToTestDisplayStrings());
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C<T1, T2>", classC.ToTestDisplayString());
+            Assert.Equal(["D1<T1>"], classC.ClosedSubtypes.ToTestDisplayStrings());
 
-        var cOfIntString = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32), comp.GetSpecialType(SpecialType.System_String));
-        Assert.Equal("C<System.Int32, System.String>", cOfIntString.ToTestDisplayString());
-        Assert.Empty(cOfIntString.ClosedSubtypes.ToTestDisplayStrings());
+            var cOfStringInt = classC.Construct(comp.GetSpecialType(SpecialType.System_String), comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal("C<System.String, System.Int32>", cOfStringInt.ToTestDisplayString());
+            Assert.Equal(["D1<System.String>"], cOfStringInt.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfIntString = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32), comp.GetSpecialType(SpecialType.System_String));
+            Assert.Equal("C<System.Int32, System.String>", cOfIntString.ToTestDisplayString());
+            Assert.Empty(cOfIntString.ClosedSubtypes.ToTestDisplayStrings());
+        }
     }
 
     [Fact]
