@@ -48,9 +48,9 @@ internal sealed class LanguageInfoProvider : ILanguageInfoProvider
     {
         // First try to get language information from the URI path.
         // We can do this for File uris and absolute uris.  We use local path to get the value without any query parameters.
-        if (requestUri.ParsedUri is not null && (requestUri.ParsedUri.IsFile || requestUri.ParsedUri.IsAbsoluteUri))
+        if (requestUri.ParsedDocumentUri is not null)
         {
-            var localPath = requestUri.ParsedUri.LocalPath;
+            var localPath = requestUri.ParsedDocumentUri.Value.FsPath;
             var extension = Path.GetExtension(localPath);
             if (s_extensionToLanguageInformation.TryGetValue(extension, out languageInformation))
             {

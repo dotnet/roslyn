@@ -146,7 +146,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
                 {
                     foreach (var (title, source) in _unitSourcesByTitle)
                     {
-                        if (title == begin.Title)
+                        if (MatchingTitle(title, begin.Title))
                             source.TrySetResult(unit);
                     }
                 }
@@ -159,7 +159,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         {
             lock (_gate)
             {
-                if (_unitsByToken.Values.FirstOrDefault(unit => unit.Title == title) is { } unit)
+                if (_unitsByToken.Values.FirstOrDefault(unit => MatchingTitle(title, unit.Title)) is { } unit)
                     return Task.FromResult(unit);
 
                 var unitSource = new TaskCompletionSource<WorkDoneProgressUnit>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -167,6 +167,9 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
                 return unitSource.Task;
             }
         }
+
+        private static bool MatchingTitle(string expectedTitle, string? actualTitle)
+            => expectedTitle.Equals(actualTitle, StringComparison.OrdinalIgnoreCase);
 
         private static string GetToken(SumType<int, string> token)
             => token.Value?.ToString() ?? throw new InvalidOperationException("Work-done progress token must not be null.");

@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 
@@ -36,10 +37,21 @@ internal abstract class XamlRequestHandlerFactoryBase<TRequest, TResponse> : ILs
             _resolveDataCache = resolveDataCache ?? throw new ArgumentNullException(nameof(resolveDataCache));
         }
 
+        [Obsolete]
         public object ToResolveData(object data, Uri uri)
+            => ResolveDataConversions.ToCachedResolveData(data, new(uri), _resolveDataCache);
+
+        [Obsolete]
+        public (object? data, Uri? uri) FromResolveData(object? lspData)
+        {
+            var (data, documentUri) = ResolveDataConversions.FromCachedResolveData(lspData, _resolveDataCache);
+            return (data, documentUri?.ParsedUri);
+        }
+
+        public object ToResolveData(object data, DocumentUri uri)
             => ResolveDataConversions.ToCachedResolveData(data, uri, _resolveDataCache);
 
-        public (object? data, Uri? uri) FromResolveData(object? lspData)
-            => ResolveDataConversions.FromCachedResolveData(lspData, _resolveDataCache);
+        public (object? data, DocumentUri? uri) FromResolveDataDocumentUri(object? resolveData)
+            => ResolveDataConversions.FromCachedResolveData(resolveData, _resolveDataCache);
     }
 }

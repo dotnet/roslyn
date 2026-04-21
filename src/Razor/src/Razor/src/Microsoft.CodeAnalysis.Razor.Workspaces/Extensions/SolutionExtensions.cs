@@ -86,7 +86,7 @@ internal static class SolutionExtensions
             return false;
         }
 
-        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, generatedDocumentUri) is not { } docIdentity)
+        if (SourceGeneratedDocumentUri.DeserializeIdentity(solution, generatedDocumentUri.CreateDocumentUriFromSystemUri().GetRequiredParsedUri()) is not { } docIdentity)
         {
             throw new InvalidOperationException($"Could not deserialize Uri into a source generated Uri: {generatedDocumentUri}");
         }

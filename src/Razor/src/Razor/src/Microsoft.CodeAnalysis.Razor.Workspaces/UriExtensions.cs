@@ -15,13 +15,17 @@ internal static class UriExtensions
         => GetSystemUri(uri).AssumeNotNull();
 
     public static Uri? GetSystemUri(this DocumentUri uri)
+#pragma warning disable CS0618 // Type or member is obsolete - TODO - tracking issue for Razor URI
         => uri.ParsedUri;
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public static Uri CreateSystemUri(this TextDocument document)
         => document.GetURI().GetRequiredSystemUri();
 
     public static DocumentUri CreateDocumentUriFromSystemUri(this Uri uri)
+#pragma warning disable CS0618 // Type or member is obsolete - TODO - tracking issue for Razor URI
         => new DocumentUri(uri);
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public static string GetDocumentFilePathFromUri(this Uri uri)
     {

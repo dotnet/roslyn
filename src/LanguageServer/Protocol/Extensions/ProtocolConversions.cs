@@ -189,8 +189,10 @@ internal static partial class ProtocolConversions
         return scheme == SourceGeneratedDocumentUri.Scheme;
     }
 
+#pragma warning disable RS0030 // Do not use banned APIs
     /// <summary>
     /// Converts an absolute local file path or an absolute URL string to <see cref="Uri"/>.
+    /// Should only be used for callers that require a <see cref="System.Uri"/> 
     /// </summary>
     /// <exception cref="UriFormatException">
     /// The <paramref name="absolutePath"/> can't be represented as <see cref="Uri"/>.
@@ -198,13 +200,10 @@ internal static partial class ProtocolConversions
     /// </exception>
     public static Uri CreateAbsoluteUri(string absolutePath)
     {
-        var uriString = IsAscii(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath);
+        var uriString = IsAsciiStr(absolutePath) ? absolutePath : GetAbsoluteUriString(absolutePath);
         try
         {
-#pragma warning disable RS0030 // Do not use banned APIs
             return new(uriString, UriKind.Absolute);
-#pragma warning restore
-
         }
         catch (UriFormatException e)
         {
@@ -212,30 +211,68 @@ internal static partial class ProtocolConversions
             // in pretty much all cases we need to know the URI string (and original string) in order to fix the issue.
             throw new UriFormatException($"Failed create URI from '{uriString}'; original string: '{absolutePath}'", e);
         }
+
+        // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
+        static string GetAbsoluteUriString(string absolutePath)
+        {
+            if (!PathUtilities.IsAbsolute(absolutePath))
+            {
+                return absolutePath;
+            }
+
+            var parts = absolutePath.Split(s_dirSeparators);
+
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                // Unix path: first part is empty, all parts should be escaped
+                return "file://" + string.Join("/", parts.Select(EscapeUriPart));
+            }
+
+            if (parts is ["", "", var serverName, ..])
+            {
+                // UNC path: first non-empty part is server name and shouldn't be escaped
+                return "file://" + serverName + "/" + string.Join("/", parts.Skip(3).Select(EscapeUriPart));
+            }
+
+            // Drive-rooted path: first part is "C:" and shouldn't be escaped
+            return "file:///" + parts[0] + "/" + string.Join("/", parts.Skip(1).Select(EscapeUriPart));
+
+#pragma warning disable SYSLIB0013 // Type or member is obsolete
+#pragma warning disable RS0030 // Do not use banned APIs
+            static string EscapeUriPart(string stringToEscape)
+                => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
+        }
+
+        static bool IsAscii(char c)
+            => (uint)c <= '\x007f';
+
+        static bool IsAsciiStr(string filePath)
+        {
+            for (var i = 0; i < filePath.Length; i++)
+            {
+                if (!IsAscii(filePath[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+#pragma warning restore
     }
 
     /// <summary>
     /// Converts an absolute local file path or an absolute URL string to <see cref="DocumentUri"/>.
     /// For use with callers (generally LSP) that require <see cref="DocumentUri"/>
     /// </summary>
-    /// <remarks>
-    /// Unlike <see cref="CreateAbsoluteUri"/>, this method gracefully handles paths that
-    /// <see cref="Uri"/> cannot parse (e.g., UNC paths with <c>$</c> in the server name).
-    /// In such cases, it falls back to manually constructing the URI string, which
-    /// <see cref="DocumentUri"/> stores without requiring <see cref="Uri"/> parsing.
-    /// </remarks>
+    /// <exception cref="UriFormatException">
+    /// The <paramref name="absolutePath"/> can't be represented as <see cref="ParsedUri"/>.
+    /// For example, UNC paths with invalid characters in server name.
+    /// </exception>
     public static DocumentUri CreateAbsoluteDocumentUri(string absolutePath)
     {
-        try
-        {
-            return new(CreateAbsoluteUri(absolutePath));
-        }
-        catch (UriFormatException)
-        {
-            // System.Uri can't handle certain valid paths (e.g. UNC paths with $ in server name).
-            // Fall back to constructing the URI string manually.
-            return new(GetAbsoluteUriString(absolutePath));
-        }
+        var parsed = PathUtilities.IsAbsolute(absolutePath) ? ParsedUri.File(absolutePath) : ParsedUri.Parse(absolutePath);
+        return new DocumentUri(parsed);
     }
 
     internal static DocumentUri CreateRelativePatternBaseUri(string path)
@@ -252,53 +289,6 @@ internal static partial class ProtocolConversions
         Debug.Assert(!path.Split(System.IO.Path.DirectorySeparatorChar).Any(p => p == "." || p == ".."));
 
         return CreateAbsoluteDocumentUri(path);
-    }
-
-    // Implements workaround for https://github.com/dotnet/runtime/issues/89538:
-    internal static string GetAbsoluteUriString(string absolutePath)
-    {
-        if (!PathUtilities.IsAbsolute(absolutePath))
-        {
-            return absolutePath;
-        }
-
-        var parts = absolutePath.Split(s_dirSeparators);
-
-        if (PathUtilities.IsUnixLikePlatform)
-        {
-            // Unix path: first part is empty, all parts should be escaped
-            return "file://" + string.Join("/", parts.Select(EscapeUriPart));
-        }
-
-        if (parts is ["", "", var serverName, ..])
-        {
-            // UNC path: first non-empty part is server name and shouldn't be escaped
-            return "file://" + serverName + "/" + string.Join("/", parts.Skip(3).Select(EscapeUriPart));
-        }
-
-        // Drive-rooted path: first part is "C:" and shouldn't be escaped
-        return "file:///" + parts[0] + "/" + string.Join("/", parts.Skip(1).Select(EscapeUriPart));
-
-#pragma warning disable SYSLIB0013 // Type or member is obsolete
-        static string EscapeUriPart(string stringToEscape)
-            => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
-#pragma warning restore
-    }
-
-    private static bool IsAscii(char c)
-        => (uint)c <= '\x007f';
-
-    private static bool IsAscii(string filePath)
-    {
-        for (var i = 0; i < filePath.Length; i++)
-        {
-            if (!IsAscii(filePath[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public static LSP.TextDocumentPositionParams PositionToTextDocumentPositionParams(int position, SourceText text, Document document)
@@ -637,8 +627,10 @@ internal static partial class ProtocolConversions
         }
     }
 
-    public static LSP.CodeDescription? HelpLinkToCodeDescription(Uri? uri)
-        => (uri != null) ? new LSP.CodeDescription { Href = new(uri) } : null;
+    public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri)
+    {
+        return (helpLinkUri != null) ? new LSP.CodeDescription { Href = CreateAbsoluteDocumentUri(helpLinkUri) } : null;
+    }
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
     {

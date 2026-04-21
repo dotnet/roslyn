@@ -15,13 +15,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Copilot;
 internal abstract class AbstractCopilotLspServiceDocumentRequestHandler<TRequest, TResponse> : ILspServiceDocumentRequestHandler<TRequest, TResponse>
 {
     public abstract Task<TResponse> HandleRequestAsync(TRequest request, CopilotRequestContext context, CancellationToken cancellationToken);
-    public abstract Uri GetTextDocumentUri(TRequest request);
+
+    [Obsolete("Override GetDocumentUri instead.")]
+    public virtual Uri GetTextDocumentUri(TRequest request)
+        => throw new NotImplementedException();
+
+    public virtual DocumentUri GetDocumentUri(TRequest request)
+    {
+#pragma warning disable CS0618 // Delegating to the legacy override for compatibility.
+        return new(GetTextDocumentUri(request));
+#pragma warning restore CS0618
+    }
 
     bool IMethodHandler.MutatesSolutionState => false;
     bool ISolutionRequiredHandler.RequiresLSPSolution => true;
 
     TextDocumentIdentifier ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier>.GetTextDocumentIdentifier(TRequest request)
-        => new() { DocumentUri = new(GetTextDocumentUri(request)) };
+        => new() { DocumentUri = GetDocumentUri(request) };
 
     Task<TResponse> IRequestHandler<TRequest, TResponse, RequestContext>.HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, new CopilotRequestContext(context), cancellationToken);

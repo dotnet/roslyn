@@ -219,7 +219,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
 
         // Add a new document to the workspace
         var newDocumentId = DocumentId.CreateNewId(testLspServer.TestWorkspace.CurrentSolution.ProjectIds[0]);
-        var newSolution = testLspServer.TestWorkspace.CurrentSolution.AddDocument(newDocumentId, "NewDoc.cs", SourceText.From("New Doc", System.Text.Encoding.UTF8, SourceHashAlgorithms.Default), filePath: @"C:\NewDoc.cs");
+        var filePath = TestHelpers.CreateAbsolutePath("NewDoc.cs");
+        var newSolution = testLspServer.TestWorkspace.CurrentSolution.AddDocument(newDocumentId, "NewDoc.cs", SourceText.From("New Doc", System.Text.Encoding.UTF8, SourceHashAlgorithms.Default), filePath: filePath);
         var newDocumentUri = newSolution.GetRequiredDocument(newDocumentId).GetURI();
         await testLspServer.TestWorkspace.ChangeSolutionAsync(newSolution);
 

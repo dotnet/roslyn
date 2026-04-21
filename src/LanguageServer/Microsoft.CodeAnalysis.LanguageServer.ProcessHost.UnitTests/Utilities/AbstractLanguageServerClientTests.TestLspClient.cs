@@ -435,7 +435,7 @@ public partial class AbstractLanguageServerClientTests
 
         private string GetRelativePath(DocumentUri documentUri)
         {
-            var localPath = Path.GetFullPath(documentUri.GetRequiredParsedUri().LocalPath);
+            var localPath = Path.GetFullPath(documentUri.GetRequiredParsedUri().FsPath);
             var relativePath = PathUtilities.GetRelativePath(_workspaceRootPath, localPath);
 
             Assert.False(PathUtilities.IsAbsolute(relativePath), $"Document URI is not under the workspace root: {documentUri}");
