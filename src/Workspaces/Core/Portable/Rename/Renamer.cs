@@ -135,9 +135,17 @@ public static partial class Renamer
             options);
     }
 
-    /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync"/>
+    /// <inheritdoc cref="LightweightRenameLocations.FindRenameLocationsAsync(ISymbol, Solution, SymbolRenameOptions, CancellationToken)"/>
     internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(Solution solution, ISymbol symbol, SymbolRenameOptions options, CancellationToken cancellationToken)
-        => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, cancellationToken);
+        => FindRenameLocationsAsync(solution, symbol, options, allowRenamesInRazorSourceGeneratedDocuments: false, cancellationToken);
+
+    internal static Task<LightweightRenameLocations> FindRenameLocationsAsync(
+        Solution solution,
+        ISymbol symbol,
+        SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
+        CancellationToken cancellationToken)
+        => LightweightRenameLocations.FindRenameLocationsAsync(symbol, solution, options, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken);
 
     internal static async Task<ConflictResolution> RenameSymbolAsync(
         Solution solution,

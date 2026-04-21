@@ -23,7 +23,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.TaskList
-Imports Microsoft.VisualStudio.LanguageServices.Telemetry
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -68,7 +67,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(MockWorkspaceEventListenerProvider),
                 GetType(HierarchyItemToProjectIdMap),
                 GetType(DiagnosticAnalyzerService),
-                GetType(VisualStudioWorkspaceTelemetryService),
                 GetType(OpenTextBufferProvider),
                 GetType(StubVsEditorAdaptersFactoryService),
                 GetType(ExternalErrorDiagnosticUpdateSource),
@@ -106,6 +104,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Public Sub New(exportProvider As Composition.ExportProvider)
                 MyBase.New(exportProvider,
                            exportProvider.GetExportedValue(Of MockServiceProvider))
+            End Sub
+
+            Protected Overrides Sub InitializeTelemetrySession()
+                ' Don't do anything in unit tests, since the telemetry wouldn't go anywhere anyways
             End Sub
 
             Public Overrides Sub DisplayReferencedSymbols(solution As Solution, referencedSymbols As IEnumerable(Of ReferencedSymbol))

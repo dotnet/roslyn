@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.Snippets;
@@ -70,10 +72,14 @@ public abstract class AbstractSnippetProviderTests
 
         var snippetChange = await snippetProvider.GetSnippetChangeAsync(document, snippetRequestPosition, CancellationToken.None);
         var documentSourceText = await document.GetTextAsync();
-        var documentTextAfterSnippet = documentSourceText.WithChanges(snippetChange.TextChanges);
+        var originalText = documentSourceText.WithChanges(snippetChange.TextChanges).ToString();
+        // Normalize line endings so snippet output (which may use \r\n) matches expected text on all platforms
+        var documentTextAfterSnippet = originalText.NormalizeLineEndings();
 
+        // Normalize expected markup to \r\n as well before extracting positions
+        markupAfterCommit = markupAfterCommit.NormalizeLineEndings();
         TestFileMarkupParser.GetPositionAndSpans(markupAfterCommit, out markupAfterCommit, out int finalCaretPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> placeholderLocations);
-        Assert.Equal(markupAfterCommit, documentTextAfterSnippet.ToString());
+        Assert.Equal(markupAfterCommit, documentTextAfterSnippet);
 
         var placeholderLocationsArray = new ImmutableArray<TextSpan>[placeholderLocations.Count];
         var snippetPlaceholders = snippetChange.Placeholders;
@@ -105,15 +111,34 @@ public abstract class AbstractSnippetProviderTests
 
             Assert.Equal(expectedSpans.Length, placeholderPositions.Length);
 
-            for (var j = 0; j < placeholderPositions.Length; j++)
+            // Remap snippet positions from original text offsets to normalized text offsets
+            var normalizedPositions = placeholderPositions.Select(p => AdjustPositionForNormalization(originalText, p)).ToImmutableArray();
+            for (var j = 0; j < normalizedPositions.Length; j++)
             {
                 var expectedSpan = expectedSpans[j];
-                Assert.Contains(expectedSpan.Start, placeholderPositions);
-                Assert.Equal(documentTextAfterSnippet.ToString(expectedSpan), placeholderText);
+                Assert.Contains(expectedSpan.Start, normalizedPositions);
+                Assert.Equal(documentTextAfterSnippet.Substring(expectedSpan.Start, expectedSpan.Length), placeholderText);
             }
         }
 
-        Assert.Equal(finalCaretPosition, snippetChange.FinalCaretPosition);
+        var normalizedCaretPosition = AdjustPositionForNormalization(originalText, snippetChange.FinalCaretPosition);
+        Assert.Equal(finalCaretPosition, normalizedCaretPosition);
+    }
+
+    /// <summary>
+    /// Maps a position in the original text to the corresponding position in the \r\n-normalized text.
+    /// Each bare \n (not preceded by \r) gets a \r inserted before it, shifting subsequent positions.
+    /// </summary>
+    private static int AdjustPositionForNormalization(string originalText, int position)
+    {
+        var adjustment = 0;
+        for (var i = 0; i < position && i < originalText.Length; i++)
+        {
+            if (originalText[i] == '\n' && (i == 0 || originalText[i - 1] != '\r'))
+                adjustment++;
+        }
+
+        return position + adjustment;
     }
 
     protected async Task VerifySnippetIsAbsentAsync(
