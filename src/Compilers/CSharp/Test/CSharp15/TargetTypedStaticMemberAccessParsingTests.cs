@@ -18,7 +18,7 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     #region Bare forms
 
     [Theory]
-    [InlineData(LanguageVersion.CSharp13)]
+    [InlineData(LanguageVersion.CSharp14)]
     [InlineData(LanguageVersion.Preview)]
     public void BareMemberAccess_NotLangVersionGated(LanguageVersion languageVersion)
     {
@@ -310,6 +310,88 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     }
 
     [Fact]
+    public void PrefixIncrement()
+    {
+        UsingExpression("++.X");
+
+        N(SyntaxKind.PreIncrementExpression);
+        {
+            N(SyntaxKind.PlusPlusToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void PrefixUnaryPlus()
+    {
+        UsingExpression("+.X");
+
+        N(SyntaxKind.UnaryPlusExpression);
+        {
+            N(SyntaxKind.PlusToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void PrefixAddressOf()
+    {
+        // `&.X` — address-of is syntactically valid on any expression; the binder enforces the unsafe/pointer rules.
+        UsingExpression("&.X");
+
+        N(SyntaxKind.AddressOfExpression);
+        {
+            N(SyntaxKind.AmpersandToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void PrefixPointerIndirection()
+    {
+        // `*.X` — pointer indirection is syntactically valid on any expression; binder enforces pointer rules.
+        UsingExpression("*.X");
+
+        N(SyntaxKind.PointerIndirectionExpression);
+        {
+            N(SyntaxKind.AsteriskToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void ConditionalAccessOnTargetTyped()
     {
         // Parser-resilient: `.A?.B` has the target-typed form as the receiver of a null-conditional.
@@ -335,6 +417,27 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
                     N(SyntaxKind.IdentifierToken, "B");
                 }
             }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Parenthesized()
+    {
+        UsingExpression("(.X)");
+
+        N(SyntaxKind.ParenthesizedExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
         }
         EOF();
     }
@@ -470,6 +573,104 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     }
 
     [Fact]
+    public void RefArgument()
+    {
+        // `Goo(ref .Red)` — parser builds the argument; the binder decides whether a target-typed
+        // member access can actually be a ref-argument.
+        UsingExpression("Goo(ref .Red)");
+
+        N(SyntaxKind.InvocationExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "Goo");
+            }
+            N(SyntaxKind.ArgumentList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Red");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void OutArgument()
+    {
+        UsingExpression("Goo(out .Red)");
+
+        N(SyntaxKind.InvocationExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "Goo");
+            }
+            N(SyntaxKind.ArgumentList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.OutKeyword);
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Red");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InArgument()
+    {
+        UsingExpression("Goo(in .Red)");
+
+        N(SyntaxKind.InvocationExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "Goo");
+            }
+            N(SyntaxKind.ArgumentList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Argument);
+                {
+                    N(SyntaxKind.InKeyword);
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Red");
+                        }
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
     public void InCollectionExpression()
     {
         UsingExpression("[.A, .B]");
@@ -523,6 +724,34 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
                     {
                         N(SyntaxKind.IdentifierToken, "X");
                     }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void InSpreadElement_NoSpaceBeforeDot()
+    {
+        // Pins lexer + parser behavior for three adjacent dots.  The lexer emits
+        // `ERR_TripleDotNotAllowed` and consumes all three dots into a single `..` (DotDotToken),
+        // so the spread operand is the plain identifier `X` — NOT a target-typed member access `.X`.
+        // To actually spread a target-typed member access, authors must insert whitespace: `[.. .X]`.
+        UsingExpression("[...X]",
+            // (1,2): error CS8635: Unexpected character sequence '...'
+            // [...X]
+            Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 2));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.SpreadElement);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
                 }
             }
             N(SyntaxKind.CloseBracketToken);
@@ -616,6 +845,876 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
                     }
                 }
             }
+        }
+        EOF();
+    }
+
+    #endregion
+
+    #region Grammar positions
+    // These tests pin that `.X` is accepted in every distinct parser call site where an expression can appear.
+    // The cases below are derived from the set of `ParseExpression`, `ParseExpressionCore`, `ParseSubExpression`,
+    // `ParsePossibleRefExpression`, `ParseExpressionForParenthesizedConstruct`, `ParseVariableInitializer`, and
+    // `ParseArgumentExpression` callers in the parser.
+
+    [Fact]
+    public void Grammar_LocalDeclarationInitializer()
+    {
+        UsingStatement("object x = .Y;");
+
+        N(SyntaxKind.LocalDeclarationStatement);
+        {
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.ObjectKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_TupleLiteral()
+    {
+        UsingExpression("(.A, .B)");
+
+        N(SyntaxKind.TupleExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.Argument);
+            {
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "A");
+                    }
+                }
+            }
+            N(SyntaxKind.CommaToken);
+            N(SyntaxKind.Argument);
+            {
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "B");
+                    }
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_CompoundAssignment()
+    {
+        UsingExpression("x += .Y");
+
+        N(SyntaxKind.AddAssignmentExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.PlusEqualsToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Y");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_CheckedExpression()
+    {
+        UsingExpression("checked(.X)");
+
+        N(SyntaxKind.CheckedExpression);
+        {
+            N(SyntaxKind.CheckedKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_InterpolatedStringHole()
+    {
+        UsingExpression(""" $"{.X}" """.Trim());
+
+        N(SyntaxKind.InterpolatedStringExpression);
+        {
+            N(SyntaxKind.InterpolatedStringStartToken);
+            N(SyntaxKind.Interpolation);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.InterpolatedStringEndToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_ArrayRankSize()
+    {
+        // `new int[.X]` — `.X` is the size expression; `ParseExpressionCore` is invoked for each rank.
+        UsingExpression("new int[.X]");
+
+        N(SyntaxKind.ArrayCreationExpression);
+        {
+            N(SyntaxKind.NewKeyword);
+            N(SyntaxKind.ArrayType);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.ArrayRankSpecifier);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_IfCondition()
+    {
+        UsingStatement("if (.X) { }");
+
+        N(SyntaxKind.IfStatement);
+        {
+            N(SyntaxKind.IfKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_WhileCondition()
+    {
+        UsingStatement("while (.X) { }");
+
+        N(SyntaxKind.WhileStatement);
+        {
+            N(SyntaxKind.WhileKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_DoWhileCondition()
+    {
+        UsingStatement("do { } while (.X);");
+
+        N(SyntaxKind.DoStatement);
+        {
+            N(SyntaxKind.DoKeyword);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.WhileKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_SwitchGoverningExpression()
+    {
+        UsingStatement("switch (.X) { }");
+
+        N(SyntaxKind.SwitchStatement);
+        {
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_LockTarget()
+    {
+        UsingStatement("lock (.X) { }");
+
+        N(SyntaxKind.LockStatement);
+        {
+            N(SyntaxKind.LockKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_ForeachIterExpression()
+    {
+        UsingStatement("foreach (var x in .Y) { }");
+
+        N(SyntaxKind.ForEachStatement);
+        {
+            N(SyntaxKind.ForEachKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "var");
+            }
+            N(SyntaxKind.IdentifierToken, "x");
+            N(SyntaxKind.InKeyword);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "Y");
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_ForCondition()
+    {
+        UsingStatement("for (; .X;) { }");
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_UsingStatementInitializer()
+    {
+        UsingStatement("using (var x = .Y) { }");
+
+        N(SyntaxKind.UsingStatement);
+        {
+            N(SyntaxKind.UsingKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Y");
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_FixedStatementInitializer()
+    {
+        UsingStatement("fixed (int* p = .X) { }");
+
+        N(SyntaxKind.FixedStatement);
+        {
+            N(SyntaxKind.FixedKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PointerType);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.AsteriskToken);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "p");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_CatchFilter()
+    {
+        UsingStatement("try { } catch when (.X) { }");
+
+        N(SyntaxKind.TryStatement);
+        {
+            N(SyntaxKind.TryKeyword);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.CatchClause);
+            {
+                N(SyntaxKind.CatchKeyword);
+                N(SyntaxKind.CatchFilterClause);
+                {
+                    N(SyntaxKind.WhenKeyword);
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_YieldReturn()
+    {
+        UsingStatement("yield return .X;");
+
+        N(SyntaxKind.YieldReturnStatement);
+        {
+            N(SyntaxKind.YieldKeyword);
+            N(SyntaxKind.ReturnKeyword);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_ThrowStatement()
+    {
+        UsingStatement("throw .X;");
+
+        N(SyntaxKind.ThrowStatement);
+        {
+            N(SyntaxKind.ThrowKeyword);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "X");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_AwaitOperand_TopLevel()
+    {
+        // At an expression level, `await .X` is a regular member access on an identifier named `await`.
+        // In an async or top-level (implicitly async) context, `await` becomes a keyword and `.X` is its operand.
+        // This test uses a top-level statement to force the async context (same shape as the existing
+        // `TestAwaitParsedAsElementAccessTopLevel` test in `CollectionExpressionParsingTests`).
+        UsingTree("await .X;");
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.ExpressionStatement);
+                {
+                    N(SyntaxKind.AwaitExpression);
+                    {
+                        N(SyntaxKind.AwaitKeyword);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_AwaitOperand_NotInAsyncContext_IsMemberAccess()
+    {
+        // Outside an async/top-level context, `await` is a regular identifier, and `await .X` is member access.
+        UsingExpression("await .X");
+
+        N(SyntaxKind.SimpleMemberAccessExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "await");
+            }
+            N(SyntaxKind.DotToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "X");
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_DefaultParameterValue()
+    {
+        UsingTree("""
+            class C
+            {
+                void M(object o = .X) { }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "o");
+                            N(SyntaxKind.EqualsValueClause);
+                            {
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_AttributeArgument()
+    {
+        UsingTree("""
+            [My(.X)]
+            class C { }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.AttributeList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.Attribute);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "My");
+                        }
+                        N(SyntaxKind.AttributeArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.AttributeArgument);
+                            {
+                                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_QuerySelect()
+    {
+        UsingExpression("from x in y select .Z");
+
+        N(SyntaxKind.QueryExpression);
+        {
+            N(SyntaxKind.FromClause);
+            {
+                N(SyntaxKind.FromKeyword);
+                N(SyntaxKind.IdentifierToken, "x");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "y");
+                }
+            }
+            N(SyntaxKind.QueryBody);
+            {
+                N(SyntaxKind.SelectClause);
+                {
+                    N(SyntaxKind.SelectKeyword);
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Z");
+                        }
+                    }
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_QueryWhere()
+    {
+        UsingExpression("from x in y where .Z select x");
+
+        N(SyntaxKind.QueryExpression);
+        {
+            N(SyntaxKind.FromClause);
+            {
+                N(SyntaxKind.FromKeyword);
+                N(SyntaxKind.IdentifierToken, "x");
+                N(SyntaxKind.InKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "y");
+                }
+            }
+            N(SyntaxKind.QueryBody);
+            {
+                N(SyntaxKind.WhereClause);
+                {
+                    N(SyntaxKind.WhereKeyword);
+                    N(SyntaxKind.TargetTypedMemberAccessExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Z");
+                        }
+                    }
+                }
+                N(SyntaxKind.SelectClause);
+                {
+                    N(SyntaxKind.SelectKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void Grammar_ConstructorBaseInitializer()
+    {
+        UsingTree("""
+            class C : B
+            {
+                public C() : base(.X) { }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.BaseList);
+                {
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.SimpleBaseType);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "B");
+                        }
+                    }
+                }
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.ConstructorDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.BaseConstructorInitializer);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.BaseKeyword);
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Argument);
+                            {
+                                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "X");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
         }
         EOF();
     }
@@ -1608,6 +2707,73 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "Red");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                }
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void SwitchStatement_CaseLabel_PositionalPattern()
+    {
+        // `case .Success(var value):` — a case label whose pattern is a positional recursive pattern
+        // on a target-typed qualified name, with a variable designation via `var value` inside.
+        UsingStatement("""
+            switch (x)
+            {
+                case .Success(var value): break;
+            }
+            """);
+
+        N(SyntaxKind.SwitchStatement);
+        {
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
+                {
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.RecursivePattern);
+                    {
+                        N(SyntaxKind.TargetTypedQualifiedName);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Success");
+                            }
+                        }
+                        N(SyntaxKind.PositionalPatternClause);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.Subpattern);
+                            {
+                                N(SyntaxKind.VarPattern);
+                                {
+                                    N(SyntaxKind.VarKeyword);
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "value");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
                         }
                     }
                     N(SyntaxKind.ColonToken);
