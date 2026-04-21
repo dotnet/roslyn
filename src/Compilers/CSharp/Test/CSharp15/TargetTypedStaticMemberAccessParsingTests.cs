@@ -2348,9 +2348,9 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     //   `ERR_IdentifierExpected`.
     // * Statement positions (`.T x;`, `.T Local() { }`, `.T* p;`, `.T[] x;`, `.T? x = null;`,
     //   `foreach (.T x in y)`) are NOT supported: `.T` is parsed as an expression, and the tokens that
-    //   would have named the variable become follow-on errors. No target-typed *type* is produced.
-    //   These positions don't have a target type by construction, so target-typed static member access
-    //   is not expected to work there; they are intentionally not covered below.
+    //   would have named the variable become follow-on errors.  These positions have no target type by
+    //   construction, so target-typed static member access does not apply; the tests below pin the
+    //   actual expression-parse behavior.
     //
     // Ambiguities the parser can't resolve:
     // * `Foo<.Bar>(x)` is parsed as a less-than / greater-than comparison chain, not as a generic
@@ -2926,6 +2926,243 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
                 N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_LocalDeclarationType_ParsesAsExpressionStatement()
+    {
+        // Statement-scope: no target-type source exists for `.T`, so `.T` parses as a primary expression
+        // `TargetTypedMemberAccessExpression`; the following `x` then fails to continue the statement.
+        UsingStatement(".T x;",
+            // (1,1): error CS1073: Unexpected token 'x'
+            // .T x;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, ".T ").WithArguments("x").WithLocation(1, 1),
+            // (1,4): error CS1002: ; expected
+            // .T x;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(1, 4));
+
+        N(SyntaxKind.ExpressionStatement);
+        {
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "T");
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_LocalFunctionReturnType_ParsesAsExpressionStatement()
+    {
+        // Same as above: `.T Local() { }` parses `.T` as an expression statement; the following tokens
+        // fall into error recovery.
+        UsingStatement(".T Local() { }",
+            // (1,1): error CS1073: Unexpected token 'Local'
+            // .T Local() { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, ".T ").WithArguments("Local").WithLocation(1, 1),
+            // (1,4): error CS1002: ; expected
+            // .T Local() { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "Local").WithLocation(1, 4));
+
+        N(SyntaxKind.ExpressionStatement);
+        {
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "T");
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_PointerTypeStandalone_ParsesAsMultiplyExpression()
+    {
+        // `.T* p;` — parsed as the multiplication expression `.T * p;`, not as a pointer-type declaration.
+        UsingStatement(".T* p;");
+
+        N(SyntaxKind.ExpressionStatement);
+        {
+            N(SyntaxKind.MultiplyExpression);
+            {
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                }
+                N(SyntaxKind.AsteriskToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "p");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_ArrayTypeStandalone_ParsesAsElementAccess()
+    {
+        // `.T[] x;` — `.T[]` is parsed as an element-access expression with an empty index list; the
+        // following `x` then triggers error recovery.
+        UsingStatement(".T[] x;",
+            // (1,1): error CS1073: Unexpected token 'x'
+            // .T[] x;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, ".T[] ").WithArguments("x").WithLocation(1, 1),
+            // (1,4): error CS0443: Syntax error; value expected
+            // .T[] x;
+            Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(1, 4),
+            // (1,6): error CS1002: ; expected
+            // .T[] x;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(1, 6));
+
+        N(SyntaxKind.ExpressionStatement);
+        {
+            N(SyntaxKind.ElementAccessExpression);
+            {
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                }
+                N(SyntaxKind.BracketedArgumentList);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    M(SyntaxKind.Argument);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_NullableTypeStandalone_ParsesAsConditionalExpression()
+    {
+        // `.T? x = null;` — parsed as a conditional expression `.T ? x = null : ???`, which errors with
+        // `:` expected.  The `?` disambiguation lookahead goes looking for a `:` and comes back empty.
+        UsingStatement(".T? x = null;",
+            // (1,13): error CS1003: Syntax error, ':' expected
+            // .T? x = null;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(1, 13),
+            // (1,13): error CS1525: Invalid expression term ';'
+            // .T? x = null;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(1, 13));
+
+        N(SyntaxKind.ExpressionStatement);
+        {
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
+                {
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "T");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.SimpleAssignmentExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.EqualsToken);
+                    N(SyntaxKind.NullLiteralExpression);
+                    {
+                        N(SyntaxKind.NullKeyword);
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void GrammarType_ForeachVariableType_ProducesErrorRecovery()
+    {
+        // `foreach (.T x in y)` — the foreach parser does not call the `ParseUnderlyingType` path that
+        // accepts leading `.`.  Instead, `.T` is parsed as the variable expression of a deconstructing
+        // `ForEachVariableStatement`; `x` then becomes the collection (with a missing `in` keyword); the
+        // following `in y)` tokens drop into error recovery.
+        UsingStatement("foreach (.T x in y) { }",
+            // (1,1): error CS1073: Unexpected token 'in'
+            // foreach (.T x in y) { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "foreach (.T x ").WithArguments("in").WithLocation(1, 1),
+            // (1,13): error CS1515: 'in' expected
+            // foreach (.T x in y) { }
+            Diagnostic(ErrorCode.ERR_InExpected, "x").WithLocation(1, 13),
+            // (1,13): error CS0230: Type and identifier are both required in a foreach statement
+            // foreach (.T x in y) { }
+            Diagnostic(ErrorCode.ERR_BadForeachDecl, "x").WithLocation(1, 13),
+            // (1,15): error CS1026: ) expected
+            // foreach (.T x in y) { }
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "in").WithLocation(1, 15),
+            // (1,15): error CS1525: Invalid expression term 'in'
+            // foreach (.T x in y) { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(1, 15),
+            // (1,15): error CS1002: ; expected
+            // foreach (.T x in y) { }
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, "in").WithLocation(1, 15));
+
+        N(SyntaxKind.ForEachVariableStatement);
+        {
+            N(SyntaxKind.ForEachKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.TargetTypedMemberAccessExpression);
+            {
+                N(SyntaxKind.DotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "T");
+                }
+            }
+            M(SyntaxKind.InKeyword);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            M(SyntaxKind.CloseParenToken);
+            M(SyntaxKind.ExpressionStatement);
+            {
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.SemicolonToken);
+            }
         }
         EOF();
     }
