@@ -189,10 +189,18 @@ internal sealed partial class NavigateToSearchIndex
 
             var buffer = rentedCharArray ?? stackalloc char[maxNameLength];
 
+            // Reused across all symbols to avoid pool churn from repeatedly allocating a fresh
+            // builder. `BuildAllNgrams` can emit up to ~2n entries for a name of length n, and a
+            // name with more than 4 character-parts overflows TemporaryArray's inline capacity,
+            // forcing a pooled builder. Cleared (not disposed) between uses so the backing
+            // builder is kept.
+            using var loweredNameNgrams = TemporaryArray<(int start, int length)>.Empty;
+            using var charParts = TemporaryArray<TextSpan>.Empty;
+
             foreach (var info in infos)
             {
                 AddNameData(info.Name, buffer[..info.Name.Length]);
-                AddContainerData(info.FullyQualifiedContainerName, containerChars);
+                AddContainerData(info.FullyQualifiedContainerName);
             }
 
             if (rentedCharArray is not null)
@@ -216,7 +224,7 @@ internal sealed partial class NavigateToSearchIndex
 
                 name.ToLowerInvariant(loweredName);
 
-                using var charParts = TemporaryArray<TextSpan>.Empty;
+                charParts.Clear();
                 StringBreaker.AddCharacterParts(name, ref charParts.AsRef());
 
                 AddHumpData();
@@ -269,10 +277,10 @@ internal sealed partial class NavigateToSearchIndex
                     if (loweredName.Length < SparseNgramGenerator.MinNgramLength)
                         return;
 
-                    using var ngrams = TemporaryArray<(int start, int length)>.Empty;
-                    SparseNgramGenerator.BuildAllNgrams(loweredName, ref ngrams.AsRef());
+                    loweredNameNgrams.Clear();
+                    SparseNgramGenerator.BuildAllNgrams(loweredName, ref loweredNameNgrams.AsRef());
 
-                    foreach (var (ngramStart, ngramLength) in ngrams)
+                    foreach (var (ngramStart, ngramLength) in loweredNameNgrams)
                         AddToSet(ngramStrings, loweredName.Slice(ngramStart, ngramLength));
                 }
 
@@ -297,21 +305,21 @@ internal sealed partial class NavigateToSearchIndex
 #endif
                 }
             }
-        }
 
-        private static void AddContainerData(string fullyQualifiedContainerName, HashSet<char> containerChars)
-        {
-            if (string.IsNullOrEmpty(fullyQualifiedContainerName))
-                return;
+            void AddContainerData(string fullyQualifiedContainerName)
+            {
+                if (string.IsNullOrEmpty(fullyQualifiedContainerName))
+                    return;
 
-            // Break the full container name into character-parts. Dots are treated as punctuation by
-            // StringBreaker and are naturally skipped, so "System.Collections.Generic" produces parts
-            // ["System", "Collections", "Generic"] -> stores 'S', 'C', 'G'.
-            using var charParts = TemporaryArray<TextSpan>.Empty;
-            StringBreaker.AddCharacterParts(fullyQualifiedContainerName, ref charParts.AsRef());
+                // Break the full container name into character-parts. Dots are treated as punctuation by
+                // StringBreaker and are naturally skipped, so "System.Collections.Generic" produces parts
+                // ["System", "Collections", "Generic"] -> stores 'S', 'C', 'G'.
+                charParts.Clear();
+                StringBreaker.AddCharacterParts(fullyQualifiedContainerName, ref charParts.AsRef());
 
-            foreach (var part in charParts)
-                containerChars.Add(char.ToUpperInvariant(fullyQualifiedContainerName[part.Start]));
+                foreach (var part in charParts)
+                    containerChars.Add(char.ToUpperInvariant(fullyQualifiedContainerName[part.Start]));
+            }
         }
 
         /// <summary>
