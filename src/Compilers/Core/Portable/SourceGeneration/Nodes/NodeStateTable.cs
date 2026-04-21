@@ -522,8 +522,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (_states.Count == 0)
                 {
-                    _states.Free();
-                    _steps?.Free();
+                    Free();
                     return NodeStateTable<T>.Empty;
                 }
 

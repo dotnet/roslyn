@@ -134,9 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckDefinitionInvariant();
 
-            try
+            if (synthesized != null)
             {
-                if (synthesized != null)
+                try
                 {
                     foreach (var attribute in synthesized)
                     {
@@ -145,30 +145,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         yield return attribute;
                     }
                 }
-
-                for (int i = 0; i < userDefined.Length; i++)
+                finally
                 {
-                    CSharpAttributeData attribute = userDefined[i];
-                    if (this.Kind == SymbolKind.Assembly)
-                    {
-                        // We need to filter out duplicate assembly attributes (i.e. attributes that
-                        // bind to the same constructor and have identical arguments) and invalid
-                        // InternalsVisibleTo attributes.
-                        if (((SourceAssemblySymbol)this).IsIndexOfOmittedAssemblyAttribute(i))
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule))
-                    {
-                        yield return attribute;
-                    }
+                    synthesized.Free();
                 }
             }
-            finally
+
+            for (int i = 0; i < userDefined.Length; i++)
             {
-                synthesized?.Free();
+                CSharpAttributeData attribute = userDefined[i];
+                if (this.Kind == SymbolKind.Assembly)
+                {
+                    // We need to filter out duplicate assembly attributes (i.e. attributes that
+                    // bind to the same constructor and have identical arguments) and invalid
+                    // InternalsVisibleTo attributes.
+                    if (((SourceAssemblySymbol)this).IsIndexOfOmittedAssemblyAttribute(i))
+                    {
+                        continue;
+                    }
+                }
+
+                if (attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule))
+                {
+                    yield return attribute;
+                }
             }
         }
     }

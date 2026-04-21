@@ -284,6 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 env.SynthesizedEnvironment?.SealMembers();
             }
 
+            // _lazyStaticLambdaFrame may not be in _frames.Values, so seal it separately.
             rewriter._lazyStaticLambdaFrame?.SealMembers();
 
             // Add the completed methods to the compilation state

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Text
         private readonly Encoder _encoder;
 
         internal const int BufferSize = 2048;
-        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[BufferSize], size: 8, trackLeaks: false);
+        private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[BufferSize], size: 8);
 
         private readonly int _minimumTargetBufferCount;
         private int _position;

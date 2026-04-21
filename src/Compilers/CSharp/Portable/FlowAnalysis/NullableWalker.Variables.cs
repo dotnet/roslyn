@@ -193,15 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol = symbol;
             }
 
-            private bool _freed;
-
             internal void Free()
             {
-                if (_freed)
-                    return;
-
-                _freed = true;
-                Container?.Free();
                 _variableBySlot.Free();
                 _variableTypes.Free();
                 _variableSlot.Free();

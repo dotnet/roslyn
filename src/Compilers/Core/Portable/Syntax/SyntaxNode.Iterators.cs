@@ -57,7 +57,9 @@ namespace Microsoft.CodeAnalysis
 
         private struct ChildSyntaxListEnumeratorStack : IDisposable
         {
-            private static readonly ObjectPool<ChildSyntaxList.Enumerator[]> s_stackPool = new ObjectPool<ChildSyntaxList.Enumerator[]>(() => new ChildSyntaxList.Enumerator[16]);
+            // This pool doesn't track leaks because Array.Resize replaces the rented array with a new one,
+            // making it incompatible with the pool's allocation tracking.
+            private static readonly ObjectPool<ChildSyntaxList.Enumerator[]> s_stackPool = new ObjectPool<ChildSyntaxList.Enumerator[]>(() => new ChildSyntaxList.Enumerator[16], trackLeaks: false);
 
             /// <summary>
             /// Optional green-node predicate checked before creating a red node for a child.
@@ -142,12 +144,8 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(_stack is object);
                 if (++_stackPtr >= _stack.Length)
                 {
-                    var oldStack = _stack;
                     // Geometric growth
                     Array.Resize(ref _stack, checked(_stackPtr * 2));
-                    // The old array was allocated from the pool but Array.Resize created a new one,
-                    // so return the old array to the pool.
-                    ReturnStackToPool(oldStack);
                 }
 
                 _stack[_stackPtr].InitializeFrom(node, _descendIntoChildrenGreen);
@@ -156,23 +154,20 @@ namespace Microsoft.CodeAnalysis
 
             public void Dispose()
             {
-                ReturnStackToPool(_stack);
-            }
-
-            private static void ReturnStackToPool(ChildSyntaxList.Enumerator[]? stack)
-            {
                 // Return only reasonably-sized stacks to the pool.
-                if (stack?.Length < 256)
+                if (_stack?.Length < 256)
                 {
-                    Array.Clear(stack, 0, stack.Length);
-                    s_stackPool.Free(stack);
+                    Array.Clear(_stack, 0, _stack.Length);
+                    s_stackPool.Free(_stack);
                 }
             }
         }
 
         private struct TriviaListEnumeratorStack : IDisposable
         {
-            private static readonly ObjectPool<SyntaxTriviaList.Enumerator[]> s_stackPool = new ObjectPool<SyntaxTriviaList.Enumerator[]>(() => new SyntaxTriviaList.Enumerator[16]);
+            // This pool doesn't track leaks because Array.Resize replaces the rented array with a new one,
+            // making it incompatible with the pool's allocation tracking.
+            private static readonly ObjectPool<SyntaxTriviaList.Enumerator[]> s_stackPool = new ObjectPool<SyntaxTriviaList.Enumerator[]>(() => new SyntaxTriviaList.Enumerator[16], trackLeaks: false);
 
             private SyntaxTriviaList.Enumerator[] _stack;
             private int _stackPtr;
@@ -210,25 +205,18 @@ namespace Microsoft.CodeAnalysis
 
                 if (++_stackPtr >= _stack.Length)
                 {
-                    var oldStack = _stack;
                     // Geometric growth
                     Array.Resize(ref _stack, checked(_stackPtr * 2));
-                    ReturnStackToPool(oldStack);
                 }
             }
 
             public void Dispose()
             {
-                ReturnStackToPool(_stack);
-            }
-
-            private static void ReturnStackToPool(SyntaxTriviaList.Enumerator[]? stack)
-            {
                 // Return only reasonably-sized stacks to the pool.
-                if (stack?.Length < 256)
+                if (_stack?.Length < 256)
                 {
-                    Array.Clear(stack, 0, stack.Length);
-                    s_stackPool.Free(stack);
+                    Array.Clear(_stack, 0, _stack.Length);
+                    s_stackPool.Free(_stack);
                 }
             }
         }

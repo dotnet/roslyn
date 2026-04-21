@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             this.GenerateImpl();
             hasStackalloc = _sawStackalloc;
-            _synthesizedLocalOrdinals.Free();
 
             Debug.Assert(_asyncCatchHandlerOffset < 0);
             Debug.Assert(_asyncYieldPoints == null);
@@ -239,7 +238,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             this.GenerateImpl();
             hasStackAlloc = _sawStackalloc;
-            _synthesizedLocalOrdinals.Free();
             Debug.Assert(_asyncCatchHandlerOffset >= 0);
 
             asyncCatchHandlerOffset = _diagnostics.HasAnyErrors() ? -1 : _builder.GetILOffsetFromMarker(_asyncCatchHandlerOffset);
