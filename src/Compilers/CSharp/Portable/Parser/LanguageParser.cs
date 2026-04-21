@@ -10755,17 +10755,20 @@ done:
             // then eats the case-label `:` as its own, leaves the when-clause open, and produces a
             // broken parse that consumes tokens beyond the case label.
             //
-            // We detect this after the fact: if the optimistic parse produced a ternary at the top
-            // level whose when-true starts with `.` (target-typed static member access) or `[`
-            // (collection expression), and we're NOT at the case-label `:` that the caller expects,
-            // then the `?` was almost certainly a null-conditional / collection-indexer misparse.
-            // Reparse with `ForceConditionalAccessExpression` so that `?.` / `?[` are committed to the
-            // conditional-access interpretation.  This mirrors how `containsTernaryToReinterpret`
-            // handles the analogous *inner* misparse in `consumeConditionalExpression`.
-            if (expression is ConditionalExpressionSyntax conditional
-                && this.CurrentToken.Kind != SyntaxKind.ColonToken
+            // We detect this after the fact using the same helper that `consumeConditionalExpression`
+            // uses for its analogous *inner* misparse check: if the optimistic parse contains a
+            // `ConditionalExpressionSyntax` whose when-true starts with `.` (target-typed static member
+            // access) or `[` (collection expression), and we are NOT at the case-label `:` that the
+            // caller expects, then that ternary is almost certainly a null-conditional /
+            // collection-indexer misparse.  Reparse with `ForceConditionalAccessExpression` so that
+            // `?.` / `?[` commit to the conditional-access interpretation.
+            //
+            // Using `ContainsTernaryToReinterpret` (rather than just checking the top-level node) is
+            // important because the misparsed ternary can be NESTED inside another well-formed ternary,
+            // e.g. `when a ? b?.X == 0 : c:`.
+            if (this.CurrentToken.Kind != SyntaxKind.ColonToken
                 && !this.ForceConditionalAccessExpression
-                && conditional.WhenTrue.GetFirstToken().Kind is SyntaxKind.DotToken or SyntaxKind.OpenBracketToken)
+                && ContainsTernaryToReinterpret(expression))
             {
                 beforeExpression.Reset();
                 using var _ = new ParserSyntaxContextResetter(this, forceConditionalAccessExpression: true);
@@ -11713,7 +11716,7 @@ done:
 
                 if (this.CurrentToken.Kind != SyntaxKind.ColonToken &&
                     !this.ForceConditionalAccessExpression &&
-                    containsTernaryToReinterpret(whenTrue))
+                    ContainsTernaryToReinterpret(whenTrue))
                 {
                     // Keep track of where we are right now in case the new parse doesn't make things better.
                     using var originalAfterWhenTrue = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -11766,39 +11769,48 @@ done:
                 }
             }
 
-            static bool containsTernaryToReinterpret(ExpressionSyntax expression)
+        }
+
+        /// <summary>
+        /// Walks <paramref name="expression"/> looking for a <see cref="ConditionalExpressionSyntax"/> whose
+        /// when-true operand starts with <c>[</c> or <c>.</c>.  If found, this indicates a potential
+        /// <c>b?[c]:d</c> or <c>b?.X:d</c> that was misparsed as <c>b ? [c] : d</c> or <c>b ? .X : d</c>
+        /// respectively, and the caller should retry the parse with
+        /// <c>ForceConditionalAccessExpression = true</c> so that the <c>?[</c> / <c>?.</c> commits to the
+        /// conditional-access interpretation.
+        /// </summary>
+        private static bool ContainsTernaryToReinterpret(ExpressionSyntax expression)
+        {
+            var stack = ArrayBuilder<GreenNode>.GetInstance();
+            stack.Push(expression);
+
+            while (stack.Count > 0)
             {
-                var stack = ArrayBuilder<GreenNode>.GetInstance();
-                stack.Push(expression);
-
-                while (stack.Count > 0)
+                var current = stack.Pop();
+                if (current is ConditionalExpressionSyntax conditionalExpression)
                 {
-                    var current = stack.Pop();
-                    if (current is ConditionalExpressionSyntax conditionalExpression)
+                    // An inner ternary whose when-true starts with `[` is a potential `b?[c]:d` misparse as
+                    // `b ? [c] : d`.  An inner ternary whose when-true starts with `.` is a potential `b?.X:d`
+                    // misparse as `b ? .X : d`.  Note: a prefix-range expression `..X` uses a merged `DotDotToken`
+                    // as its first token, so we won't falsely match it here.
+                    var firstTokenKind = conditionalExpression.WhenTrue.GetFirstToken().Kind;
+                    if (firstTokenKind is SyntaxKind.OpenBracketToken or SyntaxKind.DotToken)
                     {
-                        // An inner ternary whose when-true starts with `[` is a potential `b?[c]:d` misparse as
-                        // `b ? [c] : d`.  An inner ternary whose when-true starts with `.` is a potential `b?.X:d`
-                        // misparse as `b ? .X : d`.  Note: a prefix-range expression `..X` uses a merged `DotDotToken`
-                        // as its first token, so we won't falsely match it here.
-                        var firstTokenKind = conditionalExpression.WhenTrue.GetFirstToken().Kind;
-                        if (firstTokenKind is SyntaxKind.OpenBracketToken or SyntaxKind.DotToken)
-                        {
-                            stack.Free();
-                            return true;
-                        }
+                        stack.Free();
+                        return true;
                     }
-
-                    // Note: we could consider not recursing into anonymous-methods/lambdas (since we reset the 
-                    // ForceConditionalAccessExpression flag when we go into that).  However, that adds a bit of
-                    // fragile coupling between these different code blocks that i'd prefer to avoid.  In practice
-                    // the extra cost here will almost never occur, so the simplicity is worth it.
-                    foreach (var child in current.ChildNodesAndTokens())
-                        stack.Push(child);
                 }
 
-                stack.Free();
-                return false;
+                // Note: we could consider not recursing into anonymous-methods/lambdas (since we reset the 
+                // ForceConditionalAccessExpression flag when we go into that).  However, that adds a bit of
+                // fragile coupling between these different code blocks that i'd prefer to avoid.  In practice
+                // the extra cost here will almost never occur, so the simplicity is worth it.
+                foreach (var child in current.ChildNodesAndTokens())
+                    stack.Push(child);
             }
+
+            stack.Free();
+            return false;
         }
 
         private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind()

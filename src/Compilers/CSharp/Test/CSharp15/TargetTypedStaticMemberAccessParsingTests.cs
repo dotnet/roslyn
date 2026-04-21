@@ -4986,6 +4986,182 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     }
 
     [Fact]
+    public void Conditional_CaseLabelWhenClauseWithOuterTernaryAndNestedNullConditional_Reinterpreted()
+    {
+        // Nested variant: the outer `?` (`a ? X : c`) is a genuine ternary whose when-true `b?.Length == 0`
+        // contains a null-conditional access.  The case-label `:` sits AFTER the ternary's whenFalse.
+        //
+        // Naive parse misinterprets the INNER `?` as another ternary (because the `:` speculation sees
+        // the case-label `:`), producing `a ? (b ? .Length == 0 : c) : <missing>` and leaving tokens
+        // beyond the case label.  The ContainsTernaryToReinterpret walker finds the inner ternary whose
+        // when-true starts with `.`, and the reparse-with-ForceConditionalAccessExpression produces the
+        // correct tree: outer ternary with `b?.Length == 0` as when-true and `c` as when-false.
+        UsingTree("""
+            class C
+            {
+                void M(bool a, string b, string c, object x)
+                {
+                    switch (x)
+                    {
+                        case int i when a ? b?.Length == 0 : c != null: break;
+                    }
+                }
+            }
+            """);
+
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.ClassDeclaration);
+            {
+                N(SyntaxKind.ClassKeyword);
+                N(SyntaxKind.IdentifierToken, "C");
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.MethodDeclaration);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.VoidKeyword);
+                    }
+                    N(SyntaxKind.IdentifierToken, "M");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.BoolKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "b");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SwitchStatement);
+                        {
+                            N(SyntaxKind.SwitchKeyword);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SwitchSection);
+                            {
+                                N(SyntaxKind.CasePatternSwitchLabel);
+                                {
+                                    N(SyntaxKind.CaseKeyword);
+                                    N(SyntaxKind.DeclarationPattern);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.IntKeyword);
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "i");
+                                        }
+                                    }
+                                    N(SyntaxKind.WhenClause);
+                                    {
+                                        N(SyntaxKind.WhenKeyword);
+                                        N(SyntaxKind.ConditionalExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "a");
+                                            }
+                                            N(SyntaxKind.QuestionToken);
+                                            N(SyntaxKind.EqualsExpression);
+                                            {
+                                                N(SyntaxKind.ConditionalAccessExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "b");
+                                                    }
+                                                    N(SyntaxKind.QuestionToken);
+                                                    N(SyntaxKind.MemberBindingExpression);
+                                                    {
+                                                        N(SyntaxKind.DotToken);
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "Length");
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.EqualsEqualsToken);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                                }
+                                            }
+                                            N(SyntaxKind.ColonToken);
+                                            N(SyntaxKind.NotEqualsExpression);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "c");
+                                                }
+                                                N(SyntaxKind.ExclamationEqualsToken);
+                                                N(SyntaxKind.NullLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NullKeyword);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    N(SyntaxKind.ColonToken);
+                                }
+                                N(SyntaxKind.BreakStatement);
+                                {
+                                    N(SyntaxKind.BreakKeyword);
+                                    N(SyntaxKind.SemicolonToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
     public void Conditional_RangePrefix_NotConfusedWithTargetTyped()
     {
         // `?..` is unchanged: a ternary with a prefix range expression as its when-true.
