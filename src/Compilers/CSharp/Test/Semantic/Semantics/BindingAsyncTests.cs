@@ -727,7 +727,7 @@ class Test
     async static Task M3(int*[] i) { await Task.Yield(); } // 3
     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
 }";
-            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll)
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14)
                 .VerifyDiagnostics(
                     // (6,45): error CS4004: Cannot await in an unsafe context
                     //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
@@ -742,6 +742,21 @@ class Test
                     //     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
                     Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(9, 26)
                     );
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (6,45): error CS4004: Cannot await in an unsafe context
+                //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(6, 45),
+                // (7,56): error CS4004: Cannot await in an unsafe context
+                //     unsafe async static Task M2(delegate*<void>[] i) { await Task.Yield(); } // 2
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 56)
+            };
+
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll)
+                .VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext)
+                .VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]

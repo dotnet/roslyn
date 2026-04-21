@@ -487,6 +487,11 @@
         <target state="translated">Formatuj dokument</target>
         <note />
       </trans-unit>
+      <trans-unit id="Formatting_new_document">
+        <source>Formatting new document...</source>
+        <target state="new">Formatting new document...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Wygeneruj plik .editorconfig na podstawie ustawień</target>

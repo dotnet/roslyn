@@ -99,20 +99,6 @@ internal class VirtualProjectXmlProvider(DotnetCliHelper dotnetCliHelper)
     internal static string? GetVirtualProjectPath(string? documentFilePath)
         => Path.ChangeExtension(documentFilePath, ".csproj");
 
-    internal static bool HasFileBasedAppDirectives(SourceText text)
-    {
-        var tokenizer = SyntaxFactory.CreateTokenParser(text, CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
-        var result = tokenizer.ParseLeadingTrivia();
-        var triviaList = result.Token.LeadingTrivia;
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.Kind() is SyntaxKind.ShebangDirectiveTrivia or SyntaxKind.IgnoredDirectiveTrivia)
-                return true;
-        }
-
-        return false;
-    }
-
     #region Temporary copy of subset of dotnet run-api behavior for fallback: https://github.com/dotnet/roslyn/issues/78618
     // See https://github.com/dotnet/sdk/blob/b5dbc69cc28676ac6ea615654c8016a11b75e747/src/Cli/Microsoft.DotNet.Cli.Utils/Sha256Hasher.cs#L10
     private static class Sha256Hasher

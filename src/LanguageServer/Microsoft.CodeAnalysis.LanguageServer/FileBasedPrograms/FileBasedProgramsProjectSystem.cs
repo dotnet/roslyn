@@ -155,15 +155,36 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
-        // 5. Does the file have `#:` or `#!` directives?
+        var parseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]);
+        var tokenizer = SyntaxFactory.CreateTokenParser(sourceText, parseOptions);
+        var result = tokenizer.ParseLeadingTrivia();
+        var leadingTrivia = result.Token.LeadingTrivia;
+
+        // 5. Does the file have '#!' directives?
         // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
         // - No → Continue to next check
-        if (VirtualProjectXmlProvider.HasFileBasedAppDirectives(sourceText))
+        if (leadingTrivia.Any(SyntaxKind.ShebangDirectiveTrivia))
         {
             return LooseDocumentKind.FileBasedApp;
         }
 
-        // 6. Is `enableFileBasedProgramsWhenAmbiguous` enabled? (default: `false` in release, `true` in prerelease)
+        // 6. Does the file have `#:` directives?
+        // - No → Go to (8)
+        // - Yes → Continue to next check
+        if (leadingTrivia.Any(SyntaxKind.IgnoredDirectiveTrivia))
+        {
+            // 7. Does the file have top-level statements?
+            // - Yes → Classify as File-Based App. Restore if needed and show semantic errors.
+            // - No → Classify as Miscellaneous File With Standard References
+            if (ContainsTopLevelStatements())
+            {
+                return LooseDocumentKind.FileBasedApp;
+            }
+
+            return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
+        }
+
+        // 8. Is `enableFileBasedProgramsWhenAmbiguous` enabled? (default: `false` in release, `true` in prerelease)
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to heuristic detection
 
@@ -174,18 +195,16 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         // Heuristic Detection:
 
-        // 7. Are top-level statements present?
+        // 9. Are top-level statements present?
         // - No → Classify as Miscellaneous File With Standard References
         // - Yes → Continue to next check
 
-        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
-        var containsTopLevelStatements = syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
-        if (!containsTopLevelStatements)
+        if (!ContainsTopLevelStatements())
         {
             return LooseDocumentKind.MiscellaneousFileWithStandardReferences;
         }
 
-        // 8. Is the file included in a `.csproj` cone?
+        // 10. Is the file included in a `.csproj` cone?
         // - Yes → Classify as Miscellaneous File With Standard References (wait for project to load)
         // - No → Classify as Miscellaneous File With Standard References and Semantic Errors
         var csprojInConeChecker = _lspServices.GetRequiredService<CsprojInConeChecker>();
@@ -195,6 +214,12 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         }
 
         return LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors;
+
+        bool ContainsTopLevelStatements()
+        {
+            var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, options: parseOptions, cancellationToken: cancellationToken);
+            return syntaxTree.GetRoot(cancellationToken) is CompilationUnitSyntax compilationUnit && compilationUnit.Members.Any(SyntaxKind.GlobalStatement);
+        }
     }
 
     public async ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo documentInfo)
