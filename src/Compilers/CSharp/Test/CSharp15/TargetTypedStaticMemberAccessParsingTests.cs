@@ -4500,183 +4500,100 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
         // the case label.  The `ParseWhenClause` reparse-with-ForceConditionalAccessExpression logic
         // must NOT fire, because the naive parse's top-level result is an `InvocationExpression`, not a
         // `ConditionalExpression`.
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (v)
             {
-                bool Foo(int i) => true;
-                void M(object v, int x)
-                {
-                    switch (v)
-                    {
-                        case int i when Foo(x > 0 ? .Y : .Z): break;
-                    }
-                }
+                case int i when Foo(x > 0 ? .Y : .Z): break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.IdentifierToken, "v");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
                     {
-                        N(SyntaxKind.BoolKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "Foo");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
                             N(SyntaxKind.IdentifierToken, "i");
                         }
-                        N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.ArrowExpressionClause);
+                    N(SyntaxKind.WhenClause);
                     {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.TrueLiteralExpression);
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.InvocationExpression);
                         {
-                            N(SyntaxKind.TrueKeyword);
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "v");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
-                        {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.IdentifierToken, "Foo");
                             }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
+                            N(SyntaxKind.ArgumentList);
                             {
-                                N(SyntaxKind.CasePatternSwitchLabel);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
                                 {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
+                                    N(SyntaxKind.ConditionalExpression);
                                     {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "i");
-                                        }
-                                    }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.InvocationExpression);
+                                        N(SyntaxKind.GreaterThanExpression);
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken, "Foo");
+                                                N(SyntaxKind.IdentifierToken, "x");
                                             }
-                                            N(SyntaxKind.ArgumentList);
+                                            N(SyntaxKind.GreaterThanToken);
+                                            N(SyntaxKind.NumericLiteralExpression);
                                             {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.Argument);
-                                                {
-                                                    N(SyntaxKind.ConditionalExpression);
-                                                    {
-                                                        N(SyntaxKind.GreaterThanExpression);
-                                                        {
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "x");
-                                                            }
-                                                            N(SyntaxKind.GreaterThanToken);
-                                                            N(SyntaxKind.NumericLiteralExpression);
-                                                            {
-                                                                N(SyntaxKind.NumericLiteralToken, "0");
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.QuestionToken);
-                                                        N(SyntaxKind.TargetTypedMemberAccessExpression);
-                                                        {
-                                                            N(SyntaxKind.DotToken);
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "Y");
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.ColonToken);
-                                                        N(SyntaxKind.TargetTypedMemberAccessExpression);
-                                                        {
-                                                            N(SyntaxKind.DotToken);
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "Z");
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseParenToken);
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        N(SyntaxKind.QuestionToken);
+                                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Y");
+                                            }
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                        N(SyntaxKind.TargetTypedMemberAccessExpression);
+                                        {
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Z");
                                             }
                                         }
                                     }
-                                    N(SyntaxKind.ColonToken);
                                 }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
-                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.ColonToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -4718,119 +4635,76 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
         // End-to-end: in a case-label's `when` guard, `s?.Length` parses as a null-conditional access
         // and the trailing `:` terminates the case label (rather than being interpreted as a ternary
         // separator, which was a regression from the initial target-typed static member access parser).
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (x)
             {
-                void M(object x)
-                {
-                    switch (x)
-                    {
-                        case string s when s?.Length == 0: break;
-                    }
-                }
+                case string s when s?.Length == 0: break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
-                        {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "x");
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
-                            {
-                                N(SyntaxKind.CasePatternSwitchLabel);
-                                {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.StringKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "s");
-                                        }
-                                    }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.EqualsExpression);
-                                        {
-                                            N(SyntaxKind.ConditionalAccessExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "s");
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                                N(SyntaxKind.MemberBindingExpression);
-                                                {
-                                                    N(SyntaxKind.DotToken);
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "Length");
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.EqualsEqualsToken);
-                                            N(SyntaxKind.NumericLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NumericLiteralToken, "0");
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.IdentifierToken, "x");
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
+                {
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "s");
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.EqualsExpression);
+                        {
+                            N(SyntaxKind.ConditionalAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "s");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.MemberBindingExpression);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Length");
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsEqualsToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "0");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                }
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -4840,147 +4714,83 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
     {
         // Same regression for `?[`: `arr?[0]` inside a case label's `when` guard must not be
         // reinterpreted as a ternary because of the case-label `:`.
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (x)
             {
-                void M(int[] arr, object x)
-                {
-                    switch (x)
-                    {
-                        case int i when arr?[0] == i: break;
-                    }
-                }
+                case int i when arr?[0] == i: break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.ArrayType);
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.EqualsExpression);
+                        {
+                            N(SyntaxKind.ConditionalAccessExpression);
                             {
-                                N(SyntaxKind.PredefinedType);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IntKeyword);
+                                    N(SyntaxKind.IdentifierToken, "arr");
                                 }
-                                N(SyntaxKind.ArrayRankSpecifier);
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.ElementBindingExpression);
                                 {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
+                                    N(SyntaxKind.BracketedArgumentList);
                                     {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
                                     }
-                                    N(SyntaxKind.CloseBracketToken);
                                 }
                             }
-                            N(SyntaxKind.IdentifierToken, "arr");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
-                        {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.EqualsEqualsToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.IdentifierToken, "i");
                             }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
-                            {
-                                N(SyntaxKind.CasePatternSwitchLabel);
-                                {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "i");
-                                        }
-                                    }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.EqualsExpression);
-                                        {
-                                            N(SyntaxKind.ConditionalAccessExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "arr");
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                                N(SyntaxKind.ElementBindingExpression);
-                                                {
-                                                    N(SyntaxKind.BracketedArgumentList);
-                                                    {
-                                                        N(SyntaxKind.OpenBracketToken);
-                                                        N(SyntaxKind.Argument);
-                                                        {
-                                                            N(SyntaxKind.NumericLiteralExpression);
-                                                            {
-                                                                N(SyntaxKind.NumericLiteralToken, "0");
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.CloseBracketToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.EqualsEqualsToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "i");
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.ColonToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -4996,167 +4806,97 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
         // beyond the case label.  The ContainsTernaryToReinterpret walker finds the inner ternary whose
         // when-true starts with `.`, and the reparse-with-ForceConditionalAccessExpression produces the
         // correct tree: outer ternary with `b?.Length == 0` as when-true and `c` as when-false.
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (x)
             {
-                void M(bool a, string b, string c, object x)
-                {
-                    switch (x)
-                    {
-                        case int i when a ? b?.Length == 0 : c != null: break;
-                    }
-                }
+                case int i when a ? b?.Length == 0 : c != null: break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
                     {
-                        N(SyntaxKind.VoidKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
                     }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
+                    N(SyntaxKind.WhenClause);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.BoolKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "a");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
-                        {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "x");
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.EqualsExpression);
                             {
-                                N(SyntaxKind.CasePatternSwitchLabel);
+                                N(SyntaxKind.ConditionalAccessExpression);
                                 {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.MemberBindingExpression);
+                                    {
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "i");
+                                            N(SyntaxKind.IdentifierToken, "Length");
                                         }
                                     }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.ConditionalExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "a");
-                                            }
-                                            N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.EqualsExpression);
-                                            {
-                                                N(SyntaxKind.ConditionalAccessExpression);
-                                                {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "b");
-                                                    }
-                                                    N(SyntaxKind.QuestionToken);
-                                                    N(SyntaxKind.MemberBindingExpression);
-                                                    {
-                                                        N(SyntaxKind.DotToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Length");
-                                                        }
-                                                    }
-                                                }
-                                                N(SyntaxKind.EqualsEqualsToken);
-                                                N(SyntaxKind.NumericLiteralExpression);
-                                                {
-                                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                                }
-                                            }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.NotEqualsExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "c");
-                                                }
-                                                N(SyntaxKind.ExclamationEqualsToken);
-                                                N(SyntaxKind.NullLiteralExpression);
-                                                {
-                                                    N(SyntaxKind.NullKeyword);
-                                                }
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.ColonToken);
                                 }
-                                N(SyntaxKind.BreakStatement);
+                                N(SyntaxKind.EqualsEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
+                                    N(SyntaxKind.NumericLiteralToken, "0");
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.NotEqualsExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "c");
+                                }
+                                N(SyntaxKind.ExclamationEqualsToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.ColonToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -5171,129 +4911,77 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
         // because `this.CurrentToken.Kind == SyntaxKind.ColonToken` (the case-label `:`) after the
         // naive parse.  Analogous to `ConditionalAmbiguity3`/`5` in the original collection-expression
         // ambiguity PR (#68756).
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (v)
             {
-                void M(bool a, object v)
-                {
-                    switch (v)
-                    {
-                        case int i when a ? .Y : .Z: break;
-                    }
-                }
+                case int i when a ? .Y : .Z: break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.IdentifierToken, "v");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
                     {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.PredefinedType);
                         {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.BoolKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "a");
+                            N(SyntaxKind.IntKeyword);
                         }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.SingleVariableDesignation);
                         {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "v");
+                            N(SyntaxKind.IdentifierToken, "i");
                         }
-                        N(SyntaxKind.CloseParenToken);
                     }
-                    N(SyntaxKind.Block);
+                    N(SyntaxKind.WhenClause);
                     {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.TargetTypedMemberAccessExpression);
                             {
-                                N(SyntaxKind.CasePatternSwitchLabel);
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "i");
-                                        }
-                                    }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.ConditionalExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "a");
-                                            }
-                                            N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.TargetTypedMemberAccessExpression);
-                                            {
-                                                N(SyntaxKind.DotToken);
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Y");
-                                                }
-                                            }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.TargetTypedMemberAccessExpression);
-                                            {
-                                                N(SyntaxKind.DotToken);
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "Z");
-                                                }
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
+                                    N(SyntaxKind.IdentifierToken, "Y");
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.TargetTypedMemberAccessExpression);
+                            {
+                                N(SyntaxKind.DotToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Z");
+                                }
+                            }
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.ColonToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -5305,144 +4993,92 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
         // (naive parse misinterprets `?.Length.ToString() == null` as a ternary when-true); the
         // ForceConditionalAccessExpression retry produces a `ConditionalAccess` whose whenNotNull is
         // the full `.Length.ToString()` chain.  Analogous to `ConditionalAmbiguity4A` in #68756.
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (v)
             {
-                void M(string s, object v)
-                {
-                    switch (v)
-                    {
-                        case int i when s?.Length.ToString() == null: break;
-                    }
-                }
+                case int i when s?.Length.ToString() == null: break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "s");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "v");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
-                        {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "v");
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
-                            {
-                                N(SyntaxKind.CasePatternSwitchLabel);
-                                {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "i");
-                                        }
-                                    }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.EqualsExpression);
-                                        {
-                                            N(SyntaxKind.ConditionalAccessExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "s");
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                                N(SyntaxKind.InvocationExpression);
-                                                {
-                                                    N(SyntaxKind.SimpleMemberAccessExpression);
-                                                    {
-                                                        N(SyntaxKind.MemberBindingExpression);
-                                                        {
-                                                            N(SyntaxKind.DotToken);
-                                                            N(SyntaxKind.IdentifierName);
-                                                            {
-                                                                N(SyntaxKind.IdentifierToken, "Length");
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.DotToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "ToString");
-                                                        }
-                                                    }
-                                                    N(SyntaxKind.ArgumentList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.EqualsEqualsToken);
-                                            N(SyntaxKind.NullLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NullKeyword);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.IdentifierToken, "v");
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
+                {
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.EqualsExpression);
+                        {
+                            N(SyntaxKind.ConditionalAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "s");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                    {
+                                        N(SyntaxKind.MemberBindingExpression);
+                                        {
+                                            N(SyntaxKind.DotToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "Length");
+                                            }
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ToString");
+                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsEqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                }
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -5456,159 +5092,89 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
         // as a nested ternary whose when-true starts with `.`.  ContainsTernaryToReinterpret walks
         // into the WhenFalse and finds the inner misparse, driving the reparse.  Verifies that the
         // walker recurses beyond the top-level when-true.
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (v)
             {
-                void M(bool a, int b, string c, object v)
-                {
-                    switch (v)
-                    {
-                        case int i when a ? b : c?.Length == 0: break;
-                    }
-                }
+                case int i when a ? b : c?.Length == 0: break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.IdentifierToken, "v");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
                 {
-                    N(SyntaxKind.PredefinedType);
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
                     {
-                        N(SyntaxKind.VoidKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
                     }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
+                    N(SyntaxKind.WhenClause);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.ConditionalExpression);
                         {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.BoolKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "a");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.IntKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "v");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
-                        {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken, "v");
+                                N(SyntaxKind.IdentifierToken, "a");
                             }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.CasePatternSwitchLabel);
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.EqualsExpression);
+                            {
+                                N(SyntaxKind.ConditionalAccessExpression);
                                 {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
+                                    N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.PredefinedType);
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.MemberBindingExpression);
+                                    {
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "i");
+                                            N(SyntaxKind.IdentifierToken, "Length");
                                         }
                                     }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.ConditionalExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "a");
-                                            }
-                                            N(SyntaxKind.QuestionToken);
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "b");
-                                            }
-                                            N(SyntaxKind.ColonToken);
-                                            N(SyntaxKind.EqualsExpression);
-                                            {
-                                                N(SyntaxKind.ConditionalAccessExpression);
-                                                {
-                                                    N(SyntaxKind.IdentifierName);
-                                                    {
-                                                        N(SyntaxKind.IdentifierToken, "c");
-                                                    }
-                                                    N(SyntaxKind.QuestionToken);
-                                                    N(SyntaxKind.MemberBindingExpression);
-                                                    {
-                                                        N(SyntaxKind.DotToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "Length");
-                                                        }
-                                                    }
-                                                }
-                                                N(SyntaxKind.EqualsEqualsToken);
-                                                N(SyntaxKind.NumericLiteralExpression);
-                                                {
-                                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                                }
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.ColonToken);
                                 }
-                                N(SyntaxKind.BreakStatement);
+                                N(SyntaxKind.EqualsEqualsToken);
+                                N(SyntaxKind.NumericLiteralExpression);
                                 {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
+                                    N(SyntaxKind.NumericLiteralToken, "0");
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
                         }
-                        N(SyntaxKind.CloseBraceToken);
                     }
+                    N(SyntaxKind.ColonToken);
                 }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
@@ -5620,163 +5186,99 @@ public sealed class TargetTypedStaticMemberAccessParsingTests : ParsingTests
         // `when arr?[0].ToString() == null:`.  Reparse must preserve the `.ToString()` postfix on
         // the null-conditional element binding.  Analogous to `ConditionalAmbiguity4A` in #68756 but
         // under a case-label `:`.
-        UsingTree("""
-            class C
+        UsingStatement("""
+            switch (v)
             {
-                void M(int[] arr, object v)
-                {
-                    switch (v)
-                    {
-                        case int i when arr?[0].ToString() == null: break;
-                    }
-                }
+                case int i when arr?[0].ToString() == null: break;
             }
             """);
 
-        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.SwitchStatement);
         {
-            N(SyntaxKind.ClassDeclaration);
+            N(SyntaxKind.SwitchKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.ClassKeyword);
-                N(SyntaxKind.IdentifierToken, "C");
-                N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
-                {
-                    N(SyntaxKind.PredefinedType);
-                    {
-                        N(SyntaxKind.VoidKeyword);
-                    }
-                    N(SyntaxKind.IdentifierToken, "M");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.ArrayType);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.IntKeyword);
-                                }
-                                N(SyntaxKind.ArrayRankSpecifier);
-                                {
-                                    N(SyntaxKind.OpenBracketToken);
-                                    N(SyntaxKind.OmittedArraySizeExpression);
-                                    {
-                                        N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
-                                }
-                            }
-                            N(SyntaxKind.IdentifierToken, "arr");
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.Parameter);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.ObjectKeyword);
-                            }
-                            N(SyntaxKind.IdentifierToken, "v");
-                        }
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.Block);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.SwitchStatement);
-                        {
-                            N(SyntaxKind.SwitchKeyword);
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "v");
-                            }
-                            N(SyntaxKind.CloseParenToken);
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SwitchSection);
-                            {
-                                N(SyntaxKind.CasePatternSwitchLabel);
-                                {
-                                    N(SyntaxKind.CaseKeyword);
-                                    N(SyntaxKind.DeclarationPattern);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.SingleVariableDesignation);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "i");
-                                        }
-                                    }
-                                    N(SyntaxKind.WhenClause);
-                                    {
-                                        N(SyntaxKind.WhenKeyword);
-                                        N(SyntaxKind.EqualsExpression);
-                                        {
-                                            N(SyntaxKind.ConditionalAccessExpression);
-                                            {
-                                                N(SyntaxKind.IdentifierName);
-                                                {
-                                                    N(SyntaxKind.IdentifierToken, "arr");
-                                                }
-                                                N(SyntaxKind.QuestionToken);
-                                                N(SyntaxKind.InvocationExpression);
-                                                {
-                                                    N(SyntaxKind.SimpleMemberAccessExpression);
-                                                    {
-                                                        N(SyntaxKind.ElementBindingExpression);
-                                                        {
-                                                            N(SyntaxKind.BracketedArgumentList);
-                                                            {
-                                                                N(SyntaxKind.OpenBracketToken);
-                                                                N(SyntaxKind.Argument);
-                                                                {
-                                                                    N(SyntaxKind.NumericLiteralExpression);
-                                                                    {
-                                                                        N(SyntaxKind.NumericLiteralToken, "0");
-                                                                    }
-                                                                }
-                                                                N(SyntaxKind.CloseBracketToken);
-                                                            }
-                                                        }
-                                                        N(SyntaxKind.DotToken);
-                                                        N(SyntaxKind.IdentifierName);
-                                                        {
-                                                            N(SyntaxKind.IdentifierToken, "ToString");
-                                                        }
-                                                    }
-                                                    N(SyntaxKind.ArgumentList);
-                                                    {
-                                                        N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.CloseParenToken);
-                                                    }
-                                                }
-                                            }
-                                            N(SyntaxKind.EqualsEqualsToken);
-                                            N(SyntaxKind.NullLiteralExpression);
-                                            {
-                                                N(SyntaxKind.NullKeyword);
-                                            }
-                                        }
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.BreakStatement);
-                                {
-                                    N(SyntaxKind.BreakKeyword);
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                            }
-                            N(SyntaxKind.CloseBraceToken);
-                        }
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
+                N(SyntaxKind.IdentifierToken, "v");
             }
-            N(SyntaxKind.EndOfFileToken);
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.OpenBraceToken);
+            N(SyntaxKind.SwitchSection);
+            {
+                N(SyntaxKind.CasePatternSwitchLabel);
+                {
+                    N(SyntaxKind.CaseKeyword);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                    }
+                    N(SyntaxKind.WhenClause);
+                    {
+                        N(SyntaxKind.WhenKeyword);
+                        N(SyntaxKind.EqualsExpression);
+                        {
+                            N(SyntaxKind.ConditionalAccessExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "arr");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.SimpleMemberAccessExpression);
+                                    {
+                                        N(SyntaxKind.ElementBindingExpression);
+                                        {
+                                            N(SyntaxKind.BracketedArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.Argument);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                    {
+                                                        N(SyntaxKind.NumericLiteralToken, "0");
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ToString");
+                                        }
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.EqualsEqualsToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                }
+                N(SyntaxKind.BreakStatement);
+                {
+                    N(SyntaxKind.BreakKeyword);
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.CloseBraceToken);
         }
         EOF();
     }
