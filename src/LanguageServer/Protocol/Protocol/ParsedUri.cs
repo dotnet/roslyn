@@ -24,7 +24,7 @@ namespace Roslyn.LanguageServer.Protocol;
 ///       urn:example:animal:ferret:nose
 /// </code>
 /// </summary>
-internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
+internal readonly struct ParsedUri : IEquatable<ParsedUri>
 {
     private static readonly bool s_isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
@@ -68,7 +68,7 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     /// </summary>
     public string FsPath { get; }
 
-    private ParsedDocumentUri(string scheme, string authority, string path, string query, string fragment, string? formatted = null)
+    private ParsedUri(string scheme, string authority, string path, string query, string fragment, string? formatted = null)
     {
         Scheme = scheme;
         Authority = authority;
@@ -76,18 +76,18 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
         Query = query;
         Fragment = fragment;
         _formatted = formatted;
-        FsPath = UriToFsPath(scheme, authority, path, keepDriveLetterCasing: false);
+        FsPath = UriToFsPath(scheme, authority, path, keepDriveLetterCasing: true);
     }
 
     /// <summary>
     /// Mirrors vscode-uri's constructor string code path: applies SchemeFix, ReferenceResolution,
-    /// and ValidateUri. Used by Parse, File, From, and With.
+    /// and ValidateUri. Used by Parse and File.
     /// </summary>
-    private static ParsedDocumentUri CreateFromComponents(string scheme, string authority, string path, string query, string fragment, bool strict)
+    private static ParsedUri CreateFromComponents(string scheme, string authority, string path, string query, string fragment, bool strict)
     {
         scheme = SchemeFix(scheme, strict);
         path = ReferenceResolution(scheme, path);
-        var result = new ParsedDocumentUri(scheme, authority, path, query, fragment);
+        var result = new ParsedUri(scheme, authority, path, query, fragment);
         ValidateUri(result, strict);
         return result;
     }
@@ -96,12 +96,12 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     /// Creates a new URI from a string, e.g. <c>http://www.example.com/some/path</c>,
     /// <c>file:///usr/home</c>, or <c>scheme:with/path</c>.
     /// </summary>
-    public static ParsedDocumentUri Parse(string value, bool strict = false)
+    public static ParsedUri Parse(string value, bool strict = false)
     {
         var match = s_uriRegex.Match(value);
         if (!match.Success)
         {
-            return new ParsedDocumentUri(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+            throw new UriFormatException($"[UriError]: URI could not be parsed: \"{value}\"");
         }
 
         var scheme = match.Groups[2].Success ? match.Groups[2].Value : string.Empty;
@@ -117,7 +117,7 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     /// Creates a new URI from a file system path, e.g. <c>c:\my\files</c>,
     /// <c>/usr/home</c>, or <c>\\server\share\some\path</c>.
     /// </summary>
-    public static ParsedDocumentUri File(string path)
+    public static ParsedUri File(string path)
     {
         var authority = string.Empty;
 
@@ -154,39 +154,9 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     }
 
     /// <summary>
-    /// Creates a new URI from components with strict validation.
+    /// Returns true when this URI uses the <c>file</c> scheme.
     /// </summary>
-    public static ParsedDocumentUri From(string scheme, string? authority = null, string? path = null, string? query = null, string? fragment = null)
-    {
-        // Matches vscode-uri: constructor applies SchemeFix + ReferenceResolution with strict=false,
-        // then _validateUri is called externally with strict=true.
-        var fixedScheme = SchemeFix(scheme, strict: false);
-        var fixedPath = ReferenceResolution(fixedScheme, path ?? string.Empty);
-        var result = new ParsedDocumentUri(
-            fixedScheme,
-            authority ?? string.Empty,
-            fixedPath,
-            query ?? string.Empty,
-            fragment ?? string.Empty);
-        ValidateUri(result, strict: true);
-        return result;
-    }
-
-    /// <summary>
-    /// Returns a string representing the corresponding file system path of this URI.
-    /// Handles UNC paths, normalizes windows drive letters to lower-case, and uses the
-    /// platform specific path separator.
-    /// </summary>
-    /// <param name="keepDriveLetterCasing">If true, preserves the original drive letter casing.</param>
-    public string GetFileSystemPath(bool keepDriveLetterCasing = false)
-    {
-        if (!keepDriveLetterCasing)
-        {
-            return FsPath;
-        }
-
-        return UriToFsPath(Scheme, Authority, Path, keepDriveLetterCasing: true);
-    }
+    public bool IsFile => IsFileScheme(Scheme);
 
     /// <summary>
     /// Creates a string representation for this URI. Calling <see cref="Parse"/> with the
@@ -213,34 +183,58 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
 
     #region Equality
 
-    public bool Equals(ParsedDocumentUri other)
-        => Scheme == other.Scheme
-        && Authority == other.Authority
-        && Path == other.Path
-        && Query == other.Query
-        && Fragment == other.Fragment;
+    public bool Equals(ParsedUri other)
+    {
+        // Schemes are always case-insensitive per RFC 3986 Section 3.1.
+        if (!string.Equals(Scheme, other.Scheme, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        // For file URIs with UNC paths or DOS drive letter paths, compare case-insensitively.
+        // This matches System.Uri's behavior (IsUncOrDosPath flag). Unix-style file paths
+        // (e.g., file:///usr/home) remain case-sensitive.
+        var comparison = IsUncOrDosPath || other.IsUncOrDosPath
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        return string.Equals(Authority, other.Authority, comparison)
+            && string.Equals(Path, other.Path, comparison)
+            && string.Equals(Query, other.Query, comparison)
+            && string.Equals(Fragment, other.Fragment, comparison);
+    }
 
     public override bool Equals(object? obj)
-        => obj is ParsedDocumentUri other && Equals(other);
+        => obj is ParsedUri other && Equals(other);
 
     public override int GetHashCode()
+    {
+        if (IsUncOrDosPath)
+        {
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(ToString());
+        }
+
+        // Scheme is always case-insensitive, so hash it that way. Other components are case-sensitive.
+        var schemeHash = StringComparer.OrdinalIgnoreCase.GetHashCode(Scheme ?? string.Empty);
+
 #if NET
-        => HashCode.Combine(Scheme, Authority, Path, Query, Fragment);
+        return HashCode.Combine(schemeHash, Authority, Path, Query, Fragment);
 #else
-        => Hash.Combine(Scheme?.GetHashCode() ?? 0,
+        return Hash.Combine(schemeHash,
         Hash.Combine(Authority?.GetHashCode() ?? 0,
         Hash.Combine(Path?.GetHashCode() ?? 0,
         Hash.Combine(Query?.GetHashCode() ?? 0, Fragment?.GetHashCode() ?? 0))));
 #endif
+    }
 
-    public static bool operator ==(ParsedDocumentUri left, ParsedDocumentUri right) => left.Equals(right);
-    public static bool operator !=(ParsedDocumentUri left, ParsedDocumentUri right) => !left.Equals(right);
+    public static bool operator ==(ParsedUri left, ParsedUri right) => left.Equals(right);
+    public static bool operator !=(ParsedUri left, ParsedUri right) => !left.Equals(right);
 
     #endregion
 
     #region Validation helpers
 
-    private static void ValidateUri(ParsedDocumentUri uri, bool strict)
+    private static void ValidateUri(ParsedUri uri, bool strict)
     {
         // scheme, must be set in strict mode
         if (uri.Scheme.Length == 0 && strict)
@@ -561,7 +555,7 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     private static string UriToFsPath(string scheme, string authority, string path, bool keepDriveLetterCasing)
     {
         string value;
-        if (authority.Length > 0 && path.Length > 1 && scheme == "file")
+        if (authority.Length > 0 && path.Length > 1 && IsFileScheme(scheme))
         {
             // unc path: file://shares/c$/far/boo
             value = "//" + authority + path;
@@ -599,19 +593,22 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
     private static bool IsLetter(char ch)
         => (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
 
+    private static bool IsFileScheme(string scheme)
+        => string.Equals(scheme, "file", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>
     /// Returns true if this is a file URI with a UNC host or DOS drive letter path.
     /// Matches the behavior of System.Uri's internal IsUncOrDosPath flag, which determines
     /// whether path comparison should be case-insensitive.
     /// </summary>
     internal bool IsUncOrDosPath
-        => Scheme == "file"
+        => IsFile
         && (Authority.Length > 0 || (Path.Length >= 3 && Path[0] == '/' && IsLetter(Path[1]) && Path[2] == ':'));
 
     /// <summary>
     /// Create the external version of a URI.
     /// </summary>
-    private static string AsFormatted(ParsedDocumentUri uri, bool skipEncoding)
+    private static string AsFormatted(ParsedUri uri, bool skipEncoding)
     {
         Encoder encoder = !skipEncoding
             ? EncodeURIComponentFast
@@ -630,7 +627,7 @@ internal readonly struct ParsedDocumentUri : IEquatable<ParsedDocumentUri>
             res.Append(':');
         }
 
-        if (authority.Length > 0 || scheme == "file")
+        if (authority.Length > 0 || IsFileScheme(scheme))
         {
             res.Append("//");
         }

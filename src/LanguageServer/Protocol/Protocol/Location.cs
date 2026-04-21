@@ -31,7 +31,7 @@ internal class Location : IEquatable<Location>
     [JsonIgnore]
     public Uri Uri
     {
-        get => DocumentUri.GetRequiredParsedUri();
+        get => DocumentUri.GetRequiredSystemUri();
         set => DocumentUri = new DocumentUri(value);
     }
 

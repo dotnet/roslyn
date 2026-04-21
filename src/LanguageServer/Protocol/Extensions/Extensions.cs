@@ -59,15 +59,27 @@ internal static partial class Extensions
         return ProtocolConversions.CreateAbsoluteDocumentUri(path);
     }
 
-    public static Uri GetRequiredParsedUri(this DocumentUri documentUri)
+    public static bool IsSourceGeneratedUri(this DocumentUri documentUri)
+        => ProtocolConversions.IsSourceGeneratedScheme(documentUri.ParsedDocumentUri?.Scheme);
+
+    [Obsolete("Use GetRequiredParsedUri instead. This method will be removed in a future version.")]
+    public static Uri GetRequiredSystemUri(this DocumentUri documentUri)
     {
+#pragma warning disable RS0030 // Intentional for backwards compatibility.
         Contract.ThrowIfNull(documentUri.ParsedUri, $"URI {documentUri} could not be parsed");
+#pragma warning restore RS0030 // Do not use banned APIs
         return documentUri.ParsedUri;
+    }
+
+    public static ParsedUri GetRequiredParsedUri(this DocumentUri documentUri)
+    {
+        Contract.ThrowIfNull(documentUri.ParsedDocumentUri, $"URI {documentUri} could not be parsed");
+        return documentUri.ParsedDocumentUri.Value;
     }
 
     public static string GetDocumentFilePathFromUri(this DocumentUri uri)
     {
-        return uri.ParsedUri?.IsFile == true ? uri.ParsedUri.LocalPath : uri.UriString;
+        return uri.ParsedDocumentUri?.IsFile == true ? uri.ParsedDocumentUri.Value.FsPath : uri.UriString;
     }
 
     /// <summary>
@@ -94,7 +106,7 @@ internal static partial class Extensions
 
     public static ImmutableArray<DocumentId> GetDocumentIds(this Solution solution, DocumentUri documentUri)
     {
-        if (documentUri.ParsedUri is null)
+        if (documentUri.ParsedDocumentUri is null)
         {
             // If we were given an unparse-able URI, just search for documents with the full URI string.
             // For example the miscellaneous workspace stores these kinds of documents with the full URI string.
@@ -102,13 +114,13 @@ internal static partial class Extensions
         }
 
         // If this is not our special scheme for generated documents, then we can just look for documents with that file path.
-        if (documentUri.ParsedUri.Scheme != SourceGeneratedDocumentUri.Scheme)
+        if (!documentUri.IsSourceGeneratedUri())
             return solution.GetDocumentIdsWithFilePath(documentUri.GetDocumentFilePathFromUri());
 
         // We can get a null documentId if we were unable to find the project associated with the
         // generated document - this can happen if say a project is unloaded.  There may be LSP requests
         // already in-flight which may ask for a generated document from that project.  So we return null
-        var documentId = SourceGeneratedDocumentUri.DeserializeIdentity(solution, documentUri.ParsedUri)?.DocumentId;
+        var documentId = SourceGeneratedDocumentUri.DeserializeIdentity(solution, documentUri.ParsedDocumentUri.Value)?.DocumentId;
 
         return documentId is not null ? [documentId] : [];
     }
@@ -137,7 +149,7 @@ internal static partial class Extensions
     public static async ValueTask<ImmutableArray<TextDocument>> GetTextDocumentsAsync(this Solution solution, DocumentUri documentUri, CancellationToken cancellationToken)
     {
         // If it's the URI scheme for source generated files, delegate to our other helper, otherwise we can handle anything else here.
-        if (documentUri.ParsedUri?.Scheme == SourceGeneratedDocumentUri.Scheme)
+        if (documentUri.IsSourceGeneratedUri())
         {
             // In the case of a URI scheme for source generated files, we generate a different URI for each project, thus this URI cannot be linked into multiple projects;
             // this means we can safely call .SingleOrDefault() and not worry about calling FindDocumentInProjectContext.
@@ -197,12 +209,12 @@ internal static partial class Extensions
     public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
     {
         // We need to parse the URI (scheme, file path) to be able to lookup the URI in the solution.
-        if (projectIdentifier.DocumentUri.ParsedUri is null)
+        if (projectIdentifier.DocumentUri.ParsedDocumentUri is null)
         {
             return null;
         }
 
-        var projects = solution.Projects.WhereAsArray(project => project.FilePath == projectIdentifier.DocumentUri.ParsedUri.LocalPath);
+        var projects = solution.Projects.WhereAsArray(project => string.Equals(project.FilePath, projectIdentifier.DocumentUri.ParsedDocumentUri.Value.FsPath, StringComparison.OrdinalIgnoreCase));
         return !projects.Any()
             ? null
             : FindItemInProjectContext(projects, projectIdentifier, projectIdGetter: (item) => item.Id, defaultGetter: () => projects[0]);

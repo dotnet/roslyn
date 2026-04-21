@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -12,31 +12,44 @@ namespace Roslyn.LanguageServer.Protocol;
 /// see https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
 /// </summary>
 /// <remarks>
-/// The underlying parsed representation is <see cref="ParsedDocumentUri"/>, which implements vscode-uri compatible
+/// The underlying parsed representation is <see cref="Protocol.ParsedUri"/>, which implements vscode-uri compatible
 /// parsing without depending on System.Uri.
 /// </remarks>
 internal sealed record class DocumentUri(string UriString)
 {
-    private ParsedDocumentUri? _parsedDocumentUri;
+    private Optional<ParsedUri?> _parsedUri;
 
     [Obsolete("Use the constructor taking ParsedDocumentUri instead.")]
     public DocumentUri(Uri parsedUri) : this(parsedUri.AbsoluteUri)
     {
     }
 
-    public DocumentUri(ParsedDocumentUri parsedDocumentUri) : this(parsedDocumentUri.ToString())
-        => _parsedDocumentUri = parsedDocumentUri;
+    public DocumentUri(ParsedUri parsedDocumentUri) : this(parsedDocumentUri.ToString())
+        => _parsedUri = parsedDocumentUri;
 
     /// <summary>
     /// Gets the parsed URI using vscode-uri compatible parsing. Always available — lazily parsed from
     /// <see cref="UriString"/> on first access if not provided at construction time.
     /// </summary>
-    public ParsedDocumentUri ParsedDocUri
+    public ParsedUri? ParsedDocumentUri
     {
         get
         {
-            _parsedDocumentUri ??= ParsedDocumentUri.Parse(UriString);
-            return _parsedDocumentUri.Value;
+            _parsedUri = _parsedUri.HasValue ? _parsedUri : ParseUri(UriString);
+            return _parsedUri.Value;
+        }
+    }
+
+    private static ParsedUri? ParseUri(string uriString)
+    {
+        try
+        {
+            return Protocol.ParsedUri.Parse(uriString);
+        }
+        catch (UriFormatException)
+        {
+            // This is not a URI that we can parse.
+            return null;
         }
     }
 
@@ -48,7 +61,7 @@ internal sealed record class DocumentUri(string UriString)
     /// </returns>
     /// <remarks>
     /// A new System.Uri instance is created from <see cref="UriString"/> on each access.
-    /// Prefer <see cref="ParsedDocUri"/> for URI operations.
+    /// Prefer <see cref="Protocol.ParsedUri"/> for URI operations.
     /// </remarks>
     [Obsolete("Use ParsedDocUri instead.")]
     public Uri? ParsedUri
@@ -79,48 +92,20 @@ internal sealed record class DocumentUri(string UriString)
         if (this.UriString == otherUri.UriString)
             return true;
 
-        // Compare using vscode-uri parsed components.
-        var thisParsed = this.ParsedDocUri;
-        var otherParsed = otherUri.ParsedDocUri;
+        var thisParsed = ParsedDocumentUri;
+        var otherParsed = otherUri.ParsedDocumentUri;
 
-        // Schemes are always case-insensitive per RFC 3986 Section 3.1.
-        if (!string.Equals(thisParsed.Scheme, otherParsed.Scheme, StringComparison.OrdinalIgnoreCase))
+        // Bail if we cannot parse either of the URIs.  We already determined the URI strings are not equal and we need
+        // to be able to parse the URIs to do deeper equivalency checks.
+        if (thisParsed is null || otherParsed is null)
             return false;
 
-        // For file URIs with UNC paths or DOS drive letter paths, compare case-insensitively.
-        // This matches System.Uri's behavior (IsUncOrDosPath flag). Unix-style file paths
-        // (e.g., file:///usr/home) remain case-sensitive.
-        var comparison = thisParsed.IsUncOrDosPath || otherParsed.IsUncOrDosPath
-            ? StringComparison.OrdinalIgnoreCase
-            : StringComparison.Ordinal;
-
-        return string.Equals(thisParsed.Authority, otherParsed.Authority, comparison)
-            && string.Equals(thisParsed.Path, otherParsed.Path, comparison)
-            && string.Equals(thisParsed.Query, otherParsed.Query, comparison)
-            && string.Equals(thisParsed.Fragment, otherParsed.Fragment, comparison);
+        return thisParsed.Value.Equals(otherParsed.Value);
     }
 
     public override int GetHashCode()
     {
-        var parsed = this.ParsedDocUri;
-
-        // For file URIs with UNC/DOS paths, use case-insensitive hashing to match the case-insensitive
-        // Equals behavior. For all other URIs, use case-sensitive hashing (except scheme, which is always
-        // case-insensitive per RFC 3986).
-        if (parsed.IsUncOrDosPath)
-        {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(parsed.ToString());
-        }
-
-        // Scheme is always case-insensitive, so hash it that way. Other components are case-sensitive.
-        var schemeHash = StringComparer.OrdinalIgnoreCase.GetHashCode(parsed.Scheme ?? string.Empty);
-#if NET
-        return HashCode.Combine(schemeHash, parsed.Authority, parsed.Path, parsed.Query, parsed.Fragment);
-#else
-        return Hash.Combine(schemeHash,
-            Hash.Combine(parsed.Authority?.GetHashCode() ?? 0,
-            Hash.Combine(parsed.Path?.GetHashCode() ?? 0,
-            Hash.Combine(parsed.Query?.GetHashCode() ?? 0, parsed.Fragment?.GetHashCode() ?? 0))));
-#endif
+        var parsed = ParsedDocumentUri;
+        return parsed is null ? UriString.GetHashCode() : parsed.Value.GetHashCode();
     }
 }

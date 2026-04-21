@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor;
 
 internal static class TextDocumentExtensions
 {
-    public static Uri CreateUri(this TextDocument document)
-        => document.GetURI().GetRequiredParsedUri();
-
     public static DocumentUri CreateDocumentUri(this TextDocument document)
         => document.GetURI();
 

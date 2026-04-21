@@ -120,7 +120,7 @@ internal sealed class AutoLoadProjectsInitializer(
 
     internal static bool TryGetFolderPath(WorkspaceFolder folder, ILogger logger, [NotNullWhen(returnValue: true)] out string? folderPath)
     {
-        if (folder.DocumentUri.ParsedUri is null || folder.DocumentUri.ParsedUri.Scheme != Uri.UriSchemeFile)
+        if (folder.DocumentUri.ParsedDocumentUri?.IsFile != true)
         {
             logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping.", folder.DocumentUri);
             folderPath = null;

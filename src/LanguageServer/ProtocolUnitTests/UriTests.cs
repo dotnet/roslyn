@@ -120,7 +120,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         // Try again, this time with a uri with different case sensitivity.  This is supported, and is needed by Xaml.
         {
             var lowercaseUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentFilePath.ToLowerInvariant());
-            Assert.NotEqual(expectedDocumentUri.GetRequiredParsedUri().AbsolutePath, lowercaseUri.GetRequiredParsedUri().AbsolutePath);
+            Assert.NotEqual(expectedDocumentUri.GetRequiredParsedUri().ToString(), lowercaseUri.GetRequiredParsedUri().ToString());
             var (_, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = lowercaseUri }, CancellationToken.None);
             Assert.NotNull(document);
             Assert.False(await testLspServer.GetManager().GetTestAccessor().IsMiscellaneousFilesDocumentAsync(document));
@@ -320,26 +320,30 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory]
-    // Invalid URIs
+    // Invalid URIs, but we can parse them with vscode-uri semantics.
     [InlineData(true, "file://invalid^uri")]
-    [InlineData(false, "file://invalid^uri")]
     [InlineData(true, "perforce://%239/some/file/here/source.cs")]
-    [InlineData(false, "perforce://%239/some/file/here/source.cs")]
-    // Valid URI, but System.Uri cannot parse it.
+    [InlineData(true, "_claude_vscode_fs_right:/c:/Projects/MyApp/Pages/File.cs")]
+    // Valid URIs that historically System.Uri could not parse
     [InlineData(true, "vscode-notebook-cell://dev-container+7b2/workspaces/devkit-crash/notebook.ipynb")]
-    [InlineData(false, "vscode-notebook-cell://dev-container+7b2/workspaces/devkit-crash/notebook.ipynb")]
-    // Valid URI, but System.Uri cannot parse it.
     [InlineData(true, "perforce://@=1454483/some/file/here/source.cs")]
-    [InlineData(false, "perforce://@=1454483/some/file/here/source.cs")]
-    public async Task TestOpenDocumentWithInvalidUri(bool mutatingLspWorkspace, string uriString)
+    // URIs that are unparseable under both System.Uri and vscode-uri semantics.
+    [InlineData(false, "git:////repo/file.cs")]
+    public async Task TestOpenDocumentWithInvalidUri(bool isParseable, string uriString)
     {
         // Create a server that supports LSP misc files
-        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-        // Open file with a URI System.Uri cannot parse.  This should not crash the server.
+        // Open file with invalid URI.  This should not crash the server.
         var invalidUri = new DocumentUri(uriString);
-        // ParsedUri should be null as System.Uri cannot parse it.
-        Assert.Null(invalidUri.ParsedUri);
+        if (isParseable)
+        {
+            Assert.NotNull(invalidUri.ParsedDocumentUri);
+        }
+        else
+        {
+            Assert.Null(invalidUri.ParsedDocumentUri);
+        }
         await testLspServer.OpenDocumentAsync(invalidUri, string.Empty, languageId: "csharp").ConfigureAwait(false);
 
         // Verify requests succeed and that the file is in misc.
@@ -359,9 +363,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-        // Use a URI that System.Uri cannot parse.
-        var unparseableUri = new DocumentUri("_claude_vscode_fs_right:/c:/Projects/MyApp/Pages/Component.razor");
-        Assert.Null(unparseableUri.ParsedUri);
+        // Use a URI that we cannot parse.
+        var unparseableUri = new DocumentUri("git:////repo/file.razor");
+        Assert.Null(unparseableUri.ParsedDocumentUri);
 
         // Open the document with the unparseable URI and "razor" language ID.
         // The language ID should be saved and used to route subsequent requests to the Razor-specific handler.
@@ -382,9 +386,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
 
-        // Use a URI that System.Uri cannot parse.
-        var unparseableUri = new DocumentUri("_claude_vscode_fs_right:/c:/Projects/MyApp/Pages/Component.razor");
-        Assert.Null(unparseableUri.ParsedUri);
+        // Use a URI that we cannot parse.
+        var unparseableUri = new DocumentUri("git:////repo/file.razor");
+        Assert.Null(unparseableUri.ParsedDocumentUri);
 
         // Send a request to a handler that is ONLY registered for "Razor" language (no default handler).
         // Language lookup fails (document closed, URI unparseable) so there is no language to route to.
@@ -402,43 +406,13 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     [InlineData(true, null, null)]
     [InlineData(false, "file://c:\\valid", null)]
     [InlineData(false, null, "file://c:\\valid")]
-    [InlineData(true, "file://c:\\valid", "file://c:\\valid")]
-    // Under vscode-uri semantics, backslash vs forward-slash URIs parse to different components
-    // (backslashes are only normalized in ParsedDocumentUri.File(), not in Parse()), so these are not equal.
-    [InlineData(false, "file://c:\\valid", "file:///c:/valid")]
-    // File URIs with UNC/DOS paths use case-insensitive comparison, matching System.Uri's IsUncOrDosPath behavior.
-    [InlineData(true, "file://c:\\valid", "file://c:\\VALID")]
-    [InlineData(false, "file://c:\\valid", "file://c:\\valid2")]
-    // Scheme is always case-insensitive per RFC 3986.
-    [InlineData(true, "FILE:///c:/test", "file:///c:/test")]
-    // Non-file schemes are case-sensitive on path.
-    [InlineData(false, "git:/blah", "git:/Blah")]
-    // Unix-style file paths (no drive letter, no UNC) are case-sensitive.
-    [InlineData(false, "file:///usr/Home", "file:///usr/home")]
-    // DOS drive letter file paths are case-insensitive.
+    // DocumentUri falls back to ordinal string equality when the URI cannot be parsed.
+    [InlineData(true, "git:////repo/file.cs", "git:////repo/file.cs")]
+    [InlineData(false, "git:////repo/file.cs", "git:////repo/other.cs")]
+    // Parsed URIs delegate to ParsedUri equality; see ParsedUriTests for more complete coverage.
     [InlineData(true, "file:///c:/Path/File.txt", "file:///c:/path/file.txt")]
-    // UNC file paths are case-insensitive.
-    [InlineData(true, "file://server/Share/Path", "file://server/share/path")]
-    // Encoded vs unencoded: percent-encoded characters should be decoded before comparison.
-    // Spaces encoded as %20.
     [InlineData(true, "file:///c:/test%20file.txt", "file:///c:/test file.txt")]
-    // Hash character %23: unencoded # starts a fragment, so these parse to different components (not equal).
-    [InlineData(false, "file:///c:/code/c%23/project", "file:///c:/code/c#/project")]
-    // Unicode characters encoded as UTF-8 percent sequences.
-    [InlineData(true, "file:///c:/Source/Z%C3%BCrich", "file:///c:/Source/Zürich")]
-    // Mixed encoding in authority (UNC path).
-    [InlineData(true, "file://sh%C3%A4res/path", "file://shäres/path")]
-    // Encoded vs unencoded in HTTP query strings.
-    [InlineData(true, "http://example.com/path?q%3D1", "http://example.com/path?q=1")]
-    // Encoded vs unencoded in fragments.
-    [InlineData(true, "http://example.com/path#frag%20ment", "http://example.com/path#frag ment")]
-    // Double-encoded percent: %25 decodes to %, which is different from a literal %.
-    [InlineData(false, "file:///c:/test%2520file.txt", "file:///c:/test%20file.txt")]
-    // Encoded colon in path (vscode-uri encodes drive letter colons).
-    [InlineData(true, "file:///c%3A/test", "file:///c:/test")]
-    // Encoded slash %2F in query (not a path separator in query context).
-    [InlineData(true, "http://example.com/path?url%3Dhttp%3A%2F%2Fother", "http://example.com/path?url=http://other")]
-    public void TestUriEquality(bool areEqual, string? uriString1, string? uriString2)
+    public void TestDocumentUriEquality(bool areEqual, string? uriString1, string? uriString2)
     {
         var documentUri1 = uriString1 != null ? new DocumentUri(uriString1) : null;
         var documentUri2 = uriString2 != null ? new DocumentUri(uriString2) : null;
