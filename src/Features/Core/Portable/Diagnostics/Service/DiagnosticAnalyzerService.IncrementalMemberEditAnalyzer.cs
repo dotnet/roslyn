@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -132,6 +132,8 @@ internal sealed partial class DiagnosticAnalyzerService
             async Task ExecuteCompilerAnalyzerAsync(
                 (DiagnosticAnalyzer analyzer, bool spanBased)? compilerAnalyzerData,
                 ImmutableArray<TextSpan> oldMemberSpans,
+                SourceText oldText,
+                DiagnosticCache.Entry? cachedSnapshot,
                 Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
             {
                 if (!compilerAnalyzerData.HasValue)
@@ -141,37 +143,43 @@ internal sealed partial class DiagnosticAnalyzerService
                 var span = spanBased ? changedMember.FullSpan : (TextSpan?)null;
                 executor = executor.With(analysisScope.WithSpan(span));
                 using var _ = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(1, analyzer, out var analyzers);
-                await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, builder).ConfigureAwait(false);
+                await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, oldText, cachedSnapshot, builder).ConfigureAwait(false);
             }
 
             async Task ExecuteSpanBasedAnalyzersAsync(
                 ArrayBuilder<DiagnosticAnalyzer> analyzers,
                 ImmutableArray<TextSpan> oldMemberSpans,
+                SourceText oldText,
+                DiagnosticCache.Entry? cachedSnapshot,
                 Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
             {
                 if (analyzers.Count == 0)
                     return;
 
                 executor = executor.With(analysisScope.WithSpan(changedMember.FullSpan));
-                await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, builder).ConfigureAwait(false);
+                await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, oldText, cachedSnapshot, builder).ConfigureAwait(false);
             }
 
             async Task ExecuteDocumentBasedAnalyzersAsync(
                 ArrayBuilder<DiagnosticAnalyzer> analyzers,
                 ImmutableArray<TextSpan> oldMemberSpans,
+                SourceText oldText,
+                DiagnosticCache.Entry? cachedSnapshot,
                 Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
             {
                 if (analyzers.Count == 0)
                     return;
 
                 executor = executor.With(analysisScope.WithSpan(null));
-                await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, builder).ConfigureAwait(false);
+                await ExecuteAnalyzersAsync(executor, analyzers, oldMemberSpans, oldText, cachedSnapshot, builder).ConfigureAwait(false);
             }
 
             async Task ExecuteAnalyzersAsync(
                 DocumentAnalysisExecutor executor,
                 ArrayBuilder<DiagnosticAnalyzer> analyzers,
                 ImmutableArray<TextSpan> oldMemberSpans,
+                SourceText oldText,
+                DiagnosticCache.Entry? cachedSnapshot,
                 Dictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> builder)
             {
                 var analysisScope = executor.AnalysisScope;
@@ -183,17 +191,13 @@ internal sealed partial class DiagnosticAnalyzerService
                 {
                     var diagnostics = await executor.ComputeDiagnosticsInProcessAsync(analyzer, cancellationToken).ConfigureAwait(false);
 
-                    // If we computed the diagnostics just for a span, then we are performing incremental analysis.
-                    // We need to compute the full document diagnostics by re-using diagnostics outside the changed
-                    // member and using the above computed latest diagnostics for the edited member span.
+                    // For span-based analysis, splice the member-scoped diagnostics with cached
+                    // diagnostics outside the member to produce complete document diagnostics.
                     if (analysisScope.Span.HasValue)
                     {
-                        Debug.Assert(analysisScope.Span.Value == changedMember.FullSpan);
-
                         diagnostics = await GetUpdatedDiagnosticsForMemberEditAsync(
-                            diagnostics, analyzerWithState.ExistingData, analyzerWithState.Analyzer,
-                            executor, changedMember, changedMemberId,
-                            oldMemberSpans, computeAnalyzerDiagnosticsAsync, cancellationToken).ConfigureAwait(false);
+                            diagnostics, cachedSnapshot, oldText, analyzer, executor, changedMember, changedMemberId,
+                            oldMemberSpans, cancellationToken).ConfigureAwait(false);
                     }
 
                     builder.Add(analyzer, diagnostics);
@@ -241,13 +245,13 @@ internal sealed partial class DiagnosticAnalyzerService
 
         private static async Task<ImmutableArray<DiagnosticData>> GetUpdatedDiagnosticsForMemberEditAsync(
             ImmutableArray<DiagnosticData> diagnostics,
-            DocumentAnalysisData existingData,
+            DiagnosticCache.Entry? cachedSnapshot,
+            SourceText oldText,
             DiagnosticAnalyzer analyzer,
             DocumentAnalysisExecutor executor,
             SyntaxNode changedMember,
             int changedMemberId,
             ImmutableArray<TextSpan> oldMemberSpans,
-            Func<DiagnosticAnalyzer, DocumentAnalysisExecutor, CancellationToken, Task<ImmutableArray<DiagnosticData>>> computeAnalyzerDiagnosticsAsync,
             CancellationToken cancellationToken)
         {
             // We are performing semantic span-based analysis for member-only edit scenario.
@@ -261,16 +265,14 @@ internal sealed partial class DiagnosticAnalyzerService
             //      document snapshot, but with updated diagnostic spans.
             //      AND
             //   2. Replacing old diagnostics for the edited member node in a prior document snapshot
-            //      with the new diagnostics for this member node in the latest document snaphot.
+            //      with the new diagnostics for this member node in the latest document snapshot.
             // If we are unable to perform this incremental diagnostics update,
             // we fallback to computing the diagnostics for the entire document.
-            var tree = changedMember.SyntaxTree;
-            var text = tree.GetText(cancellationToken);
-            if (TryGetUpdatedDocumentDiagnostics(existingData, oldMemberSpans, diagnostics, tree, text, changedMember, changedMemberId, out var updatedDiagnostics))
+            if (cachedSnapshot != null &&
+                cachedSnapshot.Diagnostics.TryGetValue(analyzer, out var cachedDiagnostics) &&
+                TryGetUpdatedDocumentDiagnostics(cachedDiagnostics, oldMemberSpans, diagnostics,
+                    changedMember.SyntaxTree, oldText, changedMember, changedMemberId, out var updatedDiagnostics))
             {
-#if DEBUG_INCREMENTAL_ANALYSIS
-                    await ValidateMemberDiagnosticsAsync(executor, analyzer, updatedDiagnostics, cancellationToken).ConfigureAwait(false);
-#endif
                 return updatedDiagnostics;
             }
             else
@@ -278,21 +280,12 @@ internal sealed partial class DiagnosticAnalyzerService
                 // Incremental diagnostics update failed.
                 // Fallback to computing the diagnostics for the entire document.
                 var documentExecutor = executor.With(executor.AnalysisScope.WithSpan(null));
-                return await computeAnalyzerDiagnosticsAsync(analyzer, documentExecutor, cancellationToken).ConfigureAwait(false);
+                return await documentExecutor.ComputeDiagnosticsInProcessAsync(analyzer, cancellationToken).ConfigureAwait(false);
             }
-
-#if DEBUG_INCREMENTAL_ANALYSIS
-                static async Task ValidateMemberDiagnosticsAsync(DocumentAnalysisExecutor executor, DiagnosticAnalyzer analyzer, ImmutableArray<DiagnosticData> diagnostics, CancellationToken cancellationToken)
-                {
-                    executor = executor.With(executor.AnalysisScope.WithSpan(null));
-                    var expected = await executor.ComputeDiagnosticsAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                    Debug.Assert(diagnostics.SetEquals(expected));
-                }
-#endif
         }
 
         private static bool TryGetUpdatedDocumentDiagnostics(
-            DocumentAnalysisData existingData,
+            ImmutableArray<DiagnosticData> diagnostics,
             ImmutableArray<TextSpan> oldMemberSpans,
             ImmutableArray<DiagnosticData> memberDiagnostics,
             SyntaxTree tree,
@@ -303,9 +296,6 @@ internal sealed partial class DiagnosticAnalyzerService
         {
             // get old span
             var oldSpan = oldMemberSpans[memberId];
-
-            // get old diagnostics
-            var diagnostics = existingData.Items;
 
             // check quick exit cases
             if (diagnostics.Length == 0 && memberDiagnostics.Length == 0)
@@ -338,10 +328,14 @@ internal sealed partial class DiagnosticAnalyzerService
                 }
 
                 var diagnosticSpan = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
-                if (diagnosticSpan.Start < oldSpan.Start)
+                if (diagnosticSpan.End <= oldSpan.Start)
                 {
                     // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                    if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && l.UnmappedFileSpan.GetClampedTextSpan(text).Start >= oldSpan.Start))
+                    if (diagnostic.AdditionalLocations.Any(static (l, oldInfo) =>
+                            l.DocumentId != null &&
+                            (l.DocumentId != oldInfo.diagnostic.DocumentId ||
+                             l.UnmappedFileSpan.GetClampedTextSpan(oldInfo.text).End > oldInfo.oldSpan.Start),
+                        (text, oldSpan, diagnostic)))
                     {
                         updatedDiagnostics = default;
                         return false;
@@ -360,7 +354,11 @@ internal sealed partial class DiagnosticAnalyzerService
                 if (oldSpan.End <= diagnosticSpan.Start)
                 {
                     // Bail out if the diagnostic has any additional locations that we don't know how to handle.
-                    if (diagnostic.AdditionalLocations.Any(l => l.DocumentId != null && oldSpan.End > l.UnmappedFileSpan.GetClampedTextSpan(text).Start))
+                    if (diagnostic.AdditionalLocations.Any(static (l, oldInfo) =>
+                            l.DocumentId != null &&
+                            (l.DocumentId != oldInfo.diagnostic.DocumentId ||
+                             l.UnmappedFileSpan.GetClampedTextSpan(oldInfo.text).Start < oldInfo.oldSpan.End),
+                        (text, oldSpan, diagnostic)))
                     {
                         updatedDiagnostics = default;
                         return false;
@@ -392,12 +390,14 @@ internal sealed partial class DiagnosticAnalyzerService
                     var diagnosticSpan = location.UnmappedFileSpan.GetClampedTextSpan(text);
                     var start = Math.Max(diagnosticSpan.Start + delta, 0);
                     var end = start + diagnosticSpan.Length;
-                    if (start >= tree.Length)
-                        start = tree.Length - 1;
-                    if (end >= tree.Length)
-                        end = tree.Length - 1;
-                    var newSpan = new TextSpan(start, end - start);
-                    return location.WithSpan(newSpan, tree);
+                    if (start > tree.Length)
+                        start = tree.Length;
+                    if (end > tree.Length)
+                        end = tree.Length;
+                    if (end < start)
+                        end = start;
+
+                    return location.WithSpan(new TextSpan(start, end - start), tree);
                 }
             }
         }
