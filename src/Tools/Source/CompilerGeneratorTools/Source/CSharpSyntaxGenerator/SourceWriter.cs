@@ -44,6 +44,18 @@ namespace CSharpSyntaxGenerator
                 return node.ExperimentalUrl;
             }
 
+            // If any field on the node is experimental, the generated Update and factory signatures
+            // all include that field as a parameter. Those signatures are therefore themselves new
+            // public API that should be flagged while the feature is in preview. The original
+            // pre-field signatures remain available through hand-written partial method forwarders.
+            foreach (var field in node.Fields)
+            {
+                if (!string.IsNullOrEmpty(field.ExperimentalUrl))
+                {
+                    return field.ExperimentalUrl;
+                }
+            }
+
             if (node.Kinds.Count <= 1)
             {
                 return null;
@@ -1144,6 +1156,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
+            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(node));
             Write($"public {node.Name} Update(");
             Write(CommaJoin(
                 node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
