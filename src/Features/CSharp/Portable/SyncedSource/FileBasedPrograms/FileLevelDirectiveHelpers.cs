@@ -77,7 +77,6 @@ internal static class FileLevelDirectiveHelpers
             }
         }
 
-        // The result should be ordered by source location, RemoveDirectivesFromFile depends on that.
         return builder.ToImmutable();
     }
 
@@ -112,7 +111,7 @@ internal static class FileLevelDirectiveHelpers
             {
                 TextSpan span = GetFullSpan(previousWhiteSpaceSpan, trivia);
 
-                var whiteSpace = GetWhiteSpaceInfo(triviaList, index);
+                var whiteSpace = GetWhiteSpaceInfo(triviaList, index, span);
                 var info = new CSharpDirective.ParseInfo
                 {
                     SourceFile = sourceFile,
@@ -134,7 +133,7 @@ internal static class FileLevelDirectiveHelpers
                 var value = parts.Length > 1 ? parts[1] : "";
                 Debug.Assert(!(parts.Length > 2));
 
-                var whiteSpace = GetWhiteSpaceInfo(triviaList, index);
+                var whiteSpace = GetWhiteSpaceInfo(triviaList, index, span);
                 var context = new CSharpDirective.ParseContext
                 {
                     Info = new()
@@ -183,35 +182,42 @@ internal static class FileLevelDirectiveHelpers
             return previousWhiteSpaceSpan.IsEmpty ? trivia.FullSpan : TextSpan.FromBounds(previousWhiteSpaceSpan.Start, trivia.FullSpan.End);
         }
 
-        static (WhiteSpaceInfo Leading, WhiteSpaceInfo Trailing) GetWhiteSpaceInfo(in SyntaxTriviaList triviaList, int index)
+        static (WhiteSpaceInfo Leading, WhiteSpaceInfo Trailing) GetWhiteSpaceInfo(in SyntaxTriviaList triviaList, int index, TextSpan excludeSpan)
         {
             (WhiteSpaceInfo Leading, WhiteSpaceInfo Trailing) result = default;
 
             for (int i = index - 1; i >= 0; i--)
             {
-                if (!Fill(ref result.Leading, triviaList, i)) break;
+                if (!Fill(ref result.Leading, triviaList, i, excludeSpan)) break;
             }
 
             for (int i = index + 1; i < triviaList.Count; i++)
             {
-                if (!Fill(ref result.Trailing, triviaList, i)) break;
+                if (!Fill(ref result.Trailing, triviaList, i, excludeSpan)) break;
             }
 
             return result;
 
-            static bool Fill(ref WhiteSpaceInfo info, in SyntaxTriviaList triviaList, int index)
+            static bool Fill(ref WhiteSpaceInfo info, in SyntaxTriviaList triviaList, int index, TextSpan excludeSpan)
             {
                 var trivia = triviaList[index];
+
+                var length = trivia.FullSpan.Length - (trivia.FullSpan.Intersection(excludeSpan)?.Length ?? 0);
+
                 if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
-                    info.LineBreaks += 1;
-                    info.TotalLength += trivia.FullSpan.Length;
+                    if (length != 0)
+                    {
+                        info.BlankLineLength += info.RestLength + length;
+                        info.RestLength = 0;
+                    }
+
                     return true;
                 }
 
                 if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                 {
-                    info.TotalLength += trivia.FullSpan.Length;
+                    info.RestLength += length;
                     return true;
                 }
 
@@ -256,8 +262,15 @@ internal static partial class Patterns
 
 internal struct WhiteSpaceInfo
 {
-    public int LineBreaks;
-    public int TotalLength;
+    /// <summary>
+    /// Size of whitespace that consists of only blank lines (i.e., lines that contain only whitespace).
+    /// </summary>
+    public int BlankLineLength;
+
+    /// <summary>
+    /// Size of the remaining whitespace on a not-entirely-blank line.
+    /// </summary>
+    public int RestLength;
 }
 
 /// <summary>
@@ -271,11 +284,20 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     public readonly struct ParseInfo
     {
         public required SourceFile SourceFile { get; init; }
+
         /// <summary>
         /// Span of the full line including the trailing line break.
         /// </summary>
         public required TextSpan Span { get; init; }
+
+        /// <summary>
+        /// Additional leading whitespace not included in <see cref="Span"/>.
+        /// </summary>
         public required WhiteSpaceInfo LeadingWhiteSpace { get; init; }
+
+        /// <summary>
+        /// Additional trailing whitespace not included in <see cref="Span"/>.
+        /// </summary>
         public required WhiteSpaceInfo TrailingWhiteSpace { get; init; }
     }
 
@@ -301,6 +323,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
             case "property": return Property.Parse(context);
             case "package": return Package.Parse(context);
             case "project": return Project.Parse(context);
+            case "ref": return Ref.Parse(context);
             case "include" or "exclude": return IncludeOrExclude.Parse(context);
             default:
                 context.ReportError(string.Format(FileBasedProgramsResources.UnrecognizedDirective, context.DirectiveKind));
@@ -565,6 +588,100 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
         public override string ToString() => $"#:project {Name}";
     }
 
+    /// <summary>
+    /// <c>#:ref</c> directive. References another file-based app as a library.
+    /// </summary>
+    public sealed class Ref : Named
+    {
+        public const string ExperimentalFileBasedProgramEnableRefDirective = nameof(ExperimentalFileBasedProgramEnableRefDirective);
+
+        [SetsRequiredMembers]
+        public Ref(in ParseInfo info, string name) : base(info)
+        {
+            Name = name;
+            OriginalName = name;
+        }
+
+        /// <summary>
+        /// Preserved across <see cref="WithName"/> calls, i.e.,
+        /// this is the original directive text as entered by the user.
+        /// </summary>
+        public string OriginalName { get; init; }
+
+        /// <summary>
+        /// This is the <see cref="OriginalName"/> with MSBuild <c>$(..)</c> vars expanded.
+        /// </summary>
+        public string? ExpandedName { get; init; }
+
+        /// <summary>
+        /// The resolved full path to the referenced <c>.cs</c> file.
+        /// </summary>
+        public string? ResolvedPath { get; init; }
+
+        public static new Ref? Parse(in ParseContext context)
+        {
+            var directiveText = context.DirectiveText;
+            if (directiveText.IsWhiteSpace())
+            {
+                context.ReportError(string.Format(FileBasedProgramsResources.MissingDirectiveName, context.DirectiveKind));
+                return null;
+            }
+
+            return new Ref(context.Info, directiveText);
+        }
+
+        public enum NameKind
+        {
+            /// <summary>
+            /// Change <see cref="Named.Name"/> and <see cref="ExpandedName"/>.
+            /// </summary>
+            Expanded = 1,
+
+            /// <summary>
+            /// Change <see cref="Named.Name"/> and <see cref="ResolvedPath"/>.
+            /// </summary>
+            Resolved = 2,
+
+            /// <summary>
+            /// Change only <see cref="Named.Name"/>.
+            /// </summary>
+            Final = 3,
+        }
+
+        public Ref WithName(string name, NameKind kind)
+        {
+            return new Ref(Info, name)
+            {
+                OriginalName = OriginalName,
+                ExpandedName = kind == NameKind.Expanded ? name : ExpandedName,
+                ResolvedPath = kind == NameKind.Resolved ? name : ResolvedPath,
+            };
+        }
+
+        /// <summary>
+        /// Resolves the path relative to the source file's directory.
+        /// </summary>
+        public Ref EnsureResolvedPath(ErrorReporter errorReporter)
+        {
+            var sourcePath = Info.SourceFile.Path;
+            var sourceDirectory = Path.GetDirectoryName(sourcePath)
+                ?? throw new InvalidOperationException($"Source file path '{sourcePath}' does not have a containing directory.");
+
+            var resolvedFilePath = Path.GetFullPath(Path.Combine(sourceDirectory, Name.Replace('\\', '/')));
+
+            if (!File.Exists(resolvedFilePath))
+            {
+                errorReporter(Info.SourceFile.Text, sourcePath, Info.Span,
+                    string.Format(FileBasedProgramsResources.InvalidRefDirective,
+                        string.Format(FileBasedProgramsResources.CouldNotFindRefFile, resolvedFilePath)));
+            }
+
+            return WithName(resolvedFilePath, NameKind.Resolved);
+        }
+
+        public override string ToString() => $"#:ref {Name}";
+    }
+
     public enum IncludeOrExcludeKind
     {
         Include,
@@ -576,11 +693,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     /// </summary>
     public sealed class IncludeOrExclude(in ParseInfo info) : Named(info)
     {
-        public const string ExperimentalFileBasedProgramEnableIncludeDirective = nameof(ExperimentalFileBasedProgramEnableIncludeDirective);
-        public const string ExperimentalFileBasedProgramEnableExcludeDirective = nameof(ExperimentalFileBasedProgramEnableExcludeDirective);
         public const string ExperimentalFileBasedProgramEnableTransitiveDirectives = nameof(ExperimentalFileBasedProgramEnableTransitiveDirectives);
-        public const string ExperimentalFileBasedProgramEnableItemMapping = nameof(ExperimentalFileBasedProgramEnableItemMapping);
-
         public const string MappingPropertyName = "FileBasedProgramsItemMapping";
 
         public static string DefaultMappingString => ".cs=Compile;.resx=EmbeddedResource;.json=None;.razor=Content";
