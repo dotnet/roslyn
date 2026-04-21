@@ -44,16 +44,10 @@ namespace CSharpSyntaxGenerator
                 return node.ExperimentalUrl;
             }
 
-            // If any field on the node is experimental, the generated Update and factory signatures
-            // all include that field as a parameter. Those signatures are therefore themselves new
-            // public API that should be flagged while the feature is in preview. The original
-            // pre-field signatures remain available through hand-written partial method forwarders.
-            foreach (var field in node.Fields)
+            var fieldUrl = GetFieldExperimentalUrl(node);
+            if (fieldUrl != null)
             {
-                if (!string.IsNullOrEmpty(field.ExperimentalUrl))
-                {
-                    return field.ExperimentalUrl;
-                }
+                return fieldUrl;
             }
 
             if (node.Kinds.Count <= 1)
@@ -75,6 +69,21 @@ namespace CSharpSyntaxGenerator
             // We use this to flag the transitional factory shape introduced when adding a new
             // syntax kind, while avoiding broad experimental annotation of long-standing APIs.
             return experimentalKindCount == node.Kinds.Count - 1 ? experimentalUrl : null;
+        }
+
+        // Used by Update: its signature only changes when a field is added, not when a kind is
+        // added. So we propagate field-level ExperimentalUrl onto Update but not kind-level.
+        private static string GetFieldExperimentalUrl(Node node)
+        {
+            foreach (var field in node.Fields)
+            {
+                if (!string.IsNullOrEmpty(field.ExperimentalUrl))
+                {
+                    return field.ExperimentalUrl;
+                }
+            }
+
+            return null;
         }
 
         private void WriteFileHeader()
@@ -1156,7 +1165,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
-            WriteExperimentalIfNeeded(GetCreationExperimentalUrl(node));
+            WriteExperimentalIfNeeded(node.ExperimentalUrl ?? GetFieldExperimentalUrl(node));
             Write($"public {node.Name} Update(");
             Write(CommaJoin(
                 node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
