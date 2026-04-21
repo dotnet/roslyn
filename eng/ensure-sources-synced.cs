@@ -167,7 +167,8 @@ static SyncMode ParseMode(string[] args)
 {
     if (args.Length == 0)
     {
-        var onCi = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));
+        var onCi = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"))
+            || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD"));
         return onCi ? SyncMode.Verify : SyncMode.Update;
     }
 
