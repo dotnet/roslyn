@@ -906,6 +906,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (!IsClosed)
+                {
+                    return [];
+                }
+
                 if (_lazyClosedSubtypeCandidates.IsDefault)
                 {
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyClosedSubtypeCandidates, findClosedSubtypes());
@@ -915,15 +920,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
                 {
-                    // TODO2: try pulling on this API in the bootstrap build.
-                    // Perhaps add an access in 'ForceComplete'.
-#if !DEBUG
-                    if (!IsClosed)
-                    {
-                        return [];
-                    }
-#endif
-
                     var stack = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
                     stack.Add(DeclaringCompilation.SourceModule.GlobalNamespace);
 

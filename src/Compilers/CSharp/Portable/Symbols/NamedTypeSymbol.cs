@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (TypeUnification.TryUnifyClosedSubtype(candidateSubtype, closedType: @this) is { } unifiedSubtype)
                         {
                             // PROTOTYPE(cc): We should probably check the constraints of the 'unifiedSubtype'.
-                            // However, when 'unifiedSubtype' contains type parameters (it is an 'open type'),
+                            // However, when considering the validity of the 'unifiedSubtype' containing type parameters,
                             // we don't want to know the typical answer of: are the constraints "always" satisfied.
                             // Instead we want to know: could any possible type argument satisfy the constraints.
                             resultBuilder.Add(unifiedSubtype);
