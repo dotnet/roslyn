@@ -10792,7 +10792,7 @@ namespace Outer
         var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0,2, 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("Inner.C.Main", """
 {
-  // Code size       56 (0x38)
+  // Code size       62 (0x3e)
   .maxstack  4
   .locals init (object V_0, //x
                 S V_1,
@@ -10806,7 +10806,7 @@ namespace Outer
   IL_0010:  stloc.2
   IL_0011:  ldloc.2
   IL_0012:  ldc.i4.1
-  IL_0013:  blt.s      IL_0035
+  IL_0013:  blt.s      IL_003b
   IL_0015:  ldloc.1
   IL_0016:  box        "S"
   IL_001b:  ldc.i4.0
@@ -10815,19 +10815,20 @@ namespace Outer
   IL_001e:  sub
   IL_001f:  call       "object Outer.E2.Slice(object, int, int)"
   IL_0024:  stloc.0
-  IL_0025:  ldloc.2
-  IL_0026:  ldc.i4.1
-  IL_0027:  sub
-  IL_0028:  stloc.3
-  IL_0029:  ldloc.1
-  IL_002a:  ldloc.3
-  IL_002b:  call       "int Inner.E1.get_Item(S, int)"
-  IL_0030:  ldc.i4.1
-  IL_0031:  ceq
-  IL_0033:  br.s       IL_0036
-  IL_0035:  ldc.i4.0
-  IL_0036:  pop
-  IL_0037:  ret
+  IL_0025:  ldloca.s   V_1
+  IL_0027:  ldloc.2
+  IL_0028:  ldc.i4.1
+  IL_0029:  sub
+  IL_002a:  stloc.3
+  IL_002b:  ldobj      "S"
+  IL_0030:  ldloc.3
+  IL_0031:  call       "int Inner.E1.get_Item(S, int)"
+  IL_0036:  ldc.i4.1
+  IL_0037:  ceq
+  IL_0039:  br.s       IL_003c
+  IL_003b:  ldc.i4.0
+  IL_003c:  pop
+  IL_003d:  ret
 }
 """);
     }
@@ -22509,6 +22510,216 @@ class Program
 """);
     }
 
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_01_02()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_01
+        // struct lvalue receiver passed by value, extension this[int] + instance Length
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i] { get { System.Console.Write($"get:{x.F1} "); return 0; } }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+    public int Length { get { System.Console.Write($"length:{F1} "); Program.F.F1++; return 3; } }
+
+    public void Test2()
+    {
+        _ = this[Program.GetIndex()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        _ = F[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 final:5, GetIndex:3 length:4 get:5 final:5"), verify: Verification.Skipped)
+                  .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (S1& V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Index Program.GetIndex()"
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       "int S1.Length.get"
+  IL_0015:  call       "int System.Index.GetOffset(int)"
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldobj      "S1"
+  IL_0021:  ldloc.1
+  IL_0022:  call       "int E.get_Item(S1, int)"
+  IL_0027:  pop
+  IL_0028:  ret
+}
+""");
+
+        verifier.VerifyIL("S1.Test2", """
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (S1& V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       "System.Index Program.GetIndex()"
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  ldloc.0
+  IL_000c:  call       "int S1.Length.get"
+  IL_0011:  call       "int System.Index.GetOffset(int)"
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.0
+  IL_0018:  ldobj      "S1"
+  IL_001d:  ldloc.1
+  IL_001e:  call       "int E.get_Item(S1, int)"
+  IL_0023:  pop
+  IL_0024:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_01_03()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_01
+        // struct lvalue receiver passed by value, instance this[int] + extension Length
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+    public int this[int i] { get { System.Console.Write($"get:{F1} "); return 0; } }
+
+    public void Test2()
+    {
+        _ = this[Program.GetIndex()];
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test2();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        _ = F[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 final:5, GetIndex:3 length:4 get:5 final:5"), verify: Verification.Skipped)
+                  .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (S1& V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       "System.Index Program.GetIndex()"
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldloc.0
+  IL_0011:  ldobj      "S1"
+  IL_0016:  call       "int E.get_Length(S1)"
+  IL_001b:  call       "int System.Index.GetOffset(int)"
+  IL_0020:  call       "int S1.this[int].get"
+  IL_0025:  pop
+  IL_0026:  ret
+}
+""");
+
+        verifier.VerifyIL("S1.Test2", """
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (S1& V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       "System.Index Program.GetIndex()"
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloc.0
+  IL_000d:  ldobj      "S1"
+  IL_0012:  call       "int E.get_Length(S1)"
+  IL_0017:  call       "int System.Index.GetOffset(int)"
+  IL_001c:  call       "int S1.this[int].get"
+  IL_0021:  pop
+  IL_0022:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
@@ -22686,7 +22897,7 @@ class Program
     [InlineData("in")]
     public void ImplicitIndexIndexerAccess_Get_LValueReceiver_02_02(string refKind)
     {
-        // struct lvalue receiver passed by ref, instance Length + extension implicit this[Index]
+        // struct lvalue receiver passed by ref, instance Length + extension this[int]
         var src = $$$"""
 static class E
 {
@@ -22733,7 +22944,7 @@ class Program
     [InlineData("in")]
     public void ImplicitIndexIndexerAccess_Get_LValueReceiver_02_03(string refKind)
     {
-        // struct lvalue receiver passed by ref, extension Length + instance this[Index]
+        // struct lvalue receiver passed by ref, extension Length + instance this[int]
         var src = $$$"""
 static class E
 {
@@ -22839,6 +23050,94 @@ class Program
   IL_0021:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_03_02()
+    {
+        // class lvalue receiver passed by value, instance Length + extension this[int]
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int this[int i] { get { System.Console.Write($"get:{x.F1} "); return 0; } }
+    }
+}
+
+class C1
+{
+    public int F1;
+    public int Length { get { System.Console.Write($"length:{F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return 3; } }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        _ = F[GetIndex()];
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 final:5"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_03_03()
+    {
+        // class lvalue receiver passed by value, extension Length + instance this[int]
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return 3; } }
+    }
+}
+
+class C1
+{
+    public int F1;
+    public int this[int i] { get { System.Console.Write($"get:{F1} "); return 0; } }
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        _ = F[GetIndex()];
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program.F.F1} "); Program.F = new C1 { F1 = Program.F.F1 + 1 }; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 final:5"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -22989,7 +23288,7 @@ class Program
     [Fact]
     public void ImplicitIndexIndexerAccess_Get_LValueReceiver_04_02()
     {
-        // generic struct lvalue receiver passed by value, instance Length (via interface) + extension implicit this[Index]
+        // generic struct lvalue receiver passed by value, instance Length (via interface) + extension this[int]
         var src = """
 interface IHasLength
 {
@@ -23050,9 +23349,113 @@ class Program
     }
 
     [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_04_02_02()
+    {
+        // generic struct lvalue receiver passed by value, instance Length (via interface) + extension this[int], struct constraint
+        var src = """
+interface IHasLength
+{
+    int Length { get; }
+}
+
+static class E
+{
+    extension<T>(T x) where T : struct, IHasLength
+    {
+        public int this[int i] { get { System.Console.Write($"get:{((S1)(object)x).F1} "); return 0; } }
+    }
+}
+
+struct S1 : IHasLength
+{
+    public int F1;
+    public int Length { get { System.Console.Write($"length:{F1} "); Program<S1>.F.F1++; return 3; } }
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+    }
+
+    static void Test1<T>(ref T f) where T : struct, IHasLength
+    {
+        _ = f[GetIndex()];
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 final:5"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_04_02_03()
+    {
+        // generic struct lvalue receiver passed by value, instance Length (via interface) + extension this[int], class constraint
+        var src = """
+interface IHasLength
+{
+    int Length { get; }
+}
+
+static class E
+{
+    extension<T>(T x) where T : class, IHasLength
+    {
+        public int this[int i] { get { System.Console.Write($"get:{((C1)(object)x).F1} "); return 0; } }
+    }
+}
+
+class C1 : IHasLength
+{
+    public int F1;
+    public int Length { get { System.Console.Write($"length:{F1} "); Program<C1>.F.F1++; return 3; } }
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<C1>.F = new C1 { F1 = 3 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write($"final:{Program<C1>.F.F1}");
+    }
+
+    static void Test1<T>(ref T f) where T : class, IHasLength
+    {
+        _ = f[GetIndex()];
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program<C1>.F.F1} "); Program<C1>.F.F1++; return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 final:5"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
     public void ImplicitIndexIndexerAccess_Get_LValueReceiver_04_03()
     {
-        // generic struct lvalue receiver passed by value, extension Length + instance this[Index] (via interface)
+        // generic struct lvalue receiver passed by value, extension Length + instance this[int] (via interface)
         var src = """
 interface IHasIndexer
 {
@@ -23250,6 +23653,140 @@ namespace NS2
             //         extension<T>(ref readonly T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(32, 35)
             );
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_05_02()
+    {
+        // struct lvalue receiver passed by ref, constrained to struct, instance Length (via interface) + extension this[int]
+        var src = """
+using System.Threading.Tasks;
+
+interface IHasLength
+{
+    int Length { get; }
+}
+
+static class E
+{
+    extension<T>(ref T x) where T : struct, IHasLength
+    {
+        public int this[int i] { get { System.Console.Write($"get:{((S1)(object)x).F1} "); return 0; } }
+    }
+}
+
+struct S1 : IHasLength
+{
+    public int F1;
+    public int Length { get { System.Console.Write($"length:{F1} "); Program<S1>.F.F1++; return 3; } }
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<S1>.F = new S1 { F1 = 3 };
+        await Test3<S1>();
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+    }
+
+    static void Test2<T>(ref T f) where T : struct, IHasLength
+    {
+        _ = f[GetIndex()];
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return ^1; }
+
+    static async Task Test3<T>() where T : struct, IHasLength
+    {
+        _ = Program<T>.F[await GetIndexAsync()];
+    }
+
+    static async Task<System.Index> GetIndexAsync() { System.Console.Write($"GetIndexAsync:{Program<S1>.F.F1} "); Program<S1>.F.F1++; await Task.Yield(); return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 final:5, GetIndexAsync:3 length:4 get:5 final:5"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_05_03()
+    {
+        // struct lvalue receiver passed by ref, constrained to struct, extension Length + instance this[int] (via interface)
+        var src = """
+using System.Threading.Tasks;
+
+interface IHasIndexer
+{
+    int this[int i] { get; }
+}
+
+static class E
+{
+    extension<T>(ref T x) where T : struct, IHasIndexer
+    {
+        public int Length { get { System.Console.Write($"length:{((S1)(object)x).F1} "); Program<S1>.F.F1++; return 3; } }
+    }
+}
+
+struct S1 : IHasIndexer
+{
+    public int F1;
+    public int this[int i] { get { System.Console.Write($"get:{F1} "); return 0; } }
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<S1>.F = new S1 { F1 = 3 };
+        await Test3<S1>();
+        System.Console.Write($"final:{Program<S1>.F.F1}");
+    }
+
+    static void Test2<T>(ref T f) where T : struct, IHasIndexer
+    {
+        _ = f[GetIndex()];
+    }
+
+    static System.Index GetIndex() { System.Console.Write($"GetIndex:{Program<S1>.F.F1} "); Program<S1>.F.F1++; return ^1; }
+
+    static async Task Test3<T>() where T : struct, IHasIndexer
+    {
+        _ = Program<T>.F[await GetIndexAsync()];
+    }
+
+    static async Task<System.Index> GetIndexAsync() { System.Console.Write($"GetIndexAsync:{Program<S1>.F.F1} "); Program<S1>.F.F1++; await Task.Yield(); return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 final:5, GetIndexAsync:3 length:4 get:5 final:5"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
     }
 
     [Fact]
@@ -23990,6 +24527,155 @@ class Program
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 final:5, GetIndex:3 length:3 get:3 final:5, GetIndexAsync:3 length:3 get:3 final:5"), verify: Verification.Skipped)
             .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_Get_LValueReceiver_04_04()
+    {
+        // generic struct lvalue receiver passed by value, extension implicit this[Index], object creation
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public Item this[int i] { get { System.Console.Write("get"); return new Item(); } }
+        public int Length { get { System.Console.Write("length "); return 3; } }
+    }
+}
+
+class Item
+{
+    public int Property { get; set; }
+}
+
+struct S1 { }
+
+class Program
+{
+    static async Task Main()
+    {
+        _ = Test1<S1>();
+        System.Console.Write(", ");
+
+        _ = Test2<S1>();
+        System.Console.Write(", ");
+
+        _ = await Test3<S1>();
+    }
+
+    static T Test1<T>() where T : new()
+    {
+        return new T() { [GetIndex()] = { Property = 42 } };
+    }
+
+    static T Test2<T>() where T : struct
+    {
+        return new T() { [GetIndex()] = { Property = 42 } };
+    }
+
+    static System.Index GetIndex() { System.Console.Write("GetIndex "); return ^1; }
+
+    static async Task<T> Test3<T>() where T : new()
+    {
+        return new T() { [await GetIndexAsync()] = { Property = 42 } };
+    }
+
+    static async Task<System.Index> GetIndexAsync() { System.Console.Write("GetIndexAsync "); await Task.Yield(); return ^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex length get, GetIndex length get, GetIndexAsync length get"), verify: Verification.Skipped)
+             .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()", """
+{
+  // Code size       93 (0x5d)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                System.Index V_2,
+                T V_3,
+                T& V_4,
+                int V_5,
+                T V_6,
+                T V_7)
+  IL_0000:  nop
+  IL_0001:  call       "T System.Activator.CreateInstance<T>()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Index Program.GetIndex()"
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       "int E.get_Length<T>(T)"
+  IL_0015:  call       "int System.Index.GetOffset(int)"
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  stloc.s    V_4
+  IL_001f:  ldloca.s   V_6
+  IL_0021:  initobj    "T"
+  IL_0027:  ldloc.s    V_6
+  IL_0029:  box        "T"
+  IL_002e:  brtrue.s   IL_003c
+  IL_0030:  ldloc.s    V_4
+  IL_0032:  ldobj      "T"
+  IL_0037:  stloc.3
+  IL_0038:  ldloca.s   V_3
+  IL_003a:  br.s       IL_003e
+  IL_003c:  ldloc.s    V_4
+  IL_003e:  ldloc.1
+  IL_003f:  stloc.s    V_5
+  IL_0041:  ldobj      "T"
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  call       "Item E.get_Item<T>(T, int)"
+  IL_004d:  ldc.i4.s   42
+  IL_004f:  callvirt   "void Item.Property.set"
+  IL_0054:  nop
+  IL_0055:  ldloc.0
+  IL_0056:  stloc.s    V_7
+  IL_0058:  br.s       IL_005a
+  IL_005a:  ldloc.s    V_7
+  IL_005c:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>()", """
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (T V_0,
+                System.Index V_1,
+                T& V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  nop
+  IL_0001:  call       "T System.Activator.CreateInstance<T>()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Index Program.GetIndex()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_1
+  IL_000f:  ldloc.0
+  IL_0010:  call       "int E.get_Length<T>(T)"
+  IL_0015:  call       "int System.Index.GetOffset(int)"
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  stloc.2
+  IL_001d:  stloc.3
+  IL_001e:  ldloc.2
+  IL_001f:  ldobj      "T"
+  IL_0024:  ldloc.3
+  IL_0025:  call       "Item E.get_Item<T>(T, int)"
+  IL_002a:  ldc.i4.s   42
+  IL_002c:  callvirt   "void Item.Property.set"
+  IL_0031:  nop
+  IL_0032:  ldloc.0
+  IL_0033:  stloc.s    V_4
+  IL_0035:  br.s       IL_0037
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  ret
+}
+""");
     }
 
     [Fact]
@@ -25246,6 +25932,187 @@ class Program
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:4 Slice:5 final:6, GetRange:3 length:4 Slice:5 final:6"), verify: Verification.Skipped)
             .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexerAccess_Get_LValueReceiver_04_04()
+    {
+        // generic struct lvalue receiver passed by value, extension implicit this[Range], object creation
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public Item Slice(int i, int j) { System.Console.Write("slice"); return new Item(); }
+        public int Length { get { System.Console.Write("length "); return 3; } }
+    }
+}
+
+class Item
+{
+    public int Property { get; set; }
+}
+
+struct S1 { }
+
+class Program
+{
+    static async Task Main()
+    {
+        S1 s1 = Test1<S1>();
+        System.Console.Write(", ");
+
+        S1 s2 = Test2<S1>();
+        System.Console.Write(", ");
+
+        S1 s3 = await Test3<S1>();
+    }
+
+    static T Test1<T>() where T : new()
+    {
+        return new T() { [GetRange()] = { Property = 42 } };
+    }
+
+    static T Test2<T>() where T : struct
+    {
+        return new T() { [GetRange()] = { Property = 42 } };
+    }
+
+    static System.Range GetRange() { System.Console.Write("GetRange "); return ..^1; }
+
+    static async Task<T> Test3<T>() where T : new()
+    {
+        return new T() { [await GetRangeAsync()] = { Property = 42 } };
+    }
+
+    static async Task<System.Range> GetRangeAsync() { System.Console.Write("GetRangeAsync "); await Task.Yield(); return ..^1; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange length slice, GetRange length slice, GetRangeAsync length slice"), verify: Verification.Skipped)
+             .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()", """
+{
+  // Code size      131 (0x83)
+  .maxstack  3
+  .locals init (T V_0,
+                T V_1,
+                T& V_2,
+                System.Range V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7,
+                System.Index V_8,
+                T V_9)
+  IL_0000:  nop
+  IL_0001:  call       "T System.Activator.CreateInstance<T>()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  stloc.2
+  IL_000a:  ldloca.s   V_7
+  IL_000c:  initobj    "T"
+  IL_0012:  ldloc.s    V_7
+  IL_0014:  box        "T"
+  IL_0019:  brtrue.s   IL_0026
+  IL_001b:  ldloc.2
+  IL_001c:  ldobj      "T"
+  IL_0021:  stloc.1
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  br.s       IL_0027
+  IL_0026:  ldloc.2
+  IL_0027:  call       "System.Range Program.GetRange()"
+  IL_002c:  stloc.3
+  IL_002d:  dup
+  IL_002e:  ldobj      "T"
+  IL_0033:  call       "int E.get_Length<T>(T)"
+  IL_0038:  stloc.s    V_4
+  IL_003a:  ldloca.s   V_3
+  IL_003c:  call       "System.Index System.Range.Start.get"
+  IL_0041:  stloc.s    V_8
+  IL_0043:  ldloca.s   V_8
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  call       "int System.Index.GetOffset(int)"
+  IL_004c:  stloc.s    V_5
+  IL_004e:  ldloca.s   V_3
+  IL_0050:  call       "System.Index System.Range.End.get"
+  IL_0055:  stloc.s    V_8
+  IL_0057:  ldloca.s   V_8
+  IL_0059:  ldloc.s    V_4
+  IL_005b:  call       "int System.Index.GetOffset(int)"
+  IL_0060:  ldloc.s    V_5
+  IL_0062:  sub
+  IL_0063:  stloc.s    V_6
+  IL_0065:  ldobj      "T"
+  IL_006a:  ldloc.s    V_5
+  IL_006c:  ldloc.s    V_6
+  IL_006e:  call       "Item E.Slice<T>(T, int, int)"
+  IL_0073:  ldc.i4.s   42
+  IL_0075:  callvirt   "void Item.Property.set"
+  IL_007a:  nop
+  IL_007b:  ldloc.0
+  IL_007c:  stloc.s    V_9
+  IL_007e:  br.s       IL_0080
+  IL_0080:  ldloc.s    V_9
+  IL_0082:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>()", """
+{
+  // Code size       95 (0x5f)
+  .maxstack  3
+  .locals init (T V_0,
+                System.Range V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                System.Index V_5,
+                T V_6)
+  IL_0000:  nop
+  IL_0001:  call       "T System.Activator.CreateInstance<T>()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "System.Range Program.GetRange()"
+  IL_000e:  stloc.1
+  IL_000f:  dup
+  IL_0010:  ldobj      "T"
+  IL_0015:  call       "int E.get_Length<T>(T)"
+  IL_001a:  stloc.2
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  call       "System.Index System.Range.Start.get"
+  IL_0022:  stloc.s    V_5
+  IL_0024:  ldloca.s   V_5
+  IL_0026:  ldloc.2
+  IL_0027:  call       "int System.Index.GetOffset(int)"
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_1
+  IL_002f:  call       "System.Index System.Range.End.get"
+  IL_0034:  stloc.s    V_5
+  IL_0036:  ldloca.s   V_5
+  IL_0038:  ldloc.2
+  IL_0039:  call       "int System.Index.GetOffset(int)"
+  IL_003e:  ldloc.3
+  IL_003f:  sub
+  IL_0040:  stloc.s    V_4
+  IL_0042:  ldobj      "T"
+  IL_0047:  ldloc.3
+  IL_0048:  ldloc.s    V_4
+  IL_004a:  call       "Item E.Slice<T>(T, int, int)"
+  IL_004f:  ldc.i4.s   42
+  IL_0051:  callvirt   "void Item.Property.set"
+  IL_0056:  nop
+  IL_0057:  ldloc.0
+  IL_0058:  stloc.s    V_6
+  IL_005a:  br.s       IL_005c
+  IL_005c:  ldloc.s    V_6
+  IL_005e:  ret
+}
+""");
     }
 
     [Fact]
@@ -27239,5 +28106,126 @@ class Program
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:3 Slice:3 final:6, GetRange:3 length:3 Slice:3 final:6, GetRangeAsync:3 length:3 Slice:3 final:6"), verify: Verification.Skipped)
             .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ImplicitIndexIndexerAccess_RefAnalysis_01()
+    {
+        var src = """
+public ref struct MyStruct
+{
+    public ref int i;
+}
+
+public static class E
+{
+    extension(MyStruct s1)
+    {
+        public int Length => 1;
+        public MyStruct this[int i] => s1;
+    }
+}
+
+class Program
+{
+    static MyStruct M()
+    {
+        int i = 0;
+        return new MyStruct() { i = ref i }[^1];
+    }
+}
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (20,31): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
+            //         return new MyStruct() { i = ref i }[^1];
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(20, 31),
+            // (20,16): error CS8347: Cannot use a result of 'E.extension(MyStruct).this[int]' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+            //         return new MyStruct() { i = ref i }[^1];
+            Diagnostic(ErrorCode.ERR_EscapeCall, "new MyStruct() { i = ref i }[^1]").WithArguments("E.extension(MyStruct).this[int]", "s1").WithLocation(20, 16));
+
+        // instance this[int] + instance Length
+        src = """
+public ref struct MyStruct
+{
+    public ref int i;
+    public int Length => 1;
+    public MyStruct this[int i] => throw null;
+}
+
+class Program
+{
+    static MyStruct M()
+    {
+        int i = 0;
+        return new MyStruct() { i = ref i }[^1];
+    }
+}
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (13,31): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
+            //         return new MyStruct() { i = ref i }[^1];
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(13, 31));
+
+        // instance this[Index]
+        src = """
+public ref struct MyStruct
+{
+    public ref int i;
+    public MyStruct this[System.Index i] => throw null;
+}
+
+class Program
+{
+    static MyStruct M()
+    {
+        int i = 0;
+        return new MyStruct() { i = ref i }[^1];
+    }
+}
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (12,31): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
+            //         return new MyStruct() { i = ref i }[^1];
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(12, 31));
+    }
+
+    [Fact]
+    public void ImplicitRangeIndexerAccess_RefAnalysis_01()
+    {
+        var src = """
+public ref struct MyStruct
+{
+    public ref int i;
+}
+
+public static class E
+{
+    extension(MyStruct s1)
+    {
+        public int Length => 1;
+        public MyStruct Slice(int start, int length) => s1;
+    }
+}
+
+class Program
+{
+    static MyStruct M()
+    {
+        int i = 0;
+        return new MyStruct() { i = ref i }[0..];
+    }
+}
+""";
+
+        CreateCompilation(src, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(
+            // (20,31): error CS8352: Cannot use variable 'i = ref i' in this context because it may expose referenced variables outside of their declaration scope
+            //         return new MyStruct() { i = ref i }[0..];
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "{ i = ref i }").WithArguments("i = ref i").WithLocation(20, 31),
+            // (20,16): error CS8347: Cannot use a result of 'E.extension(MyStruct).Slice(int, int)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+            //         return new MyStruct() { i = ref i }[0..];
+            Diagnostic(ErrorCode.ERR_EscapeCall, "new MyStruct() { i = ref i }[0..]").WithArguments("E.extension(MyStruct).Slice(int, int)", "s1").WithLocation(20, 16));
     }
 }

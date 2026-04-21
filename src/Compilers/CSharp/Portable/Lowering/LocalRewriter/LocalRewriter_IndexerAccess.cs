@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
             Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
-            return VisitIndexerAccess(node, isLeftOfAssignment: false);
+            return VisitIndexerAccess(node, isLeftOfAssignment: false, receiverIsKnownToBeCaptured: false);
         }
 
-        private BoundExpression VisitIndexerAccess(BoundIndexerAccess node, bool isLeftOfAssignment, bool receiverIsKnownToBeCaptured = false)
+        private BoundExpression VisitIndexerAccess(BoundIndexerAccess node, bool isLeftOfAssignment, bool receiverIsKnownToBeCaptured)
         {
             PropertySymbol indexer = node.Indexer;
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
             var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
 
-            BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
+            BoundExpression rewrittenIndexerAccess = VisitIndexPatternIndexerAccess(
                 node, isLeftOfAssignment,
                 isRegularAssignment: isLeftOfAssignment,
                 cacheAllArgumentsOnly: false,
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenIndexerAccess);
         }
 
-        private BoundExpression GetUnderlyingIndexerOrSliceAccess(
+        private BoundExpression VisitIndexPatternIndexerAccess(
             BoundImplicitIndexerAccess node,
             bool isLeftOfAssignment,
             bool isRegularAssignment,
@@ -548,6 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = VisitExpression(node.Receiver);
 
+            bool receiverIsKnownToBeCaptured = false;
             // Do not capture receiver if we're in an initializer
             if (!cacheAllArgumentsOnly)
             {
@@ -564,24 +565,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
                     locals.Add(receiverLocal.LocalSymbol);
 
-                    if (receiverLocal.LocalSymbol.IsRef &&
-                        CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
-                        !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
-                        ((isLeftOfAssignment && !isRegularAssignment) ||
-                         !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
+                    // When we take a `ref` to a receiver with an unconstrained type `T`,
+                    // the instance it would hold when `T` is a reference type is vulnerable
+                    // to being replaced when evaluating arguments or assigned value. We need additional protection.
+                    if (receiverLocal.LocalSymbol.IsRef)
                     {
-                        BoundAssignmentOperator? extraRefInitialization;
-                        ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, locals);
+                        Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
+                        Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
-                        if (extraRefInitialization is object)
+                        bool isPossibleReferenceTypeReceiver = node.LengthOrCountAccess.ExpressionSymbol.IsExtensionBlockMember()
+                            ? !receiverLocal.Type.IsValueType
+                            : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
+
+                        if (!isPossibleReferenceTypeReceiver)
                         {
-                            sideeffects.Add(extraRefInitialization);
+                            isPossibleReferenceTypeReceiver = node.IndexerOrSliceAccess.ExpressionSymbol.IsExtensionBlockMember()
+                                ? !receiverLocal.Type.IsValueType
+                                : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
+                        }
+
+                        if (isPossibleReferenceTypeReceiver &&
+                            !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
+                            ((isLeftOfAssignment && !isRegularAssignment) ||
+                                 !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
+                        {
+                            Debug.Assert(receiverLocal.LocalSymbol.Type is { IsReferenceType: false, IsValueType: false });
+
+                            BoundAssignmentOperator? extraRefInitialization;
+                            ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, locals);
+
+                            if (extraRefInitialization is object)
+                            {
+                                sideeffects.Add(extraRefInitialization);
+                            }
                         }
                     }
 
                     sideeffects.Add(receiverStore);
 
                     receiver = receiverLocal;
+                    receiverIsKnownToBeCaptured = true;
                 }
             }
 
@@ -665,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
-                    rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment, receiverIsKnownToBeCaptured: true);
+                    rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment, receiverIsKnownToBeCaptured: receiverIsKnownToBeCaptured);
                 }
             }
             else
@@ -862,35 +885,56 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 localsBuilder.Add(receiverLocal.LocalSymbol);
 
-                if (receiverLocal.LocalSymbol.IsRef &&
-                    CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
-                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal))
+                // When we take a `ref` to a receiver with an unconstrained type `T`,
+                // the instance it would hold when `T` is a reference type is vulnerable
+                // to being replaced when evaluating arguments. We need additional protection.
+                if (receiverLocal.LocalSymbol.IsRef)
                 {
-                    var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(2);
+                    Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
+                    Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
-                    if (startMakeOffsetInput is not null)
+                    bool isPossibleReferenceTypeReceiver = node.LengthOrCountAccess.ExpressionSymbol.IsExtensionBlockMember()
+                        ? !receiverLocal.Type.IsValueType
+                        : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
+
+                    if (!isPossibleReferenceTypeReceiver)
                     {
-                        argumentsBuilder.Add(startMakeOffsetInput);
+                        isPossibleReferenceTypeReceiver = node.IndexerOrSliceAccess.ExpressionSymbol.IsExtensionBlockMember()
+                            ? !receiverLocal.Type.IsValueType
+                            : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
                     }
 
-                    if (endMakeOffsetInput is not null)
+                    if (isPossibleReferenceTypeReceiver &&
+                        !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal))
                     {
-                        argumentsBuilder.Add(endMakeOffsetInput);
-                    }
+                        var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(2);
 
-                    if (rewrittenRangeArg is not null)
-                    {
-                        argumentsBuilder.Add(rewrittenRangeArg);
-                    }
-
-                    if (!CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsBuilder.ToImmutableAndFree()))
-                    {
-                        BoundAssignmentOperator? extraRefInitialization;
-                        ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, localsBuilder);
-
-                        if (extraRefInitialization is object)
+                        if (startMakeOffsetInput is not null)
                         {
-                            sideEffectsBuilder.Add(extraRefInitialization);
+                            argumentsBuilder.Add(startMakeOffsetInput);
+                        }
+
+                        if (endMakeOffsetInput is not null)
+                        {
+                            argumentsBuilder.Add(endMakeOffsetInput);
+                        }
+
+                        if (rewrittenRangeArg is not null)
+                        {
+                            argumentsBuilder.Add(rewrittenRangeArg);
+                        }
+
+                        if (!CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsBuilder.ToImmutableAndFree()))
+                        {
+                            Debug.Assert(receiverLocal.LocalSymbol.Type is { IsReferenceType: false, IsValueType: false });
+
+                            BoundAssignmentOperator? extraRefInitialization;
+                            ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, localsBuilder);
+
+                            if (extraRefInitialization is object)
+                            {
+                                sideEffectsBuilder.Add(extraRefInitialization);
+                            }
                         }
                     }
                 }

@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (TypeSymbol.Equals(implicitIndexer.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
                     {
-                        rewrittenAccess = GetUnderlyingIndexerOrSliceAccess(
+                        rewrittenAccess = VisitIndexPatternIndexerAccess(
                             implicitIndexer,
                             isLeftOfAssignment: !isRhsNestedInitializer,
                             isRegularAssignment: true,
@@ -727,7 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.ArgsToParamsOpt,
                             rewrittenLeft.DefaultArguments,
                             rewrittenLeft,
-                            isLeftOfAssignment: !isRhsNestedInitializer);
+                            isLeftOfAssignment: !isRhsNestedInitializer,
+                            receiverIsKnownToBeCaptured: true); // PROTOTYPE add test when fixing receiver handling in SET scenarios
                     }
                     else
                     {

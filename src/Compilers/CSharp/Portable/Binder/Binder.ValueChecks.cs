@@ -3735,6 +3735,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                     return _localScopeDepth;
 
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return GetRefEscape(((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver);
+
                 case BoundKind.ThisReference:
                     var thisParam = ((MethodSymbol)_symbol).ThisParameter;
                     Debug.Assert(thisParam.Type.Equals(((BoundThisReference)expr).Type, TypeCompareKind.ConsiderEverything));
@@ -4029,6 +4033,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
                     break;
+
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return CheckRefEscape(node, ((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.ThisReference:
                     var thisParam = ((MethodSymbol)_symbol).ThisParameter;
@@ -4389,6 +4397,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Equivalent to a non-ref local with the underlying receiver as an initializer provided at declaration 
                     var placeholder = (BoundCapturedReceiverPlaceholder)expr;
                     return GetValEscape(placeholder.Receiver);
+
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return GetValEscape(((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver);
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
@@ -5106,6 +5118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // for ref-like fields defer to the receiver.
                     return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeTo, true, diagnostics);
+
+                case BoundKind.ImplicitIndexerReceiverPlaceholder:
+                    Debug.Assert(false);
+                    return CheckValEscape(node, ((BoundImplicitIndexerReceiverPlaceholder)expr).Receiver, escapeTo, checkingReceiver, diagnostics);
 
                 case BoundKind.Call:
                     {

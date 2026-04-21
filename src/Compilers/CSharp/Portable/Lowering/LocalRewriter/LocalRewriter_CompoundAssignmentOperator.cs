@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
         {
             Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
-            var access = GetUnderlyingIndexerOrSliceAccess(
+            var access = VisitIndexPatternIndexerAccess(
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
                 isRegularAssignment: false,

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.IndexerAccess:
-                    loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
+                    loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true, receiverIsKnownToBeCaptured: false);
                     break;
 
                 case BoundKind.ImplicitIndexerAccess:
