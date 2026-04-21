@@ -29,14 +29,14 @@
     <!-- Versions used by several individual references below -->
     <RoslynDiagnosticsNugetPackageVersion>3.3.3-beta1.21105.3</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>6.0.0-preview1.21054.10</MicrosoftCodeAnalysisNetAnalyzersVersion>
-    <MicrosoftCodeAnalysisTestingVersion>1.0.1-beta1.20623.3</MicrosoftCodeAnalysisTestingVersion>
+    <MicrosoftCodeAnalysisTestingVersion>1.1.1-beta1.21480.3</MicrosoftCodeAnalysisTestingVersion>
     <CodeStyleAnalyzerVersion>3.9.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
     <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>16.10.161</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>16.10.31320.204</MicrosoftVisualStudioShellPackagesVersion>
-    <MicrosoftBuildPackagesVersion>16.5.0</MicrosoftBuildPackagesVersion>
+    <MicrosoftBuildPackagesVersion>16.11.6</MicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
          repository. This must be lower than MicrosoftNetCompilersToolsetVersion,
          but not higher than our minimum dogfoodable Visual Studio version, or else
@@ -183,7 +183,7 @@
     <MicrosoftVisualStudioThreadingAnalyzersVersion>16.10.56</MicrosoftVisualStudioThreadingAnalyzersVersion>
     <MicrosoftVisualStudioThreadingVersion>16.10.56</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioUtilitiesVersion>
-    <MicrosoftVisualStudioValidationVersion>16.10.26</MicrosoftVisualStudioValidationVersion>
+    <MicrosoftVisualStudioValidationVersion>16.10.35</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.8.0</MicrosoftVisualStudioVsInteractiveWindowVersion>
     <MicrosoftVisualStudioWorkspaceVSIntegrationVersion>16.3.43</MicrosoftVisualStudioWorkspaceVSIntegrationVersion>
     <MicrosoftWin32PrimitivesVersion>4.3.0</MicrosoftWin32PrimitivesVersion>
@@ -192,7 +192,7 @@
     <MDbgVersion>0.1.0</MDbgVersion>
     <MonoOptionsVersion>6.6.0.161</MonoOptionsVersion>
     <MoqVersion>4.10.1</MoqVersion>
-    <NerdbankStreamsVersion>2.7.74</NerdbankStreamsVersion>
+    <NerdbankStreamsVersion>2.8.57</NerdbankStreamsVersion>
     <NuGetVisualStudioVersion>4.0.0-rc-2048</NuGetVisualStudioVersion>
     <NuGetSolutionRestoreManagerInteropVersion>4.8.0</NuGetSolutionRestoreManagerInteropVersion>
     <MicrosoftDiaSymReaderPdb2PdbVersion>1.1.0-beta1-62506-02</MicrosoftDiaSymReaderPdb2PdbVersion>
@@ -210,7 +210,7 @@
     <SystemCommandLineVersion>2.0.0-beta1.20574.7</SystemCommandLineVersion>
     <SystemCommandLineExperimentalVersion>0.3.0-alpha.19577.1</SystemCommandLineExperimentalVersion>
     <SystemComponentModelCompositionVersion>4.5.0</SystemComponentModelCompositionVersion>
-    <SystemDrawingCommonVersion>4.5.0</SystemDrawingCommonVersion>
+    <SystemDrawingCommonVersion>6.0.0</SystemDrawingCommonVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.5.1</SystemIOPipesAccessControlVersion>
@@ -225,7 +225,7 @@
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextJsonVersion>4.7.0</SystemTextJsonVersion>
-    <SystemThreadingTasksDataflowVersion>5.0.0</SystemThreadingTasksDataflowVersion>
+    <SystemThreadingTasksDataflowVersion>6.0.0</SystemThreadingTasksDataflowVersion>
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
     <SystemThreadingTasksExtensionsVersion>4.5.4</SystemThreadingTasksExtensionsVersion>

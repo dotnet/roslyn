@@ -40,7 +40,7 @@
     <EmbeddedResource Include="TestResources\**\*.*" />
   </ItemGroup>
   <PropertyGroup>
-    <_DotNetSdkVersionFile>$(IntermediateOutputPath)\DotNetSdkVersion.g.cs</_DotNetSdkVersionFile>
+    <_DotNetSdkVersionFile>$(IntermediateOutputPath)\DotNetSdkVersion.$(TargetFramework).g.cs</_DotNetSdkVersionFile>
   </PropertyGroup>
   <Target Name="_GenerateSdkVersionAttribute" BeforeTargets="CoreCompile" Outputs="$(_DotNetSdkVersionFile)">
     <ItemGroup>

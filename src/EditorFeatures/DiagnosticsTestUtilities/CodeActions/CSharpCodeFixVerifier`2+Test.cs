@@ -93,14 +93,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
-            public override async Task RunAsync(CancellationToken cancellationToken = default)
+            protected override async Task RunImplAsync(CancellationToken cancellationToken = default)
             {
                 if (DiagnosticSelector is object)
                 {
                     Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
                 }
 
-                await base.RunAsync(cancellationToken);
+                await base.RunImplAsync(cancellationToken);
             }
 
 #if !CODE_STYLE
