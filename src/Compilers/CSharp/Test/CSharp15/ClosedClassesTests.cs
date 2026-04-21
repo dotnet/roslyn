@@ -1398,11 +1398,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        // TODO2: unexpected warning
-        comp.VerifyDiagnostics(
-            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1' is not covered.
-            //         return u switch
-            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1").WithLocation(5, 18));
+        comp.VerifyDiagnostics();
     }
 
     [Fact]
@@ -1458,7 +1454,6 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         D1<T> => 1,
                         // We know some 'D2<...>' may be possible here (i.e. 'C<T>' allows 'C<ImmutableArray<...>>' by substitution.)
                         // But, we have no way of speaking that D2 in this context.
-                        // Does this indicate that a rule is missing? Or are we comfortable saying that exhausting this 'C<T>' via its subtypes is not possible?
                     };
                 }
 
@@ -1482,5 +1477,71 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<U>' is not covered.
             //         return item switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<U>").WithLocation(7, 21));
+    }
+
+    [Fact]
+    public void Exhaustiveness_10()
+    {
+        // Closed with no subtypes
+        var source1 = """
+            public closed class C;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        C => 1
+                    };
+                }
+
+                int M3(C c)
+                {
+                    return c switch
+                    {
+                        _ => 1
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // PROTOTYPE(cc): unexpected warning
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Empty(classC.ClosedSubtypes);
+
+        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(
+            // PROTOTYPE(cc): unexpected warning
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
+        classC = comp2.GetMember<NamedTypeSymbol>("C");
+        Assert.Empty(classC.ClosedSubtypes);
+
+        comp2 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(
+            // PROTOTYPE(cc): unexpected warning
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
+        classC = comp2.GetMember<NamedTypeSymbol>("C");
+        Assert.Empty(classC.ClosedSubtypes);
     }
 }

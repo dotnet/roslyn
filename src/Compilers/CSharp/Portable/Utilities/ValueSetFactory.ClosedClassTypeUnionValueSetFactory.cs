@@ -21,28 +21,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(closedClass is NamedTypeSymbol { IsClosed: true });
                 _closedClass = closedClass;
             }
-
-            private ImmutableArray<TypeSymbol> ClosedSubtypes()
+            internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeSymbol> builder)
             {
-                // Ensure the set consists of the 'leaf nodes' of a closed type hierarchy.
-                // This makes it easier to filter the value set based on the tests being performed.
-                // TODO2: it's not clear to me if this should be walking thru union case types similarly.
-                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
-                var toTraverse = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                toTraverse.AddRange(_closedClass.ClosedSubtypes);
-                while (!toTraverse.IsEmpty)
+                // PROTOTYPE(cc): We should not require non-empty 'ClosedSubtypes' here.
+                // i.e. a closed class with no subtypes, should probably expand into an empty type set.
+                // However in absence of this change, we fail the assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp.tryHandleTypeUnionLimits'.
+                if (possibleClosedClass is not NamedTypeSymbol { IsClosed: true, ClosedSubtypes: [_, ..] subtypes })
                 {
-                    var subtype = toTraverse.Pop();
-                    if (!subtype.IsClosed)
+                    builder.Add(possibleClosedClass);
+                    return;
+                }
+
+                var toVisit = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                toVisit.AddRange(subtypes);
+                while (!toVisit.IsEmpty)
+                {
+                    var subtype = toVisit.Pop();
+                    if (!subtype.IsClosed || subtype.ClosedSubtypes.IsEmpty)
                     {
                         builder.Add(subtype);
                         continue;
                     }
 
-                    toTraverse.AddRange(subtype.ClosedSubtypes);
+                    toVisit.AddRange(subtype.ClosedSubtypes);
                 }
 
-                toTraverse.Free();
+                toVisit.Free();
+            }
+
+            private ImmutableArray<TypeSymbol> ClosedSubtypes()
+            {
+                var builder = ArrayBuilder<TypeSymbol>.GetInstance();
+                ExpandClosedSubtypes(_closedClass, builder);
                 return builder.ToImmutableAndFree();
             }
 
