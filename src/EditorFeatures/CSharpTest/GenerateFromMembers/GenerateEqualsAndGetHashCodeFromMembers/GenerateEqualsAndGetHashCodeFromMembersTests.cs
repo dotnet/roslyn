@@ -5,11 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -31,13 +29,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateEqualsAndGetHas
     {
         private class TestWithDialog : VerifyCS.Test
         {
+            private static readonly TestComposition s_composition =
+                FeaturesTestCompositions.Features.AddParts(typeof(TestPickMembersService));
+
             public ImmutableArray<string> MemberNames;
             public Action<ImmutableArray<PickMembersOption>> OptionsCallback;
 
-            protected override IEnumerable<CodeRefactoringProvider> GetCodeRefactoringProviders()
+            public override AdhocWorkspace CreateWorkspace()
             {
-                yield return new GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(
-                    new TestPickMembersService(MemberNames, OptionsCallback));
+                // If we're a dialog test, then mixin our mock and initialize its values to the ones the test asked for.
+                var workspace = new AdhocWorkspace(s_composition.GetHostServices());
+
+                var service = (TestPickMembersService)workspace.Services.GetService<IPickMembersService>();
+                service.MemberNames = MemberNames;
+                service.OptionsCallback = OptionsCallback;
+
+                return workspace;
             }
         }
 
