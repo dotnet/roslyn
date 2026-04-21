@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -2494,6 +2494,263 @@ public class C
             End Using
         End Function
 
+        ''' <summary>
+        ''' Verifies that when incremental member-edit analysis falls back to full-document analysis
+        ''' (e.g. no prior cached document), diagnostics from both span-based and document-based
+        ''' semantic analyzers are returned AND that both ran in a single pass (same compilation clone).
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestSemanticPassMerge_BothAnalyzerCategoriesReturnDiagnosticsAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                ' Add a span-based semantic analyzer (IBuiltInAnalyzer with SemanticSpanAnalysis)
+                ' and a document-based semantic analyzer (IBuiltInAnalyzer with SemanticDocumentAnalysis).
+                ' These two categories are disjoint and normally run in separate passes.
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("SPAN01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim documentAnalyzer = New BuiltInFieldAnalyzer("DOC01", DiagnosticAnalyzerCategory.SemanticDocumentAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer, documentAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' Request full-document diagnostics (full span -> range becomes null -> incremental path).
+                ' With no prior cached document, the incremental analyzer falls back to full analysis
+                ' and merges both analyzer sets into a single pass.
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+
+                ' Both analyzers should report a diagnostic on _field
+                Dim diagnosticIds = diagnostics.Select(Function(d) d.Id).ToHashSet()
+                Assert.Contains("SPAN01", diagnosticIds)
+                Assert.Contains("DOC01", diagnosticIds)
+
+                ' Both analyzers should have been invoked with the same compilation clone,
+                ' proving they ran in a single merged pass rather than separate passes.
+                Dim spanCompilation = Assert.Single(spanAnalyzer.SeenCompilations)
+                Dim docCompilation = Assert.Single(documentAnalyzer.SeenCompilations)
+                Assert.Same(spanCompilation, docCompilation)
+            End Using
+        End Function
+
+        ''' <summary>
+        ''' Verifies that when only span-based semantic analyzers are present (no document-based
+        ''' analyzers), the merge optimization is not triggered and diagnostics are still returned
+        ''' correctly.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestSemanticPassMerge_OnlySpanAnalyzersReturnsDiagnosticsAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                ' Add only a span-based semantic analyzer — no document-based analyzer.
+                ' The merge optimization should not activate (nothing to merge).
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("SPAN01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+
+                Dim diagnostic = diagnostics.Single(Function(d) d.Id = "SPAN01")
+                Assert.NotNull(diagnostic)
+            End Using
+        End Function
+
+        ''' <summary>
+        ''' Verifies that when IDocumentDifferenceService cannot identify a changed member
+        ''' (e.g., because the old and new SourceTexts are unrelated, as happens with source-generated
+        ''' documents), the structural comparison fallback in TryGetChangedMemberAsync still produces
+        ''' correct diagnostics for both body-only edits and structural edits.
+        '''
+        ''' This test simulates the source-generated document scenario by using SourceText.From()
+        ''' (which creates unrelated texts without WithChanges tracking) for the second call.
+        ''' The IDocumentDifferenceService returns null for the changed member, and the structural
+        ''' comparison fallback identifies the body-only change.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestStructuralComparisonFallback_BodyOnlyChangeWithUnrelatedSourceTextAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim docId = project.Documents.Single().Id
+
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("SPAN01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim documentAnalyzer = New BuiltInFieldAnalyzer("DOC01", DiagnosticAnalyzerCategory.SemanticDocumentAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer, documentAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' First call: primes the IncrementalMemberEditAnalyzer cache with the current document.
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics1 = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+
+                Assert.Contains(diagnostics1, Function(d) d.Id = "SPAN01")
+                Assert.Contains(diagnostics1, Function(d) d.Id = "DOC01")
+
+                ' Modify only the method body using SourceText.From() to create an UNRELATED
+                ' SourceText. This simulates the source-generated document scenario where each
+                ' generation produces a fresh SourceText without WithChanges tracking. The
+                ' IDocumentDifferenceService will return null (full-text replacement detected),
+                ' and the structural comparison fallback identifies the single body edit.
+                Dim modifiedCode = "
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 1;
+    }
+}
+"
+                Dim modifiedSolution = project.Solution.WithDocumentText(docId, SourceText.From(modifiedCode))
+                Dim modifiedDocument = modifiedSolution.GetDocument(docId)
+                Dim modifiedRoot = Await modifiedDocument.GetSyntaxRootAsync()
+                Dim diagnostics2 = Await GetDiagnosticsForSpanAsync(diagnosticService, modifiedDocument, modifiedRoot.FullSpan)
+
+                ' Diagnostics should still be correct — field diagnostics from both analyzers.
+                Assert.Contains(diagnostics2, Function(d) d.Id = "SPAN01")
+                Assert.Contains(diagnostics2, Function(d) d.Id = "DOC01")
+            End Using
+        End Function
+
+        ''' <summary>
+        ''' Verifies that when a structural change is made (e.g., adding a new method) with
+        ''' unrelated SourceTexts, the structural comparison fallback correctly rejects
+        ''' incremental analysis and diagnostics are still correct.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestStructuralComparisonFallback_StructuralChangeWithUnrelatedSourceTextAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim docId = project.Documents.Single().Id
+
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("SPAN01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim documentAnalyzer = New BuiltInFieldAnalyzer("DOC01", DiagnosticAnalyzerCategory.SemanticDocumentAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer, documentAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' First call: primes the IncrementalMemberEditAnalyzer cache.
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics1 = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+
+                Assert.Contains(diagnostics1, Function(d) d.Id = "SPAN01")
+                Assert.Contains(diagnostics1, Function(d) d.Id = "DOC01")
+
+                ' Make a STRUCTURAL change (add a new method) using unrelated SourceText.
+                ' The structural comparison fallback should detect this via
+                ' IsEquivalentTo(topLevel: true) and reject incremental analysis.
+                Dim modifiedCode = "
+class MyClass
+{
+    private readonly int _field;
+
+    void M()
+    {
+        int x = 0;
+    }
+
+    void N()
+    {
+    }
+}
+"
+                Dim modifiedSolution = project.Solution.WithDocumentText(docId, SourceText.From(modifiedCode))
+                Dim modifiedDocument = modifiedSolution.GetDocument(docId)
+                Dim modifiedRoot = Await modifiedDocument.GetSyntaxRootAsync()
+                Dim diagnostics2 = Await GetDiagnosticsForSpanAsync(diagnosticService, modifiedDocument, modifiedRoot.FullSpan)
+
+                ' Diagnostics should still be correct — both analyzers report on both fields.
+                Assert.Contains(diagnostics2, Function(d) d.Id = "SPAN01")
+                Assert.Contains(diagnostics2, Function(d) d.Id = "DOC01")
+            End Using
+        End Function
+
         Private NotInheritable Class AllActionsAnalyzer
             Inherits DiagnosticAnalyzer
 
@@ -2540,7 +2797,209 @@ public class C
                                                                     End Sub)
             End Sub
         End Class
-    End Class
+
+        ''' <summary>
+        ''' Test analyzer that implements <see cref="IBuiltInAnalyzer"/> with a configurable
+        ''' <see cref="DiagnosticAnalyzerCategory"/> and reports a diagnostic on field symbols.
+        ''' Used to test the semantic pass merge optimization where span-based and document-based
+        ''' analyzers are merged into a single pass when incremental analysis falls back.
+        ''' </summary>
+        <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+        Private NotInheritable Class BuiltInFieldAnalyzer
+            Inherits DiagnosticAnalyzer
+            Implements IBuiltInAnalyzer
+
+            Private ReadOnly _category As DiagnosticAnalyzerCategory
+
+            ''' <summary>
+            ''' Compilation references observed during CompilationStartAction callbacks.
+            ''' Used to verify whether two analyzers ran in the same compilation clone (same pass).
+            ''' </summary>
+            Public SeenCompilations As List(Of CodeAnalysis.Compilation) = New List(Of CodeAnalysis.Compilation)()
+
+            Public Sub New(diagnosticId As String, category As DiagnosticAnalyzerCategory)
+                _category = category
+                Descriptor = New DiagnosticDescriptor(
+                    diagnosticId, "Title", "Message", "Category",
+                    defaultSeverity:=DiagnosticSeverity.Warning,
+                    isEnabledByDefault:=True)
+            End Sub
+
+            Public ReadOnly Property Descriptor As DiagnosticDescriptor
+            Public ReadOnly Property IsHighPriority As Boolean Implements IBuiltInAnalyzer.IsHighPriority
+
+            Public Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory Implements IBuiltInAnalyzer.GetAnalyzerCategory
+                Return _category
+            End Function
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterCompilationStartAction(
+                    Sub(compilationContext)
+                        SeenCompilations.Add(compilationContext.Compilation)
+                        compilationContext.RegisterSymbolAction(
+                            Sub(symbolContext) symbolContext.ReportDiagnostic(Diagnostic.Create(Descriptor, symbolContext.Symbol.Locations(0))),
+                            SymbolKind.Field)
+                    End Sub)
+            End Sub
+        End Class
+
+        ''' <summary>
+        ''' Verifies that on a second member-only edit, the per-analyzer diagnostic cache is used
+        ''' for span-based incremental analysis, splicing cached diagnostics outside the changed
+        ''' member with fresh diagnostics inside it. Uses WithChanges to create related SourceTexts
+        ''' so the standard IDocumentDifferenceService path identifies the changed member.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestIncrementalSplicing_MemberEditPreservesDiagnosticsOutsideMemberAsync() As Task
+            ' Use a class with fields before and after a method, so diagnostics exist
+            ' on both sides of the member being edited.
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    int _before;
+
+    void M()
+    {
+        int x = 0;
+    }
+
+    int _after;
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim docId = project.Documents.Single().Id
+
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("FIELD01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' First call: primes the IncrementalMemberEditAnalyzer cache with per-analyzer diagnostics.
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics1 = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+
+                ' Should have diagnostics on both _before and _after fields.
+                Assert.Equal(2, diagnostics1.Where(Function(d) d.Id = "FIELD01").Count())
+                Dim fieldNames1 = diagnostics1.Where(Function(d) d.Id = "FIELD01").Select(
+                    Function(d) d.Message).OrderBy(Function(m) m).ToArray()
+
+                ' Second call: edit the method body using WithChanges (related SourceText).
+                ' Add an extra line so the _after field moves down — this exercises the delta shifting logic.
+                Dim text = Await document.GetTextAsync()
+                Dim bodyText = "int x = 0;"
+                Dim bodyStart = text.ToString().IndexOf(bodyText)
+                Assert.True(bodyStart > 0)
+                Dim newBodyText = "int x = 1;" & vbCrLf & "        int y = 2;"
+                Dim newText = text.WithChanges(New TextChange(New TextSpan(bodyStart, bodyText.Length), newBodyText))
+
+                Dim modifiedSolution = project.Solution.WithDocumentText(docId, newText)
+                Dim modifiedDocument = modifiedSolution.GetDocument(docId)
+                Dim modifiedRoot = Await modifiedDocument.GetSyntaxRootAsync()
+                Dim diagnostics2 = Await GetDiagnosticsForSpanAsync(diagnosticService, modifiedDocument, modifiedRoot.FullSpan)
+
+                ' Both field diagnostics should still be present — _before from cache (unchanged),
+                ' _after from cache (shifted by delta).
+                Assert.Equal(2, diagnostics2.Where(Function(d) d.Id = "FIELD01").Count())
+
+                ' Verify the _after diagnostic's line shifted. In the original document, _after
+                ' is on a certain line. After adding a line to M, _after should be one line lower.
+                Dim afterDiag1 = diagnostics1.Where(Function(d) d.Id = "FIELD01").OrderByDescending(
+                    Function(d) d.DataLocation.UnmappedFileSpan.StartLinePosition.Line).First()
+                Dim afterDiag2 = diagnostics2.Where(Function(d) d.Id = "FIELD01").OrderByDescending(
+                    Function(d) d.DataLocation.UnmappedFileSpan.StartLinePosition.Line).First()
+                Assert.Equal(afterDiag1.DataLocation.UnmappedFileSpan.StartLinePosition.Line + 1,
+                             afterDiag2.DataLocation.UnmappedFileSpan.StartLinePosition.Line)
+            End Using
+        End Function
+
+        ''' <summary>
+        ''' Verifies that when a member body shrinks (fewer lines), diagnostics after the member
+        ''' are shifted correctly by a negative delta.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestIncrementalSplicing_MemberShrinkShiftsDiagnosticsCorrectlyAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    int _before;
+
+    void M()
+    {
+        int x = 0;
+        int y = 1;
+        int z = 2;
+    }
+
+    int _after;
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim docId = project.Documents.Single().Id
+
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("FIELD01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' First call: primes cache.
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics1 = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+                Assert.Equal(2, diagnostics1.Where(Function(d) d.Id = "FIELD01").Count())
+
+                ' Second call: shrink the method body (remove two lines).
+                Dim text = Await document.GetTextAsync()
+                Dim bodyText = "int x = 0;" & vbCrLf & "        int y = 1;" & vbCrLf & "        int z = 2;"
+                Dim bodyStart = text.ToString().IndexOf("int x = 0;")
+                Assert.True(bodyStart > 0)
+                Dim bodyEnd = text.ToString().IndexOf("int z = 2;") + "int z = 2;".Length
+                Dim newBodyText = "int x = 0;"
+                Dim newText = text.WithChanges(New TextChange(New TextSpan(bodyStart, bodyEnd - bodyStart), newBodyText))
+
+                Dim modifiedSolution = project.Solution.WithDocumentText(docId, newText)
+                Dim modifiedDocument = modifiedSolution.GetDocument(docId)
+                Dim modifiedRoot = Await modifiedDocument.GetSyntaxRootAsync()
+                Dim diagnostics2 = Await GetDiagnosticsForSpanAsync(diagnosticService, modifiedDocument, modifiedRoot.FullSpan)
+
+                ' Both field diagnostics should still be present.
+                Assert.Equal(2, diagnostics2.Where(Function(d) d.Id = "FIELD01").Count())
+
+                ' _after should be 2 lines higher (removed 2 lines from M's body).
+                Dim afterDiag1 = diagnostics1.Where(Function(d) d.Id = "FIELD01").OrderByDescending(
+                    Function(d) d.DataLocation.UnmappedFileSpan.StartLinePosition.Line).First()
+                Dim afterDiag2 = diagnostics2.Where(Function(d) d.Id = "FIELD01").OrderByDescending(
+                    Function(d) d.DataLocation.UnmappedFileSpan.StartLinePosition.Line).First()
+                Assert.Equal(afterDiag1.DataLocation.UnmappedFileSpan.StartLinePosition.Line - 2,
+                             afterDiag2.DataLocation.UnmappedFileSpan.StartLinePosition.Line)
+            End Using
+        End Function
 
         ''' <summary>
         ''' Verifies that when the structural comparison fallback identifies a body-only change
@@ -2616,4 +3075,97 @@ class MyClass
                 Assert.Equal(2, diagnostics2.Where(Function(d) d.Id = "FIELD01").Count())
             End Using
         End Function
+
+        ''' <summary>
+        ''' Verifies that the diagnostic cache works correctly across three sequential edits:
+        '''   Edit 1 → primes the cache (full analysis, no prior cached document)
+        '''   Edit 2 → uses cached diagnostics for incremental splicing (body grow)
+        '''   Edit 3 → uses cached diagnostics again from the second edit's results (body shrink)
+        ''' This exercises the full cache lifecycle: populate → hit → update → hit.
+        ''' </summary>
+        <WpfFact>
+        Friend Async Function TestSequentialEdits_CacheWorksAcrossMultipleEditsAsync() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    int _before;
+
+    void M()
+    {
+        int x = 0;
+    }
+
+    int _after;
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+                Dim docId = project.Documents.Single().Id
+
+                Dim spanAnalyzer = New BuiltInFieldAnalyzer("FIELD01", DiagnosticAnalyzerCategory.SemanticSpanAnalysis)
+                Dim analyzerReference = New AnalyzerImageReference(
+                    ImmutableArray.Create(Of DiagnosticAnalyzer)(spanAnalyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                SerializerService.TestAccessor.AddAnalyzerImageReferences(project.AnalyzerReferences)
+
+                Dim diagnosticService = workspace.Services.GetRequiredService(Of IDiagnosticAnalyzerService)()
+
+                ' --- Edit 1: Initial analysis (primes cache) ---
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync()
+                Dim diagnostics1 = Await GetDiagnosticsForSpanAsync(diagnosticService, document, root.FullSpan)
+                Assert.Equal(2, diagnostics1.Where(Function(d) d.Id = "FIELD01").Count())
+
+                Dim afterLine1 = diagnostics1.Where(Function(d) d.Id = "FIELD01").OrderByDescending(
+                    Function(d) d.DataLocation.UnmappedFileSpan.StartLinePosition.Line).First(
+                    ).DataLocation.UnmappedFileSpan.StartLinePosition.Line
+
+                ' --- Edit 2: Add a line to M (body grow, +1 line) ---
+                Dim text1 = Await document.GetTextAsync()
+                Dim bodyText1 = "int x = 0;"
+                Dim bodyStart1 = text1.ToString().IndexOf(bodyText1)
+                Assert.True(bodyStart1 > 0)
+                Dim newBodyText2 = "int x = 1;" & vbCrLf & "        int y = 2;"
+                Dim text2 = text1.WithChanges(New TextChange(New TextSpan(bodyStart1, bodyText1.Length), newBodyText2))
+
+                Dim solution2 = project.Solution.WithDocumentText(docId, text2)
+                Dim document2 = solution2.GetDocument(docId)
+                Dim root2 = Await document2.GetSyntaxRootAsync()
+                Dim diagnostics2 = Await GetDiagnosticsForSpanAsync(diagnosticService, document2, root2.FullSpan)
+                Assert.Equal(2, diagnostics2.Where(Function(d) d.Id = "FIELD01").Count())
+
+                Dim afterLine2 = diagnostics2.Where(Function(d) d.Id = "FIELD01").OrderByDescending(
+                    Function(d) d.DataLocation.UnmappedFileSpan.StartLinePosition.Line).First(
+                    ).DataLocation.UnmappedFileSpan.StartLinePosition.Line
+                Assert.Equal(afterLine1 + 1, afterLine2)
+
+                ' --- Edit 3: Remove both lines, replace with single shorter line (body shrink, -1 line from edit 2) ---
+                Dim text2Str = text2.ToString()
+                Dim bodyText2 = "int x = 1;" & vbCrLf & "        int y = 2;"
+                Dim bodyStart2 = text2Str.IndexOf("int x = 1;")
+                Assert.True(bodyStart2 > 0)
+                Dim bodyEnd2 = text2Str.IndexOf("int y = 2;") + "int y = 2;".Length
+                Dim newBodyText3 = "int z = 3;"
+                Dim text3 = text2.WithChanges(New TextChange(New TextSpan(bodyStart2, bodyEnd2 - bodyStart2), newBodyText3))
+
+                Dim solution3 = solution2.WithDocumentText(docId, text3)
+                Dim document3 = solution3.GetDocument(docId)
+                Dim root3 = Await document3.GetSyntaxRootAsync()
+                Dim diagnostics3 = Await GetDiagnosticsForSpanAsync(diagnosticService, document3, root3.FullSpan)
+                Assert.Equal(2, diagnostics3.Where(Function(d) d.Id = "FIELD01").Count())
+
+                ' _after should be back to original line (grew by 1, then shrunk by 1)
+                Dim afterLine3 = diagnostics3.Where(Function(d) d.Id = "FIELD01").OrderByDescending(
+                    Function(d) d.DataLocation.UnmappedFileSpan.StartLinePosition.Line).First(
+                    ).DataLocation.UnmappedFileSpan.StartLinePosition.Line
+                Assert.Equal(afterLine1, afterLine3)
+            End Using
+        End Function
+    End Class
 End Namespace

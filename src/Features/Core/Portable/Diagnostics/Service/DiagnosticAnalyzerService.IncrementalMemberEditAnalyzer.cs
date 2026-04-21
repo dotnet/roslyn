@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -39,9 +39,10 @@ internal sealed partial class DiagnosticAnalyzerService
         public void UpdateDocumentWithCachedDiagnostics(Document document, VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> diagnostics, ImmutableArray<TextSpan> memberSpans)
             => _cache.Update(document, version, diagnostics, memberSpans);
 
-        public async Task<ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>>> ComputeDiagnosticsInProcessAsync(
+        public async Task<(ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<DiagnosticData>> results, bool didMergeAnalyzerComputations, ImmutableArray<TextSpan> newMemberSpans)> ComputeDiagnosticsInProcessAsync(
             DocumentAnalysisExecutor executor,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<DiagnosticAnalyzer> additionalAnalyzersToMergeOnFullAnalysis,
             CancellationToken cancellationToken)
         {
             var analysisScope = executor.AnalysisScope;
@@ -58,8 +59,11 @@ internal sealed partial class DiagnosticAnalyzerService
             if (changedMemberAndIdAndSpansAndDocument == null)
             {
                 // This is not a member-edit scenario, so compute full document diagnostics
-                // without incremental analysis.
-                return await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
+                // without incremental analysis. When document-based analyzers are provided,
+                // merge them into a single pass to avoid duplicate binding costs.
+                var (mergedResults, didMerge) = await ComputeMergedDiagnosticsAsync(executor, analyzers, additionalAnalyzersToMergeOnFullAnalysis, cancellationToken).ConfigureAwait(false);
+                var memberSpans = await CreateMemberSpansAsync(document, cancellationToken).ConfigureAwait(false);
+                return (mergedResults, didMerge, memberSpans);
             }
 
             var (changedMember, changedMemberId, newMemberSpans, oldDocument) = changedMemberAndIdAndSpansAndDocument.Value;
@@ -102,7 +106,8 @@ internal sealed partial class DiagnosticAnalyzerService
             if (spanBasedAnalyzers.Count == 0 && (!compilerAnalyzerData.HasValue || !compilerAnalyzerData.Value.spanBased))
             {
                 // No incremental span based-analysis to be performed.
-                return await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
+                var (mergedResults, didMerge) = await ComputeMergedDiagnosticsAsync(executor, analyzers, additionalAnalyzersToMergeOnFullAnalysis, cancellationToken).ConfigureAwait(false);
+                return (mergedResults, didMerge, newMemberSpans);
             }
 
             // Get the member spans from the cache, or compute them from the old document.
@@ -117,7 +122,7 @@ internal sealed partial class DiagnosticAnalyzerService
             await ExecuteCompilerAnalyzerAsync(compilerAnalyzerData, oldMemberSpans, oldText, cachedSnapshot, builder).ConfigureAwait(false);
             await ExecuteSpanBasedAnalyzersAsync(spanBasedAnalyzers, oldMemberSpans, oldText, cachedSnapshot, builder).ConfigureAwait(false);
             await ExecuteDocumentBasedAnalyzersAsync(documentBasedAnalyzers, oldMemberSpans, oldText, cachedSnapshot, builder).ConfigureAwait(false);
-            return builder.ToImmutableDictionary();
+            return (builder.ToImmutableDictionary(), didMergeAnalyzerComputations: false, newMemberSpans);
 
             async Task ExecuteCompilerAnalyzerAsync(
                 (DiagnosticAnalyzer analyzer, bool spanBased)? compilerAnalyzerData,

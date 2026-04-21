@@ -294,9 +294,25 @@ internal sealed partial class DiagnosticAnalyzerService
 
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
-        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, syntaxAnalyzers, AnalysisKind.Syntax, range, incrementalAnalysis: false, list, cancellationToken).ConfigureAwait(false);
-        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticSpanAnalyzers, AnalysisKind.Semantic, range, incrementalAnalysis, list, cancellationToken).ConfigureAwait(false);
-        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, incrementalAnalysis: false, list, cancellationToken).ConfigureAwait(false);
+        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, syntaxAnalyzers, AnalysisKind.Syntax, range, list, cancellationToken).ConfigureAwait(false);
+
+        if (incrementalAnalysis)
+        {
+            // Pass document analyzers to the incremental analyzer so that if it cannot perform
+            // member-edit analysis (e.g., structural edits like adding/removing a using directive),
+            // it can merge both semantic analyzer sets into a single pass, avoiding the cost of
+            // each pass independently creating a compilation clone and triggering binding.
+            var didMergeAnalyzerComputations = await ComputeIncrementalDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticSpanAnalyzers, AnalysisKind.Semantic, range, additionalAnalyzersToMergeOnFullAnalysis: semanticDocumentAnalyzers, list, cancellationToken).ConfigureAwait(false);
+            if (!didMergeAnalyzerComputations)
+            {
+                await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, list, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        else
+        {
+            await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticSpanAnalyzers, AnalysisKind.Semantic, range, list, cancellationToken).ConfigureAwait(false);
+            await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, list, cancellationToken).ConfigureAwait(false);
+        }
 
         return list.ToImmutableAndClear();
 
@@ -308,34 +324,52 @@ internal sealed partial class DiagnosticAnalyzerService
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind,
             TextSpan? span,
-            bool incrementalAnalysis,
             ArrayBuilder<DiagnosticData> list,
             CancellationToken cancellationToken)
         {
             if (analyzers.Length == 0)
                 return;
 
-            Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
-            Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
+            var analysisScope = new DocumentAnalysisScope(document, span, analyzers, kind);
+            var executor = new DocumentAnalysisExecutor(service, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
+            var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+
+            var diagnosticsMap = await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
+
+            list.AddRange(diagnosticsMap.SelectMany(kvp => kvp.Value));
+        }
+
+        static async Task<bool> ComputeIncrementalDocumentDiagnosticsAsync(
+            DiagnosticAnalyzerService service,
+            TextDocument document,
+            CompilationWithAnalyzers? compilationWithAnalyzers,
+            bool logPerformanceInfo,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
+            AnalysisKind kind,
+            TextSpan? span,
+            ImmutableArray<DiagnosticAnalyzer> additionalAnalyzersToMergeOnFullAnalysis,
+            ArrayBuilder<DiagnosticData> list,
+            CancellationToken cancellationToken)
+        {
+            if (analyzers.Length == 0)
+                return false;
+
+            Debug.Assert(kind == AnalysisKind.Semantic);
+            Debug.Assert(analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
 
             var analysisScope = new DocumentAnalysisScope(document, span, analyzers, kind);
             var executor = new DocumentAnalysisExecutor(service, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
             var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
-            var computeTask = incrementalAnalysis
-                ? service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(executor, analyzers, cancellationToken)
-                : ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken);
-            var diagnosticsMap = await computeTask.ConfigureAwait(false);
+            var (diagnosticsMap, didMergeAnalyzerComputations, newMemberSpans) = await service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(
+                executor, analyzers, additionalAnalyzersToMergeOnFullAnalysis, cancellationToken).ConfigureAwait(false);
 
-            if (incrementalAnalysis)
-            {
-                // Save the analysis results so subsequent member-only edits can reuse diagnostics
-                // outside the edited member, and retrieve the document snapshot for diffing.
-                var memberSpans = await IncrementalMemberEditAnalyzer.CreateMemberSpansAsync((Document)document, cancellationToken).ConfigureAwait(false);
-                service._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document, version, diagnosticsMap, memberSpans);
-            }
+            // Save the analysis results so subsequent member-only edits can reuse diagnostics
+            // outside the edited member, and retrieve the document snapshot for diffing.
+            service._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document, version, diagnosticsMap, newMemberSpans);
 
             list.AddRange(diagnosticsMap.SelectMany(kvp => kvp.Value));
+            return didMergeAnalyzerComputations;
         }
     }
 }
