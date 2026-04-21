@@ -4300,6 +4300,7 @@ public sealed partial class WithElementSyntax : CollectionElementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithElement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWithElement(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public WithElementSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
         if (withKeyword != this.WithKeyword || argumentList != this.ArgumentList)
@@ -7174,6 +7175,7 @@ public sealed partial class BreakStatementSyntax : StatementSyntax
 
     public SyntaxToken BreakKeyword => new SyntaxToken(this, ((InternalSyntax.BreakStatementSyntax)this.Green).breakKeyword, GetChildPosition(1), GetChildIndex(1));
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public IdentifierNameSyntax? Name => GetRed(ref this.name, 2);
 
     public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
@@ -7197,6 +7199,7 @@ public sealed partial class BreakStatementSyntax : StatementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBreakStatement(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public BreakStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
         if (attributeLists != this.AttributeLists || breakKeyword != this.BreakKeyword || name != this.Name || semicolonToken != this.SemicolonToken)
@@ -7212,6 +7215,7 @@ public sealed partial class BreakStatementSyntax : StatementSyntax
     internal override StatementSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
     public new BreakStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.BreakKeyword, this.Name, this.SemicolonToken);
     public BreakStatementSyntax WithBreakKeyword(SyntaxToken breakKeyword) => Update(this.AttributeLists, breakKeyword, this.Name, this.SemicolonToken);
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public BreakStatementSyntax WithName(IdentifierNameSyntax? name) => Update(this.AttributeLists, this.BreakKeyword, name, this.SemicolonToken);
     public BreakStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.BreakKeyword, this.Name, semicolonToken);
 
@@ -7239,6 +7243,7 @@ public sealed partial class ContinueStatementSyntax : StatementSyntax
 
     public SyntaxToken ContinueKeyword => new SyntaxToken(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).continueKeyword, GetChildPosition(1), GetChildIndex(1));
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public IdentifierNameSyntax? Name => GetRed(ref this.name, 2);
 
     public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
@@ -7262,6 +7267,7 @@ public sealed partial class ContinueStatementSyntax : StatementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitContinueStatement(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public ContinueStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
         if (attributeLists != this.AttributeLists || continueKeyword != this.ContinueKeyword || name != this.Name || semicolonToken != this.SemicolonToken)
@@ -7277,6 +7283,7 @@ public sealed partial class ContinueStatementSyntax : StatementSyntax
     internal override StatementSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
     public new ContinueStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.ContinueKeyword, this.Name, this.SemicolonToken);
     public ContinueStatementSyntax WithContinueKeyword(SyntaxToken continueKeyword) => Update(this.AttributeLists, continueKeyword, this.Name, this.SemicolonToken);
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public ContinueStatementSyntax WithName(IdentifierNameSyntax? name) => Update(this.AttributeLists, this.ContinueKeyword, name, this.SemicolonToken);
     public ContinueStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.ContinueKeyword, this.Name, semicolonToken);
 
@@ -10659,6 +10666,7 @@ public sealed partial class StructDeclarationSyntax : TypeDeclarationSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitStructDeclaration(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitStructDeclaration(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82567")]
     public StructDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, SyntaxToken identifier, TypeParameterListSyntax? typeParameterList, ParameterListSyntax? parameterList, BaseListSyntax? baseList, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, SyntaxToken openBraceToken, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
     {
         if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || keyword != this.Keyword || identifier != this.Identifier || typeParameterList != this.TypeParameterList || parameterList != this.ParameterList || baseList != this.BaseList || constraintClauses != this.ConstraintClauses || openBraceToken != this.OpenBraceToken || members != this.Members || closeBraceToken != this.CloseBraceToken || semicolonToken != this.SemicolonToken)

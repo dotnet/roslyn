@@ -4207,6 +4207,7 @@ public static partial class SyntaxFactory
 #pragma warning restore RS0027
 
     /// <summary>Creates a new BreakStatementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
         if (breakKeyword.Kind() != SyntaxKind.BreakKeyword) throw new ArgumentException(nameof(breakKeyword));
@@ -4215,16 +4216,19 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new BreakStatementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public static BreakStatementSyntax BreakStatement(SyntaxList<AttributeListSyntax> attributeLists, IdentifierNameSyntax? name)
         => SyntaxFactory.BreakStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.BreakKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
 #pragma warning disable RS0027
     /// <summary>Creates a new BreakStatementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public static BreakStatementSyntax BreakStatement(IdentifierNameSyntax? name = default)
         => SyntaxFactory.BreakStatement(default, SyntaxFactory.Token(SyntaxKind.BreakKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 #pragma warning restore RS0027
 
     /// <summary>Creates a new ContinueStatementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public static ContinueStatementSyntax ContinueStatement(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
         if (continueKeyword.Kind() != SyntaxKind.ContinueKeyword) throw new ArgumentException(nameof(continueKeyword));
@@ -4233,11 +4237,13 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new ContinueStatementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public static ContinueStatementSyntax ContinueStatement(SyntaxList<AttributeListSyntax> attributeLists, IdentifierNameSyntax? name)
         => SyntaxFactory.ContinueStatement(attributeLists, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
 #pragma warning disable RS0027
     /// <summary>Creates a new ContinueStatementSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
     public static ContinueStatementSyntax ContinueStatement(IdentifierNameSyntax? name = default)
         => SyntaxFactory.ContinueStatement(default, SyntaxFactory.Token(SyntaxKind.ContinueKeyword), name, SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 #pragma warning restore RS0027
