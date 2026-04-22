@@ -11327,7 +11327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
                 // Compound / ??= member initializer wraps the target access; unwrap and recurse so
                 // the appropriate concrete-access case above picks it up.
-                BoundObjectInitializerMember { UnderlyingAccessOpt: { } underlying } => GetLValueAnnotations(underlying),
+                BoundObjectInitializerMember { UnderlyingAccess: var underlying } => GetLValueAnnotations(underlying),
                 _ => FlowAnalysisAnnotations.None
             };
 

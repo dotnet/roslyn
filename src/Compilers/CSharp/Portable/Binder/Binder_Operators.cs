@@ -36,13 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Unwraps an object-initializer-member wrapper around a <see cref="BoundEventAccess"/>, so
         /// both the ordinary <c>c.E += h</c> path and the initializer / with form
         /// (where the BoundEventAccess is stashed on
-        /// <see cref="BoundObjectInitializerMember.UnderlyingAccessOpt"/>) share one dispatch site.
+        /// <see cref="BoundObjectInitializerMember.UnderlyingAccess"/>) share one dispatch site.
         /// </summary>
         private static BoundEventAccess? TryGetEventAccess(BoundExpression left)
             => left switch
             {
                 BoundEventAccess e => e,
-                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+                BoundObjectInitializerMember { UnderlyingAccess: BoundEventAccess e } => e,
                 _ => null,
             };
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // bounce through CheckEventValueKind so the event-specific diagnostic (CS0070 from
                 // outside the declaring type; CS0079 for a custom event) wins over a generic CS0019
                 // from overload resolution. `eventAccess` also covers the initializer / with shape
-                // where the BoundEventAccess sits on BoundObjectInitializerMember.UnderlyingAccessOpt.
+                // where the BoundEventAccess sits on BoundObjectInitializerMember.UnderlyingAccess.
                 if (eventAccess is not null && !CheckEventValueKind(eventAccess, BindValueKind.Assignable, diagnostics))
                 {
                     // If we're in a place where the event can be assigned, then continue so that we give errors

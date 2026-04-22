@@ -975,8 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!RequiresReferenceToLocation(valueKind))
                             return true;
 
-                        return wrapper.UnderlyingAccessOpt is { } underlying
-                            && CheckValueKind(wrapper.Syntax, underlying, valueKind, checkingReceiver: false, diagnostics);
+                        return CheckValueKind(wrapper.Syntax, wrapper.UnderlyingAccess, valueKind, checkingReceiver: false, diagnostics);
                     }
             }
 

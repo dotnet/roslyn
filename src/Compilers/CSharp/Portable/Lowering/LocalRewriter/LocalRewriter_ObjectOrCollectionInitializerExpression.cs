@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver = sequence.Value;
             }
 
-            return node.Update(node.MemberSymbol, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, node.UnderlyingAccessOpt, node.ReceiverType, node.Type);
+            return node.Update(node.MemberSymbol, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, node.UnderlyingAccess, node.ReceiverType, node.Type);
         }
 
         // Rewrite object initializer member assignments and add them to the result.
@@ -390,8 +390,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ArrayBuilder<LocalSymbol>? temps)
         {
             // The dynamic-indexer sub-case of BoundObjectInitializerMember (`MemberSymbol == null &&
-            // Type.IsDynamic()`, carrying a BoundDynamicIndexerAccess in UnderlyingAccessOpt) can't
-            // go through MakeObjectInitializerMemberAccess — it asserts a non-null member — so we
+            // Type.IsDynamic()`, carrying a BoundDynamicIndexerAccess in UnderlyingAccess) can't go
+            // through MakeObjectInitializerMemberAccess — it asserts a non-null member — so we
             // unwrap to the dynamic indexer and let TransformDynamicIndexerAccess handle the get/set
             // call-site pair, mirroring the non-initializer `d[0] += 1` path.
             return left switch
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Normalizes a dynamic-indexer initializer-member target — a <see cref="BoundObjectInitializerMember"/>
         /// with <c>MemberSymbol == null</c> and a dynamic Type, carrying its originating
-        /// <see cref="BoundDynamicIndexerAccess"/> in <see cref="BoundObjectInitializerMember.UnderlyingAccessOpt"/> —
+        /// <see cref="BoundDynamicIndexerAccess"/> in <see cref="BoundObjectInitializerMember.UnderlyingAccess"/> —
         /// into a <see cref="BoundDynamicIndexerAccess"/> with the real receiver, so the compound
         /// lowering pipeline (<c>VisitCompoundAssignmentOperator</c> → <c>TransformDynamicIndexerAccess</c>)
         /// can emit the runtime GetIndex/SetIndex call-site pair, matching the non-initializer
@@ -455,9 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> result,
             ref ArrayBuilder<LocalSymbol>? temps)
         {
-            Debug.Assert(wrapper.UnderlyingAccessOpt is BoundDynamicIndexerAccess);
-
-            var originalIndexer = (BoundDynamicIndexerAccess)wrapper.UnderlyingAccessOpt!;
+            var originalIndexer = (BoundDynamicIndexerAccess)wrapper.UnderlyingAccess;
             var visitedWrapper = (BoundObjectInitializerMember)VisitObjectInitializerMember(wrapper, ref rewrittenReceiver, result, ref temps);
 
             var liftedArgs = visitedWrapper.Arguments.IsDefaultOrEmpty
@@ -604,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberInit.DefaultArguments,
                     memberInit.ResultKind,
                     memberInit.AccessorKind,
-                    memberInit.UnderlyingAccessOpt,
+                    memberInit.UnderlyingAccess,
                     memberInit.ReceiverType,
                     memberInit.Type);
             }

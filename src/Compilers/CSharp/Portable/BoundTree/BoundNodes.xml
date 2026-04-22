@@ -2076,12 +2076,13 @@
 
     <!--
     The concrete member access (BoundFieldAccess / BoundPropertyAccess /
-    BoundIndexerAccess / BoundEventAccess) whose ReceiverOpt is the object-
-    initializer placeholder. Nullable only to cover error-recovery paths
-    where the binder didn't have a usable access; every post-binding consumer
-    that reaches into this wrapper should treat it as present.
+    BoundIndexerAccess / BoundEventAccess / BoundDynamicIndexerAccess) whose
+    ReceiverOpt is the object-initializer placeholder. Populated by
+    BindObjectInitializerMember for every wrapper it produces; downstream
+    consumers (value-kind rechecks, event-assignment dispatch, compound/??=
+    lowering) delegate to it.
     -->
-    <Field Name="UnderlyingAccessOpt" Type="BoundExpression?" Null="allow" SkipInVisitor="true" SkipInNullabilityRewriter="true"/>
+    <Field Name="UnderlyingAccess" Type="BoundExpression" Null="disallow" SkipInVisitor="true" SkipInNullabilityRewriter="true"/>
 
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
