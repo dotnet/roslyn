@@ -33,6 +33,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Unwraps an object-initializer-member wrapper around a <see cref="BoundEventAccess"/>, so
+        /// both the ordinary <c>c.E += h</c> path and the initializer / with form
+        /// (where the BoundEventAccess is stashed on
+        /// <see cref="BoundObjectInitializerMember.UnderlyingAccessOpt"/>) share one dispatch site.
+        /// </summary>
+        private static BoundEventAccess? TryGetEventAccess(BoundExpression left) => left switch
+        {
+            BoundEventAccess e => e,
+            BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+            _ => null,
+        };
+
+        /// <summary>
         /// Binds a compound assignment given an already-bound left and right. Used by
         /// <see cref="BindCompoundAssignment"/> for the ordinary expression path, and by
         /// <c>BindInitializerMemberAssignment</c> for compound member initializers where the left
@@ -52,14 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If either operand is bad, don't try to do binary operator overload resolution; that will just
                 // make cascading errors.
 
-                // The event-target case also fires for the initializer / with form, where the BoundEventAccess
-                // is stashed on BoundObjectInitializerMember.UnderlyingAccessOpt.
-                BoundEventAccess? eventAccess = left switch
-                {
-                    BoundEventAccess e => e,
-                    BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
-                    _ => null,
-                };
+                BoundEventAccess? eventAccess = TryGetEventAccess(left);
 
                 if (eventAccess is not null)
                 {
@@ -5876,14 +5882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Without it, binding silently accepts the shape and lowering later trips
             // `Debug.Assert(eventAccess.IsUsableAsField)` in TransformCompoundAssignmentLHS, a pre-
             // existing crash affecting both `c.E ??= h` and `new C { E ??= h }`.
-            var eventAccess = leftOperand switch
-            {
-                BoundEventAccess e => e,
-                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
-                _ => null,
-            };
-
-            if (eventAccess is { IsUsableAsField: false } && !leftOperand.HasAnyErrors)
+            if (TryGetEventAccess(leftOperand) is { IsUsableAsField: false } eventAccess && !leftOperand.HasAnyErrors)
             {
                 Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventAccess.EventSymbol), GetEventName(eventAccess));
                 return new BoundNullCoalescingAssignmentOperator(

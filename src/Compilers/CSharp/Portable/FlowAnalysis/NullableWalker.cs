@@ -4809,7 +4809,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// object, get the per-member slot, visit the assignment (which produces its result state via
         /// <see cref="VisitCompoundAssignmentOperator"/> or <see cref="VisitNullCoalescingAssignmentOperator"/>),
         /// and write that state back to the member's slot. Without this, the containing object's per-
-        /// member nullable state is stale after the initializer.
+        /// member nullable state is stale after the initializer. Bare accesses (indexer, array,
+        /// pointer, dynamic-member) don't participate in per-member slot tracking on the container
+        /// and are skipped.
         /// </summary>
         private void VisitCompoundOrCoalesceObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundExpression node)
         {
@@ -4824,20 +4826,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ => throw ExceptionUtilities.UnexpectedValue(node.Kind),
             };
 
-            UpdateInitializerMemberSlot(containingSlot, containingType, left, node, ResultType);
-        }
-
-        /// <summary>
-        /// Shared slot update for <see cref="VisitCompoundOrCoalesceObjectElementInitializer"/>. If
-        /// <paramref name="left"/> is a <see cref="BoundObjectInitializerMember"/> wrapper with a
-        /// resolvable <see cref="BoundObjectInitializerMember.MemberSymbol"/>, get or create the
-        /// per-member slot within <paramref name="containingSlot"/> and record the
-        /// <paramref name="resultState"/> there against the symbol's type. Bare accesses (indexer,
-        /// array, pointer, dynamic-member) don't participate in per-member slot tracking on the
-        /// container, so we skip them.
-        /// </summary>
-        private void UpdateInitializerMemberSlot(int containingSlot, TypeSymbol containingType, BoundExpression left, BoundExpression assignmentNode, TypeWithState resultState)
-        {
             if (left is not BoundObjectInitializerMember { MemberSymbol: { } memberSymbol })
             {
                 return;
@@ -4854,7 +4842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (memberSlot >= 0)
             {
                 var memberType = GetTypeOrReturnTypeWithAnnotations(resolved);
-                TrackNullableStateForAssignment(assignmentNode, memberType, memberSlot, resultState, valueSlot: -1);
+                TrackNullableStateForAssignment(node, memberType, memberSlot, ResultType, valueSlot: -1);
             }
         }
 

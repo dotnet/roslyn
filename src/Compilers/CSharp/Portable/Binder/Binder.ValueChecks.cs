@@ -961,15 +961,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
 
                 case BoundKind.ObjectInitializerMember:
-                    // BoundObjectInitializerMember wraps a pre-validated member access whose receiver is
-                    // the object-initializer placeholder. Readability / writability was enforced with the
-                    // appropriate BindValueKind during BindObjectInitializerMember, and failures already
-                    // set HasErrors (short-circuited above). Here we answer queries stricter than what
-                    // the pre-validation covered — in practice `RefersToLocation | Assignable` from
-                    // `shouldTryUserDefinedInstanceOperator`. Delegate to the existing per-kind checks by
-                    // reconstructing a raw member access, so we pick up the full ref / ref-readonly /
-                    // fixed-size-buffer / value-type-receiver rules for free.
-                    return CheckObjectInitializerMemberValueKind((BoundObjectInitializerMember)expr, valueKind, diagnostics);
+                    {
+                        // BoundObjectInitializerMember wraps a pre-validated member access whose receiver
+                        // is the object-initializer placeholder. Readability / writability was enforced
+                        // with the appropriate BindValueKind during BindObjectInitializerMember, and
+                        // failures already set HasErrors (short-circuited above). Here we answer queries
+                        // stricter than what the pre-validation covered — in practice `RefersToLocation |
+                        // Assignable` from `shouldTryUserDefinedInstanceOperator`. Delegate to the
+                        // per-kind checks on the concrete access the binder stashed on the wrapper so
+                        // ref / ref-readonly / fixed-size-buffer / value-type-receiver rules apply
+                        // uniformly.
+                        var wrapper = (BoundObjectInitializerMember)expr;
+                        if (!RequiresReferenceToLocation(valueKind))
+                            return true;
+
+                        return wrapper.UnderlyingAccessOpt is { } underlying
+                            && CheckValueKind(wrapper.Syntax, underlying, valueKind, checkingReceiver: false, diagnostics);
+                    }
             }
 
             // easy out for a very common RValue case.
@@ -1995,22 +2003,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
 
-        }
-
-        private bool CheckObjectInitializerMemberValueKind(BoundObjectInitializerMember node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
-        {
-            // Pre-validation during BindObjectInitializerMember covered readability / writability; only
-            // stricter queries (ref-assignable location) can reach here on a non-error wrapper. Delegate
-            // to the per-kind helpers that already implement RefReadOnly / ref-returning /
-            // fixed-size-buffer / value-type-receiver rules by handing them the concrete access the
-            // binder stashed on the wrapper.
-            if (!RequiresReferenceToLocation(valueKind))
-            {
-                return true;
-            }
-
-            return node.UnderlyingAccessOpt is { } underlying
-                && CheckValueKind(node.Syntax, underlying, valueKind, checkingReceiver: false, diagnostics);
         }
 
         private bool CheckPropertyValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)

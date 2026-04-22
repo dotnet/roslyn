@@ -830,24 +830,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.PointerElementAccess:
                     {
-                        var pointerAccess = (BoundPointerElementAccess)left;
-                        var rewrittenIndex = VisitExpression(pointerAccess.Index);
-
-                        if (CanChangeValueBetweenReads(rewrittenIndex))
-                        {
-                            BoundAssignmentOperator store;
-                            var temp = _factory.StoreToTemp(rewrittenIndex, out store);
-                            rewrittenIndex = temp;
-
-                            if (temps == null)
-                            {
-                                temps = ArrayBuilder<LocalSymbol>.GetInstance();
-                            }
-                            temps.Add(temp.LocalSymbol);
-                            result.Add(store);
-                        }
-
-                        rewrittenAccess = RewritePointerElementAccess(pointerAccess, rewrittenReceiver, rewrittenIndex);
+                        rewrittenAccess = RewritePointerElementInitializerAccess(
+                            (BoundPointerElementAccess)left, rewrittenReceiver, ref temps, result);
 
                         if (!isRhsNestedInitializer)
                         {

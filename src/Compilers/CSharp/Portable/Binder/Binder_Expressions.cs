@@ -5900,7 +5900,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var initializer = (AssignmentExpressionSyntax)memberInitializer;
                         SyntaxKind kind = initializer.Kind();
                         bool isSimple = kind == SyntaxKind.SimpleAssignmentExpression;
-                        bool isCoalesce = kind == SyntaxKind.CoalesceAssignmentExpression;
 
                         // Every non-simple form (the eleven compound operators plus `??=`) shares: the
                         // feature gate, the "no nested-initializer RHS" restriction, and the
@@ -5924,49 +5923,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                             bool isRef = refKind == RefKind.Ref;
                             var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
 
-                            // Bind the RHS into a fresh bag. If we hit the non-simple + nested-initializer
-                            // error path below, we discard these diagnostics: CS0747 is the primary
-                            // diagnostic, and cascading errors from binding a malformed brace-list
-                            // against the target type (e.g. CS1922) add no information. On the normal
-                            // path we merge the bag into `diagnostics` as usual.
-                            var rhsDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                            BoundExpression boundRight = BindInitializerExpressionOrValue(
-                                syntax: rhsExpr,
-                                type: boundLeft.Type,
-                                rhsKind,
-                                typeSyntax: boundLeft.Syntax,
-                                diagnostics: rhsDiagnostics);
-
                             // Per spec, the compound_assignment_operator branch of member_initializer
                             // admits only *expression*, not the nested-initializer form; the same
                             // restriction applies to `??=`. The parser is permissive (it produces a
                             // nested ObjectInitializerExpression / CollectionInitializerExpression on
                             // the RHS), so we report the additional error here and return a bad
-                            // expression whose children are the already-bound left and right
+                            // expression whose children are the bound left and the bound right
                             // (preserving whatever semantic info IDE / semantic-model consumers can
-                            // glean about each side).
+                            // glean about each side). The RHS is bound into a discarded diagnostic bag
+                            // because CS0747 is the primary diagnostic and cascading errors from
+                            // binding a malformed brace-list against the target type (e.g. CS1922) add
+                            // no information.
                             if (!isSimple && initializer.Right is InitializerExpressionSyntax)
                             {
-                                rhsDiagnostics.Free();
                                 Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+                                BoundExpression badRight = BindInitializerExpressionOrValue(
+                                    syntax: rhsExpr,
+                                    type: boundLeft.Type,
+                                    rhsKind,
+                                    typeSyntax: boundLeft.Syntax,
+                                    diagnostics: BindingDiagnosticBag.Discarded);
                                 return new BoundBadExpression(
                                     initializer,
                                     LookupResultKind.Empty,
                                     symbols: [],
-                                    childBoundNodes: [boundLeft, boundRight],
+                                    childBoundNodes: [boundLeft, badRight],
                                     type: null,
                                     hasErrors: true);
                             }
 
-                            diagnostics.AddRange(rhsDiagnostics);
-                            rhsDiagnostics.Free();
+                            BoundExpression boundRight = BindInitializerExpressionOrValue(
+                                syntax: rhsExpr,
+                                type: boundLeft.Type,
+                                rhsKind,
+                                typeSyntax: boundLeft.Syntax,
+                                diagnostics: diagnostics);
 
                             // Bind member initializer assignment expression
-                            return isSimple
-                                ? BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics)
-                                : isCoalesce
-                                    ? BindNullCoalescingAssignmentOperatorCore(initializer, boundLeft, boundRight, diagnostics)
-                                    : BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics);
+                            return kind switch
+                            {
+                                SyntaxKind.SimpleAssignmentExpression =>
+                                    BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics),
+                                SyntaxKind.CoalesceAssignmentExpression =>
+                                    BindNullCoalescingAssignmentOperatorCore(initializer, boundLeft, boundRight, diagnostics),
+                                _ =>
+                                    BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics),
+                            };
                         }
                         break;
                     }
