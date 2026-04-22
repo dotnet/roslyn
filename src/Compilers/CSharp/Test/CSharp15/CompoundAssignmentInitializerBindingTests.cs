@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,9 +12,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
 {
     // Tests that use records / init-only setters need System.Runtime.CompilerServices.IsExternalInit;
     // tests that declare a direct `operator +=` additionally need CompilerFeatureRequiredAttribute.
-    // The NetCoreApp reference set provides both; using it here keeps the test sources minimal.
-    private CSharpCompilation Compile(string source, CSharpParseOptions parseOptions, TargetFramework targetFramework = TargetFramework.NetCoreApp)
-        => CreateCompilation(source, parseOptions: parseOptions, targetFramework: targetFramework);
+    // The NetCoreApp reference set provides both, so every test in this file explicitly passes
+    // `targetFramework: TargetFramework.NetCoreApp` to keep the sources minimal.
 
     /// <summary>All 11 compound assignment operators in the spec's `compound_assignment_operator` set.</summary>
     public static TheoryData<string> AllCompoundOperators => new()
@@ -403,10 +401,31 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static void M() { var c = new C { P += 1, P -= 1, P *= 1, P /= 1, P %= 1, P &= 1, P |= 1, P ^= 1, P <<= 1, P >>= 1, P >>>= 1 }; }
             }
             """;
-        var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.NetCoreApp);
         // Expect a feature-gate diagnostic on each compound operator token (11 total).
-        var diagnostics = compilation.GetDiagnostics();
-        Assert.Equal(11, diagnostics.Count(d => d.Code == (int)ErrorCode.ERR_FeatureInPreview));
+        CreateCompilation(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+            // (4,48): error CS8652: The feature 'compound assignment in object initializer and with expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public static void M() { var c = new C { P += 1, P -= 1, P *= 1, P /= 1, P %= 1, P &= 1, P |= 1, P ^= 1, P <<= 1, P >>= 1, P >>>= 1 }; }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 48),
+            // (4,56): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "-=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 56),
+            // (4,64): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "*=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 64),
+            // (4,72): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "/=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 72),
+            // (4,80): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "%=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 80),
+            // (4,88): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 88),
+            // (4,96): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "|=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 96),
+            // (4,104): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "^=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 104),
+            // (4,112): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "<<=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 112),
+            // (4,121): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 121),
+            // (4,130): error CS8652: ...
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, ">>>=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 130));
     }
 
     #endregion
@@ -577,8 +596,10 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(ref int x) => new C { P += ref x };
             }
             """;
-        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-        Assert.NotEmpty(comp.GetDiagnostics());
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+            // (4,53): error CS1073: Unexpected token 'ref'
+            //     public static C Make(ref int x) => new C { P += ref x };
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 53));
     }
 
     [Fact]
@@ -594,8 +615,13 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += { 1, 2 } };
             }
             """;
-        var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp);
-        Assert.NotEmpty(comp.GetDiagnostics());
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+            // (4,39): error CS1918: Members of property 'C.P' of type 'int' cannot be assigned with an object initializer because it is of a value type
+            //     public static C Make() => new C { P += { 1, 2 } };
+            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "P").WithArguments("C.P", "int").WithLocation(4, 39),
+            // (4,39): error CS0747: Invalid initializer member declarator
+            //     public static C Make() => new C { P += { 1, 2 } };
+            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P += { 1, 2 }").WithLocation(4, 39));
     }
 
     #endregion
