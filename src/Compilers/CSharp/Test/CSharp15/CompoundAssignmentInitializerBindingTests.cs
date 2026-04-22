@@ -196,6 +196,29 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void Target_StaticEvent_Fails()
+    {
+        // Object-initializer targets must be instance members. Static events are rejected up front
+        // by the "static member in initializer" check — same as any other static member — so compound
+        // / `+=` / `-=` on a static event all fail with CS1914 before event-specific logic runs.
+        var source = """
+            using System;
+            class C
+            {
+                public static event EventHandler E;
+                public static C Make(EventHandler h) => new C { E += h };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,38): warning CS0067: The event 'C.E' is never used
+            //     public static event EventHandler E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 38),
+            // (5,53): error CS1914: Static field or property 'C.E' cannot be assigned in an object initializer
+            //     public static C Make(EventHandler h) => new C { E += h };
+            Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "E").WithArguments("C.E").WithLocation(5, 53));
+    }
+
+    [Fact]
     public void Target_Indexer_DictionaryStyle_Succeeds()
     {
         var source = """
