@@ -6024,7 +6024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // `BoundObjectInitializerMember` as an already-validated lvalue, matching how
             // `BindAssignment` treats it for simple-assignment.
             BindValueKind valueKind =
-                isRhsNestedInitializer ? BindValueKind.RValue : 
+                isRhsNestedInitializer ? BindValueKind.RValue :
                 isRef ? BindValueKind.RefAssignable :
                 isCompound ? BindValueKind.CompoundAssignment : BindValueKind.Assignable;
 
