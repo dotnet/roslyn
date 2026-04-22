@@ -6343,12 +6343,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (boundMemberInitializer.HasAnyErrors)
                 return;
 
-            // Event targets are unrestricted: += / -= on an event binds as BoundEventAssignmentOperator, which
-            // we skip entirely. The field-like-event `Event = null` spec-violation form binds as
-            // BoundAssignmentOperator wrapping a BoundObjectInitializerMember and is tracked like a field below.
-            if (boundMemberInitializer is BoundEventAssignmentOperator)
-                return;
-
             if (boundMemberInitializer.Syntax is not AssignmentExpressionSyntax namedAssignment)
                 return;
 
@@ -6363,7 +6357,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // `Add` returns true if newly recorded, false if we've already seen this member. A second
             // touch is only an error for simple assignment (the spec's "at most one `=`, `=` must come
             // first" rule); compound forms are unrestricted but still get recorded so a later `=` is
-            // flagged.
+            // flagged. Event `+= / -=` (BoundEventAssignmentOperator) names are also recorded here so
+            // that a subsequent `E = h` on the same event is rejected too — compounds before a plain
+            // assignment violate the ordering rule regardless of whether the member is a field,
+            // property, or event.
             if (!memberNameMap.Add(memberName) && isSimpleAssignment)
             {
                 Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);

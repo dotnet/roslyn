@@ -860,10 +860,12 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
-    public void Duplicate_Event_Unrestricted()
+    public void Duplicate_Event_PlusMinusEqualsUnrestricted()
     {
-        // Multiple subscribes/unsubscribes on the same event in one initializer all run. Order:
-        // +a (a), +b (ab), -a (b), +a (ba). Raise() invokes both. a counts 1, b counts 1.
+        // `+=` / `-=` on an event are unrestricted — each binds as BoundEventAssignmentOperator
+        // and goes through add_E / remove_E accessors. Multiple subscribes/unsubscribes on the same
+        // event in one initializer all run. Order: +a (a), +b (ab), -a (b), +a (ba). Raise() invokes
+        // both. a counts 1, b counts 1.
         var source = """
             using System;
             class C
@@ -882,6 +884,84 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "1,1");
+    }
+
+    [Fact]
+    public void Duplicate_FieldLikeEvent_TwoSimpleAssignments_Fails()
+    {
+        // Field-like event simple `=` binds as BoundAssignmentOperator wrapping
+        // BoundObjectInitializerMember (not BoundEventAssignmentOperator), so it participates in the
+        // duplicate-member rule the same way field/property `=` does. Two `E = …` on the same event
+        // from inside the declaring type gives CS1912, matching the field/property behavior.
+        //
+        // Note: the csharplang proposal currently exempts event targets from the duplicate rule
+        // entirely — that's an oversight, because `=` on a field-like event really is just a field
+        // write and a second one is plainly dead code. We pin the stricter (more useful) behavior
+        // here; the spec will be updated to match.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E;
+                public static C Make(EventHandler h) => new C { E = h, E = h };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,31): warning CS0067: The event 'C.E' is never used
+            //     public event EventHandler E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31),
+            // (5,60): error CS1912: Duplicate initialization of member 'E'
+            //     public static C Make(EventHandler h) => new C { E = h, E = h };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "E").WithArguments("E").WithLocation(5, 60));
+    }
+
+    [Fact]
+    public void Duplicate_FieldLikeEvent_SimpleThenCompound_Succeeds()
+    {
+        // `E = h1` (BoundAssignmentOperator) followed by `E += h2` (BoundEventAssignmentOperator)
+        // is allowed — the `=` establishes the handler, the `+=` adds a second, and the rule's
+        // "= must come before compound" ordering is satisfied. Runtime-verify: raise count = 2.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E;
+                public void Raise() => E?.Invoke(null, EventArgs.Empty);
+                public static void Main()
+                {
+                    int count = 0;
+                    EventHandler h = (s, e) => count++;
+                    var c = new C { E = h, E += h };
+                    c.Raise();
+                    System.Console.Write(count);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "2");
+    }
+
+    [Fact]
+    public void Duplicate_FieldLikeEvent_CompoundThenSimple_Fails()
+    {
+        // `E += h1, E = h2` — compound before simple `=` — violates the "= first" rule. Matches
+        // field/property behavior. Note the BoundAssignmentOperator / BoundEventAssignmentOperator
+        // split here means the duplicate map tracks the name only for the `=` form, so the rule
+        // fires at the `E = h2` position.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E;
+                public static C Make(EventHandler h) => new C { E += h, E = h };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,31): warning CS0067: The event 'C.E' is never used
+            //     public event EventHandler E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31),
+            // (5,61): error CS1912: Duplicate initialization of member 'E'
+            //     public static C Make(EventHandler h) => new C { E += h, E = h };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "E").WithArguments("E").WithLocation(5, 61));
     }
 
     [Fact]
