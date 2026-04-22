@@ -5945,13 +5945,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // access is rooted at the initializer placeholder, which object-initializer lowering
                         // substitutes with the real receiver at emit time. Event `+`/`-` dispatch falls out of
                         // BindCompoundAssignmentCore's existing `left.Kind == BoundKind.EventAccess` branch.
-                        _ = BindObjectInitializerMember(
+                        BoundExpression boundLeft = BindObjectInitializerMember(
                             initializer, implicitReceiver, diagnostics,
                             valueKindOverride: BindValueKind.CompoundAssignment,
                             out BoundExpression rawAccess);
 
                         if (rawAccess == null)
                             break;
+
+                        // BindObjectInitializerMemberCommon records value-kind failures (CS0200 on get-only,
+                        // CS0154 on set-only, CS0191 on readonly, CS8331 on ref-readonly, etc.) on the
+                        // BoundObjectInitializerMember wrapper but does not propagate hasErrors back to the
+                        // raw access. Wrap the raw access in a bad expression in that case so downstream
+                        // operator resolution and flow analysis see a known-bad left rather than asserting.
+                        if (boundLeft != null && boundLeft.HasAnyErrors && !rawAccess.HasAnyErrors)
+                        {
+                            rawAccess = ToBadExpression(rawAccess, LookupResultKind.NotAVariable);
+                        }
+
+                        // Per spec, the compound_assignment_operator branch of member_initializer admits only
+                        // *expression*, not the nested initializer form. The parser is permissive (it produces a
+                        // nested ObjectInitializerExpression / CollectionInitializerExpression on the RHS), so we
+                        // reject the shape here. Returning directly avoids falling through to the default case,
+                        // which would re-bind the whole assignment and crash trying to bind the brace-list RHS.
+                        if (initializer.Right is InitializerExpressionSyntax)
+                        {
+                            Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+                            return BindToTypeForErrorRecovery(ToBadExpression(rawAccess, LookupResultKind.NotAValue));
+                        }
 
                         BoundExpression boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
 
@@ -6244,6 +6265,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind = isRhsNestedInitializer ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable;
                 }
             }
+
+#if DEBUG
+            // CheckValueKind above validates the value-kind for this member access but does not set the
+            // WasPropertyBackingFieldAccessChecked flag that the BindValue -> CheckValue path normally sets.
+            // The compound-assignment-in-initializer path hands the raw access to BindCompoundAssignmentCore
+            // rather than wrapping it in BoundObjectInitializerMember, so the post-bind walker in
+            // MethodCompiler would otherwise find an unchecked BoundPropertyAccess. boundMember is freshly
+            // built here and not shared with other binding paths, so a direct set is safe.
+            if (boundMember is BoundPropertyAccess { WasPropertyBackingFieldAccessChecked: false } pa)
+            {
+                pa.WasPropertyBackingFieldAccessChecked = true;
+            }
+#endif
 
             rawAccess = boundMember;
             return new BoundObjectInitializerMember(
