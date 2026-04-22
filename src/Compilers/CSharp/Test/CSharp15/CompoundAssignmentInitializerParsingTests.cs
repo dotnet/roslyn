@@ -35,14 +35,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_AllCompoundOperators(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ Prop {op} 1 }}");
+        UsingExpression($"new Goo {{ Prop {op} 1 }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -69,7 +69,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     public void ObjectInitializer_NamedMember_NoParseDiagnosticsAnyLangVersion(LanguageVersion languageVersion)
     {
         UsingExpression(
-            "new Foo { Prop += 1 }",
+            "new Goo { Prop += 1 }",
             TestOptions.Regular.WithLanguageVersion(languageVersion));
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -77,7 +77,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -103,14 +103,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_MixOfSimpleAndCompound(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ Prop = 10, Prop {op} 5, Event {op} Handler }}");
+        UsingExpression($"new Goo {{ Prop = 10, Prop {op} 5, Event {op} Handler }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -162,14 +162,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_TrailingComma(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ Prop {op} 1, }}");
+        UsingExpression($"new Goo {{ Prop {op} 1, }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -196,7 +196,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_MissingRightHandSide(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        var source = $"new Foo {{ Prop {op} }}";
+        var source = $"new Goo {{ Prop {op} }}";
         var closeBracePosition = source.IndexOf('}') + 1;
         UsingExpression(source,
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, closeBracePosition));
@@ -206,7 +206,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -232,14 +232,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_NestedInitializerOnRhs_PermissiveParse(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ Prop {op} {{ 1, 2 }} }}");
+        UsingExpression($"new Goo {{ Prop {op} {{ 1, 2 }} }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -275,14 +275,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_RefOnRhs(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ Prop {op} ref x }}");
+        UsingExpression($"new Goo {{ Prop {op} ref x }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -312,14 +312,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_GenericNameOnRhs(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ Prop {op} Bar<int>.Baz(x) }}");
+        UsingExpression($"new Goo {{ Prop {op} Bar<int>.Baz(x) }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -381,14 +381,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_IndexerMember_AllCompoundOperators(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ [0] {op} 1 }}");
+        UsingExpression($"new Goo {{ [0] {op} 1 }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -425,14 +425,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_IndexerMember_MultipleArguments(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ [a, b] {op} mask }}");
+        UsingExpression($"new Goo {{ [a, b] {op} mask }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -612,14 +612,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void Classifier_AllCompoundMembersAreObjectInitializer(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ Prop {op} 1, Event {op} Handler }}");
+        UsingExpression($"new Goo {{ Prop {op} 1, Event {op} Handler }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -658,14 +658,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void Classifier_IndexerCompoundMembersAreObjectInitializer(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression($"new Foo {{ [0] {op} a, [1] {op} b }}");
+        UsingExpression($"new Goo {{ [0] {op} a, [1] {op} b }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -728,14 +728,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         // Left is a `SimpleMemberAccessExpression`, not `IdentifierName`/`ImplicitElementAccess`,
         // so this is not object-initializer evidence.
-        UsingExpression($"new Foo {{ a.b {op} 1 }}");
+        UsingExpression($"new Goo {{ a.b {op} 1 }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.CollectionInitializerExpression);
             {
@@ -769,14 +769,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void Classifier_EmptyBracesIsObjectInitializer()
     {
-        UsingExpression("new Foo { }");
+        UsingExpression("new Goo { }");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
@@ -1013,9 +1013,9 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void ColonRecovery_StillRecoversForSimpleAssignment()
     {
-        UsingExpression("new Foo { Prop : 1 }",
+        UsingExpression("new Goo { Prop : 1 }",
             // (1,16): error CS1003: Syntax error, '=' expected
-            // new Foo { Prop : 1 }
+            // new Goo { Prop : 1 }
             Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments("=").WithLocation(1, 16));
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -1023,7 +1023,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.NewKeyword);
             N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierToken, "Foo");
+                N(SyntaxKind.IdentifierToken, "Goo");
             }
             N(SyntaxKind.ObjectInitializerExpression);
             {
