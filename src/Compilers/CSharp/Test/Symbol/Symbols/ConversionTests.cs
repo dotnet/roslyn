@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                     if (kind != result.Kind)
                     {
                         var result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
-                        Assert.True(false, string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
+                        Assert.Fail(string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
                     }
                 }
             }

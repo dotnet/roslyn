@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
         /// <summary>
-        /// Whether the method has the <see langword="unsafe"/> keyword in its signature.
+        /// Whether the method is in an unsafe context.
+        /// For property/event accessors, this includes the containing property's unsafe modifier.
         /// Do not confuse with <see cref="CallerUnsafeMode"/>.
         /// </summary>
         internal abstract bool IsUnsafe { get; }
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (target is SourceMethodSymbol { NeedsSynthesizedRequiresUnsafeAttribute: true })
             {
                 Debug.Assert(target.CallerUnsafeMode == CallerUnsafeMode.Explicit);
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiresUnsafeAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
             }
 
             if (compilation.ShouldEmitNullableAttributes(target) &&

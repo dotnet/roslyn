@@ -48,7 +48,7 @@ public sealed class CSharpPullMemberUpTests : AbstractCSharpCodeActionTest
         }
         else if (actions.Length > 1)
         {
-            Assert.True(false, "Pull Members Up is provided via quick action");
+            Assert.Fail("Pull Members Up is provided via quick action");
         }
         else
         {

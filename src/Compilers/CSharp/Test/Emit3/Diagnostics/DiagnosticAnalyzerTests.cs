@@ -731,14 +731,14 @@ public class B
 
                     // This assert will fire if you are adding a new compiler diagnostic (non-error severity),
                     // but did not add a title resource string for the diagnostic.
-                    Assert.True(false, message);
+                    Assert.Fail(message);
                 }
 
                 var category = descriptor.Category;
                 if (string.IsNullOrEmpty(title))
                 {
                     var message = string.Format("'{0}' must have a non-null non-empty 'Category'", descriptor.Id);
-                    Assert.True(false, message);
+                    Assert.Fail(message);
                 }
             }
         }

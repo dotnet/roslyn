@@ -165,7 +165,10 @@ internal sealed class NewLineUserSettingFormattingRule : BaseFormattingRule
         var currentTokenParentParent = currentToken.Parent.Parent;
 
         // * { - in the member declaration context
-        if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is MemberDeclarationSyntax)
+        // In top-level code, everything is a GlobalStatementSyntax which inherits from MemberDeclarationSyntax,
+        // but we don't want to format a plain open brace as though it's from a member declaration.
+        if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+            currentTokenParentParent is MemberDeclarationSyntax and not GlobalStatementSyntax)
         {
             var option = currentTokenParentParent is BasePropertyDeclarationSyntax
                 ? _options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInProperties)
@@ -366,7 +369,10 @@ internal sealed class NewLineUserSettingFormattingRule : BaseFormattingRule
         var currentTokenParentParent = currentToken.Parent.Parent;
 
         // * { - in the member declaration context
-        if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentTokenParentParent is MemberDeclarationSyntax)
+        // In top-level code, everything is a GlobalStatementSyntax which inherits from MemberDeclarationSyntax,
+        // but we don't want to format a plain open brace as though it's from a member declaration.
+        if (currentToken.IsKind(SyntaxKind.OpenBraceToken) &&
+            currentTokenParentParent is MemberDeclarationSyntax and not GlobalStatementSyntax)
         {
             var option = currentTokenParentParent is BasePropertyDeclarationSyntax
                 ? _options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInProperties)

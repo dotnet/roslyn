@@ -213,7 +213,7 @@ internal class ServerCapabilities
     /// <remarks>Since LSP 3.15</remarks>
     [JsonPropertyName("selectionRangeProvider")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SumType<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>? SelectionRangeProvider { get; init; }
+    public SumType<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>? SelectionRangeProvider { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the server supports linked editing range.
@@ -229,7 +229,7 @@ internal class ServerCapabilities
     /// <remarks>Since LSP 3.16</remarks>
     [JsonPropertyName("callHierarchyProvider")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SumType<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>? CallHierarchyProvider { get; init; }
+    public SumType<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>? CallHierarchyProvider { get; set; }
 
     /// <summary>
     /// Gets or sets the value which indicates if semantic tokens is supported.
@@ -253,7 +253,7 @@ internal class ServerCapabilities
     /// <remarks>Since LSP 3.17</remarks>
     [JsonPropertyName("typeHierarchyProvider")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>? TypeHierarchyProvider { get; init; }
+    public SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>? TypeHierarchyProvider { get; set; }
 
     /// <summary>
     /// The server provides inline values.

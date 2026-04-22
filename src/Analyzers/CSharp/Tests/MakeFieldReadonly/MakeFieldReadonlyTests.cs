@@ -214,7 +214,7 @@ public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
             }
             """);
 
-    [Theory]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     [InlineData("")]
     [InlineData("\r\n")]
     [InlineData("\r\n\r\n")]

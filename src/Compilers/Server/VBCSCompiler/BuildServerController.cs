@@ -25,49 +25,42 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         internal const string KeepAliveSettingName = "keepalive";
 
-        private readonly NameValueCollection _appSettings;
         private readonly ICompilerServerLogger _logger;
 
-        internal BuildServerController(NameValueCollection appSettings, ICompilerServerLogger logger)
+        internal BuildServerController(ICompilerServerLogger logger)
         {
-            _appSettings = appSettings;
             _logger = logger;
         }
 
-        internal int Run(string[] args)
+        internal int Run(string? pipeName, bool shutdown, TimeSpan? keepAlive)
         {
-            string? pipeName;
-            bool shutdown;
-            if (!ParseCommandLine(args, out pipeName, out shutdown))
-            {
-                return CommonCompiler.Failed;
-            }
-
-            pipeName = pipeName ?? GetDefaultPipeName();
-            if (pipeName is null)
-            {
-                throw new Exception("Cannot calculate pipe name");
-            }
-
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
             return shutdown
                 ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, cancellationToken: cancellationTokenSource.Token);
+                : RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
-        internal TimeSpan? GetKeepAliveTimeout()
+        internal static TimeSpan GetDefaultKeepAlive(ICompilerServerLogger logger, NameValueCollection? appSettings = null)
         {
             try
             {
-                if (int.TryParse(_appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
+#if NET472
+                appSettings ??= System.Configuration.ConfigurationManager.AppSettings;
+#endif
+                if (appSettings is null)
+                {
+                    return ServerDispatcher.DefaultServerKeepAlive;
+                }
+
+                if (int.TryParse(appSettings[KeepAliveSettingName], NumberStyles.Integer, CultureInfo.InvariantCulture, out int keepAliveValue) &&
                     keepAliveValue >= 0)
                 {
                     if (keepAliveValue == 0)
                     {
                         // This is a one time server entry.
-                        return null;
+                        return Timeout.InfiniteTimeSpan;
                     }
                     else
                     {
@@ -81,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception e)
             {
-                _logger.LogException(e, "Could not read AppSettings");
+                logger.LogException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;
             }
         }
@@ -101,14 +94,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         internal int RunServer(
-            string pipeName,
+            string? pipeName = null,
             ICompilerServerHost? compilerServerHost = null,
             IClientConnectionHost? clientConnectionHost = null,
             IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
             CancellationToken cancellationToken = default)
         {
-            keepAlive ??= GetKeepAliveTimeout();
+            pipeName ??= GetDefaultPipeName();
+            if (pipeName is null)
+            {
+                throw new Exception("Cannot calculate pipe name");
+            }
+
             listener ??= new EmptyDiagnosticListener();
             compilerServerHost ??= CreateCompilerServerHost(_logger);
             clientConnectionHost ??= CreateClientConnectionHost(pipeName, _logger);
@@ -126,11 +124,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CommonCompiler.Failed;
                 }
 
-                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive?.TotalMilliseconds ?? 0);
+                keepAlive ??= GetDefaultKeepAlive(_logger);
+                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive.Value.TotalMilliseconds);
                 FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);
-                dispatcher.ListenAndDispatchConnections(keepAlive, cancellationToken);
+                dispatcher.ListenAndDispatchConnections(keepAlive.Value, cancellationToken);
                 return CommonCompiler.Succeeded;
             }
         }
@@ -141,21 +140,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             IClientConnectionHost? clientConnectionHost = null,
             IDiagnosticListener? listener = null,
             TimeSpan? keepAlive = null,
-            NameValueCollection? appSettings = null,
             ICompilerServerLogger? logger = null,
             CancellationToken cancellationToken = default)
         {
-            appSettings ??= new NameValueCollection();
             logger ??= EmptyCompilerServerLogger.Instance;
-            var controller = new BuildServerController(appSettings, logger);
-            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken);
+            var controller = new BuildServerController(logger);
+            return controller.RunServer(pipeName, compilerServerHost, clientConnectionHost, listener, keepAlive, cancellationToken: cancellationToken);
         }
 
-        internal int RunShutdown(string pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
+        internal int RunShutdown(string? pipeName, int? timeoutOverride = null, CancellationToken cancellationToken = default) =>
             RunShutdownAsync(pipeName, waitForProcess: true, timeoutOverride, cancellationToken).GetAwaiter().GetResult();
 
-        internal async Task<int> RunShutdownAsync(string pipeName, bool waitForProcess, int? timeoutOverride, CancellationToken cancellationToken = default)
+        internal async Task<int> RunShutdownAsync(string? pipeName, bool waitForProcess, int? timeoutOverride, CancellationToken cancellationToken = default)
         {
+            pipeName ??= GetDefaultPipeName();
+            if (pipeName is null)
+            {
+                throw new Exception("Cannot calculate pipe name");
+            }
+
             var success = await BuildServerConnection.RunServerShutdownRequestAsync(
                 pipeName,
                 timeoutOverride,
@@ -165,17 +168,55 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return success ? CommonCompiler.Succeeded : CommonCompiler.Failed;
         }
 
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown)
+        /// <summary>
+        /// Parses the command-line arguments for the build server.
+        /// </summary>
+        /// <remarks>
+        /// Recognized options:
+        /// <list type="bullet">
+        ///   <item><description><c>-pipename:&lt;name&gt;</c> — the named pipe to listen on.</description></item>
+        ///   <item><description><c>-timeout:&lt;seconds&gt;</c> — keep-alive in seconds; <c>0</c> means infinite (no timeout).</description></item>
+        ///   <item><description><c>-log:&lt;path&gt;</c> — path to the log file.</description></item>
+        ///   <item><description><c>-shutdown</c> — request the server to shut down.</description></item>
+        /// </list>
+        /// </remarks>
+        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out TimeSpan? timeout, out string? logFilePath)
         {
             pipeName = null;
             shutdown = false;
+            timeout = null;
+            logFilePath = null;
 
             foreach (var arg in args)
             {
                 const string pipeArgPrefix = "-pipename:";
-                if (arg.StartsWith(pipeArgPrefix, StringComparison.Ordinal))
+                const string timeoutArgPrefix = "-timeout:";
+                const string logArgPrefix = "-log:";
+                var argSpan = arg.AsSpan();
+                if (argSpan.StartsWith(pipeArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    pipeName = arg.Substring(pipeArgPrefix.Length);
+                    pipeName = argSpan[pipeArgPrefix.Length..].ToString();
+                }
+                else if (argSpan.StartsWith(timeoutArgPrefix.AsSpan(), StringComparison.Ordinal))
+                {
+                    var timeoutValue = argSpan[timeoutArgPrefix.Length..];
+                    if (!int.TryParse(timeoutValue.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedTimeout) ||
+                        parsedTimeout < 0)
+                    {
+                        return false;
+                    }
+
+                    timeout = parsedTimeout == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
+                }
+                else if (argSpan.StartsWith(logArgPrefix.AsSpan(), StringComparison.Ordinal))
+                {
+                    var parsedLogFilePath = argSpan[logArgPrefix.Length..];
+                    if (parsedLogFilePath.Length == 0)
+                    {
+                        return false;
+                    }
+
+                    logFilePath = parsedLogFilePath.ToString();
                 }
                 else if (arg == "-shutdown")
                 {
