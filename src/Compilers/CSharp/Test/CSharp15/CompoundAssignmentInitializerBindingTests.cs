@@ -30,6 +30,18 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         "<<=", ">>=", ">>>=",
     };
 
+    /// <summary>
+    /// The 9 compound operators other than `+=` / `-=`. Per spec, an event target is only valid with
+    /// `+=` or `-=`; every other compound form falls through `BindCompoundAssignmentCore`'s event
+    /// dispatch and hits overload resolution on the delegate type, producing CS0019.
+    /// </summary>
+    public static TheoryData<string> NonPlusMinusCompoundOperators => new()
+    {
+        "*=", "/=", "%=",
+        "&=", "|=", "^=",
+        "<<=", ">>=", ">>>=",
+    };
+
     /// <summary>Bitwise operators that work on any enum (flags or plain).</summary>
     public static TheoryData<string> EnumBitwiseOperators => new()
     {
@@ -296,27 +308,99 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
 
     #region Event target constraints
 
-    [Fact]
-    public void Event_NonPlusOrMinusCompound_Fails()
+    [Theory, MemberData(nameof(NonPlusMinusCompoundOperators))]
+    public void Event_NonPlusOrMinusCompound_Fails(string op)
     {
         // Per spec: "An *identifier* that names an event is a valid target only in combination with the
         // `+=` or `-=` operator". Other compound ops fall through BindCompoundAssignmentCore's event branch
         // and fail via overload resolution on the delegate type (CS0019).
-        var source = """
+        var source = $$"""
             using System;
             class C
             {
                 public event EventHandler E;
-                public static C Make(EventHandler h) => new C { E *= h };
+                public static C Make(EventHandler h) => new C { E {{op}} h };
             }
             """;
         CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,31): warning CS0067: The event 'C.E' is never used
             //     public event EventHandler E;
             Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31),
-            // (5,53): error CS0019: Operator '*=' cannot be applied to operands of type 'EventHandler' and 'EventHandler'
-            //     public static C Make(EventHandler h) => new C { E *= h };
-            Diagnostic(ErrorCode.ERR_BadBinaryOps, "E *= h").WithArguments("*=", "System.EventHandler", "System.EventHandler").WithLocation(5, 53));
+            // (5,53): error CS0019: Operator 'op' cannot be applied to operands of type 'EventHandler' and 'EventHandler'
+            //     public static C Make(EventHandler h) => new C { E op h };
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, $"E {op} h").WithArguments(op, "System.EventHandler", "System.EventHandler").WithLocation(5, 53));
+    }
+
+    [Fact]
+    public void Event_SimpleAssignment_FromInsideContainingType_Succeeds()
+    {
+        // From inside C, the field-like event `E` is usable as a field, so `E = h` in an object
+        // initializer binds as assignment to the backing delegate field — same as `c.E = h` would
+        // from inside C. (This is a spec violation that Roslyn has long permitted for field-like
+        // events; confirming compound-assignment-in-initializer work doesn't regress it.)
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E;
+                public static C Make(EventHandler h) => new C { E = h };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (4,31): warning CS0067: The event 'C.E' is never used
+            //     public event EventHandler E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
+    }
+
+    [Fact]
+    public void Event_SimpleAssignment_FromOutsideContainingType_Fails()
+    {
+        // From outside the containing type, the event's backing field isn't accessible, so `E = h`
+        // simple assignment is illegal: "The event 'C.E' can only appear on the left hand side of
+        // += or -=". Object-initializer context doesn't relax that.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E;
+            }
+            class Outer
+            {
+                public static C Make(EventHandler h) => new C { E = h };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (4,31): warning CS0067: The event 'C.E' is never used
+            //     public event EventHandler E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31),
+            // (8,53): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+            //     public static C Make(EventHandler h) => new C { E = h };
+            Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(8, 53));
+    }
+
+    [Fact]
+    public void Event_SimpleAssignment_CustomEvent_Fails()
+    {
+        // A custom event (explicit add / remove accessors) has no backing field, so `E = h` simple
+        // assignment is illegal even from inside the containing type — the event isn't usable as a
+        // field. Reinforces that the simple-assignment path doesn't special-case events as a writable
+        // location.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E
+                {
+                    add { }
+                    remove { }
+                }
+                public C Fluent(EventHandler h) => new C { E = h };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (9,48): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
+            //     public C Fluent(EventHandler h) => new C { E = h };
+            Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("C.E").WithLocation(9, 48));
     }
 
     [Fact]

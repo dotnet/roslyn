@@ -5850,12 +5850,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
-            // Per-name initializer state used to enforce the duplicate-member rules from
-            // https://github.com/dotnet/csharplang/blob/main/proposals/compound-assignment-in-initializer-and-with.md :
-            // at most one `=` per field/property target, any number of compound assignments, and `=` must appear
-            // before any compound assignment for the same target. Event (BoundEventAssignmentOperator) and indexer
-            // (ImplicitElementAccess) targets are unrestricted.
-            var memberNameMap = PooledDictionary<string, MemberInitializerState>.GetInstance();
+            // Tracks names we've seen any initializer for so that the duplicate-member rules can be
+            // enforced: at most one `=` per field/property target, any number of compound assignments,
+            // and `=` must appear before any compound assignment for the same target. Event
+            // (BoundEventAssignmentOperator) and indexer (ImplicitElementAccess) targets are
+            // unrestricted; ReportDuplicateObjectMemberInitializers filters them out before checking.
+            var seenMemberNames = PooledHashSet<string>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
                 BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
@@ -5863,22 +5863,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 initializers.Add(boundMemberInitializer);
 
-                ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
+                ReportDuplicateObjectMemberInitializers(boundMemberInitializer, seenMemberNames, diagnostics);
             }
-            memberNameMap.Free();
+            seenMemberNames.Free();
 
             return new BoundObjectInitializerExpression(
                 initializerSyntax,
                 implicitReceiver,
                 initializers.ToImmutableAndFree(),
                 initializerType);
-        }
-
-        private enum MemberInitializerState
-        {
-            None = 0,
-            SeenEquals = 1,
-            SeenCompound = 2,
         }
 
         private BoundExpression BindInitializerMemberAssignment(
@@ -6311,10 +6304,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportDuplicateObjectMemberInitializers(
             BoundExpression boundMemberInitializer,
-            Dictionary<string, MemberInitializerState> memberNameMap,
+            HashSet<string> seenMemberNames,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(memberNameMap != null);
+            Debug.Assert(seenMemberNames != null);
 
             // SPEC:    For any given field or property target, at most one member initializer may use the `=` operator.
             // SPEC:    Any number of member initializers using a compound_assignment_operator are permitted for the
@@ -6342,22 +6335,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var memberName = memberNameSyntax.Identifier.ValueText;
             bool isSimpleAssignment = namedAssignment.Kind() == SyntaxKind.SimpleAssignmentExpression;
 
-            memberNameMap.TryGetValue(memberName, out var state);
-            if (isSimpleAssignment)
+            // `Add` returns true if newly recorded, false if we've already seen this member. A second
+            // touch is only an error for simple assignment (the spec's "at most one `=`, `=` must come
+            // first" rule); compound forms are unrestricted but still get recorded so a later `=` is
+            // flagged.
+            if (!seenMemberNames.Add(memberName) && isSimpleAssignment)
             {
-                // A second `=`, or a `=` that follows any compound assignment for the same target, is an error.
-                if (state != MemberInitializerState.None)
-                {
-                    Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
-                }
-
-                memberNameMap[memberName] = MemberInitializerState.SeenEquals;
-            }
-            else
-            {
-                // Compound forms are unrestricted for the same target; just record that a compound appeared
-                // so a later `=` for the same target can be flagged.
-                memberNameMap[memberName] = MemberInitializerState.SeenCompound;
+                Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
             }
         }
 
