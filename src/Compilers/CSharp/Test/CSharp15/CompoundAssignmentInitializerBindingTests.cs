@@ -597,9 +597,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, Polyfills]).VerifyDiagnostics(
-            // (4,39): error CS1918: Members of property 'C.P' of type 'int' cannot be assigned with an object initializer because it is of a value type
-            //     public static C Make() => new C { P += { 1, 2 } };
-            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "P").WithArguments("C.P", "int").WithLocation(4, 39),
             // (4,39): error CS0747: Invalid initializer member declarator
             //     public static C Make() => new C { P += { 1, 2 } };
             Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P += { 1, 2 }").WithLocation(4, 39));
