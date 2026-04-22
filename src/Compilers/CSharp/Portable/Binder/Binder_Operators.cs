@@ -38,12 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// (where the BoundEventAccess is stashed on
         /// <see cref="BoundObjectInitializerMember.UnderlyingAccessOpt"/>) share one dispatch site.
         /// </summary>
-        private static BoundEventAccess? TryGetEventAccess(BoundExpression left) => left switch
-        {
-            BoundEventAccess e => e,
-            BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
-            _ => null,
-        };
+        private static BoundEventAccess? TryGetEventAccess(BoundExpression left)
+            => left switch
+            {
+                BoundEventAccess e => e,
+                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+                _ => null,
+            };
 
         /// <summary>
         /// Binds a compound assignment given an already-bound left and right. Used by
