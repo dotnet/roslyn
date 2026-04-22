@@ -300,10 +300,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         AddObjectInitializer(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, (BoundAssignmentOperator)initializer);
                         break;
                     case BoundKind.CompoundAssignmentOperator:
-                        AddCompoundObjectInitializer(ref temps, result, rewrittenReceiver, (BoundCompoundAssignmentOperator)initializer);
-                        break;
                     case BoundKind.NullCoalescingAssignmentOperator:
-                        AddNullCoalescingObjectInitializer(ref temps, result, rewrittenReceiver, (BoundNullCoalescingAssignmentOperator)initializer);
+                        AddCompoundOrCoalesceObjectInitializer(ref temps, result, rewrittenReceiver, initializer);
                         break;
                     case BoundKind.EventAssignmentOperator:
                         AddEventObjectInitializer(result, rewrittenReceiver, (BoundEventAssignmentOperator)initializer);
@@ -315,79 +313,64 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lowers a compound member initializer (`Prop += v` / `Prop |= v` / etc.) on an object
-        /// initializer by substituting the placeholder receiver on the target access with the real
-        /// <paramref name="rewrittenReceiver"/>, then handing the rebuilt compound op to the general
-        /// compound-assignment lowering pipeline (<see cref="VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator, bool)"/>)
-        /// to emit the read-op-write sequence. Accepts every Left shape that
+        /// Lowers a compound (`Prop += v` / `Prop |= v` / etc.) or null-coalescing (`Prop ??= v`)
+        /// member initializer on an object initializer by substituting the placeholder receiver on
+        /// the target access with the real <paramref name="rewrittenReceiver"/>, then handing the
+        /// rebuilt assignment op to the corresponding general lowering pipeline
+        /// (<see cref="VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator, bool)"/> or
+        /// <see cref="VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator)"/>)
+        /// to emit the read-op-write / get-if-null-then-set sequence. Accepts every Left shape that
         /// <c>BindObjectInitializerMemberCommon</c> can produce for a non-dynamic target: the
-        /// <see cref="BoundObjectInitializerMember"/> wrapper (field / property / indexer / event) plus
-        /// the three bare accesses it hands back directly without a wrapper
+        /// <see cref="BoundObjectInitializerMember"/> wrapper (field / property / indexer / event)
+        /// plus the three bare accesses it hands back directly without a wrapper
         /// (<see cref="BoundImplicitIndexerAccess"/> for <c>Index</c>/<c>Range</c>-pattern targets,
         /// <see cref="BoundArrayAccess"/>, <see cref="BoundPointerElementAccess"/>).
         /// </summary>
-        private void AddCompoundObjectInitializer(
+        private void AddCompoundOrCoalesceObjectInitializer(
             ref ArrayBuilder<LocalSymbol>? temps,
             ArrayBuilder<BoundExpression> result,
             BoundExpression rewrittenReceiver,
-            BoundCompoundAssignmentOperator compound)
+            BoundExpression initializer)
         {
             Debug.Assert(rewrittenReceiver != null);
             Debug.Assert(!_inExpressionLambda);
 
             // Build the concrete member access with the real receiver, matching the simple-assignment
-            // path. Then rebuild the compound op with that access as Left; the type matches, so the
-            // operator's LeftConversion / FinalConversion remain valid. The Right is still in unlowered
-            // form so VisitCompoundAssignmentOperator visits it during lowering.
-            var rewrittenAccess = RewriteInitializerMemberLeftOperand(
-                compound.Left, ref rewrittenReceiver, result, ref temps);
+            // path. Then rebuild the assignment op with that access as Left; the type matches, so
+            // conversions and the operator signature remain valid. The Right is still in unlowered
+            // form so the visitor visits it during lowering.
+            //
+            // used: false on the compound arm — in an object initializer each member initializer is a
+            // statement-expression whose value is discarded, so VisitCompoundAssignmentOperator can
+            // skip emitting the final dup/stloc that would preserve the RHS value on the stack. The
+            // simple-assignment path calls MakeStaticAssignmentOperator with used: false for the same
+            // reason; VisitNullCoalescingAssignmentOperator doesn't take a `used` flag.
+            BoundExpression lowered = initializer switch
+            {
+                BoundCompoundAssignmentOperator compound
+                    => VisitCompoundAssignmentOperator(
+                        compound.Update(
+                            compound.Operator,
+                            RewriteInitializerMemberLeftOperand(compound.Left, ref rewrittenReceiver, result, ref temps),
+                            compound.Right,
+                            compound.LeftPlaceholder,
+                            compound.LeftConversion,
+                            compound.FinalPlaceholder,
+                            compound.FinalConversion,
+                            compound.ResultKind,
+                            compound.OriginalUserDefinedOperatorsOpt,
+                            compound.Type),
+                        used: false),
+                BoundNullCoalescingAssignmentOperator coalesce
+                    => (BoundExpression)VisitNullCoalescingAssignmentOperator(
+                        coalesce.Update(
+                            RewriteInitializerMemberLeftOperand(coalesce.LeftOperand, ref rewrittenReceiver, result, ref temps),
+                            coalesce.RightOperand,
+                            coalesce.Type)),
+                _ => throw ExceptionUtilities.UnexpectedValue(initializer.Kind),
+            };
 
-            var transformedCompound = compound.Update(
-                compound.Operator,
-                rewrittenAccess,
-                compound.Right,
-                compound.LeftPlaceholder,
-                compound.LeftConversion,
-                compound.FinalPlaceholder,
-                compound.FinalConversion,
-                compound.ResultKind,
-                compound.OriginalUserDefinedOperatorsOpt,
-                compound.Type);
-
-            // used: false — in an object initializer each member initializer is a statement-expression
-            // whose value is discarded, so the compound-assignment lowering can skip emitting the final
-            // dup/stloc that would preserve the RHS value on the stack. Mirrors the simple-assignment
-            // path, which calls MakeStaticAssignmentOperator with used: false.
-            result.Add(VisitCompoundAssignmentOperator(transformedCompound, used: false));
-        }
-
-        /// <summary>
-        /// Lowers a null-coalescing member initializer (`Prop ??= v`) on an object initializer by
-        /// substituting the placeholder receiver on the target access with the real
-        /// <paramref name="rewrittenReceiver"/> and handing the rebuilt null-coalescing-assignment op
-        /// to <see cref="VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator)"/>
-        /// (which handles the get-if-null-then-set short-circuit, including the nullable-value-type
-        /// `GetValueOrDefault` / `HasValue` path). Shares the same per-kind dispatch as the compound
-        /// path — `??=` on the eleven member access shapes the compound initializer admits.
-        /// </summary>
-        private void AddNullCoalescingObjectInitializer(
-            ref ArrayBuilder<LocalSymbol>? temps,
-            ArrayBuilder<BoundExpression> result,
-            BoundExpression rewrittenReceiver,
-            BoundNullCoalescingAssignmentOperator coalesce)
-        {
-            Debug.Assert(rewrittenReceiver != null);
-            Debug.Assert(!_inExpressionLambda);
-
-            var rewrittenAccess = RewriteInitializerMemberLeftOperand(
-                coalesce.LeftOperand, ref rewrittenReceiver, result, ref temps);
-
-            var transformedCoalesce = coalesce.Update(
-                rewrittenAccess,
-                coalesce.RightOperand,
-                coalesce.Type);
-
-            result.Add((BoundExpression)VisitNullCoalescingAssignmentOperator(transformedCoalesce));
+            result.Add(lowered);
         }
 
         /// <summary>
