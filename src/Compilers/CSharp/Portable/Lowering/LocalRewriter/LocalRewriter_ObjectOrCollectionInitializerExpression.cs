@@ -392,9 +392,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (left.Kind)
             {
                 case BoundKind.ObjectInitializerMember:
+                    // The dynamic-indexer sub-case (`MemberSymbol == null && Type.IsDynamic()`) is an
+                    // initializer-member shape that carries a BoundDynamicIndexerAccess in
+                    // UnderlyingAccessOpt. The general MakeObjectInitializerMemberAccess asserts a
+                    // non-null member, so we unwrap here to the BoundDynamicIndexerAccess and let the
+                    // compound lowering's dynamic-indexer dispatch (TransformDynamicIndexerAccess) take
+                    // over, mirroring the non-initializer `d[0] += 1` path.
+                    var wrapper = (BoundObjectInitializerMember)left;
+                    if (wrapper is { MemberSymbol: null } && wrapper.Type.IsDynamic())
+                    {
+                        return RewriteDynamicIndexerInitializerAccess(wrapper, ref rewrittenReceiver, result, ref temps);
+                    }
+
                     return RewriteObjectInitializerMemberAccess(
-                        (BoundObjectInitializerMember)left,
-                        ref rewrittenReceiver, result, ref temps, isRhsNestedInitializer: false);
+                        wrapper, ref rewrittenReceiver, result, ref temps, isRhsNestedInitializer: false);
 
                 case BoundKind.ImplicitIndexerAccess:
                     return RewriteImplicitIndexerInitializerAccess(
@@ -449,6 +460,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return VisitRangePatternIndexerAccess(implicitIndexer, temps, result, cacheAllArgumentsOnly: true);
+        }
+
+        /// <summary>
+        /// Normalizes a dynamic-indexer initializer-member target — a <see cref="BoundObjectInitializerMember"/>
+        /// with <c>MemberSymbol == null</c> and a dynamic Type, carrying its originating
+        /// <see cref="BoundDynamicIndexerAccess"/> in <see cref="BoundObjectInitializerMember.UnderlyingAccessOpt"/> —
+        /// into a <see cref="BoundDynamicIndexerAccess"/> with the real receiver, so the compound
+        /// lowering pipeline (<c>VisitCompoundAssignmentOperator</c> → <c>TransformDynamicIndexerAccess</c>)
+        /// can emit the runtime GetIndex/SetIndex call-site pair, matching the non-initializer
+        /// <c>d[0] += 1</c> path.
+        /// </summary>
+        private BoundExpression RewriteDynamicIndexerInitializerAccess(
+            BoundObjectInitializerMember wrapper,
+            ref BoundExpression rewrittenReceiver,
+            ArrayBuilder<BoundExpression> result,
+            ref ArrayBuilder<LocalSymbol>? temps)
+        {
+            Debug.Assert(wrapper.UnderlyingAccessOpt is BoundDynamicIndexerAccess);
+
+            var originalIndexer = (BoundDynamicIndexerAccess)wrapper.UnderlyingAccessOpt!;
+            var visitedWrapper = (BoundObjectInitializerMember)VisitObjectInitializerMember(wrapper, ref rewrittenReceiver, result, ref temps);
+
+            var liftedArgs = visitedWrapper.Arguments.IsDefaultOrEmpty
+                ? visitedWrapper.Arguments
+                : EvaluateSideEffectingArgumentsToTemps(visitedWrapper.Arguments, paramRefKindsOpt: default, result, ref temps);
+
+            return originalIndexer.Update(
+                rewrittenReceiver,
+                liftedArgs,
+                visitedWrapper.ArgumentNamesOpt,
+                visitedWrapper.ArgumentRefKindsOpt,
+                originalIndexer.ApplicableIndexers,
+                originalIndexer.Type);
         }
 
         /// <summary>

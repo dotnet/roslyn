@@ -261,6 +261,114 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void Target_StaticProperty_InWith_Fails()
+    {
+        // Static-member rejection has to fire for `with` the same way it does for `new`. The `with`
+        // path reuses member_initializer, so the check happens in the same binder code — but nothing
+        // pins it for the with side, so a regression would be invisible.
+        var source = """
+            record R(int V)
+            {
+                public static int P { get; set; }
+                public static R Make(R r) => r with { P += 1 };
+            }
+            """;
+        // `with` rejects with CS0176 ("member 'R.P' cannot be accessed with an instance reference")
+        // rather than the `new` form's CS1914, because the `with` binder treats the clone receiver
+        // differently. Either diagnostic is informative; what this test pins is that the shape is
+        // rejected at all — not that binding silently accepts a static member.
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (4,43): error CS0176: Member 'R.P' cannot be accessed with an instance reference; qualify it with a type name instead
+            //     public static R Make(R r) => r with { P += 1 };
+            Diagnostic(ErrorCode.ERR_ObjectProhibited, "P").WithArguments("R.P").WithLocation(4, 43));
+    }
+
+    [Fact]
+    public void Target_InheritedProperty_Compound_RoutesThroughBaseSetter()
+    {
+        // Compound initializer on an inherited property must use the base-declared accessor pair —
+        // symbol resolution, get/set selection, and value-kind checks all go through the base.
+        // Runtime-verify by seeding 10 on Base.P (via Base() { }) and confirming `new Derived() { P += 5 }`
+        // reports 15 through `base.P`'s setter.
+        var source = """
+            class Base { public int P { get; set; } = 10; }
+            class Derived : Base { }
+            class Driver
+            {
+                public static void Main() => System.Console.Write(new Derived { P += 5 }.P);
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "15");
+    }
+
+    [Fact]
+    public void Target_ShadowedProperty_Compound_UsesDerivedDeclaration()
+    {
+        // When a derived class declares `new int P { … }` with its own backing storage, the initializer
+        // must resolve the derived P, not the base. This exercises the normal member-lookup priority
+        // through BindObjectInitializerMember / BindInstanceMemberAccess; a regression that resolved
+        // the base would be visible in the final value.
+        var source = """
+            class Base { public int P { get; set; } = 100; }
+            class Derived : Base { public new int P { get; set; } = 10; }
+            class Driver
+            {
+                public static void Main()
+                {
+                    var d = new Derived { P += 5 };
+                    // Derived.P reads 10 + 5 = 15; Base.P is unchanged at 100. If binding accidentally
+                    // resolved to Base.P, we'd see 105 on the derived reference.
+                    System.Console.Write($"{d.P},{((Base)d).P}");
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "15,100");
+    }
+
+    [Fact]
+    public void Target_InaccessiblePrivateSetter_Compound_Fails()
+    {
+        // Compound's value-kind check must enforce setter accessibility exactly as simple `=` does.
+        // `public int P { get; private set; }` accessed from outside the declaring type has an
+        // inaccessible set accessor; `new C { P += 1 }` should fail with CS0272.
+        var source = """
+            public class C
+            {
+                public int P { get; private set; }
+            }
+            public class Driver
+            {
+                public static C Make() => new C { P += 1 };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,39): error CS0272: The property or indexer 'C.P' cannot be used in this context because the set accessor is inaccessible
+            //     public static C Make() => new C { P += 1 };
+            Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P").WithArguments("C.P").WithLocation(7, 39));
+    }
+
+    [Fact]
+    public void Target_ObsoleteProperty_Compound_ReportsOnce()
+    {
+        // Compound reads and writes through the same accessor pair; `[Obsolete]` on a property
+        // reports once per property reference, same as `=` / non-initializer compound. Pin the
+        // diagnostic to catch a regression that double-counts, stays silent, or switches to a
+        // set-only error on a get-and-set member.
+        var source = """
+            using System;
+            class C
+            {
+                [Obsolete("old")] public int P { get; set; }
+                public static C Make() => new C { P += 1 };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,39): warning CS0618: 'C.P' is obsolete: 'old'
+            //     public static C Make() => new C { P += 1 };
+            Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "P").WithArguments("C.P", "old").WithLocation(5, 39));
+    }
+
+    [Fact]
     public void Target_StaticEvent_Fails()
     {
         // Object-initializer targets must be instance members. Static events are rejected up front
@@ -300,6 +408,104 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             """;
         // 5|2 = 7, 6&3 = 2, 7+10 = 17
         CompileAndVerify(source, expectedOutput: "7,2,17");
+    }
+
+    [Fact]
+    public void Target_NestedArray_Compound_Runs()
+    {
+        // Nested object initializer on a non-readonly `int[]` field. The inner `{ [0] += 5, [1] |= 3 }`
+        // binds each compound's LHS as a bare BoundArrayAccess (not wrapped in BoundObjectInitializerMember),
+        // hitting the dispatcher's ArrayAccess arm and RewriteArrayInitializerAccess. Runtime-verify
+        // that both elements receive their compound's effect.
+        var source = """
+            class C
+            {
+                public int[] A = { 0, 6, 0 };
+                public static void Main()
+                {
+                    var c = new C { A = { [0] += 5, [1] |= 3 } };
+                    System.Console.Write($"{c.A[0]},{c.A[1]}");
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "5,7");
+    }
+
+    [Fact]
+    public void Target_NestedArray_SideEffectingIndex_EvaluatedOnce()
+    {
+        // Spec-normative (inherited via the statement-expression lowering): indexer arguments on an
+        // initializer target are evaluated exactly once. For a bare BoundArrayAccess LHS, this is
+        // enforced by RewriteArrayInitializerAccess's EvaluateSideEffectingArgumentsToTemps call. Pin
+        // the side-effect count with a GetIndex method.
+        var source = """
+            class C
+            {
+                public int[] A = new int[3];
+                public int Counter;
+                public int GetIndex() { Counter++; return 0; }
+                public static void Main()
+                {
+                    var c = new C();
+                    _ = new C { A = { [c.GetIndex()] += 5 } };
+                    System.Console.Write(c.Counter);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1");
+    }
+
+    [Fact]
+    public void Target_NestedPointerField_Compound_Runs()
+    {
+        // Pointer-element compound through the nested-initializer path. The inner `{ [0] += 5 }` LHS
+        // binds as a bare BoundPointerElementAccess and hits the dispatcher's PointerElementAccess
+        // arm (→ RewritePointerElementInitializerAccess). Unsafe context; PEVerify skipped because
+        // pointer access isn't verifiable IL. Construction takes the pointer via the ctor so `c.P`
+        // is valid when the inner `{ [0] += 5 }` reads/writes through it.
+        var source = """
+            unsafe class C
+            {
+                public int* P;
+                public C(int* p) { P = p; }
+                public static void Main()
+                {
+                    int backing = 10;
+                    _ = new C(&backing) { P = { [0] += 5 } };
+                    System.Console.Write(backing);
+                }
+            }
+            """;
+        CompileAndVerify(
+            source,
+            options: TestOptions.UnsafeReleaseExe,
+            verify: Verification.Skipped,
+            expectedOutput: "15");
+    }
+
+    [Fact]
+    public void Target_NestedDynamicIndexer_Compound_Runs()
+    {
+        // Regression test for audit finding #1: `new Outer { Inner = { [0] += 5 } }` where Inner is
+        // `dynamic` used to trip `Debug.Assert(memberSymbol is object)` in MakeObjectInitializerMemberAccess
+        // during lowering. The compound path now detects `BoundObjectInitializerMember { MemberSymbol:
+        // null } && Type.IsDynamic()`, unwraps to the underlying BoundDynamicIndexerAccess, and lets
+        // TransformDynamicIndexerAccess emit the runtime GetIndex+SetIndex call-site pair — the same
+        // shape `d[0] += 5` uses outside an initializer. Pre-populate the dictionary so the compound's
+        // read step has a value.
+        var source = """
+            using System.Collections.Generic;
+            class Outer
+            {
+                public dynamic Inner { get; set; } = new Dictionary<int,int> { { 0, 10 } };
+                public static void Main()
+                {
+                    var o = new Outer { Inner = { [0] += 5 } };
+                    System.Console.Write((int)o.Inner[0]);
+                }
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "15");
     }
 
     [Fact]
@@ -2071,6 +2277,107 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void Checked_MultiplyOverflow_InWithOnRecord_Throws()
+    {
+        // Checked flag has to survive the `compound.Update(compound.Operator, ...)` rebuild in the
+        // `with`-expression lowering just as it does in the `new` form. Pin the same OverflowException
+        // through a record `with` clause.
+        var source = """
+            using System;
+            record R(int P);
+            class Driver
+            {
+                public static void Main()
+                {
+                    try
+                    {
+                        var r = new R(int.MaxValue);
+                        _ = checked(r with { P *= 2 });
+                        System.Console.Write("no-throw");
+                    }
+                    catch (OverflowException)
+                    {
+                        System.Console.Write("overflow");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify([source, Polyfills], expectedOutput: "overflow");
+    }
+
+    [Fact]
+    public void Checked_Indexer_Compound_Throws()
+    {
+        // Indexer target under checked context. The lowering's side-effecting-arg caching path runs
+        // alongside `compound.Update(compound.Operator, ...)`; we want both to preserve the flag so
+        // an int.MaxValue + 1 on `[0]` overflows just like a plain property would.
+        var source = """
+            using System;
+            class C
+            {
+                private int[] _v = { int.MaxValue };
+                public int this[int i] { get => _v[i]; set => _v[i] = value; }
+                public static void Main()
+                {
+                    try
+                    {
+                        _ = checked(new C { [0] += 1 });
+                        System.Console.Write("no-throw");
+                    }
+                    catch (OverflowException)
+                    {
+                        System.Console.Write("overflow");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "overflow");
+    }
+
+    [Fact]
+    public void Async_AwaitInCompoundRhs_InInitializer_Runs()
+    {
+        // The compound RHS is an arbitrary expression; `await` inside it exercises the async state-
+        // machine rewriter on top of the initializer-member compound lowering. The placeholder
+        // receiver substitution in the initializer and the compound op's placeholder chain must
+        // survive async spilling. Runtime-verify: seed P=3, RHS `await Task.FromResult(5)` → final P=8.
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                public int P { get; set; } = 3;
+                public static async Task Main()
+                {
+                    var c = new C { P += await Task.FromResult(5) };
+                    System.Console.Write(c.P);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "8");
+    }
+
+    [Fact]
+    public void Async_AwaitInCoalesceRhs_InInitializer_Runs()
+    {
+        // Mirror of Async_AwaitInCompoundRhs_InInitializer_Runs for `??=` — this path takes the
+        // BoundNullCoalescingAssignmentOperator lowering instead of compound's. Pin runtime
+        // behavior: P starts null, `await Task.FromResult("x")` returns "x", `??=` stores it.
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                public string P { get; set; }
+                public static async Task Main()
+                {
+                    var c = new C { P ??= await Task.FromResult("x") };
+                    System.Console.Write(c.P);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "x");
+    }
+
+    [Fact]
     public void Unchecked_MultiplyOverflow_Wraps()
     {
         // Mirror of Checked_MultiplyOverflow_Throws under unchecked context: int.MaxValue * 2 wraps
@@ -2199,6 +2506,130 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         // GetTypeInfo on the LHS identifier reports int.
         var typeInfo = model.GetTypeInfo(identifier);
         Assert.Equal(SpecialType.System_Int32, typeInfo.Type!.SpecialType);
+    }
+
+    [Fact]
+    public void SemanticModel_EventPlusEqualsMemberInitializer_BindsAsEventAssignment()
+    {
+        // `E += h` in an initializer binds as BoundEventAssignmentOperator; the public IOperation
+        // projection must expose it as IEventAssignmentOperation with Adds=true and the event
+        // reference pointing at C.E. Pins the shape so a regression that flattened the event case
+        // to ICompoundAssignmentOperation or IInvalidOperation would fail.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E;
+                public static C Make(EventHandler h) => /*<bind>*/new C { E += h }/*</bind>*/;
+            }
+            """;
+        var comp = CreateCompilation(source);
+        // CS0067 fires because the event is never raised from inside C. Feature-irrelevant; the
+        // operation shape is what this test pins.
+        comp.VerifyDiagnostics(
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var objectCreation = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax>().Single();
+        var objectCreationOp = (Operations.IObjectCreationOperation)model.GetOperation(objectCreation)!;
+        Assert.NotNull(objectCreationOp.Initializer);
+        var initializer = objectCreationOp.Initializer!;
+        Assert.Single(initializer.Initializers);
+        var eventAssignment = Assert.IsAssignableFrom<Operations.IEventAssignmentOperation>(initializer.Initializers[0]);
+        Assert.True(eventAssignment.Adds);
+        var eventRef = Assert.IsAssignableFrom<Operations.IEventReferenceOperation>(eventAssignment.EventReference);
+        Assert.Equal("E", eventRef.Event.Name);
+    }
+
+    [Fact]
+    public void SemanticModel_IndexerCompoundMemberInitializer_BindsAsCompoundOnIndexer()
+    {
+        // Indexer target compound — `{ [0] += 5 }` — must surface as
+        // `ICompoundAssignmentOperation { Target: IPropertyReferenceOperation { Property.IsIndexer: true } }`
+        // with the single literal argument reaching through. A regression that stripped the
+        // BoundObjectInitializerMember wrapper's argument list from the IOperation projection
+        // would be invisible without this pin.
+        var source = """
+            class C
+            {
+                public int this[int i] { get => 0; set { } }
+                public static C Make() => /*<bind>*/new C { [0] += 5 }/*</bind>*/;
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var objectCreation = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax>().Single();
+        var objectCreationOp = (Operations.IObjectCreationOperation)model.GetOperation(objectCreation)!;
+        Assert.NotNull(objectCreationOp.Initializer);
+        var compound = Assert.IsAssignableFrom<Operations.ICompoundAssignmentOperation>(objectCreationOp.Initializer!.Initializers.Single());
+        var target = Assert.IsAssignableFrom<Operations.IPropertyReferenceOperation>(compound.Target);
+        Assert.True(target.Property.IsIndexer);
+        Assert.Single(target.Arguments);
+        Assert.Equal(0, Assert.IsAssignableFrom<Operations.ILiteralOperation>(target.Arguments[0].Value).ConstantValue.Value);
+    }
+
+    [Fact]
+    public void SemanticModel_WithExpressionCompound_BindsAsCompoundOnClonedMember()
+    {
+        // `r with { P += 5 }` takes a different top-level IOperation path (IWithOperation) but its
+        // initializer members should still project as ICompoundAssignmentOperation. Pin the shape so
+        // a regression that diverged the with and new IOperation projections fails here.
+        var source = """
+            record R(int P)
+            {
+                public static R Make(R r) => /*<bind>*/r with { P += 5 }/*</bind>*/;
+            }
+            """;
+        var comp = CreateCompilation([source, Polyfills]);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var withExpr = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.WithExpressionSyntax>().Single();
+        var withOp = Assert.IsAssignableFrom<Operations.IWithOperation>(model.GetOperation(withExpr)!);
+        Assert.NotNull(withOp.Initializer);
+        var compound = Assert.IsAssignableFrom<Operations.ICompoundAssignmentOperation>(withOp.Initializer.Initializers.Single());
+        Assert.Equal("P", Assert.IsAssignableFrom<Operations.IPropertyReferenceOperation>(compound.Target).Property.Name);
+    }
+
+    [Fact]
+    public void SemanticModel_BadShape_CompoundNestedInitializer_DoesNotCrash()
+    {
+        // `P += { 1, 2 }` is the spec-forbidden "compound-with-nested-initializer RHS" — binding
+        // produces a BoundBadExpression containing both boundLeft and boundRight as children. The
+        // public SemanticModel API must not crash on this shape (previous versions of the binder
+        // could return type=null bound nodes that NREd from downstream GetSymbolInfo calls).
+        var source = """
+            class C
+            {
+                public int P { get; set; }
+                public static C Make() => new C { P += { 1, 2 } };
+            }
+            """;
+        var comp = CreateCompilation(source);
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var initializer = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax>().Single();
+        var op = model.GetOperation(initializer);
+        // The shape is rejected; GetOperation may return null for the bad node, which is acceptable
+        // as long as it doesn't throw. What matters is that calls don't NRE — the bad-shape path
+        // previously could produce a half-populated bound tree that NRE'd from downstream asserts.
+        _ = op;
+
+        // GetSymbolInfo / GetTypeInfo on the initializer and its operands must not throw.
+        _ = model.GetSymbolInfo(initializer);
+        _ = model.GetTypeInfo(initializer);
+        _ = model.GetSymbolInfo(initializer.Left);
+        _ = model.GetSymbolInfo(initializer.Right);
     }
 
     [Fact]

@@ -399,6 +399,82 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
     }
 
     [Fact]
+    public void IL_Property_CoalesceEquals()
+    {
+        // `new C { P ??= h }` lowers via the BoundNullCoalescingAssignmentOperator path — separate
+        // from compound's — so pin the emitted shape: get_P, branch on null, set_P if null. The
+        // dup-of-receiver pattern matches the simple/compound cases; the null check is what's
+        // distinctive here.
+        var source = """
+            class C
+            {
+                public string P { get; set; }
+                public static C Make(string h) => new C { P ??= h };
+            }
+            """;
+        var verifier = CompileAndVerify(source);
+        verifier.VerifyIL("C.Make", """
+            {
+              // Code size       25 (0x19)
+              .maxstack  4
+              .locals init (C V_0,
+                            string V_1)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  dup
+              IL_0006:  stloc.0
+              IL_0007:  ldloc.0
+              IL_0008:  callvirt   "string C.P.get"
+              IL_000d:  brtrue.s   IL_0018
+              IL_000f:  ldloc.0
+              IL_0010:  ldarg.0
+              IL_0011:  dup
+              IL_0012:  stloc.1
+              IL_0013:  callvirt   "void C.P.set"
+              IL_0018:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void IL_Indexer_CoalesceEquals()
+    {
+        // Indexer target with `??=` — the index argument has to be reloaded consistently for the get
+        // and (possibly skipped) set. A regression that dropped the argument-cached-to-local shape
+        // would lose the "arguments evaluated exactly once" guarantee; pin the IL to catch it.
+        var source = """
+            class C
+            {
+                private string _v;
+                public string this[int k] { get => _v; set => _v = value; }
+                public static C Make(string h) => new C { [7] ??= h };
+            }
+            """;
+        var verifier = CompileAndVerify(source);
+        verifier.VerifyIL("C.Make", """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  5
+              .locals init (C V_0,
+                            string V_1)
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  dup
+              IL_0006:  stloc.0
+              IL_0007:  ldloc.0
+              IL_0008:  ldc.i4.7
+              IL_0009:  callvirt   "string C.this[int].get"
+              IL_000e:  brtrue.s   IL_001a
+              IL_0010:  ldloc.0
+              IL_0011:  ldc.i4.7
+              IL_0012:  ldarg.0
+              IL_0013:  dup
+              IL_0014:  stloc.1
+              IL_0015:  callvirt   "void C.this[int].set"
+              IL_001a:  ret
+            }
+            """);
+    }
+
+    [Fact]
     public void IL_Event_PlusEquals()
     {
         // `new C { Fired += h }` lowers to a call to the event's add_Fired accessor on the freshly-created receiver.
