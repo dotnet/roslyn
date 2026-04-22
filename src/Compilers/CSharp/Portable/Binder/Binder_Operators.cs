@@ -52,20 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If either operand is bad, don't try to do binary operator overload resolution; that will just
                 // make cascading errors.
 
-                // If `left` targets a field-like event (either directly or via an initializer wrapper
-                // stashing the BoundEventAccess on UnderlyingAccessOpt) and the operator is `+=` / `-=`,
-                // route to BindEventAssignment so lowering emits the add_E / remove_E accessor call.
-                // Other operators on an event fall through to the general compound path and ultimately
-                // emit CS0019 on the delegate type.
-                BoundEventAccess? eventAccess = left switch
+                if (TryBindEventAssignment(node, left, right, kind, diagnostics) is { } eventAssignment)
                 {
-                    BoundEventAccess e => e,
-                    BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
-                    _ => null,
-                };
-                if (eventAccess is not null && kind.Operator() is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
-                {
-                    return BindEventAssignment(node, eventAccess.EventSymbol, eventAccess.ReceiverOpt!, eventAccess.Type, right, kind.Operator(), diagnostics);
+                    return eventAssignment;
                 }
 
                 if (left.HasAnyErrors || right.HasAnyErrors)
@@ -690,6 +679,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return tryInstanceOperatorOverloadResolutionAndFreeMethods(node, kind, checkOverflowAtRuntime, isExtension: true, left, right, ref analyzedArguments, methods, ref operatorResolutionForReporting, diagnostics);
             }
+        }
+
+        /// <summary>
+        /// If <paramref name="left"/> targets a field-like event (either directly or via an initializer
+        /// wrapper stashing the <see cref="BoundEventAccess"/> on <see cref="BoundObjectInitializerMember.UnderlyingAccessOpt"/>)
+        /// and the compound operator is <c>+=</c> or <c>-=</c>, route to <see cref="BindEventAssignment"/>
+        /// so lowering emits the <c>add_E</c> / <c>remove_E</c> accessor call. Other operators on an
+        /// event fall through to the general compound path and ultimately emit CS0019 on the delegate type.
+        /// </summary>
+        private BoundExpression? TryBindEventAssignment(
+            AssignmentExpressionSyntax node,
+            BoundExpression left,
+            BoundExpression right,
+            BinaryOperatorKind kind,
+            BindingDiagnosticBag diagnostics)
+        {
+            BoundEventAccess? eventAccess = left switch
+            {
+                BoundEventAccess e => e,
+                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+                _ => null,
+            };
+
+            if (eventAccess is null || kind.Operator() is not (BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction))
+            {
+                return null;
+            }
+
+            return BindEventAssignment(node, eventAccess.EventSymbol, eventAccess.ReceiverOpt!, eventAccess.Type, right, kind.Operator(), diagnostics);
         }
 
 #nullable disable
