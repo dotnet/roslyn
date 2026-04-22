@@ -5869,6 +5869,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics = BindingDiagnosticBag.Discarded;
             }
 
+            // `??=` must read the LHS to test for null; for an event target that read goes through the
+            // synthesized backing field. When `IsUsableAsField` is false — custom events (no backing
+            // field) and field-like events accessed from outside the declaring type — `=` already
+            // rejects via CheckEventValueKind with CS0070 / CS0079; `??=` needs the same rejection.
+            // Without it, binding silently accepts the shape and lowering later trips
+            // `Debug.Assert(eventAccess.IsUsableAsField)` in TransformCompoundAssignmentLHS, a pre-
+            // existing crash affecting both `c.E ??= h` and `new C { E ??= h }`.
+            var eventAccess = leftOperand switch
+            {
+                BoundEventAccess e => e,
+                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+                _ => null,
+            };
+
+            if (eventAccess is { IsUsableAsField: false } && !leftOperand.HasAnyErrors)
+            {
+                Error(diagnostics, GetBadEventUsageDiagnosticInfo(eventAccess.EventSymbol), GetEventName(eventAccess));
+                return new BoundNullCoalescingAssignmentOperator(
+                    node,
+                    BindToTypeForErrorRecovery(leftOperand),
+                    BindToTypeForErrorRecovery(rightOperand),
+                    CreateErrorType(),
+                    hasErrors: true);
+            }
+
             // Given a ??= b, the type of a is A, the type of B is b, and if A is a nullable value type, the underlying
             // non-nullable value type of A is A0.
             TypeSymbol leftType = leftOperand.Type;

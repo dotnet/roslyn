@@ -706,21 +706,14 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
-    public void Coalesce_Event_MatchesNonInitializerBehavior()
+    public void Coalesce_Event_FromOutsideContainingType_Fails()
     {
-        // The initializer form `new C { E ??= h }` should behave the same as the equivalent statement
-        // `c.E ??= h` would — that's the baseline for every member-initializer operator.
-        //
-        // Pre-existing behavior for `c.E ??= h` on a field-like event: it compiles regardless of
-        // whether the call site is inside or outside C's declaring type. `CheckEventValueKind` treats
-        // `BindValueKind.CompoundAssignment` as "event assignment OK" without requiring IsUsableAsField,
-        // so the CS0070 that fires for plain `c.E = h` outside doesn't fire for `??=`. That's the same
-        // behavior simple `=` would get from inside C (where the field-like event's backing field is
-        // accessible). The initializer path inherits this directly.
-        //
-        // This test pins two shapes in one compilation: a non-initializer `c.E ??= h` from Outer, and
-        // the equivalent `new C { E ??= h }` from Outer. Both compile cleanly; the initializer form
-        // doesn't add any asymmetry.
+        // `??=` has to read the LHS to test for null; for a field-like event that read goes through
+        // the synthesized backing field, which isn't accessible from outside the declaring type —
+        // same rule plain `E = h` enforces via CS0070. Before this was rejected at bind time, the
+        // shape silently accepted at bind and crashed at emit. The fix (in
+        // BindNullCoalescingAssignmentOperatorCore) applies uniformly to both the non-initializer
+        // form `c.E ??= h` and the initializer form `new C { E ??= h }`, keeping them consistent.
         var source = """
             using System;
             class C
@@ -733,7 +726,38 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Initializer(EventHandler h) => new C { E ??= h };
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics();
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,64): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+            //     public static void NonInitializer(C c, EventHandler h) { c.E ??= h; }
+            Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(8, 64),
+            // (9,60): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+            //     public static C Initializer(EventHandler h) => new C { E ??= h };
+            Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(9, 60));
+    }
+
+    [Fact]
+    public void Coalesce_Event_CustomEvent_Fails()
+    {
+        // A custom event (explicit add / remove accessors) has no backing field, so `??=` can't read
+        // it; the behavior should match plain `E = h` on a custom event, which fails with CS0079.
+        // This applies regardless of whether the access is inside or outside the declaring type.
+        // Tested in both non-initializer and initializer shapes to pin their consistency.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E { add { } remove { } }
+                public void NonInitializer(EventHandler h) { this.E ??= h; }
+                public static C Initializer(EventHandler h) => new C { E ??= h };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,55): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
+            //     public void NonInitializer(EventHandler h) { this.E ??= h; }
+            Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("C.E").WithLocation(5, 55),
+            // (6,60): error CS0079: The event 'C.E' can only appear on the left hand side of += or -=
+            //     public static C Initializer(EventHandler h) => new C { E ??= h };
+            Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "E").WithArguments("C.E").WithLocation(6, 60));
     }
 
     #endregion
