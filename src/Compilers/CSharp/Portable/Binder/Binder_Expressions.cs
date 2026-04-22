@@ -5933,30 +5933,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var initializer = (AssignmentExpressionSyntax)memberInitializer;
                         MessageID.IDS_FeatureCompoundAssignmentInInitializer.CheckFeatureAvailability(diagnostics, initializer.OperatorToken);
 
-                        BoundExpression boundLeft = BindObjectInitializerMember(
+                        // Bind the member access via the usual object-initializer member machinery so that
+                        // indexer default arguments, accessor-kind tracking, interpolated-string-handler checks,
+                        // and BindValueKind.CompoundAssignment (read + write, init-allowed on the placeholder) all
+                        // get applied. We then hand the raw access (BoundPropertyAccess / BoundFieldAccess /
+                        // BoundEventAccess / BoundIndexerAccess / BoundDynamicObjectInitializerMember / ...) to
+                        // BindCompoundAssignmentCore rather than the BoundObjectInitializerMember wrapper. The
+                        // wrapper exists to drive simple-assignment lowering; CheckValueKind does not have a
+                        // case for it, so passing it here would cause shouldTryUserDefinedInstanceOperator to
+                        // falsely return false and skip user-defined in-place `operator +=` resolution. The raw
+                        // access is rooted at the initializer placeholder, which object-initializer lowering
+                        // substitutes with the real receiver at emit time. Event `+`/`-` dispatch falls out of
+                        // BindCompoundAssignmentCore's existing `left.Kind == BoundKind.EventAccess` branch.
+                        _ = BindObjectInitializerMember(
                             initializer, implicitReceiver, diagnostics,
                             valueKindOverride: BindValueKind.CompoundAssignment,
                             out BoundExpression rawAccess);
 
-                        if (boundLeft == null)
+                        if (rawAccess == null)
                             break;
 
                         BoundExpression boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
 
-                        // Event target with `+=` / `-=` routes directly to BindEventAssignment, which takes
-                        // the unwrapped BoundEventAccess and produces BoundEventAssignmentOperator.
-                        if (rawAccess is BoundEventAccess eventAccess)
-                        {
-                            var kindOperator = SyntaxKindToBinaryOperatorKind(initializer.Kind()).Operator();
-                            if (kindOperator is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
-                            {
-                                return BindEventAssignment(initializer, eventAccess, boundRight, kindOperator, diagnostics);
-                            }
-                            // Other compound ops on an event target fall through to BindCompoundAssignmentCore,
-                            // which reports CS0019 (no `operator *`, etc. on a delegate type).
-                        }
-
-                        return BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics);
+                        return BindCompoundAssignmentCore(initializer, rawAccess, boundRight, diagnostics);
                     }
 
                 // We fall back on simply binding the name as an expression for proper recovery
