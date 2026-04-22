@@ -30,28 +30,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         { "??=",  SyntaxKind.QuestionQuestionEqualsToken,             SyntaxKind.CoalesceAssignmentExpression },
     };
 
-    public static TheoryData<LanguageVersion> AllLanguageVersions => new()
-    {
-        LanguageVersion.CSharp1,
-        LanguageVersion.CSharp2,
-        LanguageVersion.CSharp3,
-        LanguageVersion.CSharp4,
-        LanguageVersion.CSharp5,
-        LanguageVersion.CSharp6,
-        LanguageVersion.CSharp7,
-        LanguageVersion.CSharp7_1,
-        LanguageVersion.CSharp7_2,
-        LanguageVersion.CSharp7_3,
-        LanguageVersion.CSharp8,
-        LanguageVersion.CSharp9,
-        LanguageVersion.CSharp10,
-        LanguageVersion.CSharp11,
-        LanguageVersion.CSharp12,
-        LanguageVersion.CSharp13,
-        LanguageVersion.CSharp14,
-        LanguageVersion.Preview,
-    };
-
     #region Object initializer: named member
 
     [Theory, MemberData(nameof(CompoundOperators))]
@@ -87,7 +65,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Theory, MemberData(nameof(AllLanguageVersions))]
+    [Theory, CombinatorialData]
     public void ObjectInitializer_NamedMember_NoParseDiagnosticsAnyLangVersion(LanguageVersion languageVersion)
     {
         UsingExpression(
@@ -533,7 +511,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Theory, MemberData(nameof(AllLanguageVersions))]
+    [Theory, CombinatorialData]
     public void WithExpression_NoParseDiagnosticsAnyLangVersion(LanguageVersion languageVersion)
     {
         UsingExpression(

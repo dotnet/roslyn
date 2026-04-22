@@ -13623,9 +13623,9 @@ done:
         /// <summary>
         /// Consume the operator token that separates the target and value of a member initializer.
         /// Accepts `=`, `:` (recovered to `=`), and any compound assignment operator (including `??=`,
-        /// `>>=`, and `>>>=` which the lexer splits into multiple tokens). The returned token's
-        /// <see cref="SyntaxToken.Kind"/> maps to the produced <see cref="AssignmentExpressionSyntax"/>
-        /// kind via <see cref="SyntaxFacts.GetAssignmentExpression(SyntaxKind)"/>.
+        /// `>>=`, and `>>>=` which the lexer splits into multiple tokens). The returned token's kind
+        /// maps to the produced assignment-expression kind via
+        /// <see cref="SyntaxFacts.GetAssignmentExpression(SyntaxKind)"/>.
         /// </summary>
         private SyntaxToken EatMemberInitializerOperatorToken()
         {
