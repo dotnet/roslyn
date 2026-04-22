@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             // Pre-parse arguments to extract the log file path and other values so the logger can be
             // initialized with the correct path before the controller is created.
-            if (!BuildServerController.ParseCommandLine(args, out var pipeName, out var shutdown, out var purgeCacheCutoff, out var cacheStatsSince, out var cacheStatsVerbosity, out var keepAlive, out var logFilePath))
+            if (!BuildServerController.ParseCommandLine(args, out var pipeName, out var shutdown, out var purgeCacheCutoff, out var cacheStatsSince, out var cacheStatsVerbosity, out var cachePath, out var keepAlive, out var logFilePath))
             {
                 return CommonCompiler.Failed;
             }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 var controller = new BuildServerController(logger);
-                return controller.Run(pipeName, shutdown, purgeCacheCutoff, cacheStatsSince, cacheStatsVerbosity, keepAlive);
+                return controller.Run(pipeName, shutdown, purgeCacheCutoff, cacheStatsSince, cacheStatsVerbosity, cachePath, keepAlive);
             }
             catch (Exception e)
             {

@@ -410,12 +410,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private DateTimeOffset? _purgeCacheCutoff;
             private DateTimeOffset? _cacheStatsSince;
             private int _cacheStatsVerbosity;
+            private string _cachePath;
             private TimeSpan? _timeout;
             private string _logFilePath;
 
             private bool Parse(params string[] args)
             {
-                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown, out _purgeCacheCutoff, out _cacheStatsSince, out _cacheStatsVerbosity, out _timeout, out _logFilePath);
+                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown, out _purgeCacheCutoff, out _cacheStatsSince, out _cacheStatsVerbosity, out _cachePath, out _timeout, out _logFilePath);
             }
 
             [Fact]
@@ -536,6 +537,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(Parse("-pipename:test", "-cachestats"));
                 Assert.Equal("test", _pipeName);
                 Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
+            }
+
+            [Fact]
+            public void CachePath()
+            {
+                Assert.True(Parse("-cachestats", "-cachepath:/tmp/cache"));
+                Assert.Equal("/tmp/cache", _cachePath);
             }
 
             [Fact]
