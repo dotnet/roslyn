@@ -706,15 +706,21 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
-    public void Coalesce_Event_FromOutsideContainingType_Succeeds()
+    public void Coalesce_Event_MatchesNonInitializerBehavior()
     {
-        // Simple `new C { E = h }` from outside C's declaring type is CS0070 because an event's
-        // backing field isn't readable/writable from outside, and `= h` is an unconditional write to
-        // that field. `??= h` in the initializer is different: the receiver is a fresh C, so E is
-        // guaranteed null, which makes `??=` reduce to an unconditional write of h — and writing h
-        // to a null field-like event is functionally equivalent to `+= h`, which IS legal from
-        // outside via `add_E`. So `??=` compiling here is the pragmatic/consistent behavior, not a
-        // hole: the same reasoning applies to the non-initializer `c.E ??= h` from outside.
+        // The initializer form `new C { E ??= h }` should behave the same as the equivalent statement
+        // `c.E ??= h` would — that's the baseline for every member-initializer operator.
+        //
+        // Pre-existing behavior for `c.E ??= h` on a field-like event: it compiles regardless of
+        // whether the call site is inside or outside C's declaring type. `CheckEventValueKind` treats
+        // `BindValueKind.CompoundAssignment` as "event assignment OK" without requiring IsUsableAsField,
+        // so the CS0070 that fires for plain `c.E = h` outside doesn't fire for `??=`. That's the same
+        // behavior simple `=` would get from inside C (where the field-like event's backing field is
+        // accessible). The initializer path inherits this directly.
+        //
+        // This test pins two shapes in one compilation: a non-initializer `c.E ??= h` from Outer, and
+        // the equivalent `new C { E ??= h }` from Outer. Both compile cleanly; the initializer form
+        // doesn't add any asymmetry.
         var source = """
             using System;
             class C
@@ -723,13 +729,11 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             class Outer
             {
-                public static C Make(EventHandler h) => new C { E ??= h };
+                public static void NonInitializer(C c, EventHandler h) { c.E ??= h; }
+                public static C Initializer(EventHandler h) => new C { E ??= h };
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
-            // (4,31): warning CS0067: The event 'C.E' is never used
-            //     public event EventHandler E;
-            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
+        CreateCompilation(source).VerifyDiagnostics();
     }
 
     #endregion
