@@ -21,8 +21,7 @@ function Exec-Block([scriptblock]$cmd) {
 
     # Need to check both of these cases for errors as they represent different items
     # - $?: did the powershell script block throw an error
-    # - $lastexitcode: did a windows command executed by the script block end in error
-    if ((-not $?) -or ($lastexitcode -ne 0)) {
+    if (-not $?) {
         throw "Command failed to execute: $cmd"
     } 
 }
@@ -152,7 +151,7 @@ function Ensure-DotnetSdk() {
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
-        Exec-Block { & $destFile -Version $runtimeVersion -SharedRuntime -InstallDir $cliDir } | Out-Null
+        Exec-Block { & $destFile -Version $runtimeVersion -Runtime dotnet -InstallDir $cliDir } | Out-Null
     }
     else {
         ${env:PATH} = "$cliDir;${env:PATH}"
