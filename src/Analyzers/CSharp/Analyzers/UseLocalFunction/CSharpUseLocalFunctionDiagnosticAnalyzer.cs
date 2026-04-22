@@ -366,8 +366,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
                     if (expressionStatementIndex >= 1)
                         previousStatement = block.Statements[expressionStatementIndex - 1];
                 }
-                else if (expressionStatement.Parent is GlobalStatementSyntax globalStatement
-                         && globalStatement.Parent is CompilationUnitSyntax compilationUnit)
+                else if (expressionStatement.Parent is GlobalStatementSyntax { Parent: CompilationUnitSyntax compilationUnit } globalStatement)
                 {
                     var globalStatementIndex = compilationUnit.Members.IndexOf(globalStatement);
                     if (globalStatementIndex >= 1
