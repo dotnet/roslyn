@@ -22,7 +22,7 @@ internal enum CallerUnsafeMode
     Implicit,
 
     /// <summary>
-    /// The member is explicitly marked a <see langword="unsafe"/> or <see langword="extern"/> under the updated memory safety rules.
+    /// The member is explicitly marked as <see langword="unsafe"/> or <see langword="extern"/> under the updated memory safety rules.
     /// </summary>
     Explicit,
 }
