@@ -332,7 +332,6 @@ internal sealed partial class DiagnosticAnalyzerService
 
             var analysisScope = new DocumentAnalysisScope(document, span, analyzers, kind);
             var executor = new DocumentAnalysisExecutor(service, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
-            var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
             var diagnosticsMap = await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
 
@@ -359,14 +358,9 @@ internal sealed partial class DiagnosticAnalyzerService
 
             var analysisScope = new DocumentAnalysisScope(document, span, analyzers, kind);
             var executor = new DocumentAnalysisExecutor(service, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
-            var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
-            var (diagnosticsMap, didMergeAnalyzerComputations, newMemberSpans) = await service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(
+            var (diagnosticsMap, didMergeAnalyzerComputations) = await service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(
                 executor, analyzers, additionalAnalyzersToMergeOnFullAnalysis, cancellationToken).ConfigureAwait(false);
-
-            // Save the analysis results so subsequent member-only edits can reuse diagnostics
-            // outside the edited member, and retrieve the document snapshot for diffing.
-            service._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document, version, diagnosticsMap, newMemberSpans);
 
             list.AddRange(diagnosticsMap.SelectMany(kvp => kvp.Value));
             return didMergeAnalyzerComputations;
