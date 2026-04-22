@@ -822,9 +822,6 @@ public sealed class ClosedModifierParsingTests : ParsingTests
             }
             """,
             expectedBindingDiagnostics: [
-                // (3,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                //     closed delegate*<int, void> M();
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(3, 12),
                 // (3,33): error CS0106: The modifier 'closed' is not valid for this item
                 //     closed delegate*<int, void> M();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("closed").WithLocation(3, 33),
