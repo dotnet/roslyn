@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void AddGlobalSymbolSuppression(SuppressMessageInfo info)
             {
-                Debug.Assert(!_lazyResolvedSuppressionsById.ContainsKey(info.Id));
+                Debug.Assert(_lazyResolvedSuppressionsById.IsEmpty);
                 if (!_unresolvedSuppressionsById.TryGetValue(info.Id, out var suppressions))
                 {
                     suppressions = [];
@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 var resolvedSuppressions = new Dictionary<ISymbol, SuppressMessageInfo>();
-                foreach (var info in suppressions)
+                foreach (SuppressMessageInfo info in suppressions)
                 {
-                    foreach (var target in ResolveTargetSymbols(_compilation, info.Target, info.Scope))
+                    foreach (ISymbol target in ResolveTargetSymbols(_compilation, info.Target, info.Scope))
                     {
                         Debug.Assert(target.IsDefinition);
                         if (!resolvedSuppressions.ContainsKey(target))
@@ -355,18 +355,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     continue;
                 }
 
-                if (info.Scope != TargetScope.Invalid)
-                {
-                    if (info is { Scope: TargetScope.Module or TargetScope.None, Target: null })
-                    {
-                        // This suppression is applies to the entire compilation
-                        globalSuppressions.AddCompilationWideSuppression(info);
-                        continue;
-                    }
-                }
-                else
+                if (info.Scope == TargetScope.Invalid)
                 {
                     // Invalid value for scope
+                    continue;
+                }
+
+                if (info is { Scope: TargetScope.Module or TargetScope.None, Target: null })
+                {
+                    // This suppression is applies to the entire compilation
+                    globalSuppressions.AddCompilationWideSuppression(info);
                     continue;
                 }
 
