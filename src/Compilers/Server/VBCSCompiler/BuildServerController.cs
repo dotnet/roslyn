@@ -238,6 +238,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 const string pipeArgPrefix = "-pipename:";
                 const string timeoutArgPrefix = "-timeout:";
                 const string logArgPrefix = "-log:";
+                const string shutdownArg = "-shutdown";
+                const string purgeCacheArg = "-purgecache";
+                const string purgeCacheArgPrefix = purgeCacheArg + ":";
+                const string cacheStatsArg = "-cachestats";
+                const string cacheStatsArgPrefix = cacheStatsArg + ":";
+                const string cacheStatsVerbosityArgPrefix = "-cachestatsverbosity:";
+                const string cachePathArgPrefix = "-cachepath:";
                 var argSpan = arg.AsSpan();
                 if (argSpan.StartsWith(pipeArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
@@ -264,17 +271,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     logFilePath = parsedLogFilePath.ToString();
                 }
-                else if (arg == "-shutdown")
+                else if (arg == shutdownArg)
                 {
                     shutdown = true;
                 }
-                else if (arg == "-purgecache")
+                else if (arg == purgeCacheArg)
                 {
                     purgeCacheCutoff = DateTimeOffset.MaxValue;
                 }
-                else if (argSpan.StartsWith("-purgecache:".AsSpan(), StringComparison.Ordinal))
+                else if (argSpan.StartsWith(purgeCacheArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    var value = argSpan["-purgecache:".Length..].ToString();
+                    var value = argSpan[purgeCacheArgPrefix.Length..].ToString();
                     if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return false;
@@ -282,13 +289,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     purgeCacheCutoff = parsed.ToUniversalTime();
                 }
-                else if (arg == "-cachestats")
+                else if (arg == cacheStatsArg)
                 {
                     cacheStatsSince = DateTimeOffset.MinValue;
                 }
-                else if (argSpan.StartsWith("-cachestats:".AsSpan(), StringComparison.Ordinal))
+                else if (argSpan.StartsWith(cacheStatsArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    var value = argSpan["-cachestats:".Length..].ToString();
+                    var value = argSpan[cacheStatsArgPrefix.Length..].ToString();
                     if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return false;
@@ -296,9 +303,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     cacheStatsSince = parsed.ToUniversalTime();
                 }
-                else if (argSpan.StartsWith("-cachestatsverbosity:".AsSpan(), StringComparison.Ordinal))
+                else if (argSpan.StartsWith(cacheStatsVerbosityArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    var value = argSpan["-cachestatsverbosity:".Length..].ToString();
+                    var value = argSpan[cacheStatsVerbosityArgPrefix.Length..].ToString();
                     if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedVerbosity) ||
                         parsedVerbosity < 0 || parsedVerbosity > 2)
                     {
@@ -307,9 +314,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                     cacheStatsVerbosity = parsedVerbosity;
                 }
-                else if (argSpan.StartsWith("-cachepath:".AsSpan(), StringComparison.Ordinal))
+                else if (argSpan.StartsWith(cachePathArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    var value = argSpan["-cachepath:".Length..].ToString();
+                    var value = argSpan[cachePathArgPrefix.Length..].ToString();
                     if (value.Length == 0)
                     {
                         return false;
