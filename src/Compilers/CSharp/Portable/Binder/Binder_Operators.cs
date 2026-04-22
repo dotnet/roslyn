@@ -23,18 +23,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCompoundAssignment(AssignmentExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
+            node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
+
+            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
+            ReportSuppressionIfNeeded(left, diagnostics);
+            BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
+
+            return BindCompoundAssignmentCore(node, left, right, diagnostics);
+        }
+
+        /// <summary>
+        /// Binds a compound assignment given an already-bound left and right. Used by
+        /// <see cref="BindCompoundAssignment"/> for the ordinary expression path, and by
+        /// <c>BindInitializerMemberAssignment</c> for compound member initializers where the left
+        /// has already been bound as a <see cref="BoundObjectInitializerMember"/>.
+        /// </summary>
+        private BoundExpression BindCompoundAssignmentCore(AssignmentExpressionSyntax node, BoundExpression left, BoundExpression right, BindingDiagnosticBag diagnostics)
+        {
             OperatorResolutionForReporting operatorResolutionForReporting = default;
-            BoundExpression result = bindCompoundAssignment(node, ref operatorResolutionForReporting, diagnostics);
+            BoundExpression result = bindCompoundAssignmentCore(node, left, right, ref operatorResolutionForReporting, diagnostics);
             operatorResolutionForReporting.Free();
             return result;
 
-            BoundExpression bindCompoundAssignment(AssignmentExpressionSyntax node, ref OperatorResolutionForReporting operatorResolutionForReporting, BindingDiagnosticBag diagnostics)
+            BoundExpression bindCompoundAssignmentCore(AssignmentExpressionSyntax node, BoundExpression left, BoundExpression right, ref OperatorResolutionForReporting operatorResolutionForReporting, BindingDiagnosticBag diagnostics)
             {
-                node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
-
-                BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
-                ReportSuppressionIfNeeded(left, diagnostics);
-                BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
                 BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
                 // If either operand is bad, don't try to do binary operator overload resolution; that will just

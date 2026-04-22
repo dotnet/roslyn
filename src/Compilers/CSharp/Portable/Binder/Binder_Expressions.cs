@@ -5850,8 +5850,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
-            // Member name map to report duplicate assignments to a field/property.
-            var memberNameMap = PooledHashSet<string>.GetInstance();
+            // Per-name initializer state used to enforce the duplicate-member rules from
+            // https://github.com/dotnet/csharplang/blob/main/proposals/compound-assignment-in-initializer-and-with.md :
+            // at most one `=` per field/property target, any number of compound assignments, and `=` must appear
+            // before any compound assignment for the same target. Event (BoundEventAssignmentOperator) and indexer
+            // (ImplicitElementAccess) targets are unrestricted.
+            var memberNameMap = PooledDictionary<string, MemberInitializerState>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
                 BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
@@ -5861,12 +5865,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 ReportDuplicateObjectMemberInitializers(boundMemberInitializer, memberNameMap, diagnostics);
             }
+            memberNameMap.Free();
 
             return new BoundObjectInitializerExpression(
                 initializerSyntax,
                 implicitReceiver,
                 initializers.ToImmutableAndFree(),
                 initializerType);
+        }
+
+        private enum MemberInitializerState
+        {
+            None = 0,
+            SeenEquals = 1,
+            SeenCompound = 2,
         }
 
         private BoundExpression BindInitializerMemberAssignment(
@@ -5904,6 +5916,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
                         }
                         break;
+                    }
+
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
+                    {
+                        var initializer = (AssignmentExpressionSyntax)memberInitializer;
+                        MessageID.IDS_FeatureCompoundAssignmentInInitializer.CheckFeatureAvailability(diagnostics, initializer.OperatorToken);
+
+                        BoundExpression boundLeft = BindObjectInitializerMember(
+                            initializer, implicitReceiver, diagnostics,
+                            valueKindOverride: BindValueKind.CompoundAssignment,
+                            out BoundExpression rawAccess);
+
+                        if (boundLeft == null)
+                            break;
+
+                        BoundExpression boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
+
+                        // Event target with `+=` / `-=` routes directly to BindEventAssignment, which takes
+                        // the unwrapped BoundEventAccess and produces BoundEventAssignmentOperator.
+                        if (rawAccess is BoundEventAccess eventAccess)
+                        {
+                            var kindOperator = SyntaxKindToBinaryOperatorKind(initializer.Kind()).Operator();
+                            if (kindOperator is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
+                            {
+                                return BindEventAssignment(initializer, eventAccess, boundRight, kindOperator, diagnostics);
+                            }
+                            // Other compound ops on an event target fall through to BindCompoundAssignmentCore,
+                            // which reports CS0019 (no `operator *`, etc. on a delegate type).
+                        }
+
+                        return BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics);
                     }
 
                 // We fall back on simply binding the name as an expression for proper recovery
@@ -5946,15 +5999,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignmentExpressionSyntax namedAssignment,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindingDiagnosticBag diagnostics)
+            => BindObjectInitializerMember(namedAssignment, implicitReceiver, diagnostics, valueKindOverride: null, out _);
+
+        /// <summary>
+        /// Binds the left side of a member initializer. When <paramref name="valueKindOverride"/> is supplied,
+        /// it replaces the normally-computed <see cref="BindValueKind"/> (used by the compound-assignment
+        /// path to request <see cref="BindValueKind.CompoundAssignment"/>). <paramref name="rawAccess"/>
+        /// receives the underlying member access (e.g. <see cref="BoundFieldAccess"/>, <see cref="BoundPropertyAccess"/>,
+        /// <see cref="BoundEventAccess"/>, indexer / implicit-indexer / dynamic / array / pointer forms) before
+        /// wrapping in <see cref="BoundObjectInitializerMember"/>, so callers can dispatch on the member kind
+        /// (e.g. route event targets to <c>BindEventAssignment</c>).
+        /// </summary>
+        private BoundExpression BindObjectInitializerMember(
+            AssignmentExpressionSyntax namedAssignment,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics,
+            BindValueKind? valueKindOverride,
+            out BoundExpression rawAccess)
         {
             var leftSyntax = namedAssignment.Left;
             SyntaxKind rhsKind = namedAssignment.Right.Kind();
             bool isRef = rhsKind is SyntaxKind.RefExpression;
             bool isRhsNestedInitializer = rhsKind is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression;
-            BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : (isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable);
+            BindValueKind valueKind = valueKindOverride
+                ?? (isRhsNestedInitializer ? BindValueKind.RValue : (isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable));
 
             return BindObjectInitializerMemberCommon(
-                leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics);
+                leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics, out rawAccess);
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
@@ -5964,7 +6035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             return BindObjectInitializerMemberCommon(
-                leftSyntax, implicitReceiver, BindValueKind.Assignable, false, diagnostics);
+                leftSyntax, implicitReceiver, BindValueKind.Assignable, false, diagnostics, out _);
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
@@ -5973,8 +6044,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindValueKind valueKind,
             bool isRhsNestedInitializer,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            out BoundExpression rawAccess)
         {
+            rawAccess = null;
+
             BoundExpression boundMember;
             LookupResultKind resultKind;
             bool hasErrors;
@@ -5989,6 +6063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
                     boundMember = new BoundDynamicObjectInitializerMember(leftSyntax, memberName.Identifier.Text, implicitReceiver.Type, initializerType, hasErrors: false);
+                    rawAccess = boundMember;
                     return CheckValue(boundMember, valueKind, diagnostics);
                 }
                 else
@@ -6133,6 +6208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors |= !CheckNestedObjectInitializerPropertySymbol(property, leftSyntax, diagnostics, hasErrors, ref resultKind);
                     }
 
+                    rawAccess = boundMember;
                     return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
 
                 case BoundKind.DynamicObjectInitializerMember:
@@ -6150,9 +6226,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.ArrayAccess:
                 case BoundKind.PointerElementAccess:
+                    rawAccess = boundMember;
                     return CheckValue(boundMember, valueKind, diagnostics);
 
                 default:
+                    rawAccess = boundMember;
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, leftSyntax, diagnostics, valueKind, hasErrors);
             }
 
@@ -6168,6 +6246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            rawAccess = boundMember;
             return new BoundObjectInitializerMember(
                 leftSyntax,
                 boundMember.ExpressionSymbol,
@@ -6249,31 +6328,55 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(boundMember, (valueKind == BindValueKind.RValue) ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable);
         }
 
-        private static void ReportDuplicateObjectMemberInitializers(BoundExpression boundMemberInitializer, HashSet<string> memberNameMap, BindingDiagnosticBag diagnostics)
+        private static void ReportDuplicateObjectMemberInitializers(
+            BoundExpression boundMemberInitializer,
+            Dictionary<string, MemberInitializerState> memberNameMap,
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(memberNameMap != null);
 
-            // SPEC:    It is an error for an object initializer to include more than one member initializer for the same field or property.
+            // SPEC:    For any given field or property target, at most one member initializer may use the `=` operator.
+            // SPEC:    Any number of member initializers using a compound_assignment_operator are permitted for the
+            // SPEC:    same target. If both are present for the same target, the `=` member initializer shall appear
+            // SPEC:    in lexical order before any compound_assignment_operator member initializer for that target.
+            // SPEC:    No such restriction applies to event or indexer targets.
 
-            if (!boundMemberInitializer.HasAnyErrors)
+            if (boundMemberInitializer.HasAnyErrors)
+                return;
+
+            // Event targets are unrestricted: += / -= on an event binds as BoundEventAssignmentOperator, which
+            // we skip entirely. The field-like-event `Event = null` spec-violation form binds as
+            // BoundAssignmentOperator wrapping a BoundObjectInitializerMember and is tracked like a field below.
+            if (boundMemberInitializer is BoundEventAssignmentOperator)
+                return;
+
+            if (boundMemberInitializer.Syntax is not AssignmentExpressionSyntax namedAssignment)
+                return;
+
+            // Only identifier-named targets participate in the duplicate rules. Indexer targets
+            // (`[args] = ...` / `[args] += ...`) are unrestricted.
+            if (namedAssignment.Left is not IdentifierNameSyntax memberNameSyntax)
+                return;
+
+            var memberName = memberNameSyntax.Identifier.ValueText;
+            bool isSimpleAssignment = namedAssignment.Kind() == SyntaxKind.SimpleAssignmentExpression;
+
+            memberNameMap.TryGetValue(memberName, out var state);
+            if (isSimpleAssignment)
             {
-                // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (7.17.1) to the field or property.
-
-                var memberInitializerSyntax = boundMemberInitializer.Syntax;
-
-                Debug.Assert(memberInitializerSyntax.Kind() == SyntaxKind.SimpleAssignmentExpression);
-                var namedAssignment = (AssignmentExpressionSyntax)memberInitializerSyntax;
-
-                var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
-                if (memberNameSyntax != null)
+                // A second `=`, or a `=` that follows any compound assignment for the same target, is an error.
+                if (state != MemberInitializerState.None)
                 {
-                    var memberName = memberNameSyntax.Identifier.ValueText;
-
-                    if (!memberNameMap.Add(memberName))
-                    {
-                        Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
-                    }
+                    Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
                 }
+
+                memberNameMap[memberName] = MemberInitializerState.SeenEquals;
+            }
+            else
+            {
+                // Compound forms are unrestricted for the same target; just record that a compound appeared
+                // so a later `=` for the same target can be flagged.
+                memberNameMap[memberName] = MemberInitializerState.SeenCompound;
             }
         }
 
