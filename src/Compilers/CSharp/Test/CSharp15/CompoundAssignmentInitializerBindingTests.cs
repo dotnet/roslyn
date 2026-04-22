@@ -36,6 +36,29 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     };
 
     /// <summary>
+    /// Expected (as string) result of applying <paramref name="op"/> to seed value <c>6</c> and RHS
+    /// <c>5</c>. Shared expected-value table for the op-matrix theories across init-only,
+    /// ref-returning, dynamic, and record-struct property targets; any divergence across accessor
+    /// kinds on the same seed+RHS would point at a lowering or binding regression specific to that
+    /// kind rather than at the operator itself.
+    /// </summary>
+    private static string ExpectedForOpOn6With5(string op) => op switch
+    {
+        "+=" => "11",   // 6 + 5
+        "-=" => "1",    // 6 - 5
+        "*=" => "30",   // 6 * 5
+        "/=" => "1",    // 6 / 5
+        "%=" => "1",    // 6 % 5
+        "&=" => "4",    // 0110 & 0101
+        "|=" => "7",    // 0110 | 0101
+        "^=" => "3",    // 0110 ^ 0101
+        "<<=" => "192", // 6 << 5
+        ">>=" => "0",   // 6 >> 5
+        ">>>=" => "0",  // 6 >>> 5
+        _ => throw new System.InvalidOperationException($"unexpected op: {op}"),
+    };
+
+    /// <summary>
     /// The 9 compound operators other than `+=` / `-=`. Per spec, an event target is only valid with
     /// `+=` or `-=`; every other compound form falls through `BindCompoundAssignmentCore`'s event
     /// dispatch and hits overload resolution on the delegate type, producing CS0019.
@@ -137,21 +160,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         // spec's "Accessor requirements" bullet); the init setter fires exactly once after the
         // compound's read-modify sequence. Seed = 6 (binary 0110) so every op yields a distinct
         // non-seed result when applied with 5.
-        var expected = op switch
-        {
-            "+=" => "11",   // 6 + 5
-            "-=" => "1",    // 6 - 5
-            "*=" => "30",   // 6 * 5
-            "/=" => "1",    // 6 / 5
-            "%=" => "1",    // 6 % 5
-            "&=" => "4",    // 0110 & 0101
-            "|=" => "7",    // 0110 | 0101
-            "^=" => "3",    // 0110 ^ 0101
-            "<<=" => "192", // 6 << 5
-            ">>=" => "0",   // 6 >> 5
-            ">>>=" => "0",  // 6 >>> 5
-            _ => throw new System.InvalidOperationException()
-        };
         var source = $$"""
             class C
             {
@@ -159,31 +167,16 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static void Main() => System.Console.Write(new C { P {{op}} 5 }.P);
             }
             """;
-        CompileAndVerify([source, Polyfills], expectedOutput: expected);
+        CompileAndVerify([source, Polyfills], expectedOutput: ExpectedForOpOn6With5(op));
     }
 
     [Theory, MemberData(nameof(AllCompoundOperators))]
     public void Target_RefReturningProperty_AllCompoundOperators(string op)
     {
         // A ref-returning property classifies its access as a variable, so every compound operator
-        // in the set is valid on it — the read and write both go through the returned ref. Same seed
-        // and expected-value table as the init-only theory above; any divergence would indicate the
-        // value-kind path diverged between the two accessor kinds.
-        var expected = op switch
-        {
-            "+=" => "11",
-            "-=" => "1",
-            "*=" => "30",
-            "/=" => "1",
-            "%=" => "1",
-            "&=" => "4",
-            "|=" => "7",
-            "^=" => "3",
-            "<<=" => "192",
-            ">>=" => "0",
-            ">>>=" => "0",
-            _ => throw new System.InvalidOperationException()
-        };
+        // in the set is valid on it — the read and write both go through the returned ref. Same
+        // seed + RHS as the init-only theory; any divergence would indicate the value-kind path
+        // diverged between the two accessor kinds.
         var source = $$"""
             class C
             {
@@ -192,7 +185,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static void Main() => System.Console.Write(new C { P {{op}} 5 }.P);
             }
             """;
-        CompileAndVerify(source, expectedOutput: expected);
+        CompileAndVerify(source, expectedOutput: ExpectedForOpOn6With5(op));
     }
 
     [Fact]
@@ -629,20 +622,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             return;
         }
 
-        var expected = op switch
-        {
-            "+=" => "11",
-            "-=" => "1",
-            "*=" => "30",
-            "/=" => "1",
-            "%=" => "1",
-            "&=" => "4",
-            "|=" => "7",
-            "^=" => "3",
-            "<<=" => "192",
-            ">>=" => "0",
-            _ => throw new System.InvalidOperationException()
-        };
         var source = $$"""
             class C
             {
@@ -650,7 +629,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static void Main() => System.Console.Write((int)new C { X {{op}} 5 }.X);
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expected);
+        CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: ExpectedForOpOn6With5(op));
     }
 
     [Theory, MemberData(nameof(AllCompoundOperators))]
@@ -659,21 +638,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         // Records `with` clones the receiver; compound operators on the clone must respect the
         // same accessor rules as on plain classes. Pin the full operator set so record-struct
         // copy semantics + compound assignment stay consistent. Seed Value = 6.
-        var expected = op switch
-        {
-            "+=" => "11",
-            "-=" => "1",
-            "*=" => "30",
-            "/=" => "1",
-            "%=" => "1",
-            "&=" => "4",
-            "|=" => "7",
-            "^=" => "3",
-            "<<=" => "192",
-            ">>=" => "0",
-            ">>>=" => "0",
-            _ => throw new System.InvalidOperationException()
-        };
         var source = $$"""
             record struct Counter(int Value)
             {
@@ -685,7 +649,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, expectedOutput: expected);
+        CompileAndVerify(source, expectedOutput: ExpectedForOpOn6With5(op));
     }
 
     #endregion
