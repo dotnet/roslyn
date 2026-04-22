@@ -135,7 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (left.Kind == BoundKind.EventAccess && !CheckEventValueKind((BoundEventAccess)left, BindValueKind.Assignable, diagnostics))
+                // Non-event-assignment compound operators (`*= / /= / %= / …`) on an event target
+                // bounce through CheckEventValueKind so the event-specific diagnostic (CS0070 from
+                // outside the declaring type; CS0079 for a custom event) wins over a generic CS0019
+                // from overload resolution. `eventAccess` also covers the initializer / with shape
+                // where the BoundEventAccess sits on BoundObjectInitializerMember.UnderlyingAccessOpt.
+                if (eventAccess is not null && !CheckEventValueKind(eventAccess, BindValueKind.Assignable, diagnostics))
                 {
                     // If we're in a place where the event can be assigned, then continue so that we give errors
                     // about the types and operator not lining up.  Otherwise, just report that the event can't

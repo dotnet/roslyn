@@ -657,11 +657,12 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     #region Event target constraints
 
     [Theory, MemberData(nameof(NonPlusMinusCompoundOperators))]
-    public void Event_NonPlusOrMinusCompound_Fails(string op)
+    public void Event_NonPlusOrMinusCompound_FromInside_Fails(string op)
     {
-        // Per spec: "An *identifier* that names an event is a valid target only in combination with the
-        // `+=` or `-=` operator". Other compound ops fall through BindCompoundAssignmentCore's event branch
-        // and fail via overload resolution on the delegate type (CS0019).
+        // From inside the declaring type the event's backing field is accessible
+        // (`IsUsableAsField == true`), so `CheckEventValueKind(… Assignable …)` succeeds and the
+        // binder falls through to overload resolution on the delegate type, producing CS0019.
+        // Matches what `c.E {op} h` as a statement fires from inside the declaring type.
         var source = $$"""
             using System;
             class C
@@ -677,6 +678,35 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             // (5,53): error CS0019: Operator 'op' cannot be applied to operands of type 'EventHandler' and 'EventHandler'
             //     public static C Make(EventHandler h) => new C { E op h };
             Diagnostic(ErrorCode.ERR_BadBinaryOps, $"E {op} h").WithArguments(op, "System.EventHandler", "System.EventHandler").WithLocation(5, 53));
+    }
+
+    [Theory, MemberData(nameof(NonPlusMinusCompoundOperators))]
+    public void Event_NonPlusOrMinusCompound_FromOutside_Fails(string op)
+    {
+        // From outside the declaring type the backing field is inaccessible, so the event-specific
+        // CS0070 must win over the generic CS0019 — matching `c.E {op} h` as a statement from the
+        // same call site. Before the fix, the initializer path's event dispatch guard keyed on
+        // `left.Kind == BoundKind.EventAccess` and missed the `BoundObjectInitializerMember` wrapper,
+        // so CS0019 leaked through instead of CS0070.
+        var source = $$"""
+            using System;
+            class C
+            {
+                public event EventHandler E;
+            }
+            class Outer
+            {
+                public static void N(C c, EventHandler h) { c.E {{op}} h; }
+                public static C   I(EventHandler h) => new C { E {{op}} h };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,51): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+            //     public static void N(C c, EventHandler h) { c.E op h; }
+            Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(8, 51),
+            // (9,52): error CS0070: The event 'C.E' can only appear on the left hand side of += or -= (except when used from within the type 'C')
+            //     public static C   I(EventHandler h) => new C { E op h };
+            Diagnostic(ErrorCode.ERR_BadEventUsage, "E").WithArguments("C.E", "C").WithLocation(9, 52));
     }
 
     [Fact]
