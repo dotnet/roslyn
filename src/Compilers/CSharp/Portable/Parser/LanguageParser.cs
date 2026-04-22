@@ -13363,21 +13363,21 @@ done:
 
             // `>>=` and `>>>=` are split by the lexer into multiple tokens to keep nested generic argument
             // lists parseable. Detect the adjacency pattern here so the named-member path triggers correctly.
-            return IsSplitRightShiftAssignmentAt(position: 1);
+            return IsSplitRightShiftAssignmentAt(peekIndex: 1);
         }
 
         /// <summary>
-        /// Returns true if the token at <paramref name="position"/> (0 = current, 1 = peek 1, ...) is a
+        /// Returns true if the token at <paramref name="peekIndex"/> (0 = current, 1 = peek 1, ...) is a
         /// <c>&gt;</c> that, together with the adjacent token(s), forms a <c>&gt;&gt;=</c> or <c>&gt;&gt;&gt;=</c>
         /// compound assignment operator. Adjacency is determined by <see cref="NoTriviaBetween"/>.
         /// </summary>
-        private bool IsSplitRightShiftAssignmentAt(int position)
+        private bool IsSplitRightShiftAssignmentAt(int peekIndex)
         {
-            var token1 = this.PeekToken(position);
+            var token1 = this.PeekToken(peekIndex);
             if (token1.Kind != SyntaxKind.GreaterThanToken)
                 return false;
 
-            var token2 = this.PeekToken(position + 1);
+            var token2 = this.PeekToken(peekIndex + 1);
             if (!NoTriviaBetween(token1, token2))
                 return false;
 
@@ -13389,7 +13389,7 @@ done:
 
             if (token2.Kind == SyntaxKind.GreaterThanToken)
             {
-                var token3 = this.PeekToken(position + 2);
+                var token3 = this.PeekToken(peekIndex + 2);
                 if (NoTriviaBetween(token2, token3) && token3.Kind == SyntaxKind.GreaterThanEqualsToken)
                 {
                     // `>` then `>` then `>=` → `>>>=`
@@ -13636,7 +13636,7 @@ done:
 
             // `>>=` and `>>>=` are split into separate tokens by the lexer to keep nested generic argument
             // lists parseable. Reuse the expression parser's merger to reconstruct the single token.
-            if (IsSplitRightShiftAssignmentAt(position: 0))
+            if (IsSplitRightShiftAssignmentAt(peekIndex: 0))
             {
                 var mergedKind = this.PeekToken(1).Kind == SyntaxKind.GreaterThanEqualsToken
                     ? SyntaxKind.GreaterThanGreaterThanEqualsToken
