@@ -2077,17 +2077,9 @@
     <!--
     The concrete member access (BoundFieldAccess / BoundPropertyAccess /
     BoundIndexerAccess / BoundEventAccess) whose ReceiverOpt is the object-
-    initializer placeholder. Populated by the binder from the same bound node
-    CheckValueKind just ran against, so downstream consumers (value-kind
-    rechecks, event-assignment dispatch, compound/??= lowering) can delegate
-    to the per-kind helpers instead of synthesizing a new access from the
-    denormalized fields above. Nullable only to cover error-recovery paths
+    initializer placeholder. Nullable only to cover error-recovery paths
     where the binder didn't have a usable access; every post-binding consumer
     that reaches into this wrapper should treat it as present.
-    Shadow pointer: the authoritative children of this wrapper remain the
-    denormalized fields (Arguments, etc.), so we skip this field in both the
-    tree walker (to avoid double-visiting Arguments) and the nullability
-    rewriter (to keep a single source of truth across clones).
     -->
     <Field Name="UnderlyingAccessOpt" Type="BoundExpression?" Null="allow" SkipInVisitor="true" SkipInNullabilityRewriter="true"/>
 
