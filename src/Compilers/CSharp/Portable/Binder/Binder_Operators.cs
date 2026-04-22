@@ -52,9 +52,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If either operand is bad, don't try to do binary operator overload resolution; that will just
                 // make cascading errors.
 
-                if (TryBindEventAssignment(node, left, right, kind, diagnostics) is { } eventAssignment)
+                // The event-target case also fires for the initializer / with form, where the BoundEventAccess
+                // is stashed on BoundObjectInitializerMember.UnderlyingAccessOpt.
+                BoundEventAccess? eventAccess = left switch
                 {
-                    return eventAssignment;
+                    BoundEventAccess e => e,
+                    BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+                    _ => null,
+                };
+
+                if (eventAccess is not null)
+                {
+                    BinaryOperatorKind kindOperator = kind.Operator();
+                    switch (kindOperator)
+                    {
+                        case BinaryOperatorKind.Addition:
+                        case BinaryOperatorKind.Subtraction:
+                            return BindEventAssignment(node, eventAccess, right, kindOperator, diagnostics);
+
+                            // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
+                    }
                 }
 
                 if (left.HasAnyErrors || right.HasAnyErrors)
@@ -681,35 +698,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        /// <summary>
-        /// If <paramref name="left"/> targets a field-like event (either directly or via an initializer
-        /// wrapper stashing the <see cref="BoundEventAccess"/> on <see cref="BoundObjectInitializerMember.UnderlyingAccessOpt"/>)
-        /// and the compound operator is <c>+=</c> or <c>-=</c>, route to <see cref="BindEventAssignment"/>
-        /// so lowering emits the <c>add_E</c> / <c>remove_E</c> accessor call. Other operators on an
-        /// event fall through to the general compound path and ultimately emit CS0019 on the delegate type.
-        /// </summary>
-        private BoundExpression? TryBindEventAssignment(
-            AssignmentExpressionSyntax node,
-            BoundExpression left,
-            BoundExpression right,
-            BinaryOperatorKind kind,
-            BindingDiagnosticBag diagnostics)
-        {
-            BoundEventAccess? eventAccess = left switch
-            {
-                BoundEventAccess e => e,
-                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
-                _ => null,
-            };
-
-            if (eventAccess is null || kind.Operator() is not (BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction))
-            {
-                return null;
-            }
-
-            return BindEventAssignment(node, eventAccess.EventSymbol, eventAccess.ReceiverOpt!, eventAccess.Type, right, kind.Operator(), diagnostics);
-        }
-
 #nullable disable
 
         /// <summary>
@@ -720,18 +708,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Performs some validation of the accessor that couldn't be done in CheckEventValueKind, because
         /// the specific accessor wasn't known.
         /// </remarks>
-        private BoundExpression BindEventAssignment(
-            AssignmentExpressionSyntax node,
-            EventSymbol eventSymbol,
-            BoundExpression receiverOpt,
-            TypeSymbol delegateType,
-            BoundExpression right,
-            BinaryOperatorKind opKind,
-            BindingDiagnosticBag diagnostics)
+        private BoundExpression BindEventAssignment(AssignmentExpressionSyntax node, BoundEventAccess left, BoundExpression right, BinaryOperatorKind opKind, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(opKind == BinaryOperatorKind.Addition || opKind == BinaryOperatorKind.Subtraction);
 
             bool hasErrors = false;
+
+            EventSymbol eventSymbol = left.EventSymbol;
+            BoundExpression receiverOpt = left.ReceiverOpt;
+
+            TypeSymbol delegateType = left.Type;
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion argumentConversion = this.Conversions.ClassifyConversionFromExpression(right, delegateType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
