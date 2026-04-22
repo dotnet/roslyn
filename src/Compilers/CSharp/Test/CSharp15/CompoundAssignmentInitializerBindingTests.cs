@@ -1332,6 +1332,26 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         CompileAndVerify([source, Polyfills], expectedOutput: "1");
     }
 
+    [Fact]
+    public void Required_CompoundAlone_WithSetsRequiredMembersCtor_Succeeds()
+    {
+        // `[SetsRequiredMembers]` on a constructor lifts the `required` obligation for any `new` via
+        // that constructor. Within that lifted context, a compound-alone member initializer is fine —
+        // the obligation is discharged by the attribute, so the initializer is free to read-modify-write
+        // the pre-initialized value. Sanity-check counterpart to Required_CompoundAlone_DoesNotSatisfy.
+        var source = """
+            using System.Diagnostics.CodeAnalysis;
+            class C
+            {
+                public required int P { get; set; }
+                [SetsRequiredMembers]
+                public C() { P = 10; }
+                public static void Main() => System.Console.Write(new C { P += 5 }.P);
+            }
+            """;
+        CompileAndVerify([source, Polyfills], expectedOutput: "15");
+    }
+
     #endregion
 
     #region Mixed initializer + feature interactions
