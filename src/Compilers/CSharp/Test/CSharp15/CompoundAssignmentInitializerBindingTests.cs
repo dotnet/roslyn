@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1266,6 +1267,40 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CompileAndVerify([source, Polyfills], expectedOutput: "15");
+    }
+
+    [Fact]
+    public void UserDefined_InPlaceOnly_OnRefReturningProperty_InWithOnRecordStruct_Succeeds()
+    {
+        // Exercises the interaction of: record struct copy semantics (`with` clones) + ref-returning
+        // property (returns a ref into the clone's field via [UnscopedRef]) + user-defined in-place
+        // `operator +=` on a struct (mutates through that ref). Original stays at 10; the clone sees
+        // the in-place += bump to 15. If `with`'s clone-then-mutate contract leaked into the original
+        // (sharing backing storage) this test would fail with "15,15".
+        var source = """
+            using System.Diagnostics.CodeAnalysis;
+            struct V
+            {
+                public int X;
+                public V(int x) => X = x;
+                public void operator +=(V b) { X += b.X; }
+            }
+            record struct Container(V Init)
+            {
+                public V Data = Init;
+                [UnscopedRef]
+                public ref V Ref => ref Data;
+                public static void Main()
+                {
+                    var a = new Container(new V(10));
+                    var b = a with { Ref += new V(5) };
+                    System.Console.Write($"{a.Data.X},{b.Data.X}");
+                }
+            }
+            """;
+        // IL verifier rejects returning a `ref` from an instance member of a struct (even with
+        // [UnscopedRef]); skip PEVerify for this test — the runtime executes correctly.
+        CompileAndVerify([source, Polyfills, UnscopedRefAttributeDefinition], verify: Verification.Skipped, expectedOutput: "10,15");
     }
 
     [Fact]
