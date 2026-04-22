@@ -5909,20 +5909,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (isCompound)
                         {
                             MessageID.IDS_FeatureCompoundAssignmentInInitializer.CheckFeatureAvailability(diagnostics, initializer.OperatorToken);
-
-                            // Per spec, the compound_assignment_operator branch of member_initializer
-                            // admits only *expression*, not the nested initializer form. The parser is
-                            // permissive (it produces a nested ObjectInitializerExpression /
-                            // CollectionInitializerExpression on the RHS), so we reject it here before
-                            // binding the left or right sides (both would emit cascading diagnostics:
-                            // value-type-property-in-nested-initializer on the left, or collection /
-                            // object-initializer-type-mismatch on the right).
-                            if (initializer.Right is InitializerExpressionSyntax)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
-                                return BindToTypeForErrorRecovery(new BoundBadExpression(
-                                    initializer, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: null, hasErrors: true));
-                            }
                         }
 
                         BoundExpression boundLeft = BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
@@ -5943,13 +5929,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 typeSyntax: boundLeft.Syntax,
                                 diagnostics: diagnostics);
 
-                            if (isCompound)
+                            // Per spec, the compound_assignment_operator branch of member_initializer
+                            // admits only *expression*, not the nested-initializer form. The parser is
+                            // permissive (it produces a nested ObjectInitializerExpression /
+                            // CollectionInitializerExpression on the RHS), so we report the additional
+                            // error here and return a bad expression whose children are the already-bound
+                            // left and right (preserving whatever semantic info IDE / semantic-model
+                            // consumers can glean about each side).
+                            if (isCompound && initializer.Right is InitializerExpressionSyntax)
                             {
-                                return BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics);
+                                Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+                                return new BoundBadExpression(
+                                    initializer,
+                                    LookupResultKind.Empty,
+                                    symbols: [],
+                                    childBoundNodes: [boundLeft, boundRight],
+                                    type: null,
+                                    hasErrors: true);
                             }
 
                             // Bind member initializer assignment expression
-                            return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
+                            return isCompound
+                                ? BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics)
+                                : BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
                         }
                         break;
                     }
@@ -6006,10 +6008,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // at bind-member time lets the later call to `BindCompoundAssignmentCore` treat
             // `BoundObjectInitializerMember` as an already-validated lvalue, matching how
             // `BindAssignment` treats it for simple-assignment.
-            BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue
-                : isRef ? BindValueKind.RefAssignable
-                : isCompound ? BindValueKind.CompoundAssignment
-                : BindValueKind.Assignable;
+            BindValueKind valueKind =
+                isRhsNestedInitializer ? BindValueKind.RValue : 
+                isRef ? BindValueKind.RefAssignable :
+                isCompound ? BindValueKind.CompoundAssignment : BindValueKind.Assignable;
 
             return BindObjectInitializerMemberCommon(
                 leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics);

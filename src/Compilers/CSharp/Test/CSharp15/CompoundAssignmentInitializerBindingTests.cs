@@ -590,8 +590,10 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     public void NestedCollectionInitializerOnRhs_Rejected()
     {
         // Spec note: "The compound_assignment_operator branch admits only expression, so forms such as
-        // P += { 1, 2 } are syntactically ill-formed." The parser is permissive (per Phase 1); the binder
-        // rejects the shape.
+        // P += { 1, 2 } are syntactically ill-formed." The parser is permissive (per Phase 1); the
+        // binder binds both sides normally (producing CS1918 for the nested-initializer target and
+        // CS1922 for the brace-list RHS against int) and additionally emits CS0747 for the compound +
+        // nested-initializer combination the spec forbids outright.
         var source = """
             class C
             {
@@ -600,9 +602,15 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (4,39): error CS1918: Members of property 'C.P' of type 'int' cannot be assigned with an object initializer because it is of a value type
+            //     public static C Make() => new C { P += { 1, 2 } };
+            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "P").WithArguments("C.P", "int").WithLocation(4, 39),
             // (4,39): error CS0747: Invalid initializer member declarator
             //     public static C Make() => new C { P += { 1, 2 } };
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P += { 1, 2 }").WithLocation(4, 39));
+            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P += { 1, 2 }").WithLocation(4, 39),
+            // (4,44): error CS1922: Cannot initialize type 'int' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+            //     public static C Make() => new C { P += { 1, 2 } };
+            Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{ 1, 2 }").WithArguments("int").WithLocation(4, 44));
     }
 
     #endregion
