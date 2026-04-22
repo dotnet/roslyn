@@ -311,6 +311,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (4,31): warning CS0067: The event 'C.E' is never used
+            //     public event EventHandler E;
+            Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31),
             // (5,53): error CS0019: Operator '*=' cannot be applied to operands of type 'EventHandler' and 'EventHandler'
             //     public static C Make(EventHandler h) => new C { E *= h };
             Diagnostic(ErrorCode.ERR_BadBinaryOps, "E *= h").WithArguments("*=", "System.EventHandler", "System.EventHandler").WithLocation(5, 53));

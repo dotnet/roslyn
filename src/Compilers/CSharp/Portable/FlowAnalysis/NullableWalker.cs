@@ -11258,8 +11258,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private FlowAnalysisAnnotations GetLValueAnnotations(BoundExpression expr)
         {
-            Debug.Assert(expr is not BoundObjectInitializerMember);
-
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
             if (IsAnalyzingAttribute)
@@ -11274,6 +11272,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess field => GetFieldAnnotations(field.FieldSymbol),
                 BoundParameter { ParameterSymbol: ParameterSymbol parameter }
                     => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
+                // Compound assignment on a member initializer wraps the target access in
+                // BoundObjectInitializerMember; delegate to the wrapped symbol for its annotations.
+                BoundObjectInitializerMember { MemberSymbol: PropertySymbol property } => property.GetFlowAnalysisAnnotations(),
+                BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => GetFieldAnnotations(field),
                 _ => FlowAnalysisAnnotations.None
             };
 
@@ -12612,8 +12614,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
-            // Should be handled by VisitObjectCreationExpression.
-            throw ExceptionUtilities.Unreachable();
+            // Normally this wrapper is handled inline by VisitObjectCreationExpressionInitializer's
+            // BoundKind.AssignmentOperator switch case, which dispatches to VisitObjectElementInitializer
+            // without calling Visit on the wrapper itself. The compound-assignment-in-initializer path
+            // however puts the wrapper in BoundCompoundAssignmentOperator.Left, so VisitCompoundAssignmentOperator
+            // visits us directly. Produce a result describing the member's type so the caller can track
+            // nullable state for the read / write.
+            foreach (var argument in node.Arguments)
+            {
+                VisitRvalue(argument);
+            }
+
+            var memberSymbol = node.MemberSymbol;
+            if (memberSymbol is null)
+            {
+                SetNotNullResult(node);
+                return null;
+            }
+
+            TypeWithAnnotations memberTypeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(memberSymbol);
+            FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(memberSymbol);
+            TypeWithState typeWithState = ApplyUnconditionalAnnotations(memberTypeWithAnnotations.ToTypeWithState(), memberAnnotations);
+            SetResult(node, typeWithState, memberTypeWithAnnotations);
+            return null;
         }
 
         public override BoundNode? VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)

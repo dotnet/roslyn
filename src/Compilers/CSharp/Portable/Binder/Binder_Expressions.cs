@@ -5982,8 +5982,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             BoundExpression boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
+                            BoundExpression boundOp = BindCompoundAssignmentCore(initializer, rawAccess, boundRight, diagnostics);
 
-                            return BindCompoundAssignmentCore(initializer, rawAccess, boundRight, diagnostics);
+                            // For the non-event case we swap the raw access in the compound op's Left
+                            // for the BoundObjectInitializerMember wrapper so that
+                            // LocalRewriter.AddObjectInitializers sees the same shape it sees for simple
+                            // assignment and reuses its placeholder substitution machinery.
+                            // BoundCompoundAssignmentOperator.LeftConversion references LeftPlaceholder,
+                            // not Left directly, so swapping Left does not invalidate any cross-reference.
+                            // For the event case BindCompoundAssignmentCore returns a
+                            // BoundEventAssignmentOperator whose ReceiverOpt already carries the
+                            // placeholder; lowering substitutes that directly.
+                            if (boundOp is BoundCompoundAssignmentOperator compound)
+                            {
+                                var wrappedLeft = WrapAsObjectInitializerMember(rawAccess, implicitReceiver, leftSyntax, resultKind, hasErrors);
+                                if ((object)wrappedLeft != rawAccess)
+                                {
+                                    boundOp = compound.Update(
+                                        compound.Operator,
+                                        wrappedLeft,
+                                        compound.Right,
+                                        compound.LeftPlaceholder,
+                                        compound.LeftConversion,
+                                        compound.FinalPlaceholder,
+                                        compound.FinalConversion,
+                                        compound.ResultKind,
+                                        compound.OriginalUserDefinedOperatorsOpt,
+                                        compound.Type);
+                                }
+                            }
+
+                            return boundOp;
                         }
                         break;
                     }
@@ -6219,23 +6248,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind = isRhsNestedInitializer ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable;
                 }
             }
-
-#if DEBUG
-            // The compound-assignment-in-initializer path hands the raw access to BindCompoundAssignmentCore
-            // unwrapped, so the post-bind walker in MethodCompiler sees a BoundPropertyAccess and asserts
-            // unless WasPropertyBackingFieldAccessChecked is set. CheckValueKind above validates the
-            // value-kind but doesn't set the flag (only the BindValue -> CheckValue path does). Set it here
-            // for the compound case. On the non-compound path the access is hidden inside a
-            // BoundObjectInitializerMember, so the walker never inspects it. boundMember is freshly built in
-            // this method and not shared with other binding paths, so the direct set is safe.
-            // TODO: once the compound path wraps its Left in BoundObjectInitializerMember (see the
-            // lowering-extension work), this workaround can be removed.
-            if (valueKind == BindValueKind.CompoundAssignment &&
-                boundMember is BoundPropertyAccess { WasPropertyBackingFieldAccessChecked: false } propertyAccess)
-            {
-                propertyAccess.WasPropertyBackingFieldAccessChecked = true;
-            }
-#endif
 
             return boundMember;
         }

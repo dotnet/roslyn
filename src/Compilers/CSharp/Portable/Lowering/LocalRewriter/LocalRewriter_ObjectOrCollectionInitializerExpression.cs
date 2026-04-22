@@ -290,10 +290,119 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var initializer in initializers)
             {
-                // In general bound initializers may contain bad expressions or assignments.
-                // We don't lower them if they contain errors, so it's safe to assume an assignment.
-                AddObjectInitializer(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, (BoundAssignmentOperator)initializer);
+                // Bound initializers may be simple assignments (`Prop = v`), compound assignments
+                // (`Prop += v`), or event assignments (`E += h`). We don't lower them if they contain
+                // errors, so below we assume well-formed shapes.
+                switch (initializer.Kind)
+                {
+                    case BoundKind.AssignmentOperator:
+                        AddObjectInitializer(ref dynamicSiteInitializers, ref temps, result, rewrittenReceiver, (BoundAssignmentOperator)initializer);
+                        break;
+                    case BoundKind.CompoundAssignmentOperator:
+                        AddCompoundObjectInitializer(ref temps, result, rewrittenReceiver, (BoundCompoundAssignmentOperator)initializer);
+                        break;
+                    case BoundKind.EventAssignmentOperator:
+                        AddEventObjectInitializer(result, rewrittenReceiver, (BoundEventAssignmentOperator)initializer);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(initializer.Kind);
+                }
             }
+        }
+
+        /// <summary>
+        /// Lowers a compound member initializer (`Prop += v` / `Prop |= v` / etc.) on an object
+        /// initializer by substituting the placeholder receiver on the wrapped member access with the
+        /// real <paramref name="rewrittenReceiver"/>, then handing the result to the general
+        /// compound-assignment lowering pipeline (<see cref="VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator, bool)"/>)
+        /// to emit the read-op-write sequence.
+        /// </summary>
+        private void AddCompoundObjectInitializer(
+            ref ArrayBuilder<LocalSymbol>? temps,
+            ArrayBuilder<BoundExpression> result,
+            BoundExpression rewrittenReceiver,
+            BoundCompoundAssignmentOperator compound)
+        {
+            Debug.Assert(rewrittenReceiver != null);
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(compound.Left is BoundObjectInitializerMember, "Compound initializer's Left should be BoundObjectInitializerMember; the binder wraps it.");
+
+            // Substitute the object-initializer placeholder receiver on the wrapper with the real
+            // receiver, mirroring what AddObjectInitializer does for simple assignment.
+            var memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
+                (BoundObjectInitializerMember)compound.Left, ref rewrittenReceiver, result, ref temps);
+
+            Debug.Assert(memberInit is { });
+
+            if (!memberInit.Arguments.IsDefaultOrEmpty)
+            {
+                Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsArrayOrCollection) <= (memberInit.Expanded ? 1 : 0));
+
+                var args = EvaluateSideEffectingArgumentsToTemps(
+                    memberInit.Arguments,
+                    memberInit.MemberSymbol?.GetParameterRefKinds() ?? default(ImmutableArray<RefKind>),
+                    result,
+                    ref temps);
+
+                memberInit = memberInit.Update(
+                    memberInit.MemberSymbol,
+                    args,
+                    memberInit.ArgumentNamesOpt,
+                    memberInit.ArgumentRefKindsOpt,
+                    memberInit.Expanded,
+                    memberInit.ArgsToParamsOpt,
+                    memberInit.DefaultArguments,
+                    memberInit.ResultKind,
+                    memberInit.AccessorKind,
+                    memberInit.ReceiverType,
+                    memberInit.Type);
+            }
+
+            // Build the concrete member access with the real receiver, matching the simple-assignment
+            // path. Then rebuild the compound op with that access as Left; the type matches, so the
+            // operator's LeftConversion / FinalConversion remain valid. The Right is still in unlowered
+            // form so VisitCompoundAssignmentOperator visits it during lowering.
+            var rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer: false);
+            var transformedCompound = compound.Update(
+                compound.Operator,
+                rewrittenAccess,
+                compound.Right,
+                compound.LeftPlaceholder,
+                compound.LeftConversion,
+                compound.FinalPlaceholder,
+                compound.FinalConversion,
+                compound.ResultKind,
+                compound.OriginalUserDefinedOperatorsOpt,
+                compound.Type);
+
+            result.Add(VisitCompoundAssignmentOperator(transformedCompound, used: false));
+        }
+
+        /// <summary>
+        /// Lowers an event member initializer (`E += handler` / `E -= handler`) on an object
+        /// initializer by substituting the placeholder receiver on <see cref="BoundEventAssignmentOperator.ReceiverOpt"/>
+        /// with the real <paramref name="rewrittenReceiver"/>, then handing the result to
+        /// <see cref="VisitEventAssignmentOperator(BoundEventAssignmentOperator)"/> to emit the
+        /// add_/remove_ accessor call.
+        /// </summary>
+        private void AddEventObjectInitializer(
+            ArrayBuilder<BoundExpression> result,
+            BoundExpression rewrittenReceiver,
+            BoundEventAssignmentOperator eventAssign)
+        {
+            Debug.Assert(rewrittenReceiver != null);
+            Debug.Assert(!_inExpressionLambda);
+            Debug.Assert(eventAssign.ReceiverOpt is BoundObjectOrCollectionValuePlaceholder, "Event compound initializer's receiver should be the object-initializer placeholder.");
+
+            var transformed = eventAssign.Update(
+                eventAssign.Event,
+                eventAssign.IsAddition,
+                eventAssign.IsDynamic,
+                rewrittenReceiver,
+                eventAssign.Argument,
+                eventAssign.Type);
+
+            result.Add((BoundExpression)VisitEventAssignmentOperator(transformed));
         }
 
         // Rewrite object initializer member assignment and add it to the result.
