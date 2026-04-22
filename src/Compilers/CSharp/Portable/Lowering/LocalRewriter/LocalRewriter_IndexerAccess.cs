@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             BoundExpression oldNode,
             bool isLeftOfAssignment,
-            bool receiverIsKnownToBeCaptured = false)
+            bool receiverIsKnownToBeCaptured)
         {
             Debug.Assert(oldNode is BoundIndexerAccess or BoundObjectInitializerMember);
             Debug.Assert(arguments.Length != 0);

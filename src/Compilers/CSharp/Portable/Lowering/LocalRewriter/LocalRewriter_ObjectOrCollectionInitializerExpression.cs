@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.DefaultArguments,
                             rewrittenLeft,
                             isLeftOfAssignment: !isRhsNestedInitializer,
-                            receiverIsKnownToBeCaptured: true); // PROTOTYPE add test when fixing receiver handling in SET scenarios
+                            receiverIsKnownToBeCaptured: false);
                     }
                     else
                     {
