@@ -5877,6 +5877,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
+            return BindNullCoalescingAssignmentOperatorCore(node, leftOperand, rightOperand, diagnostics);
+        }
+
+        /// <summary>
+        /// Completes null-coalescing-assignment binding given pre-bound operands. Factored out so the
+        /// object-initializer/<c>with</c>-expression path can supply a left bound as a
+        /// <see cref="BoundObjectInitializerMember"/> (already validated via
+        /// <see cref="BindValueKind.CompoundAssignment"/>) without re-running <see cref="BindValue"/>.
+        /// Mirrors the <see cref="BindCompoundAssignmentCore"/> split for the eleven regular compound
+        /// operators.
+        /// </summary>
+        private BoundExpression BindNullCoalescingAssignmentOperatorCore(
+            AssignmentExpressionSyntax node,
+            BoundExpression leftOperand,
+            BoundExpression rightOperand,
+            BindingDiagnosticBag diagnostics)
+        {
             // Prevent more cascading errors if there are any on either operand
             if (leftOperand.HasAnyErrors || rightOperand.HasAnyErrors)
             {

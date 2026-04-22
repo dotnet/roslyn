@@ -10,7 +10,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
 {
-    /// <summary>See the matching comment in <see cref="CompoundAssignmentInitializerBindingTests"/>.</summary>
+    /// <summary>
+    /// See <see cref="CompoundAssignmentInitializerBindingTests.Polyfills"/> — same setup, same rule:
+    /// add via <c>[source, Polyfills]</c> only when the test uses records, <c>init;</c>, user-defined
+    /// <c>operator +=</c>, or <c>required</c> members.
+    /// </summary>
     private static readonly string Polyfills =
         IsExternalInitTypeDefinition +
         CompilerFeatureRequiredAttribute +
@@ -47,7 +51,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify([source, Polyfills], expectedOutput: "TTTT");
+        CompileAndVerify(source, expectedOutput: "TTTT");
     }
 
     [Theory, MemberData(nameof(AllCompoundOperators))]
@@ -67,7 +71,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify([source, Polyfills], expectedOutput: "TTTT");
+        CompileAndVerify(source, expectedOutput: "TTTT");
     }
 
     [Theory, MemberData(nameof(AllCompoundOperators))]
@@ -92,7 +96,56 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify([source, Polyfills], expectedOutput: "TTTT");
+        CompileAndVerify(source, expectedOutput: "TTTT");
+    }
+
+    [Fact]
+    public void ObjectInitializer_DynamicNestedContainer_PlusEquals_Runs()
+    {
+        // Nested initializer whose target is of type `dynamic`: `new Outer { Inner = { X += 1 } }`.
+        // In the nested `{ X += 1 }`, BindObjectInitializerMemberCommon sees that the nested-initializer's
+        // receiver type is dynamic and produces a bare BoundDynamicObjectInitializerMember (not
+        // BoundObjectInitializerMember) for X. The compound lowering path must handle that kind without
+        // asserting on the wrapper shape. Regression test for adversarial-audit finding #2 — we back the
+        // dynamic with a concrete type so the runtime binder has a real X to bump.
+        var source = """
+            class Box { public int X = 10; }
+            class Outer
+            {
+                public dynamic Inner { get; set; } = new Box();
+                public static void Main()
+                {
+                    var p = new Outer { Inner = { X += 5 } };
+                    System.Console.Write((int)p.Inner.X);
+                }
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "15");
+    }
+
+    [Fact]
+    public void ObjectInitializer_ImplicitIndexIndexer_PlusEquals_Runs()
+    {
+        // Implicit `Index` indexer: target has `int Length` + `int` indexer, so `[^1]` lowers through
+        // the implicit-indexer pattern. BindObjectInitializerMemberCommon returns a bare
+        // BoundImplicitIndexerAccess (not wrapped in BoundObjectInitializerMember); the compound lowering
+        // path must handle that shape without asserting on the wrapper. Regression test for the
+        // adversarial-audit finding #1 crash.
+        var source = """
+            class C
+            {
+                private int[] _values = { 10, 20, 30 };
+                public int Length => _values.Length;
+                public int this[int i]
+                {
+                    get => _values[i];
+                    set => _values[i] = value;
+                }
+                public int Last() => _values[2];
+                public static void Main() => System.Console.Write(new C { [^1] += 5 }.Last());
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: "35");
     }
 
     #endregion
@@ -114,6 +167,30 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
             }
             """;
         CompileAndVerify([source, Polyfills], expectedOutput: "10,15");
+    }
+
+    [Theory, MemberData(nameof(AllCompoundOperators))]
+    public void WithExpression_RecordProperty_AllOperators_RunsAndMatchesStatement(string op)
+    {
+        // For every compound operator, `r with { P op rhs }` and a fresh record built from
+        // the statement-equivalent compound must have equal Value. Seeds P at 6 and the rhs
+        // at 1..4 so `/=` / `%=` don't divide by zero. Records are immutable, so we rebuild
+        // via `new R(...)` for the statement side.
+        var source = $$"""
+            record R(int P)
+            {
+                public static int ViaWith(R r, int rhs) => (r with { P {{op}} rhs }).P;
+                public static int ViaStatement(R r, int rhs) { var p = r.P; p {{op}} rhs; return p; }
+                public static void Main()
+                {
+                    var seed = new R(6);
+                    int[] inputs = { 1, 2, 3, 4 };
+                    foreach (var rhs in inputs)
+                        System.Console.Write(ViaWith(seed, rhs) == ViaStatement(seed, rhs) ? 'T' : 'F');
+                }
+            }
+            """;
+        CompileAndVerify([source, Polyfills], expectedOutput: "TTTT");
     }
 
     #endregion
@@ -142,7 +219,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify([source, Polyfills], expectedOutput: "2");
+        CompileAndVerify(source, expectedOutput: "2");
     }
 
     [Fact]
@@ -169,7 +246,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify([source, Polyfills], expectedOutput: "2");
+        CompileAndVerify(source, expectedOutput: "2");
     }
 
     #endregion
@@ -226,7 +303,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
             }
             """;
         // V.A | V.B | V.C = 7
-        CompileAndVerify([source, Polyfills], expectedOutput: "7");
+        CompileAndVerify(source, expectedOutput: "7");
     }
 
     [Fact]
@@ -250,7 +327,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
             }
             """;
         // (7) & ~2 = 5
-        CompileAndVerify([source, Polyfills], expectedOutput: "5");
+        CompileAndVerify(source, expectedOutput: "5");
     }
 
     #endregion
@@ -269,7 +346,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 public static C Make() => new C { P += 5 };
             }
             """;
-        var verifier = CompileAndVerify([source, Polyfills]);
+        var verifier = CompileAndVerify(source);
         verifier.VerifyIL("C.Make", """
             {
               // Code size       20 (0x14)
@@ -299,7 +376,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 public static C Make() => new C { [7] |= 3 };
             }
             """;
-        var verifier = CompileAndVerify([source, Polyfills]);
+        var verifier = CompileAndVerify(source);
         verifier.VerifyIL("C.Make", """
             {
               // Code size       24 (0x18)
@@ -333,7 +410,7 @@ public sealed class CompoundAssignmentInitializerEmitTests : CSharpTestBase
                 public static C Make(Action h) => new C { Fired += h };
             }
             """;
-        var verifier = CompileAndVerify([source, Polyfills]);
+        var verifier = CompileAndVerify(source);
         verifier.VerifyIL("C.Make", """
             {
               // Code size       13 (0xd)

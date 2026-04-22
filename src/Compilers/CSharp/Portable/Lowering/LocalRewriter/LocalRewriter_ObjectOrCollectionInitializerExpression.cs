@@ -291,8 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var initializer in initializers)
             {
                 // Bound initializers may be simple assignments (`Prop = v`), compound assignments
-                // (`Prop += v`), or event assignments (`E += h`). We don't lower them if they contain
-                // errors, so below we assume well-formed shapes.
+                // (`Prop += v`), null-coalescing assignments (`Prop ??= v`), or event assignments
+                // (`E += h`). We don't lower them if they contain errors, so below we assume
+                // well-formed shapes.
                 switch (initializer.Kind)
                 {
                     case BoundKind.AssignmentOperator:
@@ -300,6 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundKind.CompoundAssignmentOperator:
                         AddCompoundObjectInitializer(ref temps, result, rewrittenReceiver, (BoundCompoundAssignmentOperator)initializer);
+                        break;
+                    case BoundKind.NullCoalescingAssignmentOperator:
+                        AddNullCoalescingObjectInitializer(ref temps, result, rewrittenReceiver, (BoundNullCoalescingAssignmentOperator)initializer);
                         break;
                     case BoundKind.EventAssignmentOperator:
                         AddEventObjectInitializer(result, rewrittenReceiver, (BoundEventAssignmentOperator)initializer);
@@ -312,10 +316,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Lowers a compound member initializer (`Prop += v` / `Prop |= v` / etc.) on an object
-        /// initializer by substituting the placeholder receiver on the wrapped member access with the
-        /// real <paramref name="rewrittenReceiver"/>, then handing the result to the general
+        /// initializer by substituting the placeholder receiver on the target access with the real
+        /// <paramref name="rewrittenReceiver"/>, then handing the rebuilt compound op to the general
         /// compound-assignment lowering pipeline (<see cref="VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator, bool)"/>)
-        /// to emit the read-op-write sequence.
+        /// to emit the read-op-write sequence. Accepts every Left shape that
+        /// <c>BindObjectInitializerMemberCommon</c> can produce for a non-dynamic target: the
+        /// <see cref="BoundObjectInitializerMember"/> wrapper (field / property / indexer / event) plus
+        /// the three bare accesses it hands back directly without a wrapper
+        /// (<see cref="BoundImplicitIndexerAccess"/> for <c>Index</c>/<c>Range</c>-pattern targets,
+        /// <see cref="BoundArrayAccess"/>, <see cref="BoundPointerElementAccess"/>).
         /// </summary>
         private void AddCompoundObjectInitializer(
             ref ArrayBuilder<LocalSymbol>? temps,
@@ -325,12 +334,228 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(rewrittenReceiver != null);
             Debug.Assert(!_inExpressionLambda);
-            Debug.Assert(compound.Left is BoundObjectInitializerMember, "Compound initializer's Left should be BoundObjectInitializerMember; the binder wraps it.");
 
-            // Substitute the object-initializer placeholder receiver on the wrapper with the real
-            // receiver, mirroring what AddObjectInitializer does for simple assignment.
-            var memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
-                (BoundObjectInitializerMember)compound.Left, ref rewrittenReceiver, result, ref temps);
+            // Build the concrete member access with the real receiver, matching the simple-assignment
+            // path. Then rebuild the compound op with that access as Left; the type matches, so the
+            // operator's LeftConversion / FinalConversion remain valid. The Right is still in unlowered
+            // form so VisitCompoundAssignmentOperator visits it during lowering.
+            var rewrittenAccess = RewriteInitializerMemberLeftOperand(
+                compound.Left, ref rewrittenReceiver, result, ref temps);
+
+            var transformedCompound = compound.Update(
+                compound.Operator,
+                rewrittenAccess,
+                compound.Right,
+                compound.LeftPlaceholder,
+                compound.LeftConversion,
+                compound.FinalPlaceholder,
+                compound.FinalConversion,
+                compound.ResultKind,
+                compound.OriginalUserDefinedOperatorsOpt,
+                compound.Type);
+
+            // used: false — in an object initializer each member initializer is a statement-expression
+            // whose value is discarded, so the compound-assignment lowering can skip emitting the final
+            // dup/stloc that would preserve the RHS value on the stack. Mirrors the simple-assignment
+            // path, which calls MakeStaticAssignmentOperator with used: false.
+            result.Add(VisitCompoundAssignmentOperator(transformedCompound, used: false));
+        }
+
+        /// <summary>
+        /// Lowers a null-coalescing member initializer (`Prop ??= v`) on an object initializer by
+        /// substituting the placeholder receiver on the target access with the real
+        /// <paramref name="rewrittenReceiver"/> and handing the rebuilt null-coalescing-assignment op
+        /// to <see cref="VisitNullCoalescingAssignmentOperator(BoundNullCoalescingAssignmentOperator)"/>
+        /// (which handles the get-if-null-then-set short-circuit, including the nullable-value-type
+        /// `GetValueOrDefault` / `HasValue` path). Shares the same per-kind dispatch as the compound
+        /// path — `??=` on the eleven member access shapes the compound initializer admits.
+        /// </summary>
+        private void AddNullCoalescingObjectInitializer(
+            ref ArrayBuilder<LocalSymbol>? temps,
+            ArrayBuilder<BoundExpression> result,
+            BoundExpression rewrittenReceiver,
+            BoundNullCoalescingAssignmentOperator coalesce)
+        {
+            Debug.Assert(rewrittenReceiver != null);
+            Debug.Assert(!_inExpressionLambda);
+
+            var rewrittenAccess = RewriteInitializerMemberLeftOperand(
+                coalesce.LeftOperand, ref rewrittenReceiver, result, ref temps);
+
+            var transformedCoalesce = coalesce.Update(
+                rewrittenAccess,
+                coalesce.RightOperand,
+                coalesce.Type);
+
+            result.Add((BoundExpression)VisitNullCoalescingAssignmentOperator(transformedCoalesce));
+        }
+
+        /// <summary>
+        /// Shared dispatch for both the compound-assignment and null-coalescing-assignment initializer
+        /// paths. Takes a bound <paramref name="left"/> produced by <c>BindObjectInitializerMemberCommon</c>
+        /// — which may be a <see cref="BoundObjectInitializerMember"/> wrapper, one of the bare accesses
+        /// (<see cref="BoundImplicitIndexerAccess"/>, <see cref="BoundArrayAccess"/>,
+        /// <see cref="BoundPointerElementAccess"/>), or a <see cref="BoundDynamicObjectInitializerMember"/>
+        /// — and returns the concrete access with the real <paramref name="rewrittenReceiver"/> in place
+        /// of the object-initializer placeholder. Side-effecting indexer arguments are lifted to temps
+        /// via <paramref name="result"/> / <paramref name="temps"/> along the way.
+        /// </summary>
+        private BoundExpression RewriteInitializerMemberLeftOperand(
+            BoundExpression left,
+            ref BoundExpression rewrittenReceiver,
+            ArrayBuilder<BoundExpression> result,
+            ref ArrayBuilder<LocalSymbol>? temps)
+        {
+            switch (left.Kind)
+            {
+                case BoundKind.ObjectInitializerMember:
+                    return RewriteObjectInitializerMemberAccess(
+                        (BoundObjectInitializerMember)left,
+                        ref rewrittenReceiver, result, ref temps, isRhsNestedInitializer: false);
+
+                case BoundKind.ImplicitIndexerAccess:
+                    return RewriteImplicitIndexerInitializerAccess(
+                        (BoundImplicitIndexerAccess)left, result, ref temps);
+
+                case BoundKind.ArrayAccess:
+                    return RewriteArrayInitializerAccess(
+                        (BoundArrayAccess)left, rewrittenReceiver, result, ref temps);
+
+                case BoundKind.PointerElementAccess:
+                    return RewritePointerElementInitializerAccess(
+                        (BoundPointerElementAccess)left, rewrittenReceiver, ref temps, result);
+
+                case BoundKind.DynamicObjectInitializerMember:
+                    return RewriteDynamicObjectInitializerMemberAccess(
+                        (BoundDynamicObjectInitializerMember)left, rewrittenReceiver);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(left.Kind);
+            }
+        }
+
+        /// <summary>
+        /// Normalizes a <see cref="BoundImplicitIndexerAccess"/> initializer-member target (e.g.
+        /// <c>[^1]</c> / <c>[..n]</c> on a type with <c>int Length</c> + indexer) to the concrete
+        /// <see cref="BoundIndexerAccess"/> (Index) or <c>GetSubArray</c>-style <see cref="BoundCall"/>
+        /// (Range) that compound lowering operates on. Mirrors the shape built inline by the
+        /// simple-assignment path in <see cref="AddObjectInitializer"/>.
+        /// </summary>
+        private BoundExpression RewriteImplicitIndexerInitializerAccess(
+            BoundImplicitIndexerAccess implicitIndexer,
+            ArrayBuilder<BoundExpression> result,
+            ref ArrayBuilder<LocalSymbol>? temps)
+        {
+            temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
+
+            if (TypeSymbol.Equals(implicitIndexer.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
+            {
+                var rewritten = GetUnderlyingIndexerOrSliceAccess(
+                    implicitIndexer,
+                    isLeftOfAssignment: true,
+                    isRegularAssignment: true,
+                    cacheAllArgumentsOnly: true,
+                    result, temps);
+
+                if (rewritten is BoundIndexerAccess indexerAccess)
+                {
+                    rewritten = TransformIndexerAccessContinued(indexerAccess, indexerAccess.ReceiverOpt!, indexerAccess.Arguments, result, temps);
+                }
+
+                return rewritten;
+            }
+
+            return VisitRangePatternIndexerAccess(implicitIndexer, temps, result, cacheAllArgumentsOnly: true);
+        }
+
+        /// <summary>
+        /// Normalizes a <see cref="BoundArrayAccess"/> initializer-member target to a concrete array
+        /// element access with the real receiver, lifting side-effecting index arguments into temps.
+        /// Mirrors the shape built inline by the simple-assignment path.
+        /// </summary>
+        private BoundExpression RewriteArrayInitializerAccess(
+            BoundArrayAccess arrayAccess,
+            BoundExpression rewrittenReceiver,
+            ArrayBuilder<BoundExpression> result,
+            ref ArrayBuilder<LocalSymbol>? temps)
+        {
+            Debug.Assert(!arrayAccess.Indices.Any(a => a.IsParamsArrayOrCollection));
+
+            var indices = EvaluateSideEffectingArgumentsToTemps(
+                arrayAccess.Indices,
+                paramRefKindsOpt: default,
+                result,
+                ref temps);
+
+            return arrayAccess.Update(rewrittenReceiver, indices, arrayAccess.Type);
+        }
+
+        /// <summary>
+        /// Converts a <see cref="BoundDynamicObjectInitializerMember"/> compound target into a
+        /// <see cref="BoundDynamicMemberAccess"/> with the real <paramref name="rewrittenReceiver"/>.
+        /// This lets the general compound-assignment lowering pipeline's dynamic path
+        /// (<c>VisitCompoundAssignmentOperator</c> → <c>TransformDynamicMemberAccess</c>) take over and
+        /// emit the get/set runtime call-site pair, exactly as it does for the non-initializer
+        /// <c>dyn.X += 1</c> shape.
+        /// </summary>
+        private static BoundExpression RewriteDynamicObjectInitializerMemberAccess(
+            BoundDynamicObjectInitializerMember member,
+            BoundExpression rewrittenReceiver)
+        {
+            return new BoundDynamicMemberAccess(
+                member.Syntax,
+                rewrittenReceiver,
+                typeArgumentsOpt: default,
+                member.MemberName,
+                invoked: false,
+                indexed: false,
+                member.Type);
+        }
+
+        /// <summary>
+        /// Normalizes a <see cref="BoundPointerElementAccess"/> initializer-member target with the real
+        /// receiver, lifting a side-effecting index expression into a temp. Mirrors the shape built
+        /// inline by the simple-assignment path.
+        /// </summary>
+        private BoundExpression RewritePointerElementInitializerAccess(
+            BoundPointerElementAccess pointerAccess,
+            BoundExpression rewrittenReceiver,
+            ref ArrayBuilder<LocalSymbol>? temps,
+            ArrayBuilder<BoundExpression> result)
+        {
+            var rewrittenIndex = VisitExpression(pointerAccess.Index);
+
+            if (CanChangeValueBetweenReads(rewrittenIndex))
+            {
+                var temp = _factory.StoreToTemp(rewrittenIndex, out BoundAssignmentOperator store);
+                rewrittenIndex = temp;
+                temps ??= ArrayBuilder<LocalSymbol>.GetInstance();
+                temps.Add(temp.LocalSymbol);
+                result.Add(store);
+            }
+
+            return RewritePointerElementAccess(pointerAccess, rewrittenReceiver, rewrittenIndex);
+        }
+
+        /// <summary>
+        /// Normalizes a <see cref="BoundObjectInitializerMember"/> wrapper from an initializer-member
+        /// target to the concrete <see cref="BoundFieldAccess"/> / <see cref="BoundPropertyAccess"/> /
+        /// <see cref="BoundIndexerAccess"/> / <see cref="BoundEventAccess"/> that lowering operates on:
+        /// substitutes the object-initializer placeholder receiver with the real
+        /// <paramref name="rewrittenReceiver"/> (via <see cref="VisitObjectInitializerMember"/>), lifts
+        /// any side-effecting indexer arguments into temps, and hands the result to
+        /// <see cref="MakeObjectInitializerMemberAccess"/>. Shared between the simple-assignment and
+        /// compound-assignment paths.
+        /// </summary>
+        private BoundExpression RewriteObjectInitializerMemberAccess(
+            BoundObjectInitializerMember memberInit,
+            ref BoundExpression rewrittenReceiver,
+            ArrayBuilder<BoundExpression> result,
+            ref ArrayBuilder<LocalSymbol>? temps,
+            bool isRhsNestedInitializer)
+        {
+            memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
+                memberInit, ref rewrittenReceiver, result, ref temps);
 
             Debug.Assert(memberInit is { });
 
@@ -358,24 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberInit.Type);
             }
 
-            // Build the concrete member access with the real receiver, matching the simple-assignment
-            // path. Then rebuild the compound op with that access as Left; the type matches, so the
-            // operator's LeftConversion / FinalConversion remain valid. The Right is still in unlowered
-            // form so VisitCompoundAssignmentOperator visits it during lowering.
-            var rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer: false);
-            var transformedCompound = compound.Update(
-                compound.Operator,
-                rewrittenAccess,
-                compound.Right,
-                compound.LeftPlaceholder,
-                compound.LeftConversion,
-                compound.FinalPlaceholder,
-                compound.FinalConversion,
-                compound.ResultKind,
-                compound.OriginalUserDefinedOperatorsOpt,
-                compound.Type);
-
-            result.Add(VisitCompoundAssignmentOperator(transformedCompound, used: false));
+            return MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
         }
 
         /// <summary>
@@ -435,38 +643,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.ObjectInitializerMember:
                     {
-                        var memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
-                            (BoundObjectInitializerMember)left, ref rewrittenReceiver, result, ref temps);
-
-                        Debug.Assert(memberInit is { });
-
-                        if (!memberInit.Arguments.IsDefaultOrEmpty)
+                        // The dynamic path (`MemberSymbol == null && Type.IsDynamic()`) routes through
+                        // `_dynamicFactory.MakeDynamicSet/GetIndex` and needs its own receiver-substitution
+                        // + arg-lifting so it can plumb the hoisted SiteInitialization into
+                        // `dynamicSiteInitializers`. The non-dynamic path delegates to the shared helper
+                        // that also drives compound assignment.
+                        var leftWrapper = (BoundObjectInitializerMember)left;
+                        if (leftWrapper.MemberSymbol == null && leftWrapper.Type.IsDynamic())
                         {
-                            Debug.Assert(memberInit.Arguments.Count(a => a.IsParamsArrayOrCollection) <= (memberInit.Expanded ? 1 : 0));
+                            var memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
+                                leftWrapper, ref rewrittenReceiver, result, ref temps);
 
-                            var args = EvaluateSideEffectingArgumentsToTemps(
-                                memberInit.Arguments,
-                                memberInit.MemberSymbol?.GetParameterRefKinds() ?? default(ImmutableArray<RefKind>),
-                                result,
-                                ref temps);
-
-                            memberInit = memberInit.Update(
-                                memberInit.MemberSymbol,
-                                args,
-                                memberInit.ArgumentNamesOpt,
-                                memberInit.ArgumentRefKindsOpt,
-                                memberInit.Expanded,
-                                memberInit.ArgsToParamsOpt,
-                                memberInit.DefaultArguments,
-                                memberInit.ResultKind,
-                                memberInit.AccessorKind,
-                                memberInit.ReceiverType,
-                                memberInit.Type);
-                        }
-
-                        if (memberInit.MemberSymbol == null && memberInit.Type.IsDynamic())
-                        {
+                            Debug.Assert(memberInit is { });
                             Debug.Assert(!memberInit.Expanded);
+
+                            if (!memberInit.Arguments.IsDefaultOrEmpty)
+                            {
+                                var args = EvaluateSideEffectingArgumentsToTemps(
+                                    memberInit.Arguments,
+                                    memberInit.MemberSymbol?.GetParameterRefKinds() ?? default(ImmutableArray<RefKind>),
+                                    result,
+                                    ref temps);
+
+                                memberInit = memberInit.Update(
+                                    memberInit.MemberSymbol,
+                                    args,
+                                    memberInit.ArgumentNamesOpt,
+                                    memberInit.ArgumentRefKindsOpt,
+                                    memberInit.Expanded,
+                                    memberInit.ArgsToParamsOpt,
+                                    memberInit.DefaultArguments,
+                                    memberInit.ResultKind,
+                                    memberInit.AccessorKind,
+                                    memberInit.ReceiverType,
+                                    memberInit.Type);
+                            }
 
                             if (dynamicSiteInitializers == null)
                             {
@@ -501,7 +712,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
+                            rewrittenAccess = RewriteObjectInitializerMemberAccess(
+                                leftWrapper, ref rewrittenReceiver, result, ref temps, isRhsNestedInitializer);
+
                             if (!isRhsNestedInitializer)
                             {
                                 // Rewrite simple assignment to field/property.

@@ -4495,7 +4495,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundKind.AssignmentOperator:
                                 completion += VisitObjectElementInitializer(containingSlot, containingType, (BoundAssignmentOperator)initializer, delayCompletionForType);
                                 break;
+                            case BoundKind.CompoundAssignmentOperator:
+                                VisitCompoundObjectElementInitializer(containingSlot, containingType, (BoundCompoundAssignmentOperator)initializer);
+                                break;
+                            case BoundKind.NullCoalescingAssignmentOperator:
+                                VisitNullCoalescingObjectElementInitializer(containingSlot, containingType, (BoundNullCoalescingAssignmentOperator)initializer);
+                                break;
                             default:
+                                // Event assignments (`E += h`) fall through: the event's backing delegate state
+                                // isn't part of the nullable model in a way that's observable to user code, and the
+                                // compound-style slot tracking wouldn't apply. VisitRvalue on BoundEventAssignmentOperator
+                                // is sufficient to drive flow on the handler argument.
                                 VisitRvalue(initializer);
                                 break;
                         }
@@ -4790,6 +4800,68 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var result = visitMemberAssignment(node, containingSlot, symbol, delayCompletionForType: false, conversionCompletion);
                     Debug.Assert(result is null);
                 };
+            }
+        }
+
+        /// <summary>
+        /// Nullable-flow handling for a compound member initializer (`Prop += v` / `Prop |= v`) inside
+        /// an object initializer. Mirrors <see cref="VisitObjectElementInitializer"/>'s slot-tracking for
+        /// simple assignment: resolve the target <see cref="BoundObjectInitializerMember.MemberSymbol"/>
+        /// against the containing object, get the per-member slot, visit the compound (which produces
+        /// its result state via the existing <see cref="VisitCompoundAssignmentOperator"/> machinery),
+        /// and write that state back to the member's slot. Without this, the containing object's per-
+        /// member nullable state is stale after a compound initializer.
+        /// </summary>
+        private void VisitCompoundObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundCompoundAssignmentOperator node)
+        {
+            TakeIncrementalSnapshot(node);
+
+            VisitRvalue(node);
+            UpdateInitializerMemberSlot(containingSlot, containingType, node.Left, node, ResultType);
+        }
+
+        /// <summary>
+        /// Mirror of <see cref="VisitCompoundObjectElementInitializer"/> for null-coalescing-assignment
+        /// member initializers (`Prop ??= v`). After the short-circuit, the member is definitely
+        /// non-null; the existing <see cref="VisitNullCoalescingAssignmentOperator"/> produces that
+        /// result state, and we propagate it onto the per-member slot.
+        /// </summary>
+        private void VisitNullCoalescingObjectElementInitializer(int containingSlot, TypeSymbol containingType, BoundNullCoalescingAssignmentOperator node)
+        {
+            TakeIncrementalSnapshot(node);
+
+            VisitRvalue(node);
+            UpdateInitializerMemberSlot(containingSlot, containingType, node.LeftOperand, node, ResultType);
+        }
+
+        /// <summary>
+        /// Shared slot update used by both the compound and null-coalescing member-initializer helpers.
+        /// If <paramref name="left"/> is a <see cref="BoundObjectInitializerMember"/> wrapper with a
+        /// resolvable <see cref="BoundObjectInitializerMember.MemberSymbol"/>, get or create the
+        /// per-member slot within <paramref name="containingSlot"/> and record the
+        /// <paramref name="resultState"/> there against the symbol's type. Bare accesses (indexer,
+        /// array, pointer, dynamic-member) don't participate in per-member slot tracking on the
+        /// container, so we skip them.
+        /// </summary>
+        private void UpdateInitializerMemberSlot(int containingSlot, TypeSymbol containingType, BoundExpression left, BoundExpression assignmentNode, TypeWithState resultState)
+        {
+            if (left is not BoundObjectInitializerMember { MemberSymbol: { } memberSymbol })
+            {
+                return;
+            }
+
+            var resolved = memberSymbol.IsExtensionBlockMember()
+                ? memberSymbol
+                : AsMemberOfType(containingType, memberSymbol);
+
+            int memberSlot = (containingSlot < 0 || !IsSlotMember(containingSlot, resolved))
+                ? -1
+                : GetOrCreateSlot(resolved, containingSlot);
+
+            if (memberSlot >= 0)
+            {
+                var memberType = GetTypeOrReturnTypeWithAnnotations(resolved);
+                TrackNullableStateForAssignment(assignmentNode, memberType, memberSlot, resultState, valueSlot: -1);
             }
         }
 
