@@ -704,17 +704,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind kind,
             BindingDiagnosticBag diagnostics)
         {
-            (EventSymbol? eventSymbol, BoundExpression? receiverOpt, TypeSymbol? delegateType) = left switch
-            {
-                BoundEventAccess e => (e.EventSymbol, e.ReceiverOpt, e.Type),
-                BoundObjectInitializerMember { MemberSymbol: EventSymbol ev } wrapper
-                    => (ev, (BoundExpression)new BoundObjectOrCollectionValuePlaceholder(
-                        wrapper.Syntax, isNewInstance: false, wrapper.ReceiverType, hasErrors: false).MakeCompilerGenerated(),
-                       wrapper.Type),
-                _ => (null, null, null),
-            };
+            // The wrapper the initializer binder produces stashes the concrete BoundEventAccess on
+            // UnderlyingAccessOpt, so unwrap it uniformly. Receiver placeholder substitution happens
+            // in lowering.
+            var eventAccess = left as BoundEventAccess
+                ?? (left as BoundObjectInitializerMember)?.UnderlyingAccessOpt as BoundEventAccess;
 
-            if (eventSymbol is null)
+            if (eventAccess is null)
             {
                 return null;
             }
@@ -722,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return kind.Operator() switch
             {
                 BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction
-                    => BindEventAssignment(node, eventSymbol, receiverOpt!, delegateType!, right, kind.Operator(), diagnostics),
+                    => BindEventAssignment(node, eventAccess.EventSymbol, eventAccess.ReceiverOpt!, eventAccess.Type, right, kind.Operator(), diagnostics),
                 _ => null,
             };
         }

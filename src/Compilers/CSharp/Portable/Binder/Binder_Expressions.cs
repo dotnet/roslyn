@@ -6243,6 +6243,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Pass the concrete member access through as UnderlyingAccessOpt so downstream consumers
+            // (value-kind rechecks, event-assignment dispatch, compound/??= lowering) can delegate
+            // directly to the per-kind helpers instead of synthesizing a new access from the
+            // denormalized fields. The placeholder receiver on boundMember is the same implicitReceiver
+            // we just used for binding, so lowering's usual placeholder-substitution will handle it.
             return new BoundObjectInitializerMember(
                 leftSyntax,
                 boundMember.ExpressionSymbol,
@@ -6254,6 +6259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 defaultArguments,
                 resultKind,
                 accessorKind,
+                underlyingAccessOpt: boundMember,
                 implicitReceiver.Type,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
