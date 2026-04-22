@@ -389,43 +389,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundExpression> result,
             ref ArrayBuilder<LocalSymbol>? temps)
         {
-            switch (left.Kind)
+            // The dynamic-indexer sub-case of BoundObjectInitializerMember (`MemberSymbol == null &&
+            // Type.IsDynamic()`, carrying a BoundDynamicIndexerAccess in UnderlyingAccessOpt) can't
+            // go through MakeObjectInitializerMemberAccess — it asserts a non-null member — so we
+            // unwrap to the dynamic indexer and let TransformDynamicIndexerAccess handle the get/set
+            // call-site pair, mirroring the non-initializer `d[0] += 1` path.
+            return left switch
             {
-                case BoundKind.ObjectInitializerMember:
-                    // The dynamic-indexer sub-case (`MemberSymbol == null && Type.IsDynamic()`) is an
-                    // initializer-member shape that carries a BoundDynamicIndexerAccess in
-                    // UnderlyingAccessOpt. The general MakeObjectInitializerMemberAccess asserts a
-                    // non-null member, so we unwrap here to the BoundDynamicIndexerAccess and let the
-                    // compound lowering's dynamic-indexer dispatch (TransformDynamicIndexerAccess) take
-                    // over, mirroring the non-initializer `d[0] += 1` path.
-                    var wrapper = (BoundObjectInitializerMember)left;
-                    if (wrapper is { MemberSymbol: null } && wrapper.Type.IsDynamic())
-                    {
-                        return RewriteDynamicIndexerInitializerAccess(wrapper, ref rewrittenReceiver, result, ref temps);
-                    }
-
-                    return RewriteObjectInitializerMemberAccess(
-                        wrapper, ref rewrittenReceiver, result, ref temps, isRhsNestedInitializer: false);
-
-                case BoundKind.ImplicitIndexerAccess:
-                    return RewriteImplicitIndexerInitializerAccess(
-                        (BoundImplicitIndexerAccess)left, result, ref temps);
-
-                case BoundKind.ArrayAccess:
-                    return RewriteArrayInitializerAccess(
-                        (BoundArrayAccess)left, rewrittenReceiver, result, ref temps);
-
-                case BoundKind.PointerElementAccess:
-                    return RewritePointerElementInitializerAccess(
-                        (BoundPointerElementAccess)left, rewrittenReceiver, ref temps, result);
-
-                case BoundKind.DynamicObjectInitializerMember:
-                    return RewriteDynamicObjectInitializerMemberAccess(
-                        (BoundDynamicObjectInitializerMember)left, rewrittenReceiver);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(left.Kind);
-            }
+                BoundObjectInitializerMember { MemberSymbol: null } w when w.Type.IsDynamic() => RewriteDynamicIndexerInitializerAccess(w, ref rewrittenReceiver, result, ref temps),
+                BoundObjectInitializerMember w => RewriteObjectInitializerMemberAccess(w, ref rewrittenReceiver, result, ref temps, isRhsNestedInitializer: false),
+                BoundImplicitIndexerAccess i => RewriteImplicitIndexerInitializerAccess(i, result, ref temps),
+                BoundArrayAccess a => RewriteArrayInitializerAccess(a, rewrittenReceiver, result, ref temps),
+                BoundPointerElementAccess p => RewritePointerElementInitializerAccess(p, rewrittenReceiver, ref temps, result),
+                BoundDynamicObjectInitializerMember d => RewriteDynamicObjectInitializerMemberAccess(d, rewrittenReceiver),
+                _ => throw ExceptionUtilities.UnexpectedValue(left.Kind),
+            };
         }
 
         /// <summary>
