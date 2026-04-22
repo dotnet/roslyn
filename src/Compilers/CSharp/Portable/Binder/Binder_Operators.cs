@@ -52,14 +52,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If either operand is bad, don't try to do binary operator overload resolution; that will just
                 // make cascading errors.
 
-                if (left.Kind == BoundKind.EventAccess)
+                // Events dispatch through BindEventAssignment for `+=` / `-=` so that lowering emits the
+                // add_E / remove_E accessor call. Raw BoundEventAccess is the normal shape for
+                // `receiver.E += h`; BoundObjectInitializerMember wrapping an event is the shape for
+                // `new C { E += h }` (object initializer) and `c with { E += h }` (with expression).
+                // In the wrapper case we synthesize a BoundEventAccess whose receiver is a fresh
+                // object-initializer placeholder typed as the wrapper's ReceiverType — lowering
+                // substitutes it with the real receiver in AddEventObjectInitializer, and
+                // BindEventAssignment only inspects the receiver's type for accessibility checks.
+                BoundEventAccess eventAccess = left switch
+                {
+                    BoundEventAccess e => e,
+                    BoundObjectInitializerMember { MemberSymbol: EventSymbol eventSymbol } wrapper
+                        => new BoundEventAccess(
+                            wrapper.Syntax,
+                            receiverOpt: new BoundObjectOrCollectionValuePlaceholder(wrapper.Syntax, isNewInstance: false, wrapper.ReceiverType, hasErrors: false).MakeCompilerGenerated(),
+                            eventSymbol,
+                            isUsableAsField: eventSymbol.HasAssociatedField,
+                            wrapper.ResultKind,
+                            wrapper.Type),
+                    _ => null,
+                };
+                if (eventAccess is not null)
                 {
                     BinaryOperatorKind kindOperator = kind.Operator();
                     switch (kindOperator)
                     {
                         case BinaryOperatorKind.Addition:
                         case BinaryOperatorKind.Subtraction:
-                            return BindEventAssignment(node, (BoundEventAccess)left, right, kindOperator, diagnostics);
+                            return BindEventAssignment(node, eventAccess, right, kindOperator, diagnostics);
 
                             // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                     }

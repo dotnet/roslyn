@@ -959,6 +959,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
+
+                case BoundKind.ObjectInitializerMember:
+                    // BoundObjectInitializerMember wraps a pre-validated member access whose receiver is
+                    // the object-initializer placeholder. Readability / writability was enforced with the
+                    // appropriate BindValueKind during BindObjectInitializerMember, and failures already
+                    // set HasErrors (checked above). Here we only answer the stricter RefersToLocation
+                    // query, used by `shouldTryUserDefinedInstanceOperator` to decide whether a
+                    // user-defined in-place `operator +=` / `operator -=` is applicable. Mirrors the
+                    // normal `a.b += c` path: fields (non-readonly) and ref-returning properties /
+                    // indexers are ref-assignable locations; regular properties, indexers, and events
+                    // are not.
+                    return CheckObjectInitializerMemberValueKind((BoundObjectInitializerMember)expr, valueKind);
             }
 
             // easy out for a very common RValue case.
@@ -1984,6 +1996,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
 
+        }
+
+        private static bool CheckObjectInitializerMemberValueKind(BoundObjectInitializerMember node, BindValueKind valueKind)
+        {
+            // The wrapper itself was pre-validated for readability / writability at bind time, so queries
+            // that don't require a specific location succeed. The only remaining question is whether the
+            // target is a ref-assignable location (for user-defined in-place operator resolution).
+            if (!RequiresReferenceToLocation(valueKind))
+            {
+                return true;
+            }
+
+            return node.MemberSymbol switch
+            {
+                FieldSymbol { IsReadOnly: false } => true,
+                PropertySymbol { RefKind: not RefKind.None } => true,
+                _ => false,
+            };
         }
 
         private bool CheckPropertyValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)

@@ -581,9 +581,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation([source, Polyfills]).VerifyDiagnostics(
-            // (4,53): error CS1073: Unexpected token 'ref'
+            // (4,48): error CS8373: The left-hand side of a ref assignment must be a ref variable.
             //     public static C Make(ref int x) => new C { P += ref x };
-            Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 53));
+            Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(4, 48));
     }
 
     [Fact]

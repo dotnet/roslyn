@@ -5891,41 +5891,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (memberInitializer.Kind())
             {
                 case SyntaxKind.SimpleAssignmentExpression:
-                    {
-                        var initializer = (AssignmentExpressionSyntax)memberInitializer;
-                        var leftSyntax = initializer.Left;
-                        SyntaxKind rhsSyntaxKind = initializer.Right.Kind();
-                        bool isRef = rhsSyntaxKind is SyntaxKind.RefExpression;
-                        bool isRhsNestedInitializer = rhsSyntaxKind is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression;
-                        BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : (isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable);
-
-                        BoundExpression rawAccess = BindObjectInitializerMemberAccess(
-                            leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics,
-                            out LookupResultKind resultKind, out bool hasErrors);
-
-                        if (rawAccess != null)
-                        {
-                            BoundExpression boundLeft = WrapAsObjectInitializerMember(rawAccess, implicitReceiver, leftSyntax, resultKind, hasErrors);
-                            Debug.Assert((object)boundLeft.Type != null);
-
-                            var rhsExpr = initializer.Right.CheckAndUnwrapRefExpression(diagnostics, out RefKind refKind);
-                            Debug.Assert(isRef == (refKind == RefKind.Ref));
-                            var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
-
-                            // Bind member initializer value, i.e. right part of assignment
-                            BoundExpression boundRight = BindInitializerExpressionOrValue(
-                                syntax: rhsExpr,
-                                type: boundLeft.Type,
-                                rhsKind,
-                                typeSyntax: boundLeft.Syntax,
-                                diagnostics: diagnostics);
-
-                            // Bind member initializer assignment expression
-                            return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
-                        }
-                        break;
-                    }
-
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.MultiplyAssignmentExpression:
@@ -5939,80 +5904,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                     {
                         var initializer = (AssignmentExpressionSyntax)memberInitializer;
-                        MessageID.IDS_FeatureCompoundAssignmentInInitializer.CheckFeatureAvailability(diagnostics, initializer.OperatorToken);
+                        bool isCompound = initializer.Kind() != SyntaxKind.SimpleAssignmentExpression;
 
-                        // Bind the member access via the usual object-initializer member machinery (indexer
-                        // default arguments, accessor-kind tracking, interpolated-string-handler checks,
-                        // `BindValueKind.CompoundAssignment` read+write validation). We feed the *raw* access
-                        // to `BindCompoundAssignmentCore` so operator resolution sees its usual shapes
-                        // (BoundPropertyAccess / BoundFieldAccess / BoundEventAccess / BoundIndexerAccess) and
-                        // user-defined in-place `operator +=` lookup works. After operator binding we wrap the
-                        // BoundCompoundAssignmentOperator.Left in BoundObjectInitializerMember so that the
-                        // object-initializer lowering path recognizes it the same way it does simple
-                        // assignments. Event `+`/`-` routes through BindCompoundAssignmentCore's existing
-                        // `left.Kind == BoundKind.EventAccess` branch and produces BoundEventAssignmentOperator
-                        // with a placeholder receiver; lowering substitutes that placeholder directly.
-                        var leftSyntax = initializer.Left;
-                        BoundExpression rawAccess = BindObjectInitializerMemberAccess(
-                            leftSyntax, implicitReceiver, BindValueKind.CompoundAssignment, isRhsNestedInitializer: false, diagnostics,
-                            out LookupResultKind resultKind, out bool hasErrors);
-
-                        if (rawAccess != null)
+                        if (isCompound)
                         {
-                            // BindObjectInitializerMemberAccess records value-kind failures (CS0200 on
-                            // get-only, CS0154 on set-only, CS0191 on readonly, CS8331 on ref-readonly, etc.)
-                            // via `hasErrors` but does not propagate them onto the raw access. Wrap in a bad
-                            // expression in that case so downstream operator resolution and flow analysis see
-                            // a known-bad left rather than asserting.
-                            if (hasErrors && !rawAccess.HasAnyErrors)
-                            {
-                                rawAccess = ToBadExpression(rawAccess, LookupResultKind.NotAVariable);
-                            }
+                            MessageID.IDS_FeatureCompoundAssignmentInInitializer.CheckFeatureAvailability(diagnostics, initializer.OperatorToken);
 
-                            // Per spec, the compound_assignment_operator branch of member_initializer admits
-                            // only *expression*, not the nested initializer form. The parser is permissive (it
-                            // produces a nested ObjectInitializerExpression / CollectionInitializerExpression
-                            // on the RHS), so we reject the shape here. Returning directly avoids falling
-                            // through to the default case, which would re-bind the whole assignment and crash
-                            // trying to bind the brace-list RHS.
+                            // Per spec, the compound_assignment_operator branch of member_initializer
+                            // admits only *expression*, not the nested initializer form. The parser is
+                            // permissive (it produces a nested ObjectInitializerExpression /
+                            // CollectionInitializerExpression on the RHS), so we reject it here before
+                            // binding the left or right sides (both would emit cascading diagnostics:
+                            // value-type-property-in-nested-initializer on the left, or collection /
+                            // object-initializer-type-mismatch on the right).
                             if (initializer.Right is InitializerExpressionSyntax)
                             {
                                 Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
-                                return BindToTypeForErrorRecovery(ToBadExpression(rawAccess, LookupResultKind.NotAValue));
+                                return BindToTypeForErrorRecovery(new BoundBadExpression(
+                                    initializer, LookupResultKind.Empty, symbols: [], childBoundNodes: [], type: null, hasErrors: true));
                             }
+                        }
 
-                            BoundExpression boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
-                            BoundExpression boundOp = BindCompoundAssignmentCore(initializer, rawAccess, boundRight, diagnostics);
+                        BoundExpression boundLeft = BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
 
-                            // For the non-event case we swap the raw access in the compound op's Left
-                            // for the BoundObjectInitializerMember wrapper so that
-                            // LocalRewriter.AddObjectInitializers sees the same shape it sees for simple
-                            // assignment and reuses its placeholder substitution machinery.
-                            // BoundCompoundAssignmentOperator.LeftConversion references LeftPlaceholder,
-                            // not Left directly, so swapping Left does not invalidate any cross-reference.
-                            // For the event case BindCompoundAssignmentCore returns a
-                            // BoundEventAssignmentOperator whose ReceiverOpt already carries the
-                            // placeholder; lowering substitutes that directly.
-                            if (boundOp is BoundCompoundAssignmentOperator compound)
+                        if (boundLeft != null)
+                        {
+                            Debug.Assert((object)boundLeft.Type != null);
+
+                            var rhsExpr = initializer.Right.CheckAndUnwrapRefExpression(diagnostics, out RefKind refKind);
+                            bool isRef = refKind == RefKind.Ref;
+                            var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
+
+                            // Bind member initializer value, i.e. right part of assignment
+                            BoundExpression boundRight = BindInitializerExpressionOrValue(
+                                syntax: rhsExpr,
+                                type: boundLeft.Type,
+                                rhsKind,
+                                typeSyntax: boundLeft.Syntax,
+                                diagnostics: diagnostics);
+
+                            if (isCompound)
                             {
-                                var wrappedLeft = WrapAsObjectInitializerMember(rawAccess, implicitReceiver, leftSyntax, resultKind, hasErrors);
-                                if ((object)wrappedLeft != rawAccess)
-                                {
-                                    boundOp = compound.Update(
-                                        compound.Operator,
-                                        wrappedLeft,
-                                        compound.Right,
-                                        compound.LeftPlaceholder,
-                                        compound.LeftConversion,
-                                        compound.FinalPlaceholder,
-                                        compound.FinalConversion,
-                                        compound.ResultKind,
-                                        compound.OriginalUserDefinedOperatorsOpt,
-                                        compound.Type);
-                                }
+                                return BindCompoundAssignmentCore(initializer, boundLeft, boundRight, diagnostics);
                             }
 
-                            return boundOp;
+                            // Bind member initializer assignment expression
+                            return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
                         }
                         break;
                     }
@@ -6025,12 +5962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
 
                         var identifierName = (IdentifierNameSyntax)memberInitializer;
-                        BoundExpression rawAccess = BindObjectInitializerMemberAccess(
-                            identifierName, implicitReceiver, BindValueKind.Assignable, isRhsNestedInitializer: false, diagnostics,
-                            out LookupResultKind resultKind, out bool hasErrors);
-                        var boundNode = rawAccess == null
-                            ? null
-                            : WrapAsObjectInitializerMember(rawAccess, implicitReceiver, identifierName, resultKind, hasErrors);
+                        var boundNode = BindObjectInitializerMemberMissingAssignment(identifierName, implicitReceiver, diagnostics);
 
                         var badRight = new BoundBadExpression(
                             identifierName,
@@ -6057,35 +5989,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
         }
 
-        /// <summary>
-        /// Binds the member access on the left side of a member initializer and applies the value-kind
-        /// checks. Returns the raw bound member access (<see cref="BoundFieldAccess"/>, <see cref="BoundPropertyAccess"/>,
-        /// <see cref="BoundEventAccess"/>, <see cref="BoundIndexerAccess"/>, <see cref="BoundDynamicIndexerAccess"/>,
-        /// or <see cref="BoundDynamicObjectInitializerMember"/>), or one of the already-canonical forms
-        /// (<see cref="BoundImplicitIndexerAccess"/>, <see cref="BoundArrayAccess"/>,
-        /// <see cref="BoundPointerElementAccess"/>, <see cref="BoundBadExpression"/>). Returns <see langword="null"/>
-        /// if <paramref name="leftSyntax"/> is neither an <see cref="IdentifierNameSyntax"/> nor an
-        /// <see cref="ImplicitElementAccessSyntax"/>.
-        ///
-        /// Simple-assignment callers pass the result through <see cref="WrapAsObjectInitializerMember"/>
-        /// to produce the <see cref="BoundObjectInitializerMember"/> shape that simple-assignment
-        /// lowering expects. The compound-assignment caller feeds the raw access directly to
-        /// <c>BindCompoundAssignmentCore</c> so operator resolution sees its usual shapes, then wraps
-        /// the resulting <see cref="BoundCompoundAssignmentOperator.Left"/> after the fact.
-        /// </summary>
-        private BoundExpression BindObjectInitializerMemberAccess(
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
+        private BoundExpression BindObjectInitializerMember(
+            AssignmentExpressionSyntax namedAssignment,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics)
+        {
+            var leftSyntax = namedAssignment.Left;
+            SyntaxKind rhsKind = namedAssignment.Right.Kind();
+            bool isRef = rhsKind is SyntaxKind.RefExpression;
+            bool isRhsNestedInitializer = rhsKind is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression;
+            bool isCompound = namedAssignment.Kind() != SyntaxKind.SimpleAssignmentExpression;
+
+            // A compound member initializer `{ P op= v }` reads from and writes to the target, so it
+            // needs `BindValueKind.CompoundAssignment` rather than plain `Assignable`. Pre-validating
+            // at bind-member time lets the later call to `BindCompoundAssignmentCore` treat
+            // `BoundObjectInitializerMember` as an already-validated lvalue, matching how
+            // `BindAssignment` treats it for simple-assignment.
+            BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue
+                : isRef ? BindValueKind.RefAssignable
+                : isCompound ? BindValueKind.CompoundAssignment
+                : BindValueKind.Assignable;
+
+            return BindObjectInitializerMemberCommon(
+                leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics);
+        }
+
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
+        private BoundExpression BindObjectInitializerMemberMissingAssignment(
+            ExpressionSyntax leftSyntax,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics)
+        {
+            return BindObjectInitializerMemberCommon(
+                leftSyntax, implicitReceiver, BindValueKind.Assignable, false, diagnostics);
+        }
+
+        // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
+        private BoundExpression BindObjectInitializerMemberCommon(
             ExpressionSyntax leftSyntax,
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindValueKind valueKind,
             bool isRhsNestedInitializer,
-            BindingDiagnosticBag diagnostics,
-            out LookupResultKind resultKind,
-            out bool hasErrors)
+            BindingDiagnosticBag diagnostics)
         {
-            resultKind = LookupResultKind.Viable;
-            hasErrors = false;
-
             BoundExpression boundMember;
+            LookupResultKind resultKind;
+            bool hasErrors;
+
             var initializerType = implicitReceiver.Type;
 
             if (leftSyntax.Kind() == SyntaxKind.IdentifierName)
@@ -6162,7 +6113,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    should be prohibited).  To avoid breaking existing code, roslyn will not implement this new spec clause.
             // TODO:    If/when we have a way to version warnings, we should add a warning for this.
 
-            switch (boundMember.Kind)
+            BoundKind boundMemberKind = boundMember.Kind;
+
+            ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
+            ImmutableArray<string> argumentNamesOpt = default;
+            ImmutableArray<int> argsToParamsOpt = default;
+            ImmutableArray<RefKind> argumentRefKindsOpt = default;
+            BitVector defaultArguments = default;
+            bool expanded = false;
+            AccessorKind accessorKind = AccessorKind.Unknown;
+
+            switch (boundMemberKind)
             {
                 case BoundKind.FieldAccess:
                     {
@@ -6193,13 +6154,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var indexer = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)boundMember, valueKind, diagnostics);
                         boundMember = indexer;
                         hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, leftSyntax, diagnostics, hasErrors, ref resultKind);
+                        arguments = indexer.Arguments;
+                        argumentNamesOpt = indexer.ArgumentNamesOpt;
+                        argsToParamsOpt = indexer.ArgsToParamsOpt;
+                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                        defaultArguments = indexer.DefaultArguments;
+                        expanded = indexer.Expanded;
+                        accessorKind = indexer.AccessorKind;
 
                         // If any of the arguments is an interpolated string handler that takes the receiver as an argument for creation,
                         // we disallow this. During lowering, indexer arguments are evaluated before the receiver for this scenario, and
                         // we therefore can't get the receiver at the point it will be needed for the constructor. We could technically
                         // support it for top-level member indexer initializers (ie, initializers directly on the `new Type` instance),
                         // but for user and language simplicity we blanket forbid this.
-                        foreach (var argument in indexer.Arguments)
+                        foreach (var argument in arguments)
                         {
                             if (argument is BoundConversion { Conversion.IsInterpolatedStringHandler: true, Operand: var operand })
                             {
@@ -6226,7 +6194,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return hasErrors ? boundMember : CheckValue(boundMember, valueKind, diagnostics);
 
                 case BoundKind.DynamicObjectInitializerMember:
+                    break;
+
                 case BoundKind.DynamicIndexerAccess:
+                    {
+                        var indexer = (BoundDynamicIndexerAccess)boundMember;
+                        arguments = indexer.Arguments;
+                        argumentNamesOpt = indexer.ArgumentNamesOpt;
+                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                    }
+
                     break;
 
                 case BoundKind.ArrayAccess:
@@ -6249,66 +6226,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return boundMember;
-        }
-
-        /// <summary>
-        /// Wraps a raw member access returned by <see cref="BindObjectInitializerMemberAccess"/> in the
-        /// <see cref="BoundObjectInitializerMember"/> shape that simple-assignment lowering expects.
-        /// Accesses that are already in their canonical shape (<see cref="BoundImplicitIndexerAccess"/>,
-        /// <see cref="BoundArrayAccess"/>, <see cref="BoundPointerElementAccess"/>,
-        /// <see cref="BoundDynamicObjectInitializerMember"/>, or any <see cref="BoundBadExpression"/> /
-        /// error shape) pass through unchanged.
-        /// </summary>
-        private static BoundExpression WrapAsObjectInitializerMember(
-            BoundExpression rawAccess,
-            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
-            ExpressionSyntax leftSyntax,
-            LookupResultKind resultKind,
-            bool hasErrors)
-        {
-            ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
-            ImmutableArray<string> argumentNamesOpt = default;
-            ImmutableArray<int> argsToParamsOpt = default;
-            ImmutableArray<RefKind> argumentRefKindsOpt = default;
-            BitVector defaultArguments = default;
-            bool expanded = false;
-            AccessorKind accessorKind = AccessorKind.Unknown;
-
-            switch (rawAccess.Kind)
-            {
-                case BoundKind.FieldAccess:
-                case BoundKind.EventAccess:
-                case BoundKind.PropertyAccess:
-                    break;
-
-                case BoundKind.IndexerAccess:
-                    var indexer = (BoundIndexerAccess)rawAccess;
-                    arguments = indexer.Arguments;
-                    argumentNamesOpt = indexer.ArgumentNamesOpt;
-                    argsToParamsOpt = indexer.ArgsToParamsOpt;
-                    argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
-                    defaultArguments = indexer.DefaultArguments;
-                    expanded = indexer.Expanded;
-                    accessorKind = indexer.AccessorKind;
-                    break;
-
-                case BoundKind.DynamicIndexerAccess:
-                    var dynIndexer = (BoundDynamicIndexerAccess)rawAccess;
-                    arguments = dynIndexer.Arguments;
-                    argumentNamesOpt = dynIndexer.ArgumentNamesOpt;
-                    argumentRefKindsOpt = dynIndexer.ArgumentRefKindsOpt;
-                    break;
-
-                default:
-                    // BoundDynamicObjectInitializerMember / BoundImplicitIndexerAccess / BoundArrayAccess /
-                    // BoundPointerElementAccess / BoundBadExpression: already in their canonical shape.
-                    return rawAccess;
-            }
-
             return new BoundObjectInitializerMember(
                 leftSyntax,
-                rawAccess.ExpressionSymbol,
+                boundMember.ExpressionSymbol,
                 arguments,
                 argumentNamesOpt,
                 argumentRefKindsOpt,
@@ -6318,7 +6238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind,
                 accessorKind,
                 implicitReceiver.Type,
-                type: rawAccess.Type,
+                type: boundMember.Type,
                 hasErrors: hasErrors);
         }
 
