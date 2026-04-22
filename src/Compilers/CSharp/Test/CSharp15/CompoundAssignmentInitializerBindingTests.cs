@@ -682,14 +682,15 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
-    public void Coalesce_Event_FromOutsideContainingType_CompilesCleanly()
+    public void Coalesce_Event_FromOutsideContainingType_Succeeds()
     {
-        // Observed pre-existing behavior: `??=` on an event routes through `CheckValueKind` with
-        // `BindValueKind.CompoundAssignment`, which `CheckEventValueKind` accepts as "event assignment"
-        // without emitting CS0070. This matches the non-initializer `??=` binding today (same value-kind
-        // path) — it's a latent gap in `??=`'s event handling that predates this feature. The initializer
-        // form inherits the quirk. We pin the current behavior here rather than regress it; tightening
-        // `??=` on events is a separate concern from compound-assignment-in-initializer.
+        // Simple `new C { E = h }` from outside C's declaring type is CS0070 because an event's
+        // backing field isn't readable/writable from outside, and `= h` is an unconditional write to
+        // that field. `??= h` in the initializer is different: the receiver is a fresh C, so E is
+        // guaranteed null, which makes `??=` reduce to an unconditional write of h — and writing h
+        // to a null field-like event is functionally equivalent to `+= h`, which IS legal from
+        // outside via `add_E`. So `??=` compiling here is the pragmatic/consistent behavior, not a
+        // hole: the same reasoning applies to the non-initializer `c.E ??= h` from outside.
         var source = """
             using System;
             class C
