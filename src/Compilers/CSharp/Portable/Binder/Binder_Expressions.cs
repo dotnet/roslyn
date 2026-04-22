@@ -5950,33 +5950,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                             valueKindOverride: BindValueKind.CompoundAssignment,
                             out BoundExpression rawAccess);
 
-                        if (rawAccess == null)
-                            break;
-
-                        // BindObjectInitializerMemberCommon records value-kind failures (CS0200 on get-only,
-                        // CS0154 on set-only, CS0191 on readonly, CS8331 on ref-readonly, etc.) on the
-                        // BoundObjectInitializerMember wrapper but does not propagate hasErrors back to the
-                        // raw access. Wrap the raw access in a bad expression in that case so downstream
-                        // operator resolution and flow analysis see a known-bad left rather than asserting.
-                        if (boundLeft != null && boundLeft.HasAnyErrors && !rawAccess.HasAnyErrors)
+                        if (rawAccess != null)
                         {
-                            rawAccess = ToBadExpression(rawAccess, LookupResultKind.NotAVariable);
+                            // BindObjectInitializerMemberCommon records value-kind failures (CS0200 on get-only,
+                            // CS0154 on set-only, CS0191 on readonly, CS8331 on ref-readonly, etc.) on the
+                            // BoundObjectInitializerMember wrapper but does not propagate hasErrors back to the
+                            // raw access. Wrap the raw access in a bad expression in that case so downstream
+                            // operator resolution and flow analysis see a known-bad left rather than asserting.
+                            if (boundLeft != null && boundLeft.HasAnyErrors && !rawAccess.HasAnyErrors)
+                            {
+                                rawAccess = ToBadExpression(rawAccess, LookupResultKind.NotAVariable);
+                            }
+
+                            // Per spec, the compound_assignment_operator branch of member_initializer admits only
+                            // *expression*, not the nested initializer form. The parser is permissive (it produces a
+                            // nested ObjectInitializerExpression / CollectionInitializerExpression on the RHS), so
+                            // we reject the shape here. Returning directly avoids falling through to the default
+                            // case, which would re-bind the whole assignment and crash trying to bind the brace-list
+                            // RHS.
+                            if (initializer.Right is InitializerExpressionSyntax)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+                                return BindToTypeForErrorRecovery(ToBadExpression(rawAccess, LookupResultKind.NotAValue));
+                            }
+
+                            BoundExpression boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
+
+                            return BindCompoundAssignmentCore(initializer, rawAccess, boundRight, diagnostics);
                         }
-
-                        // Per spec, the compound_assignment_operator branch of member_initializer admits only
-                        // *expression*, not the nested initializer form. The parser is permissive (it produces a
-                        // nested ObjectInitializerExpression / CollectionInitializerExpression on the RHS), so we
-                        // reject the shape here. Returning directly avoids falling through to the default case,
-                        // which would re-bind the whole assignment and crash trying to bind the brace-list RHS.
-                        if (initializer.Right is InitializerExpressionSyntax)
-                        {
-                            Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
-                            return BindToTypeForErrorRecovery(ToBadExpression(rawAccess, LookupResultKind.NotAValue));
-                        }
-
-                        BoundExpression boundRight = BindValue(initializer.Right, diagnostics, BindValueKind.RValue);
-
-                        return BindCompoundAssignmentCore(initializer, rawAccess, boundRight, diagnostics);
+                        break;
                     }
 
                 // We fall back on simply binding the name as an expression for proper recovery
