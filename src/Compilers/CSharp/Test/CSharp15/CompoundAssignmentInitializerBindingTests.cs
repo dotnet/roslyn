@@ -937,4 +937,29 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
 
 
     #endregion
+
+    #region Expression tree ban
+
+    [Fact]
+    public void ExpressionTree_CompoundMemberInitializer_Fails()
+    {
+        // Expression trees cannot represent compound assignment. The diagnostics pass
+        // reports ERR_ExpressionTreeContainsAssignment before ExpressionLambdaRewriter
+        // runs, so the cast to BoundAssignmentOperator in the rewriter is never reached.
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+            class C
+            {
+                public int P { get; set; }
+                public static Expression<Func<C>> M() => () => new C { P += 1 };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (6,60): error CS0832: An expression tree may not contain an assignment operator
+            //     public static Expression<Func<C>> M() => () => new C { P += 1 };
+            Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "P += 1").WithLocation(6, 60));
+    }
+
+    #endregion
 }
