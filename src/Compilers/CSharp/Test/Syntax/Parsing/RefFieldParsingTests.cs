@@ -735,11 +735,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(LanguageVersion.CSharp11)]
         public void ObjectInitializer_CompoundAssignment(LanguageVersion languageVersion)
         {
-            // Prior to the compound-assignment-in-initializer feature (dotnet/csharplang#9896) this input
-            // classified as `CollectionInitializerExpression` and the parser emitted `ERR_InvalidExprTerm`
-            // on `ref t`. With the feature, the brace list classifies as `ObjectInitializerExpression`
-            // via the named-member path, which uses `ParsePossibleRefExpression` for the RHS and accepts
-            // the `ref` form silently. The binder rejects `ref` on a compound-assignment RHS later.
             string source = "new S { F += ref t }";
             UsingExpression(source, TestOptions.Regular.WithLanguageVersion(languageVersion));
 
@@ -750,11 +745,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     N(SyntaxKind.IdentifierToken, "S");
                 }
-                // Prior to the compound-assignment-in-initializer feature (dotnet/csharplang#9896), this
-                // brace list classified as `CollectionInitializerExpression` because only
-                // `SimpleAssignmentExpression` counted as object-initializer evidence. With the feature,
-                // any assignment (compound or simple) with an `IdentifierName` or `ImplicitElementAccess`
-                // on the left triggers the object-initializer classification.
                 N(SyntaxKind.ObjectInitializerExpression);
                 {
                     N(SyntaxKind.OpenBraceToken);

@@ -9,13 +9,6 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-/// <summary>
-/// Parsing tests for compound assignment in object initializer and <c>with</c> expression
-/// (dotnet/csharplang#9896). The parser changes are permissive: any compound assignment operator
-/// (including <c>??=</c>) is accepted after the target of a named or dictionary member initializer,
-/// and the object-vs-collection classifier recognizes compound assignments as object-initializer
-/// evidence. Language-version gating and target legality live in the binder.
-/// </summary>
 public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
 {
     public CompoundAssignmentInitializerParsingTests(ITestOutputHelper output) : base(output) { }
@@ -33,8 +26,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         { "<<=",  SyntaxKind.LessThanLessThanEqualsToken,             SyntaxKind.LeftShiftAssignmentExpression },
         { ">>=",  SyntaxKind.GreaterThanGreaterThanEqualsToken,       SyntaxKind.RightShiftAssignmentExpression },
         { ">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken, SyntaxKind.UnsignedRightShiftAssignmentExpression },
-        // The parser is permissive: `??=` is accepted too. The binder rejects it as not a valid
-        // compound_assignment_operator per the spec.
+        // Parser-permissive: `??=` is accepted; binder rejects per spec.
         { "??=",  SyntaxKind.QuestionQuestionEqualsToken,             SyntaxKind.CoalesceAssignmentExpression },
     };
 
@@ -226,8 +218,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void ObjectInitializer_NamedMember_MissingRightHandSide()
     {
-        // Parser is resilient: it consumes the operator then expects an expression; on missing
-        // expression it produces a missing identifier so the tree still shapes as compound.
         UsingExpression("new Foo { Prop += }",
             // (1,19): error CS1525: Invalid expression term '}'
             // new Foo { Prop += }
@@ -264,9 +254,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void ObjectInitializer_NamedMember_NestedInitializerOnRhs_PermissiveParse()
     {
-        // The spec note calls `Prop += { 1, 2 }` "syntactically ill-formed", but the parser is
-        // permissive and builds a nested `ObjectInitializerExpression`/`CollectionInitializerExpression`
-        // for resilience. The binder rejects this shape.
         UsingExpression("new Foo { Prop += { 1, 2 } }");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -310,8 +297,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void ObjectInitializer_NamedMember_RefOnRhs()
     {
-        // `Prop += ref x` parses: the parser uses `ParsePossibleRefExpression` for the RHS and
-        // produces a `RefExpression` wrapping the identifier. The binder rejects compound+ref.
         UsingExpression("new Foo { Prop += ref x }");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -349,7 +334,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void ObjectInitializer_NamedMember_GenericNameOnRhs()
     {
-        // Arbitrary expression on the RHS: member access, invocation, generic name.
         UsingExpression("new Foo { Prop += Bar<int>.Baz(x) }");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -650,9 +634,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void Classifier_AllCompoundMembersAreObjectInitializer()
     {
-        // Prior to the feature, a brace list containing only non-`=` assignments classified as
-        // `CollectionInitializerExpression`. With the feature, the classifier recognizes compound
-        // assignments with identifier/implicit-element-access targets as object-initializer evidence.
         UsingExpression("new Foo { Prop += 1, Event += Handler }");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -767,9 +748,8 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void Classifier_BareCompoundAssignmentOnNonMemberIsCollectionInitializer()
     {
-        // `a.b += 1` is a compound assignment, but its left is a `SimpleMemberAccessExpression`,
-        // not an `IdentifierName` or `ImplicitElementAccess`. Per the classifier, this alone is NOT
-        // object-initializer evidence, so the brace list classifies as a collection initializer.
+        // Left is a `SimpleMemberAccessExpression`, not `IdentifierName`/`ImplicitElementAccess`,
+        // so this is not object-initializer evidence.
         UsingExpression("new Foo { a.b += 1 }");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -811,7 +791,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void Classifier_EmptyBracesIsObjectInitializer()
     {
-        // Classifier pre-existing rule: empty brace list is always an object initializer.
         UsingExpression("new Foo { }");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -1018,7 +997,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void TopLevel_ImplicitObjectCreation()
     {
-        // `new() { Prop += 1 }` target-typed form.
         UsingExpression("new() { Prop += 1 }");
 
         N(SyntaxKind.ImplicitObjectCreationExpression);
@@ -1057,9 +1035,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Fact]
     public void ColonRecovery_StillRecoversForSimpleAssignment()
     {
-        // Pre-existing recovery: `Prop :` is treated as a missing `=`. We preserve this for the
-        // simple-assignment path only; compound forms do not get colon recovery because the spec
-        // has no ambiguity for them.
         UsingExpression("new Foo { Prop : 1 }",
             // (1,16): error CS1003: Syntax error, '=' expected
             // new Foo { Prop : 1 }
@@ -1081,7 +1056,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    // `EatTokenAsKind` produces a missing `=` with the `:` attached as skipped trivia.
                     M(SyntaxKind.EqualsToken);
                     N(SyntaxKind.NumericLiteralExpression);
                     {
