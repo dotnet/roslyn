@@ -1042,15 +1042,14 @@ or E._{i}
             // the rest reference IDs that are never produced by any analyzer and
             // targets that don't resolve to any symbol in the compilation.
             const int unreferencedSuppressionCount = 50_000;
+            const string realSuppression = $"""[assembly: SuppressMessage("Test", "{ReportOnTypeAnalyzer.DiagnosticId}", Scope = "type", Target = "~T:Targeted")]""";
 
-            var attributesBuilder = new StringBuilder(capacity: unreferencedSuppressionCount * 100);
+            var attributesBuilder = new StringBuilder(capacity: 40 + realSuppression.Length + 2 + unreferencedSuppressionCount * 107);
             attributesBuilder.AppendLine("using System.Diagnostics.CodeAnalysis;");
             attributesBuilder.AppendLine();
 
             // The one real suppression we expect to be honored.
-            attributesBuilder.AppendLine(
-                $"""[assembly: SuppressMessage("Test", "{ReportOnTypeAnalyzer.DiagnosticId}", Scope = "type", Target = "~T:Targeted")]""");
-
+            attributesBuilder.AppendLine(realSuppression);
             for (int i = 0; i < unreferencedSuppressionCount; i++)
             {
                 // Use a unique fake diagnostic ID per suppression so that querying
@@ -1058,7 +1057,7 @@ or E._{i}
                 // types that don't exist so resolution would fail if it were ever
                 // attempted.
                 attributesBuilder.AppendLine(
-                    $$"""[assembly: SuppressMessage("Test", "FAKE{{i:D6}}", Scope = "type", Target = "~T:DoesNotExist{{i:D6}}")]""");
+                    $$"""[assembly: SuppressMessage("Test", "FAKE{{i:D5}}", Scope = "type", Target = "~T:DoesNotExist{{i:D5}}")]""");
             }
 
             var attributesSource = attributesBuilder.ToString();
@@ -1070,7 +1069,7 @@ or E._{i}
             RunInThread(() =>
             {
                 var compilation = CreateCompilation(
-                    new[] { attributesSource, typesSource },
+                    [attributesSource, typesSource],
                     options: TestOptions.DebugDll.WithConcurrentBuild(false));
                 compilation.VerifyDiagnostics();
 
@@ -1079,17 +1078,16 @@ or E._{i}
 
                 // Only the diagnostic on 'NotTargeted' should remain; the one on 'Targeted'
                 // is suppressed by the SuppressMessageAttribute and filtered out.
-                var diagnostic = analyzerDiagnostics.Single();
-                Assert.Equal(ReportOnTypeAnalyzer.DiagnosticId, diagnostic.Id);
-                Assert.Contains("NotTargeted", diagnostic.GetMessage());
-                Assert.False(diagnostic.IsSuppressed);
+                analyzerDiagnostics.Verify(
+                    Diagnostic("MY00001", "NotTargeted").WithArguments("NotTargeted").WithLocation(2, 14)
+                );
             }, timeout: TimeSpan.FromMinutes(2));
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private sealed class ReportOnTypeAnalyzer : DiagnosticAnalyzer
         {
-            public const string DiagnosticId = "MY0001";
+            public const string DiagnosticId = "MY00001";
 
             private static readonly DiagnosticDescriptor s_rule = new DiagnosticDescriptor(
                 DiagnosticId, "Title", "Type {0}", "Test",
