@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 
             if (exception is object)
             {
-                Assert.False(true, exception.ToString());
+                Assert.Fail(exception.ToString());
             }
         }
 

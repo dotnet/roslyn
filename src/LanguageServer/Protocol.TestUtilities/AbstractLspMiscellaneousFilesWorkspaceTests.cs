@@ -259,7 +259,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         // Verify file is added to the misc file workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
         var miscDoc = await GetMiscellaneousDocumentAsync(testLspServer);
-        AssertEx.NotNull(miscDoc);
+        Assert.NotNull(miscDoc);
         Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
     }
 
@@ -298,11 +298,11 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         // Verify file was added to the misc file workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
         var miscDoc = await GetMiscellaneousDocumentAsync(testLspServer);
-        AssertEx.NotNull(miscDoc);
+        Assert.NotNull(miscDoc);
         Assert.Equal(LanguageNames.CSharp, miscDoc.Project.Language);
 
         // Verify GTD request succeeded.
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal(0, result.Single().Range.Start.Line);
         Assert.Equal(6, result.Single().Range.Start.Character);
         Assert.Equal(0, result.Single().Range.End.Line);
@@ -345,7 +345,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
         // Make a change and verify the misc document is updated.
         await testLspServer.InsertTextAsync(newDocumentUri, (0, 0, "More LSP text"));
         (_, miscDocument) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
-        AssertEx.NotNull(miscDocument);
+        Assert.NotNull(miscDocument);
         var miscText = await miscDocument.GetTextAsync(CancellationToken.None);
         Assert.Equal("More LSP textLSP text", miscText.ToString());
         Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(miscDocument));
@@ -355,7 +355,7 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
 
         // Verify that the newly added document in the registered workspace is returned.
         var (documentWorkspace, document) = await GetLspWorkspaceAndDocumentAsync(newDocumentUri, testLspServer).ConfigureAwait(false);
-        AssertEx.NotNull(document);
+        Assert.NotNull(document);
         Assert.Equal(GetHostWorkspace(testLspServer), documentWorkspace);
         Assert.False(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(document));
         Assert.Equal(newDocumentId, document.Id);
