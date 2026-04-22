@@ -6269,13 +6269,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
 #if DEBUG
-            // CheckValueKind above validates the value-kind for this member access but does not set the
-            // WasPropertyBackingFieldAccessChecked flag that the BindValue -> CheckValue path normally sets.
-            // The compound-assignment-in-initializer path hands the raw access to BindCompoundAssignmentCore
-            // rather than wrapping it in BoundObjectInitializerMember, so the post-bind walker in
-            // MethodCompiler would otherwise find an unchecked BoundPropertyAccess. boundMember is freshly
-            // built here and not shared with other binding paths, so a direct set is safe.
-            if (boundMember is BoundPropertyAccess { WasPropertyBackingFieldAccessChecked: false } pa)
+            // On the non-compound path the BoundPropertyAccess is hidden inside BoundObjectInitializerMember
+            // and the walker in MethodCompiler never inspects it, so the flag is not needed there. On the
+            // compound-assignment path we hand the raw access to BindCompoundAssignmentCore unwrapped, so the
+            // walker sees it directly and asserts unless the flag is set. CheckValueKind above performs the
+            // validation but doesn't set the flag (only the BindValue -> CheckValue path does); set it here
+            // for the compound case. boundMember is freshly built in this method, so the direct set is safe.
+            if (valueKind == BindValueKind.CompoundAssignment &&
+                boundMember is BoundPropertyAccess { WasPropertyBackingFieldAccessChecked: false } pa)
             {
                 pa.WasPropertyBackingFieldAccessChecked = true;
             }
