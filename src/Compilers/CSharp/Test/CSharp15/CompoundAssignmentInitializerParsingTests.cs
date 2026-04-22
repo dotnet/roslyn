@@ -100,10 +100,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ObjectInitializer_NamedMember_MixOfSimpleAndCompound()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void ObjectInitializer_NamedMember_MixOfSimpleAndCompound(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { Prop = 10, Prop += 5, Event += Handler }");
+        UsingExpression($"new Foo {{ Prop = 10, Prop {op} 5, Event {op} Handler }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -128,26 +128,26 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.NumericLiteralExpression);
                     {
                         N(SyntaxKind.NumericLiteralToken, "5");
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Event");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Handler");
@@ -159,10 +159,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ObjectInitializer_NamedMember_TrailingComma()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void ObjectInitializer_NamedMember_TrailingComma(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { Prop += 1, }");
+        UsingExpression($"new Foo {{ Prop {op} 1, }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -174,13 +174,13 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.NumericLiteralExpression);
                     {
                         N(SyntaxKind.NumericLiteralToken, "1");
@@ -193,13 +193,13 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ObjectInitializer_NamedMember_MissingRightHandSide()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void ObjectInitializer_NamedMember_MissingRightHandSide(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { Prop += }",
-            // (1,19): error CS1525: Invalid expression term '}'
-            // new Foo { Prop += }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, 19));
+        var source = $"new Foo {{ Prop {op} }}";
+        var closeBracePosition = source.IndexOf('}') + 1;
+        UsingExpression(source,
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, closeBracePosition));
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -211,13 +211,13 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     M(SyntaxKind.IdentifierName);
                     {
                         M(SyntaxKind.IdentifierToken);
@@ -229,10 +229,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ObjectInitializer_NamedMember_NestedInitializerOnRhs_PermissiveParse()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void ObjectInitializer_NamedMember_NestedInitializerOnRhs_PermissiveParse(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { Prop += { 1, 2 } }");
+        UsingExpression($"new Foo {{ Prop {op} {{ 1, 2 }} }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -244,13 +244,13 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.CollectionInitializerExpression);
                     {
                         N(SyntaxKind.OpenBraceToken);
@@ -272,10 +272,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ObjectInitializer_NamedMember_RefOnRhs()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void ObjectInitializer_NamedMember_RefOnRhs(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { Prop += ref x }");
+        UsingExpression($"new Foo {{ Prop {op} ref x }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -287,13 +287,13 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.RefExpression);
                     {
                         N(SyntaxKind.RefKeyword);
@@ -309,10 +309,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ObjectInitializer_NamedMember_GenericNameOnRhs()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void ObjectInitializer_NamedMember_GenericNameOnRhs(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { Prop += Bar<int>.Baz(x) }");
+        UsingExpression($"new Foo {{ Prop {op} Bar<int>.Baz(x) }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -324,13 +324,13 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.InvocationExpression);
                     {
                         N(SyntaxKind.SimpleMemberAccessExpression);
@@ -422,10 +422,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void ObjectInitializer_IndexerMember_MultipleArguments()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void ObjectInitializer_IndexerMember_MultipleArguments(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { [a, b] |= mask }");
+        UsingExpression($"new Foo {{ [a, b] {op} mask }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -437,7 +437,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.OrAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.ImplicitElementAccess);
                     {
@@ -462,7 +462,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                             N(SyntaxKind.CloseBracketToken);
                         }
                     }
-                    N(SyntaxKind.BarEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "mask");
@@ -546,10 +546,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void WithExpression_MixOfSimpleAndCompound()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void WithExpression_MixOfSimpleAndCompound(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("r with { Value = 10, Value += 5, Changed += OnChanged }");
+        UsingExpression($"r with {{ Value = 10, Value {op} 5, Changed {op} OnChanged }}");
 
         N(SyntaxKind.WithExpression);
         {
@@ -574,26 +574,26 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Value");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.NumericLiteralExpression);
                     {
                         N(SyntaxKind.NumericLiteralToken, "5");
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Changed");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "OnChanged");
@@ -609,10 +609,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
 
     #region Object-vs-collection classification
 
-    [Fact]
-    public void Classifier_AllCompoundMembersAreObjectInitializer()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void Classifier_AllCompoundMembersAreObjectInitializer(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { Prop += 1, Event += Handler }");
+        UsingExpression($"new Foo {{ Prop {op} 1, Event {op} Handler }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -624,26 +624,26 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.NumericLiteralExpression);
                     {
                         N(SyntaxKind.NumericLiteralToken, "1");
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Event");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Handler");
@@ -655,10 +655,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void Classifier_IndexerCompoundMembersAreObjectInitializer()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void Classifier_IndexerCompoundMembersAreObjectInitializer(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new Foo { [0] |= a, [1] &= b }");
+        UsingExpression($"new Foo {{ [0] {op} a, [1] {op} b }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -670,7 +670,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.OrAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.ImplicitElementAccess);
                     {
@@ -687,14 +687,14 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                             N(SyntaxKind.CloseBracketToken);
                         }
                     }
-                    N(SyntaxKind.BarEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "a");
                     }
                 }
                 N(SyntaxKind.CommaToken);
-                N(SyntaxKind.AndAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.ImplicitElementAccess);
                     {
@@ -711,7 +711,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                             N(SyntaxKind.CloseBracketToken);
                         }
                     }
-                    N(SyntaxKind.AmpersandEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "b");
@@ -723,12 +723,12 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void Classifier_BareCompoundAssignmentOnNonMemberIsCollectionInitializer()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void Classifier_BareCompoundAssignmentOnNonMemberIsCollectionInitializer(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
         // Left is a `SimpleMemberAccessExpression`, not `IdentifierName`/`ImplicitElementAccess`,
         // so this is not object-initializer evidence.
-        UsingExpression("new Foo { a.b += 1 }");
+        UsingExpression($"new Foo {{ a.b {op} 1 }}");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -740,7 +740,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.CollectionInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.SimpleMemberAccessExpression);
                     {
@@ -754,7 +754,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                             N(SyntaxKind.IdentifierToken, "b");
                         }
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.NumericLiteralExpression);
                     {
                         N(SyntaxKind.NumericLiteralToken, "1");
@@ -972,10 +972,10 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         EOF();
     }
 
-    [Fact]
-    public void TopLevel_ImplicitObjectCreation()
+    [Theory, MemberData(nameof(CompoundOperators))]
+    public void TopLevel_ImplicitObjectCreation(string op, SyntaxKind operatorTokenKind, SyntaxKind assignmentKind)
     {
-        UsingExpression("new() { Prop += 1 }");
+        UsingExpression($"new() {{ Prop {op} 1 }}");
 
         N(SyntaxKind.ImplicitObjectCreationExpression);
         {
@@ -988,13 +988,13 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
             N(SyntaxKind.ObjectInitializerExpression);
             {
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.AddAssignmentExpression);
+                N(assignmentKind);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "Prop");
                     }
-                    N(SyntaxKind.PlusEqualsToken);
+                    N(operatorTokenKind);
                     N(SyntaxKind.NumericLiteralExpression);
                     {
                         N(SyntaxKind.NumericLiteralToken, "1");
