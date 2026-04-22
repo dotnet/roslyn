@@ -581,6 +581,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref ArrayBuilder<LocalSymbol>? temps,
             bool isRhsNestedInitializer)
         {
+            memberInit = NormalizeObjectInitializerMember(memberInit, ref rewrittenReceiver, result, ref temps);
+            return MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
+        }
+
+        /// <summary>
+        /// Visits the wrapper's arguments, substitutes the object-initializer placeholder receiver
+        /// with <paramref name="rewrittenReceiver"/>, and lifts any side-effecting indexer arguments
+        /// into temps so a compound read-modify-write (or a dynamic get/set pair) evaluates them
+        /// exactly once. Shared between <see cref="RewriteObjectInitializerMemberAccess"/> and the
+        /// dynamic-indexer simple-assignment branch in <see cref="AddObjectInitializer"/>; the
+        /// caller then decides whether to hand the normalized wrapper to
+        /// <see cref="MakeObjectInitializerMemberAccess"/> or to the DLR `MakeDynamicGet/SetIndex`
+        /// factories.
+        /// </summary>
+        private BoundObjectInitializerMember NormalizeObjectInitializerMember(
+            BoundObjectInitializerMember memberInit,
+            ref BoundExpression rewrittenReceiver,
+            ArrayBuilder<BoundExpression> result,
+            ref ArrayBuilder<LocalSymbol>? temps)
+        {
             memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
                 memberInit, ref rewrittenReceiver, result, ref temps);
 
@@ -611,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     memberInit.Type);
             }
 
-            return MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
+            return memberInit;
         }
 
         /// <summary>
@@ -671,47 +691,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.ObjectInitializerMember:
                     {
-                        // The dynamic path (`MemberSymbol == null && Type.IsDynamic()`) routes through
-                        // `_dynamicFactory.MakeDynamicSet/GetIndex` and needs its own receiver-substitution
-                        // + arg-lifting so it can plumb the hoisted SiteInitialization into
-                        // `dynamicSiteInitializers`. The non-dynamic path delegates to the shared helper
-                        // that also drives compound assignment.
-                        var leftWrapper = (BoundObjectInitializerMember)left;
-                        if (leftWrapper.MemberSymbol == null && leftWrapper.Type.IsDynamic())
+                        // Receiver + arg normalization is identical on both branches; extract it and
+                        // then dispatch on the dynamic-indexer shape. The dynamic path
+                        // (`MemberSymbol == null && Type.IsDynamic()`) routes through the DLR
+                        // `MakeDynamicSet/GetIndex` factories and plumbs the hoisted SiteInitialization
+                        // into `dynamicSiteInitializers`; the non-dynamic path builds a concrete
+                        // field/property/indexer access via MakeObjectInitializerMemberAccess.
+                        var memberInit = NormalizeObjectInitializerMember(
+                            (BoundObjectInitializerMember)left, ref rewrittenReceiver, result, ref temps);
+
+                        if (memberInit.MemberSymbol == null && memberInit.Type.IsDynamic())
                         {
-                            var memberInit = (BoundObjectInitializerMember)VisitObjectInitializerMember(
-                                leftWrapper, ref rewrittenReceiver, result, ref temps);
-
-                            Debug.Assert(memberInit is { });
                             Debug.Assert(!memberInit.Expanded);
-
-                            if (!memberInit.Arguments.IsDefaultOrEmpty)
-                            {
-                                var args = EvaluateSideEffectingArgumentsToTemps(
-                                    memberInit.Arguments,
-                                    memberInit.MemberSymbol?.GetParameterRefKinds() ?? default(ImmutableArray<RefKind>),
-                                    result,
-                                    ref temps);
-
-                                memberInit = memberInit.Update(
-                                    memberInit.MemberSymbol,
-                                    args,
-                                    memberInit.ArgumentNamesOpt,
-                                    memberInit.ArgumentRefKindsOpt,
-                                    memberInit.Expanded,
-                                    memberInit.ArgsToParamsOpt,
-                                    memberInit.DefaultArguments,
-                                    memberInit.ResultKind,
-                                    memberInit.AccessorKind,
-                                    memberInit.UnderlyingAccessOpt,
-                                    memberInit.ReceiverType,
-                                    memberInit.Type);
-                            }
-
-                            if (dynamicSiteInitializers == null)
-                            {
-                                dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
-                            }
+                            dynamicSiteInitializers ??= ArrayBuilder<BoundExpression>.GetInstance();
 
                             if (!isRhsNestedInitializer)
                             {
@@ -741,8 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            rewrittenAccess = RewriteObjectInitializerMemberAccess(
-                                leftWrapper, ref rewrittenReceiver, result, ref temps, isRhsNestedInitializer);
+                            rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
 
                             if (!isRhsNestedInitializer)
                             {
