@@ -13347,7 +13347,14 @@ done:
 
         private bool IsNamedMemberInitializer()
         {
-            return IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.EqualsToken or SyntaxKind.ColonToken;
+            // Accept `Identifier =`, `Identifier :` (recovered to `=`), or `Identifier op=` for any compound
+            // assignment operator (including `??=`). Compound operators on member initializers are legal under
+            // the compound-assignment-in-initializer feature; binder checks language version and target legality.
+            if (!IsTrueIdentifier())
+                return false;
+
+            var next = this.PeekToken(1).Kind;
+            return next == SyntaxKind.ColonToken || SyntaxFacts.IsAssignmentExpressionOperatorToken(next);
         }
 
         private bool IsDictionaryInitializer()
@@ -13484,12 +13491,12 @@ done:
                     return true;
 
                 // We have at least one initializer expression. If at least one initializer expression is a named
-                // assignment, this is an object initializer. Otherwise, this is a collection initializer.
+                // assignment (simple or compound) targeting an identifier or implicit element access, this is an
+                // object initializer. Otherwise, this is a collection initializer.
                 for (int i = 0, n = initializers.Count; i < n; i++)
                 {
                     if (initializers[i] is AssignmentExpressionSyntax
                         {
-                            Kind: SyntaxKind.SimpleAssignmentExpression,
                             Left.Kind: SyntaxKind.IdentifierName or SyntaxKind.ImplicitElementAccess,
                         })
                     {
@@ -13542,12 +13549,15 @@ done:
 
         private AssignmentExpressionSyntax ParseObjectInitializerNamedAssignment()
         {
+            var name = this.ParseIdentifierName();
+            var (operatorToken, assignmentKind) = this.EatMemberInitializerOperatorToken();
+
+            // Nested `{ ... }` initializer shape is only legal on the `=` branch, but we accept it for any operator
+            // during parsing so the tree is well-formed for resilience. Binder rejects the non-`=` nested form.
             return _syntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                this.ParseIdentifierName(),
-                this.CurrentToken.Kind == SyntaxKind.ColonToken
-                    ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
-                    : this.EatToken(SyntaxKind.EqualsToken),
+                assignmentKind,
+                name,
+                operatorToken,
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());
@@ -13555,13 +13565,39 @@ done:
 
         private AssignmentExpressionSyntax ParseDictionaryInitializer()
         {
+            var elementAccess = _syntaxFactory.ImplicitElementAccess(this.ParseBracketedArgumentList());
+            var (operatorToken, assignmentKind) = this.EatMemberInitializerOperatorToken();
+
             return _syntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                _syntaxFactory.ImplicitElementAccess(this.ParseBracketedArgumentList()),
-                this.EatToken(SyntaxKind.EqualsToken),
+                assignmentKind,
+                elementAccess,
+                operatorToken,
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
                     ? this.ParseObjectOrCollectionInitializer()
                     : this.ParsePossibleRefExpression());
+        }
+
+        /// <summary>
+        /// Consume the operator token that separates the target and value of a member initializer.
+        /// Accepts `=`, `:` (recovered to `=`), and any compound assignment operator (including `??=`).
+        /// Returns the eaten token plus the matching <see cref="SyntaxKind"/> for the produced
+        /// <see cref="AssignmentExpressionSyntax"/>.
+        /// </summary>
+        private (SyntaxToken operatorToken, SyntaxKind assignmentKind) EatMemberInitializerOperatorToken()
+        {
+            var kind = this.CurrentToken.Kind;
+            if (kind == SyntaxKind.ColonToken)
+            {
+                return (this.EatTokenAsKind(SyntaxKind.EqualsToken), SyntaxKind.SimpleAssignmentExpression);
+            }
+
+            if (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind))
+            {
+                return (this.EatToken(), SyntaxFacts.GetAssignmentExpression(kind));
+            }
+
+            // Fall back to expecting `=` for recovery; eats whatever is current as a missing `=`.
+            return (this.EatToken(SyntaxKind.EqualsToken), SyntaxKind.SimpleAssignmentExpression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()
