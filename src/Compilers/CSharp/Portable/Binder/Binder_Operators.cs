@@ -707,8 +707,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The wrapper the initializer binder produces stashes the concrete BoundEventAccess on
             // UnderlyingAccessOpt, so unwrap it uniformly. Receiver placeholder substitution happens
             // in lowering.
-            var eventAccess = left as BoundEventAccess
-                ?? (left as BoundObjectInitializerMember)?.UnderlyingAccessOpt as BoundEventAccess;
+            BoundEventAccess? eventAccess = left switch
+            {
+                BoundEventAccess e => e,
+                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+                _ => null,
+            };
 
             if (eventAccess is null)
             {
