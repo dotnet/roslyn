@@ -56,31 +56,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // add_E / remove_E accessor call. Raw BoundEventAccess is the normal shape for
                 // `receiver.E += h`; BoundObjectInitializerMember wrapping an event is the shape for
                 // `new C { E += h }` (object initializer) and `c with { E += h }` (with expression).
-                // In the wrapper case we synthesize a BoundEventAccess whose receiver is a fresh
-                // object-initializer placeholder typed as the wrapper's ReceiverType — lowering
-                // substitutes it with the real receiver in AddEventObjectInitializer, and
-                // BindEventAssignment only inspects the receiver's type for accessibility checks.
-                BoundEventAccess eventAccess = left switch
+                // In the wrapper case the receiver is the object-initializer placeholder, typed as the
+                // wrapper's ReceiverType — lowering substitutes the real receiver in
+                // AddEventObjectInitializer.
+                (EventSymbol eventSymbol, BoundExpression eventReceiverOpt, TypeSymbol delegateType) = left switch
                 {
-                    BoundEventAccess e => e,
-                    BoundObjectInitializerMember { MemberSymbol: EventSymbol eventSymbol } wrapper
-                        => new BoundEventAccess(
-                            wrapper.Syntax,
-                            receiverOpt: new BoundObjectOrCollectionValuePlaceholder(wrapper.Syntax, isNewInstance: false, wrapper.ReceiverType, hasErrors: false).MakeCompilerGenerated(),
-                            eventSymbol,
-                            isUsableAsField: eventSymbol.HasAssociatedField,
-                            wrapper.ResultKind,
-                            wrapper.Type),
-                    _ => null,
+                    BoundEventAccess e => (e.EventSymbol, e.ReceiverOpt, e.Type),
+                    BoundObjectInitializerMember { MemberSymbol: EventSymbol ev } wrapper
+                        => (ev, (BoundExpression)new BoundObjectOrCollectionValuePlaceholder(
+                            wrapper.Syntax, isNewInstance: false, wrapper.ReceiverType, hasErrors: false).MakeCompilerGenerated(),
+                           wrapper.Type),
+                    _ => (null, null, null),
                 };
-                if (eventAccess is not null)
+                if (eventSymbol is not null)
                 {
                     BinaryOperatorKind kindOperator = kind.Operator();
                     switch (kindOperator)
                     {
                         case BinaryOperatorKind.Addition:
                         case BinaryOperatorKind.Subtraction:
-                            return BindEventAssignment(node, eventAccess, right, kindOperator, diagnostics);
+                            return BindEventAssignment(node, eventSymbol, eventReceiverOpt, delegateType, right, kindOperator, diagnostics);
 
                             // fall-through for other operators, if RHS is dynamic we produce dynamic operation, otherwise we'll report an error ...
                     }
@@ -720,16 +715,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Performs some validation of the accessor that couldn't be done in CheckEventValueKind, because
         /// the specific accessor wasn't known.
         /// </remarks>
-        private BoundExpression BindEventAssignment(AssignmentExpressionSyntax node, BoundEventAccess left, BoundExpression right, BinaryOperatorKind opKind, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindEventAssignment(
+            AssignmentExpressionSyntax node,
+            EventSymbol eventSymbol,
+            BoundExpression receiverOpt,
+            TypeSymbol delegateType,
+            BoundExpression right,
+            BinaryOperatorKind opKind,
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(opKind == BinaryOperatorKind.Addition || opKind == BinaryOperatorKind.Subtraction);
 
             bool hasErrors = false;
-
-            EventSymbol eventSymbol = left.EventSymbol;
-            BoundExpression receiverOpt = left.ReceiverOpt;
-
-            TypeSymbol delegateType = left.Type;
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             Conversion argumentConversion = this.Conversions.ClassifyConversionFromExpression(right, delegateType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
