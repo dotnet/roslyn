@@ -52,9 +52,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If either operand is bad, don't try to do binary operator overload resolution; that will just
                 // make cascading errors.
 
-                if (TryBindEventAssignment(node, left, right, kind, diagnostics) is { } eventAssignment)
+                // If `left` targets a field-like event (either directly or via an initializer wrapper
+                // stashing the BoundEventAccess on UnderlyingAccessOpt) and the operator is `+=` / `-=`,
+                // route to BindEventAssignment so lowering emits the add_E / remove_E accessor call.
+                // Other operators on an event fall through to the general compound path and ultimately
+                // emit CS0019 on the delegate type.
+                BoundEventAccess? eventAccess = left switch
                 {
-                    return eventAssignment;
+                    BoundEventAccess e => e,
+                    BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
+                    _ => null,
+                };
+                if (eventAccess is not null && kind.Operator() is BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction)
+                {
+                    return BindEventAssignment(node, eventAccess.EventSymbol, eventAccess.ReceiverOpt!, eventAccess.Type, right, kind.Operator(), diagnostics);
                 }
 
                 if (left.HasAnyErrors || right.HasAnyErrors)
@@ -679,52 +690,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return tryInstanceOperatorOverloadResolutionAndFreeMethods(node, kind, checkOverflowAtRuntime, isExtension: true, left, right, ref analyzedArguments, methods, ref operatorResolutionForReporting, diagnostics);
             }
-        }
-
-        /// <summary>
-        /// If <paramref name="left"/> is an event target (either a raw <see cref="BoundEventAccess"/>
-        /// or a <see cref="BoundObjectInitializerMember"/> wrapping one) and the compound operator is
-        /// <c>+=</c> or <c>-=</c>, route to <see cref="BindEventAssignment"/> so lowering emits the
-        /// <c>add_E</c> / <c>remove_E</c> accessor call. Returns <see langword="null"/> when
-        /// <paramref name="left"/> is not an event target, or when the operator is anything other than
-        /// <c>+=</c> / <c>-=</c> (those fall through to the general compound path, which will ultimately
-        /// emit CS0019 on the delegate type).
-        /// </summary>
-        /// <remarks>
-        /// The wrapper form appears for <c>new C { E += h }</c> and <c>c with { E += h }</c>. The
-        /// synthesized receiver placeholder is typed as the wrapper's <see cref="BoundObjectInitializerMember.ReceiverType"/>;
-        /// lowering substitutes it with the real receiver in
-        /// <c>LocalRewriter.AddEventObjectInitializer</c>, and <see cref="BindEventAssignment"/> only
-        /// inspects the receiver's type for accessibility checks.
-        /// </remarks>
-        private BoundExpression? TryBindEventAssignment(
-            AssignmentExpressionSyntax node,
-            BoundExpression left,
-            BoundExpression right,
-            BinaryOperatorKind kind,
-            BindingDiagnosticBag diagnostics)
-        {
-            // The wrapper the initializer binder produces stashes the concrete BoundEventAccess on
-            // UnderlyingAccessOpt, so unwrap it uniformly. Receiver placeholder substitution happens
-            // in lowering.
-            BoundEventAccess? eventAccess = left switch
-            {
-                BoundEventAccess e => e,
-                BoundObjectInitializerMember { UnderlyingAccessOpt: BoundEventAccess e } => e,
-                _ => null,
-            };
-
-            if (eventAccess is null)
-            {
-                return null;
-            }
-
-            return kind.Operator() switch
-            {
-                BinaryOperatorKind.Addition or BinaryOperatorKind.Subtraction
-                    => BindEventAssignment(node, eventAccess.EventSymbol, eventAccess.ReceiverOpt!, eventAccess.Type, right, kind.Operator(), diagnostics),
-                _ => null,
-            };
         }
 
 #nullable disable
