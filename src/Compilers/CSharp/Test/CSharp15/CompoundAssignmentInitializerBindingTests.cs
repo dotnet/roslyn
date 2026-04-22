@@ -967,6 +967,55 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadBinaryOps, "Prop += v").WithArguments("+=", "V", "V").WithLocation(10, 42));
     }
 
+    [Fact]
+    public void UserDefined_InPlaceOnly_OnRefReturningProperty_Succeeds()
+    {
+        // A ref-returning property IS a variable per the spec, so user-defined in-place `operator +=`
+        // applies just like on a field target.
+        var source = """
+            struct V
+            {
+                public int X;
+                public V(int x) => X = x;
+                public void operator +=(V b) { X += b.X; }
+            }
+            class C
+            {
+                private V _v;
+                public ref V Prop => ref _v;
+                public static C Make(V v) => new C { Prop += v };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UserDefined_InPlaceOnly_OnRefReadonlyProperty_Fails()
+    {
+        // A `ref readonly` property IS a location but NOT assignable through that ref, so the
+        // user-defined in-place `operator +=` (which mutates the location) cannot apply. Without a
+        // legacy `operator +` there's no compound form. Expect CS0019 — not a silent acceptance that
+        // our earlier simplified value-kind logic would have allowed.
+        var source = """
+            struct V
+            {
+                public int X;
+                public V(int x) => X = x;
+                public void operator +=(V b) { X += b.X; }
+            }
+            class C
+            {
+                private V _v;
+                public ref readonly V Prop => ref _v;
+                public static C Make(V v) => new C { Prop += v };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (11,42): error CS8331: Cannot assign to property 'Prop' because it is a readonly variable
+            //     public static C Make(V v) => new C { Prop += v };
+            Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "Prop").WithArguments("property", "Prop").WithLocation(11, 42));
+    }
+
     #endregion
 
     #region Required members

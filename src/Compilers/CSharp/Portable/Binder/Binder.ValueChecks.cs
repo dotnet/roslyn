@@ -964,13 +964,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // BoundObjectInitializerMember wraps a pre-validated member access whose receiver is
                     // the object-initializer placeholder. Readability / writability was enforced with the
                     // appropriate BindValueKind during BindObjectInitializerMember, and failures already
-                    // set HasErrors (checked above). Here we only answer the stricter RefersToLocation
-                    // query, used by `shouldTryUserDefinedInstanceOperator` to decide whether a
-                    // user-defined in-place `operator +=` / `operator -=` is applicable. Mirrors the
-                    // normal `a.b += c` path: fields (non-readonly) and ref-returning properties /
-                    // indexers are ref-assignable locations; regular properties, indexers, and events
-                    // are not.
-                    return CheckObjectInitializerMemberValueKind((BoundObjectInitializerMember)expr, valueKind);
+                    // set HasErrors (short-circuited above). Here we answer queries stricter than what
+                    // the pre-validation covered — in practice `RefersToLocation | Assignable` from
+                    // `shouldTryUserDefinedInstanceOperator`. Delegate to the existing per-kind checks by
+                    // reconstructing a raw member access, so we pick up the full ref / ref-readonly /
+                    // fixed-size-buffer / value-type-receiver rules for free.
+                    return CheckObjectInitializerMemberValueKind((BoundObjectInitializerMember)expr, valueKind, diagnostics);
             }
 
             // easy out for a very common RValue case.
@@ -1998,22 +1997,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        private static bool CheckObjectInitializerMemberValueKind(BoundObjectInitializerMember node, BindValueKind valueKind)
+        private bool CheckObjectInitializerMemberValueKind(BoundObjectInitializerMember node, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
-            // The wrapper itself was pre-validated for readability / writability at bind time, so queries
-            // that don't require a specific location succeed. The only remaining question is whether the
-            // target is a ref-assignable location (for user-defined in-place operator resolution).
+            // Pre-validation during BindObjectInitializerMember covered readability / writability; only
+            // stricter queries (ref-assignable location) can reach here on a non-error wrapper.
             if (!RequiresReferenceToLocation(valueKind))
             {
                 return true;
             }
 
-            return node.MemberSymbol switch
+            // Reconstruct a raw bound member access whose receiver is an object-initializer placeholder
+            // and delegate to the existing per-kind CheckValueKind machinery. This avoids duplicating
+            // the RefReadOnly / ref-returning / fixed-size-buffer / value-type-receiver rules that
+            // CheckFieldValueKind and CheckPropertyValueKind already implement.
+            BoundExpression receiverOpt = new BoundObjectOrCollectionValuePlaceholder(
+                node.Syntax, isNewInstance: false, node.ReceiverType, hasErrors: false).MakeCompilerGenerated();
+
+            BoundExpression synthetic = node.MemberSymbol switch
             {
-                FieldSymbol { IsReadOnly: false } => true,
-                PropertySymbol { RefKind: not RefKind.None } => true,
-                _ => false,
+                FieldSymbol field => new BoundFieldAccess(
+                    node.Syntax, receiverOpt, field, constantValueOpt: null, node.ResultKind, node.Type),
+                PropertySymbol property when property.IsIndexer => new BoundIndexerAccess(
+                    node.Syntax, receiverOpt,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                    property, node.Arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
+                    node.Expanded, node.AccessorKind, node.ArgsToParamsOpt, node.DefaultArguments,
+                    originalIndexersOpt: default, node.Type),
+                PropertySymbol property => new BoundPropertyAccess(
+                    node.Syntax, receiverOpt,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.False,
+                    property, node.AccessorKind, node.ResultKind, node.Type),
+                EventSymbol @event => new BoundEventAccess(
+                    node.Syntax, receiverOpt, @event,
+                    isUsableAsField: @event.HasAssociatedField, node.ResultKind, node.Type),
+                _ => null,
             };
+
+            return synthetic is object
+                && CheckValueKind(node.Syntax, synthetic, valueKind, checkingReceiver: false, diagnostics);
         }
 
         private bool CheckPropertyValueKind(SyntaxNode node, BoundExpression expr, BindValueKind valueKind, bool checkingReceiver, BindingDiagnosticBag diagnostics)
