@@ -11344,10 +11344,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess field => GetFieldAnnotations(field.FieldSymbol),
                 BoundParameter { ParameterSymbol: ParameterSymbol parameter }
                     => ToInwardAnnotations(GetParameterAnnotations(parameter) & ~FlowAnalysisAnnotations.NotNull), // NotNull is enforced upon method exit
-                // Compound assignment on a member initializer wraps the target access in
-                // BoundObjectInitializerMember; delegate to the wrapped symbol for its annotations.
-                BoundObjectInitializerMember { MemberSymbol: PropertySymbol property } => property.GetFlowAnalysisAnnotations(),
-                BoundObjectInitializerMember { MemberSymbol: FieldSymbol field } => GetFieldAnnotations(field),
+                // Compound / ??= member initializer wraps the target access; unwrap and recurse so
+                // the appropriate concrete-access case above picks it up.
+                BoundObjectInitializerMember { UnderlyingAccessOpt: { } underlying } => GetLValueAnnotations(underlying),
                 _ => FlowAnalysisAnnotations.None
             };
 
