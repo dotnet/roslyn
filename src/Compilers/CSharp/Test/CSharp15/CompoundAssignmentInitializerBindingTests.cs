@@ -130,6 +130,71 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         CompileAndVerify([source, Polyfills], expectedOutput: "15");
     }
 
+    [Theory, MemberData(nameof(AllCompoundOperators))]
+    public void Target_InitOnlyProperty_AllCompoundOperators(string op)
+    {
+        // `init` accessors are accepted on the same terms as `=` during object creation (per the
+        // spec's "Accessor requirements" bullet); the init setter fires exactly once after the
+        // compound's read-modify sequence. Seed = 6 (binary 0110) so every op yields a distinct
+        // non-seed result when applied with 5.
+        var expected = op switch
+        {
+            "+=" => "11",   // 6 + 5
+            "-=" => "1",    // 6 - 5
+            "*=" => "30",   // 6 * 5
+            "/=" => "1",    // 6 / 5
+            "%=" => "1",    // 6 % 5
+            "&=" => "4",    // 0110 & 0101
+            "|=" => "7",    // 0110 | 0101
+            "^=" => "3",    // 0110 ^ 0101
+            "<<=" => "192", // 6 << 5
+            ">>=" => "0",   // 6 >> 5
+            ">>>=" => "0",  // 6 >>> 5
+            _ => throw new System.InvalidOperationException()
+        };
+        var source = $$"""
+            class C
+            {
+                public int P { get; init; } = 6;
+                public static void Main() => System.Console.Write(new C { P {{op}} 5 }.P);
+            }
+            """;
+        CompileAndVerify([source, Polyfills], expectedOutput: expected);
+    }
+
+    [Theory, MemberData(nameof(AllCompoundOperators))]
+    public void Target_RefReturningProperty_AllCompoundOperators(string op)
+    {
+        // A ref-returning property classifies its access as a variable, so every compound operator
+        // in the set is valid on it — the read and write both go through the returned ref. Same seed
+        // and expected-value table as the init-only theory above; any divergence would indicate the
+        // value-kind path diverged between the two accessor kinds.
+        var expected = op switch
+        {
+            "+=" => "11",
+            "-=" => "1",
+            "*=" => "30",
+            "/=" => "1",
+            "%=" => "1",
+            "&=" => "4",
+            "|=" => "7",
+            "^=" => "3",
+            "<<=" => "192",
+            ">>=" => "0",
+            ">>>=" => "0",
+            _ => throw new System.InvalidOperationException()
+        };
+        var source = $$"""
+            class C
+            {
+                private int _p = 6;
+                public ref int P => ref _p;
+                public static void Main() => System.Console.Write(new C { P {{op}} 5 }.P);
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: expected);
+    }
+
     [Fact]
     public void Target_InitOnlyProperty_SucceedsInWith()
     {
@@ -262,6 +327,35 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void Target_FieldLikeEvent_PlusEqualsFromOutsideDeclaringType_Succeeds()
+    {
+        // `+= / -=` on a field-like event dispatch through the event's `add_X` / `remove_X` accessors,
+        // which are public for a public event — so access from outside the declaring type works the
+        // same as from inside. This parity matters: the `??=` / `=` cases reject from outside (no
+        // accessible backing field), but `+= / -=` must not. Pin runtime behavior: handler fires once.
+        var source = """
+            using System;
+            class C
+            {
+                public event EventHandler E;
+                public void Raise() => E?.Invoke(null, EventArgs.Empty);
+            }
+            class Driver
+            {
+                public static void Main()
+                {
+                    int count = 0;
+                    EventHandler h = (s, e) => count++;
+                    var c = new C { E += h };
+                    c.Raise();
+                    System.Console.Write(count);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1");
+    }
+
+    [Fact]
     public void Target_CustomEvent_PlusEqualsAndMinusEquals_Succeed()
     {
         // Custom event (explicit add / remove): `E += h, E -= h` must call add_E then remove_E.
@@ -299,6 +393,93 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "15");
+    }
+
+    [Theory, MemberData(nameof(AllCompoundOperators))]
+    public void Target_DynamicProperty_AllCompoundOperators(string op)
+    {
+        // Dynamic-typed LHS dispatches each operator to the DLR at runtime. Every compound in the
+        // set must survive the bind-then-lower pipeline and produce the same observable result a
+        // non-initializer `x.X op 5` would — the initializer path wraps the same dynamic dispatch.
+        // Seed `X = 6` (matches other matrix tests) so a divergent result flags the issue.
+        //
+        // `>>>=` has no dynamic binder (pre-existing compiler limitation; CS0019 fires for any
+        // `dynamic >>>= int` expression regardless of context), so we pin the same CS0019 here
+        // rather than runtime-verify. This keeps the matrix complete and the dynamic/non-dynamic
+        // asymmetry explicit.
+        if (op == ">>>=")
+        {
+            var badSource = $$"""
+                class C
+                {
+                    public dynamic X { get; set; } = 6;
+                    public static void Main() => System.Console.Write((int)new C { X {{op}} 5 }.X);
+                }
+                """;
+            CreateCompilation(badSource, targetFramework: TargetFramework.StandardAndCSharp).VerifyDiagnostics(
+                // (4,68): error CS0019: Operator '>>>=' cannot be applied to operands of type 'dynamic' and 'int'
+                //     public static void Main() => System.Console.Write((int)new C { X >>>= 5 }.X);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, $"X {op} 5").WithArguments(op, "dynamic", "int").WithLocation(4, 68));
+            return;
+        }
+
+        var expected = op switch
+        {
+            "+=" => "11",
+            "-=" => "1",
+            "*=" => "30",
+            "/=" => "1",
+            "%=" => "1",
+            "&=" => "4",
+            "|=" => "7",
+            "^=" => "3",
+            "<<=" => "192",
+            ">>=" => "0",
+            _ => throw new System.InvalidOperationException()
+        };
+        var source = $$"""
+            class C
+            {
+                public dynamic X { get; set; } = 6;
+                public static void Main() => System.Console.Write((int)new C { X {{op}} 5 }.X);
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expected);
+    }
+
+    [Theory, MemberData(nameof(AllCompoundOperators))]
+    public void Target_RecordStructProperty_AllCompoundOperators_InWith(string op)
+    {
+        // Records `with` clones the receiver; compound operators on the clone must respect the
+        // same accessor rules as on plain classes. Pin the full operator set so record-struct
+        // copy semantics + compound assignment stay consistent. Seed Value = 6.
+        var expected = op switch
+        {
+            "+=" => "11",
+            "-=" => "1",
+            "*=" => "30",
+            "/=" => "1",
+            "%=" => "1",
+            "&=" => "4",
+            "|=" => "7",
+            "^=" => "3",
+            "<<=" => "192",
+            ">>=" => "0",
+            ">>>=" => "0",
+            _ => throw new System.InvalidOperationException()
+        };
+        var source = $$"""
+            record struct Counter(int Value)
+            {
+                public static void Main()
+                {
+                    var a = new Counter(6);
+                    var b = a with { Value {{op}} 5 };
+                    System.Console.Write(b.Value);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: expected);
     }
 
     #endregion
@@ -455,6 +636,42 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             // (4,41): error CS8652: The feature 'compound assignment in object initializer and with expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public static C Make() => new C { P op 1 };
             Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 41));
+    }
+
+    [Theory, MemberData(nameof(AllCompoundOperators))]
+    public void LangVersion_CSharp14_Fails_InWithExpression(string op)
+    {
+        // `with` shares the same grammar extension (`identifier assignment_operator expression`) and
+        // therefore the same feature gate. Every compound operator fires the Preview gate in a `with`
+        // clause too, one diagnostic at the operator token.
+        var source = $$"""
+            record C(int P)
+            {
+                public static C Make(C r) => r with { P {{op}} 1 };
+            }
+            """;
+        CreateCompilation([source, Polyfills], parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (3,45): error CS8652: The feature 'compound assignment in object initializer and with expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public static C Make(C r) => r with { P op 1 };
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, op).WithArguments("compound assignment in object initializer and with expression").WithLocation(3, 45));
+    }
+
+    [Fact]
+    public void LangVersion_CSharp14_Fails_InWithExpression_Coalesce()
+    {
+        // `??=` in a `with` clause is equally preview-gated; confirm that the `??=` token is where
+        // the diagnostic points. Note `P` is a reference type here so `??=` binds successfully under
+        // preview — the error is purely the feature gate, not a type check.
+        var source = """
+            record C(string P)
+            {
+                public static C Make(C r) => r with { P ??= "x" };
+            }
+            """;
+        CreateCompilation([source, Polyfills], parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            // (3,45): error CS8652: The feature 'compound assignment in object initializer and with expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            //     public static C Make(C r) => r with { P ??= "x" };
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "??=").WithArguments("compound assignment in object initializer and with expression").WithLocation(3, 45));
     }
 
     #endregion
@@ -890,14 +1107,10 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     public void Duplicate_FieldLikeEvent_TwoSimpleAssignments_Fails()
     {
         // Field-like event simple `=` binds as BoundAssignmentOperator wrapping
-        // BoundObjectInitializerMember (not BoundEventAssignmentOperator), so it participates in the
-        // duplicate-member rule the same way field/property `=` does. Two `E = …` on the same event
-        // from inside the declaring type gives CS1912, matching the field/property behavior.
-        //
-        // Note: the csharplang proposal currently exempts event targets from the duplicate rule
-        // entirely — that's an oversight, because `=` on a field-like event really is just a field
-        // write and a second one is plainly dead code. We pin the stricter (more useful) behavior
-        // here; the spec will be updated to match.
+        // BoundObjectInitializerMember; it participates in the duplicate-member rule the same way
+        // field/property `=` does. Two `E = …` on the same event from inside the declaring type
+        // gives CS1912, matching the field/property behavior (the csharplang proposal is also
+        // updated in this PR to subject event targets to the same rule).
         var source = """
             using System;
             class C
@@ -943,10 +1156,10 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_FieldLikeEvent_CompoundThenSimple_Fails()
     {
-        // `E += h1, E = h2` — compound before simple `=` — violates the "= first" rule. Matches
-        // field/property behavior. Note the BoundAssignmentOperator / BoundEventAssignmentOperator
-        // split here means the duplicate map tracks the name only for the `=` form, so the rule
-        // fires at the `E = h2` position.
+        // `E += h1, E = h2` — compound before simple `=` — violates the "= first" rule. The duplicate
+        // tracker records the member name for every initializer form (including
+        // BoundEventAssignmentOperator), so the subsequent `E = h2` sees the name already present and
+        // fires CS1912. Matches the corresponding field/property behavior.
         var source = """
             using System;
             class C
@@ -962,6 +1175,55 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             // (5,61): error CS1912: Duplicate initialization of member 'E'
             //     public static C Make(EventHandler h) => new C { E += h, E = h };
             Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "E").WithArguments("E").WithLocation(5, 61));
+    }
+
+    [Fact]
+    public void Duplicate_TwoCoalesceAssignments_Succeeds()
+    {
+        // `??=` is a compound form; the "any number of compound initializers on the same target"
+        // relaxation applies. Two `P ??= v` in a row: first fires (P starts null → becomes "a"),
+        // second is a no-op (P is non-null → elided). Pin with a string property.
+        var source = """
+            class C
+            {
+                public string P { get; set; }
+                public static void Main() => System.Console.Write(new C { P ??= "a", P ??= "b" }.P);
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "a");
+    }
+
+    [Fact]
+    public void Duplicate_SimpleAfterCoalesce_Fails()
+    {
+        // `??=` counts as compound for ordering: a later simple `=` violates the "`=` must come
+        // before any compound" rule. Expected CS1912 at the `P` in `P = "z"`.
+        var source = """
+            class C
+            {
+                public string P { get; set; }
+                public static C Make() => new C { P ??= "a", P = "z" };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,50): error CS1912: Duplicate initialization of member 'P'
+            //     public static C Make() => new C { P ??= "a", P = "z" };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(4, 50));
+    }
+
+    [Fact]
+    public void Duplicate_CoalesceAfterSimple_Succeeds()
+    {
+        // `=` first then compound (including `??=`) is the legal ordering. `P = "a"` then `P ??= "b"`
+        // elides the second assignment because P is non-null; final value is "a".
+        var source = """
+            class C
+            {
+                public string P { get; set; }
+                public static void Main() => System.Console.Write(new C { P = "a", P ??= "b" }.P);
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "a");
     }
 
     [Fact]
@@ -1044,6 +1306,75 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             // (5,48): error CS8373: The left-hand side of a ref assignment must be a ref variable.
             //     public static C Make(ref int x) => new C { P += ref x };
             Diagnostic(ErrorCode.ERR_RefLocalOrParamExpected, "P").WithLocation(5, 48));
+    }
+
+    [Fact]
+    public void NestedObjectInitializerOnRhs_ReferenceTypeProperty_Rejected()
+    {
+        // The "nested object-or-collection initializer" form (`Container = { X = 1 }`) is only legal
+        // after plain `=`, not after any compound operator. Using a reference-type property — where
+        // `=`-form nested init does work — exercises the binder's compound-specific rejection, not
+        // the value-type-property rejection that `NestedCollectionInitializerOnRhs_Rejected` runs
+        // into. Pin CS0747 "Invalid initializer member declarator" at the compound-assignment.
+        var source = """
+            class Inner { public int X { get; set; } }
+            class C
+            {
+                public Inner Container { get; set; } = new Inner();
+                public static C Make() => new C { Container += { X = 1 } };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,39): error CS0747: Invalid initializer member declarator
+            //     public static C Make() => new C { Container += { X = 1 } };
+            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Container += { X = 1 }").WithLocation(5, 39));
+    }
+
+    [Fact]
+    public void Target_ImplicitIndex_Succeeds()
+    {
+        // Implicit `System.Index` indexers translate `[^1]` to a call to `this[int]` with a
+        // length-adjusted index. Compound on an implicit-index target goes through the same
+        // `BoundImplicitIndexerAccess` lowering path the dispatcher now handles — confirm the
+        // target accepts every compound operator; pin runtime behavior with `+=`. Uses NetCoreApp
+        // for System.Index.
+        var source = """
+            class C
+            {
+                private int[] _v = { 10, 20, 30 };
+                public int Length => _v.Length;
+                public int this[int i]
+                {
+                    get => _v[i];
+                    set => _v[i] = value;
+                }
+                public static void Main() => System.Console.Write(new C { [^1] += 5 }[2]);
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, expectedOutput: "35");
+    }
+
+    [Fact]
+    public void Target_ImplicitRange_Fails()
+    {
+        // `System.Range` indexers (`[..]`) return an array/slice; there's no `set`/`init` accessor,
+        // and the target isn't a variable. Compound and `=` are both rejected for the same reason
+        // plain slice indexers are read-only in this shape — the `Substring`-returning indexer has
+        // no setter, so CS0200 fires. Pin the diagnostic.
+        var source = """
+            using System;
+            class C
+            {
+                private string _s = "hello";
+                public int Length => _s.Length;
+                public string this[Range r] => _s[r];
+                public static C Make() => new C { [..] += "!" };
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+            // (7,39): error CS0200: Property or indexer 'C.this[Range]' cannot be assigned to -- it is read only
+            //     public static C Make() => new C { [..] += "!" };
+            Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "[..]").WithArguments("C.this[System.Range]").WithLocation(7, 39));
     }
 
     [Fact]
@@ -1577,6 +1908,52 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void Nullable_CoalesceInitializesFromMaybeNull()
+    {
+        // Nullable flow through `??=`: the target starts maybe-null; after `P ??= "a"` on the clone
+        // the state must be not-null (the `??=` either left a non-null value alone or just wrote
+        // "a"). A subsequent dereference `c.P.Length` on the initializer result must not warn.
+        var source = """
+            #nullable enable
+            class C
+            {
+                public string? P { get; set; }
+                public static void M()
+                {
+                    var c = new C { P ??= "a" };
+                    _ = c.P.Length;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Nullable_CoalesceWithNullRhs_FlowsMaybeNull()
+    {
+        // `P ??= null` — initializer with `??=` where both the target and the RHS may be null. The
+        // compound result is maybe-null; a subsequent `c.P.Length` must warn CS8602. Pins that
+        // nullable flow through `??=` in an initializer doesn't silently treat the target as
+        // non-null afterwards.
+        var source = """
+            #nullable enable
+            class C
+            {
+                public string? P { get; set; }
+                public static void M(string? x)
+                {
+                    var c = new C { P ??= x };
+                    _ = c.P.Length;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): warning CS8602: Dereference of a possibly null reference.
+            //         _ = c.P.Length;
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.P").WithLocation(8, 13));
+    }
+
+    [Fact]
     public void Nullable_CompoundWithNullLiteralRhs_Warns()
     {
         // Assigning `null` RHS to a non-nullable reference-typed property via compound concat with
@@ -1663,6 +2040,53 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "overflow");
+    }
+
+    [Fact]
+    public void Checked_MultiplyOverflow_Throws()
+    {
+        // Cover a non-`+=` arithmetic operator under checked context — compound lowering clones the
+        // op via Update(...) and must preserve the CheckOverflow flag. `P *= 2` with P seeded to
+        // int.MaxValue overflows in checked context.
+        var source = """
+            using System;
+            class C
+            {
+                public int P { get; set; } = int.MaxValue;
+                public static void Main()
+                {
+                    try
+                    {
+                        _ = checked(new C { P *= 2 });
+                        System.Console.Write("no-throw");
+                    }
+                    catch (OverflowException)
+                    {
+                        System.Console.Write("overflow");
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "overflow");
+    }
+
+    [Fact]
+    public void Unchecked_MultiplyOverflow_Wraps()
+    {
+        // Mirror of Checked_MultiplyOverflow_Throws under unchecked context: int.MaxValue * 2 wraps
+        // to -2. Pin the full arithmetic family (not just `+=`) through both checked and unchecked.
+        var source = """
+            class C
+            {
+                public int P { get; set; } = int.MaxValue;
+                public static void Main()
+                {
+                    var c = unchecked(new C { P *= 2 });
+                    System.Console.Write(c.P);
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "-2");
     }
 
     [Fact]
@@ -1775,6 +2199,53 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         // GetTypeInfo on the LHS identifier reports int.
         var typeInfo = model.GetTypeInfo(identifier);
         Assert.Equal(SpecialType.System_Int32, typeInfo.Type!.SpecialType);
+    }
+
+    [Fact]
+    public void SemanticModel_CoalesceMemberInitializer_BindsAsCoalesceOperation()
+    {
+        // `??=` has its own operation kind (INullCoalescingAssignmentOperation) separate from
+        // ICompoundAssignmentOperation; the initializer form must produce the same operation shape
+        // as a non-initializer `??=`. Pin: operation kind, Target as PropertyReference, Value as
+        // literal, and symbol/type info on the LHS.
+        var source = """
+            class C
+            {
+                public string P { get; set; }
+                public static C Make() => /*<bind>*/new C { P ??= "x" }/*</bind>*/;
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var objectCreation = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax>().Single();
+        var objectCreationOp = (Operations.IObjectCreationOperation)model.GetOperation(objectCreation)!;
+        Assert.NotNull(objectCreationOp.Initializer);
+        var initializer = objectCreationOp.Initializer!;
+        Assert.Single(initializer.Initializers);
+        var coalesceAssignment = Assert.IsAssignableFrom<Operations.ICoalesceAssignmentOperation>(initializer.Initializers[0]);
+
+        // Target is a property reference to C.P, through the initializer placeholder receiver.
+        var target = Assert.IsAssignableFrom<Operations.IPropertyReferenceOperation>(coalesceAssignment.Target);
+        Assert.Equal("P", target.Property.Name);
+
+        // Value is the string literal "x".
+        var value = Assert.IsAssignableFrom<Operations.ILiteralOperation>(coalesceAssignment.Value);
+        Assert.Equal("x", value.ConstantValue.Value);
+
+        // GetSymbolInfo on the LHS identifier resolves to the property.
+        var identifier = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax>()
+            .Single(n => n.Identifier.ValueText == "P" && n.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax { Left: var left } && left == n);
+        var symbolInfo = model.GetSymbolInfo(identifier);
+        Assert.Equal("P", symbolInfo.Symbol!.Name);
+        Assert.Equal(SymbolKind.Property, symbolInfo.Symbol.Kind);
+
+        // GetTypeInfo on the LHS identifier reports string.
+        var typeInfo = model.GetTypeInfo(identifier);
+        Assert.Equal(SpecialType.System_String, typeInfo.Type!.SpecialType);
     }
 
     #endregion
