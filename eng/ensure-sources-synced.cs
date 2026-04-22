@@ -14,9 +14,7 @@ using System.Text.Json;
 //   dotnet run --file eng/ensure-sources-synced.cs -- --verify
 //   dotnet run --file eng/ensure-sources-synced.cs -- --update
 //
-// Default mode when no args are passed:
-//   - CI: verify
-//   - Local: update
+// Default mode when no args are passed: update
 
 try
 {
@@ -156,14 +154,7 @@ static async Task MainAsync(string[] args)
 
 static SyncMode ParseMode(string[] args)
 {
-    if (args.Length == 0)
-    {
-        var onCi = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"))
-            || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TF_BUILD"));
-        return onCi ? SyncMode.Verify : SyncMode.Update;
-    }
-
-    if (args is ["--update"])
+    if (args is [] or ["--update"])
         return SyncMode.Update;
 
     if (args is ["--verify"])
