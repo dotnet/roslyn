@@ -10,10 +10,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
 {
-    // Tests that use records / init-only setters need System.Runtime.CompilerServices.IsExternalInit;
-    // tests that declare a direct `operator +=` additionally need CompilerFeatureRequiredAttribute.
-    // The NetCoreApp reference set provides both, so every test in this file explicitly passes
-    // `targetFramework: TargetFramework.NetCoreApp` to keep the sources minimal.
+    /// <summary>
+    /// Polyfills for types the default reference set doesn't include: <c>IsExternalInit</c> (records /
+    /// init-only / <c>with</c>), <c>CompilerFeatureRequiredAttribute</c> (user-defined <c>operator +=</c>),
+    /// and <c>Required</c> / <c>SetsRequiredMembers</c> attributes. Bundled into every compilation so
+    /// individual tests don't need to pick a target framework.
+    /// </summary>
+    private static readonly string Polyfills =
+        IsExternalInitTypeDefinition +
+        CompilerFeatureRequiredAttribute +
+        RequiredMemberAttribute +
+        SetsRequiredMembersAttribute;
 
     /// <summary>All 11 compound assignment operators in the spec's `compound_assignment_operator` set.</summary>
     public static TheoryData<string> AllCompoundOperators => new()
@@ -23,23 +30,10 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         "<<=", ">>=", ">>>=",
     };
 
-    /// <summary>
-    /// Operators that only make sense on integers (shift and bitwise) — useful when narrowing the matrix
-    /// to avoid type-mismatch noise on non-integer targets.
-    /// </summary>
-    public static TheoryData<string> IntegerCompoundOperators => new()
+    /// <summary>Bitwise operators that work on any enum (flags or plain).</summary>
+    public static TheoryData<string> EnumBitwiseOperators => new()
     {
-        "+=", "-=", "*=", "/=", "%=",
         "&=", "|=", "^=",
-        "<<=", ">>=", ">>>=",
-    };
-
-    /// <summary>
-    /// Arithmetic operators (usable on any numeric type including `double`).
-    /// </summary>
-    public static TheoryData<string> ArithmeticCompoundOperators => new()
-    {
-        "+=", "-=", "*=", "/=", "%=",
     };
 
     #region Core operator coverage
@@ -54,7 +48,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P {{op}} 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(AllCompoundOperators))]
@@ -67,7 +61,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { F {{op}} 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(AllCompoundOperators))]
@@ -79,7 +73,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(C r) => r with { P {{op}} 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Theory, MemberData(nameof(AllCompoundOperators))]
@@ -93,7 +87,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { [0] {{op}} 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     #endregion
@@ -110,7 +104,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { F += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -123,7 +117,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { F += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,39): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
             //     public static C Make() => new C { F += 1 };
             Diagnostic(ErrorCode.ERR_AssgReadonly, "F").WithLocation(4, 39));
@@ -139,7 +133,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,39): error CS0200: Property or indexer 'C.P' cannot be assigned to -- it is read only
             //     public static C Make() => new C { P += 1 };
             Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P").WithArguments("C.P").WithLocation(4, 39));
@@ -156,7 +150,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (5,39): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
             //     public static C Make() => new C { P += 1 };
             Diagnostic(ErrorCode.ERR_PropertyLacksGet, "P").WithArguments("C.P").WithLocation(5, 39));
@@ -172,7 +166,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -185,7 +179,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(C r) => r with { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -199,7 +193,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -213,7 +207,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (5,39): error CS8331: Cannot assign to property 'C.P' or use it as the right hand side of a ref assignment because it is a readonly variable
             //     public static C Make() => new C { P += 1 };
             Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "P").WithArguments("property", "P").WithLocation(5, 39));
@@ -229,7 +223,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,39): error CS1914: Static field or property 'C.P' cannot be assigned in an object initializer
             //     public static C Make() => new C { P += 1 };
             Diagnostic(ErrorCode.ERR_StaticMemberInObjectInitializer, "P").WithArguments("C.P").WithLocation(4, 39));
@@ -246,7 +240,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { [0] |= 1, [1] &= 2, [2] += 3 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -260,7 +254,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(EventHandler h) => new C { E += h, E -= h };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,31): warning CS0067: The event 'C.E' is never used
             //     public event EventHandler E;
             Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
@@ -281,7 +275,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(EventHandler h) => new C { E += h, E -= h };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -294,7 +288,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { X += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.StandardAndCSharp)
+        CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp)
             .VerifyDiagnostics();
     }
 
@@ -316,7 +310,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(EventHandler h) => new C { E *= h };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (5,53): error CS0019: Operator '*=' cannot be applied to operands of type 'EventHandler' and 'EventHandler'
             //     public static C Make(EventHandler h) => new C { E *= h };
             Diagnostic(ErrorCode.ERR_BadBinaryOps, "E *= h").WithArguments("*=", "System.EventHandler", "System.EventHandler").WithLocation(5, 53));
@@ -333,7 +327,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(C r, EventHandler h) => r with { E += h };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,31): warning CS0067: The event 'C.E' is never used
             //     public event EventHandler E;
             Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
@@ -353,7 +347,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills], parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             // (4,41): error CS8652: The feature 'compound assignment in object initializer and with expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public static C Make() => new C { P += 1 };
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 41));
@@ -372,23 +366,10 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills], parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (4,41): error CS8652: The feature 'compound assignment in object initializer and with expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public static C Make() => new C { P += 1 };
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 41));
-    }
-
-    [Fact]
-    public void LangVersion_Preview_Compiles()
-    {
-        var source = """
-            class C
-            {
-                public int P { get; set; }
-                public static C Make() => new C { P += 1 };
-            }
-            """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
     }
 
     [Fact]
@@ -402,7 +383,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         // Expect a feature-gate diagnostic on each compound operator token (11 total).
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills], parseOptions: TestOptions.Regular14).VerifyDiagnostics(
             // (4,48): error CS8652: The feature 'compound assignment in object initializer and with expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public static void M() { var c = new C { P += 1, P -= 1, P *= 1, P /= 1, P %= 1, P &= 1, P |= 1, P ^= 1, P <<= 1, P >>= 1, P >>>= 1 }; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("compound assignment in object initializer and with expression").WithLocation(4, 48),
@@ -447,7 +428,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         // The parser accepted `P ??= 1` for resilience (Phase 1); the binder rejects. The default
         // fallback path binds the whole member-initializer expression as an RValue for recovery, which
         // incidentally produces a CS0120 "object reference required for P" in addition to CS0747.
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,39): error CS0120: An object reference is required for the non-static field, method, or property 'C.P'
             //     public static C Make() => new C { P ??= 1 };
             Diagnostic(ErrorCode.ERR_ObjectRequired, "P").WithArguments("C.P").WithLocation(4, 39),
@@ -470,7 +451,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P = 1, P = 2 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,46): error CS1912: Duplicate initialization of member 'P'
             //     public static C Make() => new C { P = 1, P = 2 };
             Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(4, 46));
@@ -486,7 +467,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P = 10, P += 5 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -499,7 +480,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 5, P = 10 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,47): error CS1912: Duplicate initialization of member 'P'
             //     public static C Make() => new C { P += 5, P = 10 };
             Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(4, 47));
@@ -515,7 +496,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 5, P += 10, P *= 2 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -528,7 +509,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P = 1, P += 2, P = 3 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,54): error CS1912: Duplicate initialization of member 'P'
             //     public static C Make() => new C { P = 1, P += 2, P = 3 };
             Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(4, 54));
@@ -547,7 +528,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { [0] = 1, [0] += 2, [0] = 3, [0] |= 4 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -561,7 +542,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(EventHandler a, EventHandler b) => new C { E += a, E += b, E -= a, E += a };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,31): warning CS0067: The event 'C.E' is never used
             //     public event EventHandler E;
             Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
@@ -576,7 +557,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(C r) => r with { P += 1, P = 2 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (3,51): error CS1912: Duplicate initialization of member 'P'
             //     public static C Make(C r) => r with { P += 1, P = 2 };
             Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(3, 51));
@@ -596,7 +577,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(ref int x) => new C { P += ref x };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,53): error CS1073: Unexpected token 'ref'
             //     public static C Make(ref int x) => new C { P += ref x };
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(4, 53));
@@ -615,13 +596,127 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += { 1, 2 } };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,39): error CS1918: Members of property 'C.P' of type 'int' cannot be assigned with an object initializer because it is of a value type
             //     public static C Make() => new C { P += { 1, 2 } };
             Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "P").WithArguments("C.P", "int").WithLocation(4, 39),
             // (4,39): error CS0747: Invalid initializer member declarator
             //     public static C Make() => new C { P += { 1, 2 } };
             Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P += { 1, 2 }").WithLocation(4, 39));
+    }
+
+    #endregion
+
+    #region Enum targets
+
+    [Theory, MemberData(nameof(EnumBitwiseOperators))]
+    public void Enum_FlagsBitwiseCompound_Succeeds(string op)
+    {
+        // Flag-enum bitwise compound is the canonical motivating case: `new Widget { Visibility |= V.Clickable }`.
+        var source = $$"""
+            using System;
+
+            [Flags]
+            enum V { None = 0, Clickable = 1, Visible = 2, Enabled = 4 }
+
+            class C
+            {
+                public V Visibility { get; set; }
+                public static C Make(V flags) => new C { Visibility {{op}} flags };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Enum_PlusIntLiteral_Succeeds()
+    {
+        // `EnumValue + int` is legal (it shifts the enum by N positions in its underlying type), so
+        // `P += 1` on an enum property works.
+        var source = """
+            enum E { A, B, C }
+            class C
+            {
+                public E P { get; set; }
+                public static C Make() => new C { P += 1 };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Enum_PlusEnumValue_Fails()
+    {
+        // `EnumValue + EnumValue` is not defined, so `P += E.B` where P is of type E fails with CS0019.
+        // The failure is identical to non-initializer compound on an enum.
+        var source = """
+            enum E { A, B, C }
+            class C
+            {
+                public E P { get; set; }
+                public static C Make() => new C { P += E.B };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (5,39): error CS0019: Operator '+=' cannot be applied to operands of type 'E' and 'E'
+            //     public static C Make() => new C { P += E.B };
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "P += E.B").WithArguments("+=", "E", "E").WithLocation(5, 39));
+    }
+
+    [Fact]
+    public void Enum_Multiply_Fails()
+    {
+        // Enums do not participate in multiplication, so `*=` on an enum target is a compile-time error.
+        var source = """
+            enum E { A, B, C }
+            class C
+            {
+                public E P { get; set; }
+                public static C Make() => new C { P *= 2 };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
+            // (5,39): error CS0019: Operator '*=' cannot be applied to operands of type 'E' and 'int'
+            //     public static C Make() => new C { P *= 2 };
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "P *= 2").WithArguments("*=", "E", "int").WithLocation(5, 39));
+    }
+
+    [Fact]
+    public void Enum_FlagsInWith_Succeeds()
+    {
+        // Flag-enum compound on a record property via `with`.
+        var source = """
+            using System;
+
+            [Flags]
+            enum V { None = 0, Clickable = 1, Visible = 2 }
+
+            record Widget(V Visibility)
+            {
+                public static Widget Set(Widget w, V flags) => w with { Visibility |= flags };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Enum_MixedSimpleAndBitwiseCompound_Succeeds()
+    {
+        // Spec's "at most one `=`, `=` before any compound" rule applies to enum targets just like any
+        // other field/property. Realistic pattern: set initial flags with `=`, then add more with `|=`.
+        var source = """
+            using System;
+
+            [Flags]
+            enum V { None = 0, Clickable = 1, Visible = 2, Enabled = 4 }
+
+            class C
+            {
+                public V Visibility { get; set; }
+                public static C Make() => new C { Visibility = V.Clickable, Visibility |= V.Visible, Visibility &= ~V.Enabled };
+            }
+            """;
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     #endregion
@@ -638,7 +733,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static S Make() => new S { F += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -650,7 +745,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(C r) => r with { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -662,7 +757,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(C r) => r with { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -682,7 +777,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     #endregion
@@ -705,7 +800,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(V v) => new C { Prop += v };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -730,7 +825,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(V v) => new C { F += v };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -753,7 +848,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(V v) => new C { F += v };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     [Fact]
@@ -774,7 +869,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(V v) => new C { Prop += v };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (10,42): error CS0019: Operator '+=' cannot be applied to operands of type 'V' and 'V'
             //     public static C Make(V v) => new C { Prop += v };
             Diagnostic(ErrorCode.ERR_BadBinaryOps, "Prop += v").WithArguments("+=", "V", "V").WithLocation(10, 42));
@@ -797,7 +892,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,35): error CS9035: Required member 'C.P' must be set in the object initializer or attribute constructor.
             //     public static C Make() => new C { P += 1 };
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "C").WithArguments("C.P").WithLocation(4, 35));
@@ -813,7 +908,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make() => new C { P = 0, P += 1 };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics();
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics();
     }
 
     #endregion
@@ -834,7 +929,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static C Make(EventHandler h) => new C { P = 10, P += 5, E += h };
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+        CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (5,31): warning CS0067: The event 'C.E' is never used
             //     public event EventHandler E;
             Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 31));
