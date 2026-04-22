@@ -377,10 +377,8 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
                     }
                 }
 
-                if (previousStatement is LocalDeclarationStatementSyntax decl
-                    && decl.Declaration.Variables.Count == 1)
+                if (previousStatement is LocalDeclarationStatementSyntax { Declaration.Variables: [var variableDeclarator] } decl)
                 {
-                    var variableDeclarator = decl.Declaration.Variables[0];
                     if (variableDeclarator.Initializer == null ||
                         variableDeclarator.Initializer.Value.Kind() is
                             SyntaxKind.NullLiteralExpression or
