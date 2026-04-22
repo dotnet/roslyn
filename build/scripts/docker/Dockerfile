@@ -3,7 +3,9 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 #
 
-FROM ubuntu:16.04
+ARG REPO=mcr.microsoft.com/dotnet/runtime
+# Installer image
+FROM $REPO:8.0.24-cbl-mariner2.0-arm64v8
 
 # Install the base toolchain we need to build anything
 # this does not include libraries that we need to compile different projects, we'd like

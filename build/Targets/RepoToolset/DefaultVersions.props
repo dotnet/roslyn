@@ -32,10 +32,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildOffline)' != 'true'">
-    <RestoreSources>
-      $(RestoreSources);
-      https://api.nuget.org/v3/index.json
-    </RestoreSources>
 
     <!-- RepoToolset diff: Default restore sources omitted -->
 
