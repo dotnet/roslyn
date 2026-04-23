@@ -1435,6 +1435,348 @@ public sealed class NullConditionalAwaitEmitTests : CSharpTestBase
 
     #endregion
 
+    #region Runtime parity for binding-test scenarios
+
+    // These tests execute the scenarios whose binding-level counterparts (in
+    // NullConditionalAwaitBindingTests.cs) only assert compile-time properties. They
+    // prove the runtime behavior matches what binding reported.
+
+    [Fact]
+    public void Runtime_OverloadResolution_NullableIntOverloadActuallyRuns()
+    {
+        // Binding counterpart: OverloadResolution_IntVsNullableInt_PrefersNullableInt.
+        // Runtime check that `F(int?)` is the overload that actually runs for both the
+        // non-null and null operand paths.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static string F(int x) => $"int:{x}";
+                public static string F(int? x) => $"int?:{(x.HasValue ? x.Value.ToString() : "null")}";
+
+                public static async Task Main()
+                {
+                    Console.Write(F(await? Task.FromResult(42)));
+                    Console.Write(";");
+                    Task<int> nullTask = null;
+                    Console.Write(F(await? nullTask));
+                    Console.Write(";done");
+                }
+            }
+            """;
+        var expected = "int?:42;int?:null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_OverloadResolution_StringOverloadActuallyRuns()
+    {
+        // Binding counterpart: OverloadResolution_StringVsNullableString_ResolvesOnNRTAnnotation.
+        // Runtime check: the single `F(string)` overload is invoked even with a null operand.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static string F(string s) => s ?? "null";
+
+                public static async Task Main()
+                {
+                    Console.Write(F(await? Task.FromResult("hi")));
+                    Console.Write(";");
+                    Task<string> nullTask = null;
+                    Console.Write(F(await? nullTask));
+                    Console.Write(";done");
+                }
+            }
+            """;
+        var expected = "hi;null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_TypeInference_GenericIdentityReceivesLiftedValue()
+    {
+        // Binding counterpart: TypeInference_GenericMethodArg_InfersLiftedResult.
+        // The generic method receives the lifted int? at runtime. Confirmed via ToString
+        // on a Nullable<int> (prints "" for null).
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static T Identity<T>(T x) => x;
+
+                public static async Task Main()
+                {
+                    int? v1 = Identity(await? Task.FromResult(7));
+                    Console.Write($"v1={v1};");
+                    Task<int> nullTask = null;
+                    int? v2 = Identity(await? nullTask);
+                    Console.Write($"v2={v2?.ToString() ?? "null"};done");
+                }
+            }
+            """;
+        var expected = "v1=7;v2=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_PatternMatching_ConstantPatternOnLiftedInt()
+    {
+        // Binding counterpart: PatternMatching_IsConstantPattern_OnLiftedResult.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Console.Write(((await? Task.FromResult(42)) is 42) ? "match42;" : "no42;");
+                    Console.Write(((await? Task.FromResult(0)) is 42) ? "match0-42;" : "no0-42;");
+                    Task<int> nullTask = null;
+                    Console.Write(((await? nullTask) is 42) ? "matchNull42;" : "noNull42;");
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "match42;no0-42;noNull42;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_PatternMatching_TypePatternNarrowsLiftedInt()
+    {
+        // Binding counterpart: PatternMatching_IsTypePattern_OnLiftedNullableResult.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    int r1 = (await? Task.FromResult(5)) is int x1 ? x1 * 10 : -1;
+                    Console.Write($"r1={r1};");
+                    Task<int> nullTask = null;
+                    int r2 = (await? nullTask) is int x2 ? x2 * 10 : -1;
+                    Console.Write($"r2={r2};done");
+                }
+            }
+            """;
+        var expected = "r1=50;r2=-1;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_PatternMatching_NullAndNotNullOnReferenceResult()
+    {
+        // Binding counterparts: PatternMatching_IsNullPattern_OnReferenceResult +
+        // PatternMatching_IsNotNullPattern_PromotesToNonNullable.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<string> nonNull = Task.FromResult("hi");
+                    Task<string> nullTask = null;
+
+                    Console.Write(((await? nonNull) is null) ? "nonNull-isnull;" : "nonNull-notnull;");
+                    Console.Write(((await? nullTask) is null) ? "null-isnull;" : "null-notnull;");
+
+                    // Non-null narrowing via `is not null` guard.
+                    var v = await? nonNull;
+                    if (v is not null)
+                        Console.Write($"len={v.Length};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "nonNull-notnull;null-isnull;len=2;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_PatternMatching_PropertyPatternOnLiftedString()
+    {
+        // Binding counterpart: PatternMatching_PropertyPattern_OnLiftedResult.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Console.Write((await? Task.FromResult("hello")) is { Length: > 0 } ? "hello-nonempty;" : "hello-empty;");
+                    Console.Write((await? Task.FromResult("")) is { Length: > 0 } ? "empty-nonempty;" : "empty-empty;");
+                    Task<string> nullTask = null;
+                    Console.Write((await? nullTask) is { Length: > 0 } ? "null-nonempty;" : "null-empty;");
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "hello-nonempty;empty-empty;null-empty;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_PatternMatching_SwitchExpressionAllArms()
+    {
+        // Binding counterpart: PatternMatching_SwitchExpression_OnLiftedResult.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                static string Classify(int? v) => v switch
+                {
+                    null => "null",
+                    0 => "zero",
+                    var x => x!.Value.ToString(),
+                };
+
+                public static async Task Main()
+                {
+                    Console.Write(Classify(await? Task.FromResult(7)));
+                    Console.Write(";");
+                    Console.Write(Classify(await? Task.FromResult(0)));
+                    Console.Write(";");
+                    Task<int> nullTask = null;
+                    Console.Write(Classify(await? nullTask));
+                    Console.Write(";done");
+                }
+            }
+            """;
+        var expected = "7;zero;null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_NullForgiving_OnReferenceResult_ExecutesNonNullPath()
+    {
+        // Binding counterpart: NullForgiving_OnReferenceResult_AllowsMemberAccess.
+        // At runtime on the non-null path, the member access succeeds and returns the
+        // string's length. This also demonstrates that the `!` doesn't change runtime
+        // behavior (no null-check injected).
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<string> t = Task.FromResult("abcd");
+                    int len = (await? t)!.Length;
+                    Console.Write($"len={len};done");
+                }
+            }
+            """;
+        var expected = "len=4;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_NullForgiving_OnLiftedValueResult_UnwrapsValue()
+    {
+        // Binding counterpart: NullForgiving_OnLiftedValueResult_AllowsValueAccess.
+        // `!.Value` unwraps the Nullable<int> at runtime.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t = Task.FromResult(99);
+                    int v = (await? t)!.Value;
+                    Console.Write($"v={v};done");
+                }
+            }
+            """;
+        var expected = "v=99;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_OutVar_InsideAwaitQuestionOperand_NonNullReceiver()
+    {
+        // Binding counterpart: OutVar_InsideAwaitQuestionOperand_DefiniteAssignment.
+        // Runtime check: `x` is assigned before the await completes and the read after
+        // the statement succeeds.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static Task<int> GetTask(out int x) { x = 17; return Task.FromResult(0); }
+
+                public static async Task Main()
+                {
+                    int? v = await? GetTask(out var x);
+                    Console.Write($"v={v};x={x};done");
+                }
+            }
+            """;
+        var expected = "v=0;x=17;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void Runtime_Deconstruction_ViaGetValueOrDefault()
+    {
+        // Binding counterpart: Deconstruction_TupleResult_ViaGetValueOrDefault_Works.
+        // Runtime values of the deconstructed components, both with a non-null task and
+        // a null task (deconstruct yields (0, 0) via GetValueOrDefault's zero).
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<(int, int)> t1 = Task.FromResult((3, 4));
+                    var (a1, b1) = (await? t1).GetValueOrDefault();
+                    Console.Write($"t1:a={a1},b={b1};");
+
+                    Task<(int, int)> nullTask = null;
+                    var (a2, b2) = (await? nullTask).GetValueOrDefault();
+                    Console.Write($"tnull:a={a2},b={b2};done");
+                }
+            }
+            """;
+        var expected = "t1:a=3,b=4;tnull:a=0,b=0;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
     #region Exception propagation from the non-null branch
 
     [Fact]
