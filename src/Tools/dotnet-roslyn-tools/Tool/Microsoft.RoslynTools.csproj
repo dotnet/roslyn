@@ -35,8 +35,8 @@
     <PackageReference Include="Microsoft.TeamFoundationServer.ExtendedClient" Version="20.268.0-preview" />
     <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="20.268.0-preview" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="NuGet.Versioning" Version="6.12.1" />
-    <PackageReference Include="NuGet.Protocol" Version="6.12.1" />
+    <PackageReference Include="NuGet.Versioning" Version="6.12.5" />
+    <PackageReference Include="NuGet.Protocol" Version="6.12.5" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.25072.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.4" />
   </ItemGroup>
