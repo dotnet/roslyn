@@ -563,6 +563,73 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
 
     #endregion
 
+    #region Compound assignment RHS spill
+
+    [Fact]
+    public void CompoundAssign_Plus_AwaitQuestionRhs()
+    {
+        // `x += await? t;` — compound add with await? on the RHS. For `int x` and int?
+        // from await?, the binary '+ ' is lifted to Nullable<int>, so the assignment
+        // target must accept int? (or we get a conversion error). Use `int?` for x.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    int? x = 10;
+                    Task<int> t = Task.FromResult(5);
+                    x += await? t;
+                    Console.Write($"x-nn={x};");
+
+                    int? y = 10;
+                    Task<int> nullTask = null;
+                    y += await? nullTask;
+                    Console.Write($"y-null={y?.ToString() ?? "null"};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        // Lifted `int? + int?` returns null when either side is null.
+        var expected = "x-nn=15;y-null=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void CompoundAssign_StringConcat_AwaitQuestionRhs()
+    {
+        // `s += await? t;` — string concat with await? on RHS. For reference-result,
+        // await? produces `string?`. String concat allows null operands (treated as "").
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    string s = "[";
+                    Task<string> t1 = Task.FromResult("x");
+                    s += await? t1;
+                    s += "|";
+                    Task<string> t2 = null;
+                    s += await? t2;
+                    s += "]";
+                    Console.Write($"s={s};done");
+                }
+            }
+            """;
+        var expected = "s=[x|];done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
     #region Null-coalescing assignment (??=)
 
     [Fact]
