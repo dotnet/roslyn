@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Razor;
@@ -144,7 +145,7 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
             var results = new List<(int, string)>();
 
             // Build a single probe tree with namespace-scoped usings for each entry.
-            var sb = new StringBuilder();
+            using var _ = StringBuilderPool.GetPooledObject(out var sb);
             for (var i = 0; i < entries.Count; i++)
             {
                 var info = entries[i].Info;
