@@ -2429,30 +2429,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 var innerOp = (IBinaryOperation)node.LeftOperand;
 
                 // The only difference between the innermost and middle-link
-                // arms below is the left operand fed into the check: the
-                // innermost link uses a fresh visit of X; middle links reuse
-                // the previous level's captured Y. The rest of the sequence -
+                // arms is the left operand fed into the check: the innermost
+                // link uses a fresh visit of X; middle links reuse the
+                // previous level's captured Y. The rest of the sequence -
                 // capture myY, build the link's check templated on innerOp,
                 // branch-to-false, clear the cursor, hand prevY forward - is
-                // identical, and emitLinkCheck centralizes it.
-                IOperation leftOperand;
-                if (i == 0)
-                {
-                    // Innermost level. innerOp is the non-chained base relational
-                    // (e.g. `a<b`); its LeftOperand is `a`, visited here. The
-                    // base-case check `a op' b` IS innerOp's own relational, so
-                    // emitLinkCheck templates on innerOp.
-                    Debug.Assert(innerOp == innermostRelational);
-                    leftOperand = VisitRequired(innerOp.LeftOperand);
-                }
-                else
-                {
-                    // Non-innermost level. innerOp is a chained node whose
-                    // outer operator describes THIS middle link - for
-                    // `a<=b<c<=d` that's innerOp=`a<=b<c` whose outer is `<`,
-                    // giving us `b < c` (NOT `b <= c` from node's outer `<=`).
-                    leftOperand = OperationCloner.CloneOperation(prevY!);
-                }
+                // identical, and emitLinkCheck centralizes it. (innerOp's
+                // outer operator describes this specific link's operator -
+                // see the loop preamble above for the per-level metadata
+                // selection rules.)
+                Debug.Assert(i != 0 || innerOp == innermostRelational);
+                IOperation leftOperand = i == 0
+                    ? VisitRequired(innerOp.LeftOperand)
+                    : OperationCloner.CloneOperation(prevY!);
 
                 prevY = emitLinkCheck(innerOp, leftOperand);
 
