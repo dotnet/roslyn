@@ -53,12 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // At the top of the chain, this link's right operand is simply node.Right; any
             // chained level below will instead receive an inline-assign injected by the level
             // above it (see BuildChainLink).
-            BoundExpression chain = BuildChainLink(node, VisitExpression(node.Right), locals);
+            var chain = BuildChainLink(node, VisitExpression(node.Right), locals);
 
-            return _factory.Sequence(
-                locals: locals.ToImmutableAndFree(),
-                sideEffects: [],
-                result: chain);
+            return _factory.Sequence(locals: locals.ToImmutableAndFree(), sideEffects: [], result: chain);
         }
 
         /// <summary>
@@ -108,27 +105,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             locals.Add(tempSym);
             BoundLocal temp = _factory.Local(tempSym);
 
-            // Pass the inline-assign idiom `(temp = Y, temp)` down as the inner link's
-            // right-operand expression: evaluates Y once, stores into temp, and yields
-            // temp as the value of the expression. Used by `?.` lowering too; see
-            // LocalRewriter_ConditionalAccess.cs.
-            BoundExpression loweredInner = BuildChainLink(
-                (BoundBinaryOperator)node.Left,
-                _factory.Sequence(
-                    locals: [],
-                    sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
-                    result: temp),
-                locals);
-
-            // Build the outer link's LEFT operand by applying the outer's stored
-            // LeftConversion to the temp. Without this wrapper the outer operator would
-            // see the temp at Y's inner-link type (e.g. `int`) while it expects its
-            // chosen LeftType (e.g. `long` for a widening chain link). MakeConversionNode
-            // already short-circuits Identity conversions (see LocalRewriter_Conversion's
-            // ConversionKind.Identity case), so the common same-type case produces no
-            // extra wrapper and the temp flows through unchanged.
+            // Lower this level to `loweredInner && (temp_conv op thisRight)`, where:
+            //
+            //   * loweredInner recurses into node.Left, threading the inline-assign
+            //     `(temp = Y, temp)` down as the inner link's right operand. That idiom
+            //     evaluates Y once, stores it into the temp, and yields the temp - so
+            //     the inner link's operator sees Y directly at Y's inner-link type.
+            //     (Same idiom is used by `?.` lowering; see LocalRewriter_ConditionalAccess.cs.)
+            //
+            //   * The outer link's LEFT operand is the temp wrapped in node's stored
+            //     ChainedRelationalLeftConversion, so the outer operator sees the temp
+            //     widened to ITS chosen LeftType (e.g. `long` for `short < int < long`)
+            //     rather than at Y's inner-link type. MakeConversionNode short-circuits
+            //     Identity conversions (see LocalRewriter_Conversion's ConversionKind.Identity
+            //     case), so the common same-type case produces no wrapper and the temp
+            //     flows through unchanged.
             return _factory.LogicalAnd(
-                loweredInner,
+                BuildChainLink(
+                    (BoundBinaryOperator)node.Left,
+                    _factory.Sequence(
+                        locals: [],
+                        sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
+                        result: temp),
+                    locals),
                 buildRelationalLink(MakeConversionNode(
                     oldNodeOpt: null,
                     syntax: node.Syntax,
