@@ -227,17 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // operand. The node's own `Left` is the inner bool-typed link, NOT Y, so
                 // for escape analysis we must use Y (retrieved via IsChainedRelational's
                 // out parameter) when pairing with `binaryOperatorMethod`'s first parameter.
-                BoundExpression leftArg = binaryOperator.IsChainedRelational(out var chainedY, out _, out _)
-                    ? chainedY
-                    : binaryOperator.Left;
-
                 return new MethodInvocationInfo
                 {
                     MethodInfo = MethodInfo.Create(binaryOperatorMethod),
                     Receiver = null,
                     ReceiverIsSubjectToCloning = ThreeState.Unknown,
                     Parameters = binaryOperatorMethod.Parameters,
-                    ArgsOpt = [leftArg, binaryOperator.Right],
+                    ArgsOpt = [
+                        binaryOperator.IsChainedRelational(out var chainedY, out _, out _) ? chainedY : binaryOperator.Left,
+                        binaryOperator.Right
+                    ],
                     ArgumentRefKindsOpt = default,
                     ArgsToParamsOpt = default,
                     HasAnyErrors = binaryOperator.HasAnyErrors

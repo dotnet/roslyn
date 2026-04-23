@@ -2151,6 +2151,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 operation.Syntax, operation.Type, IsImplicit(operation));
         }
 
+        /// <summary>
+        /// Rebuild a <see cref="BinaryOperation"/> from a <paramref name="template"/> node with
+        /// new <paramref name="left"/> / <paramref name="right"/> operands, inheriting all
+        /// operator metadata (kind, method, lifted-ness, syntax, type, etc.) unchanged. The
+        /// rebuilt node carries <c>isChainedRelationalComparison: false</c> - any original
+        /// chained-relational outer node is dispatched to <see cref="VisitChainedRelationalComparison"/>
+        /// earlier, and links rebuilt within that dispatch are themselves non-chained (the
+        /// chain shape is expressed by CFG edges, not by the bound nodes).
+        /// </summary>
+        private BinaryOperation RebuildBinaryOperation(IBinaryOperation template, IOperation left, IOperation right)
+        {
+            var t = (BinaryOperation)template;
+            return new BinaryOperation(
+                t.OperatorKind, left, right,
+                t.IsLifted, t.IsChecked, t.IsCompareText,
+                t.OperatorMethod, t.ConstrainedToType, t.UnaryOperatorMethod,
+                isChainedRelationalComparison: false,
+                semanticModel: null, t.Syntax, t.Type, t.GetConstantValue(), IsImplicit(t));
+        }
+
         private static bool IsConditional(IBinaryOperation operation)
         {
             switch (operation.OperatorKind)
@@ -2246,13 +2266,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 IOperation rightOperand = VisitRequired(operation.RightOperand);
 
                 // A chained relational outer node (spec §11.11.13) is dispatched
-                // to VisitChainedRelationalComparison earlier in this method, so we
-                // never reach this straight-line rebuild for one. The flag is
-                // therefore always false here.
-                leftOperand = PopStackFrame(frame, new BinaryOperation(operation.OperatorKind, PopOperand(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
-                                                                       operation.OperatorMethod, operation.ConstrainedToType, ((BinaryOperation)operation).UnaryOperatorMethod,
-                                                                       isChainedRelationalComparison: false,
-                                                                       semanticModel: null, operation.Syntax, operation.Type, operation.GetConstantValue(), IsImplicit(operation)));
+                // to VisitChainedRelationalComparison earlier in this method, so
+                // we never reach this straight-line rebuild for one.
+                leftOperand = PopStackFrame(frame, RebuildBinaryOperation(operation, PopOperand(), rightOperand));
 
             }
             while (stack.Count != 0);
@@ -2435,9 +2451,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // selection rules.)
                 prevY = emitLinkCheck(
                     innerOp,
-                    currentBinaryOperation == spine.First()
+                    prevY is null
                         ? VisitRequired(innerOp.LeftOperand)
-                        : OperationCloner.CloneOperation(prevY!));
+                        : OperationCloner.CloneOperation(prevY));
 
                 if (currentBinaryOperation == spine.Last())
                 {
@@ -2447,7 +2463,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // operator, so template on node directly.
                     AddStatement(new FlowCaptureOperation(
                         resultId, currentBinaryOperation.Syntax,
-                        rebuildNonChainedRelational(
+                        RebuildBinaryOperation(
                             currentBinaryOperation,
                             OperationCloner.CloneOperation(prevY),
                             VisitRequired(currentBinaryOperation.RightOperand))));
@@ -2489,26 +2505,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // value for the enclosing expression.
             return GetCaptureReference(resultId, outerOp);
 
-            // Rebuild a non-chained IBinaryOperation with the given operands,
-            // inheriting the operator kind / method / lifted-ness / syntax /
-            // type / etc. from `template`. The rebuilt node carries
-            // IsChainedRelationalComparison=false because the chain-specific
-            // short-circuit behaviour is expressed by the CFG edges we emit,
-            // not by the node itself; every synthesized link here is a plain
-            // relational once the surrounding CFG hands it the correct operands.
-            BinaryOperation rebuildNonChainedRelational(IBinaryOperation currentBinaryOperation, IOperation left, IOperation right)
-            {
-                var template = (BinaryOperation)currentBinaryOperation;
-                return new BinaryOperation(
-                    template.OperatorKind, left, right,
-                    template.IsLifted, template.IsChecked, template.IsCompareText,
-                    template.OperatorMethod, template.ConstrainedToType,
-                    template.UnaryOperatorMethod,
-                    isChainedRelationalComparison: false,
-                    semanticModel: null, template.Syntax, template.Type,
-                    template.GetConstantValue(), IsImplicit(template));
-            }
-
             // Emit a single link of the chain: capture myY from innerOp.RightOperand,
             // build the relational check `leftOperand op myY` templated on innerOp
             // (see VisitChainedRelationalComparison's outer comment for why innerOp
@@ -2522,7 +2518,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 var myY = VisitAndCapture(innerOp.RightOperand);
                 ConditionalBranch(
-                    rebuildNonChainedRelational(innerOp, leftOperand, myY),
+                    RebuildBinaryOperation(innerOp, leftOperand, myY),
                     jumpIfTrue: false, shortCircuitBlock);
                 _currentBasicBlock = null;
                 return myY;
