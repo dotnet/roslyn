@@ -1125,4 +1125,179 @@ public sealed class NullConditionalAwaitEmitTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Exception propagation from the non-null branch
+
+    [Fact]
+    public void NonNullBranch_GetAwaiterThrows_ExceptionPropagates()
+    {
+        // The non-null branch calls GetAwaiter(), which throws. The exception should
+        // propagate out of `await?` to the caller exactly as it would from plain `await`.
+        // Demonstrates that the null-conditional wrapping does not swallow or re-shape
+        // exceptions that arise from the awaitable pattern itself.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+
+            class ThrowingAwaitable
+            {
+                public ThrowingAwaiter GetAwaiter() => throw new InvalidOperationException("from GetAwaiter");
+            }
+            struct ThrowingAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public int GetResult() => 0;
+                public void OnCompleted(Action continuation) { }
+            }
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    ThrowingAwaitable t = new();
+                    try
+                    {
+                        int? v = await? t;
+                        Console.Write($"unexpected v={v};");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.Write($"caught:{ex.Message};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "caught:from GetAwaiter;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void NonNullBranch_GetResultThrows_ExceptionPropagates()
+    {
+        // The non-null branch calls GetResult(), which throws. The exception should
+        // propagate out of `await?` exactly as it would from plain `await`.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+
+            class ThrowingAwaitable
+            {
+                public ThrowingAwaiter GetAwaiter() => default;
+            }
+            struct ThrowingAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public int GetResult() => throw new InvalidOperationException("from GetResult");
+                public void OnCompleted(Action continuation) { }
+            }
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    ThrowingAwaitable t = new();
+                    try
+                    {
+                        int? v = await? t;
+                        Console.Write($"unexpected v={v};");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.Write($"caught:{ex.Message};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "caught:from GetResult;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void NonNullBranch_TaskOfIntFaulted_ExceptionPropagates()
+    {
+        // Standard faulted `Task<int>` — GetResult throws the task's stored exception.
+        // Verifies that when the non-null branch resolves a faulted task, the exception
+        // is thrown from `await?` identically to plain `await`.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t = Task.FromException<int>(new InvalidOperationException("faulted"));
+                    try
+                    {
+                        int? v = await? t;
+                        Console.Write($"unexpected v={v};");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.Write($"caught:{ex.Message};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "caught:faulted;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void NullOperand_StillShortCircuits_EvenWithThrowingMembers()
+    {
+        // Defense-in-depth: the null branch must not invoke any awaiter machinery even
+        // when the awaitable's GetAwaiter / GetResult would throw. Exercises both the
+        // reference-operand null case (ThrowingAwaitable) and the Nullable<V> operand
+        // null case (ThrowingValueAwaitable? with HasValue == false).
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+
+            class ThrowingAwaitable
+            {
+                public ThrowingAwaiter GetAwaiter() => throw new InvalidOperationException("never called");
+            }
+            struct ThrowingValueAwaitable
+            {
+                public ThrowingAwaiter GetAwaiter() => throw new InvalidOperationException("never called for Nullable<V>");
+            }
+            struct ThrowingAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public int GetResult() => throw new InvalidOperationException("never called");
+                public void OnCompleted(Action continuation) { }
+            }
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    ThrowingAwaitable refNull = null;
+                    int? v1 = await? refNull;
+                    Console.Write($"ref-null:v1={v1?.ToString() ?? "null"};");
+
+                    ThrowingValueAwaitable? structNull = null;
+                    int? v2 = await? structNull;
+                    Console.Write($"struct-null:v2={v2?.ToString() ?? "null"};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "ref-null:v1=null;struct-null:v2=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
 }
