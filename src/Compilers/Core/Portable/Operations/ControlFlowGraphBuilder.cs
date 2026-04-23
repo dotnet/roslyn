@@ -2520,8 +2520,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation emitLinkCheck(IBinaryOperation innerOp, IOperation leftOperand)
             {
                 IOperation myY = VisitAndCapture(innerOp.RightOperand);
-                IOperation check = rebuildNonChainedRelational((BinaryOperation)innerOp, leftOperand, myY);
-                ConditionalBranch(check, jumpIfTrue: false, shortCircuitBlock);
+                ConditionalBranch(
+                    rebuildNonChainedRelational((BinaryOperation)innerOp, leftOperand, myY),
+                    jumpIfTrue: false, shortCircuitBlock);
                 _currentBasicBlock = null;
                 return myY;
             }
