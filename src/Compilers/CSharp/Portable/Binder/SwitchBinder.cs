@@ -166,14 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override GeneratedLabelSymbol BreakLabel
-        {
-            get
-            {
-                return _breakLabel;
-            }
-        }
-
         internal override GeneratedLabelSymbol GetBreakLabel(string labelName)
             => (labelName is null || labelName == _labelName) ? _breakLabel : Next.GetBreakLabel(labelName);
 
