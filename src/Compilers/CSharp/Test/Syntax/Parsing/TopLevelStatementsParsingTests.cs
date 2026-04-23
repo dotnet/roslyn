@@ -792,23 +792,16 @@ class Test : Itest
                 // (1,15): error CS1513: } expected
                 // public class S.D 
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ".").WithLocation(1, 15),
-                // (1,15): error CS1022: Type or namespace definition, or end-of-file expected
+                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
                 // public class S.D 
-                Diagnostic(ErrorCode.ERR_EOFExpected, ".").WithLocation(1, 15),
-                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @".D 
+").WithLocation(1, 15),
+                // (1,17): error CS1002: ; expected
                 // public class S.D 
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, @"D 
-{
-").WithLocation(1, 16),
-                // (1,17): error CS1001: Identifier expected
-                // public class S.D 
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 17),
-                // (1,17): error CS1003: Syntax error, ',' expected
-                // public class S.D 
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 17),
-                // (2,2): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 17),
+                // (2,2): error CS1513: } expected
                 // {
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 2),
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 2),
                 // (4,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 1)
@@ -826,20 +819,25 @@ class Test : Itest
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
                         {
+                            N(SyntaxKind.DotToken);
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "D");
                             }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
                         }
                         M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.PropertyDeclaration);
@@ -2235,12 +2233,12 @@ e
                 // (1,10): error CS1001: Identifier expected
                 // using int.Parse name = value;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 10),
-                // (1,10): error CS1003: Syntax error, ',' expected
+                // (1,10): error CS1002: ; expected
                 // using int.Parse name = value;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 10),
-                // (1,11): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ".").WithLocation(1, 10),
+                // (1,17): error CS1002: ; expected
                 // using int.Parse name = value;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Parse").WithLocation(1, 11)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "name").WithLocation(1, 17)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -2266,25 +2264,33 @@ e
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.TargetTypedMemberAccessExpression);
                         {
+                            N(SyntaxKind.DotToken);
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "Parse");
                             }
-                            N(SyntaxKind.VariableDeclarator);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.ExpressionStatement);
+                    {
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "name");
-                                N(SyntaxKind.EqualsValueClause);
-                                {
-                                    N(SyntaxKind.EqualsToken);
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "value");
-                                    }
-                                }
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "value");
                             }
                         }
                         N(SyntaxKind.SemicolonToken);

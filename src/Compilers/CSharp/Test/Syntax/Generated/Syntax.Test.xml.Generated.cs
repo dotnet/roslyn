@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.QualifiedNameSyntax GenerateQualifiedName()
             => InternalSyntaxFactory.QualifiedName(GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
 
+        private static Syntax.InternalSyntax.TargetTypedQualifiedNameSyntax GenerateTargetTypedQualifiedName()
+            => InternalSyntaxFactory.TargetTypedQualifiedName(InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
+
         private static Syntax.InternalSyntax.GenericNameSyntax GenerateGenericName()
             => InternalSyntaxFactory.GenericName(InternalSyntaxFactory.Identifier("Identifier"), GenerateTypeArgumentList());
 
@@ -93,6 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static Syntax.InternalSyntax.MemberBindingExpressionSyntax GenerateMemberBindingExpression()
             => InternalSyntaxFactory.MemberBindingExpression(InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
+
+        private static Syntax.InternalSyntax.TargetTypedMemberAccessExpressionSyntax GenerateTargetTypedMemberAccessExpression()
+            => InternalSyntaxFactory.TargetTypedMemberAccessExpression(InternalSyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.ElementBindingExpressionSyntax GenerateElementBindingExpression()
             => InternalSyntaxFactory.ElementBindingExpression(GenerateBracketedArgumentList());
@@ -779,6 +785,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTargetTypedQualifiedNameFactoryAndProperties()
+        {
+            var node = GenerateTargetTypedQualifiedName();
+
+            Assert.Equal(SyntaxKind.DotToken, node.DotToken.Kind);
+            Assert.NotNull(node.Right);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
         public void TestGenericNameFactoryAndProperties()
         {
             var node = GenerateGenericName();
@@ -1067,6 +1084,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMemberBindingExpressionFactoryAndProperties()
         {
             var node = GenerateMemberBindingExpression();
+
+            Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind);
+            Assert.NotNull(node.Name);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestTargetTypedMemberAccessExpressionFactoryAndProperties()
+        {
+            var node = GenerateTargetTypedMemberAccessExpression();
 
             Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind);
             Assert.NotNull(node.Name);
@@ -4000,6 +4028,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTargetTypedQualifiedNameTokenDeleteRewriter()
+        {
+            var oldNode = GenerateTargetTypedQualifiedName();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTargetTypedQualifiedNameIdentityRewriter()
+        {
+            var oldNode = GenerateTargetTypedQualifiedName();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestGenericNameTokenDeleteRewriter()
         {
             var oldNode = GenerateGenericName();
@@ -4669,6 +4723,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMemberBindingExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberBindingExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestTargetTypedMemberAccessExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateTargetTypedMemberAccessExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTargetTypedMemberAccessExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateTargetTypedMemberAccessExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10406,6 +10486,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static QualifiedNameSyntax GenerateQualifiedName()
             => SyntaxFactory.QualifiedName(GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
 
+        private static TargetTypedQualifiedNameSyntax GenerateTargetTypedQualifiedName()
+            => SyntaxFactory.TargetTypedQualifiedName(SyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
+
         private static GenericNameSyntax GenerateGenericName()
             => SyntaxFactory.GenericName(SyntaxFactory.Identifier("Identifier"), GenerateTypeArgumentList());
 
@@ -10483,6 +10566,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static MemberBindingExpressionSyntax GenerateMemberBindingExpression()
             => SyntaxFactory.MemberBindingExpression(SyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
+
+        private static TargetTypedMemberAccessExpressionSyntax GenerateTargetTypedMemberAccessExpression()
+            => SyntaxFactory.TargetTypedMemberAccessExpression(SyntaxFactory.Token(SyntaxKind.DotToken), GenerateIdentifierName());
 
         private static ElementBindingExpressionSyntax GenerateElementBindingExpression()
             => SyntaxFactory.ElementBindingExpression(GenerateBracketedArgumentList());
@@ -11169,6 +11255,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTargetTypedQualifiedNameFactoryAndProperties()
+        {
+            var node = GenerateTargetTypedQualifiedName();
+
+            Assert.Equal(SyntaxKind.DotToken, node.DotToken.Kind());
+            Assert.NotNull(node.Right);
+            var newNode = node.WithDotToken(node.DotToken).WithRight(node.Right);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
         public void TestGenericNameFactoryAndProperties()
         {
             var node = GenerateGenericName();
@@ -11457,6 +11554,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMemberBindingExpressionFactoryAndProperties()
         {
             var node = GenerateMemberBindingExpression();
+
+            Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind());
+            Assert.NotNull(node.Name);
+            var newNode = node.WithOperatorToken(node.OperatorToken).WithName(node.Name);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestTargetTypedMemberAccessExpressionFactoryAndProperties()
+        {
+            var node = GenerateTargetTypedMemberAccessExpression();
 
             Assert.Equal(SyntaxKind.DotToken, node.OperatorToken.Kind());
             Assert.NotNull(node.Name);
@@ -14390,6 +14498,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestTargetTypedQualifiedNameTokenDeleteRewriter()
+        {
+            var oldNode = GenerateTargetTypedQualifiedName();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTargetTypedQualifiedNameIdentityRewriter()
+        {
+            var oldNode = GenerateTargetTypedQualifiedName();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestGenericNameTokenDeleteRewriter()
         {
             var oldNode = GenerateGenericName();
@@ -15059,6 +15193,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMemberBindingExpressionIdentityRewriter()
         {
             var oldNode = GenerateMemberBindingExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestTargetTypedMemberAccessExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateTargetTypedMemberAccessExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestTargetTypedMemberAccessExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateTargetTypedMemberAccessExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

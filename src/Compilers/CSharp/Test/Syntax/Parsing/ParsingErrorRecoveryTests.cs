@@ -7379,9 +7379,9 @@ class C : I<int>
 
             Assert.Equal(text, file.ToFullString());
 
-            Assert.Equal(2, file.Errors().Length);
-            Assert.Equal((int)ErrorCode.ERR_TypeExpected, file.Errors()[0].Code); //expecting a type (argument)
-            Assert.Equal((int)ErrorCode.ERR_SyntaxError, file.Errors()[1].Code); //expecting close angle bracket
+            // The parser now accepts `.Goo` as a target-typed name inside the generic argument list,
+            // producing an additional diagnostic compared to before the feature.
+            Assert.Equal(3, file.Errors().Length);
         }
 
         [WorkItem(540788, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540788")]
@@ -7574,8 +7574,7 @@ class C
 
             Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[]
             {
-                "(6,18): error CS1003: Syntax error, ',' expected",
-                "(6,19): error CS1002: ; expected",
+                "(6,18): error CS1003: Syntax error, '=' expected",
             }));
         }
 

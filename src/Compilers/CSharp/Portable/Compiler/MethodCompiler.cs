@@ -2239,6 +2239,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return false;
                                 }
                                 break;
+
+                            case TargetTypedMemberAccessExpressionSyntax:
+                            case TargetTypedQualifiedNameSyntax:
+                                // The identifier inside a target-typed static member access is not a free identifier
+                                // in the enclosing scope; it is resolved against the target type in the binder.
+                                return false;
                         }
 
                         if (SyntaxFacts.IsInTypeOnlyContext(id) &&

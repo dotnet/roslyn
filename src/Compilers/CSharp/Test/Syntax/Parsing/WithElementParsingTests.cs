@@ -1659,10 +1659,7 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             TestOptions.Regular.WithLanguageVersion(languageVersion),
             // (1,8): error CS1003: Syntax error, ',' expected
             // [with().x]
-            Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8),
-            // (1,9): error CS1003: Syntax error, ',' expected
-            // [with().x]
-            Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 8));
 
         N(SyntaxKind.CollectionExpression);
         {
@@ -1679,9 +1676,13 @@ public sealed class WithElementParsingTests(ITestOutputHelper output) : ParsingT
             M(SyntaxKind.CommaToken);
             N(SyntaxKind.ExpressionElement);
             {
-                N(SyntaxKind.IdentifierName);
+                N(SyntaxKind.TargetTypedMemberAccessExpression);
                 {
-                    N(SyntaxKind.IdentifierToken, "x");
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
                 }
             }
             N(SyntaxKind.CloseBracketToken);

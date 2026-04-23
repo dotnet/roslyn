@@ -4353,18 +4353,9 @@ interface I1
                 // (4,1): error CS1547: Keyword 'void' cannot be used in this context
                 // void I1.local()
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(4, 1),
-                // (4,6): warning CS0168: The variable 'I1' is declared but never used
+                // (4,8): error CS1003: Syntax error, '=' expected
                 // void I1.local()
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "I1").WithArguments("I1").WithLocation(4, 6),
-                // (4,8): error CS1003: Syntax error, ',' expected
-                // void I1.local()
-                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(4, 8),
-                // (4,9): error CS1002: ; expected
-                // void I1.local()
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "local").WithLocation(4, 9),
-                // (4,9): error CS0103: The name 'local' does not exist in the current context
-                // void I1.local()
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments("=").WithLocation(4, 8),
                 // (4,16): error CS1002: ; expected
                 // void I1.local()
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 16)
