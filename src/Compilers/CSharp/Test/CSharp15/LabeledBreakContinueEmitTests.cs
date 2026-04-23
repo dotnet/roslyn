@@ -11,6 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
 {
+    // Tests that target Net100 can only execute on a runtime that supports it.
+    // On other hosts (e.g. net472 CI) the emitted assembly references Net 10
+    // assemblies that cannot be loaded for execution, so skip the runtime check
+    // by passing null for the expected output.
+    private static string? IncludeExpectedOutput(string expectedOutput) =>
+        ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
     #region while
 
     [Fact]
@@ -604,7 +611,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "11 12 13 21 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("11 12 13 21 done"), verify: Verification.Skipped);
     }
 
     [Fact]
@@ -637,7 +644,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "11 21 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("11 21 done"), verify: Verification.Skipped);
     }
 
     [Fact]
@@ -671,7 +678,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "0 1 2 10 11 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("0 1 2 10 11 done"), verify: Verification.Skipped);
     }
 
     [Fact]
@@ -705,7 +712,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "0 10 20 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("0 10 20 done"), verify: Verification.Skipped);
     }
 
     #endregion
