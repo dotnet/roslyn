@@ -2345,8 +2345,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         private IOperation VisitChainedRelationalComparison(IBinaryOperation outerOp, int? captureIdForResult)
         {
-            Debug.Assert(outerOp is BinaryOperation { IsChainedRelationalComparison: true });
-            Debug.Assert(outerOp.LeftOperand is IBinaryOperation);
+            Debug.Assert(outerOp is BinaryOperation { IsChainedRelationalComparison: true, LeftOperand: IBinaryOperation });
 
             // Any operands of enclosing expressions already sitting on the eval
             // stack must be spilled before we open Y sub-regions; otherwise their
