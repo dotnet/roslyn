@@ -801,4 +801,134 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
     }
 
     #endregion
+
+    #region Ref, stackalloc, collection-expression interactions
+
+    [Fact]
+    public void RefReturnReceiver_WithAwaitQuestionArgument()
+    {
+        // `GetReceiver(ref x)?.M(await? t)` — the receiver is obtained via a ref-return
+        // that mutates `x`. The await? spills across the invocation; `x` must be
+        // captured at the right point so that `x`'s post-await observed value is the
+        // value at the call site, not something lost to a hoist bug.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class Holder
+            {
+                public int V;
+                public string M(int? awaited, int x) => $"M(v={V},awaited={awaited},x={x})";
+            }
+
+            class C
+            {
+                static Holder s_instance = new() { V = 100 };
+
+                static ref Holder GetReceiver(ref int x)
+                {
+                    x = 42;
+                    return ref s_instance;
+                }
+
+                public static async Task Main()
+                {
+                    int x = 0;
+                    Task<int> t = Task.FromResult(7);
+                    string r = GetReceiver(ref x)?.M(await? t, x) ?? "null-receiver";
+                    Console.Write($"{r};x-after={x};done");
+                }
+            }
+            """;
+        var expected = "M(v=100,awaited=7,x=42);x-after=42;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void StackAlloc_LengthFromAwaitQuestion()
+    {
+        // `stackalloc int[...]` length computed via `await? t`. The stackalloc itself
+        // happens AFTER the await (Span<int> is a ref struct and can't survive an await
+        // boundary), but the length feeds from the lifted await? result. Delegates the
+        // post-await work to a sync helper to keep Main straightforward.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t1 = Task.FromResult(3);
+                    int? len1 = await? t1;
+                    Console.Write($"arr1-sum={SumRange(len1.GetValueOrDefault())};");
+
+                    Task<int> t2 = null;
+                    int? len2 = await? t2;
+                    Console.Write($"arr2-sum={SumRange(len2.GetValueOrDefault())};");
+
+                    Console.Write("done");
+                }
+
+                static int SumRange(int n)
+                {
+                    Span<int> sp = stackalloc int[n];
+                    for (int i = 0; i < n; i++) sp[i] = i;
+                    int sum = 0;
+                    foreach (int x in sp) sum += x;
+                    return sum;
+                }
+            }
+            """;
+        var expected = "arr1-sum=3;arr2-sum=0;done";
+        // Stackalloc doesn't round-trip through ILVerify, so skip that step. Execution
+        // is still asserted in both modes.
+        CompileAndVerify(
+            source,
+            parseOptions: s_preview,
+            targetFramework: TargetFramework.NetCoreApp,
+            options: TestOptions.ReleaseExe,
+            expectedOutput: expected,
+            verify: Verification.Skipped);
+        var raComp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+        var raVerifier = CompileAndVerify(
+            raComp,
+            expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expected),
+            verify: Verification.Skipped);
+        raVerifier.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_WithAwaitQuestionElement()
+    {
+        // Collection expression with `await? t` as an element. Target type is `int?[]`
+        // so each element is int?. Tests that spilling works inside the collection
+        // literal's element list.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t1 = Task.FromResult(10);
+                    int?[] arr1 = [await? t1, 20, 30];
+                    Console.Write($"arr1=[{arr1[0]},{arr1[1]},{arr1[2]}];");
+
+                    Task<int> t2 = null;
+                    int?[] arr2 = [await? t2, 20, 30];
+                    Console.Write($"arr2=[{arr2[0]?.ToString() ?? "null"},{arr2[1]},{arr2[2]}];");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "arr1=[10,20,30];arr2=[null,20,30];done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
 }
