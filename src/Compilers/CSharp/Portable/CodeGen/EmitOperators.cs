@@ -57,6 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitBinaryOperatorExpression(BoundBinaryOperator expression, bool used)
         {
+            // Chained relational comparisons are rewritten into short-circuit && chains by
+            // LocalRewriter; if one reaches CodeGen it means a lowering path was missed.
+            Debug.Assert(!expression.IsChainedRelational(out _, out _, out _), "IsChainedRelational nodes should have been rewritten by LocalRewriter_ChainedRelationalOperator before CodeGen.");
+
             var operatorKind = expression.OperatorKind;
 
             if (operatorKind.EmitsAsCheckedInstruction())

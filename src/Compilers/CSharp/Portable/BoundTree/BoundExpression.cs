@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -423,6 +424,97 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool IsUnconvertedInterpolatedStringAddition => Data?.IsUnconvertedInterpolatedStringAddition ?? false;
 
         internal InterpolatedStringHandlerData? InterpolatedStringHandlerData => Data?.InterpolatedStringHandlerData;
+
+        /// <summary>
+        /// True when this node represents one comparison of a chained relational comparison
+        /// (spec §11.11.13), e.g. the outer `&lt;` in `a &lt; b &lt; c`. When true, the node's left
+        /// operand is a bool-typed <see cref="BoundBinaryOperator"/> whose right operand is the
+        /// shared middle operand Y (returned via <paramref name="chainedRelationalLeftOperand"/>),
+        /// and <see cref="BinaryOperatorMethod"/> (together with <see cref="OperatorKind"/>)
+        /// describes the isolated resolution of `Y op Right`. Also yields the outer link's
+        /// LeftConversion (the conversion applied at lowering time to the temp holding Y) and
+        /// its target type (the outer operator's LeftType); the conversion may be
+        /// <see cref="Conversion.Identity"/> for same-type chains. At lowering time the node
+        /// is rewritten to a short-circuit &amp;&amp; chain with the middle operand evaluated
+        /// once and reused.
+        /// </summary>
+        internal bool IsChainedRelational(
+            [NotNullWhen(true)] out BoundExpression? chainedRelationalLeftOperand,
+            out Conversion chainedRelationalLeftConversion,
+            [NotNullWhen(true)] out TypeSymbol? chainedRelationalLeftConvertedType)
+        {
+            if (Data?.ChainedRelationalLeftConversion is { } storedConversion)
+            {
+                // Invariant (enforced by the binder on the chain-fallback success path):
+                // the outer node's Left is always the inner bool-typed BoundBinaryOperator,
+                // and Y is that inner link's Right operand.
+                chainedRelationalLeftOperand = ((BoundBinaryOperator)Left).Right;
+                chainedRelationalLeftConversion = storedConversion;
+                chainedRelationalLeftConvertedType = ComputeChainedRelationalLeftConvertedType();
+                return true;
+            }
+
+            chainedRelationalLeftOperand = null;
+            chainedRelationalLeftConversion = default;
+            chainedRelationalLeftConvertedType = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Derives the outer link's LeftType (<c>signature.LeftType</c> at bind time) from the
+        /// bound-tree state. Handles all four matrix cells:
+        /// <list type="bullet">
+        ///   <item>Intrinsic (Method null), lifted or not: signatures are symmetric, so
+        ///   <c>Right.Type</c> (= <c>signature.RightType</c> post-conversion) is equivalently
+        ///   the LeftType.</item>
+        ///   <item>User-defined non-lifted: <c>Method.Parameters[0].Type</c> is authoritative,
+        ///   including asymmetric <c>operator &lt;(S, U)</c> shapes.</item>
+        ///   <item>User-defined auto-lifted: <c>Method</c> is the un-lifted source method on
+        ///   the underlying <c>T</c>; the actual <c>signature.LeftType</c> was lifted to <c>T?</c>.
+        ///   Reconstruct <c>Nullable&lt;T&gt;</c> via <c>Right.Type</c>'s own <c>Nullable&lt;&gt;</c>
+        ///   original definition - works for symmetric lifted (<c>Right.Type == T?</c>) and
+        ///   asymmetric lifted (<c>Right.Type == U?</c>) equivalently.</item>
+        /// </list>
+        /// Users can't declare a user-defined operator whose parameter types are already
+        /// <c>S?</c> (the declaration must reference the containing struct <c>S</c> directly),
+        /// so we never see "already lifted" as a distinct case; only the auto-lift path exists.
+        /// </summary>
+        private TypeSymbol ComputeChainedRelationalLeftConvertedType()
+        {
+            if (BinaryOperatorMethod is { } method)
+            {
+                var underlying = method.Parameters[0].Type;
+                if (!OperatorKind.IsLifted())
+                    return underlying;
+
+                // Auto-lifted user-defined operator: Method is the un-lifted source method
+                // on the underlying T; signature.LeftType was lifted to T?. Auto-lifting
+                // requires the source method's parameters to be non-nullable value types,
+                // and by definition the lifted form has Nullable<> operand types - so we
+                // can reuse Right.Type's Nullable<> definition to reconstruct Nullable<T>.
+                Debug.Assert(underlying.IsValueType && !underlying.IsNullableType());
+                var liftedRightType = (NamedTypeSymbol)Right.Type!;
+                Debug.Assert(liftedRightType.IsNullableType());
+                return liftedRightType.OriginalDefinition.Construct(underlying);
+            }
+
+            // Intrinsic operator (Method is null per BoundBinaryOperator.Validate's
+            // `Method-null => !IsUserDefined` invariant). Intrinsic binary operators always
+            // have symmetric signatures, so LeftType == RightType. In both the non-lifted
+            // case (e.g. `int < int`, both params int) and the lifted case
+            // (e.g. `int? < int?`, both params int?), Right.Type - which is
+            // signature.RightType post-conversion - is equivalently signature.LeftType.
+            return Right.Type!;
+        }
+
+        /// <summary>
+        /// True when this node has short-circuit semantics on its right operand: either it is a
+        /// conditional logical operator (<c>&amp;&amp;</c> / <c>||</c>), or it is a chained
+        /// relational comparison (see <see cref="IsChainedRelational"/>). Callers that gate
+        /// behaviour on short-circuit semantics (flow analysis, lowering, codegen backstops)
+        /// should prefer this helper over <c>OperatorKind.IsLogical()</c>.
+        /// </summary>
+        internal bool IsShortCircuiting => OperatorKind.IsLogical() || IsChainedRelational(out _, out _, out _);
 
         internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
     }
