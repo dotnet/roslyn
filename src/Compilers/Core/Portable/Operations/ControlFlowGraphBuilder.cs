@@ -2463,7 +2463,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // as the overall result. This link IS node's own outer
                     // operator, so template on node directly.
                     IOperation visitedRight = VisitRequired(node.RightOperand);
-                    IOperation finalCheck = rebuildNonChainedRelational((BinaryOperation)node, OperationCloner.CloneOperation(prevY!), visitedRight);
+                    IOperation finalCheck = rebuildNonChainedRelational((BinaryOperation)node, OperationCloner.CloneOperation(prevY), visitedRight);
                     AddStatement(new FlowCaptureOperation(resultId, node.Syntax, finalCheck));
                 }
             }
