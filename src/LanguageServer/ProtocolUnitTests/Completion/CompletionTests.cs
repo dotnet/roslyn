@@ -1534,7 +1534,7 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             triggerKind: LSP.CompletionTriggerKind.Invoked);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams);
-        AssertEx.NotNull(results);
+        Assert.NotNull(results);
         Assert.NotEmpty(results.Items);
         Assert.Equal(new() { Start = new(2, 0), End = new(2, 8) }, results.ItemDefaults.EditRange.Value.First);
     }
@@ -1621,7 +1621,6 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-        AssertEx.NotNull(results);
 
         var nullItem = results.Items.SingleOrDefault(i => i.Label == "null");
         var nuintItem = results.Items.SingleOrDefault(i => i.Label == "nuint");
@@ -1659,7 +1658,6 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
             triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
 
         var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-        AssertEx.NotNull(results);
 
         // Find a standard keyword like "int" — it should have default (0) MatchPriority
         var intItem = results.Items.SingleOrDefault(i => i.Label == "int");

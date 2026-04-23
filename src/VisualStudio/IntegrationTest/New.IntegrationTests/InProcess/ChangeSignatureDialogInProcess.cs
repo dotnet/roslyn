@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
 using Roslyn.Test.Utilities;
 using WindowsInput.Native;
+using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 
@@ -32,7 +33,7 @@ internal sealed partial class ChangeSignatureDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         Contract.ThrowIfFalse(await buttonAccessor(dialog).SimulateClickAsync(JoinableTaskFactory));
     }
@@ -111,7 +112,7 @@ internal sealed partial class ChangeSignatureDialogInProcess
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var dialog = await TryGetDialogAsync(cancellationToken);
-        AssertEx.NotNull(dialog);
+        Assert.NotNull(dialog);
 
         var members = dialog.GetTestAccessor().Members;
         members.SelectedItem = dialog.GetTestAccessor().ViewModel.AllParameters.Single(p => p.ShortAutomationText == parameterName);

@@ -263,15 +263,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            AssertEx.NotNull(itemType);
+            Assert.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            AssertEx.NotNull(metaName);
+            Assert.NotNull(metaName);
             Assert.Equal("CustomMeta", metaName.EvaluatedValue);
 
             var customMeta = item.Metadata.SingleOrDefault(m => m.Name == metaName.EvaluatedValue);
-            AssertEx.NotNull(customMeta);
+            Assert.NotNull(customMeta);
             Assert.Equal("abc", customMeta.EvaluatedValue);
         }
 
@@ -305,15 +305,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            AssertEx.NotNull(itemType);
+            Assert.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            AssertEx.NotNull(metaName);
+            Assert.NotNull(metaName);
             Assert.Equal("CustomMeta", metaName.EvaluatedValue);
 
             var customMeta = item.Metadata.SingleOrDefault(m => m.Name == metaName.EvaluatedValue);
-            AssertEx.NotNull(customMeta);
+            Assert.NotNull(customMeta);
             Assert.Equal("abc", customMeta.EvaluatedValue);
         }
 
@@ -345,11 +345,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            AssertEx.NotNull(itemType);
+            Assert.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            AssertEx.NotNull(metaName);
+            Assert.NotNull(metaName);
             Assert.Equal("CustomMeta", metaName.EvaluatedValue);
         }
 
@@ -380,11 +380,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             Assert.Equal("_GeneratedEditorConfigMetadata", item.ItemType);
 
             var itemType = item.Metadata.SingleOrDefault(m => m.Name == "ItemType");
-            AssertEx.NotNull(itemType);
+            Assert.NotNull(itemType);
             Assert.Equal("Compile", itemType.EvaluatedValue);
 
             var metaName = item.Metadata.SingleOrDefault(m => m.Name == "MetadataName");
-            AssertEx.NotNull(metaName);
+            Assert.NotNull(metaName);
             Assert.Equal("", metaName.EvaluatedValue);
         }
 
