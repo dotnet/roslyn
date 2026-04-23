@@ -2418,8 +2418,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // strictly inside Y_{i-1}'s, which is what lets Y_{i-1}'s
                 // capture stay reachable inside Y_i's region for the middle
                 // check.
-                EvalStackFrame yFrame = PushStackFrame();
-                yFrames.Add(yFrame);
+                yFrames.Add(PushStackFrame());
 
                 // At every level we capture `node.LeftOperand.RightOperand` -
                 // which is Y for this level. The innermost level additionally
