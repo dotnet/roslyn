@@ -184,11 +184,39 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
                 var symbol = semanticModel.GetSymbolInfo(baseTypeSyntax.Type).Symbol as INamedTypeSymbol;
                 if (symbol is not null && symbol.TypeKind != TypeKind.Error)
                 {
-                    results.Add((entries[i].Index, symbol.GetFullName()));
+                    results.Add((entries[i].Index, GetFullMetadataName(symbol)));
                 }
             }
 
             return results;
+        }
+
+        /// <summary>
+        /// Builds a fully-qualified metadata name for a type symbol, suitable for
+        /// <see cref="Compilation.GetTypeByMetadataName"/>. Unlike <c>GetFullName()</c>
+        /// which produces C# display syntax, this uses CLR metadata conventions:
+        /// backtick arity for generics and <c>+</c> for nested types.
+        /// </summary>
+        private static string GetFullMetadataName(INamedTypeSymbol symbol)
+        {
+            var typePart = symbol.MetadataName;
+
+            if (symbol.ContainingType is not null)
+            {
+                // Walk containing types to build Outer`1+Inner chain.
+                var parts = new List<string> { typePart };
+                for (var current = symbol.ContainingType; current is not null; current = current.ContainingType)
+                {
+                    parts.Add(current.MetadataName);
+                }
+
+                parts.Reverse();
+                typePart = string.Join("+", parts);
+            }
+
+            return symbol.ContainingNamespace is { IsGlobalNamespace: false } ns
+                ? $"{ns.GetFullName()}.{typePart}"
+                : typePart;
         }
 
         public bool IsSupported(string? filePath, string baseTypeName)
