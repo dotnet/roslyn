@@ -269,7 +269,6 @@ internal sealed partial class DiagnosticAnalyzerService
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
     {
-        // We log performance info when we are computing diagnostics for a span
         var project = document.Project;
 
         var hostAnalyzerInfo = GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project);
@@ -280,29 +279,26 @@ internal sealed partial class DiagnosticAnalyzerService
 
         await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, syntaxAnalyzers, AnalysisKind.Syntax, range, list, cancellationToken).ConfigureAwait(false);
 
-        // The compiler analyzer has its own member-scoped fast path inside DocumentAnalysisExecutor
-        // (GetAdjustedSpanForCompilerAnalyzerAsync), which narrows the span to enclosing member
-        // boundaries for cheaper SemanticModel.GetDiagnostics. It doesn't use SymbolStart actions,
-        // so it doesn't benefit from full-document expansion. Run it separately with the original
-        // range to preserve that optimization.
-        if (range.HasValue)
+        // When document-based (SymbolStart) analyzers are present, use span: null to avoid the
+        // SymbolStart expansion penalty that makes span-restricted analysis as expensive as
+        // full-document analysis anyway. When only span-based analyzers remain, all analyzers
+        // (including the compiler) share a single span-restricted pass with the caller's range.
+        //
+        // The compiler analyzer is extracted separately when we're doing full-document analysis
+        // because it has its own member-scoped fast path (GetAdjustedSpanForCompilerAnalyzerAsync)
+        // that benefits from a restricted span.
+        var semanticSpan = semanticDocumentAnalyzers.IsEmpty ? range : null;
+
+        if (semanticSpan is null
+            && range.HasValue
+            && semanticSpanAnalyzers.FirstOrDefault(static a => a.IsCompilerAnalyzer()) is { } compilerAnalyzer)
         {
-            var compilerAnalyzer = semanticSpanAnalyzers.FirstOrDefault(a => a.IsCompilerAnalyzer());
-            if (compilerAnalyzer is not null)
-            {
-                semanticSpanAnalyzers = semanticSpanAnalyzers.Remove(compilerAnalyzer);
-                await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, [compilerAnalyzer], AnalysisKind.Semantic, range, list, cancellationToken).ConfigureAwait(false);
-            }
+            semanticSpanAnalyzers = semanticSpanAnalyzers.Remove(compilerAnalyzer);
+            await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, [compilerAnalyzer], AnalysisKind.Semantic, range, list, cancellationToken).ConfigureAwait(false);
         }
 
-        // Merge remaining span-based and document-based semantic analyzers into a single full-document
-        // pass. Running them separately would each create a compilation clone and trigger binding
-        // independently — the dominant cost for semantic analysis.
-        //
-        // Always use span: null even when semanticDocumentAnalyzers is empty —
-        // SymbolStart analyzers in the span set trigger an expansion penalty when given a restricted
-        // span, making a single full-document pass cheaper.
-        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticSpanAnalyzers.AddRange(semanticDocumentAnalyzers), AnalysisKind.Semantic, span: null, list, cancellationToken).ConfigureAwait(false);
+        var mergedAnalyzers = semanticSpanAnalyzers.AddRange(semanticDocumentAnalyzers);
+        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, mergedAnalyzers, AnalysisKind.Semantic, semanticSpan, list, cancellationToken).ConfigureAwait(false);
 
         return list.ToImmutableAndClear();
 
