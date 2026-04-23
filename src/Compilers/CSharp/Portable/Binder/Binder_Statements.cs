@@ -2952,15 +2952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name!.GetLocation());
 
             var target = this.GetBreakLabel(labelName);
-            if (target == null)
-            {
-                if (labelName != null)
-                    Error(diagnostics, ErrorCode.ERR_NoBreakOrContId, node.Name!, labelName);
-                else
-                    Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-            return new BoundBreakStatement(node, target, BindLabelExpression(node.Name, diagnostics));
+            return CheckForNoTarget(node, node.Name, labelName, target, diagnostics)
+                ?? new BoundBreakStatement(node, target, BindLabelExpression(node.Name, diagnostics));
         }
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -2970,15 +2963,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name!.GetLocation());
 
             var target = this.GetContinueLabel(labelName);
-            if (target == null)
-            {
-                if (labelName != null)
-                    Error(diagnostics, ErrorCode.ERR_NoBreakOrContId, node.Name!, labelName);
-                else
-                    Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-            return new BoundContinueStatement(node, target, BindLabelExpression(node.Name, diagnostics));
+            return CheckForNoTarget(node, node.Name, labelName, target, diagnostics)
+                ?? new BoundContinueStatement(node, target, BindLabelExpression(node.Name, diagnostics));
+        }
+
+        private static BoundStatement CheckForNoTarget(
+            StatementSyntax node,
+            IdentifierNameSyntax name,
+            string labelName,
+            LabelSymbol target,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (target != null)
+                return null;
+
+            Error(diagnostics,
+                labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont,
+                name ?? (SyntaxNode)node,
+                labelName == null ? [] : [labelName]);
+            return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
         }
 
         private BoundLabel BindLabelExpression(IdentifierNameSyntax name, BindingDiagnosticBag diagnostics)
