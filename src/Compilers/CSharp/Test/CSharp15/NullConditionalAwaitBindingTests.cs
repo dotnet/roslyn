@@ -1887,6 +1887,127 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void AwaitablePattern_MissingGetResult_SameErrorAsAwait()
+    {
+        // If the awaiter type lacks a `GetResult` method, plain `await` reports
+        // ERR_BadAwaiterPattern / ERR_BadAwaitArg; `await?` must surface the same error.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+            public struct MyAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public void OnCompleted(Action continuation) { }
+                // GetResult is intentionally missing.
+            }
+            public class MyTask { public MyAwaiter GetAwaiter() => default; }
+            public class C
+            {
+                public async Task M(MyTask t)
+                {
+                    await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (15,9): error CS0117: 'MyAwaiter' does not contain a definition for 'GetResult'
+            //         await? t;
+            Diagnostic(ErrorCode.ERR_NoSuchMember, "await? t").WithArguments("MyAwaiter", "GetResult").WithLocation(15, 9));
+    }
+
+    [Fact]
+    public void AwaitablePattern_NotINotifyCompletion_SameErrorAsAwait()
+    {
+        // Awaiter lacks INotifyCompletion / ICriticalNotifyCompletion.
+        var source = """
+            using System.Threading.Tasks;
+            public struct MyAwaiter
+            {
+                public bool IsCompleted => true;
+                public int GetResult() => 0;
+            }
+            public class MyTask { public MyAwaiter GetAwaiter() => default; }
+            public class C
+            {
+                public async Task M(MyTask t)
+                {
+                    _ = await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (12,13): error CS4027: 'MyAwaiter' does not implement 'INotifyCompletion'
+            //         _ = await? t;
+            Diagnostic(ErrorCode.ERR_DoesntImplementAwaitInterface, "await? t").WithArguments("MyAwaiter", "System.Runtime.CompilerServices.INotifyCompletion").WithLocation(12, 13));
+    }
+
+    [Fact]
+    public void AwaitablePattern_GetResultTakesArguments_SameErrorAsAwait()
+    {
+        // GetResult with parameters — awaitable pattern requires parameterless GetResult.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+            public struct MyAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public int GetResult(int badParam) => 0;
+                public void OnCompleted(Action continuation) { }
+            }
+            public class MyTask { public MyAwaiter GetAwaiter() => default; }
+            public class C
+            {
+                public async Task M(MyTask t)
+                {
+                    _ = await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (15,13): error CS7036: There is no argument given that corresponds to the required parameter 'badParam' of 'MyAwaiter.GetResult(int)'
+            //         _ = await? t;
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "await? t").WithArguments("badParam", "MyAwaiter.GetResult(int)").WithLocation(15, 13));
+    }
+
+    [Fact]
+    public void AwaitablePattern_StaticGetAwaiter_SameErrorAsAwait()
+    {
+        // Static GetAwaiter on the awaitable class — not part of the pattern.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+            public struct MyAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public int GetResult() => 0;
+                public void OnCompleted(Action continuation) { }
+            }
+            public class MyTask
+            {
+                public static MyAwaiter GetAwaiter() => default;
+            }
+            public class C
+            {
+                public async Task M(MyTask t)
+                {
+                    _ = await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (18,13): error CS1986: 'await' requires that the type MyTask have a suitable 'GetAwaiter' method
+            //         _ = await? t;
+            Diagnostic(ErrorCode.ERR_BadAwaitArg, "await? t").WithArguments("MyTask").WithLocation(18, 13));
+    }
+
+    [Fact]
     public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
     {
         // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
