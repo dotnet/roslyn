@@ -10314,7 +10314,7 @@ AnonymousTypes(
         // Strip the $$ cursor marker for compilation purposes.
         var sourceCodeWithoutMarker = sourceCode.Replace("$$", "");
         var parseOptions = s_parseOptionsWithInterceptors;
-        var sourceTree = CSharpSyntaxTree.ParseText(sourceCodeWithoutMarker, parseOptions, path: "Source.cs");
+        var sourceTree = CSharpSyntaxTree.ParseText(sourceCodeWithoutMarker, parseOptions, path: "SourceDocument");
         var attributeTree = CSharpSyntaxTree.ParseText(s_interceptsLocationAttributeSource, parseOptions, path: "Attributes.cs");
 
         var compilation = CSharpCompilation.Create(
@@ -10346,36 +10346,14 @@ AnonymousTypes(
         var xmlString = $"""
             <Workspace>
                 <Project Language="C#" CommonReferences="true" Features="InterceptorsNamespaces=global">
-                    <Document FilePath="Source.cs">{SecurityElement.Escape(sourceCode)}</Document>
+                    <Document FilePath="SourceDocument">{SecurityElement.Escape(sourceCode)}</Document>
                     <Document FilePath="Attributes.cs">{SecurityElement.Escape(s_interceptsLocationAttributeSource)}</Document>
                     <Document FilePath="Interceptor.cs">{SecurityElement.Escape(interceptorCode)}</Document>
                 </Project>
             </Workspace>
             """;
 
-        using var workspace = EditorTestWorkspace.Create(xmlString);
-        var testDocument = workspace.Documents.First(d => d.Name == "Source.cs");
-        var position = testDocument.CursorPosition!.Value;
-        var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
-
-        var service = QuickInfoService.GetService(document);
-        Contract.ThrowIfNull(service);
-
-        var info = await service.GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, CancellationToken.None);
-
-        if (expectedResults.Length == 0)
-        {
-            Assert.Null(info);
-        }
-        else
-        {
-            AssertEx.NotNull(info);
-
-            foreach (var expected in expectedResults)
-            {
-                expected(info);
-            }
-        }
+        await VerifyWithMarkupAsync(xmlString, expectedResults);
     }
 
     [Fact]
