@@ -883,14 +883,9 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     [Fact]
     public void RelationalPatternFollowedByRelationalOperator_DoesNotChain()
     {
-        // Relational patterns (`x is < c`, `x is > c`, ...) are a separate pattern-grammar
-        // feature and DO NOT participate in the chained-relational-comparison rule. Chain
-        // shape is gated on the outer binary op's left being a BinaryExpressionSyntax of a
-        // chainable kind; the LHS here is an IsPatternExpression, so the chain fallback
-        // isn't attempted and we get ordinary CS0019 on `bool > int` / `bool < int`.
-        //
-        // The idiomatic way to combine two relational patterns is `x is > y and < z`,
-        // which this test also pins as a non-regression.
+        // Relational patterns are separate from the chain rule: `x is < 5 > 10` falls
+        // straight to CS0019 on `bool > int` (no chain fallback). `x is > y and < z` is
+        // the idiomatic pattern-level combination.
         var src = """
             class P
             {
