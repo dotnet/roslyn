@@ -622,7 +622,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
 
     #region Helpers
 
-    private IOperation GetCorrespondingOperation<TSyntax>(string source) where TSyntax : SyntaxNode
+    private IOperation? GetCorrespondingOperation<TSyntax>(string source) where TSyntax : SyntaxNode
     {
         var compilation = CreateCompilation(source);
         var inner = GetOperationAndSyntaxForTest<TSyntax>(compilation).operation as IBranchOperation;
