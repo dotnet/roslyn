@@ -1016,11 +1016,115 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind resultOperatorKind = signature.Kind;
             bool hasErrors = false;
+            // Chained relational comparison (spec §11.11.13) bind-time state: non-null iff
+            // the chain-fallback success path below accepts an isolated `Y op B` binding.
+            // The conversion stays OFF the bound tree's Right slot - the lowerer applies it
+            // on a temp load - so the temp stays at Y's inner-link type for verifiable
+            // asymmetric-chain IL (e.g. `short < int < long`). Y itself is always
+            // `((BoundBinaryOperator)left).Right` on success.
+            Conversion? chainedRelationalLeftConversion = null;
+
             if (!foundOperator)
             {
-                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind, ref operatorResolutionForReporting);
-                resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
-                hasErrors = true;
+                // Spec §11.11.13: when `A op B` fails ordinary relational overload resolution
+                // and A is itself a relational `X op' Y`, re-run §11.4.5 on `Y op B` in isolation;
+                // if it binds to a bool-returning operator, classify the whole as a chained
+                // relational comparison. Otherwise emit the chain-specific
+                // ERR_NoChainedRelationalComparison. If the node doesn't even have the chain
+                // shape, fall through to the ordinary CS0019.
+                //
+                // Both error branches clear resultOperatorKind's TypeMask (the operand-type bits,
+                // e.g. Int / UserDefined) so downstream passes don't conclude a signature was
+                // bound; we keep the operator bits so they still see *which* operator was written.
+                //
+                // The chain shape is gated on *syntax*, not the inner BoundBinaryOperator's
+                // OperatorKind - the semantic kind would falsely match compiler-synthesized
+                // relational nodes that §11.11.13 doesn't govern. As a bonus, this automatically
+                // honors spec §11.11.13's "parens around the left-hand operand prevent the chain
+                // interpretation" note, because ParenthesizedExpressionSyntax isn't one of the
+                // four chainable SyntaxKinds.
+                if (SyntaxFacts.IsChainableRelationalExpression(node.Kind()) &&
+                    node.Left is BinaryExpressionSyntax innerSyntax &&
+                    SyntaxFacts.IsChainableRelationalExpression(innerSyntax.Kind()) &&
+                    left is BoundBinaryOperator { Type.SpecialType: SpecialType.System_Boolean } leftBinaryOperator)
+                {
+                    CheckFeatureAvailability(node, MessageID.IDS_FeatureChainedRelationalComparison, diagnostics);
+
+                    // Y is the inner node's right operand: the shared middle operand of the
+                    // chain. For `a op' b op c` we treat the outer `op` as `Y op c`, i.e.
+                    // `b op c`, re-running overload resolution against that isolated pair.
+                    BoundExpression y = leftBinaryOperator.Right;
+
+                    // Run the isolated `Y op Right` overload resolution speculatively. Route
+                    // its diagnostics and its OperatorResolutionForReporting state into scratch
+                    // buffers so that, if the chain interpretation is rejected below, nothing
+                    // from this attempt leaks into the caller's diagnostics (we will instead
+                    // fall through and report the specific chained-relational error). If the
+                    // chain succeeds we commit the attempted diagnostics wholesale.
+                    var attemptDiagnostics = BindingDiagnosticBag.GetInstance(template: diagnostics);
+                    OperatorResolutionForReporting chainOperatorResolutionForReporting = default;
+
+                    bool chainFoundOperator = BindSimpleBinaryOperatorParts(node, attemptDiagnostics, y, right, kind,
+                        ref chainOperatorResolutionForReporting, out LookupResultKind chainResultKind,
+                        out ImmutableArray<MethodSymbol> chainOriginalUserDefinedOperators,
+                        out BinaryOperatorSignature chainSignature, out BinaryOperatorAnalysisResult chainBest);
+
+                    // We never report the CS0019-style error from this speculative attempt, so
+                    // the reporting state is always freed here regardless of outcome.
+                    chainOperatorResolutionForReporting.Free();
+
+                    if (chainFoundOperator &&
+                        chainSignature.ReturnType is { SpecialType: SpecialType.System_Boolean })
+                    {
+                        // Chain fallback succeeded. Commit the attempted diagnostics and build a
+                        // chained-relational BoundBinaryOperator with the Y-op-B operator
+                        // selected above; the original overload-resolution state is discarded
+                        // with the shared .Free() below.
+                        diagnostics.AddRangeAndFree(attemptDiagnostics);
+
+                        foundOperator = true;
+                        signature = chainSignature;
+                        best = chainBest;
+                        resultKind = chainResultKind;
+                        originalUserDefinedOperators = chainOriginalUserDefinedOperators;
+                        resultOperatorKind = signature.Kind;
+
+                        // Store the outer link's LeftConversion descriptor. The lowerer reads
+                        // Y from the inner node's Right (i.e. `((BoundBinaryOperator)Left).Right`)
+                        // as the temp's initial value (temp type = Y's inner-link type) and
+                        // applies this outer conversion on the temp's load when building the
+                        // outer link's left operand. Keeping the outer conversion off the bound
+                        // tree's Right slot is what makes asymmetric chains like
+                        // `short < int < long` emit verifiable IL: the inner link operates on
+                        // the temp's inner-link type, not on the outer link's wider type.
+                        //
+                        // The conversion's target type (signature.LeftType) is re-derived on
+                        // demand from BinaryOperatorMethod.Parameters[0].Type (user-defined) or
+                        // Right.Type (intrinsic, symmetric) via IsChainedRelational.
+                        chainedRelationalLeftConversion = chainBest.LeftConversion;
+                    }
+                    else
+                    {
+                        attemptDiagnostics.Free();
+
+                        // We had the chain shape but isolated `Y op B` did not produce a
+                        // bool-returning operator. Emit the specific chained-relational error
+                        // rather than the ordinary CS0019.
+                        Error(diagnostics, ErrorCode.ERR_NoChainedRelationalComparison, node.OperatorToken,
+                            node.OperatorToken.Text,
+                            y.Display,
+                            right.Display);
+                        resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
+                        hasErrors = true;
+                    }
+                }
+                else
+                {
+                    // No chain shape applies; report the ordinary CS0019.
+                    ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind, ref operatorResolutionForReporting);
+                    resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
+                    hasErrors = true;
+                }
             }
 
             operatorResolutionForReporting.Free();
@@ -1079,7 +1183,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.AccumulatesDiagnostics;
                 var conversionDiagnostics = needsFilterDiagnostics ? BindingDiagnosticBag.GetInstance(template: diagnostics) : diagnostics;
 
-                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
+                // For chained relational comparison, the outer node's Left is a bool-typed
+                // BoundBinaryOperator describing the inner link. The isolated `Y op Right`
+                // operator's LeftConversion is tracked via chainedRelationalLeftConversion
+                // and applied by the lowerer, so we leave the outer `resultLeft` as the
+                // original inner BoundBinaryOperator here.
+                if (chainedRelationalLeftConversion is null)
+                {
+                    resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
+                }
                 resultRight = CreateConversion(right, best.RightConversion, signature.RightType, conversionDiagnostics);
 
                 if (needsFilterDiagnostics)
@@ -1105,7 +1217,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversionDiagnostics.Free();
                 }
 
-                resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);
+                // Constant folding. Chained relational folds combine the inner link's
+                // constant value with the outer `Y op B` constant (spec §11.20 analog
+                // applied to the `A && (Y op B)` short-circuit form), rather than treating
+                // the outer `bool op T` as a standalone constant expression.
+                if (chainedRelationalLeftConversion is null)
+                {
+                    resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType, diagnostics);
+                }
+                else
+                {
+                    resultConstant = FoldChainedRelationalOperator(
+                        node,
+                        leftBinaryOperator: (BoundBinaryOperator)left,
+                        chainedRelationalLeftConversion.Value,
+                        signature.LeftType,
+                        resultRight,
+                        resultOperatorKind,
+                        resultType,
+                        diagnostics);
+                }
             }
             else
             {
@@ -1116,6 +1247,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             hasErrors = hasErrors || resultConstant != null && resultConstant.IsBad;
+
+            if (chainedRelationalLeftConversion is not null)
+            {
+                // resultType == bool falls out of spec §11.11.13 rule 2(b), which only
+                // accepts a chain when the isolated `Y op B` overload resolution yields a
+                // bool-returning operator. UncommonData's ctor-side assert further requires
+                // the conversion to exist (Identity at minimum; NoConversion would be
+                // ambiguous with "not chained").
+                Debug.Assert(resultType.SpecialType == SpecialType.System_Boolean);
+                return new BoundBinaryOperator(
+                    node,
+                    resultOperatorKind.WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
+                    BoundBinaryOperator.UncommonData.ChainedRelational(
+                        resultConstant,
+                        signature.Method,
+                        signature.ConstrainedToTypeOpt,
+                        originalUserDefinedOperators,
+                        chainedRelationalLeftConversion.Value),
+                    resultKind,
+                    resultLeft,
+                    resultRight,
+                    resultType,
+                    hasErrors);
+            }
 
             return new BoundBinaryOperator(
                 node,
@@ -1130,6 +1285,107 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType,
                 hasErrors);
         }
+
+#nullable enable
+        // Fold a chained relational comparison `A op B` into a compile-time constant when
+        // every operand is itself a constant expression. The spec treats this exactly like
+        // the short-circuit `&&` form that the chain lowers to: per C#'s §11.20 constant-
+        // expression rules, `X && Y` is a constant only when both X and Y are constants, and
+        // the same "every operand must be a constant" requirement applies here. So the fold
+        // runs only when:
+        //
+        //   1. The inner link (A) already has a bool constant value,
+        //   2. Y (the shared middle operand, derived as `leftBinaryOperator.Right`) carries
+        //      a constant value that survives the outer link's LeftConversion, and
+        //   3. B (the outer link's right operand) has a constant value.
+        //
+        // When all three hold, the chain's value is `false` if A folded to false, otherwise
+        // the fold of `Y' op B` where Y' is Y-through-the-outer-LeftConversion. When any of
+        // them fails to fold, the chain is non-constant (null).
+        //
+        // Bad constants propagate: if any operand's constant value is Bad, the chain's
+        // constant is Bad too. This matches how FoldBinaryOperator handles Bad operands.
+        private ConstantValue? FoldChainedRelationalOperator(
+            CSharpSyntaxNode syntax,
+            BoundBinaryOperator leftBinaryOperator,
+            Conversion chainedRelationalLeftConversion,
+            TypeSymbol chainedRelationalLeftConvertedType,
+            BoundExpression resultRight,
+            BinaryOperatorKind resultOperatorKind,
+            TypeSymbol resultType,
+            BindingDiagnosticBag diagnostics)
+        {
+            // A is non-constant - chain is non-constant.
+            ConstantValue? innerConstant = leftBinaryOperator.ConstantValueOpt;
+            if (innerConstant is null)
+            {
+                return null;
+            }
+
+            // Spec §11.11.13 rule 2(b) guarantees A is bool-typed when the chain shape is
+            // accepted.
+            Debug.Assert(innerConstant.IsBad || innerConstant.SpecialType == SpecialType.System_Boolean);
+
+            // B is non-constant - chain is non-constant, even if inner folded to false.
+            // This matches the classical `&&` fold rule (FoldBinaryOperator returns null on
+            // any non-constant operand regardless of the other).
+            if (resultRight.ConstantValueOpt is null)
+            {
+                return null;
+            }
+
+            // Y is the inner node's Right operand - i.e. the shared middle operand with
+            // only the inner link's conversion already applied. Apply the outer link's
+            // LeftConversion to its constant value so the comparison runs against Y at
+            // the outer link's LeftType, exactly like the lowered form does at runtime.
+            BoundExpression y = leftBinaryOperator.Right;
+            ConstantValue? yOuterConstant = FoldConstantConversion(
+                y.Syntax,
+                y,
+                chainedRelationalLeftConversion,
+                chainedRelationalLeftConvertedType,
+                diagnostics);
+
+            if (yOuterConstant is null)
+            {
+                return null;
+            }
+
+            // Propagate Bad from any operand.
+            if (innerConstant.IsBad || yOuterConstant.IsBad || resultRight.ConstantValueOpt.IsBad)
+            {
+                return ConstantValue.Bad;
+            }
+
+            // All three operands fold; combine by short-circuit `&&` semantics.
+            if (!innerConstant.BooleanValue)
+            {
+                return ConstantValue.False;
+            }
+
+            // Inner folded to true; the chain's value is `Y' op B`. We must wrap the
+            // outer-converted Y constant in a BoundLiteral rather than pass Y directly
+            // through, because FoldBinaryOperator's fold helpers dispatch on
+            // BinaryOperatorKind and read ConstantValue accessors that ASSUME the
+            // underlying discriminator matches the operator's operand type (e.g.
+            // LongLessThan calls Int64Value, which has a virtual fallback through
+            // Int32Value - correct for signed widening but WRONG for unsigned-to-signed
+            // widening: a ConstantValueU32 of uint.MaxValue would go through the
+            // Int32Value fallback and arrive as -1L, not the correct 4_294_967_295L).
+            // Routing Y's constant through FoldConstantConversion first produces a
+            // ConstantValue with the right SpecialType and the right widened value, so
+            // the fold helper sees identical inputs to what the classical (non-chained)
+            // path would have constructed via CreateConversion. The synthetic
+            // BoundLiteral is never inserted into the bound tree.
+            var outerLeftProxy = new BoundLiteral(
+                y.Syntax,
+                yOuterConstant,
+                chainedRelationalLeftConvertedType)
+            { WasCompilerGenerated = true };
+
+            return FoldBinaryOperator(syntax, resultOperatorKind, outerLeftProxy, resultRight, resultType, diagnostics);
+        }
+#nullable disable
 
         private bool BindSimpleBinaryOperatorParts(BinaryExpressionSyntax node, BindingDiagnosticBag diagnostics, BoundExpression left, BoundExpression right, BinaryOperatorKind kind,
             ref OperatorResolutionForReporting operatorResolutionForReporting, out LookupResultKind resultKind,

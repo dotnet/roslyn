@@ -5679,7 +5679,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class BinaryOperation : Operation, IBinaryOperation
     {
-        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, IMethodSymbol? unaryOperatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, IMethodSymbol? unaryOperatorMethod, bool isChainedRelationalComparison, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
@@ -5691,6 +5691,7 @@ namespace Microsoft.CodeAnalysis.Operations
             OperatorMethod = operatorMethod;
             ConstrainedToType = constrainedToType;
             UnaryOperatorMethod = unaryOperatorMethod;
+            IsChainedRelationalComparison = isChainedRelationalComparison;
             OperationConstantValue = constantValue;
             Type = type;
         }
@@ -5703,6 +5704,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public IMethodSymbol? OperatorMethod { get; }
         public ITypeSymbol? ConstrainedToType { get; }
         public IMethodSymbol? UnaryOperatorMethod { get; }
+        public bool IsChainedRelationalComparison { get; }
         internal override int ChildOperationsCount =>
             (LeftOperand is null ? 0 : 1) +
             (RightOperand is null ? 0 : 1);
@@ -11018,7 +11020,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, object? argument)
         {
             var internalOperation = (BinaryOperation)operation;
-            return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.UnaryOperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+            return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.UnaryOperatorMethod, internalOperation.IsChainedRelationalComparison, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditional(IConditionalOperation operation, object? argument)
         {
