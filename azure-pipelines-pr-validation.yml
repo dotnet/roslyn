@@ -148,7 +148,7 @@ extends:
         steps:
         - pwsh: Set-MpPreference -DisableRealtimeMonitoring $true
           displayName: Disable Real-time Monitoring
-          
+
         - task: Powershell@2
           displayName: Setting OriginalBuildNumber variable
           condition: succeeded()
@@ -309,10 +309,8 @@ extends:
             createDraftPR: true
             autoComplete: false
             insertToolset: ${{ parameters.InsertToolset }}
-            buildUserName: "dn-bot@microsoft.com"
-            buildPassword: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
-            componentUserName: "dn-bot@microsoft.com"
-            componentPassword: $(dn-bot-dnceng-build-e-code-full-release-e-packaging-r)
+            devDivAzdoToken: $(dn-bot-devdiv-build-e-code-full-release-e-packaging-r)
+            dncEngAzureSubscription: 'DncEng Insertion: Roslyn and Razor'
             vsBranchName: ${{ parameters.VisualStudioBranchName }}
             titlePrefix: ${{ parameters.OptionalTitlePrefix }}
             sourceBranch: $(ComponentBranchName)
