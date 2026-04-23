@@ -371,17 +371,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBreakStatement(BoundBreakStatement node)
         {
-            if (node.LabelExpressionOpt != null)
-                _labelsUsed.Add(node.LabelExpressionOpt.Label);
-
+            _labelsUsed.AddIfNotNull(node.LabelExpressionOpt?.Label);
             return base.VisitBreakStatement(node);
         }
 
         public override BoundNode VisitContinueStatement(BoundContinueStatement node)
         {
-            if (node.LabelExpressionOpt != null)
-                _labelsUsed.Add(node.LabelExpressionOpt.Label);
-
+            _labelsUsed.AddIfNotNull(node.LabelExpressionOpt?.Label);
             return base.VisitContinueStatement(node);
         }
 
