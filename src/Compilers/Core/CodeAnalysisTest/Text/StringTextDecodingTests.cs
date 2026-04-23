@@ -359,14 +359,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void CreateFallbackEncoding_IsNotUtf8()
+        public void CreateFallbackEncoding_IsNotUtf8OnWindows()
         {
-            // CreateFallbackEncoding should return the system's default ANSI code page,
-            // not UTF-8. The fallback is used when a source file without BOM contains bytes
-            // that are not valid UTF-8. If the fallback is UTF-8, those bytes would be decoded
-            // as replacement characters (U+FFFD) instead of the intended code page characters.
             var fallback = EncodedStringText.CreateFallbackEncoding();
-            Assert.NotEqual(Encoding.UTF8.CodePage, fallback.CodePage);
+
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                // On Windows, registering CodePagesEncodingProvider makes GetEncoding(0) return
+                // the real ANSI code page (e.g., 1252) even when the UTF-8 locale setting is enabled.
+                // The fallback is used when a source file without BOM contains bytes that are not
+                // valid UTF-8. If the fallback were UTF-8, those bytes would be decoded as replacement
+                // characters (U+FFFD) instead of the intended code page characters.
+                Assert.NotEqual(Encoding.UTF8.CodePage, fallback.CodePage);
+            }
+            else
+            {
+                // On Linux/macOS there is no ANSI code page, so the fallback is UTF-8.
+                Assert.Equal(Encoding.UTF8.CodePage, fallback.CodePage);
+            }
         }
     }
 }
