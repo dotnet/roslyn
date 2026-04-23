@@ -1928,6 +1928,52 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_DuplicateLabel, "L").WithArguments("L").WithLocation(6, 9));
     }
 
+    // Labels live in their own name space, so a closer local with the same
+    // name as an enclosing label must not prevent break/continue from
+    // resolving the label.
+    [Fact]
+    public void LabelShadowing_LocalWithSameNameAsOuterLabel_Break_ResolvesToLabel()
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    outer: while (true)
+                    {
+                        int outer = 1;
+                        if (outer > 0)
+                            break outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LabelShadowing_LocalWithSameNameAsOuterLabel_Continue_ResolvesToLabel()
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    outer: for (int i = 0; i < 3; i++)
+                    {
+                        for (int j = 0; j < 3; j++)
+                        {
+                            int outer = j;
+                            if (outer == 1)
+                                continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
     #endregion
 
     #region Top-level statements: error cases
