@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // what makes asymmetric chains like `short < int < long` emit verifiable
                 // IL: the inner operator is `int<int` and the temp is also `int`, so the
                 // stack types agree.
-                var innerLink = (BoundBinaryOperator)node.Left;
                 LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
                 locals.Add(tempSym);
                 BoundLocal temp = _factory.Local(tempSym);
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locals: [],
                     sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
                     result: temp);
-                BoundExpression loweredInner = BuildChainLink(innerLink, innerAssign, locals);
+                BoundExpression loweredInner = BuildChainLink((BoundBinaryOperator)node.Left, innerAssign, locals);
 
                 // Build the outer link's LEFT operand by applying the outer's stored
                 // LeftConversion to the temp. Without this wrapper the outer operator would
