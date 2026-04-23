@@ -12887,36 +12887,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.Right);
                 TypeWithState rightType = ResultType;
 
-                // For a chained relational outer node, `leftType` captured above is the
-                // inner link's bool result, not Y's TypeWithState as classical binary ops
-                // receive. That would matter for user-defined-operator nullability
-                // attribute propagation (e.g. [NotNullIfNotNull]) - EXCEPT that spec
-                // §11.11.13 rule 2(b) requires the chained outer operator to return bool,
-                // and bool is never nullable. So any attribute-driven inference resolves
-                // to NotNull bool regardless of what leftType says. See
-                // UserDefinedChainedRelational_ReturnStateIsAlwaysNotNullBool for the
-                // documented invariant test.
+                // For a chained outer node `leftType` is the inner link's bool result rather
+                // than Y's TypeWithState, which would normally matter for user-defined
+                // operator nullability attribute propagation (e.g. [NotNullIfNotNull]).
+                // Safe here because spec §11.11.13 rule 2(b) requires a chained outer
+                // operator to return bool, which is never nullable - attribute-driven
+                // inference always resolves to NotNull bool. See
+                // UserDefinedChainedRelational_ReturnStateIsAlwaysNotNullBool.
                 SetResultType(node, InferResultNullability(node.OperatorKind, node.BinaryOperatorMethod, node.Type, leftType, rightType));
 
-                if (chainedY is not null && node.OperatorKind.IsLifted())
+                if (isChainedRelational && node.OperatorKind.IsLifted())
                 {
-                    // Chained lifted relational comparison (spec §11.11.13 + §11.4.8): the
-                    // outer link's semantics are `Y op B` where Y is the shared middle
-                    // operand (`chainedY` from IsChainedRelational above), not `inner op B`.
-                    // A lifted relational returns true iff neither operand was null, so we
-                    // refine both Y and node.Right to non-null in the chain's when-true
-                    // branch - the same refinement ReinferAndVisitBinaryOperator applies
-                    // for the classical non-chained lifted case at lines 5643-5650.
+                    // Chained lifted relational comparison (spec §11.11.13 + §11.4.8): a
+                    // lifted `<`/`<=`/`>`/`>=` returns true iff neither operand was null,
+                    // so refine both Y (= chainedY) and node.Right to non-null in the
+                    // chain's when-true branch - the same rule as classical lifted
+                    // relational in ReinferAndVisitBinaryOperator.
                     //
-                    // We compose AbstractFlowPass.ComputeBinaryLogicalRightChildConditionalState
-                    // (the phase-one half of AfterRightChildOfBinaryLogicalOperatorHasBeenVisited)
-                    // to get the (resultTrue, resultFalse) pair, inject the non-null
-                    // refinement into resultTrue via LearnFromNonNullTest (which is purely
-                    // slot-based and placeholder-safe, not a Visit), then install the
-                    // conditional state. We deliberately skip the final Unsplit that the
-                    // stock helper does for !isBool because it would flatten the refinement
-                    // away. The shape of the final state (split, when-true refined) matches
-                    // classical lifted relational + SplitAndLearnFromNonNullTest.
+                    // Compose ComputeBinaryLogicalRightChildConditionalState (the phase-one
+                    // half of AfterRightChildOfBinaryLogicalOperatorHasBeenVisited), inject
+                    // the non-null refinement via LearnFromNonNullTest (purely slot-based,
+                    // not a Visit), install the conditional state, and deliberately skip
+                    // the trailing Unsplit that the stock helper does for !isBool - that
+                    // Unsplit would flatten the refinement away.
                     ComputeBinaryLogicalRightChildConditionalState(
                         node.Right, isAnd: true, isBool: false,
                         ref leftTrue, ref leftFalse,
@@ -12926,7 +12919,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LearnFromNonNullTest(node.Right, ref resultTrue);
 
                     SetConditionalState(resultTrue, resultFalse);
-                    // Deliberately no final Unsplit - see doc comment above.
                 }
                 else
                 {
