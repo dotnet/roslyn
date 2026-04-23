@@ -4300,6 +4300,7 @@ public sealed partial class WithElementSyntax : CollectionElementSyntax
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitWithElement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitWithElement(this);
 
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/82210")]
     public WithElementSyntax Update(SyntaxToken withKeyword, ArgumentListSyntax argumentList)
     {
         if (withKeyword != this.WithKeyword || argumentList != this.ArgumentList)
@@ -7163,6 +7164,7 @@ public sealed partial class GotoStatementSyntax : StatementSyntax
 public sealed partial class BreakStatementSyntax : StatementSyntax
 {
     private SyntaxNode? attributeLists;
+    private IdentifierNameSyntax? name;
 
     internal BreakStatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
       : base(green, parent, position)
@@ -7173,20 +7175,36 @@ public sealed partial class BreakStatementSyntax : StatementSyntax
 
     public SyntaxToken BreakKeyword => new SyntaxToken(this, ((InternalSyntax.BreakStatementSyntax)this.Green).breakKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
+    public IdentifierNameSyntax? Name => GetRed(ref this.name, 2);
 
-    internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
+    public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.BreakStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
-    internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.attributeLists : null;
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            0 => GetRedAtZero(ref this.attributeLists)!,
+            2 => GetRed(ref this.name, 2),
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            0 => this.attributeLists,
+            2 => this.name,
+            _ => null,
+        };
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitBreakStatement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitBreakStatement(this);
 
-    public BreakStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, SyntaxToken semicolonToken)
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
+    public BreakStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken breakKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
-        if (attributeLists != this.AttributeLists || breakKeyword != this.BreakKeyword || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || breakKeyword != this.BreakKeyword || name != this.Name || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.BreakStatement(attributeLists, breakKeyword, semicolonToken);
+            var newNode = SyntaxFactory.BreakStatement(attributeLists, breakKeyword, name, semicolonToken);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -7195,9 +7213,11 @@ public sealed partial class BreakStatementSyntax : StatementSyntax
     }
 
     internal override StatementSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-    public new BreakStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.BreakKeyword, this.SemicolonToken);
-    public BreakStatementSyntax WithBreakKeyword(SyntaxToken breakKeyword) => Update(this.AttributeLists, breakKeyword, this.SemicolonToken);
-    public BreakStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.BreakKeyword, semicolonToken);
+    public new BreakStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.BreakKeyword, this.Name, this.SemicolonToken);
+    public BreakStatementSyntax WithBreakKeyword(SyntaxToken breakKeyword) => Update(this.AttributeLists, breakKeyword, this.Name, this.SemicolonToken);
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
+    public BreakStatementSyntax WithName(IdentifierNameSyntax? name) => Update(this.AttributeLists, this.BreakKeyword, name, this.SemicolonToken);
+    public BreakStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.BreakKeyword, this.Name, semicolonToken);
 
     internal override StatementSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
     public new BreakStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));
@@ -7212,6 +7232,7 @@ public sealed partial class BreakStatementSyntax : StatementSyntax
 public sealed partial class ContinueStatementSyntax : StatementSyntax
 {
     private SyntaxNode? attributeLists;
+    private IdentifierNameSyntax? name;
 
     internal ContinueStatementSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
       : base(green, parent, position)
@@ -7222,20 +7243,36 @@ public sealed partial class ContinueStatementSyntax : StatementSyntax
 
     public SyntaxToken ContinueKeyword => new SyntaxToken(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).continueKeyword, GetChildPosition(1), GetChildIndex(1));
 
-    public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, GetChildPosition(2), GetChildIndex(2));
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
+    public IdentifierNameSyntax? Name => GetRed(ref this.name, 2);
 
-    internal override SyntaxNode? GetNodeSlot(int index) => index == 0 ? GetRedAtZero(ref this.attributeLists)! : null;
+    public SyntaxToken SemicolonToken => new SyntaxToken(this, ((InternalSyntax.ContinueStatementSyntax)this.Green).semicolonToken, GetChildPosition(3), GetChildIndex(3));
 
-    internal override SyntaxNode? GetCachedSlot(int index) => index == 0 ? this.attributeLists : null;
+    internal override SyntaxNode? GetNodeSlot(int index)
+        => index switch
+        {
+            0 => GetRedAtZero(ref this.attributeLists)!,
+            2 => GetRed(ref this.name, 2),
+            _ => null,
+        };
+
+    internal override SyntaxNode? GetCachedSlot(int index)
+        => index switch
+        {
+            0 => this.attributeLists,
+            2 => this.name,
+            _ => null,
+        };
 
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitContinueStatement(this);
     public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitContinueStatement(this);
 
-    public ContinueStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, SyntaxToken semicolonToken)
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
+    public ContinueStatementSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxToken continueKeyword, IdentifierNameSyntax? name, SyntaxToken semicolonToken)
     {
-        if (attributeLists != this.AttributeLists || continueKeyword != this.ContinueKeyword || semicolonToken != this.SemicolonToken)
+        if (attributeLists != this.AttributeLists || continueKeyword != this.ContinueKeyword || name != this.Name || semicolonToken != this.SemicolonToken)
         {
-            var newNode = SyntaxFactory.ContinueStatement(attributeLists, continueKeyword, semicolonToken);
+            var newNode = SyntaxFactory.ContinueStatement(attributeLists, continueKeyword, name, semicolonToken);
             var annotations = GetAnnotations();
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
@@ -7244,9 +7281,11 @@ public sealed partial class ContinueStatementSyntax : StatementSyntax
     }
 
     internal override StatementSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-    public new ContinueStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.ContinueKeyword, this.SemicolonToken);
-    public ContinueStatementSyntax WithContinueKeyword(SyntaxToken continueKeyword) => Update(this.AttributeLists, continueKeyword, this.SemicolonToken);
-    public ContinueStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.ContinueKeyword, semicolonToken);
+    public new ContinueStatementSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.ContinueKeyword, this.Name, this.SemicolonToken);
+    public ContinueStatementSyntax WithContinueKeyword(SyntaxToken continueKeyword) => Update(this.AttributeLists, continueKeyword, this.Name, this.SemicolonToken);
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83266")]
+    public ContinueStatementSyntax WithName(IdentifierNameSyntax? name) => Update(this.AttributeLists, this.ContinueKeyword, name, this.SemicolonToken);
+    public ContinueStatementSyntax WithSemicolonToken(SyntaxToken semicolonToken) => Update(this.AttributeLists, this.ContinueKeyword, this.Name, semicolonToken);
 
     internal override StatementSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
     public new ContinueStatementSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));

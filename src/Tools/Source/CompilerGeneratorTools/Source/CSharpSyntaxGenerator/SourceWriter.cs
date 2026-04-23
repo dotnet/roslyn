@@ -44,6 +44,12 @@ namespace CSharpSyntaxGenerator
                 return node.ExperimentalUrl;
             }
 
+            var fieldUrl = GetFieldExperimentalUrl(node);
+            if (fieldUrl != null)
+            {
+                return fieldUrl;
+            }
+
             if (node.Kinds.Count <= 1)
             {
                 return null;
@@ -63,6 +69,21 @@ namespace CSharpSyntaxGenerator
             // We use this to flag the transitional factory shape introduced when adding a new
             // syntax kind, while avoiding broad experimental annotation of long-standing APIs.
             return experimentalKindCount == node.Kinds.Count - 1 ? experimentalUrl : null;
+        }
+
+        // If a field is marked as experimental, then any factory or Update method that lets
+        // you set it is also considered experimental
+        private static string GetFieldExperimentalUrl(Node node)
+        {
+            foreach (var field in node.Fields)
+            {
+                if (!string.IsNullOrEmpty(field.ExperimentalUrl))
+                {
+                    return field.ExperimentalUrl;
+                }
+            }
+
+            return null;
         }
 
         private void WriteFileHeader()
@@ -1144,6 +1165,7 @@ namespace CSharpSyntaxGenerator
         private void WriteRedUpdateMethod(Node node)
         {
             WriteLine();
+            WriteExperimentalIfNeeded(node.ExperimentalUrl ?? GetFieldExperimentalUrl(node));
             Write($"public {node.Name} Update(");
             Write(CommaJoin(
                 node.Fields.Select(f => $"{GetRedPropertyType(f)} {CamelCase(f.Name)}")));
