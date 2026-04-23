@@ -1862,6 +1862,31 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void ExpressionTree_AsyncLambda_WithAwaitQuestion_IsRejected()
+    {
+        // `async`-lambda-to-expression-tree conversion is already illegal; `await?` in the
+        // body doesn't change the outcome but is worth pinning so a parser/binder
+        // regression that accidentally let it through would be caught here.
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+            using System.Threading.Tasks;
+            public class C
+            {
+                public void M(Task<int> t)
+                {
+                    Expression<Func<Task<int?>>> e = async () => await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (8,42): error CS1989: Async lambda expressions cannot be converted to expression trees
+            //         Expression<Func<Task<int?>>> e = async () => await? t;
+            Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async () => await? t").WithLocation(8, 42));
+    }
+
+    [Fact]
     public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
     {
         // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
