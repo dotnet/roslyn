@@ -25,6 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(method is ErrorMethodSymbol or { ParameterCount: 2 });
                 }
             }
+            else
+            {
+                // No method stored => operator must not be user-defined (intrinsic, or
+                // dynamic handled by the runtime binder). For chained relational comparison
+                // specifically, this means the outer link's LeftType is recoverable from
+                // OperatorKind alone - not needed today because we store the converted type,
+                // but a useful invariant to pin regardless.
+                Debug.Assert(!OperatorKind.IsUserDefined());
+            }
         }
 
         internal class UncommonData

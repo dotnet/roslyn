@@ -12896,7 +12896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // UserDefinedChainedRelational_ReturnStateIsAlwaysNotNullBool.
                 SetResultType(node, InferResultNullability(node.OperatorKind, node.BinaryOperatorMethod, node.Type, leftType, rightType));
 
-                if (isChainedRelational && node.OperatorKind.IsLifted())
+                if (chainedY is not null && node.OperatorKind.IsLifted())
                 {
                     // Chained lifted relational comparison (spec §11.11.13 + §11.4.8): a
                     // lifted `<`/`<=`/`>`/`>=` returns true iff neither operand was null,
