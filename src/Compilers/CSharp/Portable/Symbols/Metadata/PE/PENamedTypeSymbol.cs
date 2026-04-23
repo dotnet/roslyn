@@ -1250,7 +1250,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 catch (BadImageFormatException)
                 {
-                    // PROTOTYPE(cc): Perhaps we should mark the type as having import errors somehow.
+                    // PROTOTYPE(cc): It seems like we don't know what the candidate subtypes are in this case,
+                    // so, perhaps we should not allow exhausting the type via its subtypes.
                 }
 
                 return subtypeDefinitionsBuilder.ToImmutableAndFree();

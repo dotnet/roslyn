@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -21,11 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(closedClass is NamedTypeSymbol { IsClosed: true });
                 _closedClass = closedClass;
             }
+
             internal static void ExpandClosedSubtypes(TypeSymbol possibleClosedClass, ArrayBuilder<TypeSymbol> builder)
             {
-                // PROTOTYPE(cc): We should not require non-empty 'ClosedSubtypes' here.
-                // i.e. a closed class with no subtypes, should probably expand into an empty type set.
-                // However, if we produce an empty type set as a result, we fail the assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp().tryHandleTypeUnionLimits()'.
+                // PROTOTYPE(cc): A closed class with no subtypes, should probably expand into an empty type set.
+                // However, if we produce an empty type set as a result, we fail the non-empty assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp().tryHandleTypeUnionLimits()'.
                 if (possibleClosedClass is not NamedTypeSymbol { IsClosed: true, ClosedSubtypes: [_, ..] subtypes })
                 {
                     builder.Add(possibleClosedClass);

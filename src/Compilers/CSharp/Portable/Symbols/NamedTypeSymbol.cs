@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // PROTOTYPE(cc): We should probably check the constraints of the 'unifiedSubtype'.
                             // However, when considering the validity of the 'unifiedSubtype' containing type parameters,
                             // we don't want to know the typical answer of: are the constraints "always" satisfied.
-                            // Instead we want to know: could any possible type argument satisfy the constraints.
+                            // Instead we want to know: could any possible type argument satisfy the constraints of both 'this' and 'unifiedSubtype'.
                             resultBuilder.Add(unifiedSubtype);
                         }
                     }

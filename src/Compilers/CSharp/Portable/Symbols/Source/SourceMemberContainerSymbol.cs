@@ -375,8 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (mods & DeclarationModifiers.Closed) != 0 &&
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
             {
-                // PROTOTYPE(cc): Should the abstract modifier be permitted?
-                // It seems like permitting it could give an impression that it is making a difference.
+                // PROTOTYPE(cc): It is an error to explicitly use an abstract modifier on a closed class.
                 diagnostics.Add(ErrorCode.ERR_ClosedSealedStatic, GetFirstLocation(), this);
             }
 
