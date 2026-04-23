@@ -69,9 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // hands us), NOT the outer link's wider LeftType. That invariant is what makes
             // asymmetric chains like `short < int < long` emit verifiable IL - the inner
             // operator sees `int<int` on an `int` temp, so stack types agree.
-            var tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
-            locals.Add(tempSym);
-            var temp = _factory.Local(tempSym);
+            locals.Add(_factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax));
+            var temp = _factory.Local(locals.Last());
 
             // Lower this level to `loweredInner && (temp_conv op thisRight)`, where:
             //
