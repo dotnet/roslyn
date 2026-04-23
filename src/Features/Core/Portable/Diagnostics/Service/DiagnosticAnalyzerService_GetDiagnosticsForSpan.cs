@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +14,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
@@ -59,19 +56,19 @@ internal sealed partial class DiagnosticAnalyzerService
         // We log performance info when we are computing diagnostics for a span
         var logPerformanceInfo = range.HasValue;
 
-        // If we are computing full document diagnostics, we will attempt to perform incremental
-        // member edit analysis. This analysis is currently only enabled with LSP pull diagnostics.
-        var incrementalAnalysis = range is null && document is Document { SupportsSyntaxTree: true };
-
         var (syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers) = await GetAllAnalyzersAsync().ConfigureAwait(false);
-        syntaxAnalyzers = await FilterAnalyzersAsync(syntaxAnalyzers, AnalysisKind.Syntax, range).ConfigureAwait(false);
-        semanticSpanAnalyzers = await FilterAnalyzersAsync(semanticSpanAnalyzers, AnalysisKind.Semantic, range).ConfigureAwait(false);
-        semanticDocumentAnalyzers = await FilterAnalyzersAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null).ConfigureAwait(false);
+
+        // De-prioritize expensive semantic analyzers for span-based requests (e.g., lightbulb).
+        // When range is null (full-document), de-prioritization doesn't apply.
+        if (range.HasValue)
+        {
+            semanticSpanAnalyzers = await FilterAnalyzersAsync(semanticSpanAnalyzers, AnalysisKind.Semantic).ConfigureAwait(false);
+            semanticDocumentAnalyzers = await FilterAnalyzersAsync(semanticDocumentAnalyzers, AnalysisKind.Semantic).ConfigureAwait(false);
+        }
 
         var allDiagnostics = await this.ComputeDiagnosticsInProcessAsync(
             document, range, analyzers, syntaxAnalyzers, semanticSpanAnalyzers, semanticDocumentAnalyzers,
-            incrementalAnalysis, logPerformanceInfo,
-            cancellationToken).ConfigureAwait(false);
+            logPerformanceInfo, cancellationToken).ConfigureAwait(false);
         return allDiagnostics.WhereAsArray(ShouldInclude);
 
         async ValueTask<(
@@ -83,11 +80,9 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var syntaxAnalyzers);
 
-                // If we are performing incremental member edit analysis to compute diagnostics incrementally,
-                // we divide the analyzers into those that support span-based incremental analysis and
-                // those that do not support incremental analysis and must be executed for the entire document.
-                // Otherwise, if we are not performing incremental analysis, all semantic analyzers are added
-                // to the span-based analyzer set as we want to compute diagnostics only for the given span.
+                // Divide semantic analyzers into those that support span-based analysis and those
+                // that require full-document analysis. Both sets will be merged into a single pass
+                // in ComputeDiagnosticsInProcessAsync to avoid redundant compilation forks.
                 using var _2 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticSpanBasedAnalyzers);
                 using var _3 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(out var semanticDocumentBasedAnalyzers);
 
@@ -122,16 +117,8 @@ internal sealed partial class DiagnosticAnalyzerService
 
                         if (includeSemantic)
                         {
-                            if (!incrementalAnalysis)
+                            if (analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis())
                             {
-                                // For non-incremental analysis, we always attempt to compute all
-                                // analyzer diagnostics for the requested span.
-                                semanticSpanBasedAnalyzers.Add(analyzer);
-                            }
-                            else if (analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis())
-                            {
-                                // We can perform incremental analysis only for analyzers that support
-                                // span-based semantic diagnostic analysis.
                                 semanticSpanBasedAnalyzers.Add(analyzer);
                             }
                             else
@@ -219,8 +206,7 @@ internal sealed partial class DiagnosticAnalyzerService
 
         async Task<ImmutableArray<DiagnosticAnalyzer>> FilterAnalyzersAsync(
             ImmutableArray<DiagnosticAnalyzer> analyzers,
-            AnalysisKind kind,
-            TextSpan? span)
+            AnalysisKind kind)
         {
             using var _1 = ArrayBuilder<DiagnosticAnalyzer>.GetInstance(analyzers.Length, out var filteredAnalyzers);
 
@@ -229,7 +215,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 // Check if this is an expensive analyzer that needs to be de-prioritized to a lower priority bucket.
                 // If so, we skip this analyzer from execution in the current priority bucket.
                 // We will subsequently execute this analyzer in the lower priority bucket.
-                if (await ShouldDeprioritizeAnalyzerAsync(analyzer, kind, span).ConfigureAwait(false))
+                if (await ShouldDeprioritizeAnalyzerAsync(analyzer, kind).ConfigureAwait(false))
                     continue;
 
                 filteredAnalyzers.Add(analyzer);
@@ -239,7 +225,7 @@ internal sealed partial class DiagnosticAnalyzerService
         }
 
         async ValueTask<bool> ShouldDeprioritizeAnalyzerAsync(
-            DiagnosticAnalyzer analyzer, AnalysisKind kind, TextSpan? span)
+            DiagnosticAnalyzer analyzer, AnalysisKind kind)
         {
             // PERF: In order to improve lightbulb performance, we perform de-prioritization optimization for certain analyzers
             // that moves the analyzer to a lower priority bucket. However, to ensure that de-prioritization happens for very rare cases,
@@ -251,7 +237,6 @@ internal sealed partial class DiagnosticAnalyzerService
 
             // Conditions 1. and 2.
             if (kind != AnalysisKind.Semantic ||
-                !span.HasValue ||
                 priority != CodeActionRequestPriority.Default)
             {
                 return false;
@@ -281,7 +266,6 @@ internal sealed partial class DiagnosticAnalyzerService
         ImmutableArray<DiagnosticAnalyzer> syntaxAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> semanticSpanAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> semanticDocumentAnalyzers,
-        bool incrementalAnalysis,
         bool logPerformanceInfo,
         CancellationToken cancellationToken)
     {
@@ -294,9 +278,31 @@ internal sealed partial class DiagnosticAnalyzerService
 
         using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var list);
 
-        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, syntaxAnalyzers, AnalysisKind.Syntax, range, incrementalAnalysis: false, list, cancellationToken).ConfigureAwait(false);
-        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticSpanAnalyzers, AnalysisKind.Semantic, range, incrementalAnalysis, list, cancellationToken).ConfigureAwait(false);
-        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticDocumentAnalyzers, AnalysisKind.Semantic, span: null, incrementalAnalysis: false, list, cancellationToken).ConfigureAwait(false);
+        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, syntaxAnalyzers, AnalysisKind.Syntax, range, list, cancellationToken).ConfigureAwait(false);
+
+        // The compiler analyzer has its own member-scoped fast path inside DocumentAnalysisExecutor
+        // (GetAdjustedSpanForCompilerAnalyzerAsync), which narrows the span to enclosing member
+        // boundaries for cheaper SemanticModel.GetDiagnostics. It doesn't use SymbolStart actions,
+        // so it doesn't benefit from full-document expansion. Run it separately with the original
+        // range to preserve that optimization.
+        if (range.HasValue)
+        {
+            var compilerAnalyzer = semanticSpanAnalyzers.FirstOrDefault(a => a.IsCompilerAnalyzer());
+            if (compilerAnalyzer is not null)
+            {
+                semanticSpanAnalyzers = semanticSpanAnalyzers.Remove(compilerAnalyzer);
+                await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, [compilerAnalyzer], AnalysisKind.Semantic, range, list, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        // Merge remaining span-based and document-based semantic analyzers into a single full-document
+        // pass. Running them separately would each create a compilation clone and trigger binding
+        // independently — the dominant cost for semantic analysis.
+        //
+        // Always use span: null even when semanticDocumentAnalyzers is empty —
+        // SymbolStart analyzers in the span set trigger an expansion penalty when given a restricted
+        // span, making a single full-document pass cheaper.
+        await ComputeDocumentDiagnosticsAsync(this, document, compilationWithAnalyzers, logPerformanceInfo, semanticSpanAnalyzers.AddRange(semanticDocumentAnalyzers), AnalysisKind.Semantic, span: null, list, cancellationToken).ConfigureAwait(false);
 
         return list.ToImmutableAndClear();
 
@@ -308,27 +314,16 @@ internal sealed partial class DiagnosticAnalyzerService
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             AnalysisKind kind,
             TextSpan? span,
-            bool incrementalAnalysis,
             ArrayBuilder<DiagnosticData> list,
             CancellationToken cancellationToken)
         {
             if (analyzers.Length == 0)
                 return;
 
-            Debug.Assert(!incrementalAnalysis || kind == AnalysisKind.Semantic);
-            Debug.Assert(!incrementalAnalysis || analyzers.All(analyzer => analyzer.SupportsSpanBasedSemanticDiagnosticAnalysis()));
-
             var analysisScope = new DocumentAnalysisScope(document, span, analyzers, kind);
             var executor = new DocumentAnalysisExecutor(service, analysisScope, compilationWithAnalyzers, logPerformanceInfo);
-            var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
 
-            var computeTask = incrementalAnalysis
-                ? service._incrementalMemberEditAnalyzer.ComputeDiagnosticsInProcessAsync(executor, analyzers, version, cancellationToken)
-                : ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken);
-            var diagnosticsMap = await computeTask.ConfigureAwait(false);
-
-            if (incrementalAnalysis)
-                service._incrementalMemberEditAnalyzer.UpdateDocumentWithCachedDiagnostics((Document)document);
+            var diagnosticsMap = await ComputeDocumentDiagnosticsCoreInProcessAsync(executor, cancellationToken).ConfigureAwait(false);
 
             list.AddRange(diagnosticsMap.SelectMany(kvp => kvp.Value));
         }

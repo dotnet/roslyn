@@ -58,7 +58,6 @@ internal sealed partial class DiagnosticAnalyzerService
     private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly DiagnosticAnalyzerInfoCache _analyzerInfoCache = new();
     private readonly DiagnosticAnalyzerTelemetry _telemetry = new();
-    private readonly IncrementalMemberEditAnalyzer _incrementalMemberEditAnalyzer = new();
 
     /// <summary>
     /// Analyzers supplied by the host (IDE). These are built-in to the IDE, the compiler, or from an installed IDE extension (VSIX). 
