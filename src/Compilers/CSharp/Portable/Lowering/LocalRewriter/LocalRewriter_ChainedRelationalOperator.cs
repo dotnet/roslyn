@@ -104,14 +104,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals.Add(tempSym);
                 BoundLocal temp = _factory.Local(tempSym);
 
-                // Inline-assign idiom `(temp = Y, temp)`: evaluates Y once, stores into temp,
-                // and yields temp as the value of the expression. Used by `?.` lowering too;
-                // see LocalRewriter_ConditionalAccess.cs.
-                BoundExpression innerAssign = _factory.Sequence(
-                    locals: [],
-                    sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
-                    result: temp);
-                BoundExpression loweredInner = BuildChainLink((BoundBinaryOperator)node.Left, innerAssign, locals);
+                // Pass the inline-assign idiom `(temp = Y, temp)` down as the inner link's
+                // right-operand expression: evaluates Y once, stores into temp, and yields
+                // temp as the value of the expression. Used by `?.` lowering too; see
+                // LocalRewriter_ConditionalAccess.cs.
+                BoundExpression loweredInner = BuildChainLink(
+                    (BoundBinaryOperator)node.Left,
+                    _factory.Sequence(
+                        locals: [],
+                        sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
+                        result: temp),
+                    locals);
 
                 // Build the outer link's LEFT operand by applying the outer's stored
                 // LeftConversion to the temp. Without this wrapper the outer operator would
