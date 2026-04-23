@@ -161,10 +161,8 @@ internal sealed class RenamedSpansTracker
 
                 if (replacementTextValid)
                 {
-                    var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-                    document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
-                    document = await Formatter.FormatAsync(document, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                    document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken).ConfigureAwait(false);
+                    document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken).ConfigureAwait(false);
                 }
 
                 // Simplification may have removed escaping and formatted whitespace.  We need to update

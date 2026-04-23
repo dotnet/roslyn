@@ -860,7 +860,7 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
         }
 
         var modifiedDocument = modifiedSolution.GetDocument(documentToModifyId);
-        var formattedDocument = await Formatter.FormatAsync(modifiedDocument, CSharpSyntaxFormattingOptions.Default, CancellationToken.None).ConfigureAwait(false);
+        var formattedDocument = await Formatter.FormatAsync(modifiedDocument, CancellationToken.None).ConfigureAwait(false);
 
         var formattedText = await formattedDocument.GetTextAsync().ConfigureAwait(false);
         Assert.Equal(expectedCode, formattedText.ToString());

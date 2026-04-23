@@ -162,6 +162,9 @@ public static partial class Simplifier
 #pragma warning restore
     }
 
+    internal static async Task<Document> ReduceAsync(Document document, CancellationToken cancellationToken)
+        => await ReduceAsync(document, await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+
     internal static async Task<Document> ReduceAsync(Document document, SimplifierOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -189,6 +192,9 @@ public static partial class Simplifier
         return await ReduceAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(t => t.FullSpan), optionSet, cancellationToken).ConfigureAwait(false);
 #pragma warning restore
     }
+
+    internal static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)
+        => await ReduceAsync(document, annotation, await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
     internal static async Task<Document> ReduceAsync(Document document, SyntaxAnnotation annotation, SimplifierOptions options, CancellationToken cancellationToken)
     {

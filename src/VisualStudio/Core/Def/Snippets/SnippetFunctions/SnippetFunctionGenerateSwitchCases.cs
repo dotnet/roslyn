@@ -55,9 +55,8 @@ internal class SnippetFunctionGenerateSwitchCases : AbstractSnippetFunction
             return (VSConstants.S_OK, snippetFunctionService.SwitchDefaultCaseForm, hasCurrentValue);
         }
 
-        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
-
-        var value = await snippetFunctionService.GetSwitchExpansionAsync(document, caseGenerationSpan.Value, switchExpressionSpan.Value, simplifierOptions, cancellationToken).ConfigureAwait(false);
+        var value = await snippetFunctionService.GetSwitchExpansionAsync(
+            document, caseGenerationSpan.Value, switchExpressionSpan.Value, cancellationToken).ConfigureAwait(false);
         if (value == null)
             return (VSConstants.S_OK, snippetFunctionService.SwitchDefaultCaseForm, hasCurrentValue);
 

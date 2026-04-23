@@ -223,7 +223,7 @@ internal static class ContainedLanguageCodeSupport
         var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
         newRoot = Simplifier.ReduceAsync(
-            targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, options.CleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
+            targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
         newRoot = Formatter.Format(
             newRoot,

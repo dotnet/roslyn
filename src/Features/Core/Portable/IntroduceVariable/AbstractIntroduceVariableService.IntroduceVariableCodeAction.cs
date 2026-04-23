@@ -52,8 +52,7 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             var changedDocument = await GetChangedDocumentCoreAsync(cancellationToken).ConfigureAwait(false);
-            var simplifierOptions = await changedDocument.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await Simplifier.ReduceAsync(changedDocument, simplifierOptions, cancellationToken).ConfigureAwait(false);
+            return await Simplifier.ReduceAsync(changedDocument, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<Document> GetChangedDocumentCoreAsync(CancellationToken cancellationToken)

@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 Dim annotatedDocument = document.WithSyntaxRoot(
                     (Await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(Simplifier.Annotation))
 
-                Dim simplifiedDocument = Await Simplifier.ReduceAsync(annotatedDocument, CSharpSimplifierOptions.Default, CancellationToken.None)
+                Dim simplifiedDocument = Await Simplifier.ReduceAsync(annotatedDocument, CancellationToken.None)
 
                 Assert.Equal(expected, (Await simplifiedDocument.GetTextAsync()).ToString())
             End Using

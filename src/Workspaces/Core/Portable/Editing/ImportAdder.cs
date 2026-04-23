@@ -64,6 +64,9 @@ public static class ImportAdder
         return await service.AddImportsAsync(document, spans, ImportAdderService.Strategy.AddImportsFromSyntaxes, addImportOptions, cancellationToken).ConfigureAwait(false);
     }
 
+    internal static async Task<Document> AddImportsFromSyntaxesAsync(Document document, CancellationToken cancellationToken)
+        => await AddImportsFromSyntaxesAsync(document, await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+
     /// <summary>
     /// Adds namespace imports / using directives for namespace references found in the document.
     /// </summary>
@@ -81,6 +84,9 @@ public static class ImportAdder
     /// </summary>
     internal static Task<Document> AddImportsFromSyntaxesAsync(Document document, IEnumerable<TextSpan> spans, AddImportPlacementOptions options, CancellationToken cancellationToken)
         => document.GetRequiredLanguageService<ImportAdderService>().AddImportsAsync(document, spans, ImportAdderService.Strategy.AddImportsFromSyntaxes, options, cancellationToken);
+
+    internal static async Task<Document> AddImportsFromSymbolAnnotationAsync(Document document, CancellationToken cancellationToken)
+        => await AddImportsFromSymbolAnnotationAsync(document, await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Adds namespace imports / using directives for namespace references found in the document.

@@ -4205,7 +4205,7 @@ End Class</text>.Value)
             Dim newDocument = document.WithSyntaxRoot(
                 (Await document.GetSyntaxRootAsync()).ReplaceNode(propertyBlock, propertyBlock.WithAccessors(SyntaxFactory.SingletonList(setter))))
 
-            document = Await Formatter.FormatAsync(newDocument, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None)
+            document = Await Formatter.FormatAsync(newDocument, CancellationToken.None)
 
             Dim actual = (Await document.GetTextAsync()).ToString()
             Assert.Equal(actual, actual)
