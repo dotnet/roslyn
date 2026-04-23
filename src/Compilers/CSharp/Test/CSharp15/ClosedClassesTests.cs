@@ -570,6 +570,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D1<T>", "D2<T>", "D3<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -585,6 +588,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (2,14): error CS9603: 'D<T>': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             // public class D<T> : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("D<T>", "T", "C").WithLocation(2, 14));
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -594,13 +600,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source1 = """
             public closed class C<T> { }
 
-            public class Outer<T>
+            public class Outer<U>
             {
-                public class D : C<T> { }
+                public class D : C<U> { }
             }
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["Outer<T>.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -620,6 +629,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (5,18): error CS9603: 'Outer<T>.D': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             //     public class D : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<T>.D", "T", "C").WithLocation(5, 18));
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["Outer<T>.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -633,6 +645,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -654,6 +669,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (4,11): error CS9603: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U3' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
             //     class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<U1, U2, U3>.D<U4, U5, U6>", "U3", "C<U1, U2, U4, U6>").WithLocation(4, 11));
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["Outer<T1, T2, U3>.D<T3, U5, T4>"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -672,6 +690,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (5,14): error CS9603: 'F<T>': The type parameter 'T' must be referenced in the base type 'E' because the base type is closed.
             // closed class F<T> : E { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "F").WithArguments("F<T>", "T", "E").WithLocation(5, 14));
+
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("C").ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("D").ClosedSubtypes.ToTestDisplayStrings());
+
+        var classE = comp1.GetMember<NamedTypeSymbol>("E");
+        Assert.Equal(["F<T>"], classE.ClosedSubtypes.ToTestDisplayStrings());
+
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("F").ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -1917,6 +1943,77 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Exhaustiveness_GenericContainingType_01()
+    {
+        var source1 = """
+            public class Container<T>
+            {
+                public closed class C;
+                public class D1 : C;
+            }
+
+            public class D2<U> : Container<U>.C;
+            public class D3 : Container<string>.C;
+            public class D4 : Container<int>.C;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(Container<string>.C c)
+                {
+                    return c switch
+                    {
+                        Container<string>.D1 => 1,
+                        D2<string> => 2,
+                        D3 => 3,
+                    };
+                }
+
+                int M2(Container<int>.C c)
+                {
+                    return c switch
+                    {
+                        Container<int>.D1 => 1,
+                        D2<int> => 2,
+                        D4 => 3,
+                    };
+                }
+
+                int M3<X>(Container<X>.C c)
+                {
+                    return c switch
+                    {
+                        Container<X>.D1 => 1,
+                        D2<X> => 2,
+                        D3 => 3,
+                        D4 => 3,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["D2<T>", "D3", "D4", "Container<T>.D1"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
