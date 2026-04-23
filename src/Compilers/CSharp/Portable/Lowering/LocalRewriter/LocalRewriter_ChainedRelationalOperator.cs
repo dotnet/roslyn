@@ -90,56 +90,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression thisRight,
             ArrayBuilder<LocalSymbol> locals)
         {
-            if (node.IsChainedRelational(out BoundExpression? y))
-            {
-                // `y` is the shared middle operand with only the *inner* link's conversion
-                // applied - `IsChainedRelational`'s out parameter delivers it directly so
-                // we don't re-cast `node.Left` here. The temp holds the value the inner
-                // link's operator consumes directly - critically, its type is Y's
-                // inner-link type, NOT the outer link's wider LeftType. That invariant is
-                // what makes asymmetric chains like `short < int < long` emit verifiable
-                // IL: the inner operator is `int<int` and the temp is also `int`, so the
-                // stack types agree.
-                LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
-                locals.Add(tempSym);
-                BoundLocal temp = _factory.Local(tempSym);
-
-                // Pass the inline-assign idiom `(temp = Y, temp)` down as the inner link's
-                // right-operand expression: evaluates Y once, stores into temp, and yields
-                // temp as the value of the expression. Used by `?.` lowering too; see
-                // LocalRewriter_ConditionalAccess.cs.
-                BoundExpression loweredInner = BuildChainLink(
-                    (BoundBinaryOperator)node.Left,
-                    _factory.Sequence(
-                        locals: [],
-                        sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
-                        result: temp),
-                    locals);
-
-                // Build the outer link's LEFT operand by applying the outer's stored
-                // LeftConversion to the temp. Without this wrapper the outer operator would
-                // see the temp at Y's inner-link type (e.g. `int`) while it expects its
-                // chosen LeftType (e.g. `long` for a widening chain link). MakeConversionNode
-                // already short-circuits Identity conversions (see LocalRewriter_Conversion's
-                // ConversionKind.Identity case), so the common same-type case produces no
-                // extra wrapper and the temp flows through unchanged.
-                return _factory.LogicalAnd(
-                    loweredInner,
-                    buildRelationalLink(MakeConversionNode(
-                        oldNodeOpt: null,
-                        syntax: node.Syntax,
-                        rewrittenOperand: temp,
-                        conversion: node.ChainedRelationalLeftConversion,
-                        @checked: false,
-                        explicitCastInCode: false,
-                        constantValueOpt: null,
-                        rewrittenType: node.ChainedRelationalLeftConvertedType)));
-            }
-
             // Classical (non-chained) base link: emit `lowered(left) op thisRight`. thisRight
             // is the inline-assign expression that the chained node immediately above us
             // supplied, which captures the shared middle operand into the temp allocated there.
-            return buildRelationalLink(VisitExpression(node.Left));
+            if (!node.IsChainedRelational(out BoundExpression? y))
+                return buildRelationalLink(VisitExpression(node.Left));
+
+            // `y` is the shared middle operand with only the *inner* link's conversion
+            // applied - `IsChainedRelational`'s out parameter delivers it directly so
+            // we don't re-cast `node.Left` here. The temp holds the value the inner
+            // link's operator consumes directly - critically, its type is Y's
+            // inner-link type, NOT the outer link's wider LeftType. That invariant is
+            // what makes asymmetric chains like `short < int < long` emit verifiable
+            // IL: the inner operator is `int<int` and the temp is also `int`, so the
+            // stack types agree.
+            LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
+            locals.Add(tempSym);
+            BoundLocal temp = _factory.Local(tempSym);
+
+            // Pass the inline-assign idiom `(temp = Y, temp)` down as the inner link's
+            // right-operand expression: evaluates Y once, stores into temp, and yields
+            // temp as the value of the expression. Used by `?.` lowering too; see
+            // LocalRewriter_ConditionalAccess.cs.
+            BoundExpression loweredInner = BuildChainLink(
+                (BoundBinaryOperator)node.Left,
+                _factory.Sequence(
+                    locals: [],
+                    sideEffects: [_factory.AssignmentExpression(temp, VisitExpression(y))],
+                    result: temp),
+                locals);
+
+            // Build the outer link's LEFT operand by applying the outer's stored
+            // LeftConversion to the temp. Without this wrapper the outer operator would
+            // see the temp at Y's inner-link type (e.g. `int`) while it expects its
+            // chosen LeftType (e.g. `long` for a widening chain link). MakeConversionNode
+            // already short-circuits Identity conversions (see LocalRewriter_Conversion's
+            // ConversionKind.Identity case), so the common same-type case produces no
+            // extra wrapper and the temp flows through unchanged.
+            return _factory.LogicalAnd(
+                loweredInner,
+                buildRelationalLink(MakeConversionNode(
+                    oldNodeOpt: null,
+                    syntax: node.Syntax,
+                    rewrittenOperand: temp,
+                    conversion: node.ChainedRelationalLeftConversion,
+                    @checked: false,
+                    explicitCastInCode: false,
+                    constantValueOpt: null,
+                    rewrittenType: node.ChainedRelationalLeftConvertedType)));
 
             // Build a single relational link `leftOperand op thisRight` templated on node's
             // operator metadata.
