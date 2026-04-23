@@ -2462,8 +2462,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // (e.g. `d`) on the true path and capture `prevY op right`
                     // as the overall result. This link IS node's own outer
                     // operator, so template on node directly.
-                    IOperation visitedRight = VisitRequired(node.RightOperand);
-                    IOperation finalCheck = rebuildNonChainedRelational((BinaryOperation)node, OperationCloner.CloneOperation(prevY), visitedRight);
+                    IOperation finalCheck = rebuildNonChainedRelational(
+                        (BinaryOperation)node,
+                        OperationCloner.CloneOperation(prevY),
+                        VisitRequired(node.RightOperand));
                     AddStatement(new FlowCaptureOperation(resultId, node.Syntax, finalCheck));
                 }
             }
