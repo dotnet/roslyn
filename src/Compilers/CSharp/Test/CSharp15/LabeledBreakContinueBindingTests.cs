@@ -1517,4 +1517,198 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Reachability and definite assignment
+
+    [Fact]
+    public void StatementAfterLabeledBreak_Unreachable()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        break outer;
+                        System.Console.WriteLine("dead");
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): warning CS0162: Unreachable code detected
+            //             System.Console.WriteLine("dead");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void StatementAfterLabeledContinue_Unreachable()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        continue outer;
+                        System.Console.WriteLine("dead");
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (8,13): warning CS0162: Unreachable code detected
+            //             System.Console.WriteLine("dead");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 13));
+    }
+
+    [Fact]
+    public void LabeledBreak_DefinitelyAssignedAfterLoop()
+    {
+        var source = """
+            class C
+            {
+                int M()
+                {
+                    int x;
+                    outer: while (true)
+                    {
+                        while (true)
+                        {
+                            x = 1;
+                            break outer;
+                        }
+                    }
+                    return x;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LabeledBreak_NotDefinitelyAssigned_ReportsCS0165()
+    {
+        var source = """
+            class C
+            {
+                int M(bool b)
+                {
+                    int x;
+                    outer: while (true)
+                    {
+                        if (b)
+                        {
+                            x = 1;
+                            break outer;
+                        }
+                        break outer;
+                    }
+                    return x;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (15,16): error CS0165: Use of unassigned local variable 'x'
+            //         return x;
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 16));
+    }
+
+    [Fact]
+    public void LabeledContinue_PreventsFallthrough_NoDefiniteAssignmentError()
+    {
+        var source = """
+            class C
+            {
+                void M(int[] items, bool b)
+                {
+                    outer: foreach (var item in items)
+                    {
+                        int x;
+                        if (b)
+                        {
+                            x = 1;
+                        }
+                        else
+                        {
+                            continue outer;
+                        }
+                        System.Console.WriteLine(x);
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IntReturningMethod_WithLabeledBreak_NotAllPathsReturn_ReportsCS0161()
+    {
+        var source = """
+            class C
+            {
+                int M()
+                {
+                    outer: while (true)
+                    {
+                        break outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,9): error CS0161: 'C.M()': not all code paths return a value
+            //     int M()
+            Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M()").WithLocation(3, 9));
+    }
+
+    [Fact]
+    public void IntReturningMethod_InfiniteLoopNoLabeledBreak_NoError()
+    {
+        var source = """
+            class C
+            {
+                int M()
+                {
+                    outer: while (true)
+                    {
+                        continue outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LabeledBreak_ExitsTryFinally_CodeAfterLoop_Reachable()
+    {
+        var source = """
+            class C
+            {
+                int M()
+                {
+                    int x;
+                    outer: while (true)
+                    {
+                        try
+                        {
+                            x = 1;
+                            break outer;
+                        }
+                        finally
+                        {
+                            System.Console.WriteLine("cleanup");
+                        }
+                    }
+                    return x;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    #endregion
 }
