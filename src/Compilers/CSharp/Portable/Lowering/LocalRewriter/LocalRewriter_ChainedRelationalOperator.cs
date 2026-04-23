@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 internal sealed partial class LocalRewriter
 {
     /// <summary>
-    /// Rewrites a chained relational comparison (<see cref="BoundBinaryOperator.IsChainedRelational"/>)
+    /// Rewrites a chained relational comparison (<see cref="BoundBinaryOperator.IsChainedRelational(out BoundExpression?)"/>)
     /// into a short-circuit <c>&amp;&amp;</c> chain with each shared middle operand hoisted into a
     /// temp evaluated exactly once (spec §11.11.13). For example <c>a op1 b op2 c op3 d</c> lowers to:
     ///
@@ -62,7 +62,7 @@ internal sealed partial class LocalRewriter
     {
         // Base (non-chained) link: thisRight is the inline-assign that captured our
         // caller's shared middle, so the whole link is just `lowered(left) op thisRight`.
-        if (!node.IsChainedRelational(out BoundExpression? y))
+        if (!node.IsChainedRelational(out BoundExpression? y, out Conversion leftConversion, out TypeSymbol? leftConvertedType))
             return buildRelationalLink(VisitExpression(node.Left));
 
         // Critically, the temp's type is Y's *inner-link* type (what IsChainedRelational
@@ -80,11 +80,11 @@ internal sealed partial class LocalRewriter
         //     inner link's operator sees Y at its inner-link type. (Same idiom is used
         //     by `?.` lowering; see LocalRewriter_ConditionalAccess.cs.)
         //
-        //   * The outer link's LEFT operand is the temp wrapped in node's stored
-        //     ChainedRelationalLeftConversion, so the outer operator sees the temp
-        //     widened to ITS chosen LeftType. MakeConversionNode short-circuits Identity
-        //     conversions, so the common same-type case produces no wrapper and the
-        //     temp flows through unchanged.
+        //   * The outer link's LEFT operand is the temp wrapped in the stored
+        //     LeftConversion, so the outer operator sees the temp widened to ITS chosen
+        //     LeftType. MakeConversionNode short-circuits Identity conversions, so the
+        //     common same-type case produces no wrapper and the temp flows through
+        //     unchanged.
         return _factory.LogicalAnd(
             BuildChainLink(
                 (BoundBinaryOperator)node.Left,
@@ -97,11 +97,11 @@ internal sealed partial class LocalRewriter
                 oldNodeOpt: null,
                 syntax: node.Syntax,
                 rewrittenOperand: temp,
-                conversion: node.ChainedRelationalLeftConversion,
+                conversion: leftConversion,
                 @checked: false,
                 explicitCastInCode: false,
                 constantValueOpt: null,
-                rewrittenType: node.ChainedRelationalLeftConvertedType)));
+                rewrittenType: leftConvertedType)));
 
         // Build a single relational link `leftOperand op thisRight` from node's operator
         // metadata. oldNode: null because rewritten links carry a temp-assign side effect

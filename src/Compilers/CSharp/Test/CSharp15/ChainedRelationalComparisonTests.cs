@@ -618,6 +618,251 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
             .VerifyDiagnostics();
     }
 
+    [Fact]
+    public void Chain_UserDefinedOperatorWithNullableParameters_Works()
+    {
+        // Operators declared directly on `S?` - not auto-lifted - chain must bind.
+        var src = """
+            using System;
+
+            struct S
+            {
+                public int V;
+                public S(int v) => V = v;
+                public static bool operator <(S? a, S? b) => a.HasValue && b.HasValue && a.Value.V < b.Value.V;
+                public static bool operator >(S? a, S? b) => a.HasValue && b.HasValue && a.Value.V > b.Value.V;
+                public static bool operator <=(S? a, S? b) => a.HasValue && b.HasValue && a.Value.V <= b.Value.V;
+                public static bool operator >=(S? a, S? b) => a.HasValue && b.HasValue && a.Value.V >= b.Value.V;
+            }
+
+            class P
+            {
+                static void Check(S? a, S? b, S? c)
+                    => Console.WriteLine($"chain={(a < b < c)},expand={((a < b) && (b < c))}");
+
+                static void Main()
+                {
+                    Check(new S(0), new S(5), new S(10)); // True,True
+                    Check(new S(0), new S(5), new S(2));  // False,False
+                    Check(null, new S(5), new S(10));     // False,False
+                    Check(new S(0), null, new S(10));     // False,False
+                    Check(new S(0), new S(5), null);      // False,False
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                chain=True,expand=True
+                chain=False,expand=False
+                chain=False,expand=False
+                chain=False,expand=False
+                chain=False,expand=False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_UserDefinedOperatorMixedParameters_NonNullableAndNullable_Works()
+    {
+        // Asymmetric operator signatures mixing `S` and `S?` parameters.
+        var src = """
+            using System;
+
+            struct S
+            {
+                public int V;
+                public S(int v) => V = v;
+
+                public static bool operator <(S a, S b) => a.V < b.V;
+                public static bool operator >(S a, S b) => a.V > b.V;
+                public static bool operator <(S a, S? b) => b.HasValue && a.V < b.Value.V;
+                public static bool operator >(S a, S? b) => b.HasValue && a.V > b.Value.V;
+                public static bool operator <(S? a, S b) => a.HasValue && a.Value.V < b.V;
+                public static bool operator >(S? a, S b) => a.HasValue && a.Value.V > b.V;
+            }
+
+            class P
+            {
+                static void Main()
+                {
+                    Console.WriteLine(new S(0) < new S(5) < new S(10));
+                    Console.WriteLine(new S(0) < new S(5) < new S(2));
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                True
+                False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Chain_HeterogeneousStructTypes_AllNullabilityCombos(bool aN, bool bN, bool cN)
+    {
+        // Chain across three distinct structs via cross-type operators `(S,T)` and `(T,U)`,
+        // independently varying the nullability of each slot. Any mix binds via implicit
+        // S->S? conversions + auto-lifted user-defined operators; chain result must agree
+        // with the hand-expanded `&&` form.
+        string sN = aN ? "?" : "", tN = bN ? "?" : "", uN = cN ? "?" : "";
+        var src = $$"""
+            using System;
+
+            struct S
+            {
+                public int V;
+                public S(int v) => V = v;
+                public static bool operator <(S a, T b) => a.V < b.V;
+                public static bool operator >(S a, T b) => a.V > b.V;
+            }
+            struct T
+            {
+                public int V;
+                public T(int v) => V = v;
+                public static bool operator <(T a, U b) => a.V < b.V;
+                public static bool operator >(T a, U b) => a.V > b.V;
+            }
+            struct U
+            {
+                public int V;
+                public U(int v) => V = v;
+            }
+
+            class P
+            {
+                static bool Chain(S{{sN}} a, T{{tN}} b, U{{uN}} c) => a < b < c;
+                static bool Expand(S{{sN}} a, T{{tN}} b, U{{uN}} c) => (a < b) && (b < c);
+
+                static void Check(S{{sN}} a, T{{tN}} b, U{{uN}} c)
+                    => Console.WriteLine($"chain={Chain(a, b, c)},expand={Expand(a, b, c)}");
+
+                static void Main()
+                {
+                    Check(new S(0), new T(5), new U(10));   // ordered: chain true
+                    Check(new S(10), new T(5), new U(100)); // inner fails
+                    Check(new S(0), new T(5), new U(2));    // outer fails
+                }
+            }
+            """;
+
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                chain=True,expand=True
+                chain=False,expand=False
+                chain=False,expand=False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_HeterogeneousStructTypes_LiftedNullOperands_AreFalse()
+    {
+        // Null in any slot of an auto-lifted heterogeneous chain folds to false.
+        var src = """
+            using System;
+
+            struct S
+            {
+                public int V;
+                public S(int v) => V = v;
+                public static bool operator <(S a, T b) => a.V < b.V;
+                public static bool operator >(S a, T b) => a.V > b.V;
+            }
+            struct T
+            {
+                public int V;
+                public T(int v) => V = v;
+                public static bool operator <(T a, U b) => a.V < b.V;
+                public static bool operator >(T a, U b) => a.V > b.V;
+            }
+            struct U
+            {
+                public int V;
+                public U(int v) => V = v;
+            }
+
+            class P
+            {
+                static void Check(S? a, T? b, U? c)
+                    => Console.WriteLine($"chain={(a < b < c)},expand={((a < b) && (b < c))}");
+
+                static void Main()
+                {
+                    Check(null, new T(5), new U(10));      // null in left slot
+                    Check(new S(0), null, new U(10));      // null in middle slot
+                    Check(new S(0), new T(5), null);       // null in right slot
+                    Check(null, null, null);               // all null
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                chain=False,expand=False
+                chain=False,expand=False
+                chain=False,expand=False
+                chain=False,expand=False
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_UserDefinedOperatorAutoLifted_NullableOperands_Works()
+    {
+        // Concrete `struct S` with `operator<(S, S)` auto-lifted for `S?` operands.
+        var src = """
+            using System;
+
+            struct S
+            {
+                public int V;
+                public S(int v) => V = v;
+                public static bool operator <(S a, S b) => a.V < b.V;
+                public static bool operator >(S a, S b) => a.V > b.V;
+                public static bool operator <=(S a, S b) => a.V <= b.V;
+                public static bool operator >=(S a, S b) => a.V >= b.V;
+                public static bool operator ==(S a, S b) => a.V == b.V;
+                public static bool operator !=(S a, S b) => a.V != b.V;
+                public override bool Equals(object o) => o is S s && s.V == V;
+                public override int GetHashCode() => V;
+            }
+
+            class P
+            {
+                static bool Chain(S? a, S? b, S? c) => a < b < c;
+                static bool Expand(S? a, S? b, S? c) => (a < b) && (b < c);
+
+                static void Check(S? a, S? b, S? c)
+                    => Console.WriteLine($"chain={Chain(a, b, c)},expand={Expand(a, b, c)}");
+
+                static void Main()
+                {
+                    Check(new S(0), new S(5), new S(10));   // True,True
+                    Check(new S(0), new S(5), new S(2));    // False,False (5 < 2 fails)
+                    Check(new S(10), new S(5), new S(100)); // False,False (10 < 5 fails)
+                    Check(null, new S(5), new S(10));       // False,False (null < anything is false for lifted)
+                    Check(new S(0), null, new S(10));       // False,False
+                    Check(new S(0), new S(5), null);        // False,False
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                chain=True,expand=True
+                chain=False,expand=False
+                chain=False,expand=False
+                chain=False,expand=False
+                chain=False,expand=False
+                chain=False,expand=False
+                """)
+            .VerifyDiagnostics();
+    }
+
     #endregion
 
     #region Numeric type domains (float, double, decimal, enum)
