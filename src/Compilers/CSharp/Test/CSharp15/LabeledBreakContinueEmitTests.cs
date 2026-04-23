@@ -710,6 +710,50 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
 
     #endregion
 
+    #region Label name vs local name
+
+    [Fact]
+    public void Break_LocalWithSameNameAsOuterLabel_ResolvesToLabel()
+    {
+        var source = """
+            int sum = 0;
+            outer: for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    int outer = i * 3 + j;
+                    sum += outer;
+                    if (outer == 4)
+                        break outer;
+                }
+            }
+            System.Console.Write($"sum={sum}");
+            """;
+        CompileAndVerify(source, expectedOutput: "sum=10");
+    }
+
+    [Fact]
+    public void Continue_LocalWithSameNameAsOuterLabel_ResolvesToLabel()
+    {
+        var source = """
+            var seen = "";
+            outer: for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    int outer = i;
+                    if (outer == 1)
+                        continue outer;
+                    seen += $"{i}{j} ";
+                }
+            }
+            System.Console.Write(seen);
+            """;
+        CompileAndVerify(source, expectedOutput: "00 01 20 21 ");
+    }
+
+    #endregion
+
     #region IL verification
 
     [Fact]
