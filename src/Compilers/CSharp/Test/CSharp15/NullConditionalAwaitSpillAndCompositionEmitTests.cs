@@ -562,4 +562,243 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
     }
 
     #endregion
+
+    #region Null-coalescing assignment (??=)
+
+    [Fact]
+    public void CoalesceAssign_ReferenceTarget_LeftNonNull_RightNotEvaluated()
+    {
+        // `x ??= await? t;` — if x is already non-null, the RHS (including `await?`) must
+        // not be evaluated. Use a throwing awaitable as RHS to prove it.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+
+            class ThrowingAwaitable
+            {
+                public ThrowingAwaiter GetAwaiter()
+                    => throw new InvalidOperationException("RHS must not be evaluated when LHS is non-null");
+            }
+            struct ThrowingAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public string GetResult() => null!;
+                public void OnCompleted(Action continuation) { }
+            }
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    string x = "present";
+                    ThrowingAwaitable thrower = new();
+                    x ??= await? thrower;
+                    Console.Write($"x={x};done");
+                }
+            }
+            """;
+        var expected = "x=present;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void CoalesceAssign_ReferenceTarget_LeftNull_RightEvaluated()
+    {
+        // `x ??= await? t;` — if x is null, the RHS is evaluated. Covers both the
+        // non-null-task case (x takes GetResult's value) and the null-task case (x stays
+        // null because the short-circuit produced null).
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    string x1 = null;
+                    x1 ??= await? Task.FromResult("fallback");
+                    Console.Write($"x1={x1};");
+
+                    string x2 = null;
+                    Task<string> nullTask = null;
+                    x2 ??= await? nullTask;
+                    Console.Write($"x2={x2 ?? "null"};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "x1=fallback;x2=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void CoalesceAssign_NullableIntTarget_AwaitQuestionRhs()
+    {
+        // `int? x ??= await? t;` — target is Nullable<int>, `await?` produces int?.
+        // Covers both branches and the null-task case.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    int? x1 = 5;
+                    x1 ??= await? Task.FromResult(9);
+                    Console.Write($"x1={x1};");
+
+                    int? x2 = null;
+                    x2 ??= await? Task.FromResult(9);
+                    Console.Write($"x2={x2};");
+
+                    int? x3 = null;
+                    Task<int> nullTask = null;
+                    x3 ??= await? nullTask;
+                    Console.Write($"x3={x3?.ToString() ?? "null"};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "x1=5;x2=9;x3=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
+    #region Double-await? in null-coalesce / ternary
+
+    [Fact]
+    public void NullCoalesce_BothSidesAreAwaitQuestion_LeftNonNull_RightNotEvaluated()
+    {
+        // `(await? t1) ?? (await? t2)` — if t1 is non-null and GetResult returns non-null,
+        // the RHS (including t2's `await?`) must not be evaluated. Throwing awaitable on
+        // the right proves it.
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+
+            class ThrowingAwaitable
+            {
+                public ThrowingAwaiter GetAwaiter()
+                    => throw new InvalidOperationException("right operand must not evaluate");
+            }
+            struct ThrowingAwaiter : INotifyCompletion
+            {
+                public bool IsCompleted => true;
+                public string GetResult() => null!;
+                public void OnCompleted(Action continuation) { }
+            }
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<string> t1 = Task.FromResult("left");
+                    ThrowingAwaitable right = new();
+                    string v = (await? t1) ?? (await? right);
+                    Console.Write($"v={v};done");
+                }
+            }
+            """;
+        var expected = "v=left;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void NullCoalesce_BothSidesAreAwaitQuestion_LeftNull_RightEvaluated()
+    {
+        // Same shape; both sides run when the left short-circuits to null.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<string> t1 = null;
+                    Task<string> t2 = Task.FromResult("right");
+                    string v = (await? t1) ?? (await? t2);
+                    Console.Write($"v={v};done");
+                }
+            }
+            """;
+        var expected = "v=right;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void NullCoalesce_BothSidesAreAwaitQuestion_BothNull_ResultNull()
+    {
+        // Both short-circuit → result is null.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<string> t1 = null;
+                    Task<string> t2 = null;
+                    string v = (await? t1) ?? (await? t2);
+                    Console.Write($"v={v ?? "null"};done");
+                }
+            }
+            """;
+        var expected = "v=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void DeepChain_AwaitQuestion_OnMultiLevelNullConditional()
+    {
+        // `await? a?.b?.c?.GetTask()` — the operand of `await?` is a 3-link null-conditional
+        // chain. When any link in the chain short-circuits OR when `await?` itself sees a
+        // null result from the chain, the whole expression yields null.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class Node { public Node Next; public Task<int> GetTask() => Task.FromResult(42); }
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Node a = new() { Next = new Node { Next = new Node() } };
+                    int? v1 = await? a?.Next?.Next?.GetTask();
+                    Console.Write($"full-chain:v1={v1};");
+
+                    // Inner link null: a.Next.Next.Next.GetTask() — but a.Next.Next is the
+                    // third node whose Next is null, so the chain short-circuits at that link.
+                    int? v2 = await? a?.Next?.Next?.Next?.GetTask();
+                    Console.Write($"inner-null:v2={v2?.ToString() ?? "null"};");
+
+                    // Top-level null: whole chain short-circuits.
+                    Node aNull = null;
+                    int? v3 = await? aNull?.Next?.Next?.GetTask();
+                    Console.Write($"top-null:v3={v3?.ToString() ?? "null"};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "full-chain:v1=42;inner-null:v2=null;top-null:v3=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
 }
