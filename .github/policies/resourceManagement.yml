@@ -27,9 +27,8 @@ configuration:
 
     - description: Stale Draft PRs move to Close
       frequencies:
-      - daily:
-          hour: 3
-          minute: 15
+        - daily:
+            time: 3:15
       filters:
       - isOpen
       - isPullRequest
@@ -45,9 +44,8 @@ configuration:
 
     - description: Stale Active PRs Move to Draft
       frequencies:
-      - daily:
-          hour: 4
-          minute: 15
+        - daily:
+            time: 4:15
       filters:
       - isOpen
       - isPullRequest
@@ -59,7 +57,7 @@ configuration:
       actions:
       - draftPullRequest
       - addReply:
-          reply: "Kind human, changing this pull request to 'Draft' as it has no activity for 30 days. If you are ready to continue work on this PR, please un-draft it and we will retriage it. "
+          reply: "Kind human, changing this pull request to 'Draft' as it has no activity for 60 days. If you are ready to continue work on this PR, please un-draft it and we will retriage it. "
 
     eventResponderTasks:
 
