@@ -104,7 +104,7 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         var outerLabel = model.GetDeclaredSymbol(labels.Single(l => l.Identifier.ValueText == "outer"));
 
         var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
-        var symbolInfo = model.GetSymbolInfo(breakStmt.Name);
+        var symbolInfo = model.GetSymbolInfo(breakStmt.Name!);
         Assert.Same(outerLabel, symbolInfo.Symbol);
     }
 
@@ -154,7 +154,7 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
 
         var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
-        var typeInfo = model.GetTypeInfo(breakStmt.Name);
+        var typeInfo = model.GetTypeInfo(breakStmt.Name!);
         Assert.Null(typeInfo.Type);
         Assert.Null(typeInfo.ConvertedType);
     }
@@ -179,7 +179,7 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
 
         var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
-        var conversion = model.GetConversion(breakStmt.Name);
+        var conversion = model.GetConversion(breakStmt.Name!);
         Assert.True(conversion.IsIdentity);
     }
 
@@ -203,7 +203,7 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
 
         var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
-        var memberGroup = model.GetMemberGroup(breakStmt.Name);
+        var memberGroup = model.GetMemberGroup(breakStmt.Name!);
         Assert.Empty(memberGroup);
     }
 
@@ -227,7 +227,7 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
 
         var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
-        var constantValue = model.GetConstantValue(breakStmt.Name);
+        var constantValue = model.GetConstantValue(breakStmt.Name!);
         Assert.False(constantValue.HasValue);
     }
 
@@ -251,7 +251,7 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         var model = comp.GetSemanticModel(tree);
 
         var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
-        var aliasInfo = model.GetAliasInfo(breakStmt.Name);
+        var aliasInfo = model.GetAliasInfo(breakStmt.Name!);
         Assert.Null(aliasInfo);
     }
 
