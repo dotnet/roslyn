@@ -1126,6 +1126,203 @@ public sealed class NullConditionalAwaitEmitTests : CSharpTestBase
 
     #endregion
 
+    #region Try / catch / finally interactions
+
+    [Fact]
+    public void TryBlock_NullReceiver_ContinuesPastTry()
+    {
+        // `await?` inside a try block with a null receiver — short-circuits, the try
+        // body completes normally, and execution continues past the try.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t = null;
+                    try
+                    {
+                        Console.Write("enter;");
+                        int? v = await? t;
+                        Console.Write($"v={v?.ToString() ?? "null"};");
+                    }
+                    finally
+                    {
+                        Console.Write("finally;");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "enter;v=null;finally;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void CatchBlock_WithAwaitQuestion_Runs()
+    {
+        // `await?` inside a catch block. Requires C# 6+ `await in catch` which is the
+        // default here; exercising it confirms that `await?` doesn't lose that capability.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    try
+                    {
+                        throw new InvalidOperationException("boom");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.Write($"catch:{ex.Message};");
+                        Task<int> t = Task.FromResult(7);
+                        int? v = await? t;
+                        Console.Write($"recovered:{v};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "catch:boom;recovered:7;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void FinallyBlock_WithAwaitQuestion_Runs()
+    {
+        // `await?` inside a finally block. Valid in C# 6+ (same gate as plain `await`
+        // in finally). Confirms `await?` participates in EH reordering correctly.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    try
+                    {
+                        Console.Write("try;");
+                    }
+                    finally
+                    {
+                        Task<int> t = Task.FromResult(9);
+                        int? v = await? t;
+                        Console.Write($"finally-v={v};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "try;finally-v=9;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void FinallyBlock_WithNullReceiver_ShortCircuits()
+    {
+        // `await?` in finally with a null receiver. The short-circuit must work inside
+        // the finally handler; the enclosing block's normal completion should proceed.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    try
+                    {
+                        Console.Write("try;");
+                    }
+                    finally
+                    {
+                        Task<int> t = null;
+                        int? v = await? t;
+                        Console.Write($"finally-v={v?.ToString() ?? "null"};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "try;finally-v=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void ExceptionFromAwaitQuestion_CaughtInOuterCatch()
+    {
+        // Non-null branch throws via a faulted task. The exception bubbles out of the
+        // try body and is caught by the catch clause.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t = Task.FromException<int>(new InvalidOperationException("faulted"));
+                    try
+                    {
+                        int? v = await? t;
+                        Console.Write($"unexpected v={v};");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.Write($"caught:{ex.Message};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "caught:faulted;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void FinallyRuns_EvenWhenAwaitQuestionThrows()
+    {
+        // Finally handler must run even when `await?` throws in the try body.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t = Task.FromException<int>(new InvalidOperationException("boom"));
+                    try
+                    {
+                        try { int? v = await? t; }
+                        finally { Console.Write("finally;"); }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Console.Write($"caught:{ex.Message};");
+                    }
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "finally;caught:boom;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
     #region Exception propagation from the non-null branch
 
     [Fact]
