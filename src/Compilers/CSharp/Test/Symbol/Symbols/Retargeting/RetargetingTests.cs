@@ -1192,7 +1192,7 @@ public class C
                         CheckTypeParameters((TypeParameterSymbol)a, (TypeParameterSymbol)b);
                         break;
                     default:
-                        Assert.True(false, "Unexpected symbol kind: " + a.Kind);
+                        Assert.Fail("Unexpected symbol kind: " + a.Kind);
                         break;
                 }
             }

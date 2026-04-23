@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
                 Dim hostDocument = If(Not useLastProject, workspace.Documents.Single(), workspace.Documents.Last())
 
                 If hostDocument.AnnotatedSpans.Count <> 1 Then
-                    Assert.True(False, "Encountered unexpected span annotation -- only one of 'Expand' or 'ExpandAndSimplify' is legal")
+                    Assert.Fail("Encountered unexpected span annotation -- only one of 'Expand' or 'ExpandAndSimplify' is legal")
                 End If
 
                 Dim document = If(Not useLastProject, workspace.CurrentSolution.Projects.Single(), workspace.CurrentSolution.Projects.Last()).Documents.Single()

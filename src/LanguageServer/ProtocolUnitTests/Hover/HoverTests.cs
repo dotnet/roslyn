@@ -547,7 +547,7 @@ class C
         var project = testLspServer.GetCurrentSolution().Projects.Single(p => p.AssemblyName == "Net472");
         var result = await RunGetHoverAsync(testLspServer, location, project.Id);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         Assert.Equal($"""
             ```csharp
             ({FeaturesResources.constant}) string WithConstant.Target = "Target in net472"

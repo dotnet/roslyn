@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 else
                 {
-                    Assert.True(false, "More than one token was lexed: " + token);
+                    Assert.Fail("More than one token was lexed: " + token);
                 }
             }
             if (result.Kind() == SyntaxKind.None)
             {
-                Assert.True(false, "No tokens were lexed");
+                Assert.Fail("No tokens were lexed");
             }
             return result;
         }

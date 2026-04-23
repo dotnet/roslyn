@@ -695,8 +695,8 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
 
-            AssertEx.NotNull(actualText);
-            AssertEx.NotNull(actualText.Encoding);
+            Assert.NotNull(actualText);
+            Assert.NotNull(actualText.Encoding);
             AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
             AssertEx.EqualOrDiff(source, actualText.ToString());
         });
@@ -724,8 +724,8 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
 
-            AssertEx.NotNull(actualText);
-            AssertEx.NotNull(actualText.Encoding);
+            Assert.NotNull(actualText);
+            Assert.NotNull(actualText.Encoding);
             AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
             AssertEx.EqualOrDiff(source, actualText.ToString());
         });
@@ -753,8 +753,8 @@ public sealed partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTe
 
             var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
 
-            AssertEx.NotNull(actualText);
-            AssertEx.NotNull(actualText.Encoding);
+            Assert.NotNull(actualText);
+            Assert.NotNull(actualText.Encoding);
             AssertEx.Equal(encoding.WebName, actualText.Encoding.WebName);
             AssertEx.EqualOrDiff(source, actualText.ToString());
         });

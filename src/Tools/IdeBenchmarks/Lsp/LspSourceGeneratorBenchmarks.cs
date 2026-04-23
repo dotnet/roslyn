@@ -130,7 +130,7 @@ namespace IdeBenchmarks.Lsp
                 new LSP.TextDocumentContentParams { Uri = sgUri },
                 CancellationToken.None);
 
-            AssertEx.NotNull(sgResult);
+            Assert.NotNull(sgResult);
             Assert.Contains("public partial class C", sgResult.Text);
         }
 
