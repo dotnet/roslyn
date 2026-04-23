@@ -1346,4 +1346,162 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Type inference and overload resolution
+
+    [Fact]
+    public void TypeInference_GenericMethodArg_InfersLiftedResult()
+    {
+        // `M<T>(T x)` called with `await? taskOfInt` — T should be inferred from the
+        // `await?` result type (int?), not the awaiter's R (int).
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static T Identity<T>(T x) => x;
+                public async Task M(Task<int> t)
+                {
+                    var v = Identity(await? t);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+        Assert.Equal("int?", TypeOfLocalSymbol(comp, "v"));
+    }
+
+    [Fact]
+    public void TypeInference_GenericMethodArg_ReferenceResult_InfersString()
+    {
+        // Reference-type result: T should be inferred as string (with NRT annotation).
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static T Identity<T>(T x) => x;
+                public async Task M(Task<string> t)
+                {
+                    var v = Identity(await? t);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+        Assert.Equal("string?", TypeOfLocalSymbol(comp, "v"));
+    }
+
+    [Fact]
+    public void OverloadResolution_IntVsNullableInt_PrefersNullableInt()
+    {
+        // `F(int) / F(int?)` called with `await? taskOfInt` (result type int?).
+        // Exact-match overload is F(int?).
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static string F(int x) => "int";
+                public static string F(int? x) => "int?";
+                public async Task M(Task<int> t)
+                {
+                    var v = F(await? t);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+        // `var` inference under NRT annotates the local as `string?` because the result
+        // of F flows from a MaybeDefault argument.
+        Assert.Equal("string?", TypeOfLocalSymbol(comp, "v"));
+
+        // Pin which overload was picked via the semantic model.
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(n => n.Expression is IdentifierNameSyntax { Identifier.Text: "F" });
+        var resolved = model.GetSymbolInfo(call).Symbol;
+        Assert.Equal("System.String C.F(System.Int32? x)", resolved!.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void OverloadResolution_ObjectVsNullableInt_PrefersNullableInt()
+    {
+        // `F(object) / F(int?)` called with `await? taskOfInt` (result type int?).
+        // Better overload is F(int?) — exact match.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static string F(object x) => "object";
+                public static string F(int? x) => "int?";
+                public async Task M(Task<int> t)
+                {
+                    _ = F(await? t);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(n => n.Expression is IdentifierNameSyntax { Identifier.Text: "F" });
+        Assert.Equal("System.String C.F(System.Int32? x)", model.GetSymbolInfo(call).Symbol!.ToTestDisplayString());
+    }
+
+    [Fact]
+    public void OverloadResolution_OnlyIntAvailable_LiftedResultIsCompileTimeError()
+    {
+        // If `F(int)` is the ONLY available overload, `F(await? taskOfInt)` is an error
+        // because int? → int is not an implicit conversion. This pins that the caller
+        // actually sees the lifted type at overload resolution time, not the awaiter's R.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static string F(int x) => "int";
+                public async Task M(Task<int> t)
+                {
+                    _ = F(await? t);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (7,15): error CS1503: Argument 1: cannot convert from 'int?' to 'int'
+            //         _ = F(await? t);
+            Diagnostic(ErrorCode.ERR_BadArgType, "await? t").WithArguments("1", "int?", "int").WithLocation(7, 15));
+    }
+
+    [Fact]
+    public void OverloadResolution_StringVsNullableString_ResolvesOnNRTAnnotation()
+    {
+        // Reference-type result: plain `F(string)` wins (result type is still `string` at
+        // the symbol level; NRT is an annotation, not a different symbol). Pin the symbol
+        // picked so future changes surface here.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static string F(string x) => "string";
+                public async Task M(Task<string> t)
+                {
+                    _ = F(await? t);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (7,15): warning CS8604: Possible null reference argument for parameter 'x' of 'string C.F(string x)'.
+            //         _ = F(await? t);
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "await? t").WithArguments("x", "string C.F(string x)").WithLocation(7, 15));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+        var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .First(n => n.Expression is IdentifierNameSyntax { Identifier.Text: "F" });
+        Assert.Equal("System.String C.F(System.String x)", model.GetSymbolInfo(call).Symbol!.ToTestDisplayString());
+    }
+
+    #endregion
 }
