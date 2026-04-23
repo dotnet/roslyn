@@ -2948,40 +2948,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             var labelName = node.Name?.Identifier.ValueText;
-            if (labelName != null)
-                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name!.GetLocation());
-
             var target = this.GetBreakLabel(labelName);
-            return CheckForNoTarget(node, node.Name, labelName, target, diagnostics)
-                ?? new BoundBreakStatement(node, target, BindLabelExpression(node.Name, diagnostics));
+            return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
+                ?? new BoundBreakStatement(node, target, label);
         }
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             var labelName = node.Name?.Identifier.ValueText;
-            if (labelName != null)
-                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, node.Name!.GetLocation());
-
             var target = this.GetContinueLabel(labelName);
-            return CheckForNoTarget(node, node.Name, labelName, target, diagnostics)
-                ?? new BoundContinueStatement(node, target, BindLabelExpression(node.Name, diagnostics));
+            return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
+                ?? new BoundContinueStatement(node, target, label);
         }
 
-        private static BoundStatement CheckForNoTarget(
+        /// <summary>
+        /// Validates the label (if any) on a break/continue statement. Checks the labeled
+        /// break/continue feature availability, binds the label expression, and reports an
+        /// error when no matching target exists. Returns a <see cref="BoundBadStatement"/>
+        /// on failure (with <paramref name="label"/> set to null); otherwise returns null and
+        /// sets <paramref name="label"/> to the bound label expression (null when unlabeled).
+        /// </summary>
+        private BoundStatement BindBranchLabelAndCheckTarget(
             StatementSyntax node,
             IdentifierNameSyntax name,
             string labelName,
             LabelSymbol target,
-            BindingDiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics,
+            out BoundLabel label)
         {
-            if (target != null)
-                return null;
+            if (labelName != null)
+                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
 
-            Error(diagnostics,
-                labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont,
-                name ?? (SyntaxNode)node,
-                labelName == null ? [] : [labelName]);
-            return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+            if (target == null)
+            {
+                label = null;
+                Error(diagnostics,
+                    labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont,
+                    name ?? (SyntaxNode)node,
+                    labelName == null ? [] : [labelName]);
+                return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
+            }
+
+            label = BindLabelExpression(name, diagnostics);
+            return null;
         }
 
         private BoundLabel BindLabelExpression(IdentifierNameSyntax name, BindingDiagnosticBag diagnostics)
