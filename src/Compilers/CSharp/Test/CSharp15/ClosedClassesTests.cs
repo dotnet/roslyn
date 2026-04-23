@@ -1778,6 +1778,69 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_LessAccessibleSubtype_03()
+    {
+        // Inaccessible subtype should still be imported from metadata to allow checking exhaustiveness
+        var source1 = """
+            public class Container
+            {
+                public closed class C;
+                private class D : C;
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(Container.C c)
+                {
+                    return c switch
+                    {
+            #line 100
+                        Container.D => 1,
+                    };
+                }
+
+                int M2(Container.C c)
+                {
+            #line 200
+                    return c switch
+                    {
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var imageReference = comp0.EmitToImageReference();
+        foreach (var importOptions in new[] { MetadataImportOptions.Public, MetadataImportOptions.Internal, MetadataImportOptions.All })
+        {
+            comp = CreateCompilation([source2], references: [imageReference], options: TestOptions.DebugDll.WithMetadataImportOptions(importOptions), targetFramework: TargetFramework.Net100);
+            verify(comp);
+        }
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,23): error CS0122: 'Container.D' is inaccessible due to its protection level
+                //             Container.D => 1,
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Container.D").WithLocation(100, 23),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Container.D' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Container.D").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+            Assert.Equal(["Container.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
     public void Exhaustiveness_Constraints_01()
     {
         // Subtype definition constraints which can "overlap" with constructed closed type
