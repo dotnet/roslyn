@@ -47,13 +47,13 @@ public sealed class ServiceDescriptorTests
 {
     public static IEnumerable<object[]> AllServiceDescriptors
         => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-            .Select(descriptor => new object[] { descriptor.Key, descriptor.Value.descriptorCoreClr64, descriptor.Value.descriptorCoreClr64ServerGC });
+            .Select(descriptor => new object[] { descriptor.Key, descriptor.Value });
 
     private static Dictionary<Type, MemberInfo> GetAllParameterTypesOfRemoteApis()
     {
         var interfaces = new List<Type>();
 
-        foreach (var (serviceType, (descriptor, _)) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
+        foreach (var (serviceType, descriptor) in ServiceDescriptors.Instance.GetTestAccessor().Descriptors)
         {
             interfaces.Add(serviceType);
             if (descriptor.ClientInterface != null)
@@ -348,17 +348,14 @@ public sealed class ServiceDescriptorTests
     [MemberData(nameof(AllServiceDescriptors))]
     internal void GetFeatureDisplayName(
         Type serviceInterface,
-        ServiceDescriptor descriptorCoreClr64,
-        ServiceDescriptor descriptorCoreClr64ServerGC)
+        ServiceDescriptor descriptor)
     {
         Assert.NotNull(serviceInterface);
 
-        var expectedName = descriptorCoreClr64.GetFeatureDisplayName();
+        var expectedName = descriptor.GetFeatureDisplayName();
 
         // The service name couldn't be found. It may need to be added to RemoteWorkspacesResources.resx as FeatureName_{name}
         Assert.False(string.IsNullOrEmpty(expectedName), $"Service name for '{serviceInterface.FullName}' not available.");
-
-        Assert.Equal(expectedName, descriptorCoreClr64ServerGC.GetFeatureDisplayName());
     }
 
     [Fact]
@@ -368,7 +365,7 @@ public sealed class ServiceDescriptorTests
         var callbackDispatchers = ((IMefHostExportProvider)hostServices).GetExports<IRemoteServiceCallbackDispatcher, RemoteServiceCallbackDispatcherRegistry.ExportMetadata>();
 
         var descriptorsWithCallbackServiceTypes = ServiceDescriptors.Instance.GetTestAccessor().Descriptors
-            .Where(d => d.Value.descriptorCoreClr64.ClientInterface != null).Select(d => d.Key);
+            .Where(d => d.Value.ClientInterface != null).Select(d => d.Key);
 
         var callbackDispatcherServiceTypes = callbackDispatchers.Select(d => d.Metadata.ServiceInterface);
         AssertEx.SetEqual(descriptorsWithCallbackServiceTypes, callbackDispatcherServiceTypes);

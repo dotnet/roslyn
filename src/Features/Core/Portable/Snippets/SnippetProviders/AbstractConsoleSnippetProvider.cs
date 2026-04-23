@@ -70,21 +70,14 @@ internal abstract class AbstractConsoleSnippetProvider<
         return openParenToken.Span.End;
     }
 
-    protected sealed override async Task<SyntaxNode> AnnotateNodesToReformatAsync(
-        Document document, int position, CancellationToken cancellationToken)
+    protected override async ValueTask<TExpressionSyntax> AdjustSnippetExpressionAsync(
+        Document document, TExpressionSyntax snippetExpressionNode, CancellationToken cancellationToken)
     {
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var snippetExpressionNode = FindAddedSnippetSyntaxNode(root, position);
-        Contract.ThrowIfNull(snippetExpressionNode);
-
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         var consoleSymbol = GetConsoleSymbolFromMetaDataName(compilation);
-        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(FindSnippetAnnotation, Simplifier.Annotation, SymbolAnnotation.Create(consoleSymbol!), Formatter.Annotation);
-        return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
+        var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(SymbolAnnotation.Create(consoleSymbol!));
+        return reformatSnippetNode;
     }
-
-    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TExpressionSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        => [];
 
     protected static INamedTypeSymbol? GetConsoleSymbolFromMetaDataName(Compilation compilation)
         => compilation.GetBestTypeByMetadataName(typeof(Console).FullName!);

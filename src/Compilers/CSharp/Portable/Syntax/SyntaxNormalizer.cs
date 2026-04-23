@@ -903,6 +903,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return true;
             }
 
+            if (token.Parent.Parent?.Kind() == SyntaxKind.SuppressNullableWarningExpression)
+            {
+                return false;
+            }
+
             if (IsKeyword(token.Kind()) && !token.IsKind(SyntaxKind.ExtensionKeyword))
             {
                 if (!next.IsKind(SyntaxKind.ColonToken) &&

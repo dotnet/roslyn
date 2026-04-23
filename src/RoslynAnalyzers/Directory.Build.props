@@ -13,7 +13,8 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
-    <DefineConstants>$(DefineConstants),ROSLYN_4_12_OR_LOWER</DefineConstants>
+    <!-- Projects built with OLDER_ROSLYN do not have access to the latest Roslyn APIs -->
+    <DefineConstants>$(DefineConstants),OLDER_ROSLYN</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>

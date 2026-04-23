@@ -226,12 +226,13 @@ internal static partial class ITypeSymbolExtensions
     {
         for (var b = symbol.BaseType; b != null; b = b.BaseType)
         {
-            if (b.MetadataName == "Attribute" &&
-                b.ContainingType == null &&
-                b.ContainingNamespace != null &&
-                b.ContainingNamespace.Name == "System" &&
-                b.ContainingNamespace.ContainingNamespace != null &&
-                b.ContainingNamespace.ContainingNamespace.IsGlobalNamespace)
+            if (b is
+                {
+                    MetadataName: nameof(Attribute),
+                    ContainingType: null,
+                    ContainingNamespace.Name: nameof(System),
+                    ContainingNamespace.ContainingNamespace.IsGlobalNamespace: true,
+                })
             {
                 return true;
             }

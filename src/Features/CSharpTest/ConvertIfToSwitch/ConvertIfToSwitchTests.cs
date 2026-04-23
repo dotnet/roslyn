@@ -487,7 +487,7 @@ public sealed class ConvertIfToSwitchTests
         }.RunAsync();
     }
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIsPatternExpression_01()
         => VerifyCS.VerifyRefactoringAsync(
             """
@@ -518,7 +518,7 @@ public sealed class ConvertIfToSwitchTests
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIsPatternExpression_02_CSharp8()
         => new VerifyCS.Test
         {
@@ -552,7 +552,7 @@ public sealed class ConvertIfToSwitchTests
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIsPatternExpression_02_CSharp9()
         => new VerifyCS.Test
         {
@@ -586,7 +586,7 @@ public sealed class ConvertIfToSwitchTests
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIsPatternExpression_03()
         => VerifyCS.VerifyRefactoringAsync(
             """
@@ -617,7 +617,7 @@ public sealed class ConvertIfToSwitchTests
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIsPatternExpression_04()
         => VerifyCS.VerifyRefactoringAsync(
             """
@@ -648,7 +648,7 @@ public sealed class ConvertIfToSwitchTests
             }
             """);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestComplexExpression_01()
         => VerifyCS.VerifyRefactoringAsync(
             """
@@ -2740,5 +2740,69 @@ public sealed class ConvertIfToSwitchTests
                 }
             }
             """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81052")]
+    public Task TestPatternWithWhenClause()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class R(int? P)
+                {
+                    public int? P { get; } = P;
+                }
+            
+                class C
+                {
+                    int M(R v)
+                    {
+                        $$if (v.P == 0)
+                        {
+                            return 1;
+                        }
+            
+                        if (v.P is { } b && b > 0)
+                        {
+                            return 2;
+                        }
+            
+                        return 0;
+                    }
+                }
+                """,
+            FixedCode = """
+                class R(int? P)
+                {
+                    public int? P { get; } = P;
+                }
+            
+                class C
+                {
+                    int M(R v)
+                    {
+                        switch (v.P)
+                        {
+                            case 0:
+                                return 1;
+                            case { } b when b > 0:
+                                return 2;
+                            default:
+                                return 0;
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81714")]
+    public Task TestNullableBool()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                [||]if ((bool?)null == false) { }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+            TestState = { OutputKind = OutputKind.ConsoleApplication }
         }.RunAsync();
 }

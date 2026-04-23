@@ -82,7 +82,7 @@ public sealed class BatchFixAllProviderTests
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
@@ -105,8 +105,6 @@ public sealed class BatchFixAllProviderTests
                     context.RegisterCodeFix(fix, diagnostic);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         private static async Task<Document> CreateChangedDocument(Document document, TextSpan sourceSpan, int replacement, CancellationToken cancellationToken)

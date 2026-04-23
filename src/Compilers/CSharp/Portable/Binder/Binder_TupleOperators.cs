@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsImplicit)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, boolean, diagnostics);
+                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, boolean, diagnostics);
                 boolOperator = default;
                 return;
             }
@@ -159,11 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind;
             ImmutableArray<MethodSymbol> originalUserDefinedOperators;
             BoundExpression comparisonResult = new BoundTupleOperandPlaceholder(node, type);
-            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, out resultKind, out originalUserDefinedOperators);
+            OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
+            UnaryOperatorAnalysisResult best = this.UnaryOperatorOverloadResolution(boolOpKind, comparisonResult, node, diagnostics, ref discardedOperatorResolutionForReporting, out resultKind, out originalUserDefinedOperators);
+            discardedOperatorResolutionForReporting.Free();
+
             if (best.HasValue)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, best.Signature.OperandType, diagnostics);
+                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
                 boolOperator = best.Signature;
                 return;
             }
@@ -209,7 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.IsLiteralDefaultOrImplicitObjectCreation() ||
                 right.IsLiteralDefaultOrImplicitObjectCreation())
             {
-                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous);
+                OperatorResolutionForReporting discardedOperatorResolutionForReporting = default;
+                ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, LookupResultKind.Ambiguous, ref discardedOperatorResolutionForReporting);
+                discardedOperatorResolutionForReporting.Free();
+
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 

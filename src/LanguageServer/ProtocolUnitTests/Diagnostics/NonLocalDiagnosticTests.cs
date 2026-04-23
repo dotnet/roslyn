@@ -57,11 +57,11 @@ public sealed class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
         }
         else
         {
-            Assert.Empty(results);
+            Assert.Empty(results.Single().Diagnostics!);
 
             // Asking again should give us back unchanged diagnostics.
             var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
-            Assert.Empty(results2);
+            Assert.Empty(results.Single().Diagnostics!);
         }
     }
 

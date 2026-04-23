@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis
         System_String__Chars,
         System_String__Format,
         System_String__Format_IFormatProvider,
-        System_String__Substring,
+        System_String__SubstringIntInt,
+        System_String__SubstringInt,
 
         System_String__op_Implicit_ToReadOnlySpanOfChar,
 
@@ -196,6 +197,10 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_AsyncHelpers__AwaitAwaiter_TAwaiter,
         System_Runtime_CompilerServices_AsyncHelpers__UnsafeAwaitAwaiter_TAwaiter,
+        System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task,
+        System_Runtime_CompilerServices_AsyncHelpers__HandleAsyncEntryPoint_Task_Int32,
+
+        System_Runtime_InteropServices_ExtendedLayoutAttribute__ctor,
 
         Count
     }

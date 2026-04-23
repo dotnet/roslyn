@@ -2034,6 +2034,48 @@ End Module
         End Sub
 
         <Theory, CombinatorialData>
+        Public Sub RenameTypeFromConversionOperatorReturnType(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class C;
+
+class [|Repro1|]
+{
+    public static explicit operator [|$$Repro1|](C _)
+    {
+        return null;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Renamed")
+
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub RenameTypeFromGenericConversionOperatorReturnType(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+class [|Repro2|]&lt;T&gt;
+{
+    public static explicit operator [|$$Repro2|]&lt;T&gt;(T _)
+    {
+        return null;
+    }
+}
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Renamed")
+
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530082")>
         Public Sub RenameMethodThatImplementsInterfaceMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -6940,6 +6982,7 @@ class C
         End Sub
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/2040")>
         <WorkItem("https://github.com/dotnet/roslyn/issues/44070")>
         Public Sub RenameTypeParameterFromCRef(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
@@ -6949,15 +6992,13 @@ class C
 class C
 {
     /// <summary>
-    /// <see cref="Goo{$${|Complex:{|unresolved:X|}|}}(X)"/>
+    /// <see cref="Goo{$$[|X|]}([|X|])"/>
     /// </summary>
     void Goo<T>(T t) { }
 }]]>
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="D")
-
-                result.AssertLabeledSpansAre("Complex", "C.Goo{D}(X)", RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
 

@@ -16,14 +16,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly NamedTypeSymbol _inProgress;
         private readonly MethodSymbol? _constructorInProgress;
 
-        internal ParamsCollectionTypeInProgressBinder(NamedTypeSymbol inProgress, Binder next, MethodSymbol? constructorInProgress = null)
+        internal ParamsCollectionTypeInProgressBinder(
+            NamedTypeSymbol inProgress,
+            Binder next,
+            bool bindingCollectionExpressionWithArguments,
+            MethodSymbol? constructorInProgress = null)
             : base(next, next.Flags | BinderFlags.CollectionExpressionConversionValidation)
         {
             Debug.Assert(inProgress is not null);
 
             _inProgress = inProgress;
             _constructorInProgress = constructorInProgress;
+            this.BindingCollectionExpressionWithArguments = bindingCollectionExpressionWithArguments;
         }
+
+        internal override bool BindingCollectionExpressionWithArguments { get; }
 
         internal override NamedTypeSymbol ParamsCollectionTypeInProgress => _inProgress;
 

@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If synthesized IsNot Nothing Then
                 For Each attribute In synthesized
-                    Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=False))
+                    Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule))
                     Yield attribute
                 Next
 

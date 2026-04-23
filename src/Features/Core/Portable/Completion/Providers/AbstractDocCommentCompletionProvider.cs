@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -148,6 +149,11 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         {
             items = items.Concat(GetParamRefItems(symbol))
                          .Concat(GetTypeParamRefItems(symbol));
+        }
+
+        if (symbol is { ContainingSymbol: INamedTypeSymbol { IsExtension: true } extension })
+        {
+            items = items.Concat(GetParamRefItems(extension));
         }
 
         if (includeKeywords)

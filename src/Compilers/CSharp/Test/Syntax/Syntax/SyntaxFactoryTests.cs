@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             try
             {
                 SyntaxFactory.Token(SyntaxKind.IdentifierName);
-                AssertEx.Fail("Should have thrown - can't create an IdentifierName token");
+                Assert.Fail("Should have thrown - can't create an IdentifierName token");
                 return;
             }
             catch (Exception e)
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 try
                 {
                     SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.IdentifierToken, "text", "valueText", default(SyntaxTriviaList));
-                    AssertEx.Fail("Should have thrown");
+                    Assert.Fail("Should have thrown");
                     return;
                 }
                 catch (ArgumentException e)
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 try
                 {
                     SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.CharacterLiteralToken, "text", "valueText", default(SyntaxTriviaList));
-                    AssertEx.Fail("Should have thrown");
+                    Assert.Fail("Should have thrown");
                     return;
                 }
                 catch (ArgumentException e)
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 try
                 {
                     SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.NumericLiteralToken, "text", "valueText", default(SyntaxTriviaList));
-                    AssertEx.Fail("Should have thrown");
+                    Assert.Fail("Should have thrown");
                     return;
                 }
                 catch (ArgumentException e)
@@ -476,6 +476,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = new SyntaxToken(null);
             Assert.Equal(Location.None, token.GetLocation());
             token.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ConstructedSyntaxTrivia_NoLocationAndDiagnostics()
+        {
+            var trivia = SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, " ");
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithoutDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("// Comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/40773")]
+        public void ParsedSyntaxTriviaWithDiagnostics()
+        {
+            var trivia = SyntaxFactory.ParseLeadingTrivia("/* Unclosed multiline comment").First();
+            Assert.Equal(Location.None, trivia.GetLocation());
+            trivia.GetDiagnostics().Verify(
+                Diagnostic(ErrorCode.ERR_OpenEndedComment).WithLocation(1, 1));
         }
 
         [Fact]

@@ -1335,21 +1335,21 @@ class Test
 ";
             string expectedOperationTree = @"
 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'new C() + new B()')
-  Left: 
-    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C, IsInvalid) (Syntax: 'new C()')
+  Left:
+    IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C()')
       Arguments(0)
-      Initializer: 
+      Initializer:
         null
-  Right: 
-    IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B, IsInvalid) (Syntax: 'new B()')
+  Right:
+    IObjectCreationOperation (Constructor: B..ctor()) (OperationKind.ObjectCreation, Type: B) (Syntax: 'new B()')
       Arguments(0)
-      Initializer: 
+      Initializer:
         null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0034: Operator '+' is ambiguous on operands of type 'C' and 'B'
+                // (16,33): error CS9342: Operator resolution is ambiguous between the following members: 'C.operator +(C, B)' and 'B.operator +(C, B)'
                 //         B b = /*<bind>*/new C() + new B()/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C() + new B()").WithArguments("+", "C", "B").WithLocation(16, 25)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("C.operator +(C, B)", "B.operator +(C, B)").WithLocation(16, 33)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1541,15 +1541,15 @@ class X
 ";
             string expectedOperationTree = @"
 IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x + y')
-  Left: 
-    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C, IsInvalid) (Syntax: 'x')
-  Right: 
-    ILocalReferenceOperation: y (OperationKind.LocalReference, Type: D<dynamic>.C, IsInvalid) (Syntax: 'y')
+  Left:
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: D<System.Object>.C) (Syntax: 'x')
+  Right:
+    ILocalReferenceOperation: y (OperationKind.LocalReference, Type: D<dynamic>.C) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0034: Operator '+' is ambiguous on operands of type 'D<object>.C' and 'D<dynamic>.C'
+                // (16,29): error CS9342: Operator resolution is ambiguous between the following members: 'D<object>.C.operator +(D<object>.C, D<object>.C)' and 'D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)'
                 //         var z = /*<bind>*/x + y/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "D<object>.C", "D<dynamic>.C").WithLocation(16, 27)
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "+").WithArguments("D<object>.C.operator +(D<object>.C, D<object>.C)", "D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)").WithLocation(16, 29)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -6163,9 +6163,9 @@ struct S
 ";
             CompileAndVerify(source1, expectedOutput: "1");
             CreateCompilation(source2).VerifyDiagnostics(
-// (16,9): error CS0034: Operator '==' is ambiguous on operands of type 'S?' and '<null>'
-//     if (s == null) s = default(S);
-Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "s == null").WithArguments("==", "S?", "<null>"));
+                // (16,11): error CS9342: Operator resolution is ambiguous between the following members: 'S.operator ==(S?, decimal?)' and 'S.operator ==(S?, double?)'
+                //     if (s == null) s = default(S);
+                Diagnostic(ErrorCode.ERR_AmbigOperator, "==").WithArguments("S.operator ==(S?, decimal?)", "S.operator ==(S?, double?)").WithLocation(16, 11));
         }
 
         [WorkItem(543432, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543432")]
@@ -9271,7 +9271,7 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must define operator 'false'.
+                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must not be an interface and must define operator 'false'.
                 //     static dynamic Test1(S1? s1) => s1 && (dynamic)s1;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s1").WithArguments("S1?", (op == "&&" ? "false" : "true")).WithLocation(27, 37)
                 );
@@ -9316,7 +9316,7 @@ class Program
 
             var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must define operator 'false'.
+                // (27,37): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1?' must not be an interface and must define operator 'false'.
                 //     static dynamic Test1(S1? s1) => s1 && (dynamic)s1;
                 Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "s1").WithArguments("S1?", (op == "&&" ? "false" : "true")).WithLocation(27, 37)
                 );
@@ -9753,6 +9753,164 @@ static class Extensions
 
             var comp = CreateCompilation(src, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "4343").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78602")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseIsOverloaded_Dynamic_01()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        var x1 = new S1();
+        dynamic y1 = new S1();
+
+        _ = x1 && y1;
+        _ = x1 || y1;
+
+        var x2 = new S2();
+        dynamic y2 = new S2();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+struct S1 // nullable operators come first
+{
+    public static S1 operator &(S1 x, S1 y) => x;
+    public static S1 operator |(S1 x, S1 y) => x;
+
+    public static bool operator true(S1? x) => throw null;
+    public static bool operator false(S1? x) => throw null;
+
+    public static bool operator true(S1 x)
+    {
+        System.Console.Write(3);
+        return false;
+    }
+    public static bool operator false(S1 x)
+    {
+        System.Console.Write(4);
+        return false;
+    }
+}
+
+struct S2 // non-nullable operators come first
+{
+    public static S2 operator &(S2 x, S2 y) => x;
+    public static S2 operator |(S2 x, S2 y) => x;
+    public static bool operator true(S2 x)
+    {
+        System.Console.Write(3);
+        return false;
+    }
+    public static bool operator false(S2 x)
+    {
+        System.Console.Write(4);
+        return false;
+    }
+
+    public static bool operator true(S2? x) => throw null;
+    public static bool operator false(S2? x) => throw null;
+}
+""";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "44334433").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/78602")]
+        public void UserDefinedShortCircuitingOperators_TrueFalseIsOverloaded_Dynamic_02()
+        {
+            var src = $$$"""
+public class Program
+{
+    static void Main()
+    {
+        var x1 = new S1();
+        dynamic y1 = new S1();
+
+        _ = x1 && y1;
+        _ = x1 || y1;
+
+        var x2 = new S2();
+        dynamic y2 = new S2();
+
+        _ = x2 && y2;
+        _ = x2 || y2;
+    }
+}
+
+struct S1 {}
+struct S2 {}
+
+static class Extensions
+{
+    extension(S1?) // nullable operators come first
+    {
+        public static bool operator true(S1? x) => throw null;
+        public static bool operator false(S1? x) => throw null;
+    }
+
+    extension(S1)
+    {
+        public static S1 operator &(S1 x, S1 y) => x;
+        public static S1 operator |(S1 x, S1 y) => x;
+        public static bool operator true(S1 x)
+        {
+            System.Console.Write(3);
+            return false;
+        }
+        public static bool operator false(S1 x)
+        {
+            System.Console.Write(4);
+            return false;
+        }
+    }
+
+    extension(S2) // non-nullable operators come first
+    {
+        public static S2 operator &(S2 x, S2 y) => x;
+        public static S2 operator |(S2 x, S2 y) => x;
+        public static bool operator true(S2 x)
+        {
+            System.Console.Write(3);
+            return false;
+        }
+        public static bool operator false(S2 x)
+        {
+            System.Console.Write(4);
+            return false;
+        }
+    }
+
+    extension(S2?)
+    {
+        public static bool operator true(S2? x) => throw null;
+        public static bool operator false(S2? x) => throw null;
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (8,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1' must define operator 'false'.
+                //         _ = x1 && y1;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x1").WithArguments("S1", "false").WithLocation(8, 13),
+                // (9,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S1' must define operator 'true'.
+                //         _ = x1 || y1;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x1").WithArguments("S1", "true").WithLocation(9, 13),
+                // (14,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S2' must define operator 'false'.
+                //         _ = x2 && y2;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x2").WithArguments("S2", "false").WithLocation(14, 13),
+                // (15,13): error CS7083: Expression must be implicitly convertible to Boolean or its type 'S2' must define operator 'true'.
+                //         _ = x2 || y2;
+                Diagnostic(ErrorCode.ERR_InvalidDynamicCondition, "x2").WithArguments("S2", "true").WithLocation(15, 13)
+                );
         }
 
         [Fact]

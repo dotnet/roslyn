@@ -92,9 +92,8 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// Used by public workspace pull diagnostics to allow it to keep the connection open until
     /// changes occur to avoid the client spamming the server with requests.
     /// </summary>
-    protected virtual Task WaitForChangesAsync(string? category, RequestContext context, CancellationToken cancellationToken)
+    protected virtual async Task WaitForChangesAsync(string? category, RequestContext context, CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
     }
 
     public async Task<TReturn?> HandleRequestAsync(

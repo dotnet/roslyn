@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -50,10 +51,18 @@ internal sealed partial class DiagnosticAnalyzerService
             _logPerformanceInfo = logPerformanceInfo;
             _onAnalysisException = onAnalysisException;
 
-            var compilationBasedProjectAnalyzers = compilationWithAnalyzers?.Analyzers.ToImmutableHashSet();
-            _compilationBasedAnalyzersInAnalysisScope = compilationBasedProjectAnalyzers != null
-                ? analysisScope.Analyzers.WhereAsArray(compilationBasedProjectAnalyzers.Contains)
-                : [];
+            if (compilationWithAnalyzers is null || compilationWithAnalyzers.Analyzers.IsDefaultOrEmpty)
+            {
+                _compilationBasedAnalyzersInAnalysisScope = [];
+            }
+            else
+            {
+                using var _ = PooledHashSet<DiagnosticAnalyzer>.GetInstance(out var compilationBasedProjectAnalyzers);
+
+                compilationBasedProjectAnalyzers.AddRange(compilationWithAnalyzers.Analyzers);
+
+                _compilationBasedAnalyzersInAnalysisScope = analysisScope.Analyzers.WhereAsArray(compilationBasedProjectAnalyzers.Contains);
+            }
         }
 
         public DocumentAnalysisScope AnalysisScope { get; }
@@ -93,7 +102,7 @@ internal sealed partial class DiagnosticAnalyzerService
                 if (kind == AnalysisKind.Syntax)
                 {
                     Logger.Log(FunctionId.Diagnostics_SyntaxDiagnostic,
-                        (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", _compilationWithAnalyzers, textDocument, analyzer, kind);
+                        static (r, d, a, k) => $"Driver: {r != null}, {d.Id}, {d.Project.Id}, {a}, {k}", _compilationWithAnalyzers, textDocument, analyzer, kind);
                 }
 
                 return [];
@@ -105,7 +114,7 @@ internal sealed partial class DiagnosticAnalyzerService
             {
                 var isEnabled = await textDocument.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, (a, d, e) => $"{a}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, textDocument, isEnabled);
+                Logger.Log(FunctionId.Diagnostics_SemanticDiagnostic, static (a, d, e) => $"{a}, ({d.Id}, {d.Project.Id}), Enabled:{e}", analyzer, textDocument, isEnabled);
 
                 if (!isEnabled)
                     return [];
@@ -122,6 +131,9 @@ internal sealed partial class DiagnosticAnalyzerService
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
 
+            if (diagnostics.IsEmpty)
+                return [];
+
             // Remap diagnostic locations, if required.
             diagnostics = await RemapDiagnosticLocationsIfRequiredAsync(diagnostics).ConfigureAwait(false);
 
@@ -132,7 +144,12 @@ internal sealed partial class DiagnosticAnalyzerService
                 // TODO: Unclear if using the unmapped span here is correct.  It does feel somewhat appropriate as the
                 // caller should be asking about diagnostics in an actual document, and not where they were remapped to.
                 diagnostics = diagnostics.WhereAsArray(
-                    d => d.DocumentId is null || span.Value.IntersectsWith(d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(sourceText)));
+                    static (d, args) =>
+                    {
+                        var (span, sourceText) = args;
+                        return d.DocumentId is null || span.IntersectsWith(d.DataLocation.UnmappedFileSpan.GetClampedTextSpan(sourceText));
+                    },
+                    (span.Value, sourceText));
             }
 
 #if DEBUG
@@ -140,7 +157,7 @@ internal sealed partial class DiagnosticAnalyzerService
             var compilation = _compilationWithAnalyzers.Compilation;
             RoslynDebug.AssertNotNull(compilation);
             Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, compilation).Count());
-            Debug.Assert(diagnostics.Length == Extensions.ConvertToLocalDiagnostics(diags, textDocument, span).Count());
+            Debug.Assert(diagnostics.Length == Extensions.ConvertToLocalDiagnostics(diags, textDocument, span).Length);
 #endif
 
             return diagnostics;

@@ -793,6 +793,45 @@ class B : A
 }");
         }
 
+        /// <summary>
+        /// Evaluating expressions inside a ref-returning method should
+        /// produce a query method that returns by value, not by ref.
+        /// </summary>
+        [Fact]
+        public void EvaluateExpressionInRefReturningMethod()
+        {
+            var source =
+@"struct TestStruct
+{
+    public int Value;
+}
+class C
+{
+    static TestStruct _field;
+    ref readonly TestStruct GetValue(ulong id)
+    {
+        return ref _field;
+    }
+}";
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.GetValue",
+                expr: "id");
+            var methodData = testData.GetMethodData("<>x.<>m0");
+            var method = (MethodSymbol)methodData.Method;
+            Assert.Equal(RefKind.None, method.RefKind);
+
+            testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.GetValue",
+                expr: "id == 1");
+            methodData = testData.GetMethodData("<>x.<>m0");
+            method = (MethodSymbol)methodData.Method;
+            Assert.Equal(RefKind.None, method.RefKind);
+        }
+
         [Fact]
         public void EvaluateStaticMethodParameters()
         {
@@ -11871,6 +11910,128 @@ class C
                 error: out string error);
 
             Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81171")]
+        public void Extension_01()
+        {
+            var source = """
+public class C
+{
+    public static void Main()
+    {
+#line 999
+        var y = 5.Property;
+        System.Console.WriteLine(y);
+    }
+}
+
+public static class E
+{
+    extension(int i)
+    {
+        public int Property => 42;
+    }
+}
+""";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            // First verify the base compilation is valid
+            compilation0.VerifyEmitDiagnostics();
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main", atLineNumber: 999);
+
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                var testData = new CompilationTestData();
+
+                var result = context.CompileExpression(
+                    "5.Property",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: testData);
+
+                Assert.Null(error);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL("""
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0) //y
+  IL_0000:  ldc.i4.5
+  IL_0001:  call       "int E.get_Property(int)"
+  IL_0006:  ret
+}
+""");
+            });
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81171")]
+        public void Extension_02()
+        {
+            var source = """
+public class C
+{
+    public static void Main()
+    {
+#line 999
+        var y = int.Method();
+        System.Console.WriteLine(y);
+    }
+}
+
+public static class E
+{
+    extension(int)
+    {
+        public static int Method() => 42;
+    }
+}
+""";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugExe);
+
+            // First verify the base compilation is valid
+            compilation0.VerifyEmitDiagnostics();
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main", atLineNumber: 999);
+                ResultProperties resultProperties;
+                string error;
+                ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
+                var testData = new CompilationTestData();
+
+                var result = context.CompileExpression(
+                    "int.Method()",
+                    DkmEvaluationFlags.TreatAsExpression,
+                    NoAliases,
+                    DebuggerDiagnosticFormatter.Instance,
+                    out resultProperties,
+                    out error,
+                    out missingAssemblyIdentities,
+                    EnsureEnglishUICulture.PreferredOrNull,
+                    testData: testData);
+
+                Assert.Null(error);
+
+                testData.GetMethodData("<>x.<>m0").VerifyIL("""
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (int V_0) //y
+  IL_0000:  call       "int E.Method()"
+  IL_0005:  ret
+}
+""");
+            });
         }
     }
 }

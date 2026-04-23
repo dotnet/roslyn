@@ -76,17 +76,11 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
 
         markupWithPositionAndOptSpan = markupWithPositionAndOptSpan.NormalizeLineEndings();
 
-        TextSpan? textSpan = null;
-        MarkupTestFile.GetPositionAndSpans(
-            markupWithPositionAndOptSpan,
-            out var code,
-            out var cursorPosition,
-            out var textSpans);
+        var workspace = workspaceFixture.Target.GetWorkspace(markupWithPositionAndOptSpan);
 
-        if (textSpans.Any())
-        {
-            textSpan = textSpans.First();
-        }
+        var code = workspaceFixture.Target.Code;
+        var cursorPosition = workspaceFixture.Target.Position;
+        var textSpan = workspaceFixture.Target.Spans.FirstOrNull();
 
         var parseOptions = CreateExperimentalParseOptions();
 
@@ -265,7 +259,7 @@ public abstract class AbstractSignatureHelpProviderTests<TWorkspaceFixture> : Te
     {
         if (expectedOrderedItemsMetadataReference == null || expectedOrderedItemsSameSolution == null)
         {
-            AssertEx.Fail("Expected signature help items must be provided for EditorBrowsable tests. If there are no expected items, provide an empty IEnumerable rather than null.");
+            Assert.Fail("Expected signature help items must be provided for EditorBrowsable tests. If there are no expected items, provide an empty IEnumerable rather than null.");
         }
 
         await TestSignatureHelpWithMetadataReferenceHelperAsync(markup, referencedCode, expectedOrderedItemsMetadataReference, sourceLanguage, referencedLanguage, hideAdvancedMembers);

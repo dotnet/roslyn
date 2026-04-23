@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<NamedTypeSymbol> _lazyInterfaces;
 
         /// <summary>
-        /// Gets the BaseType of this type. If the base type could not be determined, then 
+        /// Gets the BaseType of this type. If the base type could not be determined, then
         /// an instance of ErrorType is returned. If this kind of type does not have a base type
         /// (for example, interfaces), null is returned. Also the special class System.Object
         /// always has a BaseType of null.
@@ -367,14 +367,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
-            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
+            switch (declaration.Kind)
             {
-                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
-                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
-                {
-                    baseInterfaces.Add(type);
-                    type.AddUseSiteInfo(ref useSiteInfo);
-                }
+                case DeclarationKind.Record or DeclarationKind.RecordStruct:
+                    {
+                        var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                        addImplicitlyImplementedInterface(baseInterfaces, type);
+                    }
+                    break;
+                case DeclarationKind.Union:
+                    {
+                        var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IUnion);
+                        addImplicitlyImplementedInterface(baseInterfaces, type);
+                    }
+                    break;
             }
 
             if ((object)baseType != null)
@@ -429,6 +435,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(GetFirstLocation(), useSiteInfo);
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
+
+            static void addImplicitlyImplementedInterface(ArrayBuilder<NamedTypeSymbol> baseInterfaces, NamedTypeSymbol type)
+            {
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
+                {
+                    baseInterfaces.Add(type);
+                }
+            }
         }
 
         private static BaseListSyntax GetBaseListOpt(SingleTypeDeclaration decl)
@@ -637,10 +651,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             void checkPrimaryConstructorBaseType(BaseTypeSyntax baseTypeSyntax, TypeSymbol baseType)
             {
-                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType &&
-                    (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface || ((TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null))
+                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType)
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                    if (TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                    }
+                    else if (((TypeDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentListInBaseTypeWithoutParameterList, primaryConstructorBaseType.ArgumentList.Location);
+                    }
                 }
             }
         }

@@ -15,6 +15,7 @@ internal interface IIOService
     void Create(DirectoryInfo directory);
     void Delete(FileInfo file);
     bool Exists(FileSystemInfo info);
+    Stream OpenRead(string path);
     byte[] ReadAllBytes(string path);
     void Replace(string sourceFileName, string destinationFileName, string? destinationBackupFileName, bool ignoreMetadataErrors);
     void Move(string sourceFileName, string destinationFileName);

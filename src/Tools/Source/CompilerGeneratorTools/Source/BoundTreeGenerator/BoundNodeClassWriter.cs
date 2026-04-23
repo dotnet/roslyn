@@ -198,6 +198,7 @@ namespace BoundTreeGenerator
             WriteRewriter();
             WriteNullabilityRewriter();
             WriteTreeDumperNodeProducer();
+            WritePipelinePhaseValidator();
             WriteEndNamespace();
         }
 
@@ -956,7 +957,7 @@ namespace BoundTreeGenerator
         private void WriteUpdatedMethodCSharp(Node node, bool emitNew)
         {
             Blank();
-            Write("public{1} {0} Update", node.Name, emitNew ? " new" : "");
+            Write("public{1} {0} Update", node.Name, (emitNew ? " new" : "") + (string.IsNullOrEmpty(node.UpdateMethodModifiers) ? "" : (" " + node.UpdateMethodModifiers)));
             Paren();
             Comma(AllSpecifiableFields(node), field => string.Format("{0} {1}", GetField(node, field.Name).Type, ToCamelCase(field.Name)));
             UnParen();
@@ -1005,7 +1006,7 @@ namespace BoundTreeGenerator
         private void WriteUpdatedMethodVB(Node node, bool emitNew)
         {
             Blank();
-            Write("Public{0} Function Update", emitNew ? " Shadows" : "");
+            Write("Public{0} Function Update", (emitNew ? " Shadows" : "") + (string.IsNullOrEmpty(node.UpdateMethodModifiers) ? "" : (" " + node.UpdateMethodModifiers)));
             Paren();
             Comma(AllSpecifiableFields(node), field => string.Format("{1} As {0}", field.Type, ToCamelCase(field.Name)));
             UnParen();
@@ -1361,6 +1362,39 @@ namespace BoundTreeGenerator
                 default:
                     throw new ArgumentException("Unexpected target language", nameof(_targetLang));
             }
+        }
+
+        private void WritePipelinePhaseValidator()
+        {
+            if (_targetLang != TargetLanguage.CSharp)
+                return;
+
+            Blank();
+            Outdent();
+            WriteLine("#if DEBUG");
+            Indent();
+            WriteLine("internal sealed partial class PipelinePhaseValidator");
+            Brace();
+            WriteLine("internal static PipelinePhase DoesNotSurvive(BoundKind kind)");
+            Brace();
+            WriteLine("return kind switch");
+            Brace();
+            foreach (var node in _tree.Types.OfType<Node>())
+            {
+                string doesNotSurvive = node.DoesNotSurvive;
+                if (!string.IsNullOrEmpty(doesNotSurvive))
+                {
+                    WriteLine($"BoundKind.{StripBound(node.Name)} => PipelinePhase.{doesNotSurvive},");
+                }
+            }
+            WriteLine("_ => PipelinePhase.Emit");
+            Outdent();
+            WriteLine("}};");
+            Unbrace();
+            Unbrace();
+            Outdent();
+            WriteLine("#endif");
+            Indent();
         }
 
         private void WriteRewriter()

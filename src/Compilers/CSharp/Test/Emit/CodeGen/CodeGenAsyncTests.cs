@@ -4159,7 +4159,7 @@ class Test
   IL_00c6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_00cb:  nop
   IL_00cc:  ret
-}", sequencePoints: "Test+<F>d__0.MoveNext");
+}", sequencePointDisplay: SequencePointDisplayMode.Minimal);
 
             c.VerifyIL("Test.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine", @"
 {
@@ -5960,7 +5960,7 @@ class Test
   IL_00ef:  nop
   IL_00f0:  ret
 }",
-            sequencePoints: "Test+<F>d__2.MoveNext");
+            sequencePointDisplay: SequencePointDisplayMode.Minimal);
         }
 
         [Fact]
@@ -8568,6 +8568,410 @@ static class Test1
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82227")]
+        public void RuntimeAsync_SequencePoints_AsyncLambdaAndLocalFunction()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        async Task LocalAsync()
+                        {
+                            await Task.CompletedTask;
+                        }
+
+                        LocalAsync().Wait();
+
+                        Func<Task> f = async () =>
+                        {
+                            await Task.CompletedTask;
+                        };
+
+                        f().Wait();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    {ReturnValueMissing("<Main>g__LocalAsync|0_0", "0xc")}
+                    {ReturnValueMissing("<Main>b__0_1", "0xc")}
+                    """
+            });
+
+            verifier.VerifyIL("Program.<Main>g__LocalAsync|0_0()", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: await Task.CompletedTask;
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  nop
+                  // sequence point: }
+                  IL_000c:  ret
+                } 
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+
+            verifier.VerifyIL("Program.<>c.<Main>b__0_1()", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: await Task.CompletedTask;
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  nop
+                  // sequence point: }
+                  IL_000c:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+        }
+
+        [Fact]
+        public void RuntimeAsync_SequencePoints_ImplicitReturn()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.CompletedTask;
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0xc") });
+
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: await Task.CompletedTask;
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  nop
+                  // sequence point: }
+                  IL_000c:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+        }
+
+        [Fact]
+        public void RuntimeAsync_SequencePoints_ClosingBrace()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.CompletedTask;
+                        System.Console.WriteLine(1);
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x13") });
+
+            verifier.VerifyIL("Program.Main()", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: await Task.CompletedTask;
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  nop
+                  // sequence point: System.Console.WriteLine(1);
+                  IL_000c:  ldc.i4.1
+                  IL_000d:  call       "void System.Console.WriteLine(int)"
+                  IL_0012:  nop
+                  // sequence point: }
+                  IL_0013:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82274")]
+        public void RuntimeAsync_SequencePoints_CustomAwaiterBranch()
+        {
+            var source = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task TaskReturningMethodAsync(bool syncReturn)
+                    {
+                        if (syncReturn)
+                            return;
+
+                        await Task.Yield();
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.DebugDll);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("TaskReturningMethodAsync", "0x2e") });
+            verifier.VerifyIL("Program.TaskReturningMethodAsync(bool)", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  1
+                  .locals init (bool V_0,
+                                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                                System.Runtime.CompilerServices.YieldAwaitable V_2)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: if (syncReturn)
+                  IL_0001:  ldarg.0
+                  IL_0002:  stloc.0
+                  // sequence point: <hidden>
+                  IL_0003:  ldloc.0
+                  IL_0004:  brfalse.s  IL_0008
+                  // sequence point: return;
+                  IL_0006:  br.s       IL_002e
+                  // sequence point: await Task.Yield();
+                  IL_0008:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+                  IL_000d:  stloc.2
+                  IL_000e:  ldloca.s   V_2
+                  IL_0010:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+                  IL_0015:  stloc.1
+                  // sequence point: <hidden>
+                  IL_0016:  ldloca.s   V_1
+                  IL_0018:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+                  IL_001d:  brtrue.s   IL_0026
+                  IL_001f:  ldloc.1
+                  IL_0020:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+                  IL_0025:  nop
+                  IL_0026:  ldloca.s   V_1
+                  IL_0028:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+                  IL_002d:  nop
+                  // sequence point: }
+                  IL_002e:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_AwaitTaskWhenAll_AsyncLambdaInSelect_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (int x) => { return await Task.FromResult(x); }",
+                (true, false) => "async Task<int> (int x) => await Task.FromResult(x)",
+                (false, true) => "async (x) => { return await Task.FromResult(x); }",
+                (false, false) => "async (x) => await Task.FromResult(x)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static async Task Main()
+                    {
+                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambdaRuntimeAsyncAttribute}}{{lambda}}));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_LambdaReturnInference_InferenceScenarios_CustomTaskLikeContainingMethod(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (int x) => { return await Task.FromResult(x); }",
+                (true, false) => "async Task<int> (int x) => await Task.FromResult(x)",
+                (false, true) => "async (x) => { return await Task.FromResult(x); }",
+                (false, false) => "async (x) => await Task.FromResult(x)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System;
+                using System.Linq;
+                using System.Runtime.CompilerServices;
+                using System.Threading.Tasks;
+
+                [AsyncMethodBuilder(typeof(MyTaskBuilder))]
+                class MyTask
+                {
+                }
+
+                class MyTaskBuilder
+                {
+                    public static MyTaskBuilder Create() => null;
+                    public MyTask Task => null;
+                    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+                    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+                    public void SetResult() { }
+                    public void SetException(Exception exception) { }
+                    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                        where TAwaiter : INotifyCompletion
+                        where TStateMachine : IAsyncStateMachine
+                    {
+                    }
+                    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine)
+                        where TAwaiter : ICriticalNotifyCompletion
+                        where TStateMachine : IAsyncStateMachine
+                    {
+                    }
+                }
+
+                class Program
+                {
+                    static async MyTask Main()
+                    {
+                        await Task.WhenAll(new[] { 1, 2, 3 }.Select({{lambdaRuntimeAsyncAttribute}}{{lambda}}));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
+                (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
+                (false, true) => "async (x) => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async (x) => await Task.FromResult(x.Length)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use(Func<int, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<string, Task<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use({{lambdaRuntimeAsyncAttribute}}{{lambda}});
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        [CombinatorialData]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_GenericCandidate_InferenceScenarios(bool explicitReturnType, bool statementBody, bool runtimeAsyncEnabledOnLambda)
+        {
+            var lambda = (explicitReturnType, statementBody) switch
+            {
+                (true, true) => "async Task<int> (string x) => { return await Task.FromResult(x.Length); }",
+                (true, false) => "async Task<int> (string x) => await Task.FromResult(x.Length)",
+                (false, true) => "async (x) => { return await Task.FromResult(x.Length); }",
+                (false, false) => "async (x) => await Task.FromResult(x.Length)",
+            };
+            var lambdaRuntimeAsyncAttribute = $"[System.Runtime.CompilerServices.RuntimeAsyncMethodGenerationAttribute({(runtimeAsyncEnabledOnLambda ? "true" : "false")})] ";
+
+            var source = $$"""
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use<T>(Func<T, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<string, Task<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use({{lambdaRuntimeAsyncAttribute}}{{lambda}});
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_ValueTaskTarget()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static Task Use(Func<int, Task<int>> f) => Task.CompletedTask;
+                    static Task Use(Func<int, ValueTask<int>> f) => Task.CompletedTask;
+
+                    static async Task Main()
+                    {
+                        await Use(async ValueTask<int> (int x) => await Task.FromResult(x));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82551")]
+        public void RuntimeAsync_OverloadResolution_AsyncLambdaReturnInference_AmbiguousTaskLike_NoCrash()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static void Use(Func<int, Task<int>> f) { }
+                    static void Use(Func<int, ValueTask<int>> f) { }
+
+                    static void Main()
+                    {
+                        Use(async x => await Task.FromResult(x));
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+
+            comp.VerifyEmitDiagnostics(
+                // (11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Use(System.Func<int, System.Threading.Tasks.Task<int>>)' and 'Program.Use(System.Func<int, System.Threading.Tasks.ValueTask<int>>)'
+                //         Use(async x => await Task.FromResult(x));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Use").WithArguments("Program.Use(System.Func<int, System.Threading.Tasks.Task<int>>)", "Program.Use(System.Func<int, System.Threading.Tasks.ValueTask<int>>)").WithLocation(11, 9)
+            );
+        }
+
         [Theory]
         [CombinatorialData]
         public void RuntimeAsync_CompilerFeatureFlag_EnabledWithoutRuntimeAsync(bool withNonCoreLibSources)
@@ -8617,7 +9021,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(Feature.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation(source, parseOptions: parseOptions);
@@ -8667,7 +9071,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(Feature.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
@@ -8707,7 +9111,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(Feature.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
@@ -8769,7 +9173,7 @@ static class Test1
             var parseOptions = TestOptions.RegularPreview;
             if (explicitDisable)
             {
-                parseOptions = parseOptions.WithFeature("runtime-async", "off");
+                parseOptions = parseOptions.WithFeature(Feature.RuntimeAsync, "off");
             }
 
             var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition], parseOptions: parseOptions);
@@ -9086,6 +9490,128 @@ static class Test1
                   IL_0024:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void CustomAwaitable_InSwitch_SequencePoints()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    static async Task Main()
+                    {
+                        var result = (await new C()) switch
+                        {
+                            42 => await new C(),
+                            _ => throw new Exception()
+                        };
+
+                        Console.Write(result);
+                    }
+
+                    public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+                    {
+                        private bool isCompleted = false;
+                        public void OnCompleted(Action continuation)
+                            => Task.Run(continuation);
+                        public bool IsCompleted
+                        {
+                            get
+                            {
+                                var isCompleted = this.isCompleted;
+                                this.isCompleted = true;
+                                return isCompleted;
+                            }
+                        }
+
+                        public int GetResult() => 42;
+                    }
+
+                    public Awaiter GetAwaiter() => new Awaiter();
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code, options: TestOptions.DebugExe, includeSuppression: true);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("42"), verify: Verification.Fails with { ILVerifyMessage = ReturnValueMissing("Main", "0x71") });
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size      114 (0x72)
+                  .maxstack  2
+                  .locals init (int V_0, //result
+                                int V_1,
+                                int V_2,
+                                int V_3,
+                                C.Awaiter V_4,
+                                int V_5,
+                                C.Awaiter V_6)
+                  // sequence point: {
+                  IL_0000:  nop
+                  // sequence point: var result = ...         };
+                  IL_0001:  newobj     "C..ctor()"
+                  IL_0006:  call       "C.Awaiter C.GetAwaiter()"
+                  IL_000b:  stloc.s    V_4
+                  // sequence point: <hidden>
+                  IL_000d:  ldloc.s    V_4
+                  IL_000f:  callvirt   "bool C.Awaiter.IsCompleted.get"
+                  IL_0014:  brtrue.s   IL_001e
+                  IL_0016:  ldloc.s    V_4
+                  IL_0018:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<C.Awaiter>(C.Awaiter)"
+                  IL_001d:  nop
+                  IL_001e:  ldloc.s    V_4
+                  IL_0020:  callvirt   "int C.Awaiter.GetResult()"
+                  IL_0025:  stloc.3
+                  IL_0026:  ldloc.3
+                  IL_0027:  stloc.2
+                  IL_0028:  ldc.i4.1
+                  IL_0029:  brtrue.s   IL_002c
+                  // sequence point: switch ...         }
+                  IL_002b:  nop
+                  // sequence point: <hidden>
+                  IL_002c:  ldloc.2
+                  IL_002d:  ldc.i4.s   42
+                  IL_002f:  beq.s      IL_0033
+                  IL_0031:  br.s       IL_005e
+                  // sequence point: <hidden>
+                  IL_0033:  newobj     "C..ctor()"
+                  IL_0038:  call       "C.Awaiter C.GetAwaiter()"
+                  IL_003d:  stloc.s    V_6
+                  // sequence point: <hidden>
+                  IL_003f:  ldloc.s    V_6
+                  IL_0041:  callvirt   "bool C.Awaiter.IsCompleted.get"
+                  IL_0046:  brtrue.s   IL_0050
+                  IL_0048:  ldloc.s    V_6
+                  IL_004a:  call       "void System.Runtime.CompilerServices.AsyncHelpers.AwaitAwaiter<C.Awaiter>(C.Awaiter)"
+                  IL_004f:  nop
+                  IL_0050:  ldloc.s    V_6
+                  IL_0052:  callvirt   "int C.Awaiter.GetResult()"
+                  IL_0057:  stloc.s    V_5
+                  // sequence point: await new C()
+                  IL_0059:  ldloc.s    V_5
+                  IL_005b:  stloc.1
+                  IL_005c:  br.s       IL_0064
+                  // sequence point: throw new Exception()
+                  IL_005e:  newobj     "System.Exception..ctor()"
+                  IL_0063:  throw
+                  // sequence point: <hidden>
+                  IL_0064:  ldc.i4.1
+                  IL_0065:  brtrue.s   IL_0068
+                  // sequence point: var result = ...         };
+                  IL_0067:  nop
+                  // sequence point: <hidden>
+                  IL_0068:  ldloc.1
+                  IL_0069:  stloc.0
+                  // sequence point: Console.Write(result);
+                  IL_006a:  ldloc.0
+                  IL_006b:  call       "void System.Console.Write(int)"
+                  IL_0070:  nop
+                  // sequence point: }
+                  IL_0071:  ret
+                }
+                """, sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77897")]
@@ -10394,6 +10920,416 @@ static class Test1
             // With runtime async globally disabled
             comp = CreateRuntimeAsyncCompilation(code, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RuntimeAsyncWithCustomTaskDefinition_TreatsAsNotRuntimeAsync()
+        {
+            var code = """
+                #pragma warning disable CS0436
+
+                await System.Threading.Tasks.Task.Delay(1);
+                System.Console.Write(1);
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null;
+                        public static Task Delay(int millisecondsDelay) => throw null;
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder
+                    {
+                        public System.Threading.Tasks.Task Task => null;
+                        public static AsyncTaskMethodBuilder Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  2
+                  .locals init (Program.<<Main>$>d__0 V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldc.i4.m1
+                  IL_000f:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<Program.<<Main>$>d__0>(ref Program.<<Main>$>d__0)"
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<<Main>$>d__0.<>t__builder"
+                  IL_0029:  call       "System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get"
+                  IL_002e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void RuntimeAsyncWithCustomTaskTDefinition_TreatsAsNotRuntimeAsync()
+        {
+            var code = """
+                #pragma warning disable CS0436
+
+                await System.Threading.Tasks.Task.Delay(1);
+                System.Console.Write(1);
+                return 42;
+
+                namespace System.Threading.Tasks
+                {
+                    public class Task<TResult>
+                    {
+                        public System.Runtime.CompilerServices.TaskAwaiter<TResult> GetAwaiter() => new();
+                    }
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public struct AsyncTaskMethodBuilder<TResult>
+                    {
+                        public System.Threading.Tasks.Task<TResult> Task => null;
+                        public static AsyncTaskMethodBuilder<TResult> Create() => throw null;
+                        public void SetException(Exception exception){}
+                        public void SetResult(TResult result){}
+                        public void AwaitOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.INotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void AwaitUnsafeOnCompleted<TAwaiter,TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : System.Runtime.CompilerServices.IAsyncStateMachine{}
+                        public void SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine){}
+                    }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(code);
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  2
+                  .locals init (Program.<<Main>$>d__0 V_0)
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Create()"
+                  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<<Main>$>d__0.<>t__builder"
+                  IL_000c:  ldloca.s   V_0
+                  IL_000e:  ldc.i4.m1
+                  IL_000f:  stfld      "int Program.<<Main>$>d__0.<>1__state"
+                  IL_0014:  ldloca.s   V_0
+                  IL_0016:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<<Main>$>d__0.<>t__builder"
+                  IL_001b:  ldloca.s   V_0
+                  IL_001d:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Start<Program.<<Main>$>d__0>(ref Program.<<Main>$>d__0)"
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<<Main>$>d__0.<>t__builder"
+                  IL_0029:  call       "System.Threading.Tasks.Task<int> System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.Task.get"
+                  IL_002e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82397")]
+        public void RuntimeAsyncLocalFunctionAwaitedFromNonRuntimeAsyncLambda()
+        {
+            var source = """
+using System.Threading.Tasks;
+
+await Task.Run(
+[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]
+async () =>
+{
+    await Func();
+
+    [System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(true)]
+    static async Task Func()
+    {
+        await Task.Delay(1);
+        await Task.Yield();
+    }
+});
+""";
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    {ReturnValueMissing("<Main>$", "0x29")}
+                    {ReturnValueMissing("<<Main>$>g__Func|0_1", "0x2f")}
+                    """
+
+            });
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<<Main>$>g__Func|0_1", """
+{
+  // Code size       48 (0x30)
+  .maxstack  1
+  .locals init (System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_0,
+                System.Runtime.CompilerServices.YieldAwaitable V_1)
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+  IL_000b:  call       "System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()"
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       "System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter()"
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  call       "bool System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.IsCompleted.get"
+  IL_0020:  brtrue.s   IL_0028
+  IL_0022:  ldloc.0
+  IL_0023:  call       "void System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter>(System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter)"
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       "void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()"
+  IL_002f:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/82397")]
+        public void NonRuntimeAsyncLocalFunctionAwaitedFromRuntimeAsyncLambda()
+        {
+            var source = """
+using System.Threading.Tasks;
+
+await Task.Run(
+[System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(true)]
+async () =>
+{
+    await Func();
+
+    [System.Runtime.CompilerServices.RuntimeAsyncMethodGeneration(false)]
+    static async Task Func()
+    {
+        await Task.Delay(1);
+        await Task.Yield();
+    }
+});
+""";
+
+            var comp = CreateRuntimeAsyncCompilation([source, RuntimeAsyncMethodGenerationAttributeDefinition]);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    {ReturnValueMissing("<Main>$", "0x29")}
+                    {ReturnValueMissing("<<Main>$>b__0_0", "0xa")}
+                    """
+
+            });
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.<>c.<<Main>$>b__0_0()", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  call       "System.Threading.Tasks.Task Program.<<Main>$>g__Func|0_1()"
+  IL_0005:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+  IL_000a:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RuntimeAsyncNullable_WithTaskReturningMethod()
+        {
+            var source = """
+using System.Threading.Tasks;
+
+#nullable enable
+
+await M(null);
+
+async Task? M(object o) { }
+""";
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails with
+            {
+                ILVerifyMessage = $"""
+                    {ReturnValueMissing("<Main>$", "0xb")}
+                    {ReturnValueMissing("<<Main>$>g__M|0_0", "0x0")}
+                    """
+            });
+            verifier.VerifyDiagnostics(
+                // (5,7): warning CS8604: Possible null reference argument for parameter 'task' in 'void AsyncHelpers.Await(Task task)'.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "M(null)").WithArguments("task", "void AsyncHelpers.Await(Task task)").WithLocation(5, 7),
+                // (5,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 9)
+            );
+        }
+
+        [Fact]
+        public void RuntimeAsyncNullable_WithTaskLikeReturningMethod()
+        {
+            var corlib = """
+                namespace System
+                {
+                    public class Attribute {}
+                    public enum AttributeTargets {}
+                    public class AttributeUsageAttribute : Attribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets validOn) {}
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                    public struct Boolean {}
+                    public struct Byte {}
+                    public abstract class Enum {}
+                    public class Exception {}
+                    public struct Int32 {}
+                    public class Object {}
+                    public class String {}
+                    public class ValueType {}
+                    public class Void {}
+
+                    namespace Threading.Tasks
+                    {
+                        public class Task
+                        {
+                            public Runtime.CompilerServices.TaskAwaiter GetAwaiter() => throw null!;
+                            public static Task CompletedTask => throw null!;
+                        }
+                    }
+
+                    namespace Runtime.CompilerServices
+                    {
+                        public interface INotifyCompletion {}
+                        public interface ICriticalNotifyCompletion : INotifyCompletion {}
+                        public class TaskAwaiter : ICriticalNotifyCompletion
+                        {
+                            public bool IsCompleted => false;
+                            public void GetResult() {}
+                        }
+
+                        public static class AsyncHelpers
+                        {
+                            public static void UnsafeAwaitAwaiter<TAwaiter>(TAwaiter awaiter) where TAwaiter : notnull, INotifyCompletion {}
+                        }
+                    }
+                }
+                """;
+
+            var source = """
+#nullable enable
+
+await M(null);
+
+MyTask M(object o) => throw null!;
+
+public class MyTask
+{
+    public System.Runtime.CompilerServices.TaskAwaiter? GetAwaiter() => throw null!;
+}
+""";
+
+            var comp = CreateEmptyCompilation([source, corlib], parseOptions: WithRuntimeAsync(TestOptions.RegularPreview), assemblyName: "TestAssembly");
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (3,7): warning CS8714: The type 'System.Runtime.CompilerServices.TaskAwaiter?' cannot be used as type parameter 'TAwaiter' in the generic type or method 'AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)'. Nullability of type argument 'System.Runtime.CompilerServices.TaskAwaiter?' doesn't match 'notnull' constraint.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint, "M").WithArguments("System.Runtime.CompilerServices.AsyncHelpers.UnsafeAwaitAwaiter<TAwaiter>(TAwaiter)", "TAwaiter", "System.Runtime.CompilerServices.TaskAwaiter?").WithLocation(3, 7),
+                // (3,9): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // await M(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 9)
+            );
+        }
+
+        [Theory]
+        [InlineData("Task")]
+        [InlineData("ValueTask")]
+        public void RuntimeAsyncAwaitNullableFlow_WithTaskReturningMethod(string taskType)
+        {
+            var source = $$"""
+                using System.Threading.Tasks;
+
+                #nullable enable
+
+                _ = (await GetNullableResultAsync()).ToString();
+                _ = (await GetNullableResultAsync().ConfigureAwait(true)).ToString();
+                var x = await GetNullableResultAsync();
+                _ = x.ToString(); // 1
+                x = await GetNullableResultAsync().ConfigureAwait(false);
+                _ = x.ToString(); // 2
+
+                {{taskType}}<string?> GetNullableResultAsync() => default!;
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,6): warning CS8602: Dereference of a possibly null reference.
+                // _ = (await GetNullableResultAsync()).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await GetNullableResultAsync()").WithLocation(5, 6),
+                // (6,6): warning CS8602: Dereference of a possibly null reference.
+                // _ = (await GetNullableResultAsync().ConfigureAwait(true)).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await GetNullableResultAsync().ConfigureAwait(true)").WithLocation(6, 6),
+                // (8,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 5),
+                // (10,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 5)
+            );
+        }
+
+        [Fact]
+        public void RuntimeAsyncAwaitNullableFlow_WithTaskLikeReturningMethod()
+        {
+            var source = """
+                #nullable enable
+
+                _ = (await GetNullableResultTaskLike()).ToString();
+                var x = await GetNullableResultTaskLike();
+                _ = x.ToString();
+
+                MyTask GetNullableResultTaskLike() => throw null!;
+
+                public class MyTask
+                {
+                    public MyAwaiter GetAwaiter() => throw null!;
+                }
+
+                public class MyAwaiter : System.Runtime.CompilerServices.ICriticalNotifyCompletion
+                {
+                    public bool IsCompleted => false;
+                    public string? GetResult() => null;
+                    public void OnCompleted(System.Action continuation) { }
+                    public void UnsafeOnCompleted(System.Action continuation) { }
+                }
+                """;
+
+            var comp = CreateRuntimeAsyncCompilation(source);
+            comp.VerifyDiagnostics(
+                // (3,6): warning CS8602: Dereference of a possibly null reference.
+                // _ = (await GetNullableResultTaskLike()).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await GetNullableResultTaskLike()").WithLocation(3, 6),
+                // (5,5): warning CS8602: Dereference of a possibly null reference.
+                // _ = x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 5)
+            );
         }
     }
 }

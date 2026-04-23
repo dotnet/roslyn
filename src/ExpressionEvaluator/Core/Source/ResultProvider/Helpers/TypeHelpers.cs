@@ -278,6 +278,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 : null;
         }
 
+        internal static bool IsInt32(this Type type)
+        {
+            return Type.GetTypeCode(type) == TypeCode.Int32;
+        }
+
         internal static bool IsBoolean(this Type type)
         {
             return Type.GetTypeCode(type) == TypeCode.Boolean;

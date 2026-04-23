@@ -2,46 +2,51 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using Roslyn.Utilities;
+
+using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
 
-internal sealed class GlassTestsHotReloadService
+internal sealed class GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
 {
-    private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider =
-       (_, _, _) => ValueTask.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
-
-    private readonly IManagedHotReloadService _debuggerService;
-
-    private readonly IEditAndContinueService _encService;
-    private DebuggingSessionId _sessionId;
-
-    public GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
+    internal sealed class ServiceWrapper(IManagedHotReloadService service) : InternalContracts.IManagedHotReloadService
     {
-        _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
-        _debuggerService = debuggerService;
+        public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellation)
+            => (await service.GetActiveStatementsAsync(cancellation).ConfigureAwait(false)).SelectAsArray(a => a.ToContract());
+
+        public async ValueTask<InternalContracts.ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellation)
+            => (await service.GetAvailabilityAsync(module, cancellation).ConfigureAwait(false)).ToContract();
+
+        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellation)
+            => service.GetCapabilitiesAsync(cancellation);
+
+        public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellation)
+            => service.PrepareModuleForUpdateAsync(module, cancellation);
     }
 
+    private static readonly ActiveStatementSpanProvider s_noActiveStatementSpanProvider = async (_, _, _) => [];
+    private readonly IEditAndContinueService _encService = services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
+    private DebuggingSessionId _sessionId;
+
 #pragma warning disable IDE0060 // Remove unused parameter
-    public Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
+    public async Task StartSessionAsync(Solution solution, CancellationToken cancellationToken)
 #pragma warning restore IDE0060
     {
         var newSessionId = _encService.StartDebuggingSession(
             solution,
-            new ManagedHotReloadServiceBridge(_debuggerService),
+            new ServiceWrapper(debuggerService),
             NullPdbMatchingSourceTextProvider.Instance,
             reportDiagnostics: false);
 
         Contract.ThrowIfFalse(_sessionId == default, "Session already started");
         _sessionId = newSessionId;
-
-        return Task.CompletedTask;
     }
 
     private DebuggingSessionId GetSessionId()

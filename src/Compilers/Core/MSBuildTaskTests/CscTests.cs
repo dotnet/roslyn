@@ -494,6 +494,30 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             AssertEx.Equal(Path.Combine("path", "to", "custom_csc", $"csc{PlatformInformation.ExeExtension}"), csc.GeneratePathToTool());
         }
 
+        /// <summary>
+        /// Setting ToolExe to "csc.exe" should use the built-in compiler regardless of apphost being used or not.
+        /// </summary>
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
+        public void BuiltInToolExe(bool useAppHost, bool setToolExe)
+        {
+            var csc = new Csc();
+            csc.UseAppHost_TestOnly = useAppHost;
+            if (setToolExe)
+            {
+                csc.ToolExe = $"csc{PlatformInformation.ExeExtension}";
+            }
+            if (useAppHost)
+            {
+                AssertEx.Equal(csc.PathToBuiltInTool, csc.GeneratePathToTool());
+                AssertEx.Equal("", csc.GenerateCommandLineContents());
+            }
+            else
+            {
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), csc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(csc.PathToBuiltInTool, ""), csc.GenerateCommandLineContents());
+            }
+        }
+
         [Fact]
         public void EditorConfig()
         {

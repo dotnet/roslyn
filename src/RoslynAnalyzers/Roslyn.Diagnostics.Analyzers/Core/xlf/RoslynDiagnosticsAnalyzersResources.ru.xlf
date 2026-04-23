@@ -189,22 +189,22 @@
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
         <source>Use 'RoslynDebug.Assert'.</source>
-        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <target state="translated">Используйте RoslynDebug.Assert.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
         <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
-        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <target state="translated">Debug.Assert в .NET Framework сразу создает строковое значение. Это может привести к нехватке памяти в тестах, особенно для строк, содержащих узлы синтаксиса. Вместо этого используйте RoslynDebug.Assert, который создает строку только при необходимости.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
         <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <target state="translated">Не используйте интерполированные строки с Debug.Assert. Вместо этого используйте RoslynDebug.Assert.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
         <source>Do not use interpolated strings with 'Debug.Assert'</source>
-        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <target state="translated">Не используйте интерполированные строки с Debug.Assert</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="ExposeMemberForTestingTitle">
         <source>Expose member for testing</source>
-        <target state="translated">Предоставление элемента для тестирования</target>
+        <target state="translated">Предоставить элемент для тестирования</target>
         <note />
       </trans-unit>
       <trans-unit id="FixNumberedComments">

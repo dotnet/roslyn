@@ -198,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
             Dim generator = SyntaxGenerator.GetGenerator(document)
             Return ($"Imports {symbol.ToDisplayString()}",
-                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement, generator))
+                    addImportService.HasExistingImport(semanticModel, root, root, importsStatement, generator, cancellationToken))
         End Function
 
         Private Shared Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
@@ -294,12 +294,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 options As AddImportPlacementOptions,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
-            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
+            Dim semanticModel = Await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim importService = document.GetLanguageService(Of IAddImportsService)
             Dim generator = SyntaxGenerator.GetGenerator(document)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, generator, options, cancellationToken)
+            Dim newRoot = importService.AddImport(semanticModel, root, contextNode, importsStatement, generator, options, cancellationToken)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 

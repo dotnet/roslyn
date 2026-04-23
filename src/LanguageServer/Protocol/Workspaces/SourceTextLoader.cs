@@ -23,6 +23,6 @@ internal sealed class SourceTextLoader : TextLoader
         => _fileUri;
 
     // TODO (https://github.com/dotnet/roslyn/issues/63583): Use options.ChecksumAlgorithm 
-    public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        => Task.FromResult(TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri));
+    public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => TextAndVersion.Create(_sourceText, VersionStamp.Create(), _fileUri);
 }

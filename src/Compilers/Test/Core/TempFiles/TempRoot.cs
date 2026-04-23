@@ -19,7 +19,35 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         static TempRoot()
         {
-            Root = Path.Combine(Path.GetTempPath(), "RoslynTests");
+            var tempDirectory = new DirectoryInfo(Path.GetTempPath());
+
+#if NET
+            // When running on MacOS, `Path.GetTempPath()` will return "/var/folders/..." which is a symlink to "/private/var/folders/...". This
+            // can cause issues when watching files under the temp directory, as the FileSystemWatcher will report changes using the real path.
+            // So, we need to adjust this path by walking up the temp path until we find a directory that is a link and resolve it.
+
+            if (tempDirectory.LinkTarget != null)
+            {
+                tempDirectory = (DirectoryInfo)Directory.ResolveLinkTarget(tempDirectory.FullName, returnFinalTarget: true);
+            }
+            else
+            {
+                var parentDirectory = tempDirectory.Parent;
+                while (parentDirectory != null && parentDirectory.LinkTarget == null)
+                {
+                    parentDirectory = parentDirectory.Parent;
+                }
+
+                if (parentDirectory != null)
+                {
+                    var relativePath = Path.GetRelativePath(parentDirectory.FullName, tempDirectory.FullName);
+                    var realPath = Directory.ResolveLinkTarget(parentDirectory.FullName, returnFinalTarget: true).FullName;
+                    tempDirectory = new DirectoryInfo(Path.GetFullPath(Path.Combine(realPath, relativePath)));
+                }
+            }
+#endif
+
+            Root = Path.Combine(tempDirectory.FullName, "RoslynTests");
             Directory.CreateDirectory(Root);
         }
 

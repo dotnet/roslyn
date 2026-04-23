@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -1436,7 +1437,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
     }
 
-    [Theory, CombinatorialData]
+    [Theory]
+    [CombinatorialData]
     internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
         SourceGeneratorExecutionPreference executionPreference)
     {
@@ -1485,6 +1487,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         }
 
         // Now, overwrite the analyzer reference with a new version that generates different contents
+        TestSerializerService.ClearCachedTestReferences();
         {
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2"))
             using (var destination = File.OpenWrite(analyzerPath))

@@ -1215,40 +1215,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static Encoding? TryParseEncodingName(string arg)
-        {
-            if (!string.IsNullOrWhiteSpace(arg)
-                && long.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out long codepage)
-                && (codepage > 0))
-            {
-                try
-                {
-                    return Encoding.GetEncoding((int)codepage);
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-            }
-
-            return null;
-        }
-
-        internal static SourceHashAlgorithm TryParseHashAlgorithmName(string arg)
-        {
-            if (string.Equals("sha1", arg, StringComparison.OrdinalIgnoreCase))
-            {
-                return SourceHashAlgorithm.Sha1;
-            }
-
-            if (string.Equals("sha256", arg, StringComparison.OrdinalIgnoreCase))
-            {
-                return SourceHashAlgorithm.Sha256;
-            }
-
-            // MD5 is legacy, not supported
-
-            return SourceHashAlgorithm.None;
-        }
+            => int.TryParse(arg, NumberStyles.None, CultureInfo.InvariantCulture, out var codepage) && codepage > 0
+                ? EncodedStringText.TryGetCodePageEncoding(codepage)
+                : null;
 
         private IEnumerable<string> ExpandFileNamePattern(
             string path,

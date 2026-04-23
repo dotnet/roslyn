@@ -2491,4 +2491,66 @@ public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTe
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestPartialPropertyWithImplementation()
+        => TestInRegularAndScriptAsync("""
+            partial class C
+            {
+                public partial int [||]P { get; }
+            }
+
+            partial class C
+            {
+                public partial int P => 0;
+            }
+            """, """
+            partial class C
+            {
+                public partial int GetP();
+            }
+
+            partial class C
+            {
+                public partial int GetP()
+                {
+                    return 0;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/XXXXX")]
+    public Task TestPartialPropertyWithBody()
+        => TestInRegularAndScriptAsync("""
+            partial class C
+            {
+                public partial int [||]P { get; set; }
+            }
+
+            partial class C
+            {
+                public partial int P
+                {
+                    get => 42;
+                    set { }
+                }
+            }
+            """, """
+            partial class C
+            {
+                public partial int GetP();
+                public partial void SetP(int value);
+            }
+
+            partial class C
+            {
+                public partial int GetP()
+                {
+                    return 42;
+                }
+
+                public partial void SetP(int value)
+                { }
+            }
+            """);
 }

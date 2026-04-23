@@ -724,7 +724,7 @@ public sealed class FixIncorrectTokensTests
 
         var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], await document.GetCodeCleanupOptionsAsync(CancellationToken.None), codeCleanups);
 
-        Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
+        Assert.Equal(expectedResult, FixLineEndings((await cleanDocument.GetSyntaxRootAsync()).ToFullString()));
     }
 
     private static Document CreateDocument(string code, string language)

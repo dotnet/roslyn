@@ -3259,7 +3259,7 @@ public class C
   // sequence point: }
   IL_0048:  ret
 }
-", source: source, sequencePoints: "C.M");
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]
@@ -3425,7 +3425,7 @@ public class C
   IL_005d:  ldnull
   IL_005e:  throw
 }
-", source: source, sequencePoints: "C.M");
+", sequencePointDisplay: SequencePointDisplayMode.Enhanced);
         }
 
         [Fact, WorkItem(55668, "https://github.com/dotnet/roslyn/issues/55668")]

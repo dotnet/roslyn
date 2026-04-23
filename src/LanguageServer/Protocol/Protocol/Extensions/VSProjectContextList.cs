@@ -13,22 +13,20 @@ using System.Text.Json.Serialization;
 internal sealed class VSProjectContextList
 {
     /// <summary>
+    /// Gets or sets a unique key representing the group of project contexts the text document belongs to.
+    /// </summary>
+    [JsonPropertyName("_vs_key")]
+    public string Key { get; set; }
+
+    /// <summary>
     /// Gets or sets the document contexts associated with a text document.
     /// </summary>
     [JsonPropertyName("_vs_projectContexts")]
-    public VSProjectContext[] ProjectContexts
-    {
-        get;
-        set;
-    }
+    public VSProjectContext[] ProjectContexts { get; set; }
 
     /// <summary>
     /// Gets or sets the index of the default entry of the <see cref="VSProjectContext" /> array.
     /// </summary>
     [JsonPropertyName("_vs_defaultIndex")]
-    public int DefaultIndex
-    {
-        get;
-        set;
-    }
+    public int DefaultIndex { get; set; }
 }

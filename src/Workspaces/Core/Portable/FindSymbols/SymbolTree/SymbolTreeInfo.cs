@@ -53,21 +53,20 @@ internal sealed partial class SymbolTreeInfo
     private readonly OrderPreservingMultiDictionary<int, int> _inheritanceMap;
 
     /// <summary>
-    /// Maps the name of receiver type name to its <see cref="ExtensionMethodInfo" />.
-    /// <see cref="ParameterTypeInfo"/> for the definition of simple/complex methods.
-    /// For non-array simple types, the receiver type name would be its metadata name, e.g. "Int32".
-    /// For any array types with simple type as element, the receiver type name would be just "ElementTypeName[]", e.g. "Int32[]" for int[][,]
-    /// For non-array complex types, the receiver type name is "".
+    /// Maps the name of receiver type name to its <see cref="ExtensionMemberInfo" />. <see cref="ParameterTypeInfo"/>
+    /// for the definition of simple/complex methods. For non-array simple types, the receiver type name would be its
+    /// metadata name, e.g. "Int32". For any array types with simple type as element, the receiver type name would be
+    /// just "ElementTypeName[]", e.g. "Int32[]" for int[][,] For non-array complex types, the receiver type name is "".
     /// For any array types with complex type as element, the receiver type name is "[]"
     /// </summary>
-    private readonly MultiDictionary<string, ExtensionMethodInfo>? _receiverTypeNameToExtensionMethodMap;
+    private readonly MultiDictionary<string, ExtensionMemberInfo>? _receiverTypeNameToExtensionMemberMap;
 
-    public MultiDictionary<string, ExtensionMethodInfo>.ValueSet GetExtensionMethodInfoForReceiverType(string typeName)
-        => _receiverTypeNameToExtensionMethodMap != null
-            ? _receiverTypeNameToExtensionMethodMap[typeName]
-            : new MultiDictionary<string, ExtensionMethodInfo>.ValueSet(null, null);
+    public MultiDictionary<string, ExtensionMemberInfo>.ValueSet GetExtensionMemberInfoForReceiverType(string typeName)
+        => _receiverTypeNameToExtensionMemberMap != null
+            ? _receiverTypeNameToExtensionMemberMap[typeName]
+            : new MultiDictionary<string, ExtensionMemberInfo>.ValueSet(null, null);
 
-    public bool ContainsExtensionMethod => _receiverTypeNameToExtensionMethodMap?.Count > 0;
+    public bool ContainsExtensionMember => _receiverTypeNameToExtensionMemberMap?.Count > 0;
 
     private SpellChecker? _spellChecker;
 
@@ -75,11 +74,11 @@ internal sealed partial class SymbolTreeInfo
         Checksum checksum,
         ImmutableArray<Node> sortedNodes,
         OrderPreservingMultiDictionary<string, string> inheritanceMap,
-        MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
+        MultiDictionary<string, ExtensionMemberInfo>? receiverTypeNameToExtensionMemberMap)
         : this(checksum, sortedNodes,
                spellChecker: null,
                CreateIndexBasedInheritanceMap(sortedNodes, inheritanceMap),
-               receiverTypeNameToExtensionMethodMap)
+               receiverTypeNameToExtensionMemberMap)
     {
     }
 
@@ -88,13 +87,13 @@ internal sealed partial class SymbolTreeInfo
         ImmutableArray<Node> sortedNodes,
         SpellChecker? spellChecker,
         OrderPreservingMultiDictionary<int, int> inheritanceMap,
-        MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
+        MultiDictionary<string, ExtensionMemberInfo>? receiverTypeNameToExtensionMemberMap)
     {
         Checksum = checksum;
         _nodes = sortedNodes;
         _spellChecker = spellChecker;
         _inheritanceMap = inheritanceMap;
-        _receiverTypeNameToExtensionMethodMap = receiverTypeNameToExtensionMethodMap;
+        _receiverTypeNameToExtensionMemberMap = receiverTypeNameToExtensionMemberMap;
     }
 
     public static SymbolTreeInfo CreateEmpty(Checksum checksum)
@@ -113,7 +112,7 @@ internal sealed partial class SymbolTreeInfo
             return this;
 
         return new SymbolTreeInfo(
-            checksum, _nodes, _spellChecker, _inheritanceMap, _receiverTypeNameToExtensionMethodMap);
+            checksum, _nodes, _spellChecker, _inheritanceMap, _receiverTypeNameToExtensionMemberMap);
     }
 
     public Task<ImmutableArray<ISymbol>> FindAsync(
@@ -459,12 +458,12 @@ internal sealed partial class SymbolTreeInfo
         Checksum checksum,
         ImmutableArray<BuilderNode> unsortedNodes,
         OrderPreservingMultiDictionary<string, string> inheritanceMap,
-        MultiDictionary<string, ExtensionMethodInfo>? receiverTypeNameToExtensionMethodMap)
+        MultiDictionary<string, ExtensionMemberInfo>? receiverTypeNameToExtensionMemberMap)
     {
         var sortedNodes = SortNodes(unsortedNodes);
 
         return new SymbolTreeInfo(
-            checksum, sortedNodes, inheritanceMap, receiverTypeNameToExtensionMethodMap);
+            checksum, sortedNodes, inheritanceMap, receiverTypeNameToExtensionMemberMap);
     }
 
     private static OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

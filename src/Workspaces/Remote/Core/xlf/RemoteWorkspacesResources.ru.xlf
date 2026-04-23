@@ -29,12 +29,12 @@
       </trans-unit>
       <trans-unit id="FeatureName_CopilotChangeAnalysis">
         <source>Copilot change analysis</source>
-        <target state="new">Copilot change analysis</target>
+        <target state="translated">Анализ изменений Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_CopilotProposalAdjuster">
         <source>Copilot proposal adjuster</source>
-        <target state="new">Copilot proposal adjuster</target>
+        <target state="translated">Корректировщик предложений Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
@@ -67,14 +67,14 @@
         <target state="translated">Рефакторинг инкапсуляции поля</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMessageHandler">
-        <source>Extension message handler</source>
-        <target state="new">Extension message handler</target>
+      <trans-unit id="FeatureName_ExtensionMemberImportCompletion">
+        <source>Extension member import completion</source>
+        <target state="translated">Завершение импорта элемента расширения</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_ExtensionMethodImportCompletion">
-        <source>Extension method import completion</source>
-        <target state="translated">Завершение импорта метода расширения</target>
+      <trans-unit id="FeatureName_ExtensionMessageHandler">
+        <source>Extension message handler</source>
+        <target state="translated">Обработчик сообщений расширения</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_FindUsages">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_Initialization">
         <source>Initialization</source>
-        <target state="new">Initialization</target>
+        <target state="translated">Инициализация</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_KeepAlive">

@@ -8,11 +8,6 @@
 
     <IsPackable>false</IsPackable>
 
-    <!--
-      NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
-    -->
-    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
-
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
   </ItemGroup>
 
   <!--

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -169,6 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return reduced.Parameters[0].Type;
             }
         }
+
+        public override bool IsAsync => OriginalDefinition.IsAsync;
+
+        internal sealed override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
 
         public override TypeWithAnnotations GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
@@ -486,5 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingMethod.HasAsyncMethodBuilderAttribute(out builderArgument);
         }
+
+        internal sealed override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
+            => throw ExceptionUtilities.Unreachable();
     }
 }

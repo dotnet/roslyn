@@ -18,6 +18,6 @@ internal sealed class TestTextLoader : TextLoader
         _textAndVersion = TextAndVersion.Create(SourceText.From(text, encoding: null, checksumAlgorithm), VersionStamp.Create());
     }
 
-    public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-        => Task.FromResult(_textAndVersion);
+    public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        => _textAndVersion;
 }

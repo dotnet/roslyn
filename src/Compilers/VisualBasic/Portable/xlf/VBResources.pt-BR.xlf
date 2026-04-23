@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAppliedManually">
         <source>'{0}' cannot be applied manually.</source>
-        <target state="new">'{0}' cannot be applied manually.</target>
+        <target state="translated">"{0}" não pode ser aplicado manualmente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
@@ -62,9 +62,19 @@
         <target state="translated">Não é possível atualizar '{0}'; o atributo '{1}' está ausente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime">
+        <source>Update requires emitting explicit interface implementation, which is not supported by the runtime without restarting the application.</source>
+        <target state="translated">A atualização requer a emissão de implementação explícita de interface, que não tem suporte no runtime sem reiniciar o aplicativo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportExtendedLayoutTypes">
+        <source>The target runtime does not support extended layout types.</source>
+        <target state="translated">O runtime de destino não dá suporte a tipos de layout estendidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
@@ -79,7 +89,7 @@
       </trans-unit>
       <trans-unit id="ERR_MethodImplAttributeAsyncCannotBeUsed">
         <source>'MethodImplAttribute.Async' cannot be manually applied to methods.</source>
-        <target state="new">'MethodImplAttribute.Async' cannot be manually applied to methods.</target>
+        <target state="translated">"MethodImplAttribute.Async" não pode ser aplicado manualmente aos métodos.</target>
         <note>'MethodImplAttribute.Async' is not localizable.</note>
       </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
@@ -137,6 +147,11 @@
         <target state="translated">Os eventos das variáveis WithEvents compartilhadas não podem ser manipulados por métodos em um tipo diferente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StructLayoutAndExtendedLayout">
+        <source>Use of 'StructLayoutAttribute' and 'ExtendedLayoutAttribute' on the same type is not allowed.</source>
+        <target state="translated">O uso de "StructLayoutAttribute" e "ExtendedLayoutAttribute" no mesmo tipo não é permitido.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">'{0}' é definido no assembly '{1}'.</target>
@@ -144,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyUserStrings_RestartRequired">
         <source>Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</source>
-        <target state="new">Combined length of user strings used by the program exceeds allowed limit. Adding a string or XML literal requires restarting the application.</target>
+        <target state="translated">O comprimento combinado de cadeias de caracteres de usuário usadas pelo programa excede o limite permitido. Adicionar uma cadeia de caracteres ou um literal XML requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeReserved">
@@ -326,7 +341,7 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Specify algorithm for calculating source file
                                   checksum stored in PDB. Supported values are:
-                                  SHA1 or SHA256 (default).
+                                  SHA1, SHA256 (default), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Specifies the codepage to use when opening
                                   source files.
 -delaysign[+|-]                   Delay-sign the assembly using only the public
@@ -376,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opções do Compilador do Visual Basic
+        <target state="translated">                  Opções do Compilador do Visual Basic
 
                                   - ARQUIVO DE SAÍDA -
 -out:&lt;file&gt;                       Especifica o nome do arquivo de saída.
@@ -416,7 +431,7 @@
 -nowin32manifest                  O manifesto padrão não deve ser incorporado
                                   na seção de manifesto do PE de saída.
 -resource:&lt;resinfo&gt;               Adiciona o arquivo especificado como um recurso
-                                  de assembly incorporado.
+                                  externo.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Forma abreviada: -res)
 -win32icon:&lt;file&gt;                 Especifica um arquivo de ícone Win32 (.ico) nos
@@ -453,7 +468,7 @@
                                   no formato SARIF.
                                   sarif_version:{1|2|2.1} Padrão é 1. 2 e 2.1
                                   ambos significam versão SARIF 2.1.0.
--reportanalyzer                   Relatar informações adicionais do analisador, como o
+-reportanalyzer                   Relatar informações adicionais do analisador, como
                                   tempo de execução.
 -skipanalyzers[+|-]               Ignorar a execução de analisadores de diagnóstico.
 
@@ -494,14 +509,14 @@
                                   (hex).
 -checksumalgorithm:&lt;alg&gt;          Especificar o algoritmo para calcular a soma de verificação do arquivo de origem
                                   soma de verificação armazenada no PDB. Os valores suportados são:
-                                  SHA1 ou SHA256 (padrão).
+                                  SHA1, SHA256 (padrão), SHA384 ou SHA512.
 -codepage:&lt;number&gt;                Especifica a página de código a ser usada ao abrir
                                   os arquivos de origem.
 -delaysign[+|-]                   Atrasar a assinatura do assembly usando apenas a parte do público
                                   da chave de nome forte.
 -publicsign[+|-]                  Assinar publicamente o assembly usando apenas a parte do público
                                   da chave de nome forte.
--errorreport:&lt;string&gt;             Especifica como lidar com os erros do compilador interno;
+-errorreport:&lt;string&gt;             Especifica como lidar com os erros do compilador interno
                                   deve ser prompt, enviar, nenhum ou fila
                                   (padrão).
 -generatedfilesout:&lt;dir&gt;          Coloque os arquivos gerados durante a compilação no
@@ -511,7 +526,7 @@
 -highentropyva[+|-]               Habilitar o ASLR de alta entropia.
 -keycontainer:&lt;string&gt;            Especifica um contêiner de chave de nome forte.
 -keyfile:&lt;file&gt;                   Especifica um arquivo de chave de nome forte.
--libpath:&lt;path_list&gt;              Lista de diretórios para pesquisar as referências de
+-libpath:&lt;path_list&gt;              Lista de diretórios para pesquisar pelas referências de
                                   metadados. (Delimitado por ponto e vírgula.)
 -main:&lt;class&gt;                     Especifica a Classe ou Módulo que contém
                                   Sub Principal. Também pode ser uma Classe que
@@ -529,12 +544,11 @@
                                   precisa ser x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred ou anycpu (padrão).
 -preferreduilang                  Especificar o nome do idioma de saída preferido.
--nosdkpath                        Desabilitar a pesquisa do caminho padrão do SDK nos conjuntos de bibliotecas padrão.
+-nosdkpath                        Desabilite a pesquisa do caminho padrão do SDK nos conjuntos de bibliotecas padrão.
 -reportivts[+|-]                  Informações de saída sobre todos os IVTs concedidos a esse
                                   assembly por todas as dependências e anotar os erros de acessibilidade do assembly externo
                                   com qual assembly eles vieram.
--sdkpath:&lt;path&gt;                   Local do diretório SDK do .NET Framework
-                                  (mscorlib.dll).
+-sdkpath:&lt;path&gt;             Caminho usado para pesquisar assemblies de biblioteca padrão.
 -subsystemversion:&lt;version&gt;       Especificar a versão do subsistema do PE de saída.
                                   versão:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  Emitir a saída do compilador na codificação do
@@ -639,12 +653,12 @@
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler">
         <source>Analyzer assembly '{0}' cannot be used because it references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
-        <target state="needs-review-translation">O assembly do analisador '{0}' referencia a versão '{1}' do compilador, que é mais recente que a versão em execução no momento '{2}'.</target>
+        <target state="translated">O assembly do analisador "{0}" não pode ser usado porque faz referência à versão "{1}" do compilador, que é mais recente do que a versão em execução no momento "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesNewerCompiler_Title">
         <source>Analyzer assembly cannot be used because it references a newer version of the compiler than the currently running version.</source>
-        <target state="needs-review-translation">O assembly do analisador faz referência a uma versão mais recente do compilador do que a versão em execução no momento.</target>
+        <target state="translated">O assembly do analisador não pode ser usado porque faz referência a uma versão mais recente do compilador do que a versão em execução no momento.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">

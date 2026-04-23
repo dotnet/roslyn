@@ -965,6 +965,10 @@ namespace Microsoft.CodeAnalysis
                         return default(TypeLayout);
 
                     default:
+                        if ((def.Attributes & TypeAttributes.LayoutMask) == TypeAttributes.ExtendedLayout)
+                        {
+                            return new TypeLayout(LayoutKind.Extended, 0, 0);
+                        }
                         // TODO (tomat) report error:
                         return default(TypeLayout);
                 }
@@ -1176,6 +1180,23 @@ namespace Microsoft.CodeAnalysis
                     return true;
                 }
             }
+            version = 0;
+            return false;
+        }
+
+        internal bool HasMemorySafetyRulesAttribute(EntityHandle token, out int version, out bool foundAttributeType)
+        {
+            AttributeInfo info = FindTargetAttribute(MetadataReader, token, AttributeDescription.MemorySafetyRulesAttribute, out foundAttributeType);
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryExtractValueFromAttribute(info.Handle, out int value, s_attributeIntValueExtractor))
+                {
+                    version = value;
+                    return true;
+                }
+            }
+
             version = 0;
             return false;
         }
@@ -1555,10 +1576,10 @@ namespace Microsoft.CodeAnalysis
                                     switch (namedArgValues.nameValuePair.Key)
                                     {
                                         case "AllowMultiple":
-                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal;
                                             break;
                                         case "Inherited":
-                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal;
                                             break;
                                     }
                                 }

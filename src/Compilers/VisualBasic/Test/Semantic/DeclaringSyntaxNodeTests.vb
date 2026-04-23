@@ -640,6 +640,40 @@ End Class
             CheckDeclaringSyntaxIsNoDeclaration(Of ForEachStatementSyntax)(comp, tree, "loc10")
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6209")>
+        Public Sub CatchVariableDeclaringSyntax()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(
+    <compilation name="CatchVariableDeclaringSyntax">
+        <file name="a.vb">
+Imports System
+
+Class C1
+    Sub m()
+        Try
+            Console.WriteLine()
+        Catch exc As Exception
+            Console.WriteLine(exc.ToString())
+        End Try
+    End Sub
+End Class
+    </file>
+    </compilation>)
+
+            Dim tree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(tree)
+            Dim root = tree.GetRoot()
+            Dim identifierName = root.DescendantNodes().OfType(Of IdentifierNameSyntax).First(Function(i) i.Identifier.ValueText = "exc")
+
+            Dim localSymbol As ISymbol = model.GetSymbolInfo(identifierName).Symbol
+            Assert.NotNull(localSymbol)
+            Assert.Equal(SymbolKind.Local, localSymbol.Kind)
+            Assert.Equal("exc", localSymbol.Name)
+
+            Dim declaredSyntax = localSymbol.DeclaringSyntaxReferences.Single().GetSyntax()
+            Assert.IsType(Of IdentifierNameSyntax)(declaredSyntax)
+            Assert.Equal("exc", DirectCast(declaredSyntax, IdentifierNameSyntax).Identifier.ValueText)
+        End Sub
+
         <Fact>
         Public Sub LabelDeclaringSyntax()
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(

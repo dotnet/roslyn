@@ -122,9 +122,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //  Generate expression for return statement
                 //      retExpression <= 'local != null'
+                Conversion c = F.ClassifyEmitConversion(boundLocal, manager.System_Object);
+                Debug.Assert(c.IsImplicit);
+                Debug.Assert(c.IsReference);
+
                 BoundExpression retExpression = F.Binary(BinaryOperatorKind.ObjectNotEqual,
                                                          manager.System_Boolean,
-                                                         F.Convert(manager.System_Object, boundLocal),
+                                                         F.Convert(manager.System_Object, boundLocal, c),
                                                          F.Null(manager.System_Object));
 
                 // Compare fields

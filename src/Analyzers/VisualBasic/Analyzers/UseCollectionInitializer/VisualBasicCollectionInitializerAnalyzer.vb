@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return VisualBasicObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, variableDeclarator)
         End Function
 
-        Protected Overrides Function IsComplexElementInitializer(expression As SyntaxNode) As Boolean
+        Protected Overrides Function IsComplexElementInitializer(expression As SyntaxNode, ByRef initializerElementCount As Integer) As Boolean
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()
         End Function

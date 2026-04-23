@@ -43,10 +43,10 @@ internal sealed partial class SolutionCompilationState
     public bool PartialSemanticsEnabled { get; }
     public TextDocumentStates<SourceGeneratedDocumentState> FrozenSourceGeneratedDocumentStates { get; }
 
-    public GeneratorDriverInitializationCache GeneratorDriverCache { get; }
-
     // Values for all these are created on demand.
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
+
+    private readonly ImmutableSegmentedDictionary<ProjectId, GeneratorDriverInitializationCache> _generatorDriverInitializationCaches;
 
     /// <summary>
     /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
@@ -63,16 +63,16 @@ internal sealed partial class SolutionCompilationState
         bool partialSemanticsEnabled,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> projectIdToTrackerMap,
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap,
+        ImmutableSegmentedDictionary<ProjectId, GeneratorDriverInitializationCache> generatorDriverInitializationCaches,
         TextDocumentStates<SourceGeneratedDocumentState> frozenSourceGeneratedDocumentStates,
-        GeneratorDriverInitializationCache generatorDriverCreationCache,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
         _projectIdToTrackerMap = projectIdToTrackerMap;
         SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
+        _generatorDriverInitializationCaches = generatorDriverInitializationCaches;
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
-        GeneratorDriverCache = generatorDriverCreationCache;
 
         // when solution state is changed, we recalculate its checksum
         _lazyChecksums = AsyncLazy.Create(static async (self, cancellationToken) =>
@@ -91,14 +91,13 @@ internal sealed partial class SolutionCompilationState
 
     public SolutionCompilationState(
         SolutionState solution,
-        bool partialSemanticsEnabled,
-        GeneratorDriverInitializationCache generatorDriverCreationCache)
+        bool partialSemanticsEnabled)
         : this(
               solution,
               partialSemanticsEnabled,
               projectIdToTrackerMap: ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>.Empty,
               sourceGeneratorExecutionVersionMap: SourceGeneratorExecutionVersionMap.Empty,
-              generatorDriverCreationCache: generatorDriverCreationCache,
+              generatorDriverInitializationCaches: ImmutableSegmentedDictionary<ProjectId, GeneratorDriverInitializationCache>.Empty,
               frozenSourceGeneratedDocumentStates: TextDocumentStates<SourceGeneratedDocumentState>.Empty)
     {
     }
@@ -122,16 +121,19 @@ internal sealed partial class SolutionCompilationState
         SolutionState newSolutionState,
         ImmutableSegmentedDictionary<ProjectId, ICompilationTracker>? projectIdToTrackerMap = null,
         SourceGeneratorExecutionVersionMap? sourceGeneratorExecutionVersionMap = null,
+        ImmutableSegmentedDictionary<ProjectId, GeneratorDriverInitializationCache>? generatorDriverInitializationCaches = null,
         TextDocumentStates<SourceGeneratedDocumentState>? frozenSourceGeneratedDocumentStates = null,
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
         sourceGeneratorExecutionVersionMap ??= SourceGeneratorExecutionVersionMap;
+        generatorDriverInitializationCaches ??= _generatorDriverInitializationCaches;
         frozenSourceGeneratedDocumentStates ??= FrozenSourceGeneratedDocumentStates;
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
             sourceGeneratorExecutionVersionMap == SourceGeneratorExecutionVersionMap &&
+            generatorDriverInitializationCaches == _generatorDriverInitializationCaches &&
             frozenSourceGeneratedDocumentStates == FrozenSourceGeneratedDocumentStates)
         {
             return this;
@@ -142,8 +144,8 @@ internal sealed partial class SolutionCompilationState
             PartialSemanticsEnabled,
             projectIdToTrackerMap.Value,
             sourceGeneratorExecutionVersionMap,
+            generatorDriverInitializationCaches.Value,
             frozenSourceGeneratedDocumentStates,
-            GeneratorDriverCache,
             cachedFrozenSnapshot);
     }
 
@@ -171,18 +173,7 @@ internal sealed partial class SolutionCompilationState
         if (stateChange.NewSolutionState == this.SolutionState)
             return this;
 
-        return ForceForkProject(stateChange, translate.Invoke(stateChange, arg), forkTracker);
-    }
-
-    /// <summary>
-    /// Same as <see cref="ForkProject{TArg}(StateChange, Func{StateChange, TArg, TranslationAction?}, bool, TArg)"/>
-    /// except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
-    /// </summary>
-    private SolutionCompilationState ForceForkProject(
-        StateChange stateChange,
-        TranslationAction? translate,
-        bool forkTracker)
-    {
+        var translationAction = translate.Invoke(stateChange, arg);
         var newSolutionState = stateChange.NewSolutionState;
         var newProjectState = stateChange.NewProjectState;
         var projectId = newProjectState.Id;
@@ -200,10 +191,10 @@ internal sealed partial class SolutionCompilationState
                     if (!arg.forkTracker)
                         trackerMap.Remove(arg.projectId);
                     else
-                        trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translate);
+                        trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translationAction);
                 }
             },
-            (translate, forkTracker, projectId, newProjectState),
+            (translationAction, forkTracker, projectId, newProjectState),
             skipEmptyCallback: true);
 
         return this.Branch(
@@ -323,6 +314,11 @@ internal sealed partial class SolutionCompilationState
     /// </remarks>
     public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap { get; }
 
+    private GeneratorDriverInitializationCache GetGeneratorDriverInitializationCache(ProjectId id)
+    {
+        return _generatorDriverInitializationCaches[id];
+    }
+
     /// <inheritdoc cref="SolutionState.AddProjects(ArrayBuilder{ProjectInfo})"/>
     public SolutionCompilationState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
     {
@@ -356,10 +352,19 @@ internal sealed partial class SolutionCompilationState
             versionMapBuilder.Add(projectInfo.Id, new());
 
         var sourceGeneratorExecutionVersionMap = new SourceGeneratorExecutionVersionMap(versionMapBuilder.ToImmutable());
+
+        // Also create new GeneratorDriverInitializationCaches for the new projects
+        var generatorDriverInitializationCachesBuilder = _generatorDriverInitializationCaches.ToBuilder();
+        foreach (var projectInfo in projectInfos)
+            generatorDriverInitializationCachesBuilder.Add(projectInfo.Id, new());
+
+        var generatorDriverInitializationCaches = generatorDriverInitializationCachesBuilder.ToImmutable();
+
         return Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap,
-            sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap);
+            sourceGeneratorExecutionVersionMap: sourceGeneratorExecutionVersionMap,
+            generatorDriverInitializationCaches: generatorDriverInitializationCaches);
     }
 
     /// <inheritdoc cref="SolutionState.RemoveProjects"/>
@@ -368,7 +373,7 @@ internal sealed partial class SolutionCompilationState
         if (projectIds.Count == 0)
             return this;
 
-        // Now go and remove the projects from teh solution-state itself.
+        // Now go and remove the projects from the solution-state itself.
         var newSolutionState = this.SolutionState.RemoveProjects(projectIds);
 
         var originalDependencyGraph = this.SolutionState.GetProjectDependencyGraph();
@@ -383,7 +388,7 @@ internal sealed partial class SolutionCompilationState
 
         // Now for each compilation tracker.
         // 1. remove the compilation tracker if we're removing the project.
-        // 2. fork teh compilation tracker if it depended on a removed project.
+        // 2. fork the compilation tracker if it depended on a removed project.
         // 3. do nothing for the rest.
         var newTrackerMap = CreateCompilationTrackerMap(
             // Can reuse the compilation tracker for a project, unless it is some project that had a dependency on one
@@ -402,10 +407,15 @@ internal sealed partial class SolutionCompilationState
         foreach (var projectId in projectIds)
             versionMapBuilder.Remove(projectId);
 
+        var generatorDriverInitializationCachesBuilder = _generatorDriverInitializationCaches.ToBuilder();
+        foreach (var projectId in projectIds)
+            generatorDriverInitializationCachesBuilder.Remove(projectId);
+
         return this.Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap,
-            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
+            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()),
+            generatorDriverInitializationCaches: generatorDriverInitializationCachesBuilder.ToImmutable());
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAssemblyName"/>
@@ -605,7 +615,9 @@ internal sealed partial class SolutionCompilationState
             .WithProjectMetadataReferences(projectId, info.MetadataReferences)
             .WithProjectAnalyzerReferences(projectId, info.AnalyzerReferences);
 
-        var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
+        // It is important to get the project state instance with ParseOptions updated
+        // as these new options need to be applied to the documents being updated or added below.
+        var projectStateWithUpdatedOptions = newState.SolutionState.GetRequiredProjectState(projectId);
 
         // Note: buffers are reused across all calls to UpdateDocuments and cleared after each:
         using var _1 = ArrayBuilder<DocumentInfo>.GetInstance(out var addedDocumentInfos);
@@ -625,7 +637,7 @@ internal sealed partial class SolutionCompilationState
 
             using var _3 = ArrayBuilder<TDocumentState>.GetInstance(out var updatedDocuments);
 
-            var oldDocumentStates = oldProjectState.GetDocumentStates<TDocumentState>();
+            var oldDocumentStates = projectStateWithUpdatedOptions.GetDocumentStates<TDocumentState>();
 
             foreach (var newDocumentInfo in newDocumentInfos)
             {
@@ -1505,6 +1517,7 @@ internal sealed partial class SolutionCompilationState
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions)
     {
         var versionMapBuilder = SourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var generatorDriverInitializationCaches = _generatorDriverInitializationCaches.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
         var changed = false;
 
@@ -1519,6 +1532,11 @@ internal sealed partial class SolutionCompilationState
             changed = true;
             versionMapBuilder[projectId] = sourceGeneratorExecutionVersion;
 
+            // We want to clear out any previous initialized generator driver, otherwise the later request for new
+            // generated documents might be a no-op if we just end up reusing the cached driver that already analyzed
+            // that compilation.
+            generatorDriverInitializationCaches[projectId] = new();
+
             // If we do already have a compilation tracker for this project, then let the tracker know that the source
             // generator version has changed. We do this by telling it that it should now create SG docs and skeleton
             // references if they're out of date.
@@ -1531,11 +1549,6 @@ internal sealed partial class SolutionCompilationState
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
-
-            // Clear out the cache of any previously initialized GeneratorDriver. Otherwise we might reuse a
-            // driver which will not count as a new "run" in some of our unit tests. We have tests that very explicitly count
-            // and assert the number of invocations of a generator.
-            GeneratorDriverCache.EmptyCacheForProject(projectId);
         }
 
         if (!changed)
@@ -1544,7 +1557,8 @@ internal sealed partial class SolutionCompilationState
         return this.Branch(
             this.SolutionState,
             projectIdToTrackerMap: newIdToTrackerMapBuilder.ToImmutable(),
-            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()));
+            sourceGeneratorExecutionVersionMap: new(versionMapBuilder.ToImmutable()),
+            generatorDriverInitializationCaches: generatorDriverInitializationCaches.ToImmutable());
     }
 
     public SolutionCompilationState WithFrozenPartialCompilations(CancellationToken cancellationToken)
@@ -1852,35 +1866,6 @@ internal sealed partial class SolutionCompilationState
             ImmutableArray<AnalyzerConfigDocumentState> analyzerConfigDocumentStates => new TranslationAction.TouchAnalyzerConfigDocumentsAction(oldProject, oldProject.AddAnalyzerConfigDocuments(analyzerConfigDocumentStates)),
             _ => throw ExceptionUtilities.UnexpectedValue(states)
         };
-
-    /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
-    public SolutionCompilationState WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
-    {
-        this.SolutionState.CheckContainsProject(projectToUpdate);
-
-        // First see if we have a generator driver that we can get from the other project.
-
-        if (!projectWithCachedGeneratorState.Solution.CompilationState.TryGetCompilationTracker(projectWithCachedGeneratorState.Id, out var tracker) ||
-            tracker.GeneratorDriver is null)
-        {
-            // We don't actually have any state at all, so no change.
-            return this;
-        }
-
-        var projectToUpdateState = this.SolutionState.GetRequiredProjectState(projectToUpdate);
-
-        // Note: we have to force this fork to happen as the actual solution-state object is not changing. We're just
-        // changing the tracker for a particular project.
-        var newCompilationState = this.ForceForkProject(
-            new(this.SolutionState, projectToUpdateState, projectToUpdateState),
-            translate: new TranslationAction.ReplaceGeneratorDriverAction(
-                oldProjectState: projectToUpdateState,
-                newProjectState: projectToUpdateState,
-                tracker.GeneratorDriver),
-            forkTracker: true);
-
-        return newCompilationState;
-    }
 
     /// <summary>
     /// Creates a new solution instance with all the documents specified updated to have the same specified text.

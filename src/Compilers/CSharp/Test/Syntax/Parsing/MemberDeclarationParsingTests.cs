@@ -1224,19 +1224,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_03()
         {
             UsingDeclaration("required Prop { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,15): error CS1001: Identifier expected
                 // required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required Prop").WithArguments("{").WithLocation(1, 1),
-                // (1,15): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                // required Prop { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 15)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 15)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "Prop");
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
@@ -1272,17 +1280,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_05()
         {
             UsingDeclaration("required required { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,19): error CS1031: Type expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required").WithArguments("{").WithLocation(1, 1),
-                // (1,19): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_TypeExpected, "{").WithLocation(1, 19),
+                // (1,19): error CS1001: Identifier expected
                 // required required { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 19)
-                );
-            N(SyntaxKind.IncompleteMember);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 19));
+
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }
@@ -1291,20 +1314,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RequiredModifierProperty_06()
         {
             UsingDeclaration("required required Prop { get; }", options: RequiredMembersOptions,
-                // (1,1): error CS1073: Unexpected token '{'
+                // (1,24): error CS1001: Identifier expected
                 // required required Prop { get; }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "required required Prop").WithArguments("{").WithLocation(1, 1),
-                // (1,24): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
-                // required required Prop { get; }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(1, 24)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 24)
                 );
-            N(SyntaxKind.IncompleteMember);
+            N(SyntaxKind.PropertyDeclaration);
             {
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.RequiredKeyword);
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "Prop");
+                }
+                M(SyntaxKind.IdentifierToken);
+                N(SyntaxKind.AccessorList);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.GetAccessorDeclaration);
+                    {
+                        N(SyntaxKind.GetKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
                 }
             }
             EOF();
@@ -20731,6 +20762,212 @@ public class Class
                 }
                 EOF();
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72354")]
+        public void PropertyWithMissingIdentifier_WithAccessors()
+        {
+            const string source = """
+                public class Stuff
+                {
+                    public required string Name { get; set; }
+                    public required Value { get; set; }
+                    public string? SecondaryName { get; set; }
+                    public SecondaryValue { get; set; }
+                }
+                """;
+
+            UsingTree(source,
+                // (4,27): error CS1001: Identifier expected
+                //     public required Value { get; set; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(4, 27),
+                // (6,27): error CS1001: Identifier expected
+                //     public SecondaryValue { get; set; }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(6, 27));
+
+            // Validate all members were parsed as properties (not incomplete members)
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Stuff");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RequiredKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Name");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.RequiredKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Value");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.NullableType);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.StringKeyword);
+                            }
+                            N(SyntaxKind.QuestionToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "SecondaryName");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "SecondaryValue");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72354")]
+        public void PropertyWithMissingIdentifier_ExpressionBody()
+        {
+            const string source = """
+                public class C
+                {
+                    public int Prop => 42;
+                    public Value => null;
+                }
+                """;
+
+            UsingTree(source,
+                // (4,18): error CS1001: Identifier expected
+                //     public Value => null;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(4, 18));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Prop");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NumericLiteralExpression);
+                            {
+                                N(SyntaxKind.NumericLiteralToken, "42");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Value");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         #endregion

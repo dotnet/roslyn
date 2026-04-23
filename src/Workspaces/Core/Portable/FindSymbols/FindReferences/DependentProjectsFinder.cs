@@ -93,6 +93,16 @@ internal static partial class DependentProjectsFinder
             result.AddRange(filteredProjects.Select(p => p.project));
         }
 
+        // Have to specially handle cref type parameters as they do not belong to any assembly.
+        foreach (var symbol in symbols)
+        {
+            if (symbol is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Cref, DeclaringSyntaxReferences: [{ SyntaxTree: var syntaxTree }, ..] })
+            {
+                var document = solution.GetDocument(syntaxTree);
+                result.AddIfNotNull(document?.Project);
+            }
+        }
+
         return [.. result];
     }
 

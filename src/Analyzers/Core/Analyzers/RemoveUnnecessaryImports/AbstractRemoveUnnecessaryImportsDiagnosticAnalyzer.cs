@@ -47,7 +47,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
 
     protected AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer(LocalizableString titleAndMessage)
-        : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor), FadingOptions.FadeOutUnusedImports)
+        : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor))
     {
         _classificationIdDescriptor = classificationIdDescriptor;
         _generatedCodeClassificationIdDescriptor = generatedCodeClassificationIdDescriptor;
@@ -56,7 +56,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     private static ImmutableArray<DiagnosticDescriptor> GetDescriptors(LocalizableString titleAndMessage, out DiagnosticDescriptor classificationIdDescriptor, out DiagnosticDescriptor generatedCodeClassificationIdDescriptor)
     {
         classificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId, EnforceOnBuildValues.RemoveUnnecessaryImports, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true);
-        generatedCodeClassificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId + "_gen", EnforceOnBuild.Never, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true, isConfigurable: false);
+        generatedCodeClassificationIdDescriptor = CreateDescriptorWithId(IDEDiagnosticIds.RemoveUnnecessaryImportsGeneratedCodeDiagnosticId, EnforceOnBuild.Never, hasAnyCodeStyleOption: false, titleAndMessage, isUnnecessary: true, isConfigurable: false);
         return
         [
             s_fixableIdDescriptor,
@@ -87,6 +87,11 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         var tree = context.SemanticModel.SyntaxTree;
         var cancellationToken = context.CancellationToken;
 
+        AnalyzeSemanticModel(context, tree, cancellationToken);
+    }
+
+    protected virtual void AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxTree tree, CancellationToken cancellationToken)
+    {
         var unnecessaryImports = UnnecessaryImportsProvider.GetUnnecessaryImports(context.SemanticModel, context.FilterSpan, cancellationToken);
         if (unnecessaryImports.Any())
         {
@@ -97,7 +102,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
             // for us appropriately.
             var mergedImports = MergeImports(unnecessaryImports);
 
-            var descriptor = GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken)
+            var descriptor = context.IsGeneratedCode
                 ? _generatedCodeClassificationIdDescriptor
                 : _classificationIdDescriptor;
             var contiguousSpans = GetContiguousSpans(mergedImports);

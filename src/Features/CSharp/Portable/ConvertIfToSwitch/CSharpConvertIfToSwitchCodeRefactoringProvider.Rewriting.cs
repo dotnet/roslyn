@@ -101,9 +101,10 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
         }
 
         return CasePatternSwitchLabel(
+            CaseKeyword.WithTrailingTrivia(Space),
             AsPatternSyntax(label.Pattern, feature),
             AsWhenClause(label),
-            ColonToken);
+            ColonToken.WithTrailingTrivia(ElasticCarriageReturnLineFeed));
     }
 
     private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern, Feature feature)

@@ -4,11 +4,9 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -95,6 +93,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        /// <summary>
+        /// Whether the method is in an unsafe context.
+        /// For property/event accessors, this includes the containing property's unsafe modifier.
+        /// Do not confuse with <see cref="CallerUnsafeMode"/>.
+        /// </summary>
+        internal abstract bool IsUnsafe { get; }
+
+        internal bool HasRequiresUnsafeAttribute => GetDecodedWellKnownAttributeData()?.HasRequiresUnsafeAttribute == true;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode
+        {
+            get
+            {
+                if (ContainingModule.UseUpdatedMemorySafetyRules)
+                {
+                    Debug.Assert(AssociatedSymbol?.CallerUnsafeMode != CallerUnsafeMode.Implicit);
+
+                    return HasRequiresUnsafeAttribute || IsExtern || AssociatedSymbol?.CallerUnsafeMode == CallerUnsafeMode.Explicit
+                        ? CallerUnsafeMode.Explicit
+                        : CallerUnsafeMode.None;
+                }
+
+                return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
+                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+            }
+        }
+
+        protected bool NeedsSynthesizedRequiresUnsafeAttribute
+        {
+            get
+            {
+                return ContainingModule.UseUpdatedMemorySafetyRules &&
+                    !HasRequiresUnsafeAttribute &&
+                    (IsExtern || AssociatedSymbol?.IsExtern == true);
+            }
+        }
+
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
         {
             return SourceMemberContainerTypeSymbol.HasAsyncMethodBuilderAttribute(this, out builderArgument);
@@ -116,6 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var compilation = target.DeclaringCompilation;
+
+            if (target is SourceMethodSymbol { NeedsSynthesizedRequiresUnsafeAttribute: true })
+            {
+                Debug.Assert(target.CallerUnsafeMode == CallerUnsafeMode.Explicit);
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
+            }
 
             if (compilation.ShouldEmitNullableAttributes(target) &&
                 target.ShouldEmitNullableContextValue(out byte nullableContextValue))
@@ -168,7 +209,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // Regular async (not async-iterator) kick-off method calls MoveNext, which contains user code.
                     // This means we need to emit DebuggerStepThroughAttribute in order
                     // to have correct stepping behavior during debugging.
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    // However, when runtime async is enabled, no state machine is generated and the kickoff method
+                    // directly contains the async logic, so the attribute should not be added.
+                    if (!compilation.IsRuntimeAsyncEnabledIn(target))
+                    {
+                        AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDebuggerStepThroughAttribute());
+                    }
                 }
             }
 

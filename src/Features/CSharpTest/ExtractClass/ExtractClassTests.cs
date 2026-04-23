@@ -1149,7 +1149,8 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
     public async Task TestUsingsInsideNamespace()
     {
         var expected1 = """
@@ -1291,7 +1292,8 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "Extract class generates CRLF using directives in new files on Unix")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/55746")]
     public async Task TestUsingsInsideNamespace_NoNamespace()
     {
         var expected1 = """
@@ -2925,6 +2927,199 @@ public sealed class ExtractClassTests
                 }
             },
             FileName = "Test1.cs",
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
+    public async Task TestPartialEvent()
+    {
+        var input1 = """
+            using System;
+
+            partial class C
+            {
+                public partial event EventHandler [||]E;
+            }
+            """;
+
+        var input2 = """
+            using System;
+
+            partial class C
+            {
+                public partial event EventHandler E { add { } remove { } }
+            }
+            """;
+
+        var expected1 = """
+            using System;
+
+            partial class C : MyBase
+            {
+            }
+            """;
+
+        var expected2 = """
+            using System;
+
+            partial class C
+            {
+                public partial event EventHandler {|CS9276:E|} { add { } remove { } }
+            }
+            """;
+
+        var expected3 = """
+            using System;
+
+            internal class MyBase
+            {
+                public event EventHandler E;
+            }
+            """;
+
+        await new Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    input1,
+                    input2,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    expected1,
+                    expected2,
+                    expected3,
+                }
+            },
+            FileName = "Test2.cs",
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
+    public async Task TestPartialProperty()
+    {
+        var input1 = """
+            partial class C
+            {
+                public partial int [||]P { get; }
+            }
+            """;
+
+        var input2 = """
+            partial class C
+            {
+                public partial int P => 42;
+            }
+            """;
+
+        var expected1 = """
+            partial class C : MyBase
+            {
+            }
+            """;
+
+        var expected2 = """
+            partial class C
+            {
+                public partial int {|CS9249:P|} => 42;
+            }
+            """;
+
+        var expected3 = """
+            internal class MyBase
+            {
+                public partial int {|CS9248:{|CS0751:P|}|} { get; }
+            }
+            """;
+
+        await new Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    input1,
+                    input2,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    expected1,
+                    expected2,
+                    expected3,
+                }
+            },
+            FileName = "Test2.cs",
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81066")]
+    public async Task TestPartialMethod()
+    {
+        var input1 = """
+            partial class C
+            {
+                public partial void [||]M();
+            }
+            """;
+
+        var input2 = """
+            partial class C
+            {
+                public partial void M() { }
+            }
+            """;
+
+        var expected1 = """
+            partial class C : MyBase
+            {
+            }
+            """;
+
+        var expected2 = """
+            partial class C
+            {
+                public partial void {|CS0759:M|}() { }
+            }
+            """;
+
+        var expected3 = """
+            internal class MyBase
+            {
+                public partial void {|CS8795:{|CS0751:M|}|}();
+            }
+            """;
+
+        await new Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    input1,
+                    input2,
+                }
+            },
+            FixedState =
+            {
+                Sources =
+                {
+                    expected1,
+                    expected2,
+                    expected3,
+                }
+            },
+            FileName = "Test2.cs",
+            LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();
     }
 

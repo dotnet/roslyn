@@ -40,14 +40,14 @@ internal sealed class DocumentHighlightsHandler : ILspServiceDocumentRequestHand
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-    public Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<DocumentHighlight[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         if (document == null)
-            return SpecializedTasks.Null<DocumentHighlight[]>();
+            return null;
 
         var position = ProtocolConversions.PositionToLinePosition(request.Position);
-        return GetHighlightsAsync(_globalOptions, _highlightingService, document, position, cancellationToken);
+        return await GetHighlightsAsync(_globalOptions, _highlightingService, document, position, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<DocumentHighlight[]?> GetHighlightsAsync(IGlobalOptionService globalOptions, IHighlightingService highlightingService, Document document, LinePosition linePosition, CancellationToken cancellationToken)

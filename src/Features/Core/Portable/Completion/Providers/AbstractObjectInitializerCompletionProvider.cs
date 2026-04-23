@@ -42,8 +42,9 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         Contract.ThrowIfNull(enclosing);
 
         // Find the members that can be initialized. If we have a NamedTypeSymbol, also get the overridden members.
+        // Include extension members to support extension properties in object initializers.
         var members = semanticModel
-            .LookupSymbols(position, initializedType)
+            .LookupSymbols(position, initializedType, includeReducedExtensionMethods: true)
             .Where(m => IsInitializableFieldOrProperty(m, enclosing));
 
         // Filter out those members that have already been typed
@@ -94,7 +95,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         if (!fieldOrProperty.IsStatic &&
             !fieldOrProperty.IsImplicitlyDeclared &&
             fieldOrProperty.CanBeReferencedByName &&
-            fieldOrProperty.MatchesKind(SymbolKind.Field, SymbolKind.Property) &&
+            fieldOrProperty is IFieldSymbol or IPropertySymbol &&
             fieldOrProperty.IsAccessibleWithin(containingType))
         {
             if (fieldOrProperty.IsWriteableFieldOrProperty() ||

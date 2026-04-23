@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node,
                         LookupResultKind.Empty,
                         ImmutableArray.Create<Symbol>(receiver.ExpressionSymbol),
-                        ImmutableArray.Create(BindToTypeForErrorRecovery(receiver)),
+                        ImmutableArray.Create(AdjustBadExpressionChild(BindToTypeForErrorRecovery(receiver))),
                         new ExtendedErrorTypeSymbol(this.Compilation, "", 0, info));
                 }
 

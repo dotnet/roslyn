@@ -1362,4 +1362,58 @@ public sealed class UseRangeOperatorTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74960")]
+    public Task TestStackAllocSlice()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+            using System;
+            class C
+            {
+                void Goo(int length)
+                {
+                    Span<byte> a = stackalloc byte[10].Slice([|0, length|]);
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            class C
+            {
+                void Goo(int length)
+                {
+                    Span<byte> a = (stackalloc byte[10])[..length];
+                }
+            }
+            """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74960")]
+    public Task TestImplicitStackAllocSlice()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+            TestCode = """
+            using System;
+            class C
+            {
+                void Goo(int length)
+                {
+                    Span<int> a = stackalloc[] { 1, 2, 3, 4, 5 }.Slice([|0, length|]);
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+            class C
+            {
+                void Goo(int length)
+                {
+                    Span<int> a = (stackalloc[] { 1, 2, 3, 4, 5 })[..length];
+                }
+            }
+            """,
+        }.RunAsync();
 }
