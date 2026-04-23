@@ -2409,7 +2409,7 @@ class MyClass
         End Class
 
         <WpfFact, WorkItem(66968, "https://github.com/dotnet/roslyn/issues/66968")>
-        Public Async Function TestDiagnosticsForSpanDoesNotAnalyzeOutsideSpanAsync() As Task
+        Public Async Function TestDiagnosticsForSpanAnalyzesFullDocumentButFiltersResultsAsync() As Task
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document>
@@ -2457,40 +2457,37 @@ public class C
                 Dim analyzedTree = Assert.Single(analyzer.AnalyzedTrees)
                 Assert.Same(tree, analyzedTree)
 
-                ' Verify symbol callback
-                Dim analyzedMethod = Assert.Single(analyzer.AnalyzedMethodSymbols)
-                Assert.Equal(SymbolKind.Method, analyzedMethod.Kind)
-                Assert.Equal("M1", analyzedMethod.Name)
+                ' Non-compiler semantic analyzers are merged into a single full-document pass
+                ' (span: null) to avoid the SymbolStart expansion penalty. This means the analyzer
+                ' sees all members in the document, not just those within the requested span.
+                ' The returned diagnostics are still correctly filtered to the requested span.
+
+                ' Verify symbol callback - both M1 and M2 are analyzed in full-document mode
+                Assert.Equal(2, analyzer.AnalyzedMethodSymbols.Count)
+                Dim m1Symbol = analyzer.AnalyzedMethodSymbols.Single(Function(s) s.Name = "M1")
+                Dim m2Symbol = analyzer.AnalyzedMethodSymbols.Single(Function(s) s.Name = "M2")
 
                 ' Verify operation callbacks
-                Dim analyzedOperation = Assert.Single(analyzer.AnalyzedOperations)
-                Assert.Equal(OperationKind.VariableDeclaration, analyzedOperation.Kind)
-                Assert.Equal("int x1 = 0", analyzedOperation.Syntax.ToString())
-                Dim analyzedOperationInOperationBlock = Assert.Single(analyzer.AnalyzedOperationsInsideOperationBlock)
-                Assert.Same(analyzedOperation, analyzedOperationInOperationBlock)
+                Assert.Equal(2, analyzer.AnalyzedOperations.Count)
+                Assert.Contains(analyzer.AnalyzedOperations, Function(op) op.Syntax.ToString() = "int x1 = 0")
+                Assert.Contains(analyzer.AnalyzedOperations, Function(op) op.Syntax.ToString() = "int x2 = 0")
+                Assert.Equal(2, analyzer.AnalyzedOperationsInsideOperationBlock.Count)
 
                 ' Verify operation block callbacks
-                Dim analyzedOperationBlockSymbol = Assert.Single(analyzer.AnalyzedOperationBlockSymbols)
-                Assert.Same(analyzedMethod, analyzedOperationBlockSymbol)
-                Dim analyzedOperationBlockStartSymbol = Assert.Single(analyzer.AnalyzedOperationBlockStartSymbols)
-                Assert.Same(analyzedMethod, analyzedOperationBlockStartSymbol)
-                Dim analyzedOperationBlockEndSymbol = Assert.Single(analyzer.AnalyzedOperationBlockEndSymbols)
-                Assert.Same(analyzedMethod, analyzedOperationBlockEndSymbol)
+                Assert.Equal(2, analyzer.AnalyzedOperationBlockSymbols.Count)
+                Assert.Equal(2, analyzer.AnalyzedOperationBlockStartSymbols.Count)
+                Assert.Equal(2, analyzer.AnalyzedOperationBlockEndSymbols.Count)
 
                 ' Verify syntax node callbacks
-                Dim analyzedSyntaxNode = Assert.Single(analyzer.AnalyzedSyntaxNodes)
-                Assert.Equal(SyntaxKind.LocalDeclarationStatement, analyzedSyntaxNode.Kind)
-                Assert.Equal("int x1 = 0;", analyzedSyntaxNode.ToString())
-                Dim analyzedSyntaxNodeInsideCodeBlock = Assert.Single(analyzer.AnalyzedSyntaxNodesInsideCodeBlock)
-                Assert.Same(analyzedSyntaxNode, analyzedSyntaxNodeInsideCodeBlock)
+                Assert.Equal(2, analyzer.AnalyzedSyntaxNodes.Count)
+                Assert.Contains(analyzer.AnalyzedSyntaxNodes, Function(n) n.ToString() = "int x1 = 0;")
+                Assert.Contains(analyzer.AnalyzedSyntaxNodes, Function(n) n.ToString() = "int x2 = 0;")
+                Assert.Equal(2, analyzer.AnalyzedSyntaxNodesInsideCodeBlock.Count)
 
                 ' Verify code block callbacks
-                Dim analyzedCodeBlockSymbol = Assert.Single(analyzer.AnalyzedCodeBlockSymbols)
-                Assert.Same(analyzedMethod, analyzedCodeBlockSymbol)
-                Dim analyzedCodeBlockStartSymbol = Assert.Single(analyzer.AnalyzedCodeBlockStartSymbols)
-                Assert.Same(analyzedMethod, analyzedCodeBlockStartSymbol)
-                Dim analyzedCodeBlockEndSymbol = Assert.Single(analyzer.AnalyzedCodeBlockEndSymbols)
-                Assert.Same(analyzedMethod, analyzedCodeBlockEndSymbol)
+                Assert.Equal(2, analyzer.AnalyzedCodeBlockSymbols.Count)
+                Assert.Equal(2, analyzer.AnalyzedCodeBlockStartSymbols.Count)
+                Assert.Equal(2, analyzer.AnalyzedCodeBlockEndSymbols.Count)
             End Using
         End Function
 

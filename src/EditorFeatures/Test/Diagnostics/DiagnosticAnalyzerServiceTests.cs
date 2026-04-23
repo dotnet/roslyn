@@ -836,7 +836,12 @@ public sealed class DiagnosticAnalyzerServiceTests
             var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
             _ = await service.GetDiagnosticsForSpanAsync(
                 documentToAnalyze, filterSpan, analysisKind, CancellationToken.None);
-            Assert.Equal(filterSpan, analyzer.CallbackFilterSpan);
+
+            // For semantic analysis, all non-compiler analyzers are merged into a single
+            // full-document pass (span: null) to avoid the SymbolStart expansion penalty.
+            // The analyzer therefore sees FilterSpan=null regardless of the requested span.
+            var expectedFilterSpan = analysisKind == DiagnosticKind.AnalyzerSemantic ? null : filterSpan;
+            Assert.Equal(expectedFilterSpan, analyzer.CallbackFilterSpan);
             if (kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile)
             {
                 var expectedText = additionalDocument.GetTextSynchronously(CancellationToken.None).ToString();
@@ -850,6 +855,54 @@ public sealed class DiagnosticAnalyzerServiceTests
                 Assert.Null(analyzer.CallbackFilterFile);
             }
         }
+    }
+
+    [Fact]
+    public async Task TestNonCompilerAnalyzerDiagnosticsFilteredToSpan()
+    {
+        // Verifies that even though non-compiler semantic analyzers run with span: null
+        // (full-document pass), the returned diagnostics are correctly filtered to the
+        // requested span.
+        var source = """
+            class C
+            {
+                void M1()
+                {
+                    int x1 = 0;
+                }
+
+                void M2()
+                {
+                    int x2 = 0;
+                }
+            }
+            """;
+        using var workspace = TestWorkspace.CreateCSharp(source);
+        var project = workspace.CurrentSolution.Projects.Single();
+
+        var analyzer = new LocalDeclarationDiagnosticAnalyzer();
+        var analyzerReference = new AnalyzerImageReference([analyzer]);
+        SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerReference);
+        project = project.AddAnalyzerReference(analyzerReference);
+        workspace.TryApplyChanges(project.Solution);
+
+        project = workspace.CurrentSolution.Projects.Single();
+        var document = project.Documents.Single();
+        var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var firstMethod = root.DescendantNodes().OfType<CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax>().First();
+        Assert.Equal("M1", firstMethod.Identifier.ValueText);
+
+        var service = project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+
+        // Request analyzer semantic diagnostics for M1's span only.
+        var diagnostics = await service.GetDiagnosticsForSpanAsync(
+            document, firstMethod.Span, DiagnosticKind.AnalyzerSemantic, CancellationToken.None);
+
+        // The analyzer produces diagnostics on all local declarations, but only M1's should be returned.
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal("LocalDecl001", diagnostic.Id);
+        var diagSpan = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(await document.GetValueTextAsync(CancellationToken.None));
+        Assert.True(firstMethod.Span.IntersectsWith(diagSpan));
     }
 
     [Theory, CombinatorialData]
@@ -978,6 +1031,20 @@ public sealed class DiagnosticAnalyzerServiceTests
             context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
             context.RegisterSemanticModelAction(c => c.ReportDiagnostic(Diagnostic.Create(s_semanticRule, c.SemanticModel.SyntaxTree.GetRoot().GetLocation())));
             context.RegisterCompilationAction(c => c.ReportDiagnostic(Diagnostic.Create(s_compilationRule, c.Compilation.SyntaxTrees.First().GetRoot().GetLocation())));
+        }
+    }
+
+    private sealed class LocalDeclarationDiagnosticAnalyzer : DiagnosticAnalyzer
+    {
+        internal static readonly DiagnosticDescriptor s_rule = new("LocalDecl001", "test", "Local declaration: {0}", "test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [s_rule];
+
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterOperationAction(c =>
+            {
+                c.ReportDiagnostic(Diagnostic.Create(s_rule, c.Operation.Syntax.GetLocation(), c.Operation.Syntax.ToString()));
+            }, OperationKind.VariableDeclarationGroup);
         }
     }
 
