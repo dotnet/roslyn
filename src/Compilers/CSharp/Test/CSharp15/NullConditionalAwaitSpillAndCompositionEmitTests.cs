@@ -802,6 +802,96 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
 
     #endregion
 
+    #region Interpolated strings
+
+    [Fact]
+    public void InterpolatedString_AwaitQuestionAsHole_ReferenceResult()
+    {
+        // `$"..{await? t}.."` where the hole yields a lifted string (reference result).
+        // DefaultInterpolatedStringHandler receives the possibly-null string.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<string> t1 = Task.FromResult("hello");
+                    string s1 = $"[{await? t1}]";
+                    Console.Write($"s1={s1};");
+
+                    Task<string> t2 = null;
+                    string s2 = $"[{await? t2}]";
+                    Console.Write($"s2={s2};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "s1=[hello];s2=[];done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void InterpolatedString_AwaitQuestionAsHole_LiftedIntResult()
+    {
+        // Hole is int? from `await? Task<int>`. Interpolation formats Nullable<int>
+        // directly (prints nothing when HasValue is false, the int value otherwise).
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t1 = Task.FromResult(42);
+                    string s1 = $"[{await? t1}]";
+                    Console.Write($"s1={s1};");
+
+                    Task<int> t2 = null;
+                    string s2 = $"[{await? t2}]";
+                    Console.Write($"s2={s2};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "s1=[42];s2=[];done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void InterpolatedString_MultipleAwaitQuestions()
+    {
+        // Multiple holes each `await? t` — pin spill ordering across the interpolation
+        // handler's AppendFormatted calls. Left hole evaluates first.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t1 = Task.FromResult(1);
+                    Task<int> t2 = null;
+                    Task<int> t3 = Task.FromResult(3);
+                    string s = $"[{await? t1},{await? t2},{await? t3}]";
+                    Console.Write($"s={s};done");
+                }
+            }
+            """;
+        var expected = "s=[1,,3];done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
     #region Ref, stackalloc, collection-expression interactions
 
     [Fact]
