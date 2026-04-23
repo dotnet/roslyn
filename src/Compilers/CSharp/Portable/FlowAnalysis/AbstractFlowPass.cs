@@ -2555,17 +2555,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(binary.Kind);
                 }
 
-                // A chained relational comparison node behaves like a short-circuit `&&`
-                // on its left (bool) operand, even though its operator kind is a relational
-                // one (`<`, `<=`, `>`, `>=`). Treat isAnd==true; the right operand's type
-                // is not `bool`, so isBool==false forces the Unsplit/Split cycle that
-                // synthesises the `Y op B` conditional state after visiting the right operand.
-                var op = kind.Operator();
-                var isAnd = isChainedRelational || op == BinaryOperatorKind.And;
-                var isBool = !isChainedRelational && kind.OperandTypes() == BinaryOperatorKind.Bool;
+                GetBinaryLogicalOperatorInfo(kind, isChainedRelational, out bool isAnd, out bool isBool);
                 Debug.Assert(!isBool || binary.Kind != BoundKind.UserDefinedConditionalLogicalOperator);
-
-                Debug.Assert(isChainedRelational || isAnd || op == BinaryOperatorKind.Or);
 
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
@@ -2598,6 +2589,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.Unsplit();
             }
+        }
+
+        /// <summary>
+        /// Classifies a binary logical operator (`&amp;&amp;`, `||`, or a chained relational
+        /// comparison outer link per spec §11.11.13) into the two flags consumed by
+        /// <see cref="AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited"/>,
+        /// <see cref="AfterRightChildOfBinaryLogicalOperatorHasBeenVisited"/>, and
+        /// <see cref="ComputeBinaryLogicalRightChildConditionalState"/>:
+        /// <list type="bullet">
+        /// <item><paramref name="isAnd"/>: whether the operator short-circuits on <c>false</c>
+        /// (<c>&amp;&amp;</c>-shaped) versus on <c>true</c> (<c>||</c>-shaped). A chained
+        /// relational outer link behaves like <c>&amp;&amp;</c> on its inner-link bool result,
+        /// so <paramref name="isAnd"/> is <see langword="true"/>.</item>
+        /// <item><paramref name="isBool"/>: whether the operator's operand type is <c>bool</c>
+        /// (true for plain <c>&amp;&amp;</c>/<c>||</c>, false for lifted-bool <c>&amp;</c>/<c>|</c>
+        /// on <c>bool?</c>). A chained relational outer link has a non-bool right operand, so
+        /// <paramref name="isBool"/> is <see langword="false"/>; this forces the
+        /// <see cref="Unsplit"/>/<see cref="Split"/> cycle that synthesises the `Y op B`
+        /// conditional state after visiting the right operand.</item>
+        /// </list>
+        /// </summary>
+        protected static void GetBinaryLogicalOperatorInfo(BinaryOperatorKind kind, bool isChainedRelational, out bool isAnd, out bool isBool)
+        {
+            if (isChainedRelational)
+            {
+                isAnd = true;
+                isBool = false;
+                return;
+            }
+
+            BinaryOperatorKind op = kind.Operator();
+            isAnd = op == BinaryOperatorKind.And;
+            isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
+            Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
         }
 
         /// <summary>

@@ -12872,31 +12872,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binary = stack.Pop();
             }
 
-            static void getBinaryConditionalOperatorInfo(BinaryOperatorKind kind, bool isChainedRelational, out bool isAnd, out bool isBool)
-            {
-                // A chained relational comparison behaves like `&&` on its left (bool) operand
-                // even though kind is `<`/`<=`/`>`/`>=`; the right operand is not bool so
-                // isBool is false to force the Unsplit/Split cycle.
-                if (isChainedRelational)
-                {
-                    isAnd = true;
-                    isBool = false;
-                    return;
-                }
-
-                BinaryOperatorKind op = kind.Operator();
-                isAnd = op == BinaryOperatorKind.And;
-                isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
-                Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
-            }
-
             void afterLeftChildOfBoundBinaryOperatorHasBeenVisited(BoundBinaryOperator node)
             {
                 Debug.Assert(IsConditionalState);
                 TypeWithState leftType = ResultType;
 
                 bool isChainedRelational = node.IsChainedRelational(out BoundExpression? chainedY);
-                getBinaryConditionalOperatorInfo(node.OperatorKind, isChainedRelational, out bool isAnd, out bool isBool);
+                GetBinaryLogicalOperatorInfo(node.OperatorKind, isChainedRelational, out bool isAnd, out bool isBool);
 
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
@@ -12962,7 +12944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var leftTrue = this.StateWhenTrue;
                 var leftFalse = this.StateWhenFalse;
 
-                getBinaryConditionalOperatorInfo(binary.OperatorKind, isChainedRelational: false, out bool isAnd, out bool isBool);
+                GetBinaryLogicalOperatorInfo(binary.OperatorKind, isChainedRelational: false, out bool isAnd, out bool isBool);
                 Debug.Assert(!isBool);
                 SetState(isAnd ? leftTrue : leftFalse);
 
