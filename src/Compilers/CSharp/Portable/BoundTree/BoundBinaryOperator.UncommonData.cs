@@ -84,27 +84,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly bool IsUnconvertedInterpolatedStringAddition;
             public readonly InterpolatedStringHandlerData? InterpolatedStringHandlerData;
 
-            // The conversion the outer link's overload resolution selected for its left
-            // operand - i.e. the chain's shared middle operand `Y`, post-inner-link. Applied
-            // at lowering time to the temp holding Y's inner-link value to produce the
-            // outer link's left operand. May be <see cref="Conversion.Identity"/> (common
-            // same-type chains), in which case the lowerer uses the temp directly.
+            // The outer link's LeftConversion selected by overload resolution: applied at
+            // lowering time to the temp holding Y (the shared middle operand) to produce
+            // the outer link's left operand. May be <see cref="Conversion.Identity"/> for
+            // common same-type chains, in which case the lowerer uses the temp directly.
             //
-            // `Y` itself is always <c>((BoundBinaryOperator)BoundBinaryOperator.Left).Right</c>:
-            // the right operand of the (guaranteed-bool-typed) inner link. So we derive it
-            // at each use site rather than cache it on UncommonData - that keeps Y on the
-            // standard bound-tree descent path (which makes <c>NullableWalker.DebugVerifier</c>
-            // reach it automatically) and avoids any stale-state risk if the outer node
-            // is ever rebuilt with a different <c>Left</c>.
+            // Y itself is deliberately not cached here - it's always
+            // <c>((BoundBinaryOperator)Left).Right</c>. Deriving it on demand keeps Y on the
+            // standard bound-tree descent path (so <c>NullableWalker.DebugVerifier</c>
+            // reaches it automatically) and avoids stale state if the outer node is ever
+            // rebuilt with a different <c>Left</c>.
             //
-            // <see cref="Conversion.NoConversion"/> means "not chained" (no conversion info
-            // present); consumers should guard on <see cref="BoundBinaryOperator.IsChainedRelational"/>
-            // instead of inspecting this field directly.
+            // <see cref="Conversion.NoConversion"/> means "not chained"; consumers should
+            // guard on <see cref="BoundBinaryOperator.IsChainedRelational"/> rather than
+            // inspect this field directly.
             public readonly Conversion ChainedRelationalLeftConversion;
 
-            // The target type of <see cref="ChainedRelationalLeftConversion"/>: the outer
-            // link's left-operand type (<c>signature.LeftType</c> at bind time). Non-null
-            // exactly when this node is a chained relational comparison; also doubles as
+            // Target type of <see cref="ChainedRelationalLeftConversion"/> (signature.LeftType
+            // at bind time). Non-null iff this node is a chained relational comparison;
             // the signal <see cref="BoundBinaryOperator.IsChainedRelational"/> keys off.
             public readonly TypeSymbol? ChainedRelationalLeftConvertedType;
 
