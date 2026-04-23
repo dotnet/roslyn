@@ -572,6 +572,144 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
 
     #endregion
 
+    #region await foreach and async iterator
+
+    [Fact]
+    public void Break_AwaitForeach_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    outer: await foreach (var x in Items())
+                    {
+                        await foreach (var y in Items())
+                        {
+                            System.Console.Write($"{x}{y} ");
+                            if (x == 2) break outer;
+                        }
+                    }
+                    System.Console.Write("done");
+                }
+
+                static async IAsyncEnumerable<int> Items()
+                {
+                    await Task.Yield();
+                    yield return 1;
+                    yield return 2;
+                    yield return 3;
+                }
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "11 12 13 21 done", verify: Verification.Skipped);
+    }
+
+    [Fact]
+    public void Continue_AwaitForeach_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    outer: await foreach (var x in Items())
+                    {
+                        await foreach (var y in Items())
+                        {
+                            System.Console.Write($"{x}{y} ");
+                            if (y == 1) continue outer;
+                        }
+                        System.Console.Write("SKIPPED ");
+                    }
+                    System.Console.Write("done");
+                }
+
+                static async IAsyncEnumerable<int> Items()
+                {
+                    await Task.Yield();
+                    yield return 1;
+                    yield return 2;
+                }
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "11 21 done", verify: Verification.Skipped);
+    }
+
+    [Fact]
+    public void Break_AsyncIterator_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    await foreach (var x in Produce())
+                    {
+                        System.Console.Write($"{x} ");
+                    }
+                    System.Console.Write("done");
+                }
+
+                static async IAsyncEnumerable<int> Produce()
+                {
+                    outer: for (int i = 0; i < 3; i++)
+                    {
+                        for (int j = 0; j < 3; j++)
+                        {
+                            await Task.Yield();
+                            yield return i * 10 + j;
+                            if (i == 1 && j == 1) break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "0 1 2 10 11 done", verify: Verification.Skipped);
+    }
+
+    [Fact]
+    public void Continue_AsyncIterator_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task Main()
+                {
+                    await foreach (var x in Produce())
+                    {
+                        System.Console.Write($"{x} ");
+                    }
+                    System.Console.Write("done");
+                }
+
+                static async IAsyncEnumerable<int> Produce()
+                {
+                    outer: for (int i = 0; i < 3; i++)
+                    {
+                        for (int j = 0; j < 3; j++)
+                        {
+                            await Task.Yield();
+                            if (j == 1) continue outer;
+                            yield return i * 10 + j;
+                        }
+                    }
+                }
+            }
+            """;
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "0 10 20 done", verify: Verification.Skipped);
+    }
+
+    #endregion
+
     #region IL verification
 
     [Fact]
