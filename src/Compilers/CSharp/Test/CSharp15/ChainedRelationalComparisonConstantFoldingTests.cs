@@ -654,4 +654,223 @@ public sealed class ChainedRelationalComparisonConstantFoldingTests : CSharpTest
                 "5:Fc=True,Fe=True,rc=True,re=True")
             .VerifyDiagnostics();
     }
+
+    [Theory]
+    [InlineData("0f", "1f", "2f", "<", "True")]
+    [InlineData("2f", "1f", "0f", ">", "True")]
+    [InlineData("0f", "1f", "0.5f", "<", "False")]
+    [InlineData("float.MinValue", "0f", "float.MaxValue", "<", "True")]
+    [InlineData("0.0", "1.5", "3.14", "<", "True")]
+    [InlineData("3.14", "1.5", "0.0", ">", "True")]
+    [InlineData("double.MinValue", "0.0", "double.MaxValue", "<", "True")]
+    public void FloatingPointConst_BasicAndBoundaries_FoldMatchesExpanded(string a, string b, string c, string op, string expected)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool Chained  = {{a}} {{op}} {{b}} {{op}} {{c}};
+                const bool Expanded = ({{a}} {{op}} {{b}}) && ({{b}} {{op}} {{c}});
+
+                static void Main()
+                {
+                    Console.Write($"c={Chained},e={Expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: $"c={expected},e={expected}")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    // IEEE-754: any relational comparison with a NaN operand is false, so every
+    // chain touching NaN folds to false regardless of the other operands or the
+    // operator mix.
+    [InlineData("double.NaN", "5.0", "10.0", "<")]
+    [InlineData("0.0", "double.NaN", "10.0", "<")]
+    [InlineData("0.0", "5.0", "double.NaN", "<")]
+    [InlineData("double.NaN", "double.NaN", "double.NaN", "<")]
+    [InlineData("0.0", "double.NaN", "10.0", "<=")]
+    [InlineData("10.0", "double.NaN", "0.0", ">")]
+    [InlineData("float.NaN", "5f", "10f", "<")]
+    [InlineData("0f", "float.NaN", "10f", "<")]
+    public void FloatingPointConst_NaNInAnyPosition_FoldsToFalse(string a, string b, string c, string op)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool Chained  = {{a}} {{op}} {{b}} {{op}} {{c}};
+                const bool Expanded = ({{a}} {{op}} {{b}}) && ({{b}} {{op}} {{c}});
+
+                static void Main()
+                {
+                    Console.Write($"c={Chained},e={Expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "c=False,e=False")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void DoubleConst_InfinitiesAndEpsilon_FoldMatchesExpanded()
+    {
+        // Pins the edge values: +/-infinity at the chain extremes, Epsilon as
+        // the smallest-positive middle, and the chain involving both infinities
+        // which folds false because +inf < -inf is false.
+        var src = """
+            using System;
+
+            class P
+            {
+                const bool WithinInfinities  = double.NegativeInfinity < 0.0 < double.PositiveInfinity;
+                const bool WithinInfinitiesE = (double.NegativeInfinity < 0.0) && (0.0 < double.PositiveInfinity);
+
+                const bool BothInfinitiesOuter  = 0.0 < double.PositiveInfinity < double.NegativeInfinity;
+                const bool BothInfinitiesOuterE = (0.0 < double.PositiveInfinity) && (double.PositiveInfinity < double.NegativeInfinity);
+
+                const bool EpsilonMiddle  = 0.0 < double.Epsilon < 1.0;
+                const bool EpsilonMiddleE = (0.0 < double.Epsilon) && (double.Epsilon < 1.0);
+
+                static void Main()
+                {
+                    Console.Write($"wi={WithinInfinities}/{WithinInfinitiesE},bo={BothInfinitiesOuter}/{BothInfinitiesOuterE},ep={EpsilonMiddle}/{EpsilonMiddleE}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "wi=True/True,bo=False/False,ep=True/True")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void DoubleConst_NegativeZero_FoldMatchesExpanded()
+    {
+        // IEEE-754: -0.0 == 0.0, so -0.0 < 0.0 is false and any chain whose
+        // inner link is -0.0 < 0.0 short-circuits to false; conversely
+        // 0.0 > -0.0 is also false.
+        var src = """
+            using System;
+
+            class P
+            {
+                const bool NegZeroInnerLT  = -0.0 < 0.0 < 1.0;
+                const bool NegZeroInnerLTe = (-0.0 < 0.0) && (0.0 < 1.0);
+
+                const bool NegZeroInnerLE  = -0.0 <= 0.0 <= 1.0;
+                const bool NegZeroInnerLEe = (-0.0 <= 0.0) && (0.0 <= 1.0);
+
+                const bool NegZeroMixed  = 1.0 > 0.0 > -0.0;
+                const bool NegZeroMixede = (1.0 > 0.0) && (0.0 > -0.0);
+
+                static void Main()
+                {
+                    Console.Write($"lt={NegZeroInnerLT}/{NegZeroInnerLTe},le={NegZeroInnerLE}/{NegZeroInnerLEe},mx={NegZeroMixed}/{NegZeroMixede}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "lt=False/False,le=True/True,mx=False/False")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("0m", "5m", "10m", "<", "True")]
+    [InlineData("0m", "5m", "2m", "<", "False")]
+    [InlineData("10m", "5m", "0m", ">", "True")]
+    [InlineData("decimal.MinValue", "0m", "decimal.MaxValue", "<", "True")]
+    [InlineData("decimal.MaxValue", "0m", "decimal.MinValue", ">", "True")]
+    [InlineData("-0m", "0m", "1m", "<", "False")]
+    [InlineData("-0m", "0m", "1m", "<=", "True")]
+    public void DecimalConst_BasicAndBoundaries_FoldMatchesExpanded(string a, string b, string c, string op, string expected)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                const bool Chained  = {{a}} {{op}} {{b}} {{op}} {{c}};
+                const bool Expanded = ({{a}} {{op}} {{b}}) && ({{b}} {{op}} {{c}});
+
+                static void Main()
+                {
+                    Console.Write($"c={Chained},e={Expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: $"c={expected},e={expected}")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EnumConst_BasicAndMixedDirection_FoldMatchesExpanded()
+    {
+        var src = """
+            using System;
+
+            enum E { A, B, C, D }
+
+            class P
+            {
+                const bool Up    = E.A < E.B < E.C < E.D;
+                const bool UpE   = (E.A < E.B) && (E.B < E.C) && (E.C < E.D);
+                const bool Mixed  = E.A < E.B > E.A;
+                const bool MixedE = (E.A < E.B) && (E.B > E.A);
+                const bool Down  = E.D > E.C > E.B;
+                const bool DownE = (E.D > E.C) && (E.C > E.B);
+
+                static void Main()
+                {
+                    Console.Write($"up={Up}/{UpE},mx={Mixed}/{MixedE},dn={Down}/{DownE}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "up=True/True,mx=True/True,dn=True/True")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("byte")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("ushort")]
+    [InlineData("uint")]
+    [InlineData("long")]
+    [InlineData("ulong")]
+    public void EnumConst_MixedUnderlyingType_FoldMatchesExpanded(string underlying)
+    {
+        var src = $$"""
+            using System;
+
+            enum E : {{underlying}} { A, B, C }
+
+            class P
+            {
+                const bool Chained  = E.A < E.B < E.C;
+                const bool Expanded = (E.A < E.B) && (E.B < E.C);
+
+                static void Main()
+                {
+                    Console.Write($"c={Chained},e={Expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "c=True,e=True")
+            .VerifyDiagnostics();
+    }
 }
