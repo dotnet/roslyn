@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // common same-type chains, in which case the lowerer uses the temp directly.
             //
             // Non-null iff this node is a chained relational comparison; this is the signal
-            // <see cref="BoundBinaryOperator.IsChainedRelational(out BoundExpression?)"/> keys off. Consumers
+            // <see cref="BoundBinaryOperator.IsChainedRelational"/> keys off. Consumers
             // should use that helper rather than inspecting this field directly. The
             // conversion's target type is re-derived on demand from
             // <c>BinaryOperatorMethod.Parameters[0].Type</c> (user-defined ops, possibly

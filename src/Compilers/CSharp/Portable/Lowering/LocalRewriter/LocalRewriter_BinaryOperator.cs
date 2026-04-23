@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitStringConcatenation(node);
             }
 
-            if (node.IsChainedRelational(out _))
+            if (node.IsChainedRelational(out _, out _, out _))
             {
                 return RewriteChainedRelationalOperator(node);
             }
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (BoundBinaryOperator? current = node; current != null && current.ConstantValueOpt == null; current = current.Left as BoundBinaryOperator)
             {
                 // The regular visit mechanism will handle this.
-                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.Utf8Addition || IsBinaryStringConcatenation(current) || current.IsChainedRelational(out _))
+                if (current.InterpolatedStringHandlerData is not null || current.OperatorKind is BinaryOperatorKind.Utf8Addition || IsBinaryStringConcatenation(current) || current.IsChainedRelational(out _, out _, out _))
                 {
                     Debug.Assert(stack.Count >= 1);
                     break;

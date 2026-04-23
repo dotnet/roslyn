@@ -431,19 +431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// operand is a bool-typed <see cref="BoundBinaryOperator"/> whose right operand is the
         /// shared middle operand Y (returned via <paramref name="chainedRelationalLeftOperand"/>),
         /// and <see cref="BinaryOperatorMethod"/> (together with <see cref="OperatorKind"/>)
-        /// describes the isolated resolution of `Y op Right`.
-        /// At lowering time the node is rewritten to a short-circuit &amp;&amp; chain with the
-        /// middle operand evaluated once and reused.
-        /// </summary>
-        internal bool IsChainedRelational([NotNullWhen(true)] out BoundExpression? chainedRelationalLeftOperand)
-            => IsChainedRelational(out chainedRelationalLeftOperand, out _, out _);
-
-        /// <summary>
-        /// Rich overload of <see cref="IsChainedRelational(out BoundExpression?)"/>: in addition
-        /// to the shared middle operand Y, also yields the outer link's LeftConversion (the
-        /// conversion applied at lowering time to the temp holding Y) and its target type
-        /// (the outer operator's LeftType). The conversion may be <see cref="Conversion.Identity"/>
-        /// for same-type chains.
+        /// describes the isolated resolution of `Y op Right`. Also yields the outer link's
+        /// LeftConversion (the conversion applied at lowering time to the temp holding Y) and
+        /// its target type (the outer operator's LeftType); the conversion may be
+        /// <see cref="Conversion.Identity"/> for same-type chains. At lowering time the node
+        /// is rewritten to a short-circuit &amp;&amp; chain with the middle operand evaluated
+        /// once and reused.
         /// </summary>
         internal bool IsChainedRelational(
             [NotNullWhen(true)] out BoundExpression? chainedRelationalLeftOperand,
@@ -517,11 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// True when this node has short-circuit semantics on its right operand: either it is a
         /// conditional logical operator (<c>&amp;&amp;</c> / <c>||</c>), or it is a chained
-        /// relational comparison (see <see cref="IsChainedRelational(out BoundExpression?)"/>). Callers that gate
+        /// relational comparison (see <see cref="IsChainedRelational"/>). Callers that gate
         /// behaviour on short-circuit semantics (flow analysis, lowering, codegen backstops)
         /// should prefer this helper over <c>OperatorKind.IsLogical()</c>.
         /// </summary>
-        internal bool IsShortCircuiting => OperatorKind.IsLogical() || IsChainedRelational(out _);
+        internal bool IsShortCircuiting => OperatorKind.IsLogical() || IsChainedRelational(out _, out _, out _);
 
         internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
     }

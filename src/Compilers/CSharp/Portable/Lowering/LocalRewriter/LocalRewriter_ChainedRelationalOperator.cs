@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp;
 internal sealed partial class LocalRewriter
 {
     /// <summary>
-    /// Rewrites a chained relational comparison (<see cref="BoundBinaryOperator.IsChainedRelational(out BoundExpression?)"/>)
+    /// Rewrites a chained relational comparison (<see cref="BoundBinaryOperator.IsChainedRelational"/>)
     /// into a short-circuit <c>&amp;&amp;</c> chain with each shared middle operand hoisted into a
     /// temp evaluated exactly once (spec §11.11.13). For example <c>a op1 b op2 c op3 d</c> lowers to:
     ///
@@ -33,7 +33,7 @@ internal sealed partial class LocalRewriter
     /// </summary>
     private BoundExpression RewriteChainedRelationalOperator(BoundBinaryOperator node)
     {
-        Debug.Assert(node.IsChainedRelational(out _));
+        Debug.Assert(node.IsChainedRelational(out _, out _, out _));
 
         var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 

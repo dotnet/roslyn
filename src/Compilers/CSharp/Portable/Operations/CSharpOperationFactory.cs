@@ -1586,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // signal through to the operation so ControlFlowGraphBuilder emits the
             // right edges - without it, chained comparisons would flow as straight-
             // line evaluation and any CFG-based analyzer would be wrong.
-            bool isChainedRelationalComparison = boundBinaryOperator.IsChainedRelational(out _);
+            bool isChainedRelationalComparison = boundBinaryOperator.IsChainedRelational(out _, out _, out _);
             return CreateBinaryOperation(
                 boundBinaryOperator, boundBinaryOperator.OperatorKind,
                 left, right,

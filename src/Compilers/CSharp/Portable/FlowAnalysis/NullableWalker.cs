@@ -12877,7 +12877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(IsConditionalState);
                 TypeWithState leftType = ResultType;
 
-                bool isChainedRelational = node.IsChainedRelational(out BoundExpression? chainedY);
+                bool isChainedRelational = node.IsChainedRelational(out BoundExpression? chainedY, out _, out _);
                 GetBinaryLogicalOperatorInfo(node.OperatorKind, isChainedRelational, out bool isAnd, out bool isBool);
 
                 var leftTrue = this.StateWhenTrue;

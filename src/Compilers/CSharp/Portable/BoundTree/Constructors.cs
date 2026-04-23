@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overload - in that case, switch to the Update(UncommonData) overload instead and
             // pass through the existing `Data`, or extend this overload to forward
             // ChainedRelationalLeftOperand.
-            Debug.Assert(!IsChainedRelational(out _), "This Update overload drops chained-relational data; use Update(UncommonData) or extend this overload.");
+            Debug.Assert(!IsChainedRelational(out _, out _, out _), "This Update overload drops chained-relational data; use Update(UncommonData) or extend this overload.");
 
             var uncommonData = UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, OriginalUserDefinedOperatorsOpt);
             return Update(operatorKind, uncommonData, resultKind, left, right, type);
