@@ -123,17 +123,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // already short-circuits Identity conversions (see LocalRewriter_Conversion's
                 // ConversionKind.Identity case), so the common same-type case produces no
                 // extra wrapper and the temp flows through unchanged.
-                BoundExpression thisLeftOperand = MakeConversionNode(
-                    oldNodeOpt: null,
-                    syntax: node.Syntax,
-                    rewrittenOperand: temp,
-                    conversion: node.ChainedRelationalLeftConversion,
-                    @checked: false,
-                    explicitCastInCode: false,
-                    constantValueOpt: null,
-                    rewrittenType: node.ChainedRelationalLeftConvertedType);
-
-                return _factory.LogicalAnd(loweredInner, buildRelationalLink(thisLeftOperand));
+                return _factory.LogicalAnd(
+                    loweredInner,
+                    buildRelationalLink(MakeConversionNode(
+                        oldNodeOpt: null,
+                        syntax: node.Syntax,
+                        rewrittenOperand: temp,
+                        conversion: node.ChainedRelationalLeftConversion,
+                        @checked: false,
+                        explicitCastInCode: false,
+                        constantValueOpt: null,
+                        rewrittenType: node.ChainedRelationalLeftConvertedType)));
             }
 
             // Classical (non-chained) base link: emit `lowered(left) op thisRight`. thisRight
