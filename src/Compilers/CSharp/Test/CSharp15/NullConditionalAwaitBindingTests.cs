@@ -1648,6 +1648,111 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void NullForgiving_OnReferenceResult_AllowsMemberAccess()
+    {
+        // `(await? t)!.Length` on Task<string>. The null-forgiving `!` narrows the result
+        // from `string?` to `string` for the member access, so no CS8602 fires.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<int> M(Task<string> t) => (await? t)!.Length;
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void NullForgiving_OnLiftedValueResult_AllowsValueAccess()
+    {
+        // `(await? t)!.Value` on Task<int>. The result is int?; `!` narrows the flow state
+        // but the static type stays int? (there is no NRT equivalent for value types), so
+        // `.Value` is the correct member.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<int> M(Task<int> t) => (await? t)!.Value;
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void NullForgiving_OnReferenceResult_NoWarningOnDereference()
+    {
+        // Without `!`, dereferencing `(await? t).Length` warns about possibly null.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<int> M(Task<string> t) => (await? t).Length;
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (4,50): warning CS8602: Dereference of a possibly null reference.
+            //     public async Task<int> M(Task<string> t) => (await? t).Length;
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "await? t").WithLocation(4, 50));
+    }
+
+    [Fact]
+    public void OutVar_InsideAwaitQuestionOperand_DefiniteAssignment()
+    {
+        // `await? GetTask(out var x)` — `out var x` introduces `x` as definitely assigned
+        // on the non-null branch. On the null branch GetTask isn't called, so `x` is NOT
+        // definitely assigned after the statement. Using `x` unconditionally below should
+        // error.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static Task<int> GetTask(out int x) { x = 1; return Task.FromResult(0); }
+                public async Task M()
+                {
+                    var v = await? GetTask(out var x);
+                    System.Console.WriteLine(x);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        // Method reference is never null, so GetTask always runs and `x` is definitely
+        // assigned; this should compile without errors.
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OutVar_InsideAwaitQuestionOperand_DefiniteAssignment_ViaNullableReceiver()
+    {
+        // Now the operand of `await?` can actually be null: `t?.Method(out var x)`.
+        // When `t` is null the whole operand short-circuits to null, `Method` is not
+        // called, and `x` is NOT definitely assigned. Using `x` after the statement
+        // should produce CS0165 (use of unassigned local variable).
+        var source = """
+            using System.Threading.Tasks;
+            public class Holder
+            {
+                public Task<int> M(out int x) { x = 1; return Task.FromResult(0); }
+            }
+            public class C
+            {
+                public async Task M(Holder h)
+                {
+                    var v = await? h?.M(out var x);
+                    System.Console.WriteLine(x);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (10,34): error CS0165: Use of unassigned local variable 'x'
+            //         System.Console.WriteLine(x);
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(11, 34));
+    }
+
+    [Fact]
     public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
     {
         // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
