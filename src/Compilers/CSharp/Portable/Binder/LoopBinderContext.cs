@@ -24,22 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             _labelName = loopSyntax.Parent is LabeledStatementSyntax labeled ? labeled.Identifier.ValueText : null;
         }
 
-        internal override GeneratedLabelSymbol BreakLabel
-        {
-            get
-            {
-                return _breakLabel;
-            }
-        }
-
-        internal override GeneratedLabelSymbol ContinueLabel
-        {
-            get
-            {
-                return _continueLabel;
-            }
-        }
-
         internal override GeneratedLabelSymbol GetBreakLabel(string labelName)
             => (labelName is null || labelName == _labelName) ? _breakLabel : Next.GetBreakLabel(labelName);
 
