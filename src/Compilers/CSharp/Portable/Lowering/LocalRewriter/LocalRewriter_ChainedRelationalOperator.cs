@@ -131,46 +131,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt: null,
                     rewrittenType: node.ChainedRelationalLeftConvertedType);
 
-                // oldNode: null so that constant values on the original chain node are not
-                // copied onto this rewritten link; the rewritten link carries a temp-assignment
-                // side effect and therefore is not a compile-time constant even when the
-                // original operand folding said it was.
-                //
-                // BinaryOperatorMethod (and not LeftTruthOperatorMethod): a chained relational
-                // node's OperatorKind is always one of `<`/`<=`/`>`/`>=`, never a conditional
-                // logical, so LeftTruthOperatorMethod is provably null here. `operator true`/
-                // `operator false` never participate in chain lowering - each link resolves to
-                // a bool-returning operator (spec §11.11.13 rule 2(b)), and the chain is
-                // combined below with `_factory.LogicalAnd`, i.e. LogicalBoolAnd.
-                BoundExpression thisLink = MakeBinaryOperator(
-                    oldNode: null,
-                    node.Syntax,
-                    node.OperatorKind,
-                    thisLeftOperand,
-                    thisRight,
-                    node.Type!,
-                    node.BinaryOperatorMethod,
-                    node.ConstrainedToType,
-                    applyParentUnaryOperator: null);
-
-                return _factory.LogicalAnd(loweredInner, thisLink);
+                return _factory.LogicalAnd(loweredInner, buildRelationalLink(thisLeftOperand));
             }
 
             // Classical (non-chained) base link: emit `lowered(left) op thisRight`. thisRight
             // is the inline-assign expression that the chained node immediately above us
             // supplied, which captures the shared middle operand into the temp allocated there.
-            // Same reasoning as above: this link is a plain relational comparison, so
-            // BinaryOperatorMethod is what MakeBinaryOperator wants.
-            return MakeBinaryOperator(
-                oldNode: null,
-                node.Syntax,
-                node.OperatorKind,
-                VisitExpression(node.Left),
-                thisRight,
-                node.Type!,
-                node.BinaryOperatorMethod,
-                node.ConstrainedToType,
-                applyParentUnaryOperator: null);
+            return buildRelationalLink(VisitExpression(node.Left));
+
+            // Build a single relational link `leftOperand op thisRight` templated on node's
+            // operator metadata.
+            //
+            // oldNode: null so that constant values on the original chain node are not
+            // copied onto this rewritten link; the rewritten link carries a temp-assignment
+            // side effect (for non-base links) and therefore is not a compile-time constant
+            // even when the original operand folding said it was.
+            //
+            // BinaryOperatorMethod (and not LeftTruthOperatorMethod): every chained link
+            // resolves to a bool-returning `<`/`<=`/`>`/`>=` operator (spec §11.11.13 rule
+            // 2(b)), so LeftTruthOperatorMethod is provably null here. `operator true`/
+            // `operator false` never participate in chain lowering; the chain is combined
+            // by the caller via `_factory.LogicalAnd` (= LogicalBoolAnd).
+            BoundExpression buildRelationalLink(BoundExpression leftOperand) =>
+                MakeBinaryOperator(
+                    oldNode: null,
+                    node.Syntax,
+                    node.OperatorKind,
+                    leftOperand,
+                    thisRight,
+                    node.Type!,
+                    node.BinaryOperatorMethod,
+                    node.ConstrainedToType,
+                    applyParentUnaryOperator: null);
         }
     }
 }
