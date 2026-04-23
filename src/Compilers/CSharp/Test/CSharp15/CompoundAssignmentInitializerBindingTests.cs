@@ -1602,6 +1602,50 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P += { 1, 2 }").WithLocation(4, 39));
     }
 
+    [Fact]
+    public void LiftedIntQuestion_Compound_OntoNonNullable_Fails()
+    {
+        // Mirror of `TestCompoundLiftedAssignment_IOperation` (OperatorTests.cs:2402) reshaped as
+        // an initializer: compound `P += b` where `P` is `int` and `b` is `int?` is invalid
+        // because the lifted `int? + int -> int?` result can't convert back to `int`. Non-
+        // initializer form fires CS0266; the initializer form must surface the same diagnostic so
+        // IOperation / semantic-model clients see a consistently invalid shape.
+        var source = """
+            class C
+            {
+                public int P { get; set; }
+                public static C Make(int? b) => new C { P += b };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (4,45): error CS0266: Cannot implicitly convert type 'int?' to 'int'. An explicit conversion exists (are you missing a cast?)
+            //     public static C Make(int? b) => new C { P += b };
+            Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "P += b").WithArguments("int?", "int").WithLocation(4, 45));
+    }
+
+    [Fact]
+    public void DynamicProperty_CompoundWithVoidRhs_Fails()
+    {
+        // Mirror of `BinaryOps_VoidArgument` (DynamicTests.cs:868) reshaped for the initializer
+        // form. A `void`-returning call as the compound RHS on a `dynamic` target is invalid —
+        // `void` is not a legal operand. The dynamic compound path in `BindCompoundAssignmentCore`
+        // reports CS0019 regardless of whether the compound is a statement or sits inside a
+        // member initializer; pin the initializer-form diagnostic so a regression that silently
+        // accepted `void` (via a different dynamic-binding code path) would be visible.
+        var source = """
+            class C
+            {
+                public dynamic X { get; set; }
+                static void F() {}
+                public static C Make() => new C { X += F() };
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp).VerifyDiagnostics(
+            // (5,39): error CS0019: Operator '+=' cannot be applied to operands of type 'dynamic' and 'void'
+            //     public static C Make() => new C { X += F() };
+            Diagnostic(ErrorCode.ERR_BadBinaryOps, "X += F()").WithArguments("+=", "dynamic", "void").WithLocation(5, 39));
+    }
+
     #endregion
 
     #region Enum targets
@@ -2177,6 +2221,107 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics();
     }
 
+    [Fact]
+    public void Nullable_DisallowNullProperty_Compound_InInitializer_Warns()
+    {
+        // Mirror of `DisallowNull_Property_CompoundAssignment` (NullableReferenceTypesTests.cs:45090)
+        // translated into initializer form. The property is typed `C?` but annotated
+        // `[DisallowNull]`, so its *write* contract rejects null. `operator+` returns `C?`, so the
+        // compound's effective write is maybe-null → WRN8607 (DisallowNull forbids maybe-null).
+        // NullableWalker's `VisitCompoundOrCoalesceObjectElementInitializer` + `UpdateInitializerMemberSlot`
+        // must feed the compound's result state into the per-member slot the same way the statement
+        // form feeds the local's slot; a regression that skipped the slot merge would drop the
+        // warning silently. Using a struct target so both WRN8607 (assignment) and WRN8629
+        // (subsequent `.Value` receiver) surface, matching the non-initializer baseline shape.
+        var source = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+            struct S
+            {
+                [DisallowNull] public S? Property { get; set; }
+                public static S? operator+(S? one, S other) => throw null!;
+            }
+            class Driver
+            {
+                public static S Make(S s) => new S { Property += s };
+            }
+            """;
+        CreateCompilation([source, DisallowNullAttributeDefinition]).VerifyDiagnostics(
+            // (10,42): warning CS8607: A possible null value may not be used for a type marked with [NotNull] or [DisallowNull]
+            //     public static S Make(S s) => new S { Property += s };
+            Diagnostic(ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment, "Property += s").WithLocation(10, 42));
+    }
+
+    [Fact]
+    public void Nullable_MaybeNullPropertyRead_UserDefinedPlus_InInitializer_Warns()
+    {
+        // Mirror of `CompoundAssignment_01` (NullableReferenceTypesTests.cs:74753). The property is
+        // `CL1?`; reading it for `+=` converts via the implicit `CL1 -> CL0` operator and invokes
+        // `operator+(CL0, CL0) -> CL1`, then stores the result back into the `CL1?` property.
+        // The read must report WRN8604 on the null LHS, same as the non-initializer baseline.
+        // NullableWalker's `VisitCompoundOrCoalesceObjectElementInitializer` drives the compound
+        // op's Visit, which re-visits the wrapped BoundObjectInitializerMember's underlying
+        // BoundPropertyAccess — a regression that bypassed the left-visit would miss the warning.
+        var source = """
+            #nullable enable
+            public class CL0
+            {
+                public static CL1 operator+(CL0 one, CL0 two) => new CL1();
+            }
+            public class CL1
+            {
+                public static implicit operator CL0(CL1 x) => new CL0();
+            }
+            class Container
+            {
+                public CL1? P { get; set; }
+            }
+            class Driver
+            {
+                public static Container Make(CL1? x, CL0 y)
+                    => new Container { P = x, P += y };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (17,35): warning CS8604: Possible null reference argument for parameter 'x' in 'CL1.implicit operator CL0(CL1 x)'.
+            //         => new Container { P = x, P += y };
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "P").WithArguments("x", "CL1.implicit operator CL0(CL1 x)").WithLocation(17, 35));
+    }
+
+    [Fact]
+    public void Nullable_NotNullIfNotNullOnReturn_Compound_InInitializer_Flows()
+    {
+        // Mirror of `NotNullIfNotNull_Return_BinaryOperatorInCompoundAssignment`
+        // (NullableReferenceTypesTests.cs:33850): a user-defined `operator +` annotated with
+        // `[return: NotNullIfNotNull(...)]` must propagate not-null state through `+=`. In the
+        // initializer path, the annotation's effect on the compound's result has to reach the
+        // per-member slot update in NullableWalker so a subsequent dereference of the same member
+        // doesn't warn. Pin the no-warn case (both operands not-null → result not-null → `.Length`
+        // is safe) so a regression that dropped the annotation would fire CS8602.
+        var source = """
+            #nullable enable
+            using System.Diagnostics.CodeAnalysis;
+            class C
+            {
+                public C? P { get; set; }
+                [return: NotNullIfNotNull("x"), NotNullIfNotNull("y")]
+                public static C? operator +(C? x, C? y) => null;
+            }
+            class Driver
+            {
+                public static void M(C ac)
+                {
+                    // Build a C via initializer. Seed P to not-null via `=`, then compound with a
+                    // not-null RHS; NotNullIfNotNull says the result is not-null too. Dereferencing
+                    // `c.P.ToString()` afterwards must not warn.
+                    var c = new C { P = ac, P += ac };
+                    _ = c.P.ToString();
+                }
+            }
+            """;
+        CreateCompilation([source, NotNullIfNotNullAttributeDefinition]).VerifyDiagnostics();
+    }
+
     #endregion
 
     #region String compound
@@ -2413,6 +2558,68 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
 
     #endregion
 
+    #region Inline arrays and spans
+
+    [Fact]
+    public void InlineArray_Field_NestedInitializerIndexer_Fails()
+    {
+        // Mirror of `InlineArrayTests.CompoundAssignment_01` (Emit3/Semantics/InlineArrayTests.cs:15143)
+        // reshaped as an initializer. The statement form `x.F[0] += 111` on a `[InlineArray]`
+        // field works because the compiler recognizes inline-array indexing as a compiler-
+        // intrinsic lowered via `InlineArrayFirstElementRef`. The *nested initializer* path
+        // (`BindObjectInitializerMemberCommon` searching for a declared `this[int]` indexer on
+        // `F`'s type) doesn't look for the intrinsic, so `new C { F = { [0] += 111 } }` fails
+        // with CS0021 at the `[0]` access. Pins this asymmetry: statement form works; initializer
+        // form rejects. A future fix that extended initializer-indexer lookup to recognize inline-
+        // arrays would flip this test intentionally.
+        var source = """
+            [System.Runtime.CompilerServices.InlineArray(10)]
+            public struct Buffer10<T>
+            {
+                private T _element0;
+            }
+            public class C
+            {
+                public Buffer10<int> F;
+                public C(int seed) { F[0] = seed; }
+            }
+            public class Program
+            {
+                public static void Make() { _ = new C(-1) { F = { [0] += 111 } }; }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics(
+            // (13,55): error CS0021: Cannot apply indexing with [] to an expression of type 'Buffer10<int>'
+            //     public static void Make() { _ = new C(-1) { F = { [0] += 111 } }; }
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[0]").WithArguments("Buffer10<int>").WithLocation(13, 55));
+    }
+
+    [Fact]
+    public void Span_ValueTypeProperty_NestedInitializer_Fails()
+    {
+        // Mirror of `PatternIndexAndRangeCompoundOperatorRefIndexer` (IndexAndRangeTests.cs:178)
+        // reshaped as an initializer. `Span<T>` is a `ref struct` — a value type — so a property
+        // returning `Span<T>` can't be used as a nested-initializer target: CS1918 fires by the
+        // same rule that rejects `new C { IntProp = { Nested = 1 } }` when `IntProp` is any
+        // value-type. The statement form `c.Slice[^1] += 1` works (the ref indexer is fine), but
+        // `new C { Slice = { [^1] += 1 } }` rejects at the Slice access. Pins the asymmetry.
+        var source = """
+            using System;
+            class C
+            {
+                public byte[] Storage = new byte[2];
+                public Span<byte> Slice => Storage;
+                public static void Make() { _ = new C { Slice = { [^1] += 1 } }; }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
+            // (6,45): error CS1918: Members of property 'C.Slice' of type 'Span<byte>' cannot be assigned with an object initializer because it is of a value type
+            //     public static void Make() { _ = new C { Slice = { [^1] += 1 } }; }
+            Diagnostic(ErrorCode.ERR_ValueTypePropertyInObjectInitializer, "Slice").WithArguments("C.Slice", "System.Span<byte>").WithLocation(6, 45));
+    }
+
+    #endregion
+
     #region Indexer args evaluated once (spec-normative)
 
     [Fact]
@@ -2451,9 +2658,94 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         CompileAndVerify(source, expectedOutput: "1,15");
     }
 
+    [Fact]
+    public void ImplicitIndex_SideEffectingLength_CalledOnce()
+    {
+        // Mirror of `PatternIndexCompoundOperator` (IndexAndRangeTests.cs:236) reshaped for the
+        // initializer form. `S[^1] += 5` lowers to "call Length once, compute index, call get, op,
+        // call set" — the pattern-index path caches Length. Our existing `Indexer_SideEffectingArgument_EvaluatedOnce`
+        // test pins integer-arg caching; this pins the *pattern-index* Length caching when the
+        // compound sits inside `new C { S = { [^1] += 5 } }`. Expected trace: "Length 0 / Get 1 /
+        // Set 2" — one each — then the mutated underlying array reads `5`.
+        var source = """
+            using System;
+            struct S
+            {
+                private readonly int[] _array;
+                private int _counter;
+                public S(int[] a)
+                {
+                    _array = a;
+                    _counter = 0;
+                }
+                public int Length
+                {
+                    get { Console.WriteLine("Length " + _counter++); return _array.Length; }
+                }
+                public int this[int index]
+                {
+                    get { Console.WriteLine("Get " + _counter++); return _array[index]; }
+                    set { Console.WriteLine("Set " + _counter++); _array[index] = value; }
+                }
+            }
+            class C
+            {
+                public S Container;
+                public C(int[] a) { Container = new S(a); }
+                public static void Main()
+                {
+                    var array = new int[2];
+                    var c = new C(array) { Container = { [^1] += 5 } };
+                    Console.Write(array[1]);
+                }
+            }
+            """;
+        CompileAndVerify(
+            source,
+            targetFramework: TargetFramework.NetCoreApp,
+            expectedOutput:
+@"Length 0
+Get 1
+Set 2
+5");
+    }
+
     #endregion
 
     #region Semantic model / IOperation
+
+    [Fact]
+    public void SemanticModel_DynamicCompoundMemberInitializer_LateBoundSymbol()
+    {
+        // Mirror of `CompoundAssignment` in `SemanticModelGetSemanticInfoTests_LateBound.cs:808`
+        // translated to the initializer form. A `P += d` where both `P` and `d` are `dynamic`
+        // produces a "late-bound" symbol info: `GetSymbolInfo` returns
+        // `dynamic.operator +(dynamic, dynamic)` with `CandidateReason.LateBound`. The initializer
+        // path has to route through the same dynamic-binding code as the non-initializer form
+        // (otherwise `GetSymbolInfo` on the inner compound would return a plain property/method
+        // group instead of the synthetic late-bound operator symbol).
+        var source = """
+            class C
+            {
+                public dynamic P { get; set; }
+                public static C Make(dynamic d) => /*<bind>*/new C { P += d }/*</bind>*/;
+            }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees[0];
+        var model = comp.GetSemanticModel(tree);
+
+        var assignment = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax>().Single();
+        var symbolInfo = model.GetSymbolInfo(assignment);
+        Assert.Equal("dynamic.operator +(dynamic, dynamic)", symbolInfo.Symbol!.ToString());
+        Assert.Equal(CandidateReason.LateBound, symbolInfo.CandidateReason);
+        Assert.Empty(symbolInfo.CandidateSymbols);
+
+        var typeInfo = model.GetTypeInfo(assignment);
+        Assert.True(typeInfo.Type!.IsDynamic());
+    }
 
     [Fact]
     public void SemanticModel_CompoundMemberInitializer_BindsAsCompoundOperation()
