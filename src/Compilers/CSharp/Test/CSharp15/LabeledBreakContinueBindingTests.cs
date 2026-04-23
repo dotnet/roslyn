@@ -1711,4 +1711,518 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Scope transparency (unchecked / unsafe / fixed)
+
+    [Fact]
+    public void Break_Unchecked_TargetIsOuterLoop()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        unchecked
+                        {
+                            break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_Unchecked_TargetIsOuterLoop()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        unchecked
+                        {
+                            continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Break_Unsafe_TargetIsOuterLoop()
+    {
+        var source = """
+            class C
+            {
+                unsafe void M()
+                {
+                    outer: while (true)
+                    {
+                        unsafe
+                        {
+                            break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_Unsafe_TargetIsOuterLoop()
+    {
+        var source = """
+            class C
+            {
+                unsafe void M()
+                {
+                    outer: while (true)
+                    {
+                        unsafe
+                        {
+                            continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Break_Fixed_TargetIsOuterLoop()
+    {
+        var source = """
+            class C
+            {
+                unsafe void M(int[] a)
+                {
+                    outer: while (true)
+                    {
+                        fixed (int* p = a)
+                        {
+                            break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region Label shadowing
+
+    [Fact]
+    public void LabelShadowing_LocalFunctionInsideLabeledLoop_ReportsShadowing()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    L: while (true)
+                    {
+                        void Inner()
+                        {
+                            L: while (true)
+                            {
+                                break L;
+                            }
+                        }
+                        break L;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (7,18): warning CS8321: The local function 'Inner' is declared but never used
+            //             void Inner()
+            Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Inner").WithArguments("Inner").WithLocation(7, 18),
+            // (9,17): error CS0158: The label 'L' shadows another label by the same name in a contained scope
+            //                 L: while (true)
+            Diagnostic(ErrorCode.ERR_LabelShadow, "L").WithArguments("L").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void LabelShadowing_LambdaInsideLabeledLoop_ReportsShadowing()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M()
+                {
+                    L: while (true)
+                    {
+                        Action a = () =>
+                        {
+                            L: while (true)
+                            {
+                                break L;
+                            }
+                        };
+                        break L;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (10,17): error CS0158: The label 'L' shadows another label by the same name in a contained scope
+            //                 L: while (true)
+            Diagnostic(ErrorCode.ERR_LabelShadow, "L").WithArguments("L").WithLocation(10, 17));
+    }
+
+    [Fact]
+    public void LabelShadowing_DistinctLabelsInNestedLocalFunction_NoError()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    outer: while (true)
+                    {
+                        void Inner()
+                        {
+                            inner: while (true)
+                            {
+                                break inner;
+                            }
+                        }
+                        Inner();
+                        break outer;
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LabelShadowing_MethodLevelDuplicate_ReportsError()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    L: while (true) { break L; }
+                    L: while (true) { }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (6,9): error CS0140: The label 'L' is a duplicate
+            //         L: while (true) { }
+            Diagnostic(ErrorCode.ERR_DuplicateLabel, "L").WithArguments("L").WithLocation(6, 9));
+    }
+
+    #endregion
+
+    #region Top-level statements: error cases
+
+    [Fact]
+    public void Break_TopLevelStatements_UnknownLabel()
+    {
+        var source = """
+            outer: while (true)
+            {
+                break missing;
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): warning CS0164: This label has not been referenced
+            // outer: while (true)
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(1, 1),
+            // (3,11): error CS9379: The label 'missing' does not refer to a containing loop statement
+            //     break missing;
+            Diagnostic(ErrorCode.ERR_NoBreakOrContId, "missing").WithArguments("missing").WithLocation(3, 11));
+    }
+
+    [Fact]
+    public void Continue_TopLevelStatements_UnknownLabel()
+    {
+        var source = """
+            outer: while (true)
+            {
+                continue missing;
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): warning CS0164: This label has not been referenced
+            // outer: while (true)
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "outer").WithLocation(1, 1),
+            // (3,14): error CS9379: The label 'missing' does not refer to a containing loop statement
+            //     continue missing;
+            Diagnostic(ErrorCode.ERR_NoBreakOrContId, "missing").WithArguments("missing").WithLocation(3, 14));
+    }
+
+    [Fact]
+    public void Break_TopLevelStatements_LabeledJumpOutsideAnyLoop()
+    {
+        var source = """
+            L: ;
+            break L;
+            """;
+        CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            // (1,1): warning CS0164: This label has not been referenced
+            // L: ;
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(1, 1),
+            // (2,7): error CS9379: The label 'L' does not refer to a containing loop statement
+            // break L;
+            Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(2, 7));
+    }
+
+    #endregion
+
+    #region Async iterator and await foreach
+
+    [Fact]
+    public void Break_AwaitForeach_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(IAsyncEnumerable<int> items)
+                {
+                    outer: await foreach (var x in items)
+                    {
+                        await foreach (var y in items)
+                        {
+                            break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_AwaitForeach_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task M(IAsyncEnumerable<int> items)
+                {
+                    outer: await foreach (var x in items)
+                    {
+                        await foreach (var y in items)
+                        {
+                            continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Break_AsyncIterator_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                async IAsyncEnumerable<int> M(int[] items)
+                {
+                    outer: foreach (var x in items)
+                    {
+                        foreach (var y in items)
+                        {
+                            await Task.Yield();
+                            yield return y;
+                            break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_AsyncIterator_Labeled()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+            class C
+            {
+                async IAsyncEnumerable<int> M(int[] items)
+                {
+                    outer: foreach (var x in items)
+                    {
+                        foreach (var y in items)
+                        {
+                            await Task.Yield();
+                            yield return y;
+                            continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region Ref foreach
+
+    [Fact]
+    public void Break_RefForeach_Labeled()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<int> items)
+                {
+                    outer: foreach (ref int x in items)
+                    {
+                        foreach (ref int y in items)
+                        {
+                            if (y == 0)
+                                break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_RefForeach_Labeled()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<int> items)
+                {
+                    outer: foreach (ref int x in items)
+                    {
+                        foreach (ref int y in items)
+                        {
+                            if (y == 0)
+                                continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region Out-var in loop condition
+
+    [Fact]
+    public void Break_OutVarInCondition_Labeled()
+    {
+        var source = """
+            class C
+            {
+                bool Filter(out int i) { i = 0; return true; }
+                void M()
+                {
+                    outer: while (Filter(out var i))
+                    {
+                        while (Filter(out var j))
+                        {
+                            if (i + j > 10)
+                                break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Continue_OutVarInCondition_Labeled()
+    {
+        var source = """
+            class C
+            {
+                bool Filter(out int i) { i = 0; return true; }
+                void M()
+                {
+                    outer: while (Filter(out var i))
+                    {
+                        while (Filter(out var j))
+                        {
+                            if (i + j > 10)
+                                continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    #endregion
+
+    #region Labeled break/continue in if without enclosing loop
+
+    [Fact]
+    public void Break_IfWithoutEnclosingLoop_Labeled()
+    {
+        var source = """
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b) break outer;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,22): error CS9379: The label 'outer' does not refer to a containing loop statement
+            //         if (b) break outer;
+            Diagnostic(ErrorCode.ERR_NoBreakOrContId, "outer").WithArguments("outer").WithLocation(5, 22));
+    }
+
+    [Fact]
+    public void Continue_IfWithoutEnclosingLoop_Labeled()
+    {
+        var source = """
+            class C
+            {
+                void M(bool b)
+                {
+                    if (b) continue outer;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,25): error CS9379: The label 'outer' does not refer to a containing loop statement
+            //         if (b) continue outer;
+            Diagnostic(ErrorCode.ERR_NoBreakOrContId, "outer").WithArguments("outer").WithLocation(5, 25));
+    }
+
+    #endregion
 }
