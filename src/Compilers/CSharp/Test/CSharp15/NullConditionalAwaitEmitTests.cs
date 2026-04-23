@@ -1126,6 +1126,83 @@ public sealed class NullConditionalAwaitEmitTests : CSharpTestBase
 
     #endregion
 
+    #region Async iterator (IAsyncEnumerable<T>) interactions
+
+    [Fact]
+    public void AsyncIterator_AwaitQuestion_NonNullOperand()
+    {
+        // `await?` inside an `async IAsyncEnumerable<T>` method body. The iterator state
+        // machine is distinct from a normal async method's; this pins that `await?` is
+        // accepted there and that both branches compose with `yield return`.
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                static async IAsyncEnumerable<string> StreamAsync()
+                {
+                    Task<int> t1 = Task.FromResult(1);
+                    int? v1 = await? t1;
+                    yield return $"v1={v1};";
+
+                    Task<int> t2 = null;
+                    int? v2 = await? t2;
+                    yield return $"v2={v2?.ToString() ?? "null"};";
+                }
+
+                public static async Task Main()
+                {
+                    await foreach (var s in StreamAsync())
+                        Console.Write(s);
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "v1=1;v2=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void AsyncIterator_AwaitQuestion_VoidResult_StatementPosition()
+    {
+        // Void-result `await? t;` (statement position) inside an async iterator. The
+        // statement is classified as nothing, so the iterator doesn't yield anything
+        // from it; yields must still be driven by explicit `yield return`.
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                static async IAsyncEnumerable<int> StreamAsync()
+                {
+                    Task t = null;
+                    await? t;         // short-circuits, no-op
+                    yield return 1;
+                    t = Task.CompletedTask;
+                    await? t;         // non-null branch; returns nothing
+                    yield return 2;
+                }
+
+                public static async Task Main()
+                {
+                    await foreach (var i in StreamAsync())
+                        Console.Write($"{i};");
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "1;2;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
     #region Try / catch / finally interactions
 
     [Fact]
