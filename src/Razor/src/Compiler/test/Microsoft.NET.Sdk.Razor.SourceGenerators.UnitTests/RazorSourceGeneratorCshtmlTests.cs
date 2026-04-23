@@ -864,4 +864,51 @@ public sealed class RazorSourceGeneratorCshtmlTests : RazorSourceGeneratorTestsB
         var dashboardSource = result.GeneratedSources.Single(s => s.HintName.Contains("Dashboard")).SourceText.ToString();
         Assert.Contains("u8)", dashboardSource);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
+    public async Task Utf8HtmlLiterals_NonGenericBaseClass_ResolvedViaCSharpGlobalUsing()
+    {
+        // Arrange - @inherits uses a short name with no @using in Razor.
+        // The namespace is imported via a C# global using (e.g. from GlobalUsings.cs).
+        var project = CreateTestProject(
+            additionalSources: new()
+            {
+                ["Pages/Index.cshtml"] = """
+                    @inherits MyUtf8PageBase
+                    <h1>Hello World</h1>
+                    """,
+            },
+            sources: new()
+            {
+                ["GlobalUsings.cs"] = """
+                    global using MyApp.Infrastructure;
+                    """,
+                ["MyUtf8PageBase.cs"] = """
+                    using System;
+                    using Microsoft.AspNetCore.Mvc.Razor;
+
+                    namespace MyApp.Infrastructure
+                    {
+                        public abstract class MyUtf8PageBase : RazorPage
+                        {
+                            public void WriteLiteral(ReadOnlySpan<byte> utf8HtmlLiteral)
+                            {
+                                WriteLiteral(System.Text.Encoding.UTF8.GetString(utf8HtmlLiteral));
+                            }
+                        }
+                    }
+                    """
+            });
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver, out _);
+
+        // Assert - should detect UTF-8 even though the using comes from C# not Razor
+        Assert.Empty(result.Diagnostics);
+        var indexSource = result.GeneratedSources.Single(s => s.HintName.Contains("Index")).SourceText.ToString();
+        Assert.Contains("u8)", indexSource);
+    }
 }

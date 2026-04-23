@@ -114,19 +114,15 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
             // Second pass: resolve remaining entries via a single augmented compilation.
             if (unresolvedEntries is { Count: > 0 } && compilation is CSharpCompilation csharpCompilation)
             {
-                var entriesWithUsings = unresolvedEntries.Where(e => !e.Info.Usings.IsEmpty).ToList();
-                if (entriesWithUsings.Count > 0)
+                var resolved = ResolveTypeNamesWithUsings(unresolvedEntries, csharpCompilation);
+                foreach (var (index, fqn) in resolved)
                 {
-                    var resolved = ResolveTypeNamesWithUsings(entriesWithUsings, csharpCompilation);
-                    foreach (var (index, fqn) in resolved)
-                    {
-                        var info = inheritsInfos[index];
-                        fileToType[info.FilePath] = fqn;
+                    var info = inheritsInfos[index];
+                    fileToType[info.FilePath] = fqn;
 
-                        if (!typeSupport.ContainsKey(fqn))
-                        {
-                            typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(fqn);
-                        }
+                    if (!typeSupport.ContainsKey(fqn))
+                    {
+                        typeSupport[fqn] = compilation.HasCallableUtf8WriteLiteralOverload(fqn);
                     }
                 }
             }
@@ -152,7 +148,6 @@ internal sealed class DefaultUtf8WriteLiteralFeature : IUtf8WriteLiteralFeature
             for (var i = 0; i < entries.Count; i++)
             {
                 var info = entries[i].Info;
-                Debug.Assert(!info.Usings.IsEmpty);
 
                 sb.Append("namespace __Utf8Probe_").Append(i).AppendLine(" {");
                 foreach (var u in info.Usings)
