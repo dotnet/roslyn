@@ -32,18 +32,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal static Encoding CreateFallbackEncoding()
         {
-            if (!s_encodingProviderRegistered)
-            {
-                try
-                {
-                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                }
-                catch
-                {
-                }
-
-                s_encodingProviderRegistered = true;
-            }
+            EnsureEncodingProviderRegistered();
 
             // Try to get the default ANSI code page in the operating system's
             // regional and language settings, and fall back to 1252 otherwise
@@ -52,8 +41,23 @@ namespace Microsoft.CodeAnalysis.Text
                 ?? Encoding.GetEncoding(name: "Latin1");
         }
 
+        private static void EnsureEncodingProviderRegistered()
+        {
+            if (!s_encodingProviderRegistered)
+            {
+                if (CodePagesEncodingProvider.Instance is { } provider)
+                {
+                    Encoding.RegisterProvider(provider);
+                }
+
+                s_encodingProviderRegistered = true;
+            }
+        }
+
         internal static Encoding? TryGetCodePageEncoding(int codePage)
         {
+            EnsureEncodingProviderRegistered();
+
             try
             {
                 return Encoding.GetEncoding(codePage);
