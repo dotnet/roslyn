@@ -33,8 +33,19 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         internal static Encoding CreateFallbackEncoding()
         {
-            // Try to get the default ANSI code page in the operating system's
-            // regional and language settings, and fall back to 1252 otherwise
+            if (!s_encodingProviderRegistered)
+            {
+                try
+                {
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                }
+                catch
+                {
+                }
+
+                s_encodingProviderRegistered = true;
+            }
+
             return TryGetCodePageEncoding(0)
                 ?? TryGetCodePageEncoding(1252)
                 ?? Encoding.GetEncoding(name: "Latin1");
