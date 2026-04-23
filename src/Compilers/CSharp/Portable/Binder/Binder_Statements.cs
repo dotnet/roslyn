@@ -2954,7 +2954,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var target = this.GetBreakLabel(labelName);
             if (target == null)
             {
-                Error(diagnostics, labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont, node.Name ?? (SyntaxNode)node, labelName ?? "");
+                if (labelName != null)
+                    Error(diagnostics, ErrorCode.ERR_NoBreakOrContId, node.Name!, labelName);
+                else
+                    Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
                 return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
             return new BoundBreakStatement(node, target, BindLabelExpression(node.Name, diagnostics));
@@ -2969,7 +2972,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var target = this.GetContinueLabel(labelName);
             if (target == null)
             {
-                Error(diagnostics, labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont, node.Name ?? (SyntaxNode)node, labelName ?? "");
+                if (labelName != null)
+                    Error(diagnostics, ErrorCode.ERR_NoBreakOrContId, node.Name!, labelName);
+                else
+                    Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
                 return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
             }
             return new BoundContinueStatement(node, target, BindLabelExpression(node.Name, diagnostics));
