@@ -1007,7 +1007,7 @@ class C { }
                 throw new InvalidOperationException("post init error");
             }
 
-            var generator = new CallbackGenerator((ic) => ic.RegisterForPostInitialization(postInit), (sgc) => Assert.True(false, "Should not execute"), source = "public class E : D {}");
+            var generator = new CallbackGenerator((ic) => ic.RegisterForPostInitialization(postInit), (sgc) => Assert.Fail("Should not execute"), source = "public class E : D {}");
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
@@ -1039,10 +1039,10 @@ class C { }
             static void postInit(GeneratorPostInitializationContext context)
             {
                 context.AddSource("postInit", "public class D {} ");
-                Assert.True(false, "Should not execute");
+                Assert.Fail("Should not execute");
             }
 
-            var generator = new CallbackGenerator(init, (sgc) => Assert.True(false, "Should not execute"), source = "public class E : D {}");
+            var generator = new CallbackGenerator(init, (sgc) => Assert.Fail("Should not execute"), source = "public class E : D {}");
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);

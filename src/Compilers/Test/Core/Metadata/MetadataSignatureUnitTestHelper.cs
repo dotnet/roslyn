@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             actualText = actualText.TrimEnd(',');
             var diffText = DiffUtil.DiffReport(expectedText, actualText);
 
-            Assert.True(false, "\n\nExpected:" + expectedText + "\n\nActual:" + actualText + "\n\nDifferences:\n" + diffText);
+            Assert.Fail("\n\nExpected:" + expectedText + "\n\nActual:" + actualText + "\n\nDifferences:\n" + diffText);
         }
     }
 }
