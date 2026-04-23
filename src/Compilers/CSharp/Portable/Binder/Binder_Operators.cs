@@ -1016,46 +1016,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BinaryOperatorKind resultOperatorKind = signature.Kind;
             bool hasErrors = false;
-            // Chained relational comparison (spec §11.11.13) bind-time state. Both fields
-            // are all-or-nothing: chainedRelationalLeftConvertedType is non-null exactly
-            // on the chain-fallback success path, and when set, chainedRelationalLeftConversion
-            // describes the outer link's LeftConversion. Storing the conversion separately
-            // (rather than baking it into the inner BoundBinaryOperator's Right operand)
-            // keeps the lowered temp at Y's inner-link type, which is required for
-            // verifiable IL on asymmetric-widening chains like `short < int < long`.
-            //
-            // The shared middle operand Y is always `((BoundBinaryOperator)left).Right` on
-            // success, so consumers (lowerer, fold, SemanticModel-facing code) read it from
-            // there rather than from a dedicated field.
+            // Chained relational comparison (spec §11.11.13) bind-time state: both fields are
+            // all-or-nothing, set together when the chain-fallback success path below accepts
+            // an isolated `Y op B` binding. chainedRelationalLeftConversion stays OFF the bound
+            // tree's Right slot - the lowerer applies it on a temp load - so the temp stays at
+            // Y's inner-link type for verifiable asymmetric-chain IL (e.g. `short < int < long`).
+            // Y itself is always `((BoundBinaryOperator)left).Right` on success.
             Conversion chainedRelationalLeftConversion = Conversion.NoConversion;
             TypeSymbol chainedRelationalLeftConvertedType = null;
 
             if (!foundOperator)
             {
-                // Spec §11.11.13: when ordinary binary operator overload resolution produces a
-                // binding-time error on an operation of the form `A op B` where `op` is a
-                // relational operator (<, <=, >, >=) and `A` is itself a relational_expression
-                // of the form `X op' Y` with `op'` a relational operator, fall through to a
-                // chained relational comparison. §11.4.5 is re-applied to `Y op B` as an
-                // isolated binary operation; if it selects a bool-returning operator, `A op B`
-                // is classified as a chained relational comparison. Otherwise the specific
-                // ERR_NoChainedRelationalComparison diagnostic is produced. If the node does not
-                // even have the chain shape, the ordinary CS0019 is reported as before.
+                // Spec §11.11.13: when `A op B` fails ordinary relational overload resolution
+                // and A is itself a relational `X op' Y`, re-run §11.4.5 on `Y op B` in isolation;
+                // if it binds to a bool-returning operator, classify the whole as a chained
+                // relational comparison. Otherwise emit the chain-specific
+                // ERR_NoChainedRelationalComparison. If the node doesn't even have the chain
+                // shape, fall through to the ordinary CS0019.
                 //
-                // Either error-producing branch clears the operand-type bits of resultOperatorKind
-                // (BinaryOperatorKind packs OpMask, e.g. LessThan, and TypeMask, e.g. Int /
-                // String / UserDefined). We keep the operator bits so downstream passes still
-                // see *which* operator was written, but clear the operand-type bits so no
-                // consumer concludes that we successfully bound to a specific signature.
-                // The chain shape is gated entirely on *syntax*: both the outer operator and
-                // the left operand must be user-written relational comparisons with one of the
-                // four chainable SyntaxKinds (<, <=, >, >=). Checking the BoundBinaryOperator's
-                // semantic OperatorKind would also match compiler-synthesized bound nodes that
-                // happen to carry a relational kind, which is not the user-visible situation
-                // §11.11.13 governs. Similarly, spec §11.11.13's "Parentheses around the
-                // left-hand operand prevent the chain interpretation" note is automatically
-                // satisfied because a ParenthesizedExpressionSyntax is not itself one of the
-                // chainable SyntaxKinds.
+                // Both error branches clear resultOperatorKind's TypeMask (the operand-type bits,
+                // e.g. Int / UserDefined) so downstream passes don't conclude a signature was
+                // bound; we keep the operator bits so they still see *which* operator was written.
+                //
+                // The chain shape is gated on *syntax*, not the inner BoundBinaryOperator's
+                // OperatorKind - the semantic kind would falsely match compiler-synthesized
+                // relational nodes that §11.11.13 doesn't govern. As a bonus, this automatically
+                // honors spec §11.11.13's "parens around the left-hand operand prevent the chain
+                // interpretation" note, because ParenthesizedExpressionSyntax isn't one of the
+                // four chainable SyntaxKinds.
                 if (SyntaxFacts.IsChainableRelationalExpression(node.Kind()) &&
                     node.Left is BinaryExpressionSyntax innerSyntax &&
                     SyntaxFacts.IsChainableRelationalExpression(innerSyntax.Kind()) &&
