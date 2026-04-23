@@ -256,9 +256,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_StaticProperty_InWith_Fails()
     {
-        // Static-member rejection has to fire for `with` the same way it does for `new`. The `with`
-        // path reuses member_initializer, so the check happens in the same binder code — but nothing
-        // pins it for the with side, so a regression would be invisible.
+        // `with` counterpart to `Target_StaticProperty_Fails`; `with` rejects with CS0176 (instance-
+        // reference on a static member) rather than `new`'s CS1914, because its binder treats the
+        // clone receiver differently.
         var source = """
             record R(int V)
             {
@@ -266,10 +266,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static R Make(R r) => r with { P += 1 };
             }
             """;
-        // `with` rejects with CS0176 ("member 'R.P' cannot be accessed with an instance reference")
-        // rather than the `new` form's CS1914, because the `with` binder treats the clone receiver
-        // differently. Either diagnostic is informative; what this test pins is that the shape is
-        // rejected at all — not that binding silently accepts a static member.
         CreateCompilation([source, Polyfills]).VerifyDiagnostics(
             // (4,43): error CS0176: Member 'R.P' cannot be accessed with an instance reference; qualify it with a type name instead
             //     public static R Make(R r) => r with { P += 1 };
@@ -279,10 +275,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_InheritedProperty_Compound_RoutesThroughBaseSetter()
     {
-        // Compound initializer on an inherited property must use the base-declared accessor pair —
-        // symbol resolution, get/set selection, and value-kind checks all go through the base.
-        // Runtime-verify by seeding 10 on Base.P (via Base() { }) and confirming `new Derived() { P += 5 }`
-        // reports 15 through `base.P`'s setter.
+        // Compound on an inherited property routes through the base's accessor pair. Runtime-verify
+        // Base.P seeded to 10, `+= 5` via Derived → 15.
         var source = """
             class Base { public int P { get; set; } = 10; }
             class Derived : Base { }
@@ -297,10 +291,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_ShadowedProperty_Compound_UsesDerivedDeclaration()
     {
-        // When a derived class declares `new int P { … }` with its own backing storage, the initializer
-        // must resolve the derived P, not the base. This exercises the normal member-lookup priority
-        // through BindObjectInitializerMember / BindInstanceMemberAccess; a regression that resolved
-        // the base would be visible in the final value.
+        // `new int P { … }` shadows the base; the initializer must resolve the derived P. Observable
+        // via `d.P` (15 from 10+5) vs `((Base)d).P` (100, untouched).
         var source = """
             class Base { public int P { get; set; } = 100; }
             class Derived : Base { public new int P { get; set; } = 10; }
@@ -309,8 +301,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static void Main()
                 {
                     var d = new Derived { P += 5 };
-                    // Derived.P reads 10 + 5 = 15; Base.P is unchanged at 100. If binding accidentally
-                    // resolved to Base.P, we'd see 105 on the derived reference.
                     System.Console.Write($"{d.P},{((Base)d).P}");
                 }
             }
@@ -321,9 +311,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_InaccessiblePrivateSetter_Compound_Fails()
     {
-        // Compound's value-kind check must enforce setter accessibility exactly as simple `=` does.
-        // `public int P { get; private set; }` accessed from outside the declaring type has an
-        // inaccessible set accessor; `new C { P += 1 }` should fail with CS0272.
+        // Compound enforces setter accessibility the same as `=` does → CS0272 for `private set`
+        // from outside the declaring type.
         var source = """
             public class C
             {
@@ -343,10 +332,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_ObsoleteProperty_Compound_ReportsOnce()
     {
-        // Compound reads and writes through the same accessor pair; `[Obsolete]` on a property
-        // reports once per property reference, same as `=` / non-initializer compound. Pin the
-        // diagnostic to catch a regression that double-counts, stays silent, or switches to a
-        // set-only error on a get-and-set member.
+        // `[Obsolete]` on a property reports once per property reference; compound reads+writes the
+        // same accessor pair, so it doesn't double-count.
         var source = """
             using System;
             class C
@@ -364,9 +351,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_StaticEvent_Fails()
     {
-        // Object-initializer targets must be instance members. Static events are rejected up front
-        // by the "static member in initializer" check — same as any other static member — so compound
-        // / `+=` / `-=` on a static event all fail with CS1914 before event-specific logic runs.
+        // Static events fail with CS1914 via the "static member in initializer" check before any
+        // event-specific logic runs.
         var source = """
             using System;
             class C
@@ -406,10 +392,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_NestedArray_Compound_Runs()
     {
-        // Nested object initializer on a non-readonly `int[]` field. The inner `{ [0] += 5, [1] |= 3 }`
-        // binds each compound's LHS as a bare BoundArrayAccess (not wrapped in BoundObjectInitializerMember),
-        // hitting the dispatcher's ArrayAccess arm and RewriteArrayInitializerAccess. Runtime-verify
-        // that both elements receive their compound's effect.
+        // Bare BoundArrayAccess LHS through the dispatcher's ArrayAccess arm. Runtime-verify both
+        // elements.
         var source = """
             class C
             {
@@ -427,10 +411,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_NestedArray_SideEffectingIndex_EvaluatedOnce()
     {
-        // Spec-normative (inherited via the statement-expression lowering): indexer arguments on an
-        // initializer target are evaluated exactly once. For a bare BoundArrayAccess LHS, this is
-        // enforced by RewriteArrayInitializerAccess's EvaluateSideEffectingArgumentsToTemps call. Pin
-        // the side-effect count with a GetIndex method.
+        // "Arguments evaluated exactly once" must also apply to bare BoundArrayAccess LHS (via
+        // RewriteArrayInitializerAccess's arg lifting). Pin via a GetIndex counter.
         var source = """
             class C
             {
@@ -451,11 +433,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_NestedPointerField_Compound_Runs()
     {
-        // Pointer-element compound through the nested-initializer path. The inner `{ [0] += 5 }` LHS
-        // binds as a bare BoundPointerElementAccess and hits the dispatcher's PointerElementAccess
-        // arm (→ RewritePointerElementInitializerAccess). Unsafe context; PEVerify skipped because
-        // pointer access isn't verifiable IL. Construction takes the pointer via the ctor so `c.P`
-        // is valid when the inner `{ [0] += 5 }` reads/writes through it.
+        // Bare BoundPointerElementAccess LHS through the dispatcher's PointerElementAccess arm
+        // (→ RewritePointerElementInitializerAccess). PEVerify skipped — pointer IL isn't verifiable.
         var source = """
             unsafe class C
             {
@@ -479,13 +458,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_NestedDynamicIndexer_Compound_Runs()
     {
-        // Regression test for audit finding #1: `new Outer { Inner = { [0] += 5 } }` where Inner is
-        // `dynamic` used to trip `Debug.Assert(memberSymbol is object)` in MakeObjectInitializerMemberAccess
-        // during lowering. The compound path now detects `BoundObjectInitializerMember { MemberSymbol:
-        // null } && Type.IsDynamic()`, unwraps to the underlying BoundDynamicIndexerAccess, and lets
-        // TransformDynamicIndexerAccess emit the runtime GetIndex+SetIndex call-site pair — the same
-        // shape `d[0] += 5` uses outside an initializer. Pre-populate the dictionary so the compound's
-        // read step has a value.
+        // Regression for a fixed lowering crash: `new Outer { Inner = { [0] += 5 } }` with dynamic
+        // Inner used to trip `Debug.Assert(memberSymbol is object)`. The compound path now unwraps
+        // the dynamic-indexer wrapper and routes through TransformDynamicIndexerAccess.
         var source = """
             using System.Collections.Generic;
             class Outer
@@ -528,10 +503,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Target_FieldLikeEvent_PlusEqualsFromOutsideDeclaringType_Succeeds()
     {
-        // `+= / -=` on a field-like event dispatch through the event's `add_X` / `remove_X` accessors,
-        // which are public for a public event — so access from outside the declaring type works the
-        // same as from inside. This parity matters: the `??=` / `=` cases reject from outside (no
-        // accessible backing field), but `+= / -=` must not. Pin runtime behavior: handler fires once.
+        // `+= / -=` dispatch through the event's public add/remove accessors — works from outside
+        // the declaring type where `=` / `??=` reject (no accessible backing field).
         var source = """
             using System;
             class C
@@ -792,9 +765,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Event_InWith_PlusEquals_Succeeds()
     {
-        // `r with { E += h }` clones r, then subscribes h on the clone. Records copy fields
-        // shallow; the backing delegate field is copied too, so both r and the clone end up
-        // observing h (the clone invocation list is r's + h). Verify the clone raises count=1.
+        // `r with { E += h }` subscribes h on the clone's backing delegate. Raise on the clone → 1.
         var source = """
             using System;
             record C(int V)
@@ -822,9 +793,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Theory, MemberData(nameof(AllCompoundOperators))]
     public void LangVersion_CSharp14_FailsForEveryCompoundOperator(string op)
     {
-        // C# 14 is the latest non-preview language version and is also where user-defined `operator +=`
-        // shipped. Every compound operator in the spec set fires the Preview gate identically — one
-        // diagnostic at the operator token, with no cascade from the user-defined-`+=` feature.
+        // Every compound operator fires CS8652 at the operator token under C# 14 — no cascade.
         var source = $$"""
             class C
             {
@@ -841,9 +810,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Theory, MemberData(nameof(AllCompoundOperators))]
     public void LangVersion_CSharp14_Fails_InWithExpression(string op)
     {
-        // `with` shares the same grammar extension (`identifier assignment_operator expression`) and
-        // therefore the same feature gate. Every compound operator fires the Preview gate in a `with`
-        // clause too, one diagnostic at the operator token.
+        // `with` shares the feature gate — same CS8652 at the operator token.
         var source = $$"""
             record C(int P)
             {
@@ -859,9 +826,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void LangVersion_CSharp14_Fails_InWithExpression_Coalesce()
     {
-        // `??=` in a `with` clause is equally preview-gated; confirm that the `??=` token is where
-        // the diagnostic points. Note `P` is a reference type here so `??=` binds successfully under
-        // preview — the error is purely the feature gate, not a type check.
+        // `??=` in a `with` clause — same feature gate; diagnostic points at the `??=` token.
         var source = """
             record C(string P)
             {
@@ -878,10 +843,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
 
     #region Null-coalescing assignment (??=)
 
-    // The spec diff targets ECMA-334 v7 whose `assignment_operator` production pre-dates `??=`.
-    // The C# 8 null-coalescing-assignment proposal explicitly defines `??=` to follow compound-
-    // assignment semantic rules (with the elide-if-non-null short-circuit), so we admit it here
-    // alongside the eleven regular compound operators. The tests below pin that behavior.
+    // `??=` follows the C# 8 null-coalescing-assignment proposal's compound-assignment rules plus
+    // the elide-if-non-null short-circuit; admitted here alongside the eleven regular compound ops.
 
     [Fact]
     public void Coalesce_NullableValueType_SetsWhenNull()
@@ -962,8 +925,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_MultipleInOneInitializer_RunsLeftToRight()
     {
-        // `P = null, P ??= 5, P ??= 10` → second is null, ??= assigns 5; third sees 5 (not null), skips.
-        // Demonstrates left-to-right evaluation of member initializers and the short-circuit.
+        // Left-to-right: `P = null, P ??= 5, P ??= 10` → P = 5 (third sees non-null, skips).
         var source = """
             class C
             {
@@ -997,9 +959,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_DoesNotSatisfyRequired()
     {
-        // Analogous to Required_CompoundAlone_DoesNotSatisfy: a `??=` member initializer is a
-        // conditional write, not an unconditional one, so it does not discharge the `required`
-        // obligation. Consumers must still write `P = ...` (or pass through `[SetsRequiredMembers]`).
+        // Parallel to `Required_CompoundAlone_DoesNotSatisfy`: `??=` is a conditional write, so it
+        // doesn't discharge `required`.
         var source = """
             class C
             {
@@ -1016,9 +977,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_LangVersion_CSharp14_Fails()
     {
-        // The feature gate applies uniformly to every non-simple operator the initializer path admits.
-        // C# 14 is the latest non-preview version; `??=` in an initializer should fail the Preview gate
-        // at its operator token, same as `+=`.
+        // `??=` is feature-gated like the other compound operators — CS8652 at the operator token
+        // under C# 14 (latest non-preview).
         var source = """
             class C
             {
@@ -1035,9 +995,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_IndexerArgs_EvaluatedOnce()
     {
-        // Spec-normative: indexer arguments on an initializer target are evaluated exactly once. With
-        // `??=`, the get+conditional-set sequence must reuse the same cached argument — otherwise a
-        // side-effecting index would be double-evaluated. Counter should be exactly 1 after the op.
+        // `??=`'s get+conditional-set pair reuses the cached argument — a side-effecting index
+        // must be evaluated exactly once.
         var source = """
             class C
             {
@@ -1067,10 +1026,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_NestedInitializerOnRhs_Rejected()
     {
-        // Parallel to NestedCollectionInitializerOnRhs_Rejected for `+=`: the member_initializer grammar
-        // doesn't admit a nested initializer on the RHS of `??=`. Parser is permissive; binder emits
-        // CS0747. We also get CS1918 from the member-access bind (nested initializer on a value-type
-        // target). The fresh-diag-bag filter keeps CS1922 from cascading.
+        // `??=` counterpart of `NestedCollectionInitializerOnRhs_Rejected`: CS0747 + the value-type
+        // property's CS1918.
         var source = """
             class C
             {
@@ -1090,11 +1047,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_Event_FromInsideContainingType_Succeeds()
     {
-        // Parallel to Event_SimpleAssignment_FromInsideContainingType_Succeeds: from inside the
-        // declaring type, a field-like event is usable as a delegate field. `E ??= h` therefore binds
-        // as a null-coalescing assignment to that backing field — the first ??= sets h, a second ??=
-        // on an already-non-null E short-circuits. Runtime-verify by subscribing once and raising,
-        // then ??= again with a different handler that never fires.
+        // From inside the declaring type, `E ??= h` acts on the field-like event's backing field.
+        // First `??=` sets h1; second `??=` is a no-op (E already non-null). Raise → h1 fires only.
         var source = """
             using System;
             class C
@@ -1125,12 +1079,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_Event_FromOutsideContainingType_Fails()
     {
-        // `??=` has to read the LHS to test for null; for a field-like event that read goes through
-        // the synthesized backing field, which isn't accessible from outside the declaring type —
-        // same rule plain `E = h` enforces via CS0070. Before this was rejected at bind time, the
-        // shape silently accepted at bind and crashed at emit. The fix (in
-        // BindNullCoalescingAssignmentOperatorCore) applies uniformly to both the non-initializer
-        // form `c.E ??= h` and the initializer form `new C { E ??= h }`, keeping them consistent.
+        // `??=` reads the backing field, which isn't accessible from outside the declaring type →
+        // CS0070. Pins both statement and initializer forms (fix uniformly in
+        // BindNullCoalescingAssignmentOperatorCore).
         var source = """
             using System;
             class C
@@ -1155,10 +1106,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Coalesce_Event_CustomEvent_Fails()
     {
-        // A custom event (explicit add / remove accessors) has no backing field, so `??=` can't read
-        // it; the behavior should match plain `E = h` on a custom event, which fails with CS0079.
-        // This applies regardless of whether the access is inside or outside the declaring type.
-        // Tested in both non-initializer and initializer shapes to pin their consistency.
+        // Custom events have no backing field for `??=` to read → CS0079, same as `=`. Pinned in
+        // both statement and initializer forms.
         var source = """
             using System;
             class C
@@ -1279,10 +1228,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_Event_PlusMinusEqualsUnrestricted()
     {
-        // `+=` / `-=` on an event are unrestricted — each binds as BoundEventAssignmentOperator
-        // and goes through add_E / remove_E accessors. Multiple subscribes/unsubscribes on the same
-        // event in one initializer all run. Order: +a (a), +b (ab), -a (b), +a (ba). Raise() invokes
-        // both. a counts 1, b counts 1.
+        // `+=` / `-=` on an event are unrestricted. +a, +b, -a, +a → raise fires both (each once).
         var source = """
             using System;
             class C
@@ -1306,11 +1252,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_FieldLikeEvent_TwoSimpleAssignments_Fails()
     {
-        // Field-like event simple `=` binds as BoundAssignmentOperator wrapping
-        // BoundObjectInitializerMember; it participates in the duplicate-member rule the same way
-        // field/property `=` does. Two `E = …` on the same event from inside the declaring type
-        // gives CS1912, matching the field/property behavior (the csharplang proposal is also
-        // updated in this PR to subject event targets to the same rule).
+        // Field-like event `=` participates in the duplicate rule like field/property `=` →
+        // CS1912 on the second.
         var source = """
             using System;
             class C
@@ -1331,9 +1274,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_FieldLikeEvent_SimpleThenCompound_Succeeds()
     {
-        // `E = h1` (BoundAssignmentOperator) followed by `E += h2` (BoundEventAssignmentOperator)
-        // is allowed — the `=` establishes the handler, the `+=` adds a second, and the rule's
-        // "= must come before compound" ordering is satisfied. Runtime-verify: raise count = 2.
+        // `E = h, E += h` satisfies the ordering rule — runtime-verify both handlers fire
+        // (raise count = 2).
         var source = """
             using System;
             class C
@@ -1356,10 +1298,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_FieldLikeEvent_CompoundThenSimple_Fails()
     {
-        // `E += h1, E = h2` — compound before simple `=` — violates the "= first" rule. The duplicate
-        // tracker records the member name for every initializer form (including
-        // BoundEventAssignmentOperator), so the subsequent `E = h2` sees the name already present and
-        // fires CS1912. Matches the corresponding field/property behavior.
+        // `E += h, E = h` violates the "`=` before compound" rule → CS1912, matching field/property.
         var source = """
             using System;
             class C
@@ -1380,9 +1319,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_TwoCoalesceAssignments_Succeeds()
     {
-        // `??=` is a compound form; the "any number of compound initializers on the same target"
-        // relaxation applies. Two `P ??= v` in a row: first fires (P starts null → becomes "a"),
-        // second is a no-op (P is non-null → elided). Pin with a string property.
+        // `??=` is a compound form (any number allowed on the same target). First sets "a"; second
+        // short-circuits since P is now non-null.
         var source = """
             class C
             {
@@ -1396,8 +1334,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_SimpleAfterCoalesce_Fails()
     {
-        // `??=` counts as compound for ordering: a later simple `=` violates the "`=` must come
-        // before any compound" rule. Expected CS1912 at the `P` in `P = "z"`.
+        // `??=` counts as compound; a following simple `=` violates the ordering rule → CS1912.
         var source = """
             class C
             {
@@ -1414,8 +1351,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_CoalesceAfterSimple_Succeeds()
     {
-        // `=` first then compound (including `??=`) is the legal ordering. `P = "a"` then `P ??= "b"`
-        // elides the second assignment because P is non-null; final value is "a".
+        // `= then ??=` is legal ordering. `??=` short-circuits since P is already non-null.
         var source = """
             class C
             {
@@ -1605,11 +1541,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void LiftedIntQuestion_Compound_OntoNonNullable_Fails()
     {
-        // Mirror of `TestCompoundLiftedAssignment_IOperation` (OperatorTests.cs:2402) reshaped as
-        // an initializer: compound `P += b` where `P` is `int` and `b` is `int?` is invalid
-        // because the lifted `int? + int -> int?` result can't convert back to `int`. Non-
-        // initializer form fires CS0266; the initializer form must surface the same diagnostic so
-        // IOperation / semantic-model clients see a consistently invalid shape.
+        // Mirror of `TestCompoundLiftedAssignment_IOperation` (OperatorTests.cs:2402). `int P += int? b`
+        // is CS0266 (lifted result can't convert back to `int`) — pins it in the initializer form.
         var source = """
             class C
             {
@@ -1626,12 +1559,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void DynamicProperty_CompoundWithVoidRhs_Fails()
     {
-        // Mirror of `BinaryOps_VoidArgument` (DynamicTests.cs:868) reshaped for the initializer
-        // form. A `void`-returning call as the compound RHS on a `dynamic` target is invalid —
-        // `void` is not a legal operand. The dynamic compound path in `BindCompoundAssignmentCore`
-        // reports CS0019 regardless of whether the compound is a statement or sits inside a
-        // member initializer; pin the initializer-form diagnostic so a regression that silently
-        // accepted `void` (via a different dynamic-binding code path) would be visible.
+        // Mirror of `BinaryOps_VoidArgument` (DynamicTests.cs:868). `void`-returning RHS on a
+        // `dynamic` compound target → CS0019 in the initializer form same as the statement form.
         var source = """
             class C
             {
@@ -1784,8 +1713,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Container_Struct_Succeeds()
     {
-        // Struct initializer `new S { F += 1 }` creates a fresh S (F default 0), does F += 1 on
-        // the temp, returns it. Verifies the initializer operates on the constructed value.
+        // `new S { F += 1 }` creates a fresh S (F defaults 0), does `F += 1` on the temp, returns it.
         var source = """
             struct S
             {
@@ -1835,9 +1763,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Container_AnonymousType_Fails()
     {
-        // Anonymous-type member initializers use a distinct grammar form (anonymous_object_member_
-        // declarator) that admits only `Name = Expr`, `Name`, or `Expr.Name` — not compound. CS0746
-        // fires on the declarator; the LHS also binds in an empty symbol context, so CS0103 cascades.
+        // Anonymous-type member_initializer admits only `Name = Expr`, `Name`, or `Expr.Name` —
+        // compound forms hit CS0746 (+ cascading CS0103 from the empty-context LHS bind).
         var source = """
             class C
             {
@@ -1863,8 +1790,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void UserDefined_LegacyBinaryOperator_Resolves()
     {
-        // Only legacy `operator +` is defined, so `Prop += v` must lower to `Prop = Prop + v`,
-        // invoking the user-defined `+`. Seed Prop.X = 10, v.X = 5 → final Prop.X = 15.
+        // Only legacy `operator +` defined → `Prop += v` lowers to `Prop = Prop + v`. 10 + 5 = 15.
         var source = """
             struct V
             {
@@ -1884,10 +1810,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void UserDefined_InPlaceCompoundOperator_Resolves_OnField()
     {
-        // The C# 14 in-place `operator +=` requires a variable location on the left (it's a ref-like
-        // mutating call). Fields qualify; properties-by-value do not. Seed F.X = 10, v.X = 5; the
-        // in-place operator bumps F.X by 5 → 15. If binding regressed to legacy resolution here it
-        // would fail with CS0019 (no `operator +` is defined).
+        // In-place `operator +=` requires a variable LHS; a field qualifies (property-by-value
+        // wouldn't). 10 += 5 via the in-place operator → 15. Regressing to legacy would fail CS0019.
         var source = """
             struct V
             {
@@ -1907,10 +1831,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void UserDefined_BothLegacyAndInPlace_OnField_InPlaceWins()
     {
-        // When both legacy `operator +` and in-place `operator +=` exist and the target is a variable
-        // (field), the in-place operator is selected — matching the non-initializer compound selection
-        // rule. Legacy `+` would produce F.X = 10 + 5 + 100 = 115; in-place `+=` produces F.X = 15.
-        // Any output other than "15" means the wrong overload won.
+        // Both legacy `+` and in-place `+=` defined; variable LHS (field) picks in-place. 10 += 5
+        // via the in-place operator → 15; legacy would have produced 115 (+100 from its body).
         var source = """
             struct V
             {
@@ -1931,8 +1853,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void UserDefined_InPlaceOnly_OnProperty_FailsBecausePropertyIsNotVariable()
     {
-        // When the target is a by-value property (not a location), the in-place `operator +=` cannot
-        // apply, and without a legacy `operator +` there is no compound form. Expect CS0019.
+        // In-place `+=` needs a variable LHS; a by-value property isn't one, and without legacy `+`
+        // there's no compound form → CS0019.
         var source = """
             struct V
             {
@@ -1955,9 +1877,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void UserDefined_InPlaceOnly_OnRefReturningProperty_Succeeds()
     {
-        // A ref-returning property IS a variable per the spec, so user-defined in-place `operator +=`
-        // applies just like on a field target. Seed _v.X = 10, v.X = 5 → ref-return lets in-place +=
-        // mutate _v directly → Prop.X = 15.
+        // A ref-returning property IS a variable → in-place `+=` applies. Mutates `_v` via the ref,
+        // 10 → 15.
         var source = """
             struct V
             {
@@ -1978,11 +1899,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void UserDefined_InPlaceOnly_OnRefReturningProperty_InWithOnRecordStruct_Succeeds()
     {
-        // Exercises the interaction of: record struct copy semantics (`with` clones) + ref-returning
-        // property (returns a ref into the clone's field via [UnscopedRef]) + user-defined in-place
-        // `operator +=` on a struct (mutates through that ref). Original stays at 10; the clone sees
-        // the in-place += bump to 15. If `with`'s clone-then-mutate contract leaked into the original
-        // (sharing backing storage) this test would fail with "15,15".
+        // Record-struct `with` (clone) + ref-returning property (via [UnscopedRef]) + in-place
+        // `operator +=` mutating through the ref. Original stays at 10; clone moves to 15. A
+        // regression that shared backing storage would show "15,15".
         var source = """
             using System.Diagnostics.CodeAnalysis;
             struct V
@@ -2012,10 +1931,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void UserDefined_InPlaceOnly_OnRefReadonlyProperty_Fails()
     {
-        // A `ref readonly` property IS a location but NOT assignable through that ref, so the
-        // user-defined in-place `operator +=` (which mutates the location) cannot apply. Without a
-        // legacy `operator +` there's no compound form. Expect CS0019 — not a silent acceptance that
-        // our earlier simplified value-kind logic would have allowed.
+        // `ref readonly` is a location but not assignable; in-place `+=` can't apply, no legacy `+`
+        // exists → CS8331.
         var source = """
             struct V
             {
@@ -2043,9 +1960,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Required_CompoundAlone_DoesNotSatisfy()
     {
-        // Per the LDM recommendation ("No"): a compound member initializer does NOT discharge the
-        // `required` obligation. With only `P += 1` and no `P = ...`, required-member checking should
-        // still demand P.
+        // Compound alone doesn't discharge `required` (LDM recommendation: "No") → CS9035.
         var source = """
             class C
             {
@@ -2076,10 +1991,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Required_CompoundAlone_WithSetsRequiredMembersCtor_Succeeds()
     {
-        // `[SetsRequiredMembers]` on a constructor lifts the `required` obligation for any `new` via
-        // that constructor. Within that lifted context, a compound-alone member initializer is fine —
-        // the obligation is discharged by the attribute, so the initializer is free to read-modify-write
-        // the pre-initialized value. Sanity-check counterpart to Required_CompoundAlone_DoesNotSatisfy.
+        // `[SetsRequiredMembers]` lifts the obligation; compound-alone is then fine (counterpart to
+        // `Required_CompoundAlone_DoesNotSatisfy`).
         var source = """
             using System.Diagnostics.CodeAnalysis;
             class C
@@ -2100,9 +2013,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Mixed_EqualsAndCompound_ProducesCorrectBoundShapes()
     {
-        // Lock down that the binder produces ISimpleAssignmentOperation for `=` and
-        // ICompoundAssignmentOperation (or IEventAssignmentOperation) for compound forms. Verified
-        // end-to-end: P goes 0 → 10 → 15, E ends up with h attached (raise observes one call).
+        // End-to-end: `=`, compound, and event `+=` composed in one initializer. P: 0 → 10 → 15.
+        // E gets h; raise observes one fire.
         var source = """
             using System;
             class C
@@ -2131,10 +2043,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Nullable_CompoundOnReferenceType_UpdatesContainerSlot()
     {
-        // Regression test for adversarial-audit finding #3 (NullableWalker.VisitObjectCreationInitializer
-        // dropping slot tracking for compound targets). After `S += "y"` the container's nullable state
-        // for S must reflect the string-concat result (not-null). If the walker still drops the slot
-        // update, the post-initializer read would incorrectly warn or stay in an uninitialized state.
+        // Regression test for a fixed slot-tracking bug in VisitObjectCreationInitializer: after
+        // `S += "y"` the container's nullable state for S must be not-null so the deref below
+        // doesn't warn.
         var source = """
             #nullable enable
             class C
@@ -2143,7 +2054,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public static void M()
                 {
                     var c = new C { S += "y" };
-                    // After compound, c.S is not-null. No WRN_NullReferenceReceiver when dereferencing.
                     _ = c.S.Length;
                 }
             }
@@ -2154,9 +2064,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Nullable_CoalesceInitializesFromMaybeNull()
     {
-        // Nullable flow through `??=`: the target starts maybe-null; after `P ??= "a"` on the clone
-        // the state must be not-null (the `??=` either left a non-null value alone or just wrote
-        // "a"). A subsequent dereference `c.P.Length` on the initializer result must not warn.
+        // After `P ??= "a"` the state is not-null — the deref below doesn't warn.
         var source = """
             #nullable enable
             class C
@@ -2175,10 +2083,7 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Nullable_CoalesceWithNullRhs_FlowsMaybeNull()
     {
-        // `P ??= null` — initializer with `??=` where both the target and the RHS may be null. The
-        // compound result is maybe-null; a subsequent `c.P.Length` must warn CS8602. Pins that
-        // nullable flow through `??=` in an initializer doesn't silently treat the target as
-        // non-null afterwards.
+        // `P ??= x` with maybe-null `x` → maybe-null result → CS8602 on the deref.
         var source = """
             #nullable enable
             class C
@@ -2200,9 +2105,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Nullable_CompoundWithNullLiteralRhs_Warns()
     {
-        // Assigning `null` RHS to a non-nullable reference-typed property via compound concat with
-        // string gives a null reference through concat — compound binding + nullable analysis should
-        // preserve the CS8625 warning on the `null` RHS the same as a non-initializer compound would.
+        // Maybe-null RHS into a string-concat compound — pins that nullable flow through the
+        // compound RHS still runs in the initializer form (CS8602 on the deref).
         var source = """
             #nullable enable
             class C
@@ -2210,9 +2114,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
                 public string S { get; set; } = "a";
                 public static void M(string? nullable)
                 {
-                    // S += nullable → "a" + null → "a" (runtime), but nullable flow sees `nullable` as
-                    // maybe-null; concat doesn't unwrap that, so the result is still "not-null".
-                    // Confirms that flow analysis through the compound RHS still runs.
                     var c = new C { S += nullable };
                     _ = c.S.Length;
                 }
@@ -2225,14 +2126,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     public void Nullable_DisallowNullProperty_Compound_InInitializer_Warns()
     {
         // Mirror of `DisallowNull_Property_CompoundAssignment` (NullableReferenceTypesTests.cs:45090)
-        // translated into initializer form. The property is typed `C?` but annotated
-        // `[DisallowNull]`, so its *write* contract rejects null. `operator+` returns `C?`, so the
-        // compound's effective write is maybe-null → WRN8607 (DisallowNull forbids maybe-null).
-        // NullableWalker's `VisitCompoundOrCoalesceObjectElementInitializer` + `UpdateInitializerMemberSlot`
-        // must feed the compound's result state into the per-member slot the same way the statement
-        // form feeds the local's slot; a regression that skipped the slot merge would drop the
-        // warning silently. Using a struct target so both WRN8607 (assignment) and WRN8629
-        // (subsequent `.Value` receiver) surface, matching the non-initializer baseline shape.
+        // translated to the initializer form. Pins the WRN8607 through VisitCompoundOrCoalesceObjectElementInitializer's
+        // slot update.
         var source = """
             #nullable enable
             using System.Diagnostics.CodeAnalysis;
@@ -2255,13 +2150,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Nullable_MaybeNullPropertyRead_UserDefinedPlus_InInitializer_Warns()
     {
-        // Mirror of `CompoundAssignment_01` (NullableReferenceTypesTests.cs:74753). The property is
-        // `CL1?`; reading it for `+=` converts via the implicit `CL1 -> CL0` operator and invokes
-        // `operator+(CL0, CL0) -> CL1`, then stores the result back into the `CL1?` property.
-        // The read must report WRN8604 on the null LHS, same as the non-initializer baseline.
-        // NullableWalker's `VisitCompoundOrCoalesceObjectElementInitializer` drives the compound
-        // op's Visit, which re-visits the wrapped BoundObjectInitializerMember's underlying
-        // BoundPropertyAccess — a regression that bypassed the left-visit would miss the warning.
+        // Mirror of `CompoundAssignment_01` (NullableReferenceTypesTests.cs:74753). WRN8604 on the
+        // maybe-null LHS read (via the implicit CL1->CL0 operator) must fire the same in the
+        // initializer form.
         var source = """
             #nullable enable
             public class CL0
@@ -2292,12 +2183,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     public void Nullable_NotNullIfNotNullOnReturn_Compound_InInitializer_Flows()
     {
         // Mirror of `NotNullIfNotNull_Return_BinaryOperatorInCompoundAssignment`
-        // (NullableReferenceTypesTests.cs:33850): a user-defined `operator +` annotated with
-        // `[return: NotNullIfNotNull(...)]` must propagate not-null state through `+=`. In the
-        // initializer path, the annotation's effect on the compound's result has to reach the
-        // per-member slot update in NullableWalker so a subsequent dereference of the same member
-        // doesn't warn. Pin the no-warn case (both operands not-null → result not-null → `.Length`
-        // is safe) so a regression that dropped the annotation would fire CS8602.
+        // (NullableReferenceTypesTests.cs:33850). `[NotNullIfNotNull]` on `operator+` must
+        // propagate through the initializer's slot update — no-warn for the not-null-both-sides
+        // case; a regression that dropped the annotation would fire CS8602 on the deref below.
         var source = """
             #nullable enable
             using System.Diagnostics.CodeAnalysis;
@@ -2311,9 +2199,6 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             {
                 public static void M(C ac)
                 {
-                    // Build a C via initializer. Seed P to not-null via `=`, then compound with a
-                    // not-null RHS; NotNullIfNotNull says the result is not-null too. Dereferencing
-                    // `c.P.ToString()` afterwards must not warn.
                     var c = new C { P = ac, P += ac };
                     _ = c.P.ToString();
                 }
@@ -2476,10 +2361,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Async_AwaitInCompoundRhs_InInitializer_Runs()
     {
-        // The compound RHS is an arbitrary expression; `await` inside it exercises the async state-
-        // machine rewriter on top of the initializer-member compound lowering. The placeholder
-        // receiver substitution in the initializer and the compound op's placeholder chain must
-        // survive async spilling. Runtime-verify: seed P=3, RHS `await Task.FromResult(5)` → final P=8.
+        // `await` in the compound RHS — the initializer placeholder and the compound op's
+        // placeholder chain both must survive async spilling. Seed P=3, `+= await 5` → 8.
         var source = """
             using System.Threading.Tasks;
             class C
@@ -2498,9 +2381,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Async_AwaitInCoalesceRhs_InInitializer_Runs()
     {
-        // Mirror of Async_AwaitInCompoundRhs_InInitializer_Runs for `??=` — this path takes the
-        // BoundNullCoalescingAssignmentOperator lowering instead of compound's. Pin runtime
-        // behavior: P starts null, `await Task.FromResult("x")` returns "x", `??=` stores it.
+        // `??=` counterpart — takes BoundNullCoalescingAssignmentOperator's lowering path. P starts
+        // null, `??= await "x"` stores it.
         var source = """
             using System.Threading.Tasks;
             class C
@@ -2563,15 +2445,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void InlineArray_Field_NestedInitializerIndexer_Fails()
     {
-        // Mirror of `InlineArrayTests.CompoundAssignment_01` (Emit3/Semantics/InlineArrayTests.cs:15143)
-        // reshaped as an initializer. The statement form `x.F[0] += 111` on a `[InlineArray]`
-        // field works because the compiler recognizes inline-array indexing as a compiler-
-        // intrinsic lowered via `InlineArrayFirstElementRef`. The *nested initializer* path
-        // (`BindObjectInitializerMemberCommon` searching for a declared `this[int]` indexer on
-        // `F`'s type) doesn't look for the intrinsic, so `new C { F = { [0] += 111 } }` fails
-        // with CS0021 at the `[0]` access. Pins this asymmetry: statement form works; initializer
-        // form rejects. A future fix that extended initializer-indexer lookup to recognize inline-
-        // arrays would flip this test intentionally.
+        // Statement form `x.F[0] += …` on a `[InlineArray]` field works via the compiler's
+        // inline-array intrinsic; the nested-initializer indexer lookup doesn't recognize that
+        // intrinsic and rejects with CS0021. Pins the asymmetry.
         var source = """
             [System.Runtime.CompilerServices.InlineArray(10)]
             public struct Buffer10<T>
@@ -2597,12 +2473,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Span_ValueTypeProperty_NestedInitializer_Fails()
     {
-        // Mirror of `PatternIndexAndRangeCompoundOperatorRefIndexer` (IndexAndRangeTests.cs:178)
-        // reshaped as an initializer. `Span<T>` is a `ref struct` — a value type — so a property
-        // returning `Span<T>` can't be used as a nested-initializer target: CS1918 fires by the
-        // same rule that rejects `new C { IntProp = { Nested = 1 } }` when `IntProp` is any
-        // value-type. The statement form `c.Slice[^1] += 1` works (the ref indexer is fine), but
-        // `new C { Slice = { [^1] += 1 } }` rejects at the Slice access. Pins the asymmetry.
+        // `Span<T>`-returning property isn't a legal nested-initializer target — it's a value type,
+        // so CS1918 fires at the `Slice` access. Statement form `c.Slice[^1] += 1` would work.
         var source = """
             using System;
             class C
@@ -2625,12 +2497,9 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Indexer_SideEffectingArgument_EvaluatedOnce()
     {
-        // Spec (§12.21.4 via the initializer's statement-expression lowering + §12.8.16.3's
-        // "arguments shall always be evaluated exactly once" clause): a side-effecting indexer
-        // argument in a compound member initializer must be evaluated exactly once — the compound
-        // reads and writes the same slot without re-evaluating the index. The IL test
-        // IL_Indexer_OrEquals already pins that constants are reloaded; this test pins the
-        // side-effecting case by observing the call count.
+        // Spec §12.8.16.3 "arguments shall always be evaluated exactly once" — the compound
+        // reads and writes the same slot without re-evaluating the index. Pins the side-effecting
+        // case via a counter (the IL test `IL_Indexer_OrEquals` pins the constant-arg reload shape).
         var source = """
             class C
             {
@@ -2661,12 +2530,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void ImplicitIndex_SideEffectingLength_CalledOnce()
     {
-        // Mirror of `PatternIndexCompoundOperator` (IndexAndRangeTests.cs:236) reshaped for the
-        // initializer form. `S[^1] += 5` lowers to "call Length once, compute index, call get, op,
-        // call set" — the pattern-index path caches Length. Our existing `Indexer_SideEffectingArgument_EvaluatedOnce`
-        // test pins integer-arg caching; this pins the *pattern-index* Length caching when the
-        // compound sits inside `new C { S = { [^1] += 5 } }`. Expected trace: "Length 0 / Get 1 /
-        // Set 2" — one each — then the mutated underlying array reads `5`.
+        // Mirror of `PatternIndexCompoundOperator` (IndexAndRangeTests.cs:236). The pattern-index
+        // path caches Length; pin it in the initializer form (Length / Get / Set each fire once).
         var source = """
             using System;
             struct S
@@ -2717,13 +2582,9 @@ Set 2
     [Fact]
     public void SemanticModel_DynamicCompoundMemberInitializer_LateBoundSymbol()
     {
-        // Mirror of `CompoundAssignment` in `SemanticModelGetSemanticInfoTests_LateBound.cs:808`
-        // translated to the initializer form. A `P += d` where both `P` and `d` are `dynamic`
-        // produces a "late-bound" symbol info: `GetSymbolInfo` returns
-        // `dynamic.operator +(dynamic, dynamic)` with `CandidateReason.LateBound`. The initializer
-        // path has to route through the same dynamic-binding code as the non-initializer form
-        // (otherwise `GetSymbolInfo` on the inner compound would return a plain property/method
-        // group instead of the synthetic late-bound operator symbol).
+        // Mirror of `CompoundAssignment` (SemanticModelGetSemanticInfoTests_LateBound.cs:808).
+        // `P += d` with dynamic on both sides must still surface the late-bound
+        // `dynamic.operator +(dynamic, dynamic)` symbol with `CandidateReason.LateBound`.
         var source = """
             class C
             {
@@ -2750,9 +2611,8 @@ Set 2
     [Fact]
     public void SemanticModel_CompoundMemberInitializer_BindsAsCompoundOperation()
     {
-        // The binder must produce an ICompoundAssignmentOperation for `P += 1` inside an object
-        // initializer, parallel to an ISimpleAssignmentOperation for `P = 1`. Pin the operation kind
-        // plus its target/value children and the LHS/operator-token symbol info.
+        // `P += 5` in an initializer projects as ICompoundAssignmentOperation with a property
+        // Target and literal Value. Pins the operation kind + LHS symbol/type info.
         var source = """
             class C
             {
@@ -2773,34 +2633,22 @@ Set 2
         Assert.Single(initializer.Initializers);
         var compound = Assert.IsAssignableFrom<Operations.ICompoundAssignmentOperation>(initializer.Initializers[0]);
         Assert.Equal(Operations.BinaryOperatorKind.Add, compound.OperatorKind);
+        Assert.Equal("P", Assert.IsAssignableFrom<Operations.IPropertyReferenceOperation>(compound.Target).Property.Name);
+        Assert.Equal(5, Assert.IsAssignableFrom<Operations.ILiteralOperation>(compound.Value).ConstantValue.Value);
 
-        // Target is a property reference to C.P, through the initializer placeholder receiver.
-        var target = Assert.IsAssignableFrom<Operations.IPropertyReferenceOperation>(compound.Target);
-        Assert.Equal("P", target.Property.Name);
-
-        // Value is the int literal 5.
-        var value = Assert.IsAssignableFrom<Operations.ILiteralOperation>(compound.Value);
-        Assert.Equal(5, value.ConstantValue.Value);
-
-        // GetSymbolInfo on the LHS identifier resolves to the property.
         var identifier = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax>()
             .Single(n => n.Identifier.ValueText == "P" && n.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax { Left: var left } && left == n);
         var symbolInfo = model.GetSymbolInfo(identifier);
         Assert.Equal("P", symbolInfo.Symbol!.Name);
         Assert.Equal(SymbolKind.Property, symbolInfo.Symbol.Kind);
-
-        // GetTypeInfo on the LHS identifier reports int.
-        var typeInfo = model.GetTypeInfo(identifier);
-        Assert.Equal(SpecialType.System_Int32, typeInfo.Type!.SpecialType);
+        Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(identifier).Type!.SpecialType);
     }
 
     [Fact]
     public void SemanticModel_EventPlusEqualsMemberInitializer_BindsAsEventAssignment()
     {
-        // `E += h` in an initializer binds as BoundEventAssignmentOperator; the public IOperation
-        // projection must expose it as IEventAssignmentOperation with Adds=true and the event
-        // reference pointing at C.E. Pins the shape so a regression that flattened the event case
-        // to ICompoundAssignmentOperation or IInvalidOperation would fail.
+        // `E += h` projects as IEventAssignmentOperation (Adds=true), not a flattened
+        // ICompoundAssignmentOperation.
         var source = """
             using System;
             class C
@@ -2832,11 +2680,8 @@ Set 2
     [Fact]
     public void SemanticModel_IndexerCompoundMemberInitializer_BindsAsCompoundOnIndexer()
     {
-        // Indexer target compound — `{ [0] += 5 }` — must surface as
-        // `ICompoundAssignmentOperation { Target: IPropertyReferenceOperation { Property.IsIndexer: true } }`
-        // with the single literal argument reaching through. A regression that stripped the
-        // BoundObjectInitializerMember wrapper's argument list from the IOperation projection
-        // would be invisible without this pin.
+        // `{ [0] += 5 }` projects as ICompoundAssignmentOperation with an indexer-property Target
+        // carrying its argument list through.
         var source = """
             class C
             {
@@ -2863,9 +2708,8 @@ Set 2
     [Fact]
     public void SemanticModel_WithExpressionCompound_BindsAsCompoundOnClonedMember()
     {
-        // `r with { P += 5 }` takes a different top-level IOperation path (IWithOperation) but its
-        // initializer members should still project as ICompoundAssignmentOperation. Pin the shape so
-        // a regression that diverged the with and new IOperation projections fails here.
+        // `with`-expression initializer members still project as ICompoundAssignmentOperation under
+        // IWithOperation (parity with `new`).
         var source = """
             record R(int P)
             {
@@ -2888,10 +2732,8 @@ Set 2
     [Fact]
     public void SemanticModel_BadShape_CompoundNestedInitializer_DoesNotCrash()
     {
-        // `P += { 1, 2 }` is the spec-forbidden "compound-with-nested-initializer RHS" — binding
-        // produces a BoundBadExpression containing both boundLeft and boundRight as children. The
-        // public SemanticModel API must not crash on this shape (previous versions of the binder
-        // could return type=null bound nodes that NREd from downstream GetSymbolInfo calls).
+        // `P += { 1, 2 }` is invalid (nested-initializer RHS on compound). SemanticModel APIs must
+        // not NRE on the bad-shape bound tree.
         var source = """
             class C
             {
@@ -2905,13 +2747,7 @@ Set 2
         var model = comp.GetSemanticModel(tree);
 
         var initializer = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax>().Single();
-        var op = model.GetOperation(initializer);
-        // The shape is rejected; GetOperation may return null for the bad node, which is acceptable
-        // as long as it doesn't throw. What matters is that calls don't NRE — the bad-shape path
-        // previously could produce a half-populated bound tree that NRE'd from downstream asserts.
-        _ = op;
-
-        // GetSymbolInfo / GetTypeInfo on the initializer and its operands must not throw.
+        _ = model.GetOperation(initializer);
         _ = model.GetSymbolInfo(initializer);
         _ = model.GetTypeInfo(initializer);
         _ = model.GetSymbolInfo(initializer.Left);
@@ -2921,10 +2757,8 @@ Set 2
     [Fact]
     public void SemanticModel_CoalesceMemberInitializer_BindsAsCoalesceOperation()
     {
-        // `??=` has its own operation kind (INullCoalescingAssignmentOperation) separate from
-        // ICompoundAssignmentOperation; the initializer form must produce the same operation shape
-        // as a non-initializer `??=`. Pin: operation kind, Target as PropertyReference, Value as
-        // literal, and symbol/type info on the LHS.
+        // `??=` has a distinct operation kind (ICoalesceAssignmentOperation). Pins the operation
+        // kind + LHS symbol/type info, mirroring the non-initializer `??=`.
         var source = """
             class C
             {
@@ -2944,25 +2778,15 @@ Set 2
         var initializer = objectCreationOp.Initializer!;
         Assert.Single(initializer.Initializers);
         var coalesceAssignment = Assert.IsAssignableFrom<Operations.ICoalesceAssignmentOperation>(initializer.Initializers[0]);
+        Assert.Equal("P", Assert.IsAssignableFrom<Operations.IPropertyReferenceOperation>(coalesceAssignment.Target).Property.Name);
+        Assert.Equal("x", Assert.IsAssignableFrom<Operations.ILiteralOperation>(coalesceAssignment.Value).ConstantValue.Value);
 
-        // Target is a property reference to C.P, through the initializer placeholder receiver.
-        var target = Assert.IsAssignableFrom<Operations.IPropertyReferenceOperation>(coalesceAssignment.Target);
-        Assert.Equal("P", target.Property.Name);
-
-        // Value is the string literal "x".
-        var value = Assert.IsAssignableFrom<Operations.ILiteralOperation>(coalesceAssignment.Value);
-        Assert.Equal("x", value.ConstantValue.Value);
-
-        // GetSymbolInfo on the LHS identifier resolves to the property.
         var identifier = tree.GetRoot().DescendantNodes().OfType<Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax>()
             .Single(n => n.Identifier.ValueText == "P" && n.Parent is Microsoft.CodeAnalysis.CSharp.Syntax.AssignmentExpressionSyntax { Left: var left } && left == n);
         var symbolInfo = model.GetSymbolInfo(identifier);
         Assert.Equal("P", symbolInfo.Symbol!.Name);
         Assert.Equal(SymbolKind.Property, symbolInfo.Symbol.Kind);
-
-        // GetTypeInfo on the LHS identifier reports string.
-        var typeInfo = model.GetTypeInfo(identifier);
-        Assert.Equal(SpecialType.System_String, typeInfo.Type!.SpecialType);
+        Assert.Equal(SpecialType.System_String, model.GetTypeInfo(identifier).Type!.SpecialType);
     }
 
     #endregion
