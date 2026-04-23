@@ -1508,7 +1508,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void Exhaustiveness_10()
+    public void Exhaustiveness_NoSubtypes()
     {
         // Closed with no subtypes
         var source1 = """
@@ -1572,7 +1572,81 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void Exhaustiveness_11()
+    public void Exhaustiveness_OnlyClosedSubtypes()
+    {
+        // Closed with only closed subtypes
+        var source1 = """
+            public closed class C;
+            public closed class D : C;
+            public closed class E : D;
+            public closed class F : C;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+            #line 100
+                    return c switch
+                    {
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        E => 1,
+                        F => 1
+                    };
+                }
+
+                int M3(C c)
+                {
+                    return c switch
+                    {
+                        _ => 1
+                    };
+                }
+
+                int M4(D d)
+                {
+            #line 200
+                    return d switch
+                    {
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F").WithLocation(100, 18),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'E' is not covered.
+                //         return d switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("E").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D", "F"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_LessAccessibleSubtype_01()
     {
         // Less accessible subtype
         var source1 = """
@@ -1635,7 +1709,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void Exhaustiveness_12()
+    public void Exhaustiveness_LessAccessibleSubtype_02()
     {
         // Subtype less accessible only when used from other assembly
         var source1 = """
