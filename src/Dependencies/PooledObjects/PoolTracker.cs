@@ -58,12 +58,12 @@ internal static class PoolTracker
     /// Records that a pooled object has been allocated.
     /// </summary>
     [Conditional("DEBUG")]
-    internal static void OnAllocate(object obj)
+    internal static void OnAllocate(object obj, string? poolName = null)
     {
 #if DEBUG
         if (s_activeTrackers > 0)
         {
-            s_currentContext.Value?.OnAllocate(obj);
+            s_currentContext.Value?.OnAllocate(obj, poolName);
         }
 #endif
     }
@@ -113,9 +113,9 @@ internal sealed class PoolTrackingContext
         _traceLeaks = traceLeaks;
     }
 
-    internal void OnAllocate(object obj)
+    internal void OnAllocate(object obj, string? poolName)
     {
-        _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), _traceLeaks ? Environment.StackTrace : null));
+        _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, _traceLeaks ? Environment.StackTrace : null));
     }
 
     internal void OnFree(object obj)
@@ -145,9 +145,10 @@ internal sealed class PoolTrackingContext
         var sb = new StringBuilder();
         sb.AppendLine("Pool leak detected! The following pooled objects were not returned:");
 
-        foreach (var group in _outstanding.Values.GroupBy(v => v.Type).OrderByDescending(g => g.Count()))
+        foreach (var group in _outstanding.Values.GroupBy(v => (v.Type, v.PoolName)).OrderByDescending(g => g.Count()))
         {
-            sb.AppendLine($"  {group.Key}: {group.Count()}");
+            var poolInfo = group.Key.PoolName is not null ? $" (from {group.Key.PoolName})" : "";
+            sb.AppendLine($"  {group.Key.Type}{poolInfo}: {group.Count()}");
 
             foreach (var info in group)
             {
@@ -162,9 +163,10 @@ internal sealed class PoolTrackingContext
         return sb.ToString();
     }
 
-    private readonly struct AllocationInfo(Type type, string? stackTrace)
+    private readonly struct AllocationInfo(Type type, string? poolName, string? stackTrace)
     {
         public readonly Type Type = type;
+        public readonly string? PoolName = poolName;
         public readonly string? StackTrace = stackTrace;
     }
 }
