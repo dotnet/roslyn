@@ -2429,44 +2429,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // the freshly captured myY.
                 var innerOp = (IBinaryOperation)node.LeftOperand;
 
+                // The only difference between the innermost and middle-link
+                // arms below is the left operand fed into the check: the
+                // innermost link uses a fresh visit of X; middle links reuse
+                // the previous level's captured Y. The rest of the sequence -
+                // capture myY, build the link's check templated on innerOp,
+                // branch-to-false, clear the cursor, hand prevY forward - is
+                // identical, and emitLinkCheck centralizes it.
+                IOperation leftOperand;
                 if (i == 0)
                 {
                     // Innermost level. innerOp is the non-chained base relational
-                    // (e.g. `a<b`). Its LeftOperand is `a`, visited here; its
-                    // RightOperand is `b`, captured as Y0. The base-case check
-                    // `a op' b` IS innerOp's own relational, so template on it.
+                    // (e.g. `a<b`); its LeftOperand is `a`, visited here. The
+                    // base-case check `a op' b` IS innerOp's own relational, so
+                    // emitLinkCheck templates on innerOp.
                     Debug.Assert(innerOp == innermostRelational);
-                    IOperation visitedX = VisitRequired(innerOp.LeftOperand);
-                    IOperation myY = VisitAndCapture(innerOp.RightOperand);
-
-                    IOperation baseCheck = rebuildNonChainedRelational((BinaryOperation)innerOp, visitedX, myY);
-                    ConditionalBranch(baseCheck, jumpIfTrue: false, shortCircuitBlock);
-
-                    // After a conditional branch the "next statement" starts a
-                    // fresh block on the true-fallthrough path; clearing the
-                    // cursor makes the next AddStatement / ConditionalBranch
-                    // allocate that block automatically.
-                    _currentBasicBlock = null;
-
-                    prevY = myY;
+                    leftOperand = VisitRequired(innerOp.LeftOperand);
                 }
                 else
                 {
                     // Non-innermost level. innerOp is a chained node whose
-                    // RightOperand is THIS level's Y. (innerOp's own checks were
-                    // emitted by a previous iteration.) Capture Y, emit the
-                    // `Y_{i-1} op Y_i` check. innerOp's OUTER operator is
-                    // exactly this middle link's operator - for `a<=b<c<=d`
-                    // that's innerOp=`a<=b<c` whose outer is `<`, giving us
-                    // `b < c` (NOT `b <= c` from node's outer `<=`).
-                    IOperation myY = VisitAndCapture(innerOp.RightOperand);
-
-                    IOperation middleCheck = rebuildNonChainedRelational((BinaryOperation)innerOp, OperationCloner.CloneOperation(prevY!), myY);
-                    ConditionalBranch(middleCheck, jumpIfTrue: false, shortCircuitBlock);
-                    _currentBasicBlock = null;
-
-                    prevY = myY;
+                    // outer operator describes THIS middle link - for
+                    // `a<=b<c<=d` that's innerOp=`a<=b<c` whose outer is `<`,
+                    // giving us `b < c` (NOT `b <= c` from node's outer `<=`).
+                    leftOperand = OperationCloner.CloneOperation(prevY!);
                 }
+
+                prevY = emitLinkCheck(innerOp, leftOperand);
 
                 if (isOutermost)
                 {
@@ -2532,6 +2521,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     isChainedRelationalComparison: false,
                     semanticModel: null, template.Syntax, template.Type,
                     template.GetConstantValue(), IsImplicit(template));
+
+            // Emit a single link of the chain: capture myY from innerOp.RightOperand,
+            // build the relational check `leftOperand op myY` templated on innerOp
+            // (see VisitChainedRelationalComparison's outer comment for why innerOp
+            // - not the spine node - owns this link's operator metadata), branch to
+            // the shared short-circuit block on false, and hand myY back so the
+            // caller can thread it as the next level's leftOperand. The
+            // `_currentBasicBlock = null` after the branch ensures the next
+            // AddStatement / ConditionalBranch allocates a fresh block on the true-
+            // fallthrough path.
+            IOperation emitLinkCheck(IBinaryOperation innerOp, IOperation leftOperand)
+            {
+                IOperation myY = VisitAndCapture(innerOp.RightOperand);
+                IOperation check = rebuildNonChainedRelational((BinaryOperation)innerOp, leftOperand, myY);
+                ConditionalBranch(check, jumpIfTrue: false, shortCircuitBlock);
+                _currentBasicBlock = null;
+                return myY;
+            }
         }
 
         private IOperation VisitNullableBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
