@@ -2406,11 +2406,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var yFrames = ArrayBuilder<EvalStackFrame>.GetInstance();
             IOperation? prevY = null;
 
-            for (int i = 0; i < spine.Count; i++)
+            foreach (IBinaryOperation node in spine)
             {
-                IBinaryOperation node = spine[i];
-                bool isOutermost = i == spine.Count - 1;
-
                 // Open a fresh sub-region whose capture slots hold this level's
                 // Y (and any sub-expression captures produced by its visit).
                 // The region nesting matches the spine nesting: Y_i's region is
@@ -2436,13 +2433,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // outer operator describes this specific link's operator -
                 // see the loop preamble above for the per-level metadata
                 // selection rules.)
-                IOperation leftOperand = i == 0
+                IOperation leftOperand = node == spine.First()
                     ? VisitRequired(innerOp.LeftOperand)
                     : OperationCloner.CloneOperation(prevY!);
 
                 prevY = emitLinkCheck(innerOp, leftOperand);
 
-                if (isOutermost)
+                if (node == spine.Last())
                 {
                     // Outermost link: evaluate the chain's final RightOperand
                     // (e.g. `d`) on the true path and capture `prevY op right`
