@@ -71,8 +71,8 @@ namespace CSharpSyntaxGenerator
             return experimentalKindCount == node.Kinds.Count - 1 ? experimentalUrl : null;
         }
 
-        // Used by Update: its signature only changes when a field is added, not when a kind is
-        // added. So we propagate field-level ExperimentalUrl onto Update but not kind-level.
+        // If a field is marked as experimental, then any factory or Update method that lets
+        // you set it is also considered experimental
         private static string GetFieldExperimentalUrl(Node node)
         {
             foreach (var field in node.Fields)
