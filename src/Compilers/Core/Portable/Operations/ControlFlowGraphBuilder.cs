@@ -2373,8 +2373,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //   innermost non-chained relational = a<b (the base case).
             var spine = ArrayBuilder<IBinaryOperation>.GetInstance();
             IBinaryOperation current = outerOp;
-            while (current is BinaryOperation { IsChainedRelationalComparison: true }
-                   && current.LeftOperand is IBinaryOperation nextInner)
+            while (current is BinaryOperation { IsChainedRelationalComparison: true, LeftOperand: IBinaryOperation nextInner })
             {
                 spine.Add(current);
                 current = nextInner;
