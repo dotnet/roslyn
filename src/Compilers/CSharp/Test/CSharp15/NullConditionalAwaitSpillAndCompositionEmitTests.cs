@@ -563,6 +563,78 @@ public sealed class NullConditionalAwaitSpillAndCompositionEmitTests : CSharpTes
 
     #endregion
 
+    #region Switch-expression arm unification
+
+    [Fact]
+    public void SwitchExpression_MixedArms_AwaitQuestionAndLiteral()
+    {
+        // Switch expression arms: one arm returns `await? t` (int?), another returns a
+        // literal int. Common type inference lifts literal int → int?.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<int> t = Task.FromResult(42);
+                    int? v1 = 'a' switch
+                    {
+                        'a' => await? t,
+                        _ => 0,
+                    };
+                    Console.Write($"v1={v1};");
+
+                    Task<int> nullT = null;
+                    int? v2 = 'a' switch
+                    {
+                        'a' => await? nullT,
+                        _ => 0,
+                    };
+                    Console.Write($"v2={v2?.ToString() ?? "null"};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "v1=42;v2=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    [Fact]
+    public void SwitchExpression_MixedArms_AwaitQuestionAndNullConditional()
+    {
+        // One arm returns `await? t`, another returns `x?.ToString()`. Both are `string?`
+        // so the switch unifies to `string?` and the spill across the arm must preserve
+        // the await.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                public static async Task Main()
+                {
+                    Task<string> t = Task.FromResult("awaited");
+                    string plain = "non-awaited";
+                    var v = 'a' switch
+                    {
+                        'a' => await? t,
+                        _ => plain?.ToString(),
+                    };
+                    Console.Write($"v={v};done");
+                }
+            }
+            """;
+        var expected = "v=awaited;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
     #region Compound assignment RHS spill
 
     [Fact]
