@@ -1400,6 +1400,41 @@ public sealed class NullConditionalAwaitEmitTests : CSharpTestBase
 
     #endregion
 
+    #region Custom async method builder
+
+    [Fact]
+    public void CustomAsyncMethodBuilder_WithAwaitQuestion_ProducesResult()
+    {
+        // A custom tasklike type (marked with [AsyncMethodBuilder]) should support
+        // await? in its async method body just like Task does. Exercises `ValueTask<int>`
+        // as the enclosing async return type with a Task<int> operand for await?.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                static async ValueTask<int?> F(Task<int> t) => await? t;
+
+                public static async Task Main()
+                {
+                    int? v1 = await F(Task.FromResult(11));
+                    Console.Write($"v1={v1};");
+
+                    int? v2 = await F(null);
+                    Console.Write($"v2={v2?.ToString() ?? "null"};");
+
+                    Console.Write("done");
+                }
+            }
+            """;
+        var expected = "v1=11;v2=null;done";
+        VerifyStateMachine(source, expected);
+        VerifyRuntimeAsync(source, expected);
+    }
+
+    #endregion
+
     #region Exception propagation from the non-null branch
 
     [Fact]
