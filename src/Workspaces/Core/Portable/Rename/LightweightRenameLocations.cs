@@ -71,6 +71,14 @@ internal sealed partial class LightweightRenameLocations
     /// </summary>
     public static async Task<LightweightRenameLocations> FindRenameLocationsAsync(
         ISymbol symbol, Solution solution, SymbolRenameOptions options, CancellationToken cancellationToken)
+        => await FindRenameLocationsAsync(symbol, solution, options, allowRenamesInRazorSourceGeneratedDocuments: false, cancellationToken).ConfigureAwait(false);
+
+    public static async Task<LightweightRenameLocations> FindRenameLocationsAsync(
+        ISymbol symbol,
+        Solution solution,
+        SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
+        CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(solution);
         Contract.ThrowIfNull(symbol);
@@ -86,7 +94,7 @@ internal sealed partial class LightweightRenameLocations
                 {
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableRenameLocations?>(
                         solution,
-                        (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, cancellationToken),
+                        (service, solutionInfo, cancellationToken) => service.FindRenameLocationsAsync(solutionInfo, serializedSymbol, options, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -106,7 +114,7 @@ internal sealed partial class LightweightRenameLocations
 
         // Couldn't effectively search in OOP. Perform the search in-proc.
         var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(
-            symbol, solution, options, cancellationToken).ConfigureAwait(false);
+            symbol, solution, options, allowRenamesInRazorSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
         return new LightweightRenameLocations(
             solution, options, renameLocations.Locations,

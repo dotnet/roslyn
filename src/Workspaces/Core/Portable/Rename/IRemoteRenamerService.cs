@@ -34,6 +34,7 @@ internal interface IRemoteRenamerService
         Checksum solutionChecksum,
         SerializableSymbolAndProjectId symbolAndProjectId,
         SymbolRenameOptions options,
+        bool allowRenamesInRazorSourceGeneratedDocuments,
         CancellationToken cancellationToken);
 
     ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(

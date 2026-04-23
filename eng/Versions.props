@@ -56,7 +56,7 @@
     <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.865</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftIdentityModelJsonWebTokensVersion>6.34.0</MicrosoftIdentityModelJsonWebTokensVersion>
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
-    <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
+    <NewtonsoftJsonVersion>13.0.4</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
   </PropertyGroup>
 

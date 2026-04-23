@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PdbSourceDocument;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.SourceLink;
@@ -16,12 +14,9 @@ using Microsoft.VisualStudio.LanguageServices.PdbSourceDocument;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Services.SourceLink;
 
-[Export(typeof(ISourceLinkService)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSCodeSourceLinkService(IServiceBrokerProvider serviceBrokerProvider, IPdbSourceDocumentLogger logger) : AbstractSourceLinkService
+internal sealed class VSCodeSourceLinkService(IServiceBroker serviceBroker, IPdbSourceDocumentLogger? logger) : AbstractSourceLinkService
 {
-    private readonly IServiceBroker _serviceBroker = serviceBrokerProvider.ServiceBroker;
+    private readonly IServiceBroker _serviceBroker = serviceBroker;
 
     protected override async Task<SymbolLocatorResult?> LocateSymbolFileAsync(SymbolLocatorPdbInfo pdbInfo, SymbolLocatorSearchFlags flags, CancellationToken cancellationToken)
     {

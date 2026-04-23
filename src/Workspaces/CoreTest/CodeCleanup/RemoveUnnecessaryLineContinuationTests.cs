@@ -1338,7 +1338,7 @@ public sealed class RemoveUnnecessaryLineContinuationTests
             .AddProject(projectId, "Project", "Project.dll", language)
             .GetRequiredProject(projectId);
 
-        AssertEx.NotNull(project.ParseOptions);
+        Assert.NotNull(project.ParseOptions);
         var parseOptions = (VisualBasicParseOptions)project.ParseOptions;
         parseOptions = parseOptions.WithLanguageVersion(langVersion);
         project = project.WithParseOptions(parseOptions);

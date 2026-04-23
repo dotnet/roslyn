@@ -211,6 +211,8 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expected,
         bool mutatingLspWorkspace)
     {
+        markup = markup.NormalizeLineEndings();
+        expected = expected.NormalizeLineEndings();
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("type").Single();
 
@@ -219,7 +221,7 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
 
         var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces: true, tabSize: 4);
 
-        AssertEx.NotNull(result);
+        Assert.NotNull(result);
         var actualText = ApplyTextEdits([result.TextEdit], documentText);
 
         var expectedCaret = expected.IndexOf("$0");

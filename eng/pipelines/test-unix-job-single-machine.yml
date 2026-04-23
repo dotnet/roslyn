@@ -24,7 +24,7 @@ parameters:
 jobs:
 - job: ${{ parameters.jobName }}
   pool: ${{ parameters.poolParameters }}
-  timeoutInMinutes: 50
+  timeoutInMinutes: 120
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
