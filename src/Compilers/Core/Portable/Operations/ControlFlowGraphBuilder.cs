@@ -2406,7 +2406,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var yFrames = ArrayBuilder<EvalStackFrame>.GetInstance();
             IOperation? prevY = null;
 
-            foreach (var node in spine)
+            foreach (var currentBinaryOperation in spine)
             {
                 // Open a fresh sub-region whose capture slots hold this level's
                 // Y (and any sub-expression captures produced by its visit).
@@ -2416,12 +2416,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // check.
                 yFrames.Add(PushStackFrame());
 
-                // At every level we capture `node.LeftOperand.RightOperand` -
+                // At every level we capture `currentBinaryOperation.LeftOperand.RightOperand` -
                 // which is Y for this level. The innermost level additionally
                 // visits X and emits the base-case check; non-innermost levels
                 // only emit the middle check that pairs the captured prevY with
                 // the freshly captured myY.
-                var innerOp = (IBinaryOperation)node.LeftOperand;
+                var innerOp = (IBinaryOperation)currentBinaryOperation.LeftOperand;
 
                 // The only difference between the innermost and middle-link
                 // arms is the left operand fed into the check: the innermost
@@ -2435,21 +2435,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // selection rules.)
                 prevY = emitLinkCheck(
                     innerOp,
-                    node == spine.First()
+                    currentBinaryOperation == spine.First()
                         ? VisitRequired(innerOp.LeftOperand)
                         : OperationCloner.CloneOperation(prevY!));
 
-                if (node == spine.Last())
+                if (currentBinaryOperation == spine.Last())
                 {
                     // Outermost link: evaluate the chain's final RightOperand
                     // (e.g. `d`) on the true path and capture `prevY op right`
                     // as the overall result. This link IS node's own outer
                     // operator, so template on node directly.
-                    IOperation finalCheck = rebuildNonChainedRelational(
-                        (BinaryOperation)node,
-                        OperationCloner.CloneOperation(prevY),
-                        VisitRequired(node.RightOperand));
-                    AddStatement(new FlowCaptureOperation(resultId, node.Syntax, finalCheck));
+                    AddStatement(new FlowCaptureOperation(
+                        resultId, currentBinaryOperation.Syntax,
+                        rebuildNonChainedRelational(
+                            currentBinaryOperation,
+                            OperationCloner.CloneOperation(prevY),
+                            VisitRequired(currentBinaryOperation.RightOperand))));
                 }
             }
 
@@ -2474,8 +2475,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // §11.11.13 rule 2(b)) so the literal-false store is well-typed.
             AppendNewBlock(shortCircuitBlock);
             AddStatement(new FlowCaptureOperation(resultId, outerOp.Syntax,
-                new LiteralOperation(semanticModel: null, outerOp.Syntax, outerOp.Type,
-                                     ConstantValue.Create(false), isImplicit: true)));
+                new LiteralOperation(
+                    semanticModel: null, outerOp.Syntax, outerOp.Type, ConstantValue.Create(false), isImplicit: true)));
 
             // The `AppendNewBlock(shortCircuitBlock)` above may have entered
             // regions attached to the block's incoming leave edges; back out of
@@ -2495,8 +2496,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // short-circuit behaviour is expressed by the CFG edges we emit,
             // not by the node itself; every synthesized link here is a plain
             // relational once the surrounding CFG hands it the correct operands.
-            BinaryOperation rebuildNonChainedRelational(BinaryOperation template, IOperation left, IOperation right)
-                => new BinaryOperation(
+            BinaryOperation rebuildNonChainedRelational(IBinaryOperation currentBinaryOperation, IOperation left, IOperation right)
+            {
+                var template = (BinaryOperation)currentBinaryOperation;
+                return new BinaryOperation(
                     template.OperatorKind, left, right,
                     template.IsLifted, template.IsChecked, template.IsCompareText,
                     template.OperatorMethod, template.ConstrainedToType,
@@ -2504,6 +2507,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     isChainedRelationalComparison: false,
                     semanticModel: null, template.Syntax, template.Type,
                     template.GetConstantValue(), IsImplicit(template));
+            }
 
             // Emit a single link of the chain: capture myY from innerOp.RightOperand,
             // build the relational check `leftOperand op myY` templated on innerOp
@@ -2516,9 +2520,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // fallthrough path.
             IOperation emitLinkCheck(IBinaryOperation innerOp, IOperation leftOperand)
             {
-                IOperation myY = VisitAndCapture(innerOp.RightOperand);
+                var myY = VisitAndCapture(innerOp.RightOperand);
                 ConditionalBranch(
-                    rebuildNonChainedRelational((BinaryOperation)innerOp, leftOperand, myY),
+                    rebuildNonChainedRelational(innerOp, leftOperand, myY),
                     jumpIfTrue: false, shortCircuitBlock);
                 _currentBasicBlock = null;
                 return myY;
