@@ -191,7 +191,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn Toolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RoslynToolset.binlog" } else { "" }
-    Restore-Project $dotnet "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
+    Restore-Project "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
 
     Write-Host "Restoring RepoToolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RepoToolset.binlog" } else { "" }
@@ -199,7 +199,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-Roslyn.binlog" } else { "" }
-    Restore-Project $dotnet "Roslyn.sln" $logFilePath
+    Restore-Project "Roslyn.sln" $logFilePath
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build

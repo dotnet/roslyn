@@ -172,7 +172,7 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
         $toolsetProject = Join-Path $repoDir "build\ToolsetPackages\RoslynToolset.csproj"
         $dotnet = Ensure-DotnetSdk
         Write-Host "Downloading $name"
-        Restore-Project $dotnet $toolsetProject
+        Restore-Project $toolsetProject
     }
     
     return $p
@@ -390,7 +390,7 @@ function Clear-PackageCache() {
 }
 
 # Restore a single project
-function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$logFilePath = "") {
+function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
     $projectFilePath = $projectFileName
     if (-not (Test-Path $projectFilePath)) {
         $projectFilePath = Join-Path $repoDir $projectFileName
@@ -401,7 +401,7 @@ function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$
         $logArg = " /bl:$logFilePath"
     }
 
-    Exec-Console $dotnet "restore --verbosity quiet $projectFilePath $logArg"
+    Exec-Console "nuget" "restore -verbosity quiet $projectFilePath"
 }
 
 function Unzip-File([string]$zipFilePath, [string]$outputDir) {
