@@ -14,18 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         /// <summary>
         /// Rewrites a chained relational comparison (<see cref="BoundBinaryOperator.IsChainedRelational"/>)
-        /// into a short-circuit <c>&amp;&amp;</c> chain with the shared middle operands hoisted into temps so
-        /// each operand is evaluated at most once. See spec §11.11.13.
-        ///
-        /// For a 2-operand chain <c>a op1 b op2 c</c>, the lowered form is:
-        ///
-        ///     BoundSequence(
-        ///         locals:      [tempB],
-        ///         sideEffects: [],
-        ///         value:       (a op1 (tempB = b, tempB)) &amp;&amp; (tempB op2 c),
-        ///         type:        bool)
-        ///
-        /// For a 3-operand chain <c>a op1 b op2 c op3 d</c>:
+        /// into a short-circuit <c>&amp;&amp;</c> chain with each shared middle operand hoisted into a
+        /// temp evaluated exactly once (spec §11.11.13). For example <c>a op1 b op2 c op3 d</c> lowers to:
         ///
         ///     BoundSequence(
         ///         locals:      [tempC, tempB],
@@ -35,14 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///                      (tempC op3 d),
         ///         type:        bool)
         ///
-        /// Each shared middle operand is assigned inline at the point of its first use, so
-        /// evaluation follows the <c>&amp;&amp;</c> short-circuit semantics exactly.
-        ///
-        /// The rewrite is written recursively on the bound-tree structure: each chained
-        /// <see cref="BoundBinaryOperator"/> allocates one temp for the Y it contributes and
-        /// passes an inline-assign expression down to its inner link's right-operand slot.
-        /// Source-level chains beyond a handful of operands are extremely rare, so unlike
-        /// <c>a + b + c + ...</c> we do not bother with an explicit stack here.
+        /// Each level of the spine contributes one temp for its Y and passes an inline-assign
+        /// <c>(temp = Y, temp)</c> down to the inner link's right-operand slot, so short-circuit
+        /// semantics fall out of the surrounding <c>&amp;&amp;</c>s. Source-level chains beyond
+        /// a handful of operands are extremely rare, so unlike <c>a + b + c + ...</c> we don't
+        /// bother with an explicit stack here.
         /// </summary>
         private BoundExpression RewriteChainedRelationalOperator(BoundBinaryOperator node)
         {
@@ -50,9 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            // At the top of the chain, this link's right operand is simply node.Right; any
-            // chained level below will instead receive an inline-assign injected by the level
-            // above it (see BuildChainLink).
+            // At the top of the chain this link's right operand is simply node.Right; every
+            // inner level instead receives an inline-assign injected by the level above it.
             var chain = BuildChainLink(node, VisitExpression(node.Right), locals);
 
             return _factory.Sequence(locals: locals.ToImmutableAndFree(), sideEffects: [], result: chain);
@@ -60,66 +46,46 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Lowers one link of a chained relational comparison whose right-operand expression is
-        /// supplied by the caller as <paramref name="thisRight"/>.
+        /// supplied by the caller as <paramref name="thisRight"/>. Any temp allocated at this level
+        /// is appended to <paramref name="locals"/>.
         ///
-        /// This method must drive the recursion into <paramref name="node"/>'s left operand
-        /// itself (rather than delegating to the generic <see cref="LocalRewriter.VisitExpression"/>
-        /// machinery) because the only way to preserve the chain's single-evaluation guarantee
-        /// is to substitute each outer level's inline-assign <c>(temp = Y, temp)</c> into the
-        /// inner link's right-operand slot. That substitution point is several
-        /// <see cref="BoundBinaryOperator"/> nodes deep for long chains, and <c>VisitExpression</c>
-        /// offers no hook to inject a caller-supplied expression at that position. So each
-        /// chained level lowers its own left operand directly, passing the next-level-down's
-        /// inline-assign along as that level's <paramref name="thisRight"/>.
-        ///
-        /// When <paramref name="node"/> is a chained <see cref="BoundBinaryOperator"/>: allocate
-        /// a temp for this level's shared middle operand <c>Y</c>, recurse into the inner link
-        /// with <c>(temp = Y, temp)</c> as its <paramref name="thisRight"/>, and return
-        /// <c>loweredInner &amp;&amp; (temp op <paramref name="thisRight"/>)</c>.
-        ///
-        /// When <paramref name="node"/> is the classical (non-chained) base link: emit
-        /// <c>lowered(node.Left) op <paramref name="thisRight"/></c> directly.
-        ///
-        /// Any temp allocated at this level is appended to <paramref name="locals"/>.
+        /// Recursion is driven here rather than through <see cref="LocalRewriter.VisitExpression"/>
+        /// because the chain's single-evaluation guarantee depends on substituting each outer
+        /// level's inline-assign <c>(temp = Y, temp)</c> into the inner link's right-operand slot -
+        /// a substitution point several <see cref="BoundBinaryOperator"/> nodes deep that
+        /// <c>VisitExpression</c> has no hook to inject at.
         /// </summary>
         private BoundExpression BuildChainLink(
             BoundBinaryOperator node,
             BoundExpression thisRight,
             ArrayBuilder<LocalSymbol> locals)
         {
-            // Classical (non-chained) base link: emit `lowered(left) op thisRight`. thisRight
-            // is the inline-assign expression that the chained node immediately above us
-            // supplied, which captures the shared middle operand into the temp allocated there.
+            // Base (non-chained) link: thisRight is the inline-assign that captured our
+            // caller's shared middle, so the whole link is just `lowered(left) op thisRight`.
             if (!node.IsChainedRelational(out BoundExpression? y))
                 return buildRelationalLink(VisitExpression(node.Left));
 
-            // `y` is the shared middle operand with only the *inner* link's conversion
-            // applied - `IsChainedRelational`'s out parameter delivers it directly so
-            // we don't re-cast `node.Left` here. The temp holds the value the inner
-            // link's operator consumes directly - critically, its type is Y's
-            // inner-link type, NOT the outer link's wider LeftType. That invariant is
-            // what makes asymmetric chains like `short < int < long` emit verifiable
-            // IL: the inner operator is `int<int` and the temp is also `int`, so the
-            // stack types agree.
-            LocalSymbol tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
+            // Critically, the temp's type is Y's *inner-link* type (what IsChainedRelational
+            // hands us), NOT the outer link's wider LeftType. That invariant is what makes
+            // asymmetric chains like `short < int < long` emit verifiable IL - the inner
+            // operator sees `int<int` on an `int` temp, so stack types agree.
+            var tempSym = _factory.SynthesizedLocal(y.Type!, kind: SynthesizedLocalKind.LoweringTemp, syntax: y.Syntax);
             locals.Add(tempSym);
-            BoundLocal temp = _factory.Local(tempSym);
+            var temp = _factory.Local(tempSym);
 
             // Lower this level to `loweredInner && (temp_conv op thisRight)`, where:
             //
             //   * loweredInner recurses into node.Left, threading the inline-assign
             //     `(temp = Y, temp)` down as the inner link's right operand. That idiom
-            //     evaluates Y once, stores it into the temp, and yields the temp - so
-            //     the inner link's operator sees Y directly at Y's inner-link type.
-            //     (Same idiom is used by `?.` lowering; see LocalRewriter_ConditionalAccess.cs.)
+            //     evaluates Y once, stores it into the temp, and yields the temp - so the
+            //     inner link's operator sees Y at its inner-link type. (Same idiom is used
+            //     by `?.` lowering; see LocalRewriter_ConditionalAccess.cs.)
             //
             //   * The outer link's LEFT operand is the temp wrapped in node's stored
             //     ChainedRelationalLeftConversion, so the outer operator sees the temp
-            //     widened to ITS chosen LeftType (e.g. `long` for `short < int < long`)
-            //     rather than at Y's inner-link type. MakeConversionNode short-circuits
-            //     Identity conversions (see LocalRewriter_Conversion's ConversionKind.Identity
-            //     case), so the common same-type case produces no wrapper and the temp
-            //     flows through unchanged.
+            //     widened to ITS chosen LeftType. MakeConversionNode short-circuits Identity
+            //     conversions, so the common same-type case produces no wrapper and the
+            //     temp flows through unchanged.
             return _factory.LogicalAnd(
                 BuildChainLink(
                     (BoundBinaryOperator)node.Left,
@@ -138,19 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     constantValueOpt: null,
                     rewrittenType: node.ChainedRelationalLeftConvertedType)));
 
-            // Build a single relational link `leftOperand op thisRight` templated on node's
-            // operator metadata.
-            //
-            // oldNode: null so that constant values on the original chain node are not
-            // copied onto this rewritten link; the rewritten link carries a temp-assignment
-            // side effect (for non-base links) and therefore is not a compile-time constant
-            // even when the original operand folding said it was.
-            //
-            // BinaryOperatorMethod (and not LeftTruthOperatorMethod): every chained link
-            // resolves to a bool-returning `<`/`<=`/`>`/`>=` operator (spec §11.11.13 rule
-            // 2(b)), so LeftTruthOperatorMethod is provably null here. `operator true`/
-            // `operator false` never participate in chain lowering; the chain is combined
-            // by the caller via `_factory.LogicalAnd` (= LogicalBoolAnd).
+            // Build a single relational link `leftOperand op thisRight` from node's operator
+            // metadata. oldNode: null because rewritten links carry a temp-assign side effect
+            // (for non-base links) and are never constants, even when the original folded.
+            // BinaryOperatorMethod, not LeftTruthOperatorMethod: every chained link resolves
+            // to a bool-returning `<`/`<=`/`>`/`>=` (spec §11.11.13 rule 2(b)), so
+            // `operator true`/`operator false` never participate - the chain is combined
+            // by _factory.LogicalAnd (= LogicalBoolAnd).
             BoundExpression buildRelationalLink(BoundExpression leftOperand) =>
                 MakeBinaryOperator(
                     oldNode: null,
