@@ -92,6 +92,8 @@ The current layout is:
       refassembly
       xmldoc
       <dll name>.key
+      created
+      last-used
 ```
 
 Where:
@@ -101,6 +103,8 @@ Where:
 - `refassembly` is the emitted reference assembly, when one exists
 - `xmldoc` is the emitted XML documentation file, when one exists
 - `<dll name>.key` contains the full deterministic key text
+- `created` contains a round-trip UTC timestamp (`O` format) recording when the entry was first stored
+- `last-used` contains a round-trip UTC timestamp updated on every cache hit and on initial store
 
 Only outputs that actually exist for a successful compilation are stored. Optional outputs are omitted when the compilation did not produce them.
 
@@ -138,6 +142,77 @@ When `ROSLYN_CACHE_PATH` is used, the client also logs that it normalized the en
 
 On a miss, Roslyn may also log diffs against recent prior key files for the same output name. This is intended to help explain why two apparently similar builds did not reuse the same cached result.
 
+## Cache management
+
+The compiler server binary (`VBCSCompiler`) exposes commands for inspecting and cleaning up the on-disk cache. These are intended for local use and CI integration while the experiment is being evaluated.
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `-cachestats` | Show cache statistics for all entries. |
+| `-cachestats:<timestamp>` | Show cache statistics, classifying entries relative to the given UTC timestamp. |
+| `-cachestatsverbosity:<0\|1\|2>` | Control the detail level of `-cachestats` output. `0` (default) shows totals only, `1` groups by DLL name, `2` lists individual entries. |
+| `-purgecache` | Delete all cache entries. |
+| `-purgecache:<timestamp>` | Delete cache entries whose `last-used` time is older than the given UTC timestamp. |
+| `-cachepath:<path>` | Override the cache directory for `-cachestats` and `-purgecache` (defaults to the standard cache location). |
+
+Timestamps are parsed with `DateTimeOffset.TryParse` using `InvariantCulture` and round-trip kind, so ISO 8601 strings such as `2026-04-22T10:00:00Z` work.
+
+### How `-cachestats` classifies entries
+
+The optional timestamp on `-cachestats` is a boundary used to classify each cache entry into one of three buckets:
+
+- **Hit** — the entry existed *before* the timestamp and was *used on or after* it (a cache reuse).
+- **Store** — the entry was *created on or after* the timestamp (a cache miss that produced a new entry).
+- **Untouched** — the entry existed *before* the timestamp and was *not used after* it.
+
+When no timestamp is given, all entries are classified relative to the start of time (`DateTimeOffset.MinValue`), so every entry will appear as either a hit or a store.
+
+### Workflow: understanding cache efficiency over a period
+
+To see how effective the cache has been over the last 30 days:
+
+```shell
+VBCSCompiler -cachestats:2026-03-23T00:00:00Z
+```
+
+Example output:
+
+```text
+Cache: /tmp/roslyn-cache
+  Hits (reused):  450
+  Stores (new):    50
+  Untouched:      500
+```
+
+This tells you that 450 compilations were served from cache, 50 new entries were stored, and 500 older entries were not used during that period. The untouched count is exactly what a corresponding purge would delete.
+
+```shell
+# Purge entries not used since that date
+VBCSCompiler -purgecache:2026-03-23T00:00:00Z
+
+# To delete everything, omit the timestamp
+VBCSCompiler -purgecache
+```
+
+### Workflow: CI build summary
+
+In CI, record the build start time before invoking the build, then use it to get a summary of what the cache did during that specific build:
+
+```shell
+# Record the start time
+BUILD_START=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+# Run the build (with cache enabled)
+dotnet build -p:Features=use-global-cache
+
+# Show what the cache did during this build
+VBCSCompiler -cachestats:$BUILD_START
+```
+
+Because the timestamp is set to the moment before the build started, every entry created or used during the build is classified as a hit or store for that build. As long as no other builds run in parallel against the same cache, the result is effectively a per-build cache summary.
+
 ## Current limitations
 
 The experiment currently has several important limitations:
@@ -154,7 +229,7 @@ Areas still under evaluation include:
 
 - correctness of the deterministic key as a cache identity for all relevant build scenarios
 - whether the current treatment of `PathMap` and other deterministic inputs is sufficient for the scenarios where this experiment is expected to be useful
-- disk growth and cache cleanup policy
+- disk growth and whether the current manual purge commands should be supplemented with automatic cleanup
 - behavior across SDK, compiler, or machine-environment changes
 - whether the current request-level enablement mechanism should remain the right shape long term
 - what, if any, parts of the on-disk format should become durable
