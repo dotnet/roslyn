@@ -1504,4 +1504,167 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Pattern matching and deconstruction on the await? result
+
+    [Fact]
+    public void PatternMatching_IsConstantPattern_OnLiftedResult()
+    {
+        // `(await? t) is 42` on a Task<int> operand — the pattern is matched against int?.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<bool> M(Task<int> t) => (await? t) is 42;
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PatternMatching_IsTypePattern_OnLiftedNullableResult()
+    {
+        // `(await? t) is int value` — declaration pattern narrows int? to int.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<int> M(Task<int> t)
+                {
+                    return (await? t) is int value ? value : -1;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PatternMatching_IsNullPattern_OnReferenceResult()
+    {
+        // `(await? t) is null` on a Task<string> operand — pattern matches when the
+        // short-circuit produced null or when GetResult returned null.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<bool> M(Task<string> t) => (await? t) is null;
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PatternMatching_IsNotNullPattern_PromotesToNonNullable()
+    {
+        // After `is not null`, flow analysis should narrow string? → string in the true
+        // branch. Passing the narrowed value into a non-nullable parameter must not warn.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static void F(string s) { }
+                public async Task M(Task<string> t)
+                {
+                    var v = await? t;
+                    if (v is not null)
+                        F(v);
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PatternMatching_PropertyPattern_OnLiftedResult()
+    {
+        // Property pattern `{ Length: > 0 }` on a Task<string> operand — pattern walks
+        // through the possibly-null wrapper.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<bool> M(Task<string> t) => (await? t) is { Length: > 0 };
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PatternMatching_SwitchExpression_OnLiftedResult()
+    {
+        // Switch on `await? t` with explicit `null` arm and a declaration arm.
+        // Already covered for Spill in emit tests; this pins the binding-level typing.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task<string> M(Task<int> t)
+                {
+                    return (await? t) switch
+                    {
+                        null => "null",
+                        0 => "zero",
+                        var x => x.ToString()!,
+                    };
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Deconstruction_TupleResult_OfNullableTuple()
+    {
+        // `Task<(int, int)>` — result type of `await?` is `(int, int)?`.
+        // Deconstructing a Nullable<ValueTuple> directly is not supported by the language:
+        // there's no implicit Deconstruct on Nullable<T>. Pin the expected error so we
+        // notice if the rules ever change.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task M(Task<(int, int)> t)
+                {
+                    var (a, b) = await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'a'.
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "a").WithArguments("a").WithLocation(6, 14),
+            // (6,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'b'.
+            Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "b").WithArguments("b").WithLocation(6, 17),
+            // (6,22): error CS1061: '(int, int)?' does not contain a definition for 'Deconstruct' ...
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "await? t").WithArguments("(int, int)?", "Deconstruct").WithLocation(6, 22),
+            // (6,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found ...
+            Diagnostic(ErrorCode.ERR_MissingDeconstruct, "await? t").WithArguments("(int, int)?", "2").WithLocation(6, 22));
+    }
+
+    [Fact]
+    public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
+    {
+        // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
+        // This is the workaround and should compile cleanly.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public async Task M(Task<(int, int)> t)
+                {
+                    var (a, b) = (await? t).GetValueOrDefault();
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics();
+    }
+
+    #endregion
 }
