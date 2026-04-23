@@ -438,6 +438,186 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         Assert.NotEqual(labeledBreak.Target, unlabeledBreak.Target);
     }
 
+    [Fact]
+    public void IBranchOperation_LabeledBreak_TargetMatchesOuterExitLabel()
+    {
+        var source = """
+            class C
+            {
+                void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        for (int j = 0; j < 10; j++)
+                        {
+                            break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (7,37): warning CS0162: Unreachable code detected
+            //             for (int j = 0; j < 10; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var forStmts = tree.GetRoot().DescendantNodes().OfType<ForStatementSyntax>().ToArray();
+        Assert.Equal(2, forStmts.Length);
+
+        var outerFor = (IForLoopOperation)model.GetOperation(forStmts[0])!;
+        var innerFor = (IForLoopOperation)model.GetOperation(forStmts[1])!;
+
+        var breakSyntax = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
+        var branch = (IBranchOperation)model.GetOperation(breakSyntax)!;
+
+        Assert.Equal(BranchKind.Break, branch.BranchKind);
+        Assert.Same(outerFor.ExitLabel, branch.Target);
+        Assert.NotSame(innerFor.ExitLabel, branch.Target);
+    }
+
+    [Fact]
+    public void IBranchOperation_LabeledContinue_TargetMatchesOuterContinueLabel()
+    {
+        var source = """
+            class C
+            {
+                void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        for (int j = 0; j < 10; j++)
+                        {
+                            continue outer;
+                        }
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (7,37): warning CS0162: Unreachable code detected
+            //             for (int j = 0; j < 10; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var forStmts = tree.GetRoot().DescendantNodes().OfType<ForStatementSyntax>().ToArray();
+        var outerFor = (IForLoopOperation)model.GetOperation(forStmts[0])!;
+        var innerFor = (IForLoopOperation)model.GetOperation(forStmts[1])!;
+
+        var continueSyntax = tree.GetRoot().DescendantNodes().OfType<ContinueStatementSyntax>().Single();
+        var branch = (IBranchOperation)model.GetOperation(continueSyntax)!;
+
+        Assert.Equal(BranchKind.Continue, branch.BranchKind);
+        Assert.Same(outerFor.ContinueLabel, branch.Target);
+        Assert.NotSame(innerFor.ContinueLabel, branch.Target);
+    }
+
+    [Fact]
+    public void IBranchOperation_LabeledBreak_TargetMatchesForeachExitLabel()
+    {
+        var source = """
+            class C
+            {
+                void F()
+                {
+                    outer: foreach (var x in new[] { 1 })
+                    {
+                        foreach (var y in new[] { 2 })
+                        {
+                            break outer;
+                        }
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var foreachStmts = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().ToArray();
+        var outerForeach = (IForEachLoopOperation)model.GetOperation(foreachStmts[0])!;
+
+        var breakSyntax = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
+        var branch = (IBranchOperation)model.GetOperation(breakSyntax)!;
+
+        Assert.Equal(BranchKind.Break, branch.BranchKind);
+        Assert.Same(outerForeach.ExitLabel, branch.Target);
+    }
+
+    [Fact]
+    public void IBranchOperation_LabeledBreak_TargetMatchesSwitchExitLabel()
+    {
+        var source = """
+            class C
+            {
+                void F(int x)
+                {
+                    outer: switch (x)
+                    {
+                        case 0:
+                            while (true)
+                            {
+                                break outer;
+                            }
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics();
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var switchSyntax = tree.GetRoot().DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+        var switchOp = (ISwitchOperation)model.GetOperation(switchSyntax)!;
+
+        var breakSyntax = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
+        var branch = (IBranchOperation)model.GetOperation(breakSyntax)!;
+
+        Assert.Equal(BranchKind.Break, branch.BranchKind);
+        Assert.Same(switchOp.ExitLabel, branch.Target);
+    }
+
+    [Fact]
+    public void IBranchOperation_InvalidLabeledBreak_LabelNotOnLoop()
+    {
+        var source = """
+            class C
+            {
+                void F()
+                {
+                    L: { while (true) { break L; } }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        comp.VerifyDiagnostics(
+            // (5,35): error CS9379: No enclosing loop or switch statement with the label 'L' out of which to break or continue
+            //         L: { while (true) { break L; } }
+            Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(5, 35),
+            // (5,9): warning CS0164: This label has not been referenced
+            //         L: { while (true) { break L; } }
+            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 9));
+
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var breakSyntax = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
+        var op = model.GetOperation(breakSyntax);
+
+        Assert.NotNull(op);
+        Assert.Equal(OperationKind.Invalid, op!.Kind);
+    }
+
     #endregion
 
     #region Helpers
