@@ -2568,11 +2568,12 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
         CompileAndVerify(
             source,
             targetFramework: TargetFramework.NetCoreApp,
-            expectedOutput:
-@"Length 0
-Get 1
-Set 2
-5");
+            expectedOutput: """
+                Length 0
+                Get 1
+                Set 2
+                5
+                """);
     }
 
     #endregion
