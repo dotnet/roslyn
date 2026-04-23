@@ -244,6 +244,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? flags.IsNullableAnalysisEnabled
                 : ((SourceMemberContainerTypeSymbol)ContainingType).IsNullableEnabledForConstructorsAndInitializers(IsStatic);
 
+        internal sealed override bool IsUnsafe => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
+
         protected override bool AllowRefOrOut
         {
             get

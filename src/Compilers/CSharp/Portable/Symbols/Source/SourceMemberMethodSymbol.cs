@@ -684,14 +684,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsUnsafe
-        {
-            get
-            {
-                return (this.DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-            }
-        }
-
         public sealed override bool IsAsync
         {
             get

@@ -80,7 +80,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
         }
         else
         {
-            AssertEx.NotNull(info);
+            Assert.NotNull(info);
 
             foreach (var expected in expectedResults)
             {
@@ -142,7 +142,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
         }
         else
         {
-            AssertEx.NotNull(info);
+            Assert.NotNull(info);
 
             foreach (var expected in expectedResults)
             {
@@ -311,7 +311,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
         }
         else
         {
-            AssertEx.NotNull(info);
+            Assert.NotNull(info);
 
             foreach (var expected in expectedResults)
             {

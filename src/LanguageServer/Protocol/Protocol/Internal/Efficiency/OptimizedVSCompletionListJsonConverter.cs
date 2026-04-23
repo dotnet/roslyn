@@ -145,6 +145,11 @@ internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<Opt
             {
                 writer.WriteBoolean(VSInternalCompletionItem.VsResolveTextEditOnCommitName, vsCompletionItem.VsResolveTextEditOnCommit);
             }
+
+            if (vsCompletionItem.MatchPriority != 0)
+            {
+                writer.WriteNumber(VSInternalCompletionItem.MatchPrioritySerializedName, vsCompletionItem.MatchPriority);
+            }
         }
 
         var label = completionItem.Label;
