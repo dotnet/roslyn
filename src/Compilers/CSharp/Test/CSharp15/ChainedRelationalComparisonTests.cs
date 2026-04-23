@@ -881,6 +881,35 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
     }
 
     [Fact]
+    public void RelationalPatternFollowedByRelationalOperator_DoesNotChain()
+    {
+        // Relational patterns (`x is < c`, `x is > c`, ...) are a separate pattern-grammar
+        // feature and DO NOT participate in the chained-relational-comparison rule. Chain
+        // shape is gated on the outer binary op's left being a BinaryExpressionSyntax of a
+        // chainable kind; the LHS here is an IsPatternExpression, so the chain fallback
+        // isn't attempted and we get ordinary CS0019 on `bool > int` / `bool < int`.
+        //
+        // The idiomatic way to combine two relational patterns is `x is > y and < z`,
+        // which this test also pins as a non-regression.
+        var src = """
+            class P
+            {
+                static bool FChain1(int x) => x is < 5 > 10;
+                static bool FChain2(int x) => x is < 5 < 10;
+                static bool FAnd   (int x) => x is > 5 and < 10;
+            }
+            """;
+        CreateCompilation(src, parseOptions: TestOptions.RegularPreview)
+            .VerifyDiagnostics(
+                // (3,35): error CS0019: Operator '>' cannot be applied to operands of type 'bool' and 'int'
+                //     static bool FChain1(int x) => x is < 5 > 10;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x is < 5 > 10").WithArguments(">", "bool", "int").WithLocation(3, 35),
+                // (4,35): error CS0019: Operator '<' cannot be applied to operands of type 'bool' and 'int'
+                //     static bool FChain2(int x) => x is < 5 < 10;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x is < 5 < 10").WithArguments("<", "bool", "int").WithLocation(4, 35));
+    }
+
+    [Fact]
     public void ChainInsideExpressionTree_ReportsCS9381()
     {
         var src = """
