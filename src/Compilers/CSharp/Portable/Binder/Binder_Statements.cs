@@ -2989,16 +2989,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
             }
 
-            label = BindLabelExpression(name, diagnostics);
+            label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
             return null;
-        }
-
-        private BoundLabel BindLabelExpression(IdentifierNameSyntax name, BindingDiagnosticBag diagnostics)
-        {
-            if (name == null)
-                return null;
-
-            return this.BindLabel(name, diagnostics) as BoundLabel;
         }
 
         private static SwitchBinder GetSwitchBinder(Binder binder)
