@@ -2371,13 +2371,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //   spine[1] = a<b<c<d (outermost chained)
             //   innermost non-chained relational = a<b (the base case).
             var spine = ArrayBuilder<IBinaryOperation>.GetInstance();
-            IBinaryOperation current = outerOp;
-            while (current is BinaryOperation { IsChainedRelationalComparison: true, LeftOperand: IBinaryOperation nextInner })
+            for (IBinaryOperation current = outerOp;
+                 current is BinaryOperation { IsChainedRelationalComparison: true, LeftOperand: IBinaryOperation nextInner };
+                 current = nextInner)
             {
                 spine.Add(current);
-                current = nextInner;
             }
-            IBinaryOperation innermostRelational = current;
+            
             Debug.Assert(spine.Count >= 1);
             spine.ReverseContents();
 
@@ -2436,7 +2436,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // outer operator describes this specific link's operator -
                 // see the loop preamble above for the per-level metadata
                 // selection rules.)
-                Debug.Assert(i != 0 || innerOp == innermostRelational);
                 IOperation leftOperand = i == 0
                     ? VisitRequired(innerOp.LeftOperand)
                     : OperationCloner.CloneOperation(prevY!);
@@ -2462,9 +2461,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // strictly nested, so popping the last-pushed frame first is the
             // only order that exits one region at a time).
             for (int i = yFrames.Count - 1; i >= 0; i--)
-            {
                 PopStackFrameAndLeaveRegion(yFrames[i]);
-            }
+
             yFrames.Free();
             spine.Free();
 
