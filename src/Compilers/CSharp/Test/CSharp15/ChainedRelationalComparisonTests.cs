@@ -620,6 +620,230 @@ public sealed class ChainedRelationalComparisonTests : CSharpTestBase
 
     #endregion
 
+    #region Numeric type domains (float, double, decimal, enum)
+
+    [Theory]
+    [InlineData("float", "0f", "5f", "10f", "<", "True")]
+    [InlineData("float", "0f", "5f", "2f", "<", "False")]
+    [InlineData("float", "10f", "5f", "0f", ">", "True")]
+    [InlineData("float", "0f", "5f", "10f", "<=", "True")]
+    [InlineData("double", "0.0", "5.0", "10.0", "<", "True")]
+    [InlineData("double", "0.0", "5.0", "2.0", "<", "False")]
+    [InlineData("double", "10.0", "5.0", "0.0", ">", "True")]
+    [InlineData("double", "double.MinValue", "0.0", "double.MaxValue", "<", "True")]
+    public void Chain_FloatingPoint_MatchesExpandedForm(string type, string aVal, string bVal, string cVal, string op, string expected)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    {{type}} a = {{aVal}}, b = {{bVal}}, c = {{cVal}};
+                    bool chained = a {{op}} b {{op}} c;
+                    bool expanded = (a {{op}} b) && (b {{op}} c);
+                    Console.Write($"c={chained},e={expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: $"c={expected},e={expected}")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("double.NaN", "5.0", "10.0")]
+    [InlineData("0.0", "double.NaN", "10.0")]
+    [InlineData("0.0", "5.0", "double.NaN")]
+    [InlineData("double.NaN", "double.NaN", "double.NaN")]
+    public void Chain_Double_NaNInAnyPosition_FoldsToFalseAndMatchesExpanded(string aVal, string bVal, string cVal)
+    {
+        // IEEE-754: any relational operator with a NaN operand returns false.
+        // So any chain containing a NaN operand must yield false and must agree
+        // with the hand-expanded && form.
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    double a = {{aVal}}, b = {{bVal}}, c = {{cVal}};
+                    bool chained = a < b < c;
+                    bool expanded = (a < b) && (b < c);
+                    Console.Write($"c={chained},e={expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "c=False,e=False")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_Double_NaNMiddle_ShortCircuitsBeforeRightOperand()
+    {
+        // Sharper pin: when the shared middle is NaN, the inner check `a < NaN`
+        // fails and the chain must short-circuit without evaluating the right
+        // operand. The &&-form has the same side-effect profile.
+        var src = """
+            using System;
+
+            class P
+            {
+                static int middleCalls, rightCalls;
+                static double Middle() { middleCalls++; return double.NaN; }
+                static double Right() { rightCalls++; return 10.0; }
+
+                static void Main()
+                {
+                    middleCalls = 0; rightCalls = 0;
+                    bool chained = 0.0 < Middle() < Right();
+                    Console.WriteLine($"chained={chained},m={middleCalls},r={rightCalls}");
+
+                    middleCalls = 0; rightCalls = 0;
+                    bool expanded = (0.0 < Middle()) && (Middle() < Right());
+                    Console.WriteLine($"expanded={expanded},m={middleCalls},r={rightCalls}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: """
+                chained=False,m=1,r=0
+                expanded=False,m=1,r=0
+                """)
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_Double_InfinityOperands_MatchesExpanded()
+    {
+        var src = """
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    double negInf = double.NegativeInfinity;
+                    double posInf = double.PositiveInfinity;
+
+                    // Outer-finite chains around the infinities.
+                    Console.Write($"1:{negInf < 0.0 < posInf},");
+                    Console.Write($"2:{0.0 < posInf < negInf},");
+                    Console.Write($"3:{posInf < 0.0 < negInf},");
+                    // Inner-Epsilon: spacing-pin for smallest positive double.
+                    Console.Write($"4:{0.0 < double.Epsilon < 1.0}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "1:True,2:False,3:False,4:True")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("0m", "5m", "10m", "<", "True")]
+    [InlineData("0m", "5m", "2m", "<", "False")]
+    [InlineData("10m", "5m", "0m", ">", "True")]
+    [InlineData("decimal.MinValue", "0m", "decimal.MaxValue", "<", "True")]
+    [InlineData("decimal.MaxValue", "0m", "decimal.MinValue", ">", "True")]
+    [InlineData("-0m", "0m", "1m", "<", "False")]
+    public void Chain_Decimal_MatchesExpandedForm(string aVal, string bVal, string cVal, string op, string expected)
+    {
+        var src = $$"""
+            using System;
+
+            class P
+            {
+                static void Main()
+                {
+                    decimal a = {{aVal}}, b = {{bVal}}, c = {{cVal}};
+                    bool chained = a {{op}} b {{op}} c;
+                    bool expanded = (a {{op}} b) && (b {{op}} c);
+                    Console.Write($"c={chained},e={expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: $"c={expected},e={expected}")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Chain_Enum_BasicAndMixedDirection_MatchesExpandedForm()
+    {
+        var src = """
+            using System;
+
+            enum E { A, B, C, D }
+
+            class P
+            {
+                static void Main()
+                {
+                    E a = E.A, b = E.B, c = E.C, d = E.D;
+
+                    bool up = a < b < c < d;
+                    bool upExpanded = (a < b) && (b < c) && (c < d);
+                    bool mixed = a < b > E.A;
+                    bool mixedExpanded = (a < b) && (b > E.A);
+                    bool down = d > c > b;
+                    bool downExpanded = (d > c) && (c > b);
+
+                    Console.WriteLine($"up={up}/{upExpanded},mix={mixed}/{mixedExpanded},down={down}/{downExpanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "up=True/True,mix=True/True,down=True/True")
+            .VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("byte")]
+    [InlineData("sbyte")]
+    [InlineData("short")]
+    [InlineData("ushort")]
+    [InlineData("uint")]
+    [InlineData("long")]
+    [InlineData("ulong")]
+    public void Chain_Enum_MixedUnderlyingType_MatchesExpandedForm(string underlying)
+    {
+        // Enums with non-int underlying types still support the implicit
+        // relational operators; the chain must behave identically regardless
+        // of the underlying integral representation.
+        var src = $$"""
+            using System;
+
+            enum E : {{underlying}} { A, B, C }
+
+            class P
+            {
+                static void Main()
+                {
+                    E a = E.A, b = E.B, c = E.C;
+                    bool chained = a < b < c;
+                    bool expanded = (a < b) && (b < c);
+                    Console.Write($"c={chained},e={expanded}");
+                }
+            }
+            """;
+        CompileAndVerify(src,
+            parseOptions: TestOptions.RegularPreview,
+            expectedOutput: "c=True,e=True")
+            .VerifyDiagnostics();
+    }
+
+    #endregion
+
     #region Back-compat and error cases
 
     [Fact]
