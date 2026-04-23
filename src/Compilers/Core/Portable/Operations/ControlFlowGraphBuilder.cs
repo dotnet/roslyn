@@ -2357,7 +2357,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // link and on the false path by the short-circuit block - lives in
             // the enclosing region so it outlives every Y sub-region we open.
             var resultCaptureRegion = CurrentRegionRequired;
-            int resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
+            var resultId = captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
             // `shortCircuitBlock` is the single false-path landing pad shared by
             // every link's `jump-if-false` branch below; `doneBlock` is the join
@@ -2371,7 +2371,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //   spine[1] = a<b<c<d (outermost chained)
             //   innermost non-chained relational = a<b (the base case).
             var spine = ArrayBuilder<IBinaryOperation>.GetInstance();
-            for (IBinaryOperation current = outerOp;
+            for (var current = outerOp;
                  current is BinaryOperation { IsChainedRelationalComparison: true, LeftOperand: IBinaryOperation nextInner };
                  current = nextInner)
             {
@@ -2406,7 +2406,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var yFrames = ArrayBuilder<EvalStackFrame>.GetInstance();
             IOperation? prevY = null;
 
-            foreach (IBinaryOperation node in spine)
+            foreach (var node in spine)
             {
                 // Open a fresh sub-region whose capture slots hold this level's
                 // Y (and any sub-expression captures produced by its visit).
@@ -2433,11 +2433,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // outer operator describes this specific link's operator -
                 // see the loop preamble above for the per-level metadata
                 // selection rules.)
-                IOperation leftOperand = node == spine.First()
-                    ? VisitRequired(innerOp.LeftOperand)
-                    : OperationCloner.CloneOperation(prevY!);
-
-                prevY = emitLinkCheck(innerOp, leftOperand);
+                prevY = emitLinkCheck(
+                    innerOp,
+                    node == spine.First()
+                        ? VisitRequired(innerOp.LeftOperand)
+                        : OperationCloner.CloneOperation(prevY!));
 
                 if (node == spine.Last())
                 {
@@ -2457,7 +2457,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // sub-regions in LIFO order (outermost / innermost frame stack is
             // strictly nested, so popping the last-pushed frame first is the
             // only order that exits one region at a time).
-            for (int i = yFrames.Count - 1; i >= 0; i--)
+            for (var i = yFrames.Count - 1; i >= 0; i--)
                 PopStackFrameAndLeaveRegion(yFrames[i]);
 
             yFrames.Free();
