@@ -690,4 +690,126 @@ public sealed class NullConditionalAwaitSemanticModelTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Debug / PDB emit
+
+    [Fact]
+    public void DebugEmit_WithAwaitQuestion_ProducesValidPdb()
+    {
+        // Smoke test: compile in Debug mode, emit with PDB, and verify no emit
+        // diagnostics. Exercises that `AwaitExpressionSyntax.QuestionToken` does not
+        // trip up sequence-point emission.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static async Task<int?> F(Task<int> t) => await? t;
+            }
+            """;
+        var comp = CreateCompilation(
+            source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.DebugDll,
+            targetFramework: TargetFramework.NetCoreApp);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void DebugEmit_WithAwaitQuestionInTryFinally_ProducesValidPdb()
+    {
+        // Debug-emit smoke test with await? inside EH structure, which historically
+        // stresses sequence-point emission more than straight-line code.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public static async Task F(Task<int> t)
+                {
+                    try
+                    {
+                        int? v = await? t;
+                    }
+                    finally
+                    {
+                        System.Console.WriteLine("finally");
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.DebugDll,
+            targetFramework: TargetFramework.NetCoreApp);
+        comp.VerifyEmitDiagnostics();
+    }
+
+    #endregion
+
+    #region NRT flow through long ?. chains interacting with await?
+
+    [Fact]
+    public void NRTFlow_LongChainBeforeAwaitQuestion_ReceiverFlowStateSurvives()
+    {
+        // After `a?.Next?.Next?.Next`, the walker narrows `a` to non-null on the chain's
+        // continuation. When the await? then operates on the chain result, the outer
+        // expression's flow state is MaybeNull (both chain short-circuit and await?
+        // short-circuit contribute null). Pin that a subsequent use of `a` (outside the
+        // chain) still carries the narrowing from the chain entry.
+        var source = """
+            using System.Threading.Tasks;
+            class Node { public Node? Next; public Task<int> Work() => Task.FromResult(0); }
+            class C
+            {
+                public static void Consume(Node a) { _ = a.Next; }
+                public async Task M(Node a)
+                {
+                    if (a is null) return;
+                    int? v = await? a?.Next?.Next?.Work();
+                    // After the `if (a is null) return;` above, `a` is narrowed to non-null
+                    // for the rest of the method. Passing it to a non-null parameter must
+                    // not warn.
+                    Consume(a);
+                    System.Console.WriteLine(v);
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable),
+            targetFramework: TargetFramework.NetCoreApp);
+        comp.VerifyDiagnostics(
+            // (2,27): warning CS0649: Field 'Node.Next' is never assigned to, and will always have its default value null
+            // class Node { public Node? Next; public Task<int> Work() => Task.FromResult(0); }
+            Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Next").WithArguments("Node.Next", "null").WithLocation(2, 27));
+    }
+
+    [Fact]
+    public void NRTFlow_AwaitQuestionResultAnnotation_FlowsIntoCoalesce()
+    {
+        // `(await? taskOfString) ?? "default"` — the coalesce operator takes the MaybeNull
+        // left side and narrows to a non-null string. Passing that to a non-nullable
+        // parameter should produce no warning.
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                public static void Consume(string s) { _ = s.Length; }
+                public async Task M(Task<string> t)
+                {
+                    string s = (await? t) ?? "default";
+                    Consume(s);
+                }
+            }
+            """;
+        var comp = CreateCompilation(
+            source,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Enable),
+            targetFramework: TargetFramework.NetCoreApp);
+        comp.VerifyDiagnostics();
+    }
+
+    #endregion
 }
