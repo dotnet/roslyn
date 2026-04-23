@@ -1753,6 +1753,115 @@ public sealed class NullConditionalAwaitBindingTests : CSharpTestBase
     }
 
     [Fact]
+    public void ForbiddenContext_DefaultParameterValue()
+    {
+        // `await` is forbidden as a default parameter value. `await?` inherits. The
+        // ternary-vs-await-expression disambiguation at parse time yields a ternary here
+        // (non-async context); the binder then reports the usual identifier-lookup cascade.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public void M(int x = await? Task.FromResult(1)) { }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (4,27): error CS0103: The name 'await' does not exist in the current context
+            //     public void M(int x = await? Task.FromResult(1)) { }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "await").WithArguments("await").WithLocation(4, 27),
+            // (4,52): error CS1003: Syntax error, ':' expected
+            //     public void M(int x = await? Task.FromResult(1)) { }
+            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(":").WithLocation(4, 52),
+            // (4,52): error CS1525: Invalid expression term ')'
+            //     public void M(int x = await? Task.FromResult(1)) { }
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(4, 52));
+    }
+
+    [Fact]
+    public void ForbiddenContext_FieldInitializer()
+    {
+        // Field initializers don't run in an async function. `await` is illegal; `await?`
+        // inherits. Ternary-disambiguation in this non-async context makes the parser see
+        // a ternary; the binder then reports a cascade from the unresolved `await` identifier.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public int F = await? Task.FromResult(1);
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (4,20): error CS0103: The name 'await' does not exist in the current context
+            //     public int F = await? Task.FromResult(1);
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "await").WithArguments("await").WithLocation(4, 20),
+            // (4,45): error CS1003: Syntax error, ':' expected
+            //     public int F = await? Task.FromResult(1);
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(4, 45),
+            // (4,45): error CS1525: Invalid expression term ';'
+            //     public int F = await? Task.FromResult(1);
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(4, 45));
+    }
+
+    [Fact]
+    public void ForbiddenContext_NonAsyncConstructor()
+    {
+        // Constructors cannot be `async`; `await?` in a ctor body is rejected the same
+        // way as `await` — same ternary-in-non-async-context cascade as the other
+        // non-async forbidden contexts.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                public C(Task<int> t)
+                {
+                    var v = await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (6,17): error CS0103: The name 'await' does not exist in the current context
+            //         var v = await? t;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "await").WithArguments("await").WithLocation(6, 17),
+            // (6,25): error CS1003: Syntax error, ':' expected
+            //         var v = await? t;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(6, 25),
+            // (6,25): error CS1525: Invalid expression term ';'
+            //         var v = await? t;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 25));
+    }
+
+    [Fact]
+    public void ForbiddenContext_Finalizer()
+    {
+        // Finalizers cannot be async; `await?` is rejected.
+        var source = """
+            using System.Threading.Tasks;
+            public class C
+            {
+                ~C()
+                {
+                    Task<int> t = Task.FromResult(0);
+                    _ = await? t;
+                }
+            }
+            """;
+        var comp = CreateWithNullableReferenceTypesEnabled(source);
+        comp.VerifyDiagnostics(
+            // (7,13): error CS0103: The name 'await' does not exist in the current context
+            //         _ = await? t;
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "await").WithArguments("await").WithLocation(7, 13),
+            // (7,21): error CS1003: Syntax error, ':' expected
+            //         _ = await? t;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(7, 21),
+            // (7,21): error CS1525: Invalid expression term ';'
+            //         _ = await? t;
+            Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 21));
+    }
+
+    [Fact]
     public void Deconstruction_TupleResult_ViaGetValueOrDefault_Works()
     {
         // Same operand as above, but use `.GetValueOrDefault()` to get the tuple value.
