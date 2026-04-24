@@ -21,6 +21,18 @@
     {
       "type": "find-interface-implementation",
       "name": "ITask"
+    },
+    {
+      "type": "find-member-definition",
+      "name": "Execute"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "BuildManager"
+    },
+    {
+      "type": "find-member-definition",
+      "name": "Build"
     }
   ]
 }

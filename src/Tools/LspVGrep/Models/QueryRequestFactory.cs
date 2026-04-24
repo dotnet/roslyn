@@ -39,6 +39,7 @@ internal static class QueryRequestFactory
             QueryTypes.FindTypeDefinition => CreateFindTypeDefinitionQuery(definition, index),
             QueryTypes.FindInterfaceImplementation => CreateNameOnlyQuery<FindInterfaceImplementationQuery>(definition, index),
             QueryTypes.FindDerivedTypes => CreateNameOnlyQuery<FindDerivedTypesQuery>(definition, index),
+            QueryTypes.FindMemberDefinition => CreateNameOnlyQuery<FindMemberDefinitionQuery>(definition, index),
             _ => throw new InvalidDataException(
                 $"Query #{index + 1} has unsupported type '{definition.Type}'.")
         };

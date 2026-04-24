@@ -60,6 +60,34 @@ internal sealed class ExternalSearchRunner
             });
     }
 
+    public async Task<ExternalSearchResult> SearchMemberDefinitionPwshAsync(
+        string directoryPath,
+        string memberName,
+        CancellationToken cancellationToken)
+    {
+        // Match lines where a visibility/type keyword precedes the member name,
+        // followed by ( (method), < (generic), { (property), = or ; (field).
+        var pattern = $@"\b(void|bool|int|long|float|double|string|char|byte|decimal|object|var|Task|static|async|public|private|protected|internal|override|virtual|abstract|sealed|readonly|new|partial|extern)\s+.*\b{Regex.Escape(memberName)}\b\s*[\(<\{{=;]";
+
+        var script = string.Join(" ",
+            $"Get-ChildItem -Path '{EscapePwshString(directoryPath)}' -Recurse -Filter '*.cs'",
+            "| Where-Object { $_.FullName -notmatch '\\\\(bin|obj)\\\\' }",
+            $"| Select-String -Pattern '{EscapePwshString(pattern)}'",
+            "| ForEach-Object { \"$($_.Path):$($_.LineNumber): $($_.Line.TrimStart())\" }");
+
+        return await TryRunAsync(
+            fileName: "pwsh",
+            directoryPath,
+            cancellationToken,
+            argumentBuilder: arguments =>
+            {
+                arguments.Add("-NoProfile");
+                arguments.Add("-NonInteractive");
+                arguments.Add("-Command");
+                arguments.Add(script);
+            });
+    }
+
     private static string EscapePwshString(string value) =>
         value.Replace("'", "''");
 

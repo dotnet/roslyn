@@ -21,6 +21,18 @@
     {
       "type": "find-interface-implementation",
       "name": "IDisposable"
+    },
+    {
+      "type": "find-member-definition",
+      "name": "GetHashCode"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "ArrayPool"
+    },
+    {
+      "type": "find-member-definition",
+      "name": "TryParse"
     }
   ]
 }

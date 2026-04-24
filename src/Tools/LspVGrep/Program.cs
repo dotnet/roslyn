@@ -44,7 +44,9 @@ internal static class Program
             new FindInterfaceImplementationPwshAlgorithm(),
             new FindInterfaceImplementationRoslynAlgorithm(),
             new FindDerivedTypesPwshAlgorithm(),
-            new FindDerivedTypesRoslynAlgorithm()
+            new FindDerivedTypesRoslynAlgorithm(),
+            new FindMemberDefinitionPwshAlgorithm(),
+            new FindMemberDefinitionRoslynAlgorithm()
         };
 
         var executor = new QueryExecutor(algorithms);

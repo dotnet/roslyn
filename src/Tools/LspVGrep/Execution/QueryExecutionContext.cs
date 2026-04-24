@@ -38,6 +38,9 @@ internal sealed class QueryExecutionContext : IDisposable
     public Task<ExternalSearchResult> SearchDerivedTypesPwshAsync(string typeName, CancellationToken cancellationToken) =>
         _externalSearchRunner.SearchDerivedTypesPwshAsync(DirectoryPath, typeName, cancellationToken);
 
+    public Task<ExternalSearchResult> SearchMemberDefinitionPwshAsync(string memberName, CancellationToken cancellationToken) =>
+        _externalSearchRunner.SearchMemberDefinitionPwshAsync(DirectoryPath, memberName, cancellationToken);
+
     public WorkspaceLoadResult? TryGetLoadedWorkspace()
     {
         return _workspaceLoadTask is { IsCompletedSuccessfully: true }

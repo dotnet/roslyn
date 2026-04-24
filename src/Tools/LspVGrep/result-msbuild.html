@@ -22,7 +22,7 @@
 <body>
   <h1>LspVGrepTool Report</h1>
   <p><strong>Directory:</strong> Q:\repos\msbuild</p>
-  <p><strong>Roslyn target:</strong> Solution - Q:\repos\msbuild\MSBuild.slnx (loaded in 31.8s)</p>
+  <p><strong>Roslyn target:</strong> Solution - Q:\repos\msbuild\MSBuild.slnx (loaded in 55.4s)</p>
   <section>
     <article class="query">
       <h2>find-type-definition</h2>
@@ -31,13 +31,13 @@
       </dl>
       <section class="algorithm">
         <h3>find-type-definition-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 209 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 3.2s | string search for &#39;(class|record|struct|interface|enum) Project&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 209 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 3.3s | string search for &#39;(class|record|struct|interface|enum) Project&#39;</p>
         <pre>Q:\repos\msbuild\src\Build\Definition\Project.cs:50: public class Project : ILinkableObject
 Q:\repos\msbuild\src\Samples\XmlFileLogger\ObjectModel\Project.cs:18: internal sealed class Project : LogProcessNode</pre>
       </section>
       <section class="algorithm">
         <h3>find-type-definition-grep-nameonly</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 2111055 | <strong>Lines:</strong> 15263 | <strong>Time:</strong> 5.2s | string search for &#39;Project&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 2111055 | <strong>Lines:</strong> 15263 | <strong>Time:</strong> 4.5s | string search for &#39;Project&#39;</p>
         <pre id="expand-0-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:54: //       The rationale for this is that we can detect during design-time builds in the Evaluator (which populates this) that the project cache will be used so that we don&#39;t
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:55: //       need to evaluate the project at build time just to figure that out, which would regress perf for scenarios which don&#39;t use the project cache.
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:189: /// Mapping of unnamed project instances to the file names assigned to them.
@@ -15315,14 +15315,14 @@ Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:1526: // Assert: Work
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 265 | <strong>Lines:</strong> 3 | <strong>Time:</strong> 6.8s | called SymbolFinder.FindDeclarationsAsync(project, &#39;Project&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 265 | <strong>Lines:</strong> 3 | <strong>Time:</strong> 6.5s | called SymbolFinder.FindDeclarationsAsync(project, &#39;Project&#39;, SymbolFilter.Type)</p>
         <pre>Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Evaluation.Project - Q:\repos\msbuild\src\Build\Definition\Project.cs(50,18)
 Microsoft.Build.Logging.StructuredLogger.Project - Q:\repos\msbuild\src\Samples\XmlFileLogger\ObjectModel\Project.cs(18,27)</pre>
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-with-pattern</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 58252 | <strong>Lines:</strong> 360 | <strong>Time:</strong> 2.9s | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;Project&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 58252 | <strong>Lines:</strong> 360 | <strong>Time:</strong> 2.7s | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;Project&#39;, SymbolFilter.Type)</p>
         <pre id="expand-1-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 MSBuild.Benchmarks.DefiningProjectModifiersBenchmark - Q:\repos\msbuild\src\MSBuild.Benchmarks\DefiningProjectModifiersBenchmark.cs(13,14)
 Microsoft.Build.BackEnd.Logging.ProjectFullKey - Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelLoggerHelpers.cs(592,20)
@@ -15697,7 +15697,7 @@ Microsoft.Build.UnitTests.XamlDataDrivenToolTask_Tests.ProjectFileTests - Q:\rep
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-workspaceSymbol</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 58252 | <strong>Lines:</strong> 360 | <strong>Time:</strong> 3.2s | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;Project&#39;) without SymbolFilter</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 58252 | <strong>Lines:</strong> 360 | <strong>Time:</strong> 3.3s | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;Project&#39;) without SymbolFilter</p>
         <pre id="expand-2-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 MSBuild.Benchmarks.DefiningProjectModifiersBenchmark - Q:\repos\msbuild\src\MSBuild.Benchmarks\DefiningProjectModifiersBenchmark.cs(13,14)
 Microsoft.Build.BackEnd.Logging.ProjectFullKey - Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelLoggerHelpers.cs(592,20)
@@ -16078,12 +16078,12 @@ Microsoft.Build.UnitTests.XamlDataDrivenToolTask_Tests.ProjectFileTests - Q:\rep
       </dl>
       <section class="algorithm">
         <h3>find-type-definition-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 301 | <strong>Lines:</strong> 1 | <strong>Time:</strong> 3.1s | string search for &#39;(class|record|struct|interface|enum) ProjectInstance&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 301 | <strong>Lines:</strong> 1 | <strong>Time:</strong> 2.9s | string search for &#39;(class|record|struct|interface|enum) ProjectInstance&#39;</p>
         <pre>Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:79: public class ProjectInstance : IPropertyProvider&lt;ProjectPropertyInstance&gt;, IItemProvider&lt;ProjectItemInstance&gt;, IEvaluatorData&lt;ProjectPropertyInstance, ProjectItemInstance, ProjectMetadataInstance, ProjectItemDefinitionInstance&gt;, ITranslatable</pre>
       </section>
       <section class="algorithm">
         <h3>find-type-definition-grep-nameonly</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 175741 | <strong>Lines:</strong> 1097 | <strong>Time:</strong> 3.0s | string search for &#39;ProjectInstance&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 175741 | <strong>Lines:</strong> 1097 | <strong>Time:</strong> 2.6s | string search for &#39;ProjectInstance&#39;</p>
         <pre id="expand-3-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:191: private readonly Dictionary&lt;ProjectInstance, string&gt; _unnamedProjectInstanceToNames;
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:306: _unnamedProjectInstanceToNames = new Dictionary&lt;ProjectInstance, string&gt;();
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:921: /// This methods requests the BuildManager to find a matching ProjectInstance in its cache of previously-built projects.
@@ -17195,13 +17195,13 @@ Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:305: ProjectInstance
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 153 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 35ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 153 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 33ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
         <pre>Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Execution.ProjectInstance - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(79,18)</pre>
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-with-pattern</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 20ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 18ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
         <pre id="expand-4-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Engine.UnitTests.Instance.ProjectItemGroupTaskItemInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectItemGroupTaskItemInstance_Internal_Tests.cs(17,18)
 Microsoft.Build.Engine.UnitTests.Instance.ProjectPropertyGroupTaskPropertyInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectPropertyGroupTaskPropertyInstance_Internal_Tests.cs(16,18)
@@ -17264,7 +17264,7 @@ Microsoft.Build.UnitTests.ObjectModelHelpers.ProjectItemInstanceTestItemAdapter 
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-workspaceSymbol</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 176ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;) without SymbolFilter</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 173ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;) without SymbolFilter</p>
         <pre id="expand-5-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Engine.UnitTests.Instance.ProjectItemGroupTaskItemInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectItemGroupTaskItemInstance_Internal_Tests.cs(17,18)
 Microsoft.Build.Engine.UnitTests.Instance.ProjectPropertyGroupTaskPropertyInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectPropertyGroupTaskPropertyInstance_Internal_Tests.cs(16,18)
@@ -17333,7 +17333,7 @@ Microsoft.Build.UnitTests.ObjectModelHelpers.ProjectItemInstanceTestItemAdapter 
       </dl>
       <section class="algorithm">
         <h3>find-type-definition-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 394 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 3.1s | string search for &#39;(class|record|struct|interface|enum) TaskItem&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 394 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 2.9s | string search for &#39;(class|record|struct|interface|enum) TaskItem&#39;</p>
         <pre>Q:\repos\msbuild\src\Build\Instance\ProjectItemInstance.cs:781: internal sealed class TaskItem :
 Q:\repos\msbuild\src\Tasks.UnitTests\CommandLineGenerator_Tests.cs:158: private sealed class TaskItem : ITaskItem
 Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TestHelpers.cs:62: public class TaskItem : ITaskItem
@@ -17341,7 +17341,7 @@ Q:\repos\msbuild\src\Utilities\TaskItem.cs:36: public sealed class TaskItem :</p
       </section>
       <section class="algorithm">
         <h3>find-type-definition-grep-nameonly</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 414494 | <strong>Lines:</strong> 2936 | <strong>Time:</strong> 3.2s | string search for &#39;TaskItem&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 414494 | <strong>Lines:</strong> 2936 | <strong>Time:</strong> 2.8s | string search for &#39;TaskItem&#39;</p>
         <pre id="expand-6-short">Q:\repos\msbuild\src\Build\BackEnd\Components\Communications\LogMessagePacket.cs:13: using TaskItem = Microsoft.Build.Execution.ProjectItemInstance.TaskItem;
 Q:\repos\msbuild\src\Build\BackEnd\Components\Communications\LogMessagePacket.cs:240: if (kvp.item is ITaskItem taskItem)
 Q:\repos\msbuild\src\Build\BackEnd\Components\Communications\LogMessagePacket.cs:242: writer.Write(taskItem.ItemSpec);
@@ -20292,7 +20292,7 @@ Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\TrackedDependencies
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 399 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 32ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;TaskItem&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 399 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 81ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;TaskItem&#39;, SymbolFilter.Type)</p>
         <pre>Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Execution.ProjectItemInstance.TaskItem - Q:\repos\msbuild\src\Build\Instance\ProjectItemInstance.cs(781,31)
 Microsoft.Build.UnitTests.CommandLineGenerator_Tests.TaskItem - Q:\repos\msbuild\src\Tasks.UnitTests\CommandLineGenerator_Tests.cs(158,30)
@@ -20300,7 +20300,7 @@ Microsoft.Build.Utilities.TaskItem - Q:\repos\msbuild\src\Utilities\TaskItem.cs(
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-with-pattern</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 4491 | <strong>Lines:</strong> 33 | <strong>Time:</strong> 21ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;TaskItem&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 4491 | <strong>Lines:</strong> 33 | <strong>Time:</strong> 20ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;TaskItem&#39;, SymbolFilter.Type)</p>
         <pre id="expand-7-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.BackEnd.Logging.BaseConsoleLogger.ITaskItemItemSpecComparer - Q:\repos\msbuild\src\Build\Logging\BaseConsoleLogger.cs(107,24)
 Microsoft.Build.BackEnd.TaskParameter.TaskParameterTaskItem - Q:\repos\msbuild\src\Shared\TaskParameter.cs(538,23)
@@ -20348,7 +20348,7 @@ Microsoft.Build.Utilities.TaskItem - Q:\repos\msbuild\src\Utilities\TaskItem.cs(
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-workspaceSymbol</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 4491 | <strong>Lines:</strong> 33 | <strong>Time:</strong> 187ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;TaskItem&#39;) without SymbolFilter</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 4491 | <strong>Lines:</strong> 33 | <strong>Time:</strong> 181ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;TaskItem&#39;) without SymbolFilter</p>
         <pre id="expand-8-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.BackEnd.Logging.BaseConsoleLogger.ITaskItemItemSpecComparer - Q:\repos\msbuild\src\Build\Logging\BaseConsoleLogger.cs(107,24)
 Microsoft.Build.BackEnd.TaskParameter.TaskParameterTaskItem - Q:\repos\msbuild\src\Shared\TaskParameter.cs(538,23)
@@ -20402,7 +20402,7 @@ Microsoft.Build.Utilities.TaskItem - Q:\repos\msbuild\src\Utilities\TaskItem.cs(
       </dl>
       <section class="algorithm">
         <h3>find-derived-types-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 35288 | <strong>Lines:</strong> 244 | <strong>Time:</strong> 3.3s | string search for &#39;(class|record|struct) \w+ ... Task&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 35288 | <strong>Lines:</strong> 244 | <strong>Time:</strong> 2.8s | string search for &#39;(class|record|struct) \w+ ... Task&#39;</p>
         <pre id="expand-9-short">Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\CallTarget.cs:16: /// This class implements the &quot;CallTarget&quot; task, which invokes other targets within the same
 Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs:20: /// This class implements the &quot;MSBuild&quot; task, which hands off child project files to the MSBuild engine to be built.
 Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\PropertyGroupIntrinsicTask.cs:19: /// This class represents a PropertyGroup intrinsic task.
@@ -20661,7 +20661,7 @@ Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\TrackedDependencies
       </section>
       <section class="algorithm">
         <h3>roslyn-find-derived-types</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 17235 | <strong>Lines:</strong> 155 | <strong>Time:</strong> 289ms | called SymbolFinder.FindDerivedClassesAsync(Microsoft.Build.Utilities.Task)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 17235 | <strong>Lines:</strong> 155 | <strong>Time:</strong> 274ms | called SymbolFinder.FindDerivedClassesAsync(Microsoft.Build.Utilities.Task)</p>
         <pre id="expand-10-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Target: Microsoft.Build.Utilities.Task (Class)
 AssemblyLoadContextTest.RegisterObject - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(69,18)
@@ -20837,7 +20837,7 @@ TaskWithDependency.LogStringFromDependency - Q:\repos\msbuild\src\Samples\TaskWi
       </dl>
       <section class="algorithm">
         <h3>find-interface-implementation-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 1514 | <strong>Lines:</strong> 13 | <strong>Time:</strong> 2.5s | string search for &#39;: ...ITask&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 1514 | <strong>Lines:</strong> 13 | <strong>Time:</strong> 2.3s | string search for &#39;: ...ITask&#39;</p>
         <pre id="expand-11-short">Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\CallTarget.cs:23: internal class CallTarget : ITask
 Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs:23: internal class MSBuild : ITask, IMultiThreadableTask
 Q:\repos\msbuild\src\Build.UnitTests\MockTask.cs:380: internal sealed class MockTask : MockTaskBase, ITask
@@ -20865,7 +20865,7 @@ Q:\repos\msbuild\src\Utilities\Task.cs:15: public abstract class Task : ITask</p
       </section>
       <section class="algorithm">
         <h3>roslyn-find-implementations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 18940 | <strong>Lines:</strong> 170 | <strong>Time:</strong> 94ms | called SymbolFinder.FindImplementationsAsync(Microsoft.Build.Framework.ITask)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 18940 | <strong>Lines:</strong> 170 | <strong>Time:</strong> 86ms | called SymbolFinder.FindImplementationsAsync(Microsoft.Build.Framework.ITask)</p>
         <pre id="expand-12-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Target: Microsoft.Build.Framework.ITask (Interface)
 AssemblyLoadContextTest.RegisterObject - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(69,18)
@@ -21047,6 +21047,980 @@ NullMetadataTask.NullMetadataTask - Q:\repos\msbuild\src\Build.UnitTests\BackEnd
 SampleTask.ExampleTaskX64 - Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX64\ExampleTaskX64.cs(8,18)
 SampleTask.ExampleTaskX86 - Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX86\ExampleTaskX86.cs(8,18)
 TaskWithDependency.LogStringFromDependency - Q:\repos\msbuild\src\Samples\TaskWithDependency\LogStringFromDependency.cs(10,18)</pre>
+      </section>
+    </article>
+    <article class="query">
+      <h2>find-member-definition</h2>
+      <dl>
+        <dt>name</dt><dd>Execute</dd>
+      </dl>
+      <section class="algorithm">
+        <h3>find-member-definition-grep</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 84402 | <strong>Lines:</strong> 771 | <strong>Time:</strong> 5.1s | string search for member declaration &#39;Execute&#39;</p>
+        <pre id="expand-13-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:62: public abstract TResultData Execute();
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:182: public override BuildResult Execute()
+Q:\repos\msbuild\src\Build\BackEnd\Client\MSBuildClient.cs:152: public MSBuildClientExitResult Execute(CancellationToken cancellationToken)
+Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\CallTarget.cs:78: public bool Execute()
+Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs:228: public bool Execute()
+Q:\repos\msbuild\src\Build\BackEnd\TaskExecutionHost\TaskExecutionHost.cs:631: public bool Execute()
+Q:\repos\msbuild\src\Build\Evaluation\Expander.cs:3126: object result = function.Execute(item.Key, expander._properties, ExpanderOptions.ExpandAll, elementLocation);
+Q:\repos\msbuild\src\Build\Evaluation\Expander.cs:3983: internal object Execute(object objectInstance, IPropertyProvider&lt;T&gt; properties, ExpanderOptions options, IElementLocation elementLocation)
+Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs:52: public override GraphBuildResult Execute()
+Q:\repos\msbuild\src\Build\Instance\TaskFactories\TaskHostTask.cs:303: public bool Execute()
+<span class="truncated-link" onclick="document.getElementById('expand-13-short').style.display='none'; document.getElementById('expand-13-full').style.display='block';">... truncated (761 more lines) — click to expand</span></pre>
+        <pre id="expand-13-full" class="full-result">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:62: public abstract TResultData Execute();
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:182: public override BuildResult Execute()
+Q:\repos\msbuild\src\Build\BackEnd\Client\MSBuildClient.cs:152: public MSBuildClientExitResult Execute(CancellationToken cancellationToken)
+Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\CallTarget.cs:78: public bool Execute()
+Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs:228: public bool Execute()
+Q:\repos\msbuild\src\Build\BackEnd\TaskExecutionHost\TaskExecutionHost.cs:631: public bool Execute()
+Q:\repos\msbuild\src\Build\Evaluation\Expander.cs:3126: object result = function.Execute(item.Key, expander._properties, ExpanderOptions.ExpandAll, elementLocation);
+Q:\repos\msbuild\src\Build\Evaluation\Expander.cs:3983: internal object Execute(object objectInstance, IPropertyProvider&lt;T&gt; properties, ExpanderOptions options, IElementLocation elementLocation)
+Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs:52: public override GraphBuildResult Execute()
+Q:\repos\msbuild\src\Build\Instance\TaskFactories\TaskHostTask.cs:303: public bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\EscapingInProjects_Tests.cs:52: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\FixPathOnUnix_Tests.cs:60: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\MockTask.cs:414: public bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\TaskThatReturnsMinimalItem.cs:22: public bool Execute() =&gt; true;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs:31: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs:73: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs:87: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyTaskFactory_Tests.cs:837: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs:112: var result = submission.Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:869: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3558: var result = localBuildManager.PendBuildRequest(data).Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3766: var results = submission.Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3850: var result = submission.Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3918: var results = submission.Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4007: var result = submission.Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4426: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildProjectFileAndReportPidTask.cs:40: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildProjectFileTask.cs:46: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\CustomBuildEventTask.cs:14: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\CustomLogAndReturnTask.cs:27: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\FailingBuilderTask.cs:18: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\FailingTask.cs:13: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\GetGlobalPropertiesTask.cs:20: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\IsRunningMultipleNodesTask.cs:19: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ItemCreationTask.cs:53: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\NullMetadataTask.cs:22: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProcessIdTask.cs:23: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProcessIdTaskSidecar.cs:23: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProjectTelemetry_Tests.cs:127: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProjectTelemetry_Tests.cs:140: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProjectTelemetry_Tests.cs:151: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\RequestCoresTask.cs:32: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\RequestCoresWithFallbackTask.cs:42: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ReturnFailureWithoutLoggingErrorTask.cs:18: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\StringArrayWithNullsTask.cs:24: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilder_Tests.cs:1067: public bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilderTestTask.cs:1211: public bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskExecutionHost_Tests.cs:614: bool executeValue = _host.Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskExecutionHost_Tests.cs:630: bool executeValue = _host.Execute();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHost_MultiThreadableTask_Tests.cs:57: /// should be usable. The task accesses TaskEnvironment.ProjectDirectory in Execute() -
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHost_MultiThreadableTask_Tests.cs:114: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRegistry_Tests.cs:31: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:439: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:454: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:476: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskThatReturnsDictionaryTaskItem.cs:22: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskThatThrows.cs:18: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\Definition\ItemDefinitionGroup_Tests.cs:1900: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX64\ExampleTaskX64.cs:12: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX86\ExampleTaskX86.cs:12: public override bool Execute()
+Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleNetTask\ExampleTask\ExampleTask.cs:15: public override bool Execute()
+Q:\repos\msbuild\src\Framework\ICancelableTask.cs:17: /// Cancel() may be called at any time after the task has been instantiated, even before &lt;see cref=&quot;ITask.Execute()&quot;/&gt; is called.
+Q:\repos\msbuild\src\Framework\ITask.cs:42: bool Execute();
+Q:\repos\msbuild\src\MSBuild\MSBuildClientApp.cs:37: public static MSBuildApp.ExitType Execute(string[] commandLineArgs, CancellationToken cancellationToken)
+Q:\repos\msbuild\src\MSBuild\MSBuildClientApp.cs:58: public static MSBuildApp.ExitType Execute(string[] commandLineArgs, string msbuildLocation, CancellationToken cancellationToken)
+Q:\repos\msbuild\src\MSBuild\ValidateMSBuildPackageDependencyVersions.cs:25: public override bool Execute()
+Q:\repos\msbuild\src\MSBuild\XMake.cs:644: public static ExitType Execute(string[] commandLine)
+Q:\repos\msbuild\src\MSBuild.Bootstrap.Utils\Tasks\InstallDotNetCoreTask.cs:63: public override bool Execute()
+Q:\repos\msbuild\src\MSBuild.Bootstrap.Utils\Tasks\LocateVisualStudioTask.cs:33: public override bool Execute()
+Q:\repos\msbuild\src\MSBuild.UnitTests\MSBuildMultithreaded_Tests.cs:33: public override bool Execute()
+Q:\repos\msbuild\src\MSBuild.UnitTests\MSBuildServer_Tests.cs:35: public override bool Execute()
+Q:\repos\msbuild\src\MSBuild.UnitTests\MSBuildServer_Tests.cs:51: public override bool Execute()
+Q:\repos\msbuild\src\MSBuild.UnitTests\ValidateAssemblyLoadContext.cs:17: public override bool Execute()
+Q:\repos\msbuild\src\MSBuild.UnitTests\XMake_Tests.cs:2952: public override bool Execute()
+Q:\repos\msbuild\src\MSBuildTaskHost\OutOfProcTaskHost.cs:78: internal static ExitType Execute()
+Q:\repos\msbuild\src\MSBuildTaskHost\OutOfProcTaskHostNode.cs:491: // Don&#39;t bother aborting the task if it has passed the actual user task Execute()
+Q:\repos\msbuild\src\Samples\PortableTask\ShowItems.cs:16: public override bool Execute()
+Q:\repos\msbuild\src\Samples\PortableTask\Sleep.cs:15: public override bool Execute()
+Q:\repos\msbuild\src\Samples\TaskWithDependency\LogStringFromDependency.cs:12: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AddToWin32Manifest.cs:116: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Al.cs:391: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AspNetCompiler.cs:228: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AssignCulture.cs:134: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AssignLinkMetadata.cs:37: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AssignProjectConfiguration.cs:172: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AssignTargetPath.cs:53: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AxReference.cs:94: bool generateWrapperSucceeded = axImp.Execute();
+Q:\repos\msbuild\src\Tasks\AxTlbBaseTask.cs:80: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\CallTarget.cs:62: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\CombinePath.cs:56: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\CombineTargetFrameworkInfoProperties.cs:38: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\CombineXmlElements.cs:33: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ConvertToAbsolutePath.cs:47: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Copy.cs:433: internal bool Execute(
+Q:\repos\msbuild\src\Tasks\Copy.cs:1130: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\CreateItem.cs:55: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\CreateManifestResourceName.cs:133: internal bool Execute(
+Q:\repos\msbuild\src\Tasks\CreateManifestResourceName.cs:271: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\CreateProperty.cs:58: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Delete.cs:104: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\DownloadFile.cs:85: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Error.cs:50: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ErrorFromResources.cs:50: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FindAppConfigFile.cs:75: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FindInList.cs:69: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FindInvalidProjectReferences.cs:83: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FormatUrl.cs:22: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FormatVersion.cs:40: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GenerateApplicationManifest.cs:113: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GenerateBootstrapper.cs:64: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GenerateDeploymentManifest.cs:155: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GenerateLauncher.cs:43: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GenerateManifestBase.cs:273: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GenerateResource.cs:654: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GenerateResource.cs:1201: bool thisBatchSucceeded = resGen.Execute();
+Q:\repos\msbuild\src\Tasks\GenerateTrustInfo.cs:42: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetAssembliesMetadata.cs:36: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetAssemblyIdentity.cs:63: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetCompatiblePlatform.cs:52: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetFrameworkPath.cs:23: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetFrameworkSDKPath.cs:392: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetInstalledSDKLocations.cs:125: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetReferenceAssemblyPaths.cs:166: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetSDKReferenceFiles.cs:228: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\GetSDKReferenceFiles.cs:241: internal bool Execute(GetAssemblyName getAssemblyName, GetAssemblyRuntimeVersion getRuntimeVersion, FileExists fileExists, bool synchronous)
+Q:\repos\msbuild\src\Tasks\Hash.cs:61: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\LC.cs:102: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\MakeDir.cs:47: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Message.cs:49: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Move.cs:92: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\MSBuild.cs:199: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\MSBuildInternalMessage.cs:56: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\RegisterAssembly.cs:66: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\RemoveDir.cs:53: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\RequiresFramework35SP1Assembly.cs:176: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResGen.cs:218: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResolveCodeAnalysisRuleSet.cs:47: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResolveComReference.cs:311: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResolveKeySource.cs:59: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResolveManifestFiles.cs:161: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResolveNativeReference.cs:105: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResolveNonMSBuildProjectOutput.cs:78: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ResolveSDKReference.cs:270: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\SetRidAgnosticValueForProjects.cs:20: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\SGen.cs:129: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\SignFile.cs:45: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\TaskRequiresFramework.cs:26: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Telemetry.cs:33: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Touch.cs:151: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\UnregisterAssembly.cs:54: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Unzip.cs:89: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\UpdateManifest.cs:36: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\Warning.cs:50: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\WriteCodeFragment.cs:82: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\XmlPeek.cs:69: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\XmlPoke.cs:57: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\XslTransformation.cs:103: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ZipDirectory.cs:64: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AssemblyDependency\GenerateBindingRedirects.cs:55: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AssemblyDependency\ResolveAssemblyReference.cs:2191: internal bool Execute(
+Q:\repos\msbuild\src\Tasks\AssemblyDependency\ResolveAssemblyReference.cs:3262: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\AssemblyDependency\ResolveAssemblyReference.cs:3272: bool success = rarClient.Execute(this);
+Q:\repos\msbuild\src\Tasks\AssemblyDependency\Node\OutOfProcRarClient.cs:53: internal bool Execute(ResolveAssemblyReference rarTask)
+Q:\repos\msbuild\src\Tasks\AssemblyDependency\Node\OutOfProcRarNodeEndpoint.cs:101: bool success = rarTask.Execute();
+Q:\repos\msbuild\src\Tasks\FileIO\GetFileHash.cs:71: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FileIO\ReadLinesFromFile.cs:40: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FileIO\VerifyFileHash.cs:44: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\FileIO\WriteLinesToFile.cs:67: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ListOperators\FindUnderPath.cs:57: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\ListOperators\RemoveDuplicates.cs:40: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\XamlTaskFactory\XamlDataDrivenToolTask.cs:141: public override bool Execute()
+Q:\repos\msbuild\src\Tasks\XamlTaskFactory\XamlDataDrivenToolTask.cs:157: bool success = base.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AddToWin32Manifest_Tests.cs:51: var result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignLinkMetadata_Tests.cs:32: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignLinkMetadata_Tests.cs:53: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignLinkMetadata_Tests.cs:72: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignLinkMetadata_Tests.cs:99: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignLinkMetadata_Tests.cs:123: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignLinkMetadata_Tests.cs:145: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignLinkMetadata_Tests.cs:165: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssignProjectConfiguration_Tests.cs:273: bool result = rpc.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AxTlbBaseTask_Tests.cs:329: bool taskPassed = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AxTlbBaseTask_Tests.cs:362: bool taskPassed = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CodeTaskFactoryTests.cs:628: Public Overrides Function Execute() As Boolean
+Q:\repos\msbuild\src\Tasks.UnitTests\CodeTaskFactoryTests.cs:830: override function Execute() : System.Boolean
+Q:\repos\msbuild\src\Tasks.UnitTests\CodeTaskFactoryTests.cs:863: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\CodeTaskFactoryTests.cs:926: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\CodeTaskFactoryTests.cs:982: public bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\CodeTaskFactoryTests.cs:1133: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\CodeTaskFactoryTests.cs:1296: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1141: var success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1261: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1309: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1357: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1400: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1472: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1529: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1577: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1640: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1716: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1789: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1844: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1906: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:1979: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2044: bool success = t.Execute(delegate (FileState source, FileState dest)
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2112: bool success = t.Execute(delegate (FileState source, FileState dest)
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2182: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2231: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2270: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2297: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2322: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2346: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2369: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2397: bool result = t.Execute(copyFunctor.Copy, !isUseSingleThreadedCopy);
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2467: bool result = t.Execute(copyFunctor.Copy, !isUseSingleThreadedCopy);
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2495: bool result = t.Execute(copyFunctor.Copy, !isUseSingleThreadedCopy);
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2530: bool result = t.Execute(copyFunctor.Copy, !isUseSingleThreadedCopy);
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2560: bool result = t.Execute(copyFunctor.Copy, !isUseSingleThreadedCopy);
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2627: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2718: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2815: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2885: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2951: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:2982: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Copy_Tests.cs:3205: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateCSharpManifestResourceName_Tests.cs:366: bool success = t.Execute(
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateCSharpManifestResourceName_Tests.cs:800: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateCSharpManifestResourceName_Tests.cs:826: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateCSharpManifestResourceName_Tests.cs:852: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateCSharpManifestResourceName_Tests.cs:877: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:56: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:74: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:92: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:111: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:126: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:145: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:228: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:251: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:276: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateVisualBasicManifestResourceName_Tests.cs:355: bool success = t.Execute(new Microsoft.Build.Tasks.CreateFileStream(CreateFileStream));
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateVisualBasicManifestResourceName_Tests.cs:520: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateVisualBasicManifestResourceName_Tests.cs:546: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateVisualBasicManifestResourceName_Tests.cs:572: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateVisualBasicManifestResourceName_Tests.cs:597: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\DownloadFile_Tests.cs:47: Task&lt;bool&gt; task = Task.Run(() =&gt; downloadFile.Execute());
+Q:\repos\msbuild\src\Tasks.UnitTests\DownloadFile_Tests.cs:313: var runaway = Task.Run(() =&gt; downloadFile.Execute());
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:27: bool retval = m.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:49: bool retval = m.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:71: bool retval = m.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:94: bool retval = w.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:118: bool retval = w.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:143: bool retval = w.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:169: bool retval = err.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:195: bool retval = err.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:219: bool retval = err.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:242: bool retval = err.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:269: bool retval = err.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:297: bool retval = err.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ErrorWarningMessage_Tests.cs:324: bool retval = err.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:90: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:130: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:147: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:166: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:197: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:215: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:243: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:271: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:281: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:293: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:326: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:399: bool taskSucceeded = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:637: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:650: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:693: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:724: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:752: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:769: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:784: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:801: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:819: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:832: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:878: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:893: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:928: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:1064: bool result = exec.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\FindInvalidProjectReferences_Tests.cs:42: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\FindUnderPath_Tests.cs:31: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\FindUnderPath_Tests.cs:60: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\FindUnderPath_Tests.cs:89: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GenerateBindingRedirects_Tests.cs:329: bool executionResult = bindingRedirects.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetAssembliesMetadata_Tests.cs:39: bool isSuccess = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetAssembliesMetadata_Tests.cs:67: bool isSuccess = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetInstalledSDKLocations_Tests.cs:202: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetInstalledSDKLocations_Tests.cs:220: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetInstalledSDKLocations_Tests.cs:239: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetInstalledSDKLocations_Tests.cs:258: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetInstalledSDKLocations_Tests.cs:282: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetInstalledSDKLocations_Tests.cs:329: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetInstalledSDKLocations_Tests.cs:403: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetReferencePaths_Tests.cs:167: bool success = getReferencePaths.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetReferencePaths_Tests.cs:187: bool success = getReferencePaths.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:350: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:376: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:402: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:427: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:502: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:551: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:603: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:627: bool success2 = t2.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:669: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:718: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:762: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:785: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:810: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:862: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:913: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:950: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1012: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1043: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1075: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1107: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1136: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1164: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1192: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1227: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1273: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1316: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\GetSDKReference_Tests.cs:1362: bool success = t.Execute(_getAssemblyName, _getAssemblyRuntimeVersion, p =&gt; FileUtilities.FileExistsNoThrow(p), synchronous: true);
+Q:\repos\msbuild\src\Tasks.UnitTests\MakeDir_Tests.cs:40: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MakeDir_Tests.cs:90: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MakeDir_Tests.cs:145: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MakeDir_Tests.cs:193: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MakeDir_Tests.cs:256: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:464: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:627: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:672: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:714: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:778: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:819: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:849: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:868: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:887: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Move_Tests.cs:906: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:129: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:525: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:583: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:639: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:694: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:741: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:799: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:854: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:912: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:1166: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:1343: bool success = msbuildTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:1533: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\RemoveDuplicates_Tests.cs:25: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\RemoveDuplicates_Tests.cs:43: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\RemoveDuplicates_Tests.cs:68: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\RemoveDuplicates_Tests.cs:94: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\RemoveDuplicates_Tests.cs:113: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\RemoveDuplicates_Tests.cs:132: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\RemoveDuplicates_Tests.cs:147: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:64: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:87: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:107: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:133: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:158: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:184: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:208: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:232: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:262: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:285: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:304: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveCodeAnalysisRuleSet_Tests.cs:323: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveNonMSBuildProjectOutput_Tests.cs:194: bool result = rvpo.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:203: bool succeeded1 = t1.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:221: bool succeeded2 = t2.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:239: bool succeeded3 = t3.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:257: bool succeeded3a = t3a.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:278: bool succeeded4 = t4.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:295: bool succeeded5 = t5.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:444: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:505: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:612: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:667: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:725: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:780: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:835: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:890: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:947: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1001: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1056: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1089: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1127: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1168: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1206: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1245: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1311: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1350: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1388: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1417: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1441: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1457: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1478: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1525: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1582: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1674: bool succeeded1 = t1.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1687: bool succeeded2 = t2.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1755: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1853: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:1932: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2003: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2068: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2143: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2212: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2282: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2354: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2426: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2495: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2569: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2636: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2701: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2768: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2861: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:2959: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3071: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3170: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3250: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3325: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3401: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3469: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3543: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3605: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3679: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:325: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:394: const string method = @&quot;Public Overrides Function Execute() As Boolean
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:454: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:502: const string method = @&quot;public override bool Execute() { int x = 0; return true; }&quot;;
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:519: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:559: const string sourceCodeFileContents = @&quot;public override bool Execute() { int x = 0; return true; }&quot;;
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:768: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:812: public bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:850: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\RoslynCodeTaskFactory_Tests.cs:1261: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\SdkToolsPathUtility_Tests.cs:218: public override bool Execute()
+Q:\repos\msbuild\src\Tasks.UnitTests\TelemetryTaskTests.cs:24: bool retVal = telemetryTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\TelemetryTaskTests.cs:46: bool retVal = telemetryTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\TelemetryTaskTests.cs:67: bool retVal = telemetryTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\TelemetryTaskTests.cs:88: bool retVal = telemetryTask.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:31: private bool Execute(Touch t)
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:197: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:221: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:245: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:271: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:293: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:334: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:360: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:387: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs:412: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:36: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:53: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:70: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:90: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:117: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:137: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:161: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:187: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:218: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:246: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:266: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:285: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:309: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:339: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:366: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:393: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:416: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:450: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:493: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:525: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:548: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:573: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:598: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:631: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:668: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:701: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:725: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:749: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:775: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:809: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:1149: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:1196: var result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:1230: var result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteCodeFragment_Tests.cs:1307: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\XamlDataDrivenToolTask_Tests.cs:420: bool result = task.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\XmlPeek_Tests.cs:273: bool executeResult = p.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\XmlPeek_Tests.cs:302: bool result = p.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\XmlPoke_Tests.cs:283: bool result = p.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\XslTransformation_Tests.cs:461: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\AssemblyFoldersFromConfig_Tests.cs:182: var success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:69: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:116: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:167: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:243: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:299: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:350: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:401: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\FilePrimary.cs:450: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\InstalledSDKResolverFixture.cs:42: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\InstalledSDKResolverFixture.cs:89: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:116: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:156: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:185: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:232: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:293: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:342: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:374: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:412: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:815: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:1010: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:1046: bool retval = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:1066: bool retval = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:1085: bool retval = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:1110: bool retval = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:1130: bool retval = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:1150: bool retval = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:2422: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3144: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3167: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3205: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3225: bool succeeded = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3525: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3572: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3614: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3690: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3740: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3782: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3817: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:3854: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:4254: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:4641: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:4679: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:8158: bool success = Execute(t, false);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:8207: bool success = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Miscellaneous.cs:8353: bool success = Execute(t, false);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\NonSpecificVersionStrictPrimary.cs:74: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\NonSpecificVersionStrictPrimary.cs:126: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\NonSpecificVersionStrictPrimary.cs:179: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\NonSpecificVersionStrictPrimary.cs:231: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\NonSpecificVersionStrictPrimary.cs:283: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Perf.cs:77: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Perf.cs:122: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\ResolveAssemblyReferenceTestFixture.cs:2969: protected static bool Execute(ResolveAssemblyReference t, RARSimulationMode RARSimulationMode = RARSimulationMode.LoadAndBuildProject)
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\ResolveAssemblyReferenceTestFixture.cs:2986: protected static bool Execute(ResolveAssemblyReference t, bool buildConsistencyCheck, RARSimulationMode rarSimulationMode = RARSimulationMode.LoadAndBuildProject)
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SpecificVersionPrimary.cs:69: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SpecificVersionPrimary.cs:133: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SpecificVersionPrimary.cs:185: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SpecificVersionPrimary.cs:237: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SpecificVersionPrimary.cs:289: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependency.cs:68: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependency.cs:118: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:75: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:148: bool succeeded = Execute(t, false);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:205: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:255: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:307: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:373: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:419: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:461: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:505: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:550: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:595: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAppConfig.cs:632: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAutoUnify.cs:78: bool succeeded = Execute(t, rarSimulationMode);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAutoUnify.cs:149: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAutoUnify.cs:235: bool succeeded = Execute(t, false);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAutoUnify.cs:306: bool succeeded = Execute(t, false);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAutoUnify.cs:381: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAutoUnify.cs:438: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\StronglyNamedDependencyAutoUnify.cs:489: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SuggestedRedirects.cs:104: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SuggestedRedirects.cs:154: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SuggestedRedirects.cs:197: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\SuggestedRedirects.cs:242: bool result = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:154: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:257: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:293: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:326: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:356: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:388: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:428: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:460: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:493: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:533: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:569: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:604: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:638: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:699: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\WinMDTests.cs:770: bool succeeded = Execute(t);
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Node\OutOfProcRarNode_Tests.cs:47: bool result = rar.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Node\OutOfProcRarNode_Tests.cs:80: bool result = rar.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\Node\OutOfProcRarNode_Tests.cs:106: bool result = rar.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:1997: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2036: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2115: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2181: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2209: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2323: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2376: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2414: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2616: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2816: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:2847: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3110: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3148: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3185: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3222: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3265: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3309: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3493: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:3645: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResource_Tests.cs:4167: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1333: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1372: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1440: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1496: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1524: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1595: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1627: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1662: bool result = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:1861: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2036: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2069: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2335: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2377: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2414: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2451: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2494: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2540: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2724: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\GenerateResourceOutOfProc_Tests.cs:2876: bool success = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\ResGen_Tests.cs:361: bool taskPassed = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\ResGen_Tests.cs:453: bool taskPassed = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\ResGen_Tests.cs:512: bool taskPassed = t.Execute();
+Q:\repos\msbuild\src\Tasks.UnitTests\ResourceHandling\ResGen_Tests.cs:546: bool taskPassed = t.Execute();
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:29: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:48: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:69: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:87: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:106: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:124: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:143: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:162: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:180: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:199: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:224: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:244: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:262: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:282: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:306: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:326: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:346: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:370: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:390: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:411: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:436: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:459: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:484: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:506: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:527: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:549: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:570: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:592: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:614: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:638: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:662: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:683: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:703: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:726: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:744: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:792: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:811: public override bool Execute() =&gt; true;
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:834: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:857: public override bool Execute() =&gt; true;
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:872: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:895: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:924: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:951: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:969: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:989: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1012: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1030: public override bool Execute() =&gt; true;
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1047: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1068: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1093: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1115: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1134: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1153: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1171: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1193: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1213: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1233: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1253: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1273: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1291: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1309: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1327: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1347: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1465: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1486: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1508: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1534: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1555: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1584: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1603: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1629: public override bool Execute() =&gt; true;
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1647: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1674: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1696: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1717: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1750: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1772: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1792: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1813: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1834: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1856: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1880: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskAnalyzerTests.cs:1901: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:59: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:72: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:93: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:106: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:127: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:140: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:161: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:174: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:195: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:208: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:229: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\MultiThreadableTaskCodeFixProviderTests.cs:242: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TestHelpers.cs:31: bool Execute();
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TestHelpers.cs:81: public abstract bool Execute();
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:38: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:69: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:94: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:120: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:145: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:171: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:203: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TransitiveCallChainAnalyzerTests.cs:231: public override bool Execute()
+Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\WriteAllTextDetailedTest.cs:24: public override bool Execute()
+Q:\repos\msbuild\src\Utilities\AppDomainIsolatedTask.cs:112: public abstract bool Execute();
+Q:\repos\msbuild\src\Utilities\Task.cs:156: public abstract bool Execute();
+Q:\repos\msbuild\src\Utilities\ToolTask.cs:1450: public override bool Execute()
+Q:\repos\msbuild\src\Utilities.UnitTests\MockTask.cs:29: public override bool Execute() =&gt; true;
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:616: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:646: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:661: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:676: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:691: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:706: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:739: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:789: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:1031: bool result = task.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:1078: bool result = t.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:1107: bool result = t.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:1195: public override bool Execute()
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:1244: public override bool Execute() =&gt; true;
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs:1576: bool result = tool.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\FileTrackerTests.cs:496: bool success = csc.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\FileTrackerTests.cs:2287: bool compileSucceeded = csc.Execute();
+Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\TrackedDependenciesTests.cs:3547: public override bool Execute() =&gt; true;</pre>
+      </section>
+      <section class="algorithm">
+        <h3>roslyn-find-member-declarations</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 22279 | <strong>Lines:</strong> 167 | <strong>Time:</strong> 207ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;Execute&#39;, SymbolFilter.Member)</p>
+        <pre id="expand-14-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+AssemblyLoadContextTest.RegisterObject.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(73,30)
+AssemblyLoadContextTest.RetrieveObject.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(87,30)
+AssemblyLoadContextTest.ValidateAssemblyVersionRollForward.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(31,30)
+ItemCreationTask.ItemCreationTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ItemCreationTask.cs(53,30)
+Microsoft.Build.BackEnd.CallTarget.Execute() - Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\CallTarget.cs(78,21)
+Microsoft.Build.BackEnd.MSBuild.Execute() - Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs(228,21)
+Microsoft.Build.BackEnd.TaskExecutionHost.Execute() - Q:\repos\msbuild\src\Build\BackEnd\TaskExecutionHost\TaskExecutionHost.cs(631,21)
+Microsoft.Build.BackEnd.TaskHostTask.Execute() - Q:\repos\msbuild\src\Build\Instance\TaskFactories\TaskHostTask.cs(303,21)
+Microsoft.Build.CommandLine.MSBuildApp.Execute(string[]) - Q:\repos\msbuild\src\MSBuild\XMake.cs(644,32)
+<span class="truncated-link" onclick="document.getElementById('expand-14-short').style.display='none'; document.getElementById('expand-14-full').style.display='block';">... truncated (157 more lines) — click to expand</span></pre>
+        <pre id="expand-14-full" class="full-result">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+AssemblyLoadContextTest.RegisterObject.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(73,30)
+AssemblyLoadContextTest.RetrieveObject.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(87,30)
+AssemblyLoadContextTest.ValidateAssemblyVersionRollForward.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(31,30)
+ItemCreationTask.ItemCreationTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ItemCreationTask.cs(53,30)
+Microsoft.Build.BackEnd.CallTarget.Execute() - Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\CallTarget.cs(78,21)
+Microsoft.Build.BackEnd.MSBuild.Execute() - Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs(228,21)
+Microsoft.Build.BackEnd.TaskExecutionHost.Execute() - Q:\repos\msbuild\src\Build\BackEnd\TaskExecutionHost\TaskExecutionHost.cs(631,21)
+Microsoft.Build.BackEnd.TaskHostTask.Execute() - Q:\repos\msbuild\src\Build\Instance\TaskFactories\TaskHostTask.cs(303,21)
+Microsoft.Build.CommandLine.MSBuildApp.Execute(string[]) - Q:\repos\msbuild\src\MSBuild\XMake.cs(644,32)
+Microsoft.Build.CommandLine.MSBuildClientApp.Execute(string[], CancellationToken) - Q:\repos\msbuild\src\MSBuild\MSBuildClientApp.cs(37,43)
+Microsoft.Build.CommandLine.MSBuildClientApp.Execute(string[], System.Threading.CancellationToken) - Q:\repos\msbuild\src\MSBuild\MSBuildClientApp.cs(37,43)
+Microsoft.Build.CommandLine.MSBuildClientApp.Execute(string[], string, CancellationToken) - Q:\repos\msbuild\src\MSBuild\MSBuildClientApp.cs(58,43)
+Microsoft.Build.CommandLine.MSBuildClientApp.Execute(string[], string, System.Threading.CancellationToken) - Q:\repos\msbuild\src\MSBuild\MSBuildClientApp.cs(58,43)
+Microsoft.Build.Engine.UnitTests.BackEnd.AttributeTestTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs(476,30)
+Microsoft.Build.Engine.UnitTests.BackEnd.DerivedMakeDirTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHost_MultiThreadableTask_Tests.cs(114,30)
+Microsoft.Build.Engine.UnitTests.BackEnd.InterfaceTestTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs(454,30)
+Microsoft.Build.Engine.UnitTests.BackEnd.NonEnlightenedTestTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs(439,30)
+Microsoft.Build.Engine.UnitTests.EnvironmentIsolationTestTask.Execute() - Q:\repos\msbuild\src\MSBuild.UnitTests\MSBuildMultithreaded_Tests.cs(33,30)
+Microsoft.Build.Engine.UnitTests.ProcessIdTask.Execute() - Q:\repos\msbuild\src\MSBuild.UnitTests\MSBuildServer_Tests.cs(51,30)
+Microsoft.Build.Engine.UnitTests.SleepingTask.Execute() - Q:\repos\msbuild\src\MSBuild.UnitTests\MSBuildServer_Tests.cs(35,30)
+Microsoft.Build.Engine.UnitTests.TaskThatReturnsDictionaryTaskItem.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskThatReturnsDictionaryTaskItem.cs(22,26)
+Microsoft.Build.Engine.UnitTests.TaskThatReturnsMinimalItem.Execute() - Q:\repos\msbuild\src\Build.UnitTests\TaskThatReturnsMinimalItem.cs(22,17)
+Microsoft.Build.Engine.UnitTests.TaskThatThrows.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskThatThrows.cs(18,26)
+Microsoft.Build.Evaluation.Expander&lt;P, I&gt;.Function&lt;T&gt;.Execute(object, Microsoft.Build.Evaluation.IPropertyProvider&lt;T&gt;, Microsoft.Build.Evaluation.ExpanderOptions, Microsoft.Build.Shared.IElementLocation) - Q:\repos\msbuild\src\Build\Evaluation\Expander.cs(3983,29)
+Microsoft.Build.Execution.BuildSubmission.Execute() - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs(182,37)
+Microsoft.Build.Execution.BuildSubmissionBase&lt;TRequestData, TResultData&gt;.Execute() - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs(62,37)
+Microsoft.Build.Experimental.MSBuildClient.Execute(CancellationToken) - Q:\repos\msbuild\src\Build\BackEnd\Client\MSBuildClient.cs(152,40)
+Microsoft.Build.Experimental.MSBuildClient.Execute(System.Threading.CancellationToken) - Q:\repos\msbuild\src\Build\BackEnd\Client\MSBuildClient.cs(152,40)
+Microsoft.Build.Framework.ITask.Execute() - Q:\repos\msbuild\src\Framework\ITask.cs(42,14)
+Microsoft.Build.Graph.GraphBuildSubmission.Execute() - Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs(52,42)
+Microsoft.Build.TaskHost.OutOfProcTaskHost.Execute() - Q:\repos\msbuild\src\MSBuildTaskHost\OutOfProcTaskHost.cs(78,30)
+Microsoft.Build.Tasks.AL.Execute() - Q:\repos\msbuild\src\Tasks\Al.cs(391,30)
+Microsoft.Build.Tasks.AddToWin32Manifest.Execute() - Q:\repos\msbuild\src\Tasks\AddToWin32Manifest.cs(116,30)
+Microsoft.Build.Tasks.AspNetCompiler.Execute() - Q:\repos\msbuild\src\Tasks\AspNetCompiler.cs(228,30)
+Microsoft.Build.Tasks.AssemblyDependency.OutOfProcRarClient.Execute(Microsoft.Build.Tasks.ResolveAssemblyReference) - Q:\repos\msbuild\src\Tasks\AssemblyDependency\Node\OutOfProcRarClient.cs(53,23)
+Microsoft.Build.Tasks.AssignCulture.Execute() - Q:\repos\msbuild\src\Tasks\AssignCulture.cs(134,30)
+Microsoft.Build.Tasks.AssignLinkMetadata.Execute() - Q:\repos\msbuild\src\Tasks\AssignLinkMetadata.cs(37,30)
+Microsoft.Build.Tasks.AssignProjectConfiguration.Execute() - Q:\repos\msbuild\src\Tasks\AssignProjectConfiguration.cs(172,30)
+Microsoft.Build.Tasks.AssignTargetPath.Execute() - Q:\repos\msbuild\src\Tasks\AssignTargetPath.cs(53,30)
+Microsoft.Build.Tasks.AxTlbBaseTask.Execute() - Q:\repos\msbuild\src\Tasks\AxTlbBaseTask.cs(80,30)
+Microsoft.Build.Tasks.CallTarget.Execute() - Q:\repos\msbuild\src\Tasks\CallTarget.cs(62,30)
+Microsoft.Build.Tasks.CombinePath.Execute() - Q:\repos\msbuild\src\Tasks\CombinePath.cs(56,30)
+Microsoft.Build.Tasks.CombineTargetFrameworkInfoProperties.Execute() - Q:\repos\msbuild\src\Tasks\CombineTargetFrameworkInfoProperties.cs(38,30)
+Microsoft.Build.Tasks.CombineXmlElements.Execute() - Q:\repos\msbuild\src\Tasks\CombineXmlElements.cs(33,30)
+Microsoft.Build.Tasks.ConvertToAbsolutePath.Execute() - Q:\repos\msbuild\src\Tasks\ConvertToAbsolutePath.cs(47,30)
+Microsoft.Build.Tasks.Copy.Execute() - Q:\repos\msbuild\src\Tasks\Copy.cs(1130,30)
+Microsoft.Build.Tasks.Copy.Execute(Microsoft.Build.Tasks.CopyFileWithState, bool) - Q:\repos\msbuild\src\Tasks\Copy.cs(433,23)
+Microsoft.Build.Tasks.CreateItem.Execute() - Q:\repos\msbuild\src\Tasks\CreateItem.cs(55,30)
+Microsoft.Build.Tasks.CreateManifestResourceName.Execute() - Q:\repos\msbuild\src\Tasks\CreateManifestResourceName.cs(271,30)
+Microsoft.Build.Tasks.CreateManifestResourceName.Execute(Microsoft.Build.Tasks.CreateFileStream) - Q:\repos\msbuild\src\Tasks\CreateManifestResourceName.cs(133,23)
+Microsoft.Build.Tasks.CreateProperty.Execute() - Q:\repos\msbuild\src\Tasks\CreateProperty.cs(58,30)
+Microsoft.Build.Tasks.Delete.Execute() - Q:\repos\msbuild\src\Tasks\Delete.cs(104,30)
+Microsoft.Build.Tasks.DownloadFile.Execute() - Q:\repos\msbuild\src\Tasks\DownloadFile.cs(85,30)
+Microsoft.Build.Tasks.Error.Execute() - Q:\repos\msbuild\src\Tasks\Error.cs(50,30)
+Microsoft.Build.Tasks.ErrorFromResources.Execute() - Q:\repos\msbuild\src\Tasks\ErrorFromResources.cs(50,30)
+Microsoft.Build.Tasks.FindAppConfigFile.Execute() - Q:\repos\msbuild\src\Tasks\FindAppConfigFile.cs(75,30)
+Microsoft.Build.Tasks.FindInList.Execute() - Q:\repos\msbuild\src\Tasks\FindInList.cs(69,30)
+Microsoft.Build.Tasks.FindInvalidProjectReferences.Execute() - Q:\repos\msbuild\src\Tasks\FindInvalidProjectReferences.cs(83,30)
+Microsoft.Build.Tasks.FindUnderPath.Execute() - Q:\repos\msbuild\src\Tasks\ListOperators\FindUnderPath.cs(57,30)
+Microsoft.Build.Tasks.FormatUrl.Execute() - Q:\repos\msbuild\src\Tasks\FormatUrl.cs(22,30)
+Microsoft.Build.Tasks.FormatVersion.Execute() - Q:\repos\msbuild\src\Tasks\FormatVersion.cs(40,30)
+Microsoft.Build.Tasks.GenerateApplicationManifest.Execute() - Q:\repos\msbuild\src\Tasks\GenerateApplicationManifest.cs(113,30)
+Microsoft.Build.Tasks.GenerateBindingRedirects.Execute() - Q:\repos\msbuild\src\Tasks\AssemblyDependency\GenerateBindingRedirects.cs(55,30)
+Microsoft.Build.Tasks.GenerateBootstrapper.Execute() - Q:\repos\msbuild\src\Tasks\GenerateBootstrapper.cs(64,30)
+Microsoft.Build.Tasks.GenerateDeploymentManifest.Execute() - Q:\repos\msbuild\src\Tasks\GenerateDeploymentManifest.cs(155,30)
+Microsoft.Build.Tasks.GenerateLauncher.Execute() - Q:\repos\msbuild\src\Tasks\GenerateLauncher.cs(43,30)
+Microsoft.Build.Tasks.GenerateManifestBase.Execute() - Q:\repos\msbuild\src\Tasks\GenerateManifestBase.cs(273,30)
+Microsoft.Build.Tasks.GenerateResource.Execute() - Q:\repos\msbuild\src\Tasks\GenerateResource.cs(654,30)
+Microsoft.Build.Tasks.GenerateResource.ResGen.Execute() - Q:\repos\msbuild\src\Tasks\ResGen.cs(218,34)
+Microsoft.Build.Tasks.GenerateTrustInfo.Execute() - Q:\repos\msbuild\src\Tasks\GenerateTrustInfo.cs(42,30)
+Microsoft.Build.Tasks.GetAssembliesMetadata.Execute() - Q:\repos\msbuild\src\Tasks\GetAssembliesMetadata.cs(36,30)
+Microsoft.Build.Tasks.GetAssemblyIdentity.Execute() - Q:\repos\msbuild\src\Tasks\GetAssemblyIdentity.cs(63,30)
+Microsoft.Build.Tasks.GetCompatiblePlatform.Execute() - Q:\repos\msbuild\src\Tasks\GetCompatiblePlatform.cs(52,30)
+Microsoft.Build.Tasks.GetFileHash.Execute() - Q:\repos\msbuild\src\Tasks\FileIO\GetFileHash.cs(71,30)
+Microsoft.Build.Tasks.GetFrameworkPath.Execute() - Q:\repos\msbuild\src\Tasks\GetFrameworkPath.cs(23,30)
+Microsoft.Build.Tasks.GetFrameworkSdkPath.Execute() - Q:\repos\msbuild\src\Tasks\GetFrameworkSDKPath.cs(392,30)
+Microsoft.Build.Tasks.GetInstalledSDKLocations.Execute() - Q:\repos\msbuild\src\Tasks\GetInstalledSDKLocations.cs(125,30)
+Microsoft.Build.Tasks.GetReferenceAssemblyPaths.Execute() - Q:\repos\msbuild\src\Tasks\GetReferenceAssemblyPaths.cs(166,30)
+Microsoft.Build.Tasks.GetSDKReferenceFiles.Execute() - Q:\repos\msbuild\src\Tasks\GetSDKReferenceFiles.cs(228,30)
+Microsoft.Build.Tasks.GetSDKReferenceFiles.Execute(Microsoft.Build.Tasks.GetAssemblyName, Microsoft.Build.Tasks.GetAssemblyRuntimeVersion, Microsoft.Build.Shared.FileExists, bool) - Q:\repos\msbuild\src\Tasks\GetSDKReferenceFiles.cs(241,23)
+Microsoft.Build.Tasks.Hash.Execute() - Q:\repos\msbuild\src\Tasks\Hash.cs(61,30)
+Microsoft.Build.Tasks.LC.Execute() - Q:\repos\msbuild\src\Tasks\LC.cs(102,30)
+Microsoft.Build.Tasks.MSBuild.Execute() - Q:\repos\msbuild\src\Tasks\MSBuild.cs(199,30)
+Microsoft.Build.Tasks.MSBuildInternalMessage.Execute() - Q:\repos\msbuild\src\Tasks\MSBuildInternalMessage.cs(56,30)
+Microsoft.Build.Tasks.MakeDir.Execute() - Q:\repos\msbuild\src\Tasks\MakeDir.cs(47,30)
+Microsoft.Build.Tasks.Message.Execute() - Q:\repos\msbuild\src\Tasks\Message.cs(49,30)
+Microsoft.Build.Tasks.Move.Execute() - Q:\repos\msbuild\src\Tasks\Move.cs(92,30)
+Microsoft.Build.Tasks.ReadLinesFromFile.Execute() - Q:\repos\msbuild\src\Tasks\FileIO\ReadLinesFromFile.cs(40,30)
+Microsoft.Build.Tasks.RegisterAssembly.Execute() - Q:\repos\msbuild\src\Tasks\RegisterAssembly.cs(66,30)
+Microsoft.Build.Tasks.RemoveDir.Execute() - Q:\repos\msbuild\src\Tasks\RemoveDir.cs(53,30)
+Microsoft.Build.Tasks.RemoveDuplicates.Execute() - Q:\repos\msbuild\src\Tasks\ListOperators\RemoveDuplicates.cs(40,30)
+Microsoft.Build.Tasks.RequiresFramework35SP1Assembly.Execute() - Q:\repos\msbuild\src\Tasks\RequiresFramework35SP1Assembly.cs(176,30)
+Microsoft.Build.Tasks.ResolveAssemblyReference.Execute() - Q:\repos\msbuild\src\Tasks\AssemblyDependency\ResolveAssemblyReference.cs(3262,30)
+Microsoft.Build.Tasks.ResolveAssemblyReference.Execute(Microsoft.Build.Shared.FileExists, Microsoft.Build.Shared.DirectoryExists, Microsoft.Build.Tasks.GetDirectories, Microsoft.Build.Tasks.GetAssemblyName, Microsoft.Build.Tasks.GetAssemblyMetadata, Microsoft.Build.Shared.GetRegistrySubKeyNames, Microsoft.Build.Shared.GetRegistrySubKeyDefaultValue, Microsoft.Build.Tasks.GetLastWriteTime, Microsoft.Build.Tasks.GetAssemblyRuntimeVersion, Microsoft.Build.Shared.OpenBaseKey, Microsoft.Build.Tasks.GetAssemblyPathInGac, Microsoft.Build.Tasks.IsWinMDFile, Microsoft.Build.Tasks.ReadMachineTypeFromPEHeader) - Q:\repos\msbuild\src\Tasks\AssemblyDependency\ResolveAssemblyReference.cs(2191,23)
+Microsoft.Build.Tasks.ResolveAssemblyReference.Execute(Microsoft.Build.Shared.FileExists, Microsoft.Build.Shared.DirectoryExists, Microsoft.Build.Tasks.GetDirectories, Microsoft.Build.Tasks.GetAssemblyName, Microsoft.Build.Tasks.GetAssemblyMetadata, Microsoft.Build.Tasks.GetLastWriteTime, Microsoft.Build.Tasks.GetAssemblyRuntimeVersion, Microsoft.Build.Tasks.GetAssemblyPathInGac, Microsoft.Build.Tasks.IsWinMDFile, Microsoft.Build.Tasks.ReadMachineTypeFromPEHeader) - Q:\repos\msbuild\src\Tasks\AssemblyDependency\ResolveAssemblyReference.cs(2191,23)
+Microsoft.Build.Tasks.ResolveCodeAnalysisRuleSet.Execute() - Q:\repos\msbuild\src\Tasks\ResolveCodeAnalysisRuleSet.cs(47,30)
+Microsoft.Build.Tasks.ResolveComReference.Execute() - Q:\repos\msbuild\src\Tasks\ResolveComReference.cs(311,30)
+Microsoft.Build.Tasks.ResolveKeySource.Execute() - Q:\repos\msbuild\src\Tasks\ResolveKeySource.cs(59,30)
+Microsoft.Build.Tasks.ResolveManifestFiles.Execute() - Q:\repos\msbuild\src\Tasks\ResolveManifestFiles.cs(161,30)
+Microsoft.Build.Tasks.ResolveNativeReference.Execute() - Q:\repos\msbuild\src\Tasks\ResolveNativeReference.cs(105,30)
+Microsoft.Build.Tasks.ResolveNonMSBuildProjectOutput.Execute() - Q:\repos\msbuild\src\Tasks\ResolveNonMSBuildProjectOutput.cs(78,30)
+Microsoft.Build.Tasks.ResolveSDKReference.Execute() - Q:\repos\msbuild\src\Tasks\ResolveSDKReference.cs(270,30)
+Microsoft.Build.Tasks.SGen.Execute() - Q:\repos\msbuild\src\Tasks\SGen.cs(129,30)
+Microsoft.Build.Tasks.SetRidAgnosticValueForProjects.Execute() - Q:\repos\msbuild\src\Tasks\SetRidAgnosticValueForProjects.cs(20,30)
+Microsoft.Build.Tasks.SignFile.Execute() - Q:\repos\msbuild\src\Tasks\SignFile.cs(45,30)
+Microsoft.Build.Tasks.TaskRequiresFramework.Execute() - Q:\repos\msbuild\src\Tasks\TaskRequiresFramework.cs(26,30)
+Microsoft.Build.Tasks.Telemetry.Execute() - Q:\repos\msbuild\src\Tasks\Telemetry.cs(33,30)
+Microsoft.Build.Tasks.Touch.Execute() - Q:\repos\msbuild\src\Tasks\Touch.cs(151,30)
+Microsoft.Build.Tasks.UnregisterAssembly.Execute() - Q:\repos\msbuild\src\Tasks\UnregisterAssembly.cs(54,30)
+Microsoft.Build.Tasks.Unzip.Execute() - Q:\repos\msbuild\src\Tasks\Unzip.cs(89,30)
+Microsoft.Build.Tasks.UpdateManifest.Execute() - Q:\repos\msbuild\src\Tasks\UpdateManifest.cs(36,30)
+Microsoft.Build.Tasks.VerifyFileHash.Execute() - Q:\repos\msbuild\src\Tasks\FileIO\VerifyFileHash.cs(44,30)
+Microsoft.Build.Tasks.Warning.Execute() - Q:\repos\msbuild\src\Tasks\Warning.cs(50,30)
+Microsoft.Build.Tasks.WriteCodeFragment.Execute() - Q:\repos\msbuild\src\Tasks\WriteCodeFragment.cs(82,30)
+Microsoft.Build.Tasks.WriteLinesToFile.Execute() - Q:\repos\msbuild\src\Tasks\FileIO\WriteLinesToFile.cs(67,30)
+Microsoft.Build.Tasks.Xaml.XamlDataDrivenToolTask.Execute() - Q:\repos\msbuild\src\Tasks\XamlTaskFactory\XamlDataDrivenToolTask.cs(141,30)
+Microsoft.Build.Tasks.XmlPeek.Execute() - Q:\repos\msbuild\src\Tasks\XmlPeek.cs(69,30)
+Microsoft.Build.Tasks.XmlPoke.Execute() - Q:\repos\msbuild\src\Tasks\XmlPoke.cs(57,30)
+Microsoft.Build.Tasks.XslTransformation.Execute() - Q:\repos\msbuild\src\Tasks\XslTransformation.cs(103,30)
+Microsoft.Build.Tasks.ZipDirectory.Execute() - Q:\repos\msbuild\src\Tasks\ZipDirectory.cs(64,30)
+Microsoft.Build.UnitTests.BackEnd.AssemblyTaskFactory_Tests.TaskToTestFactories.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyTaskFactory_Tests.cs(837,34)
+Microsoft.Build.UnitTests.BackEnd.BuildManager_Tests.LogTaskInputsCheckingTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs(4426,34)
+Microsoft.Build.UnitTests.BackEnd.BuildProjectFileAndReportPidTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildProjectFileAndReportPidTask.cs(40,30)
+Microsoft.Build.UnitTests.BackEnd.BuildProjectFileTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildProjectFileTask.cs(46,30)
+Microsoft.Build.UnitTests.BackEnd.GetGlobalPropertiesTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\GetGlobalPropertiesTask.cs(20,30)
+Microsoft.Build.UnitTests.BackEnd.IsRunningMultipleNodesTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\IsRunningMultipleNodesTask.cs(19,30)
+Microsoft.Build.UnitTests.BackEnd.ProjectTelemetry_Tests.AnotherUserTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProjectTelemetry_Tests.cs(140,34)
+Microsoft.Build.UnitTests.BackEnd.ProjectTelemetry_Tests.TestSealedTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProjectTelemetry_Tests.cs(151,34)
+Microsoft.Build.UnitTests.BackEnd.ProjectTelemetry_Tests.UserTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProjectTelemetry_Tests.cs(127,34)
+Microsoft.Build.UnitTests.BackEnd.RequestCoresTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\RequestCoresTask.cs(32,30)
+Microsoft.Build.UnitTests.BackEnd.RequestCoresWithFallbackTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\RequestCoresWithFallbackTask.cs(42,30)
+Microsoft.Build.UnitTests.BackEnd.StringArrayWithNullsTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\StringArrayWithNullsTask.cs(24,30)
+Microsoft.Build.UnitTests.BackEnd.TaskBuilderTestTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilderTestTask.cs(1211,21)
+Microsoft.Build.UnitTests.BackEnd.TestTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRegistry_Tests.cs(31,30)
+Microsoft.Build.UnitTests.BuildProjectFileTask.Execute() - Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs(1533,30)
+Microsoft.Build.UnitTests.CustomBuildEventTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\CustomBuildEventTask.cs(14,30)
+Microsoft.Build.UnitTests.CustomLogAndReturnTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\CustomLogAndReturnTask.cs(27,30)
+Microsoft.Build.UnitTests.Definition.ItemDefinitionGroup.Execute() - Q:\repos\msbuild\src\Build.UnitTests\Definition\ItemDefinitionGroup_Tests.cs(1900,30)
+Microsoft.Build.UnitTests.EscapingInProjects_Tests.MyTestTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\EscapingInProjects_Tests.cs(52,30)
+Microsoft.Build.UnitTests.FailingBuilderTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\FailingBuilderTask.cs(18,30)
+Microsoft.Build.UnitTests.FailingTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\FailingTask.cs(13,30)
+Microsoft.Build.UnitTests.LogTaskPropertiesTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\FixPathOnUnix_Tests.cs(60,30)
+Microsoft.Build.UnitTests.MockTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\MockTask.cs(414,21)
+Microsoft.Build.UnitTests.MockTask.Execute() - Q:\repos\msbuild\src\Utilities.UnitTests\MockTask.cs(29,30)
+Microsoft.Build.UnitTests.ProcessIdTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProcessIdTask.cs(23,30)
+Microsoft.Build.UnitTests.ProcessIdTaskSidecar.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProcessIdTaskSidecar.cs(23,30)
+Microsoft.Build.UnitTests.ResolveAssemblyReference_Tests.ResolveAssemblyReferenceTestFixture.Execute(Microsoft.Build.Tasks.ResolveAssemblyReference, Microsoft.Build.UnitTests.ResolveAssemblyReference_Tests.ResolveAssemblyReferenceTestFixture.RARSimulationMode) - Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\ResolveAssemblyReferenceTestFixture.cs(2969,31)
+Microsoft.Build.UnitTests.ResolveAssemblyReference_Tests.ResolveAssemblyReferenceTestFixture.Execute(Microsoft.Build.Tasks.ResolveAssemblyReference, bool, Microsoft.Build.UnitTests.ResolveAssemblyReference_Tests.ResolveAssemblyReferenceTestFixture.RARSimulationMode) - Q:\repos\msbuild\src\Tasks.UnitTests\AssemblyDependency\ResolveAssemblyReferenceTestFixture.cs(2986,31)
+Microsoft.Build.UnitTests.ReturnFailureWithoutLoggingErrorTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ReturnFailureWithoutLoggingErrorTask.cs(18,30)
+Microsoft.Build.UnitTests.SdkToolsPathUtility_Tests.TaskToLogFrom.Execute() - Q:\repos\msbuild\src\Tasks.UnitTests\SdkToolsPathUtility_Tests.cs(218,34)
+Microsoft.Build.UnitTests.ToolTask_Tests.ToolTaskSetsTerminationTimeout.Execute() - Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs(1244,34)
+Microsoft.Build.UnitTests.ToolTask_Tests.ToolTaskThatSleeps.Execute() - Q:\repos\msbuild\src\Utilities.UnitTests\ToolTask_Tests.cs(1195,34)
+Microsoft.Build.UnitTests.Touch_Tests.Execute(Microsoft.Build.Tasks.Touch) - Q:\repos\msbuild\src\Tasks.UnitTests\Touch_Tests.cs(31,22)
+Microsoft.Build.UnitTests.TrackedDependencies.MockTask.Execute() - Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\TrackedDependenciesTests.cs(3547,30)
+Microsoft.Build.UnitTests.ValidateAssemblyLoadContext.Execute() - Q:\repos\msbuild\src\MSBuild.UnitTests\ValidateAssemblyLoadContext.cs(17,30)
+Microsoft.Build.UnitTests.XMakeAppTests.MessageImportanceCheckingTask.Execute() - Q:\repos\msbuild\src\MSBuild.UnitTests\XMake_Tests.cs(2952,34)
+Microsoft.Build.Utilities.AppDomainIsolatedTask.Execute() - Q:\repos\msbuild\src\Utilities\AppDomainIsolatedTask.cs(112,30)
+Microsoft.Build.Utilities.Task.Execute() - Q:\repos\msbuild\src\Utilities\Task.cs(156,30)
+Microsoft.Build.Utilities.ToolTask.Execute() - Q:\repos\msbuild\src\Utilities\ToolTask.cs(1450,30)
+NetTask.ExampleTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleNetTask\ExampleTask\ExampleTask.cs(15,30)
+NullMetadataTask.NullMetadataTask.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\NullMetadataTask.cs(22,30)
+PortableTask.ShowItems.Execute() - Q:\repos\msbuild\src\Samples\PortableTask\ShowItems.cs(16,30)
+PortableTask.Sleep.Execute() - Q:\repos\msbuild\src\Samples\PortableTask\Sleep.cs(15,30)
+SampleTask.ExampleTaskX64.Execute() - Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX64\ExampleTaskX64.cs(12,30)
+SampleTask.ExampleTaskX86.Execute() - Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX86\ExampleTaskX86.cs(12,30)
+TaskWithDependency.LogStringFromDependency.Execute() - Q:\repos\msbuild\src\Samples\TaskWithDependency\LogStringFromDependency.cs(12,30)</pre>
       </section>
     </article>
   </section>
