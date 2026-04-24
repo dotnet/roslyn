@@ -1626,6 +1626,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
     public async Task Test_BogusGlobalJson_01(bool mutatingLspWorkspace)
     {
         // Put a global.json with a bad SDK version in the directory with the file-based app.
+        // This causes us to fail the design-time build and remain in the "miscellaneous file with no references" state.
         var tempDir = _tempRoot.CreateDirectory();
         var globalJsonText = """
             {
@@ -1652,9 +1653,9 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         await testLspServer.OpenDocumentAsync(appCsUri, appCsText).ConfigureAwait(false);
         await WaitForProjectLoad(appCsUri, testLspServer);
 
-        // Verify no semantic errors for App.cs
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(appCsUri, testLspServer).ConfigureAwait(false);
-        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
-        Assert.True(document.Project.State.HasAllInformation);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace.Kind);
+        Assert.Equal(1, document.Project.Documents.Count());
+        Assert.Empty(document.Project.MetadataReferences);
     }
 }
