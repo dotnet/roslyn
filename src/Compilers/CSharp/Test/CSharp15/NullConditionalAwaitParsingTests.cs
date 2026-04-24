@@ -2120,6 +2120,120 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     }
 
     [Fact]
+    public void AwaitQuestion_ForEach_InNonAsync_RecoversAsAwaitForEach()
+    {
+        // Documents behavior in a non-async method. The parser routes `await [?] foreach`
+        // to the await-foreach statement form regardless of async context — the "await in
+        // non-async" complaint is the binder's job, not the parser's. Shape is the same as
+        // the async variant: one ERR_UnexpectedToken on `?`, `?` attached as trailing
+        // skipped syntax on the `await` keyword.
+        UsingTree(
+            InNonAsync("await? foreach (var x in xs) { }"),
+            // (3,10): error CS1525: Invalid expression term '?'
+            //     await? foreach (var x in xs) { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(3, 10));
+
+        WalkTopLevelNonAsyncLocalFunctionPreamble();
+        N(SyntaxKind.ForEachStatement);
+        {
+            N(SyntaxKind.AwaitKeyword);
+            N(SyntaxKind.ForEachKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "var");
+            }
+            N(SyntaxKind.IdentifierToken, "x");
+            N(SyntaxKind.InKeyword);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "xs");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        WalkTopLevelLocalFunctionPostamble();
+    }
+
+    [Fact]
+    public void AwaitQuestion_Using_Parenthesized_InNonAsync_RecoversAsAwaitUsing()
+    {
+        // Documents behavior in a non-async method. The parenthesized `await [?] using (…)`
+        // form is routed to the await-using statement regardless of async context. Shape
+        // matches the async variant.
+        UsingTree(
+            InNonAsync("await? using (d) { }"),
+            // (3,10): error CS1525: Invalid expression term '?'
+            //     await? using (d) { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(3, 10));
+
+        WalkTopLevelNonAsyncLocalFunctionPreamble();
+        N(SyntaxKind.UsingStatement);
+        {
+            N(SyntaxKind.AwaitKeyword);
+            N(SyntaxKind.UsingKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "d");
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.Block);
+            {
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.CloseBraceToken);
+            }
+        }
+        WalkTopLevelLocalFunctionPostamble();
+    }
+
+    [Fact]
+    public void AwaitQuestion_UsingDeclaration_InNonAsync_RecoversAsAwaitUsingDeclaration()
+    {
+        // Documents behavior in a non-async method. The statement dispatcher routes
+        // `await [?] using Type …` directly to ParseLocalDeclarationStatement, bypassing the
+        // non-async await-retry in ParseStatementCoreRest. Shape matches the async variant:
+        // one ERR_UnexpectedToken on `?`, parsed as `await using var d = x;`.
+        UsingTree(
+            InNonAsync("await? using var d = x;"),
+            // (3,10): error CS1525: Invalid expression term '?'
+            //     await? using var d = x;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(3, 10));
+
+        WalkTopLevelNonAsyncLocalFunctionPreamble();
+        N(SyntaxKind.LocalDeclarationStatement);
+        {
+            N(SyntaxKind.AwaitKeyword);
+            N(SyntaxKind.UsingKeyword);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        WalkTopLevelLocalFunctionPostamble();
+    }
+
+    [Fact]
     public void AwaitForEach_NoQuestion_StillParsesAsAwaitForEach()
     {
         // Regression: unchanged `await foreach` still picks the ForEachStatement form with
