@@ -2002,42 +2002,30 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     #region await? does not steal the await-foreach / await-using statement forms
 
     // `await foreach` and `await using` are separate grammar productions driven by
-    // statement-level lookahead at PeekToken(1). A `?` immediately after `await` sits
-    // between the two tokens, so those statement forms are never selected and we fall
-    // through to ordinary expression parsing.
+    // statement-level lookahead at PeekToken(1). Users who have recently learned about
+    // `await?` may naturally write `await? foreach` or `await? using` — which isn't a
+    // legal form because the `?` would only be meaningful on a value expression, not on
+    // a statement. The parser recovers by emitting a single ERR_UnexpectedToken on `?`
+    // and parsing the rest as a normal `await foreach` / `await using` statement, with
+    // the `?` attached as trailing skipped syntax on the `await` keyword.
 
     [Fact]
-    public void AwaitQuestion_ForEach_InAsync_DoesNotStealAwaitForEach()
+    public void AwaitQuestion_ForEach_InAsync_RecoversAsAwaitForEach()
     {
         UsingTree(
             InAsync("await? foreach (var x in xs) { }"),
-            // Many recovery errors from the expression parse on `foreach`. We pin the
-            // outer shape rather than every diagnostic; the key point is the tree is an
-            // expression-statement `await? <missing>` followed by a regular foreach.
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "foreach").WithArguments("foreach").WithLocation(3, 12),
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "foreach").WithLocation(3, 12));
+            // (3,10): error CS1525: Invalid expression term '?'
+            //         await? foreach (var x in xs) { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(3, 10));
 
         WalkTopLevelAsyncLocalFunctionPreamble();
 
-        // `await?` eats `await` + `?`, operand parse fails on `foreach` leaving an
-        // AwaitExpression with a missing-identifier operand.
-        N(SyntaxKind.ExpressionStatement);
-        {
-            N(SyntaxKind.AwaitExpression);
-            {
-                N(SyntaxKind.AwaitKeyword);
-                N(SyntaxKind.QuestionToken);
-                M(SyntaxKind.IdentifierName);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
-            }
-            M(SyntaxKind.SemicolonToken);
-        }
-
-        // Ordinary (non-await) foreach statement follows.
+        // Whole statement parsed as a plain `await foreach`; the `?` is attached as
+        // trailing skipped syntax on the `await` keyword (visible as the diagnostic
+        // above) and does not appear in the tree shape.
         N(SyntaxKind.ForEachStatement);
         {
+            N(SyntaxKind.AwaitKeyword);
             N(SyntaxKind.ForEachKeyword);
             N(SyntaxKind.OpenParenToken);
             N(SyntaxKind.IdentifierName);
@@ -2061,29 +2049,20 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
     }
 
     [Fact]
-    public void AwaitQuestion_Using_InAsync_DoesNotStealAwaitUsing()
+    public void AwaitQuestion_Using_Parenthesized_InAsync_RecoversAsAwaitUsing()
     {
         UsingTree(
             InAsync("await? using (d) { }"),
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "using").WithArguments("using").WithLocation(3, 12),
-            Diagnostic(ErrorCode.ERR_SemicolonExpected, "using").WithLocation(3, 12));
+            // (3,10): error CS1525: Invalid expression term '?'
+            //         await? using (d) { }
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(3, 10));
 
         WalkTopLevelAsyncLocalFunctionPreamble();
-        N(SyntaxKind.ExpressionStatement);
-        {
-            N(SyntaxKind.AwaitExpression);
-            {
-                N(SyntaxKind.AwaitKeyword);
-                N(SyntaxKind.QuestionToken);
-                M(SyntaxKind.IdentifierName);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
-            }
-            M(SyntaxKind.SemicolonToken);
-        }
+
+        // Whole statement parsed as a plain `await using (d) { }`.
         N(SyntaxKind.UsingStatement);
         {
+            N(SyntaxKind.AwaitKeyword);
             N(SyntaxKind.UsingKeyword);
             N(SyntaxKind.OpenParenToken);
             N(SyntaxKind.IdentifierName);
@@ -2096,6 +2075,46 @@ public sealed class NullConditionalAwaitParsingTests : ParsingTests
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
+        }
+        WalkTopLevelLocalFunctionPostamble();
+    }
+
+    [Fact]
+    public void AwaitQuestion_UsingDeclaration_InAsync_RecoversAsAwaitUsingDeclaration()
+    {
+        // `await? using var d = ...` — the declaration-style `await using`. Same recovery:
+        // single ERR_UnexpectedToken on `?`, parsed as `await using var d = ...`.
+        UsingTree(
+            InAsync("await? using var d = x;"),
+            // (3,10): error CS1525: Invalid expression term '?'
+            //         await? using var d = x;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "?").WithArguments("?").WithLocation(3, 10));
+
+        WalkTopLevelAsyncLocalFunctionPreamble();
+        N(SyntaxKind.LocalDeclarationStatement);
+        {
+            N(SyntaxKind.AwaitKeyword);
+            N(SyntaxKind.UsingKeyword);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "d");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
         }
         WalkTopLevelLocalFunctionPostamble();
     }

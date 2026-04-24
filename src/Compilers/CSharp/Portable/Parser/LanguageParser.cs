@@ -8439,17 +8439,24 @@ done:
 
         private StatementSyntax TryParseStatementStartingWithIdentifier(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
+            // `await foreach` and `await? foreach` — the `?` is not legal here, but the
+            // intent is clearly an await-foreach, so eat the `?` as skipped syntax on the
+            // await keyword with an ERR_UnexpectedToken and parse the rest as normal.
             if (this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword &&
-                this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword)
+                (this.PeekToken(1).Kind == SyntaxKind.ForEachKeyword ||
+                 (this.PeekToken(1).Kind == SyntaxKind.QuestionToken && this.PeekToken(2).Kind == SyntaxKind.ForEachKeyword)))
             {
-                return this.ParseForEachStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
+                return this.ParseForEachStatement(attributes, EatAwaitKeywordWithOptionalSkippedQuestion());
             }
-            else if (IsPossibleAwaitUsing())
+            else if (IsPossibleAwaitUsing() || IsPossibleAwaitQuestionUsing())
             {
-                if (PeekToken(2).Kind == SyntaxKind.OpenParenToken)
+                // Offset of the `using` keyword: 1 for the strict `await using` form, 2 for
+                // the error-recovery `await? using` form.
+                int usingKeywordOffset = IsPossibleAwaitUsing() ? 1 : 2;
+                if (PeekToken(usingKeywordOffset + 1).Kind == SyntaxKind.OpenParenToken)
                 {
                     // `await using Type ...` is handled below in ParseLocalDeclarationStatement
-                    return this.ParseUsingStatement(attributes, this.EatContextualToken(SyntaxKind.AwaitKeyword));
+                    return this.ParseUsingStatement(attributes, EatAwaitKeywordWithOptionalSkippedQuestion());
                 }
             }
             else if (this.IsPossibleLabeledStatement())
@@ -8481,6 +8488,36 @@ done:
 
         private bool IsPossibleAwaitUsing()
             => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword && PeekToken(1).Kind == SyntaxKind.UsingKeyword;
+
+        // `await? using` is not a legal form of `await using`, but users who learn about the
+        // new null-conditional-await feature may reasonably type it. Recognize the shape so
+        // the statement parser can recover with a single targeted diagnostic on the `?`
+        // rather than cascading expression-statement errors.
+        private bool IsPossibleAwaitQuestionUsing()
+            => CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword
+               && PeekToken(1).Kind == SyntaxKind.QuestionToken
+               && PeekToken(2).Kind == SyntaxKind.UsingKeyword;
+
+        /// <summary>
+        /// Eats the <c>await</c> keyword that starts an <c>await foreach</c> / <c>await using</c>
+        /// statement. If a stray <c>?</c> immediately follows the <c>await</c> keyword (the
+        /// user wrote <c>await? foreach</c> or <c>await? using</c>), eats the <c>?</c> too
+        /// and attaches it as trailing skipped syntax on the await keyword with an
+        /// <see cref="ErrorCode.ERR_UnexpectedToken"/> diagnostic. That way we recover
+        /// cleanly: one diagnostic anchored on the <c>?</c>, and the rest of the statement
+        /// parses normally as <c>await foreach</c> / <c>await using</c>.
+        /// </summary>
+        private SyntaxToken EatAwaitKeywordWithOptionalSkippedQuestion()
+        {
+            var awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
+            {
+                awaitToken = AddTrailingSkippedSyntax(
+                    awaitToken,
+                    this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedToken, SyntaxFacts.GetText(SyntaxKind.QuestionToken)));
+            }
+            return awaitToken;
+        }
 
         private bool IsPossibleLabeledStatement()
         {
@@ -8524,6 +8561,14 @@ done:
             if (IsPossibleAwaitUsing())
             {
                 Debug.Assert(PeekToken(2).Kind != SyntaxKind.OpenParenToken);
+                return true;
+            }
+
+            // `await? using` error-recovery form: `await? using (...)` is already handled in
+            // ParseStatementCore, so if we reach here the trailing `(` must be absent.
+            if (IsPossibleAwaitQuestionUsing())
+            {
+                Debug.Assert(PeekToken(3).Kind != SyntaxKind.OpenParenToken);
                 return true;
             }
 
@@ -10478,9 +10523,9 @@ done:
         {
             SyntaxToken awaitKeyword, usingKeyword;
             bool canParseAsLocalFunction = false;
-            if (IsPossibleAwaitUsing())
+            if (IsPossibleAwaitUsing() || IsPossibleAwaitQuestionUsing())
             {
-                awaitKeyword = this.EatContextualToken(SyntaxKind.AwaitKeyword);
+                awaitKeyword = EatAwaitKeywordWithOptionalSkippedQuestion();
                 usingKeyword = EatToken();
             }
             else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
