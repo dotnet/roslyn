@@ -2615,6 +2615,7 @@ public static partial class SyntaxFactory
         };
 
     /// <summary>Creates a new AwaitExpressionSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83237")]
     public static AwaitExpressionSyntax AwaitExpression(SyntaxToken awaitKeyword, SyntaxToken questionToken, ExpressionSyntax expression)
     {
         if (awaitKeyword.Kind() != SyntaxKind.AwaitKeyword) throw new ArgumentException(nameof(awaitKeyword));
@@ -2629,6 +2630,7 @@ public static partial class SyntaxFactory
     }
 
     /// <summary>Creates a new AwaitExpressionSyntax instance.</summary>
+    [Experimental(global::Microsoft.CodeAnalysis.RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = @"https://github.com/dotnet/roslyn/issues/83237")]
     public static AwaitExpressionSyntax AwaitExpression(ExpressionSyntax expression)
         => SyntaxFactory.AwaitExpression(SyntaxFactory.Token(SyntaxKind.AwaitKeyword), default, expression);
 
