@@ -151,7 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
             internal ThreeState lazyHasUnionAttribute = ThreeState.Unknown;
+
             internal ThreeState lazyIsClosed = ThreeState.Unknown;
+            internal ImmutableArray<NamedTypeSymbol> lazyCandidateClosedSubtypeDefinitions = default;
 
             internal ImmutableArray<byte> lazyFilePathChecksum = default;
             internal string lazyDisplayFileName;
@@ -175,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !lazyHasRequiredMembers.HasValue() &&
                     !lazyHasUnionAttribute.HasValue() &&
                     !lazyIsClosed.HasValue() &&
+                    lazyCandidateClosedSubtypeDefinitions.IsDefault &&
                     (object)lazyCollectionBuilderAttributeData == CollectionBuilderAttributeData.Uninitialized &&
                     lazyFilePathChecksum.IsDefault &&
                     lazyDisplayFileName == null &&
@@ -1222,39 +1225,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!IsClosed)
                     return [];
 
-                var subtypeDefinitionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                var metadataReader = ContainingPEModule.Module.MetadataReader;
-                var decoder = new MetadataDecoder(ContainingPEModule);
-                try
+                var uncommon = GetUncommonProperties();
+                if (RoslynImmutableInterlocked.VolatileRead(in uncommon.lazyCandidateClosedSubtypeDefinitions).IsDefault)
                 {
-                    foreach (var candidateTypeDefHandle in metadataReader.TypeDefinitions)
+                    ImmutableInterlocked.InterlockedInitialize(ref uncommon.lazyCandidateClosedSubtypeDefinitions, findClosedSubtypes());
+                }
+
+                return uncommon.lazyCandidateClosedSubtypeDefinitions;
+
+                ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
+                {
+                    var subtypeDefinitionsBuilder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                    var metadataReader = ContainingPEModule.Module.MetadataReader;
+                    var decoder = new MetadataDecoder(ContainingPEModule);
+                    try
                     {
-                        var typeDef = metadataReader.GetTypeDefinition(candidateTypeDefHandle);
-                        var baseTypeHandle = typeDef.BaseType;
-                        if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
+                        foreach (var candidateTypeDefHandle in metadataReader.TypeDefinitions)
                         {
-                            if (baseTypeHandle == this.Handle)
-                                subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
+                            var typeDef = metadataReader.GetTypeDefinition(candidateTypeDefHandle);
+                            var baseTypeHandle = typeDef.BaseType;
+                            if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
+                            {
+                                if (baseTypeHandle == this.Handle)
+                                    subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
 
-                            continue;
+                                continue;
+                            }
+
+                            // PROTOTYPE(cc): Perhaps we should write a helper to dig thru the signature,
+                            // filter for GenericTypeInstance, and get the TypeDef token representing the original definition, to compare against 'this.Handle'.
+                            // This would reduce how often we need to call 'GetTypeOfToken'.
+                            Debug.Assert(baseTypeHandle.Kind is HandleKind.TypeSpecification or HandleKind.TypeReference);
+                            var candidateSubtype = decoder.GetTypeOfToken(candidateTypeDefHandle);
+                            if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
+                                subtypeDefinitionsBuilder.Add((NamedTypeSymbol)candidateSubtype);
                         }
-
-                        // PROTOTYPE(cc): Perhaps we should write a helper to dig thru the signature,
-                        // filter for GenericTypeInstance, and get the TypeDef token representing the original definition, to compare against 'this.Handle'.
-                        // This would reduce how often we need to call 'GetTypeOfToken'.
-                        Debug.Assert(baseTypeHandle.Kind is HandleKind.TypeSpecification or HandleKind.TypeReference);
-                        var candidateSubtype = decoder.GetTypeOfToken(candidateTypeDefHandle);
-                        if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
-                            subtypeDefinitionsBuilder.Add((NamedTypeSymbol)candidateSubtype);
                     }
-                }
-                catch (BadImageFormatException)
-                {
-                    // PROTOTYPE(cc): It seems like we don't know what the candidate subtypes are in this case,
-                    // so, perhaps we should not allow exhausting the type via its subtypes.
-                }
+                    catch (BadImageFormatException)
+                    {
+                        // PROTOTYPE(cc): It seems like we don't know what the candidate subtypes are in this case,
+                        // so, perhaps we should not allow exhausting the type via its subtypes.
+                    }
 
-                return subtypeDefinitionsBuilder.ToImmutableAndFree();
+                    return subtypeDefinitionsBuilder.ToImmutableAndFree();
+                }
             }
         }
 
