@@ -11375,6 +11375,14 @@ done:
                 // If we see an await followed by a token that cannot follow an identifier, parse await as a unop.
                 // BindAwait() catches the cases where await successfully parses as a unop but is not in an async
                 // function, and reports an appropriate ERR_BadAwaitWithoutAsync* error.
+                //
+                // Note: we deliberately do NOT peek past a `?` here to detect the null-conditional-await
+                // form `await? X`. In a non-async context, `await ? expr1 : expr2` is a perfectly legal
+                // ternary expression on the identifier `await`, and we cannot disambiguate the two forms
+                // from the `await ?` prefix alone with one token of lookahead (that would require scanning
+                // ahead for a matching `:`). We pessimistically leave `await ?` to be parsed as a ternary
+                // in non-async code; users who want the null-conditional-await form must be inside an
+                // async function (see the `this.IsInAsync` branch above).
                 var next = PeekToken(1);
                 switch (next.Kind)
                 {
@@ -11476,10 +11484,10 @@ done:
 
                 if (IsAwaitExpression())
                 {
-                    var awaitKeyword = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-                    var questionToken = this.TryEatToken(SyntaxKind.QuestionToken);
-                    var operand = this.ParseSubExpression(GetPrecedence(SyntaxKind.AwaitExpression));
-                    return _syntaxFactory.AwaitExpression(awaitKeyword, questionToken, operand);
+                    return _syntaxFactory.AwaitExpression(
+                        this.EatContextualToken(SyntaxKind.AwaitKeyword),
+                        this.TryEatToken(SyntaxKind.QuestionToken),
+                        this.ParseSubExpression(GetPrecedence(SyntaxKind.AwaitExpression)));
                 }
 
                 if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
