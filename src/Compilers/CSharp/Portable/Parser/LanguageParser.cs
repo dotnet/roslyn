@@ -8404,7 +8404,7 @@ done:
                 return null;
             }
 
-            var beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
             var result = ParseLocalDeclarationStatement(attributes);
 
             // didn't get any sort of statement.  This was something else entirely
