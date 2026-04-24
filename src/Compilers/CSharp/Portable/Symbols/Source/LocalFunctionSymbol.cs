@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ? unsafeKeyword
                     : Syntax.Modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
                 var unsafeLocation = unsafeOrExternKeyword != default ? unsafeOrExternKeyword.GetLocation() : location;
-                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor, addTo, unsafeLocation);
+                compilation.EnsureRequiresUnsafeAttributeExists(addTo, unsafeLocation, modifyCompilation: false);
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (target.CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
 
             if (compilation.ShouldEmitNullableAttributes(target) &&

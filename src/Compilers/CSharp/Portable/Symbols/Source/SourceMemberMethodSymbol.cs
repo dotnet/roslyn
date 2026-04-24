@@ -981,7 +981,7 @@ done:
                     ? unsafeKeyword
                     : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
                 var unsafeLocation = unsafeOrExternKeyword != default ? unsafeOrExternKeyword.GetLocation() : _location;
-                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor, diagnostics, unsafeLocation);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeLocation, modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

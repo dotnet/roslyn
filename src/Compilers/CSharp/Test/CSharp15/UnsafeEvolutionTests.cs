@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -38,7 +38,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         TargetFramework targetFramework = TargetFramework.Standard,
         DiagnosticDescription[]? expectedDiagnosticsWhenReferencingLegacyLib = null,
         DiagnosticDescription[]? expectedDiagnosticsForLegacyCaller = null,
-        DiagnosticDescription[]? expectedDiagnosticsWithOldLangVersion = null)
+        DiagnosticDescription[]? expectedDiagnosticsWithOldLangVersion = null,
+        bool expectedAttributeIsSynthesized = true)
     {
         optionsDll ??= TestOptions.UnsafeReleaseDll;
         var optionsExe = optionsDll.WithOutputKind(OutputKind.ConsoleApplication);
@@ -111,7 +112,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     [
                         .. skipSymbolsInSource is [..] ? expectedUnsafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedUnsafeSymbols,
                         .. skipSymbolsInSource is [..] ? expectedSafeSymbols.Except(skipSymbolsInSource).ToArray() : expectedSafeSymbols,
-                    ]);
+                    ],
+                    includesAttributeDefinition: !expectedAttributeIsSynthesized,
+                    isSynthesized: !expectedAttributeIsSynthesized ? false : null);
             })
             .VerifyDiagnostics()
             .GetImageReference();
@@ -141,7 +144,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 module,
                 expectedUnsafeSymbols: exceptSymbolsSkippedInSource(expectedUnsafeSymbols),
                 expectedSafeSymbols: exceptSymbolsSkippedInSource(expectedSafeSymbols),
-                expectedUnsafeMode: expectedUnsafeMode);
+                expectedUnsafeMode: expectedUnsafeMode,
+                includesAttributeDefinition: !isSource || !expectedAttributeIsSynthesized,
+                isSynthesized: isSource
+                    ? (!expectedAttributeIsSynthesized ? false : null)
+                    : expectedAttributeIsSynthesized);
 
             [return: NotNullIfNotNull(nameof(original))]
             object[]? exceptSymbolsSkippedInSource(object[]? original)
@@ -256,9 +263,38 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         ModuleSymbol module,
         ReadOnlySpan<object> expectedUnsafeSymbols,
         ReadOnlySpan<object> expectedSafeSymbols,
-        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit)
+        bool includesAttributeDefinition,
+        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit,
+        bool? isSynthesized = null)
     {
         const string Name = "RequiresUnsafeAttribute";
+        const string FullName = $"System.Diagnostics.CodeAnalysis.{Name}";
+
+        var type = (NamedTypeSymbol)module.GlobalNamespace.GetMember(FullName);
+
+        if (includesAttributeDefinition)
+        {
+            Assert.NotNull(type);
+            Assert.NotNull(isSynthesized);
+            if (isSynthesized.Value)
+            {
+                var attributeAttributes = type.GetAttributes()
+                    .Select(a => a.AttributeClass.ToTestDisplayString())
+                    .OrderBy(StringComparer.Ordinal);
+                Assert.Equal(
+                    [
+                        "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                        "System.Runtime.CompilerServices.CompilerGeneratedAttribute",
+                    ],
+                    attributeAttributes);
+            }
+
+            Assert.Equal(isSynthesized.Value ? Accessibility.Internal : Accessibility.Public, type.DeclaredAccessibility);
+        }
+        else
+        {
+            Assert.Null(type);
+        }
 
         var seenSymbols = new HashSet<Symbol>();
 
@@ -3344,7 +3380,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation([source, IsExternalInitTypeDefinition, RequiresUnsafeAttributeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(10)).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(10)).VerifyDiagnostics(expectedDiagnostics);
 
         expectedDiagnostics =
         [
@@ -3356,15 +3392,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22),
         ];
 
-        CreateCompilation([source, IsExternalInitTypeDefinition, RequiresUnsafeAttributeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation([source, IsExternalInitTypeDefinition, RequiresUnsafeAttributeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(11)).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation([source, IsExternalInitTypeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules().WithWarningLevel(11)).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation([source, IsExternalInitTypeDefinition, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source, IsExternalInitTypeDefinition],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation([source, IsExternalInitTypeDefinition, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source, IsExternalInitTypeDefinition],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
@@ -3446,15 +3482,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe)
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
-        CreateCompilationWithSpan([source, RequiresUnsafeAttributeDefinition], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
+        CreateCompilationWithSpan([source], options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
-        CreateCompilationWithSpan([source, RequiresUnsafeAttributeDefinition],
+        CreateCompilationWithSpan([source],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
-        CreateCompilationWithSpan([source, RequiresUnsafeAttributeDefinition],
+        CreateCompilationWithSpan([source],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -3543,7 +3579,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     VerifyRequiresUnsafeAttribute(
                         m,
                         expectedUnsafeSymbols: [],
-                        expectedSafeSymbols: [.. safeSymbols, .. unsafeSymbols]);
+                        expectedSafeSymbols: [.. safeSymbols, .. unsafeSymbols],
+                        includesAttributeDefinition: true,
+                        isSynthesized: false);
                 })
                 .VerifyDiagnostics();
         }
@@ -3559,7 +3597,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     VerifyRequiresUnsafeAttribute(
                         m,
                         expectedUnsafeSymbols: [.. unsafeSymbols],
-                        expectedSafeSymbols: [.. safeSymbols]);
+                        expectedSafeSymbols: [.. safeSymbols],
+                        includesAttributeDefinition: true,
+                        isSynthesized: false);
                 })
                 .VerifyDiagnostics(
                 // (17,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
@@ -3612,7 +3652,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         if (compilationReference is { } useCompilationReference)
         {
             var apiCompilation = CreateCompilation(
-                [api, .. unsafeModifier != "" ? new[] { RequiresUnsafeAttributeDefinition } : []],
+                [api],
                 options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(apiUpdatedRules))
                 .VerifyDiagnostics();
             var apiReference = AsReference(apiCompilation, useCompilationReference);
@@ -3628,7 +3668,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
 
             comp = CreateCompilation(
-                [api, caller, .. unsafeModifier != "" ? new[] { RequiresUnsafeAttributeDefinition } : []],
+                [api, caller],
                 parseOptions: TestOptions.Regular.WithLanguageVersion(callerLangVersion),
                 options: TestOptions.ReleaseExe.WithAllowUnsafe(callerAllowUnsafe).WithUpdatedMemorySafetyRules(callerUpdatedRules));
         }
@@ -3699,7 +3739,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 _ = nameof(C.M);
                 unsafe { C.M(1); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: [Overload("C.M", 1)],
             expectedSafeSymbols: ["C", Overload("C.M", 0)],
             expectedDiagnostics:
@@ -3726,7 +3765,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.M1();
                 c.M2();
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M2"],
             expectedSafeSymbols: ["C.M1"],
             expectedDiagnostics:
@@ -3750,7 +3788,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 _ = nameof(C.M);
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics: []);
@@ -3781,7 +3818,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { E.M1(123); }
                 unsafe { E.M2(123); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["E.M1", "E.M2", ExtensionMember("E", "M2")],
             expectedSafeSymbols: [],
             expectedDiagnostics:
@@ -3824,7 +3860,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.M3();
                 unsafe { c.M3(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M3"],
             expectedSafeSymbols: ["C.M1", "C.M2"],
             expectedDiagnostics:
@@ -3849,7 +3884,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 delegate*<void> p1 = &C.M;
                 unsafe { delegate*<void> p2 = &C.M; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -3885,7 +3919,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 delegate void D1();
                 unsafe delegate void D2();
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -3922,7 +3955,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var a = C.M;
                 unsafe { var b = C.M; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -3950,7 +3982,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     unsafe public static void M() => System.Console.WriteLine("ran");
                 }
                 """,
-                RequiresUnsafeAttributeDefinition,
             ],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
             expectedOutput: """
@@ -3977,7 +4008,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Expression<Action> e1 = () => C.M();
                 unsafe { Expression<Action> e2 = () => C.M(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -4018,7 +4048,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { [A(F = 0)] void M3() { } }
                 [A(F = 0)] unsafe void M4() { }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["A.F"],
             expectedSafeSymbols: ["A"],
             expectedDiagnostics:
@@ -4049,7 +4078,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 i.M2();
                 unsafe { i.M2(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["I.M2"],
             expectedSafeSymbols: ["I", "I.M1"],
             expectedDiagnostics:
@@ -4094,18 +4122,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             lib: lib,
             caller: caller,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B.M2"],
             expectedSafeSymbols: ["B.M1"],
             expectedDiagnostics: expectedDiagnostics,
             expectedDiagnosticsWhenReferencingLegacyLib: expectedDiagnostics);
 
-        CreateCompilation([lib, caller, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([lib, caller],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(expectedDiagnostics);
 
-        CreateCompilation([lib, caller, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([lib, caller],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -4172,7 +4199,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 class D3 : C;
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B.M1", "B.M2", "B.M3", "C.M1", "C.M5"],
             expectedSafeSymbols: ["B.M4", "B.M5", "B.M6", "C.M2", "C.M3", "C.M4"],
             expectedDiagnostics:
@@ -4313,7 +4339,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         VerifyRequiresUnsafeAttribute(
             moduleA,
             expectedUnsafeSymbols: ["B.M"],
-            expectedSafeSymbols: ["A", "A.M", "B"]);
+            expectedSafeSymbols: ["A", "A.M", "B"],
+            includesAttributeDefinition: true,
+            isSynthesized: false);
 
         CreateCompilation("""
             var c1 = new C1();
@@ -4422,7 +4450,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     public void M2() { }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["I1.M1", "I2.M2"],
             expectedSafeSymbols: ["I1.M2", "I2.M1", "C1.M1", "C1.M2", "C2.I1.M1", "C2.I1.M2"],
             expectedDiagnostics:
@@ -4518,7 +4545,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     unsafe void M1(D x);
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B.M2"],
             expectedSafeSymbols: ["B.M1"],
             expectedDiagnostics:
@@ -4575,7 +4601,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     public override void M2() { }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["I.M2", "B1.M2"],
             expectedSafeSymbols: ["I.M1", "B1.M1"],
             expectedDiagnostics:
@@ -4674,7 +4699,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     unsafe public void M1() { }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B.M1"],
             expectedSafeSymbols: ["B.M2"],
             expectedDiagnostics: updatedCallerDiagnostics,
@@ -4700,7 +4724,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(
-            [getLib("unsafe"), RequiresUnsafeAttributeDefinition],
+            [getLib("unsafe")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (10,17): error CS9365: Unsafe member 'C.OnCompleted(Action)' cannot implicitly implement safe member 'INotifyCompletion.OnCompleted(Action)'
@@ -4714,7 +4738,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 await new C();
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.IsCompleted", "C.GetAwaiter", "C.GetResult"],
             expectedSafeSymbols: ["C", "C.OnCompleted"],
             expectedDiagnostics:
@@ -4733,7 +4756,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(
             [
                 lib,
-                RequiresUnsafeAttributeDefinition,
                 """
                 unsafe { await new C(); }
                 """,
@@ -4868,7 +4890,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 M3(1, 2, 3);
                 static unsafe void M3(params C c) { }
                 """,
-            additionalSources: [TestSources.Span, CollectionBuilderAttributeDefinition, RequiresUnsafeAttributeDefinition],
+            additionalSources: [TestSources.Span, CollectionBuilderAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.Create"],
             expectedSafeSymbols: ["C"],
@@ -4922,7 +4944,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 M(1, 2, 3);
                 static void M(params C c) { }
                 """,
-            additionalSources: [TestSources.Span, CollectionBuilderAttributeDefinition, RequiresUnsafeAttributeDefinition],
+            additionalSources: [TestSources.Span, CollectionBuilderAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.GetEnumerator"],
             expectedSafeSymbols: ["C", "C.Create"],
@@ -4960,7 +4982,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 M3(1, 2, 3);
                 static unsafe void M3(params C c) { }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5009,7 +5030,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 C c1 = [with(0), 1, 2, 3];
                 unsafe { C c2 = [with(0), 1, 2, 3]; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5058,7 +5078,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 class X { public C F; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.Add"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5145,7 +5164,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 foreach (var c in new C()) { }
                 unsafe { foreach (var c in new C()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.GetEnumerator"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5178,7 +5196,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 C c1 = [.. new C()];
                 unsafe { C c2 = [.. new C()]; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.GetEnumerator", "C.MoveNext", "C.Current", "C.get_Current"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5211,7 +5228,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 foreach (var x in new C()) { }
                 unsafe { foreach (var x in new C()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.MoveNext"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5240,7 +5256,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 foreach (var x in new C()) { }
                 unsafe { foreach (var x in new C()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.Current", "C.get_Current"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5267,7 +5282,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 foreach (var x in new C()) { }
                 unsafe { foreach (var x in new C()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.get_Current"],
             expectedSafeSymbols: ["C", "C.Current"],
             expectedDiagnostics:
@@ -5294,7 +5308,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 foreach (var x in new C()) { }
                 unsafe { foreach (var x in new C()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.set_Current"],
             expectedSafeSymbols: ["C", "C.Current", "C.get_Current"],
             expectedDiagnostics: []);
@@ -5311,7 +5324,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public int Current => 0;
                 unsafe public void Dispose() { }
             }
-            """, RequiresUnsafeAttributeDefinition],
+            """],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (6,24): error CS9365: Unsafe member 'C.Dispose()' cannot implicitly implement safe member 'IDisposable.Dispose()'
@@ -5394,6 +5407,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedUnsafeSymbols: ["System.IDisposable.Dispose"],
             expectedSafeSymbols: ["C", "C.Dispose", "System.IDisposable"],
             verify: Verification.FailsPEVerify,
+            expectedAttributeIsSynthesized: false,
             expectedDiagnostics:
             [
                 // (1,1): error CS9362: 'IDisposable.Dispose()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
@@ -5427,7 +5441,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { foreach (var y in new S()) { } }
                 unsafe { using (var s = new S()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["S.Dispose"],
             expectedSafeSymbols: ["S"],
@@ -5460,7 +5473,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 await foreach (var x in new C()) { }
                 await using (var c = new C()) { }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.DisposeAsync"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5487,7 +5499,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 fixed (int* p = new C2()) { }
                 unsafe { fixed (int* p = new C2()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C2.GetPinnableReference"],
             expectedSafeSymbols: ["C1", "C1.GetPinnableReference", "C2"],
             expectedDiagnostics:
@@ -5527,7 +5538,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var (x, y) = new C();
                 unsafe { var (a, b) = new C(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.Deconstruct"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5557,7 +5567,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 lock (new System.Threading.Lock()) { }
                 unsafe { lock (new System.Threading.Lock()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["System.Threading.Lock.EnterScope", "System.Threading.Lock.Scope.Dispose"],
             expectedSafeSymbols: ["System.Threading.Lock", "System.Threading.Lock.Scope"],
@@ -5589,7 +5598,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 _ = o is (int x, string y);
                 unsafe { _ = o is (int a, string b); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["System.Runtime.CompilerServices.ITuple.Length", "System.Runtime.CompilerServices.ITuple.get_Length", "System.Runtime.CompilerServices.ITuple.this[]", "System.Runtime.CompilerServices.ITuple.get_Item"],
             expectedSafeSymbols: ["System.Runtime.CompilerServices.ITuple"],
             expectedDiagnostics:
@@ -5621,7 +5629,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { log($"a{0}"); };
                 void log(C c) { }
                 """,
-            additionalSources: [InterpolatedStringHandlerAttribute, RequiresUnsafeAttributeDefinition],
+            additionalSources: [InterpolatedStringHandlerAttribute],
             expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 2), "C.AppendLiteral", "C.AppendFormatted"],
             expectedSafeSymbols: ["C", Overload("C..ctor", parameterCount: 0)],
             expectedDiagnostics:
@@ -5667,7 +5675,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """, "Interceptor.cs");
 
-        CreateCompilation([source, interceptor, (TestSources.InterceptsLocationAttribute, "Attribute.cs"), RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source, interceptor, (TestSources.InterceptsLocationAttribute, "Attribute.cs")],
             parseOptions: TestOptions.RegularPreview.WithFeature(Feature.InterceptorsNamespaces, "global"),
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(unsafe1.Length > 0
@@ -5700,7 +5708,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 foreach (var x in C.M()) { }
                 unsafe { foreach (var y in C.M()) { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5712,14 +5719,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         // Test symbols that are only in PE image (hence cannot test them via the helper above).
         var libRef = CreateCompilation(
-            [lib, RequiresUnsafeAttributeDefinition],
+            [lib],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules().WithMetadataImportOptions(MetadataImportOptions.All))
             .EmitToImageReference();
         var libAssemblySymbol = CreateCompilation("", [libRef]).GetReferencedAssemblySymbol(libRef);
         VerifyRequiresUnsafeAttribute(
             libAssemblySymbol.Modules.Single(),
             expectedUnsafeSymbols: ["C.M"],
-            expectedSafeSymbols: ["C", "C.<M>d__0", "C.<M>d__0.MoveNext"]);
+            expectedSafeSymbols: ["C", "C.<M>d__0", "C.<M>d__0.MoveNext"],
+            includesAttributeDefinition: true,
+            isSynthesized: true);
     }
 
     [Fact]
@@ -5732,7 +5741,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             unsafe static void M1() { }
             static void M2() { }
             """;
-        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (1,1): error CS9362: 'M1()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
@@ -5802,7 +5811,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 "D.Invoke",
                 "D.BeginInvoke",
                 "D.EndInvoke",
-            ]);
+            ],
+            includesAttributeDefinition: true,
+            isSynthesized: true);
     }
 
     [Fact]
@@ -5823,7 +5834,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { c.P2 = c.P2 + 123; }
                 """,
             optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1", "C.<P1>k__BackingField", "C.<P2>k__BackingField"],
             expectedDiagnostics:
@@ -5852,7 +5862,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.P += 123;
                 unsafe { c.P += 123; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.P", "C.get_P", "C.set_P"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5897,7 +5906,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { _ = new C { P1 = null, P2 = null, P3 = null, P4 = null }; }
                 unsafe { _ = new C { P1 = { }, P2 = { }, P3 = { }, P4 = { } }; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.P1", "C.get_P1", "C.set_P1", "C.get_P2", "C.set_P3"],
             expectedSafeSymbols: ["C", "C.P2", "C.set_P2", "C.P3", "C.get_P3", "C.P4", "C.get_P4", "C.set_P4"],
             expectedDiagnostics:
@@ -5935,7 +5943,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { _ = c is { Length: 0 }; }
                 unsafe { _ = c is []; }
                 """,
-            additionalSources: [TestSources.Index, RequiresUnsafeAttributeDefinition],
+            additionalSources: [TestSources.Index],
             expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.Length", "C.get_Length"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -5978,7 +5986,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { x.P2 = x.P2 + 444; }
                 unsafe { E.get_P2(x); E.set_P2(x, 0); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
             expectedSafeSymbols: [ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
             expectedDiagnostics:
@@ -6013,7 +6020,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.P2 = c.P1 + c.P2;
                 unsafe { c.P2 = c.P1 + c.P2; }
                 """,
-            additionalSources: [IsExternalInitTypeDefinition, RequiresUnsafeAttributeDefinition],
+            additionalSources: [IsExternalInitTypeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
             expectedSafeSymbols: ["C.P1", "C.get_P1", "C.set_P1"],
@@ -6048,7 +6055,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { c.P1 = c.P1 + 123; }
                 unsafe { c.P2 = c.P2 + 123; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.get_P1", "C.set_P2"],
             expectedSafeSymbols: ["C.P1", "C.P2", "C.get_P2", "C.set_P1"],
             expectedDiagnostics:
@@ -6061,15 +6067,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P2").WithArguments("C.P2.set").WithLocation(3, 1),
             ]);
 
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+        CreateCompilation([lib], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
             // (3,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int P1 { unsafe get; set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 21),
             // (4,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int P2 { get; unsafe set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(4, 26));
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -6273,7 +6279,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     [A(P1 = 0, P2 = 0, P3 = 0, P4 = 0, F = 0)] void M2() { }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["A.P2", "A.get_P2", "A.set_P2", "A.get_P3", "A.set_P4"],
             expectedSafeSymbols: ["A.P1", "A.get_P1", "A.set_P1", "A.set_P3", "A.get_P4", "A.F"],
             expectedDiagnostics:
@@ -6325,7 +6330,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     unsafe public override int P3 { get; set; }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B.P1", "B.get_P1", "B.set_P1", "B.get_P2"],
             expectedSafeSymbols: ["B.P2", "B.set_P2", "B.P3", "B.get_P3", "B.set_P3"],
             expectedDiagnostics:
@@ -6422,7 +6426,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     unsafe public int P3 { get; set; }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["I.P1", "I.get_P1", "I.set_P1", "I.get_P2"],
             expectedSafeSymbols: ["I.P2", "I.set_P2", "I.P3", "I.get_P3", "I.set_P3"],
             expectedDiagnostics:
@@ -6499,7 +6502,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c2[0] = c2[0] + 123;
                 unsafe { c2[0] = c2[0] + 123; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C2.this[]", "C2.get_Item", "C2.set_Item"],
             expectedSafeSymbols: ["C1.this[]", "C1.get_Item", "C1.set_Item"],
             expectedDiagnostics:
@@ -6528,7 +6530,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c[0] += 123;
                 unsafe { c[0] += 123; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.set_Item"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -6561,7 +6562,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { _ = new C2 { [0] = null, [0] = { } }; }
                 unsafe { _ = new C3 { [0] = null, [0] = { } }; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C1.this[]", "C1.get_Item", "C1.set_Item", "C2.get_Item", "C3.set_Item"],
             expectedSafeSymbols: ["C1", "C2", "C2.this[]", "C2.set_Item", "C3", "C3.this[]", "C3.get_Item", "C4", "C4.this[]", "C4.get_Item", "C4.set_Item"],
             expectedDiagnostics:
@@ -6605,7 +6605,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { c1[0] = c1[0] + 123; }
                 unsafe { c2[0] = c2[0] + 123; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C1.get_Item", "C2.set_Item"],
             expectedSafeSymbols: ["C1.this[]", "C2.this[]", "C2.get_Item", "C1.set_Item"],
             expectedDiagnostics:
@@ -6618,15 +6617,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c2[0]").WithArguments("C2.this[int].set").WithLocation(4, 1),
             ]);
 
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+        CreateCompilation([lib], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
             // (3,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int this[int i] { unsafe get => i; set { } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 30),
             // (7,40): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int this[int i] { get => i; unsafe set { } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(7, 40));
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-        CreateCompilation([lib, RequiresUnsafeAttributeDefinition], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -6803,7 +6802,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.E2 += null;
                 unsafe { c.E2 += null; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.E2", "C.add_E2", "C.remove_E2"],
             expectedSafeSymbols: ["C.E1", "C.add_E1", "C.remove_E1"],
             expectedDiagnostics:
@@ -6837,7 +6835,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 }
             }
             """;
-        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (9,9): error CS9362: 'C.E3' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
@@ -6933,7 +6931,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     public override event System.Action E4 { add { } remove { } }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B.E1", "B.add_E1", "B.remove_E1", "B.E2", "B.add_E2", "B.remove_E2"],
             expectedSafeSymbols: ["B.E3", "B.add_E3", "B.remove_E3", "B.E4", "B.add_E4", "B.remove_E4"],
             expectedDiagnostics:
@@ -7016,7 +7013,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     public event System.Action E2 { add { } remove { } }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["I.E1", "I.add_E1", "I.remove_E1"],
             expectedSafeSymbols: ["I.E2", "I.add_E2", "I.remove_E2"],
             expectedDiagnostics:
@@ -7072,7 +7068,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 _ = new C3();
                 unsafe { _ = new C3(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 0)],
             expectedSafeSymbols: ["C", Overload("C..ctor", parameterCount: 1), "C2", "C2..ctor"],
             expectedDiagnostics:
@@ -7128,7 +7123,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     unsafe public C5(int x) : base() { }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["B..ctor"],
             expectedSafeSymbols: ["B"],
             expectedDiagnostics:
@@ -7170,7 +7164,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe public C(int[] a) : this(0) { }
             }
             """;
-        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (6,19): error CS9362: 'C.C(int)' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
@@ -7192,7 +7186,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 _ = C.F;
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             expectedUnsafeSymbols: [],
             expectedSafeSymbols: ["C", "C..cctor"],
@@ -7217,7 +7210,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { [A] void M3() { } }
                 [A] unsafe void M4() { }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: [Overload("A..ctor", parameterCount: 0)],
             expectedSafeSymbols: ["A", Overload("A..ctor", parameterCount: 1)],
             expectedDiagnostics:
@@ -7249,7 +7241,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { _ = new D<C>(); }
                 unsafe { _ = new X(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C", "C.M", "D", "D..ctor"],
             expectedDiagnostics:
@@ -7293,7 +7284,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     }
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -7331,7 +7321,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 static void M1<T1, T2, T3>() where T2 : new() { }
                 static void M2<T1, T2, T3>(T1 t1, T2 t2, T3 t3) where T1 : new() where T3 : new() { }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -7374,7 +7363,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 M<C2>();
                 static void M<T>() where T : new() { }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: [Overload("C1..ctor", parameterCount: 1), "C2..ctor"],
             expectedSafeSymbols: ["C1", Overload("C1..ctor", parameterCount: 0), "C2"],
             expectedDiagnostics:
@@ -7416,7 +7404,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 class D1<T> where T : new() { public static void M1() { } }
                 class D2<T> where T : new() { public static void M2() { } }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -7454,7 +7441,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 N.D<C> x = new N.D<C>();
                 unsafe { N.D<C> y = new N.D<C>(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C", "N.D", "N.D..ctor"],
             expectedDiagnostics:
@@ -7486,7 +7472,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 D<C>.Nested x = new D<C>.Nested();
                 unsafe { D<C>.Nested y = new D<C>.Nested(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C", "D", "D..ctor", "D.Nested", "D.Nested..ctor"],
             expectedDiagnostics:
@@ -7518,7 +7503,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 D.Nested<C> x = new D.Nested<C>();
                 unsafe { D.Nested<C> y = new D.Nested<C>(); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C", "D", "D..ctor", "D.Nested", "D.Nested..ctor"],
             expectedDiagnostics:
@@ -7556,7 +7540,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 class X { S<C> f; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C", "S", "S..ctor"],
             expectedDiagnostics:
@@ -7619,7 +7602,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     ~D() { } // implicitly calls base finalizer
                 }
                 """,
-                RequiresUnsafeAttributeDefinition,
             ],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -7630,7 +7612,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         VerifyRequiresUnsafeAttribute(
             comp.SourceModule,
             expectedUnsafeSymbols: [],
-            expectedSafeSymbols: ["C.Finalize"]);
+            expectedSafeSymbols: ["C.Finalize"],
+            includesAttributeDefinition: false);
     }
 
     [Fact]
@@ -7650,7 +7633,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 _ = c - c;
                 unsafe { _ = c - c; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.op_Subtraction"],
             expectedSafeSymbols: ["C.op_Addition"],
             expectedDiagnostics:
@@ -7685,7 +7667,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { _ = c - c; }
                 unsafe { E.op_Subtraction(c, c); }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["E.op_Subtraction", ExtensionMember("E", "op_Subtraction")],
             expectedSafeSymbols: ["E.op_Addition", ExtensionMember("E", "op_Addition")],
             expectedDiagnostics:
@@ -7716,7 +7697,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c -= c;
                 unsafe { c -= c; }
                 """,
-            additionalSources: [CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            additionalSources: [CompilerFeatureRequiredAttribute],
             expectedUnsafeSymbols: ["C.op_SubtractionAssignment"],
             expectedSafeSymbols: ["C.op_AdditionAssignment"],
             expectedDiagnostics:
@@ -7751,7 +7732,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 unsafe { c -= c; }
                 unsafe { E.op_SubtractionAssignment(c, c); }
                 """,
-            additionalSources: [CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            additionalSources: [CompilerFeatureRequiredAttribute],
             expectedUnsafeSymbols: ["E.op_SubtractionAssignment", ExtensionMember("E", "op_SubtractionAssignment")],
             expectedSafeSymbols: ["E.op_AdditionAssignment", ExtensionMember("E", "op_AdditionAssignment")],
             expectedDiagnostics:
@@ -7782,7 +7763,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c--;
                 unsafe { c--; }
                 """,
-            additionalSources: [CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            additionalSources: [CompilerFeatureRequiredAttribute],
             expectedUnsafeSymbols: ["C.op_DecrementAssignment"],
             expectedSafeSymbols: ["C.op_IncrementAssignment"],
             expectedDiagnostics:
@@ -7810,7 +7791,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 string s = c;
                 unsafe { string s2 = c; }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: [OverloadByReturnType("C.op_Implicit", "System.String")],
             expectedSafeSymbols: [OverloadByReturnType("C.op_Implicit", "System.Int32")],
             expectedDiagnostics:
@@ -7859,7 +7839,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "C.F", (object)getFunctionPointerType, (object)getFunctionPointerMethod],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -7926,7 +7907,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     int F2 = C.M();
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -8008,7 +7988,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -8078,7 +8059,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -8141,7 +8123,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 module.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "I", "C.M", "D"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false);
         }
     }
 
@@ -8182,7 +8165,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             VerifyRequiresUnsafeAttribute(
                 module.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [],
-                expectedSafeSymbols: ["C", "C.M", "I"]);
+                expectedSafeSymbols: ["C", "C.M", "I"],
+                includesAttributeDefinition: false);
         }
     }
 
@@ -8234,7 +8218,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["E.M2"],
                 expectedSafeSymbols: ["E", "E.M1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -8325,7 +8310,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["E.M2", ExtensionMember("E", "M2")],
                 expectedSafeSymbols: ["E", "E.M1", ExtensionMember("E", "M1")],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -8415,7 +8401,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
 
             class D3 : C;
-            """, RequiresUnsafeAttributeDefinition],
+            """],
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -8519,7 +8505,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source],
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -8604,7 +8590,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([source],
             [libRef],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -8716,7 +8702,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
                 expectedSafeSymbols: ["C", "C.P1", "C.get_P1", "C.set_P1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -8809,7 +8796,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
                 expectedSafeSymbols: ["E", ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -8906,7 +8894,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C2.this[]", "C2.get_Item", "C2.set_Item"],
                 expectedSafeSymbols: ["C1", "C2", "C1.this[]", "C1.get_Item", "C1.set_Item"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -8979,7 +8968,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.E2", "C.add_E2", "C.remove_E2"],
                 expectedSafeSymbols: ["C", "C.E1", "C.add_E1", "C.remove_E1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -9042,7 +9032,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 1)],
                 expectedSafeSymbols: ["C", Overload("C..ctor", parameterCount: 0)],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
@@ -9114,7 +9105,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.op_SubtractionAssignment"],
                 expectedSafeSymbols: ["C", "C.op_AdditionAssignment"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit))
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         // https://github.com/dotnet/roslyn/issues/81967: operator invocations involving pointers are allowed outside unsafe context
@@ -9167,7 +9159,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
             expectedSafeSymbols: ["C", "C.M1"],
@@ -9175,26 +9166,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([libSource, callerSource],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            [
-                .. commonDiagnostics,
-                // (8,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern void M2();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 12),
-                // (9,39): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     [DllImport("test")] public static extern void M3();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 39),
-                // (10,57): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     [MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 57),
-            ]);
+            .VerifyDiagnostics(commonDiagnostics);
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -9227,7 +9206,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern"), RequiresUnsafeAttributeDefinition],
+            [getLibSource("extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -9247,7 +9226,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             VerifyRequiresUnsafeAttribute(
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.M"],
-                expectedSafeSymbols: ["C"]);
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: !useCompilationReference ? true : null);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -9286,7 +9267,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false);
         }
     }
 
@@ -9305,7 +9287,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var c = new C();
                 c.M();
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.M"],
             expectedSafeSymbols: ["C"],
@@ -9384,7 +9365,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
                 class D4 : C;
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
             expectedSafeSymbols: ["B", "B.M4", "B.M5", "B.M6"],
@@ -9648,7 +9628,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     extern void I.M2();
                 }
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             targetFramework: TargetFramework.Net100,
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["I.M1"],
@@ -9724,7 +9703,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
@@ -9734,17 +9712,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([libSource, callerSource],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (7,16): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-            //         static extern void F();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(7, 16));
+            .VerifyDiagnostics();
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -9803,7 +9778,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
             expectedSafeSymbols: ["C", "C.P1", "C.set_P1"],
@@ -9811,34 +9785,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([libSource, callerSource],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics([
-                .. commonDiagnostics,
-                // (8,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern int P2 { set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 12),
-                // (8,28): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern int P2 { set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 28),
-                // (9,19): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public static extern int P3 { [DllImport("test")] set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 19),
-                // (9,55): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public static extern int P3 { [DllImport("test")] set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 55),
-                // (10,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 12),
-                // (10,73): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 73),
-            ]);
+            .VerifyDiagnostics(commonDiagnostics);
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -9871,7 +9825,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern"), RequiresUnsafeAttributeDefinition],
+            [getLibSource("extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -9891,7 +9845,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             VerifyRequiresUnsafeAttribute(
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.P", "C.set_P"],
-                expectedSafeSymbols: ["C"]);
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: !useCompilationReference ? true : null);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -9930,7 +9886,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.P", "C.set_P"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false);
         }
     }
 
@@ -9951,7 +9908,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.P1 = 0;
                 c.P2 = 0;
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.P1", "C.set_P1", "C.P2", "C.set_P2"],
             expectedSafeSymbols: ["C"],
@@ -9997,7 +9953,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
             expectedSafeSymbols: ["C"],
@@ -10005,26 +9960,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([libSource, callerSource],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            [
-                .. commonDiagnostics,
-                // (4,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern int this[int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 12),
-                // (4,37): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern int this[int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 37),
-                // (4,42): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern int this[int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 42),
-            ]);
+            .VerifyDiagnostics(commonDiagnostics);
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -10059,7 +10002,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern"), RequiresUnsafeAttributeDefinition],
+            [getLibSource("extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -10084,7 +10027,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             VerifyRequiresUnsafeAttribute(
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: unsafeSymbols,
-                expectedSafeSymbols: ["C"]);
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: !useCompilationReference ? true : null);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -10126,7 +10071,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.set_Item"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false);
         }
     }
 
@@ -10149,7 +10095,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 new C1()[0] = 0;
                 new C2()[0] = 0;
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C1.this[]", "C1.set_Item", "C2.this[]", "C2.set_Item"],
             expectedSafeSymbols: ["C1", "C2"],
@@ -10192,7 +10137,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
             expectedSafeSymbols: ["C"],
@@ -10200,25 +10144,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([libSource, callerSource],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics([
-                .. commonDiagnostics,
-                // (5,46): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public static extern event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 46),
-                // (5,46): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public static extern event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 46),
-                // (5,46): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public static extern event System.Action E;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "E").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(5, 46),
-            ]);
+            .VerifyDiagnostics(commonDiagnostics);
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -10253,7 +10186,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [libSource, RequiresUnsafeAttributeDefinition],
+            [libSource],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -10275,7 +10208,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             VerifyRequiresUnsafeAttribute(
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: unsafeSymbols,
-                expectedSafeSymbols: ["C"]);
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: !useCompilationReference ? true : null);
         }
 
         // When compiling the lib under legacy rules, extern members are not unsafe, but members with pointers are.
@@ -10301,7 +10236,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.E", "C.add_E", "C.remove_E"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false);
         }
     }
 
@@ -10320,7 +10256,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 C.E += null;
                 C.E -= null;
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.E", "C.add_E", "C.remove_E"],
             expectedSafeSymbols: ["C"],
@@ -10362,7 +10297,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
             expectedSafeSymbols: ["C"],
@@ -10370,19 +10304,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([libSource, callerSource],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics([
-                .. commonDiagnostics,
-                // (4,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern C();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 12),
-            ]);
+            .VerifyDiagnostics(commonDiagnostics);
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
-        CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -10416,7 +10345,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern"), RequiresUnsafeAttributeDefinition],
+            [getLibSource("extern")],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -10436,7 +10365,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             VerifyRequiresUnsafeAttribute(
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C..ctor"],
-                expectedSafeSymbols: ["C"]);
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: !useCompilationReference ? true : null);
         }
 
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
@@ -10475,7 +10406,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C..ctor"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false);
         }
     }
 
@@ -10493,7 +10425,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             caller: """
                 _ = new C();
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C..ctor"],
             expectedSafeSymbols: ["C"],
@@ -10533,7 +10464,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CompileAndVerifyUnsafe(
             libSource,
             callerSource,
-            additionalSources: [CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            additionalSources: [CompilerFeatureRequiredAttribute],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: unsafeSymbols,
             expectedSafeSymbols: ["C"],
@@ -10541,19 +10472,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([libSource, callerSource, CompilerFeatureRequiredAttribute],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics([
-                .. commonDiagnostics,
-                // (4,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                //     public extern void operator +=(C c);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 12),
-            ]);
+            .VerifyDiagnostics(commonDiagnostics);
 
-        CreateCompilation([libSource, CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
 
-        CreateCompilation([libSource, CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+        CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
@@ -10588,7 +10514,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var libUpdated = CreateCompilation(
-            [getLibSource("extern"), CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            [getLibSource("extern"), CompilerFeatureRequiredAttribute],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
 
@@ -10608,7 +10534,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             VerifyRequiresUnsafeAttribute(
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
-                expectedSafeSymbols: ["C"]);
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: !useCompilationReference,
+                isSynthesized: !useCompilationReference ? true : null);
         }
 
         CreateCompilation([getLibSource("extern"), CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
@@ -10647,7 +10575,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit);
+                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                includesAttributeDefinition: false);
         }
     }
 
@@ -10666,7 +10595,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 var c = new C();
                 c += null;
                 """,
-            additionalSources: [CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
+            additionalSources: [CompilerFeatureRequiredAttribute],
             verify: Verification.Skipped,
             expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
             expectedSafeSymbols: ["C"],
@@ -10679,7 +10608,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void RequiresUnsafeAttribute_NotSynthesized()
+    public void RequiresUnsafeAttribute_Synthesized()
     {
         var source = """
             public class C
@@ -10696,49 +10625,31 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 symbolValidator: m => VerifyRequiresUnsafeAttribute(
                     m,
                     expectedUnsafeSymbols: [],
-                    expectedSafeSymbols: ["C", "C.M"]))
+                    expectedSafeSymbols: ["C", "C.M"],
+                    includesAttributeDefinition: false))
                 .VerifyDiagnostics();
         }
 
         foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext })
         {
-            CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
+            CompileAndVerify(source,
                 parseOptions: parseOptions,
                 options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
                 symbolValidator: m => VerifyRequiresUnsafeAttribute(
                     m,
                     expectedUnsafeSymbols: ["C.M"],
-                    expectedSafeSymbols: ["C"]))
+                    expectedSafeSymbols: ["C"],
+                    includesAttributeDefinition: true,
+                    isSynthesized: true))
                 .VerifyDiagnostics();
         }
-
-        CreateCompilation([source, RequiresUnsafeAttributeDefinition],
-            parseOptions: TestOptions.Regular14,
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (1,1): error CS9274: 'MemorySafetyRules' version '2' is not available in C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (1,1): error CS9274: 'MemorySafetyRules' version '2' is not available in C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (3,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-            // public unsafe void M() { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(3, 12));
-
-        foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext })
-        {
-            CreateCompilation(source,
-                parseOptions: parseOptions,
-                options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-                .VerifyDiagnostics(
-                // (3,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-                // public unsafe void M() { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(3, 12));
-        }
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
     }
 
     [Fact]
@@ -10759,7 +10670,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 }
             }
             """;
-        var refA = CreateCompilation([sourceA, RequiresUnsafeAttributeDefinition],
+        var refA = CreateCompilation([sourceA],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics()
             .EmitToImageReference();
@@ -10799,7 +10710,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
                 m,
                 expectedUnsafeSymbols: [],
-                expectedSafeSymbols: ["C", "C.M"]))
+                expectedSafeSymbols: ["C", "C.M"],
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
 
         CompileAndVerify([source, RequiresUnsafeAttributeDefinition],
@@ -10807,7 +10719,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
                 m,
                 expectedUnsafeSymbols: ["C.M"],
-                expectedSafeSymbols: ["C"]))
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: true,
+                isSynthesized: false))
             .VerifyDiagnostics();
     }
 
@@ -10819,7 +10733,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
                 m,
                 expectedUnsafeSymbols: [],
-                expectedSafeSymbols: [AttributeDescription.RequiresUnsafeAttribute.FullName]))
+                expectedSafeSymbols: [AttributeDescription.RequiresUnsafeAttribute.FullName],
+                includesAttributeDefinition: true,
+                isSynthesized: false))
             .VerifyDiagnostics();
         var ref1 = AsReference(comp, useCompilationReference);
 
@@ -10835,7 +10751,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             symbolValidator: m => VerifyRequiresUnsafeAttribute(
                 m,
                 expectedUnsafeSymbols: ["C.M"],
-                expectedSafeSymbols: ["C"]))
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: false))
             .VerifyDiagnostics();
     }
 
@@ -10855,13 +10772,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        // Ambiguous attribute definitions from references.
-        CreateCompilation(source, [ref1, ref2],
-            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyEmitDiagnostics(
-            // (3,5): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
-            //     unsafe public void M() { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(3, 5));
+        // Ambiguous attribute definitions from references, but the compiler synthesizes its own.
+        CompileAndVerify(source, [ref1, ref2],
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(),
+            symbolValidator: m => VerifyRequiresUnsafeAttribute(
+                m,
+                expectedUnsafeSymbols: ["C.M"],
+                expectedSafeSymbols: ["C"],
+                includesAttributeDefinition: true,
+                isSynthesized: true))
+            .VerifyDiagnostics();
 
         // Also defined in source.
         var lib = CreateCompilation([source, RequiresUnsafeAttributeDefinition], [ref1, ref2],
@@ -11250,7 +11170,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 c.M1();
                 c.M2();
                 """,
-            additionalSources: [RequiresUnsafeAttributeDefinition],
             expectedUnsafeSymbols: ["C.M1", "C.M2"],
             expectedSafeSymbols: ["C"],
             expectedDiagnostics:
@@ -11273,7 +11192,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     unsafe public partial int M() => 0;
                 }
                 """,
-                RequiresUnsafeAttributeDefinition,
             ],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();

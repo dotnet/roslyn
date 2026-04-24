@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
         }
 
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ? unsafeKeyword
                     : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
                 var unsafeLocation = unsafeOrExternKeyword != default ? unsafeOrExternKeyword.GetLocation() : location;
-                Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor, diagnostics, unsafeLocation);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeLocation, modifyCompilation: true);
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();
