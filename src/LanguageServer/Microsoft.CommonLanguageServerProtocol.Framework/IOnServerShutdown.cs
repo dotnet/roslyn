@@ -13,7 +13,7 @@ namespace Microsoft.CommonLanguageServerProtocol.Framework;
 /// An optional component to run additional logic when LSP shutdown and exit are called,
 /// for example logging messages, cleaning up custom resources, etc.
 /// </summary>
-internal interface ILifeCycleManager
+internal interface IOnServerShutdown
 {
     /// <summary>
     /// Called when the server recieves the LSP exit notification.

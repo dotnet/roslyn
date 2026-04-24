@@ -40,7 +40,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Internal" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\BrokeredServices\ServiceBrokerProvider.cs" Link="BrokeredServices\ServiceBrokerProvider.cs" />
     <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\EditAndContinueLogReporter.cs" Link="EditAndContinue\EditAndContinueLogReporter.cs" />
     <Compile Include="..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\HotReloadLoggerProxy.cs" Link="EditAndContinue\HotReloadLoggerProxy.cs" />
   </ItemGroup>
