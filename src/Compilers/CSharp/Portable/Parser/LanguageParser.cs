@@ -8328,7 +8328,7 @@ done:
                     case SyntaxKind.ForKeyword:
                         return this.ParseForOrForEachStatement(attributes);
                     case SyntaxKind.ForEachKeyword:
-                        return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
+                        return this.ParseForEachStatement(attributes);
                     case SyntaxKind.GotoKeyword:
                         return this.ParseGotoStatement(attributes);
                     case SyntaxKind.IfKeyword:
@@ -8456,7 +8456,7 @@ done:
 
                 var nextToken = PeekToken(peekIndex);
                 if (nextToken.Kind == SyntaxKind.ForEachKeyword)
-                    return this.ParseForEachStatement(attributes, EatAwaitKeywordWithOptionalSkippedQuestion());
+                    return this.ParseForEachStatement(attributes);
 
                 if (nextToken.Kind == SyntaxKind.UsingKeyword)
                 {
@@ -8466,7 +8466,7 @@ done:
                     // ParseStatementCoreRest — that retry would otherwise trip on the
                     // ERR_UnexpectedToken we attach to a stray `?` and produce a worse cascade.
                     return PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenParenToken
-                        ? this.ParseUsingStatement(attributes, EatAwaitKeywordWithOptionalSkippedQuestion())
+                        ? this.ParseUsingStatement(attributes)
                         : this.ParseLocalDeclarationStatement(attributes);
                 }
             }
@@ -8511,16 +8511,19 @@ done:
         }
 
         /// <summary>
-        /// Eats the <c>await</c> keyword that starts an <c>await foreach</c> / <c>await using</c>
-        /// statement. If a stray <c>?</c> immediately follows the <c>await</c> keyword (the
-        /// user wrote <c>await? foreach</c> or <c>await? using</c>), eats the <c>?</c> too
-        /// and attaches it as trailing skipped syntax on the await keyword with an
-        /// <see cref="ErrorCode.ERR_UnexpectedToken"/> diagnostic. That way we recover
-        /// cleanly: one diagnostic anchored on the <c>?</c>, and the rest of the statement
-        /// parses normally as <c>await foreach</c> / <c>await using</c>.
+        /// If the current token is an <c>await</c> keyword, eats it and returns it; otherwise
+        /// returns <see langword="null"/>. If a stray <c>?</c> immediately follows the <c>await</c>
+        /// keyword (the user wrote <c>await? foreach</c> or <c>await? using</c>), eats the <c>?</c>
+        /// too and attaches it as trailing skipped syntax on the await keyword with an
+        /// <see cref="ErrorCode.ERR_UnexpectedToken"/> diagnostic. That way we recover cleanly:
+        /// one diagnostic anchored on the <c>?</c>, and the rest of the statement parses normally
+        /// as <c>await foreach</c> / <c>await using</c>.
         /// </summary>
-        private SyntaxToken EatAwaitKeywordWithOptionalSkippedQuestion()
+        private SyntaxToken TryEatAwaitKeywordWithOptionalSkippedQuestion()
         {
+            if (this.CurrentToken.ContextualKind != SyntaxKind.AwaitKeyword)
+                return null;
+
             var awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
             {
@@ -9614,7 +9617,7 @@ done:
             {
                 // Looks like a foreach statement.  Parse it that way instead
                 resetPoint.Reset();
-                return this.ParseForEachStatement(attributes, awaitTokenOpt: null);
+                return this.ParseForEachStatement(attributes);
             }
             else
             {
@@ -9766,9 +9769,12 @@ done:
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.OpenBraceToken;
         }
 
-        private CommonForEachStatementSyntax ParseForEachStatement(
-            SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt)
+        private CommonForEachStatementSyntax ParseForEachStatement(SyntaxList<AttributeListSyntax> attributes)
         {
+            // Eat the optional `await` / `await?` prefix up front. Returns null when the caller
+            // dispatches directly on `foreach`/`for` without a preceding `await`.
+            var awaitTokenOpt = TryEatAwaitKeywordWithOptionalSkippedQuestion();
+
             // Can be a 'for' keyword if the user typed: 'for (SomeType t in'
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForEachKeyword || this.CurrentToken.Kind == SyntaxKind.ForKeyword);
 
@@ -10365,8 +10371,12 @@ done:
                 this.ParsePossiblyAttributedBlock());
         }
 
-        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes, SyntaxToken awaitTokenOpt = null)
+        private UsingStatementSyntax ParseUsingStatement(SyntaxList<AttributeListSyntax> attributes)
         {
+            // Eat the optional `await` / `await?` prefix up front. See ParseForEachStatement for
+            // the `?`-as-skipped-syntax recovery convention.
+            var awaitTokenOpt = TryEatAwaitKeywordWithOptionalSkippedQuestion();
+
             var @using = this.EatToken(SyntaxKind.UsingKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
 
@@ -10526,7 +10536,7 @@ done:
             bool canParseAsLocalFunction = false;
             if (IsPossibleAwaitUsing())
             {
-                awaitKeyword = EatAwaitKeywordWithOptionalSkippedQuestion();
+                awaitKeyword = TryEatAwaitKeywordWithOptionalSkippedQuestion();
                 usingKeyword = EatToken();
             }
             else if (this.CurrentToken.Kind == SyntaxKind.UsingKeyword)
