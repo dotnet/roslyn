@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             => CanUnify(t1, t2, out _);
 
         /// <summary>
-        /// Attempts to unify 'candidateSubtype.BaseTypeNoUseSiteDiagnostics' with 'closedType'.
-        /// If the unification is possible, returns a construction of 'candidateSubtype' whose base type is the unified type.
+        /// Attempts to unify the base type of <paramref name="candidateSubtype"/> with <paramref name="closedType"/>.
+        /// If the unification is possible, returns a construction of <paramref name="candidateSubtype"/> whose base type is the unified type.
         /// </summary>
         public static NamedTypeSymbol? TryUnifyClosedSubtype(NamedTypeSymbol candidateSubtype, NamedTypeSymbol closedType)
         {

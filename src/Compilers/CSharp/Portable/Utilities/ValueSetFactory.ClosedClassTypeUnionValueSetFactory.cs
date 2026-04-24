@@ -31,21 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var toVisit = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                toVisit.AddRange(subtypes);
-                while (!toVisit.IsEmpty)
+                foreach (var subtype in subtypes)
                 {
-                    var subtype = toVisit.Pop();
-                    if (!subtype.IsClosed || subtype.ClosedSubtypes.IsEmpty)
-                    {
-                        builder.Add(subtype);
-                        continue;
-                    }
-
-                    toVisit.AddRange(subtype.ClosedSubtypes);
+                    ExpandClosedSubtypes(subtype, builder);
                 }
-
-                toVisit.Free();
             }
 
             private ImmutableArray<TypeSymbol> ClosedSubtypes()

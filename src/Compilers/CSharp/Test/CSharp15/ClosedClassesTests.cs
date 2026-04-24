@@ -1402,7 +1402,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source = """
             class Program
             {
-                int M(U u)
+                int M1(U u)
                 {
                     return u switch
                     {
@@ -1410,6 +1410,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         F1 => 2,
                         E2 => 3,
                         F2 => 4,
+                    };
+                }
+
+                int M2(U u)
+                {
+                    return u switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                        E2 => 3,
                     };
                 }
             }
@@ -1426,7 +1436,10 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
 
         var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
-        comp.VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (16,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(16, 18));
     }
 
     [Fact]
@@ -1633,9 +1646,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
         static void verify(CSharpCompilation comp)
         {
             comp.VerifyEmitDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F' is not covered.
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'E' is not covered.
                 //         return c switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F").WithLocation(100, 18),
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("E").WithLocation(100, 18),
                 // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'E' is not covered.
                 //         return d switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("E").WithLocation(200, 18));
@@ -2163,8 +2176,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             public class D1<U1> : C<U1>;
 
             public closed class E;
-            public sealed class F1;
-            public sealed class F2;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
             """;
 
         var source2 = """

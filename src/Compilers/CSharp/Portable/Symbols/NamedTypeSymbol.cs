@@ -696,6 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasDeclaredRequiredMembers { get; }
 
+#nullable enable
         /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
         internal abstract bool IsClosed { get; }
 
@@ -703,8 +704,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns the set of possible subtypes of a closed type.
         /// </summary>
         /// <remarks>
-        /// This set will be the same size or smaller than 'CandidateClosedSubtypes'.
-        /// The difference is that 'ClosedSubtypes' will perform substitution
+        /// This set will be the same size or smaller than <see cref="CandidateClosedSubtypeDefinitions"/>.
+        /// The difference is that <see cref="ClosedSubtypes"/> will perform substitution
         /// and rule out subtypes whose base types can't unify with 'this'.
         /// </remarks>
         internal ImmutableArray<NamedTypeSymbol> ClosedSubtypes
@@ -743,11 +744,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the set of subtype definitions in 'ContainingModule' whose 'BaseType.OriginalDefinition' is 'this.OriginalDefinition'.
+        /// Gets the set of subtype definitions in the same module whose base type has same original definition as 'this'.
         /// </summary>
         internal abstract ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions { get; }
 
-#nullable enable
         /// <summary>
         /// Whether the type encountered an error while trying to build its complete list of required members.
         /// </summary>
