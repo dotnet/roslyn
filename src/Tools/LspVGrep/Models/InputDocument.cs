@@ -8,6 +8,9 @@ internal sealed class InputDocument
     [JsonPropertyName("directory")]
     public string? Directory { get; init; }
 
+    [JsonPropertyName("output")]
+    public string? Output { get; init; }
+
     [JsonPropertyName("queries")]
     public List<QueryDefinitionDto>? Queries { get; init; }
 }

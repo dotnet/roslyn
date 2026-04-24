@@ -50,7 +50,7 @@ internal static class Program
         var executor = new QueryExecutor(algorithms);
         var report = await executor.ExecuteAsync(queries, context, workspaceStopwatch.Elapsed, CancellationToken.None);
 
-        var outputPath = Path.Combine(Path.GetDirectoryName(inputPath)!, "result.html");
+        var outputPath = ResolveOutputPath(inputPath, input.Output);
         var html = HtmlReportRenderer.Render(report);
         await File.WriteAllTextAsync(outputPath, html, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), CancellationToken.None);
 
@@ -68,5 +68,14 @@ internal static class Program
             : Path.Combine(inputDirectory, configuredDirectory);
 
         return Path.GetFullPath(candidatePath);
+    }
+
+    private static string ResolveOutputPath(string inputPath, string? configuredOutput)
+    {
+        var inputDirectory = Path.GetDirectoryName(inputPath)!;
+        var fileName = configuredOutput ?? "result.html";
+        return Path.IsPathRooted(fileName)
+            ? fileName
+            : Path.Combine(inputDirectory, fileName);
     }
 }

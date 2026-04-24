@@ -1,0 +1,26 @@
+{
+  "directory": "Q:\\repos\\runtime",
+  "output": "result-runtime.html",
+  "queries": [
+    {
+      "type": "find-type-definition",
+      "name": "Task"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "Span"
+    },
+    {
+      "type": "find-type-definition",
+      "name": "IServiceProvider"
+    },
+    {
+      "type": "find-derived-types",
+      "name": "Stream"
+    },
+    {
+      "type": "find-interface-implementation",
+      "name": "IDisposable"
+    }
+  ]
+}
