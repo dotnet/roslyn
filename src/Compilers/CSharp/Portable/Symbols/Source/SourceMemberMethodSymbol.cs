@@ -976,8 +976,11 @@ done:
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                var unsafeKeyword = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) ?? default;
-                var unsafeLocation = unsafeKeyword != default ? unsafeKeyword.GetLocation() : _location;
+                var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
+                var unsafeOrExternKeyword = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) is { } unsafeKeyword && unsafeKeyword != default
+                    ? unsafeKeyword
+                    : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
+                var unsafeLocation = unsafeOrExternKeyword != default ? unsafeOrExternKeyword.GetLocation() : _location;
                 MessageID.IDS_FeatureUnsafeEvolution.CheckFeatureAvailability(diagnostics, compilation, unsafeLocation);
                 Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Diagnostics_CodeAnalysis_RequiresUnsafeAttribute__ctor, diagnostics, unsafeLocation);
             }

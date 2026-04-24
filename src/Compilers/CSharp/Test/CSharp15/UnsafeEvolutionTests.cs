@@ -9267,15 +9267,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             [
                 .. commonDiagnostics,
-                // (8,24): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                // (8,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern void M2();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M2").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 24),
-                // (9,51): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 12),
+                // (9,39): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     [DllImport("test")] public static extern void M3();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M3").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 51),
-                // (10,69): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 39),
+                // (10,57): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     [MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "M4").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 69),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 57),
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
@@ -9289,15 +9289,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (8,24): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (8,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern void M2();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "M2").WithArguments("updated memory safety rules").WithLocation(8, 24),
-            // (9,51): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(8, 12),
+            // (9,39): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     [DllImport("test")] public static extern void M3();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "M3").WithArguments("updated memory safety rules").WithLocation(9, 51),
-            // (10,69): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(9, 39),
+            // (10,57): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     [MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("updated memory safety rules").WithLocation(10, 69));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(10, 57));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext)
@@ -9833,9 +9833,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation([libSource, callerSource],
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (7,28): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+            // (7,16): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
             //         static extern void F();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(7, 28));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(7, 16));
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
             parseOptions: TestOptions.RegularNext,
@@ -9848,9 +9848,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (7,28): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,16): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         static extern void F();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "F").WithArguments("updated memory safety rules").WithLocation(7, 28));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(7, 16));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext)
@@ -9914,21 +9914,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
                 .. commonDiagnostics,
-                // (8,23): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                // (8,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern int P2 { set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "P2").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 23),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 12),
                 // (8,28): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern int P2 { set; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(8, 28),
-                // (9,30): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                // (9,19): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public static extern int P3 { [DllImport("test")] set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "P3").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 30),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 19),
                 // (9,55): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public static extern int P3 { [DllImport("test")] set; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(9, 55),
-                // (10,23): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                // (10,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "P4").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 23),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 12),
                 // (10,73): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "set").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(10, 73),
@@ -9945,21 +9945,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (8,23): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (8,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int P2 { set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("updated memory safety rules").WithLocation(8, 23),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(8, 12),
             // (8,28): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int P2 { set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(8, 28),
-            // (9,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (9,19): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public static extern int P3 { [DllImport("test")] set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("updated memory safety rules").WithLocation(9, 30),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(9, 19),
             // (9,55): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public static extern int P3 { [DllImport("test")] set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(9, 55),
-            // (10,23): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (10,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("updated memory safety rules").WithLocation(10, 23),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(10, 12),
             // (10,73): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(10, 73));
@@ -10127,9 +10127,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             [
                 .. commonDiagnostics,
-                // (4,23): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                // (4,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern int this[int i] { get; set; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 23),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 12),
                 // (4,37): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern int this[int i] { get; set; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 37),
@@ -10149,9 +10149,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (4,23): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int this[int i] { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("updated memory safety rules").WithLocation(4, 23),
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(4, 12),
             // (4,37): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern int this[int i] { get; set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(4, 37),
@@ -10509,9 +10509,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
                 .. commonDiagnostics,
-                // (4,19): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                // (4,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern C();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "C").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 19),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 12),
             ]);
 
         CreateCompilation([libSource, RequiresUnsafeAttributeDefinition],
@@ -10525,9 +10525,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (4,19): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern C();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(4, 19));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(4, 12));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -10683,9 +10683,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
                 .. commonDiagnostics,
-                // (4,33): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
+                // (4,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
                 //     public extern void operator +=(C c);
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "+=").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 33),
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "extern").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(4, 12),
             ]);
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute, RequiresUnsafeAttributeDefinition],
@@ -10699,9 +10699,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (4,33): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (4,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public extern void operator +=(C c);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "+=").WithArguments("updated memory safety rules").WithLocation(4, 33));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(4, 12));
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
             parseOptions: TestOptions.RegularNext,
