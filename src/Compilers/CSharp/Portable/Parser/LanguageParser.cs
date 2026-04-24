@@ -8404,7 +8404,7 @@ done:
                 return null;
             }
 
-            var beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+            bool beginsWithAwait = this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
             var result = ParseLocalDeclarationStatement(attributes);
 
             // didn't get any sort of statement.  This was something else entirely
@@ -8525,13 +8525,12 @@ done:
                 return null;
 
             var awaitToken = this.EatContextualToken(SyntaxKind.AwaitKeyword);
-            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken)
-            {
-                awaitToken = AddTrailingSkippedSyntax(
-                    awaitToken,
-                    this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedToken, SyntaxFacts.GetText(SyntaxKind.QuestionToken)));
-            }
-            return awaitToken;
+            if (this.CurrentToken.Kind != SyntaxKind.QuestionToken)
+                return awaitToken;
+
+            return AddTrailingSkippedSyntax(
+                awaitToken,
+                this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedToken, SyntaxFacts.GetText(SyntaxKind.QuestionToken)));
         }
 
         private bool IsPossibleLabeledStatement()
