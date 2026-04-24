@@ -1622,7 +1622,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousAdditionalDocumentAsync(testLspServer));
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81410")]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/83304")]
     public async Task Test_BogusGlobalJson_01(bool mutatingLspWorkspace)
     {
         // Put a global.json with a bad SDK version in the directory with the file-based app.
