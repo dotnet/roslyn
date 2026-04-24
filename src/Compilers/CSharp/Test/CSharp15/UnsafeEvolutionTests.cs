@@ -3369,42 +3369,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (6,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // unsafe void F() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(6, 1),
             // (10,13): error CS0106: The modifier 'unsafe' is not valid for this item
             // unsafe enum E { A }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("unsafe").WithLocation(10, 13),
             // (12,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
-            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22),
-            // (15,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe X() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(15, 5),
-            // (18,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe void M() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(18, 5),
-            // (19,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(19, 5),
-            // (19,20): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(19, 20),
-            // (19,25): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(19, 25),
-            // (20,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(20, 5),
-            // (20,36): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("updated memory safety rules").WithLocation(20, 36),
-            // (20,44): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("updated memory safety rules").WithLocation(20, 44),
-            // (21,19): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static unsafe implicit operator int(X x) => 0;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(21, 19));
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(12, 22));
     }
 
     [Fact]
@@ -3511,9 +3481,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,26): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
             //     void M1(X<string*[]> x) { }
             Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(6, 26),
-            // (7,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe void M2(X<string*[]> x) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(7, 5),
             // (7,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
             //     unsafe void M2(X<string*[]> x) { }
             Diagnostic(ErrorCode.WRN_ManagedAddr, "x").WithArguments("string").WithLocation(7, 33));
@@ -3606,48 +3573,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // unsafe void F() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(2, 1),
-            // (5,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe void M() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(5, 5),
-            // (6,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(6, 5),
-            // (6,20): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(6, 20),
-            // (6,25): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(6, 25),
-            // (8,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(8, 5),
-            // (8,36): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("updated memory safety rules").WithLocation(8, 36),
-            // (8,44): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe event System.Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("updated memory safety rules").WithLocation(8, 44),
-            // (9,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int this[int i] { get => i; set { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(9, 5),
-            // (9,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int this[int i] { get => i; set { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(9, 30),
-            // (9,40): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe int this[int i] { get => i; set { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(9, 40),
-            // (10,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe C() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(10, 5),
-            // (11,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe public static C operator +(C c1, C c2) => c1;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(11, 5),
-            // (12,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe public void operator +=(C c) { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(12, 5),
             // (17,22): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
             Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(17, 22));
@@ -3747,14 +3672,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             expectedDiagnostics.Add(
                 // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
                 Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
-
-            if (compilationReference is null && unsafeModifier != "")
-            {
-                expectedDiagnostics.Add(
-                    // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     unsafe public void M() => System.Console.Write(111);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 5));
-            }
         }
 
         comp.VerifyDiagnostics([.. expectedDiagnostics]);
@@ -4194,15 +4111,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (4,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe public virtual void M2() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(4, 5),
             // (5,33): error CS9364: Unsafe member 'C.M1()' cannot override safe member 'B.M1()'
             //     unsafe public override void M1() { }
             Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(5, 33),
-            // (5,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     unsafe public override void M1() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(5, 5),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // new C().M1();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "new C().M1()").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -9288,16 +9199,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (8,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern void M2();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(8, 12),
-            // (9,39): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     [DllImport("test")] public static extern void M3();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(9, 39),
-            // (10,57): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     [MethodImpl(MethodImplOptions.InternalCall)] public extern void M4();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(10, 57));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext)
@@ -9847,10 +9749,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (7,16): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //         static extern void F();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(7, 16));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext)
@@ -9944,25 +9843,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (8,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern int P2 { set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(8, 12),
-            // (8,28): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern int P2 { set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(8, 28),
-            // (9,19): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static extern int P3 { [DllImport("test")] set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(9, 19),
-            // (9,55): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static extern int P3 { [DllImport("test")] set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(9, 55),
-            // (10,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(10, 12),
-            // (10,73): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern int P4 { [MethodImpl(MethodImplOptions.InternalCall)] set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(10, 73));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext)
@@ -10148,16 +10029,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (4,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern int this[int i] { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(4, 12),
-            // (4,37): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern int this[int i] { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("updated memory safety rules").WithLocation(4, 37),
-            // (4,42): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern int this[int i] { get; set; }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("updated memory safety rules").WithLocation(4, 42));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -10351,16 +10223,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (5,46): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static extern event System.Action E;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 46),
-            // (5,46): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static extern event System.Action E;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 46),
-            // (5,46): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public static extern event System.Action E;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "E").WithArguments("updated memory safety rules").WithLocation(5, 46));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -10524,10 +10387,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (4,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern C();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(4, 12));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -10698,10 +10558,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (4,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     public extern void operator +=(C c);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extern").WithArguments("updated memory safety rules").WithLocation(4, 12));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
             parseOptions: TestOptions.RegularNext,
@@ -10860,10 +10717,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             // (1,1): error CS9274: 'MemorySafetyRules' version '2' is not available in C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
-            // (3,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // public unsafe void M() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 12));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
@@ -10873,10 +10727,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "14.0", "preview").WithLocation(1, 1),
             // (3,12): error CS0656: Missing compiler required member 'System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute..ctor'
             // public unsafe void M() { }
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(3, 12),
-            // (3,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // public unsafe void M() { }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 12));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "unsafe").WithArguments("System.Diagnostics.CodeAnalysis.RequiresUnsafeAttribute", ".ctor").WithLocation(3, 12));
 
         foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext })
         {
