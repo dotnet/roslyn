@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Microsoft.AspNetCore.Razor.Threading;
@@ -13,27 +14,35 @@ internal static class SpecializedTasks
     public static readonly Task<bool> True = Task.FromResult(true);
     public static readonly Task<bool> False = Task.FromResult(false);
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<T?> AsNullable<T>(this Task<T> task) where T : class
         => task!;
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<T?> Default<T>()
         => EmptyTasks<T>.Default;
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<T?> Null<T>() where T : class
         => Default<T>();
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
         => EmptyTasks<T>.EmptyReadOnlyList;
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<IList<T>> EmptyList<T>()
         => EmptyTasks<T>.EmptyList;
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()
         => EmptyTasks<T>.EmptyImmutableArray;
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<IEnumerable<T>> EmptyEnumerable<T>()
         => EmptyTasks<T>.EmptyEnumerable;
 
+    [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "This is a Task wrapper, not an asynchronous method.")]
     public static Task<T[]> EmptyArray<T>()
         => EmptyTasks<T>.EmptyArray;
 
