@@ -127,7 +127,7 @@ public class LanguageConfigurationTest(ITestOutputHelper output)
     {
         var dir = Environment.CurrentDirectory;
         dir = dir.Substring(0, dir.IndexOf("artifacts"));
-        var langConfigFile = Path.Combine(dir, @"src\Razor\src\Microsoft.VisualStudio.RazorExtension", "language-configuration.json");
+        var langConfigFile = Path.Combine(dir, @"src\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension", "language-configuration.json");
         var langConfig = JObject.Parse(File.ReadAllText(langConfigFile));
         return langConfig;
     }
