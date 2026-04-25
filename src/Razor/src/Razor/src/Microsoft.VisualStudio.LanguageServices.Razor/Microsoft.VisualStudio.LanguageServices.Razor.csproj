@@ -19,8 +19,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Sdk.Razor" IncludeAssets="None" PrivateAssets="All" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" />
     <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" />
     <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
 

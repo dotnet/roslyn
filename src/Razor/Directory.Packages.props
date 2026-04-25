@@ -54,7 +54,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices" Version="$(_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(_MicrosoftVisualStudioLanguageServicesPackageVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem.SDK" Version="17.14.143" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="$(_MicrosoftVisualStudioShellPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(_MicrosoftVisualStudioPackagesVersion)" NoWarn="NU1701" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
