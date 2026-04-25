@@ -7,5 +7,10 @@
 
   <Import Project="../CoreComponents.props"/>
   
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
 </Project>
 
