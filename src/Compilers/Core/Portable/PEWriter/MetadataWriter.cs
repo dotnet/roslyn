@@ -74,6 +74,13 @@ namespace Microsoft.Cci
         /// </remarks>
         internal const int PdbLengthLimit = 2046; // Empirical, based on when ISymUnmanagedWriter2 methods start throwing.
 
+        private const bool SuppressMetadataValidation =
+#if !DEBUG
+            true;
+#else
+            false;
+#endif
+
         private readonly bool _deterministic;
 
         internal readonly bool MetadataOnly;
@@ -1730,10 +1737,7 @@ namespace Microsoft.Cci
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
-            // TODO (https://github.com/dotnet/roslyn/issues/3905):
-            // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
-            // Once fixed enable validation in DEBUG builds.
-            var rootBuilder = new MetadataRootBuilder(metadata, module.SerializationProperties.TargetRuntimeVersion, suppressValidation: true);
+            var rootBuilder = GetRootBuilder();
 
             rootBuilder.Serialize(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
             metadataSizes = rootBuilder.Sizes;
@@ -1861,10 +1865,7 @@ namespace Microsoft.Cci
 
         public MetadataRootBuilder GetRootBuilder()
         {
-            // TODO (https://github.com/dotnet/roslyn/issues/3905):
-            // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
-            // Once fixed enable validation in DEBUG builds.
-            return new MetadataRootBuilder(metadata, module.SerializationProperties.TargetRuntimeVersion, suppressValidation: true);
+            return new MetadataRootBuilder(metadata, module.SerializationProperties.TargetRuntimeVersion, SuppressMetadataValidation);
         }
 
         public PortablePdbBuilder GetPortablePdbBuilder(ImmutableArray<int> typeSystemRowCounts, MethodDefinitionHandle debugEntryPoint, Func<IEnumerable<Blob>, BlobContentId> deterministicIdProviderOpt)
