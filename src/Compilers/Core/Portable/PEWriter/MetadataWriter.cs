@@ -1730,13 +1730,6 @@ namespace Microsoft.Cci
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
-            // TODO: Update SRM to not sort Custom Attribute table when emitting EnC delta
-            // https://github.com/dotnet/roslyn/issues/70389
-            if (!IsFullMetadata)
-            {
-                metadata.GetType().GetField("_customAttributeTableNeedsSorting", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(metadata, false);
-            }
-
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
             // InterfaceImpl table emitted by Roslyn is not compliant with ECMA spec.
             // Once fixed enable validation in DEBUG builds.
