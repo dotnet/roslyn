@@ -26,7 +26,6 @@
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.RazorExtension.Custom" Path="Microsoft.VisualStudio.RazorExtension.Custom.pkgdef" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.RazorExtension.BrokeredServices" Path="Microsoft.VisualStudio.RazorExtension.BrokeredServices.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.Razor.Compiler" Path="|Microsoft.CodeAnalysis.Razor.Compiler|" />
     <!-- ServiceHub assets are added by msbuild target -->

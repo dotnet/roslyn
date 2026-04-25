@@ -24,9 +24,9 @@
     <ExtensionInstallationFolder>$(RazorExtensionInstallationFolderBase)\$(RazorServiceHubCoreSubFolder)</ExtensionInstallationFolder>
     <VisualStudioInsertionComponent>$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
 
-    <!-- Only create the VSIX for official builds. In dev builds we reference the bits directly in the razor extension -->
+    <!-- Create the VSIX for official builds and local x64 deployment so ServiceHub payload stays in the wrapper project. -->
     <CreateVsixContainer>false</CreateVsixContainer>
-    <CreateVsixContainer Condition="'$(OfficialBuildId)' != ''">true</CreateVsixContainer>
+    <CreateVsixContainer Condition="'$(DeployExtension)' == 'true' Or '$(OfficialBuildId)' != ''">true</CreateVsixContainer>
     
   </PropertyGroup>
 

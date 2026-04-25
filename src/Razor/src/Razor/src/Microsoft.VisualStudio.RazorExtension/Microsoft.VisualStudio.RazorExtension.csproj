@@ -177,17 +177,15 @@
     </ProjectReference>
   </ItemGroup>
 
-  <!-- We reference the core components only for developer builds. In the official build they are inserted via the corecomponents VSIX alongside this VSIX -->
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" Condition="'$(OfficialBuildId)' == ''">
+  <!-- Core components deploy through the dedicated Razor ServiceHub wrapper VSIX in the merged Roslyn repo. -->
 
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents\x64\Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX></IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
       <Private>false</Private>
-      <AdditionalProperties>TargetFramework=$(NetVS)</AdditionalProperties>
-      <VSIXSubPath>ServiceHubCore</VSIXSubPath>
-
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
     </ProjectReference>
   </ItemGroup>
 

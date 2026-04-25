@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
@@ -8,5 +8,56 @@
     </ItemGroup>
   </Target>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
-  <Import Project="$(RepositoryEngineeringDir)targets\ReplaceServiceHubAssetsInVsixManifest.targets" />
+  <Import Project="$(RepositoryRoot)eng\targets\ReplaceServiceHubAssetsInVsixManifest.targets" />
+
+  <ItemGroup>
+    <Content Remove="$(RepoRoot)src\Setup\Roslyn.VsixLicense\EULA.rtf" />
+    <Content Remove="$(RepoRoot)src\Setup\Roslyn.ThirdPartyNotices\ThirdPartyNotices.rtf" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateRazorClientEnabledPkg</GetVsixSourceItemsDependsOn>
+    <IncludeVSIXItemsDependsOn>$(IncludeVSIXItemsDependsOn);RemoveMergedRoslynVsixSourceItems</IncludeVSIXItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="GenerateRazorClientEnabledPkg">
+    <ItemGroup>
+      <_RazorClientEnabledPkgLine Include="$(TargetName).pkgdef" />
+      <_RazorClientEnabledPkgLine Include="$(TargetName).Custom.pkgdef" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_RazorClientEnabledPkgPath>$(IntermediateOutputPath)$(TargetName).clientenabledpkg</_RazorClientEnabledPkgPath>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_RazorClientEnabledPkgPath)"
+                      Lines="@(_RazorClientEnabledPkgLine)"
+                      Overwrite="true"
+                      Encoding="UTF-8"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <FileWrites Include="$(_RazorClientEnabledPkgPath)" />
+      <VSIXSourceItem Include="$(_RazorClientEnabledPkgPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="RemoveMergedRoslynVsixSourceItems">
+    <ItemGroup>
+      <_MergedRoslynVsixSourceItemToRemove Include="@(VSIXSourceItem)"
+                                            Condition="'%(VSIXSourceItem.Filename)%(VSIXSourceItem.Extension)' == 'EULA.rtf'
+                                                    Or '%(VSIXSourceItem.Filename)%(VSIXSourceItem.Extension)' == 'ThirdPartyNotices.rtf'
+                                                    Or '%(VSIXSourceItem.Filename)%(VSIXSourceItem.Extension)' == 'roslynSettings.registration.json'
+                                                    Or '%(VSIXSourceItem.Filename)%(VSIXSourceItem.Extension)' == 'Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll'" />
+      <VSIXSourceItem Remove="@(_MergedRoslynVsixSourceItemToRemove)" />
+      <_MergedRoslynVsixCopyLocalToRemove Include="@(VSIXCopyLocalReferenceSourceItem)"
+                                           Condition="'%(VSIXCopyLocalReferenceSourceItem.Filename)%(VSIXCopyLocalReferenceSourceItem.Extension)' == 'Microsoft.VisualStudio.LanguageServer.Client.Implementation.dll'" />
+      <VSIXCopyLocalReferenceSourceItem Remove="@(_MergedRoslynVsixCopyLocalToRemove)" />
+      <_MergedRoslynVsixLocalOnlyToRemove Include="@(VSIXSourceItemLocalOnly)"
+                                           Condition="'%(VSIXSourceItemLocalOnly.Filename)%(VSIXSourceItemLocalOnly.Extension)' == 'roslynSettings.registration.json'" />
+      <VSIXSourceItemLocalOnly Remove="@(_MergedRoslynVsixLocalOnlyToRemove)" />
+      <_MergedRoslynContentToRemove Include="@(Content)"
+                                     Condition="'%(Content.Filename)%(Content.Extension)' == 'EULA.rtf'
+                                             Or '%(Content.Filename)%(Content.Extension)' == 'ThirdPartyNotices.rtf'
+                                             Or '%(Content.Link)' == 'UnifiedSettings\roslynSettings.registration.json'" />
+      <Content Remove="@(_MergedRoslynContentToRemove)" />
+    </ItemGroup>
+  </Target>
 </Project>
