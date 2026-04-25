@@ -8343,6 +8343,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedCollectionExpression:
                 case BoundKind.UnboundLambda:
                     break;
+                case BoundKind.MethodGroup when ((BoundMethodGroup)boundLeft).Methods.Length > 0 && ((BoundMethodGroup)boundLeft).LookupError is null:
+                    // Real method group with at least one candidate. Empty / errored method groups
+                    // (produced when an inaccessible nested type lookup or other failed lookup
+                    // falls through to extension-method search and finds nothing) are excluded so
+                    // the existing diagnostic on the inner lookup is preserved.
+                    break;
                 default:
                     return null;
             }
