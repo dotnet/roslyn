@@ -62,6 +62,26 @@
     <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
+  <!--
+    When DogfoodCodeStyleAnalyzers=true, replace the SDK's built-in CodeStyle analyzers with the locally-built ones from this repo.
+    Usage:
+    > dotnet build src\CodeStyle\CSharp\Analyzers -p:DotNetUseShippingVersions=true -c Release
+    > .\eng\make-bootstrap.ps1
+    > dotnet build -p:DogfoodCodeStyleAnalyzers=Release -p:RoslynEnforceCodeStyle=true -p:RunAnalyzersDuringBuild=true "-p:BootstrapBuildPath=$(pwd)\artifacts\bootstrap\local"
+  -->
+  <Target Name="_DogfoodCodeStyleAnalyzers"
+          BeforeTargets="CoreCompile"
+          Condition="'$(DogfoodCodeStyleAnalyzers)' != '' AND '$(Language)' == 'C#'">
+    <ItemGroup>
+      <!-- Remove SDK-provided CodeStyle analyzers -->
+      <Analyzer Remove="@(Analyzer)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.CodeAnalysis.CodeStyle'))" />
+      <Analyzer Remove="@(Analyzer)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('Microsoft.CodeAnalysis.CSharp.CodeStyle'))" />
+      <!-- Add locally-built CodeStyle analyzers -->
+      <Analyzer Include="$(RepoRoot)artifacts\bin\Microsoft.CodeAnalysis.CodeStyle\$(DogfoodCodeStyleAnalyzers)\netstandard2.0\Microsoft.CodeAnalysis.CodeStyle.dll" />
+      <Analyzer Include="$(RepoRoot)artifacts\bin\Microsoft.CodeAnalysis.CSharp.CodeStyle\$(DogfoodCodeStyleAnalyzers)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.CodeStyle.dll" />
+    </ItemGroup>
+  </Target>
+
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
