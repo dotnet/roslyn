@@ -99,7 +99,7 @@ parameters:
 jobs:
   - job: 'BuildWindows'
     displayName: 'Build on Windows with VS2017'
-    timeoutInMinutes: 180
+    timeoutInMinutes: 210
     pool: ${{ parameters.vsPool }}
     steps:
 

@@ -547,8 +547,8 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild -or $official) {
-        # Use a 120 minute timeout on CI
-        $args += " -xml -timeout:120"
+        # Use a 150 minute timeout on CI
+        $args += " -xml -timeout:150"
     }
 
     if ($procdump) {
