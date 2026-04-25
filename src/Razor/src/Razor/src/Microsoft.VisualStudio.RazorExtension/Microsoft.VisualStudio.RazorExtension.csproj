@@ -40,12 +40,12 @@
 
   <!-- Include Razor SDK design time assets in the VSIX -->
   <ItemGroup>
-    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\build\netstandard2.0\Microsoft.NET.Sdk.Razor.DesignTime.targets">
+    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\targets\Microsoft.NET.Sdk.Razor.DesignTime.targets">
       <IncludeInVsix>true</IncludeInVsix>
       <InstallRoot>MSBuild</InstallRoot>
       <VSIXSubPath>Microsoft\VisualStudio\Razor\</VSIXSubPath>
     </Content>
-    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\build\netstandard2.0\Rules\*.xaml">
+    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\targets\Rules\*.xaml">
       <IncludeInVsix>true</IncludeInVsix>
       <InstallRoot>MSBuild</InstallRoot>
       <VSIXSubPath>Microsoft\VisualStudio\Razor\Rules\</VSIXSubPath>
