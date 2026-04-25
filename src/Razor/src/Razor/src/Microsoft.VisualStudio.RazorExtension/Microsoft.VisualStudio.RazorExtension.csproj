@@ -36,7 +36,10 @@
   </PropertyGroup>
 
   <ItemGroup Label="PkgDef">
+    <PkgDefInstalledProduct Include="{13b72f58-279e-49e0-a56d-296be02f0805}" Name="Razor (ASP.NET Core)" DisplayName="#110" ProductDetails="#112" />
+    <PkgDefPackageRegistration Include="{13b72f58-279e-49e0-a56d-296be02f0805}" Name="RazorPackage" Class="Microsoft.VisualStudio.RazorExtension.RazorPackage" AllowsBackgroundLoad="true" />
     <PkgDefBindingRedirect Include="$(TargetPath)" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
 
   <!-- Import the list of service hub services we proffer, to generate various files to include in the VSIX -->

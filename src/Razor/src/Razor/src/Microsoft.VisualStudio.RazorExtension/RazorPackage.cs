@@ -28,32 +28,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.RazorExtension;
 
-[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-[AboutDialogInfo(PackageGuidString, "Razor (ASP.NET Core)", "#110", "#112", IconResourceID = "#400")]
-[ProvideService(typeof(RazorLanguageService))]
-[ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
-[ProvideMenuResource("Menus.ctmenu", 1)]
-#pragma warning disable VSSDK003 // Tool windows should support async construction
-[ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
-#pragma warning restore VSSDK003 // Tool windows should support async construction
-[ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\razor.registration.json")]
 [Guid(PackageGuidString)]
-// We activate cohosting when the first Razor file is opened. This matches the previous behavior where the
-// LSP client MEF export had the Razor content type metadata.
-[ProvideUIContextRule(
-        contextGuid: RazorConstants.RazorCohostingUIContext,
-        name: "Razor Cohosting Activation",
-        expression: "RazorContentType",
-        termNames: ["RazorContentType"],
-        termValues: [$"ActiveEditorContentType:{RazorConstants.RazorLSPContentTypeName}"])]
-// Activate context menu commands when a .razor or .cshtml file (or their nested files) is selected or opened
-[ProvideAutoLoad(GuidRazorFileContextString, PackageAutoLoadFlags.BackgroundLoad)]
-[ProvideUIContextRule(
-        contextGuid: GuidRazorFileContextString,
-        name: "Razor File Selected",
-        expression: "DotNetCoreRazorProject & (RazorFile | CshtmlFile | RazorNestedFile | CshtmlNestedFile)",
-        termNames: ["DotNetCoreRazorProject", "RazorFile", "CshtmlFile", "RazorNestedFile", "CshtmlNestedFile"],
-        termValues: ["ActiveProjectCapability:DotNetCoreRazor", @"HierSingleSelectionName:\.razor$", @"HierSingleSelectionName:\.cshtml$", @"HierSingleSelectionName:\.razor\.", @"HierSingleSelectionName:\.cshtml\."])]
 internal sealed class RazorPackage : AsyncPackage
 {
     public const string PackageGuidString = "13b72f58-279e-49e0-a56d-296be02f0805";
