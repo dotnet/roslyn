@@ -59,7 +59,7 @@ public sealed class ExtensionMembersOnTypelessReceivers_Smoke_Tests : CompilingT
         CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "empty").VerifyDiagnostics();
     }
 
-    [Fact(Skip = "TODO: enable lambda-without-natural-type receiver in Phase 2 Lambda area PRs.")]
+    [Fact]
     public void Lambda_ClassicExtensionMethod_Executes()
     {
         var source = """

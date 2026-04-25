@@ -8333,16 +8333,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            // Phase 1 supports only the headline scenario: collection-expression receivers
-            // (e.g. `[1, 2, 3].ToImmutableArray()`). The other typeless receiver categories named
-            // in the spec (target-typed `new()`, conditional / switch with no common arm type,
-            // lambda without natural type, method group, tuple literal with at least one typeless
-            // element, default literal, null literal) will be enabled in their respective Phase 2
-            // area PRs together with their test coverage. Until then, those categories continue
-            // to produce their pre-feature diagnostics.
+            // Receiver categories enabled so far. Other categories named in the spec (target-typed
+            // `new()`, conditional / switch with no common arm type, method group, tuple literal
+            // with at least one typeless element, default literal, null literal) will be enabled
+            // in their respective Phase 2 area PRs together with their test coverage. Until then,
+            // those categories continue to produce their pre-feature diagnostics.
             switch (boundLeft.Kind)
             {
                 case BoundKind.UnconvertedCollectionExpression:
+                case BoundKind.UnboundLambda:
                     break;
                 default:
                     return null;
