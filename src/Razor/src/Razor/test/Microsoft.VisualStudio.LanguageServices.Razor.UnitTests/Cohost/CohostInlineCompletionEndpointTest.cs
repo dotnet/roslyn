@@ -118,16 +118,82 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
     {
         public IEnumerable<RoslynSnippets.SnippetInfo> GetSnippetsIfAvailable()
         {
-            var snippetsFile = Path.Combine(Directory.GetCurrentDirectory(), "Cohost", "TestSnippets.snippet");
-            if (!File.Exists(snippetsFile))
-            {
-                throw new InvalidOperationException($"Could not find test snippets file at {snippetsFile}");
-            }
-
+            var snippetsFile = GetTestSnippetsFile();
             var testSnippetsXml = XDocument.Load(snippetsFile);
             var snippets = XmlSnippetParser.CodeSnippet.ReadSnippets(testSnippetsXml);
 
             return snippets.Select(s => new RoslynSnippets.SnippetInfo(s.Shortcut, s.Title, s.Title, snippetsFile));
+        }
+
+        private static string GetTestSnippetsFile()
+        {
+            var appContextBaseDirectory = AppContext.BaseDirectory;
+            var currentDirectory = Environment.CurrentDirectory;
+
+            var snippetsFile = TryFindTestSnippetsFile(appContextBaseDirectory)
+                ?? (string.Equals(currentDirectory, appContextBaseDirectory, StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : TryFindTestSnippetsFile(currentDirectory));
+
+            if (snippetsFile is null)
+            {
+                throw new InvalidOperationException($"Could not find test snippets file from '{appContextBaseDirectory}' or '{currentDirectory}'.");
+            }
+
+            return snippetsFile;
+        }
+
+        private static string? TryFindTestSnippetsFile(string baseDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(baseDirectory) || !Directory.Exists(baseDirectory))
+            {
+                return null;
+            }
+
+            var outputLocalPath = Path.Combine(baseDirectory, "Cohost", "TestSnippets.snippet");
+            if (File.Exists(outputLocalPath))
+            {
+                return outputLocalPath;
+            }
+
+            var repoRoot = SearchUp(baseDirectory, "global.json");
+            if (repoRoot is not null)
+            {
+                var razorRepoRoot = Directory.Exists(Path.Combine(repoRoot, "src", "Razor", "src"))
+                    ? Path.Combine(repoRoot, "src", "Razor")
+                    : repoRoot;
+                foreach (var candidatePath in new[]
+                {
+                    Path.Combine(razorRepoRoot, "src", "Razor", "test", "Microsoft.VisualStudio.LanguageServices.Razor.UnitTests", "Cohost", "TestSnippets.snippet"),
+                    Path.Combine(razorRepoRoot, "src", "Razor", "test", "Microsoft.VisualStudio.LanguageServices.Razor.Test", "Cohost", "TestSnippets.snippet"),
+                })
+                {
+                    if (File.Exists(candidatePath))
+                    {
+                        return candidatePath;
+                    }
+                }
+            }
+
+            foreach (var candidatePath in Directory.EnumerateFiles(baseDirectory, "TestSnippets.snippet", SearchOption.AllDirectories))
+            {
+                return candidatePath;
+            }
+
+            return null;
+        }
+
+        private static string? SearchUp(string baseDirectory, string fileName)
+        {
+            for (var current = new DirectoryInfo(baseDirectory); current is not null; current = current.Parent)
+            {
+                if (File.Exists(Path.Combine(current.FullName, fileName)))
+                {
+                    return current.FullName;
+                }
+            }
+
+            return null;
         }
 
         public bool ShouldFormatSnippet(RoslynSnippets.SnippetInfo snippetInfo)

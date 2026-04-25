@@ -36,7 +36,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Update="Cohost\TestSnippets.snippet">
+    <None Include="Cohost\TestSnippets.snippet">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
