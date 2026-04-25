@@ -134,4 +134,29 @@
 
     <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == '' and '%(RestrictedInternalsVisibleTo.Namespace)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' or 'Namespace' attribute. Target assembly: %(Identity)" />
   </Target>
+
+  <Target Name="CopyRazorTestAssetsToOutput"
+          AfterTargets="Build"
+          Condition="'$(TargetFramework)' != '' and '$(TargetDir)' != '' and ('$(IsUnitTestProject)' == 'true' or '$(IsIntegrationTestProject)' == 'true')">
+    <ItemGroup>
+      <_RazorTestFilesToOutput Include="$(MSBuildProjectDirectory)\**\TestFiles\**\*"
+                               Exclude="$(MSBuildProjectDirectory)\bin\**\*;$(MSBuildProjectDirectory)\obj\**\*" />
+      <_RazorRepositoryFilesToOutput Include="$(RepositoryRoot)..\..\eng\targets\RazorServices.props"
+                                     Condition="Exists('$(RepositoryRoot)..\..\eng\targets\RazorServices.props')">
+        <TargetPath>eng\targets\RazorServices.props</TargetPath>
+      </_RazorRepositoryFilesToOutput>
+    </ItemGroup>
+    <Copy SourceFiles="@(_RazorTestFilesToOutput)"
+          DestinationFiles="@(_RazorTestFilesToOutput->'$(TargetDir)%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_RazorTestFilesToOutput)' != ''">
+      <Output TaskParameter="CopiedFiles" ItemName="FileWrites" />
+    </Copy>
+    <Copy SourceFiles="@(_RazorRepositoryFilesToOutput)"
+          DestinationFiles="@(_RazorRepositoryFilesToOutput->'$(TargetDir)%(TargetPath)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_RazorRepositoryFilesToOutput)' != ''">
+      <Output TaskParameter="CopiedFiles" ItemName="FileWrites" />
+    </Copy>
+  </Target>
 </Project>
