@@ -137,6 +137,7 @@ extends:
                   artifactName: ReleaseBuildLogs_Attempt$(System.JobAttempt)
                   artifactType: container
                   sbomEnabled: false
+
                 - output: pipelineArtifact
                   displayName: Publish Symbols artifacts
                   condition: succeededOrFailed()
@@ -144,18 +145,29 @@ extends:
                   artifactName: ReleaseSymbols
                   artifactType: container
                   sbomEnabled: false
+
                 - output: pipelineArtifact
                   displayName: Publish NuGet Packages as Artifact
                   targetPath: $(Build.ArtifactStagingDirectory)\Packages
                   artifactName: ReleasePackages
                   artifactType: container
                   sbomEnabled: false
+
                 - output: pipelineArtifact
                   displayName: Publish Insertion Parameters
                   targetPath: $(Build.ArtifactStagingDirectory)\Insertion
                   artifactName: InsertionParameters
                   artifactType: container
                   sbomEnabled: false
+
+                - output: nuget
+                  displayName: 'Publish CoreXT Packages'
+                  packageParentPath: '$(Build.ArtifactStagingDirectory)'
+                  packagesToPush: $(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg
+                  allowPackageConflicts: true
+                  nuGetFeedType: external
+                  publishFeedCredentials: 'DevDiv - VS package feed'
+                  condition: succeeded()
 
             steps:
               - task: NuGetToolInstaller@1
@@ -257,16 +269,6 @@ extends:
                   Contents: '**\*.nupkg'
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
                   FlattenFolders: true
-                condition: succeeded()
-
-              - task: 1ES.PublishNuGet@1
-                displayName: 'NuGet push (VS-CoreXtFeeds)'
-                inputs:
-                  packageParentPath: '$(Build.ArtifactStagingDirectory)'
-                  packagesToPush: $(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg
-                  nuGetFeedType: 'internal'
-                  publishVstsFeed: 37a181e8-5ec9-4e8d-a499-07b754f9b4f8
-                  allowPackageConflicts: true
                 condition: succeeded()
 
               - task: CopyFiles@2
