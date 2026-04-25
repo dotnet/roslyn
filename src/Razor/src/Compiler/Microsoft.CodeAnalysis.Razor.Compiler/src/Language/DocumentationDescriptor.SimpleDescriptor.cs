@@ -23,6 +23,6 @@ internal abstract partial class DocumentationDescriptor
             => other is SimpleDescriptor { Id: var id } && Id == id;
 
         protected override int ComputeHashCode()
-            => Id.GetHashCode();
+            => (int)Id;
     }
 }
