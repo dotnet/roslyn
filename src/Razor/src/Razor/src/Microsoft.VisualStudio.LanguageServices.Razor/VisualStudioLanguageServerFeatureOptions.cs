@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.Razor;
 

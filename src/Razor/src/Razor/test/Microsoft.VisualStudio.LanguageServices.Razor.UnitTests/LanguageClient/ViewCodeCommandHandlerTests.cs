@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Moq;
 using Xunit;
 using Xunit.Abstractions;
 
