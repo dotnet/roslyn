@@ -21,7 +21,6 @@
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
 
-  <Import Project="$(RepositoryEngineeringDir)targets\Common.targets" />
 
   <!-- Global Analyzer Config -->
   <ItemGroup>
