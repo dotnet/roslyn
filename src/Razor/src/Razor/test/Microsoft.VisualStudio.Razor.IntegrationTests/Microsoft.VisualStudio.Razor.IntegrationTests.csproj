@@ -54,4 +54,7 @@
   <ItemGroup>
     <EmbeddedResource Include="**\TestFiles\**\*" />
   </ItemGroup>
+
+
+  <Import Project="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnitShared\build\Microsoft.VisualStudio.Extensibility.Testing.Xunit.targets" />
 </Project>
