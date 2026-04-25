@@ -30,7 +30,7 @@ public class LSPDocumentTest : ToolingTestBase
         // Arrange
         var virtualDocumentMock = new Mock<VirtualDocument>(MockBehavior.Strict);
         virtualDocumentMock.Setup(d => d.Dispose()).Verifiable();
-        using var lspDocument = new DefaultLSPDocument(_uri, Mock.Of<ITextBuffer>(MockBehavior.Strict), new[] { virtualDocumentMock.Object });
+        using var lspDocument = new DefaultLSPDocument(_uri, StrictMock.Of<ITextBuffer>(), new[] { virtualDocumentMock.Object });
 
         // Act
         var result = lspDocument.TryGetVirtualDocument<TestVirtualDocument>(out var virtualDocument);
@@ -51,7 +51,7 @@ public class LSPDocumentTest : ToolingTestBase
         var testVirtualDocument = new TestVirtualDocument(_uri, textBuffer.Object);
         var virtualDocumentMock = new Mock<VirtualDocument>(MockBehavior.Strict);
         virtualDocumentMock.Setup(d => d.Dispose()).Verifiable();
-        using var lspDocument = new DefaultLSPDocument(_uri, Mock.Of<ITextBuffer>(MockBehavior.Strict), new[] { virtualDocumentMock.Object, testVirtualDocument });
+        using var lspDocument = new DefaultLSPDocument(_uri, StrictMock.Of<ITextBuffer>(), new[] { virtualDocumentMock.Object, testVirtualDocument });
 
         // Act
         var result = lspDocument.TryGetVirtualDocument<TestVirtualDocument>(out var virtualDocument);
@@ -75,7 +75,7 @@ public class LSPDocumentTest : ToolingTestBase
         textBuffer2.Setup(b => b.ChangeContentType(It.IsAny<IContentType>(), null)).Verifiable();
         textBuffer2.SetupGet(b => b.Properties).Returns(new PropertyCollection());
         var testVirtualDocument2 = new TestVirtualDocument(new Uri("C:/path/to/2/file.razor.g.cs"), textBuffer2.Object);
-        using var lspDocument = new DefaultLSPDocument(_uri, Mock.Of<ITextBuffer>(MockBehavior.Strict), new[] { testVirtualDocument1, testVirtualDocument2 });
+        using var lspDocument = new DefaultLSPDocument(_uri, StrictMock.Of<ITextBuffer>(), new[] { testVirtualDocument1, testVirtualDocument2 });
 
         // Act
         var result = lspDocument.TryGetVirtualDocument<TestVirtualDocument>(testVirtualDocument2.Uri, out var virtualDocument);

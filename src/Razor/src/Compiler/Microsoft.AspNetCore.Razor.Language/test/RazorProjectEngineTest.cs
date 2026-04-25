@@ -21,7 +21,7 @@ public class RazorProjectEngineTest
         // Arrange
 
         // Act
-        var engine = RazorProjectEngine.Create(RazorConfiguration.Default, Mock.Of<RazorProjectFileSystem>());
+        var engine = RazorProjectEngine.Create(RazorConfiguration.Default, new Mock<RazorProjectFileSystem>(MockBehavior.Strict).Object);
 
         // Assert
         AssertDefaultPhases(engine);
@@ -126,7 +126,7 @@ public class RazorProjectEngineTest
     {
         // Arrange
         var existingItem = new TestRazorProjectItem("Index.cshtml");
-        var nonExistentItem = Mock.Of<RazorProjectItem>(item => item.Exists == false);
+        var nonExistentItem = new MockRepository(MockBehavior.Strict).OneOf<RazorProjectItem>(item => item.Exists == false);
         using PooledArrayBuilder<RazorProjectItem> items = [existingItem, nonExistentItem];
 
         // Act

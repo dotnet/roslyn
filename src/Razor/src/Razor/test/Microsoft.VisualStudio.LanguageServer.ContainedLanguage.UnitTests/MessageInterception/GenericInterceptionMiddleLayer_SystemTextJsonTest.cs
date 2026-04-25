@@ -31,7 +31,7 @@ public class GenericInterceptionMiddleLayer_SystemTextJsonTest : ToolingTestBase
     [InlineData("")]
     public void Ctor_EmptyLanguageName_Throws(string? languageName)
     {
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Assert.Throws<ArgumentException>(() => new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, languageName!));
     }
 
@@ -40,7 +40,7 @@ public class GenericInterceptionMiddleLayer_SystemTextJsonTest : ToolingTestBase
     [InlineData(false)]
     public void CanHandle_DelegatesToInterceptionManager(bool value)
     {
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Mock.Get(fakeInterceptorManager).Setup(x => x.HasInterceptor("testMessage", "testLanguage"))
                                         .Returns(value);
         var sut = new GenericInterceptionMiddleLayer<JsonElement>(fakeInterceptorManager, "testLanguage");
@@ -53,7 +53,7 @@ public class GenericInterceptionMiddleLayer_SystemTextJsonTest : ToolingTestBase
     [Fact]
     public async Task HandleNotificationAsync_IfInterceptorReturnsDefault_DoesNotSendNotification()
     {
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Mock.Get(fakeInterceptorManager)
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);
@@ -83,7 +83,7 @@ public class GenericInterceptionMiddleLayer_SystemTextJsonTest : ToolingTestBase
         var token = JsonDocument.Parse("{}").RootElement;
         var expected = JsonDocument.Parse("\"expected\"").RootElement;
         JsonElement? actual = null;
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Mock.Get(fakeInterceptorManager)
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);

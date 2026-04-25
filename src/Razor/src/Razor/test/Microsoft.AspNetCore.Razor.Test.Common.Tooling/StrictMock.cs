@@ -11,9 +11,8 @@ public static class StrictMock
 {
     public static T Of<T>()
         where T : class
-        => Mock.Of<T>(MockBehavior.Strict);
-
+        => new Mock<T>(MockBehavior.Strict).Object;
     public static T Of<T>(Expression<Func<T, bool>> predicate)
         where T : class
-        => Mock.Of<T>(predicate, MockBehavior.Strict);
+        => new MockRepository(MockBehavior.Strict).OneOf<T>(predicate);
 }

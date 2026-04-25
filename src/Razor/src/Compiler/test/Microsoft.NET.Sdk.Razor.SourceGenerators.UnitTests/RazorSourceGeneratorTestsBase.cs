@@ -173,7 +173,7 @@ public abstract class RazorSourceGeneratorTestsBase
             actionContext,
             viewMock.Object,
             new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()),
-            Mock.Of<ITempDataDictionary>(),
+            new Mock<ITempDataDictionary>(MockBehavior.Strict).Object,
             writer,
             new HtmlHelperOptions());
 

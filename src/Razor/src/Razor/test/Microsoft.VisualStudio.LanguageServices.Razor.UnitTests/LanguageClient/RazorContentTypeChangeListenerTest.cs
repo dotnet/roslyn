@@ -26,25 +26,20 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
     public RazorContentTypeChangeListenerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _nonRazorContentType = Mock.Of<IContentType>(
-            c => c.IsOfType(It.IsAny<string>()) == false,
-            MockBehavior.Strict);
+        _nonRazorContentType = StrictMock.Of<IContentType>(
+            c => c.IsOfType(It.IsAny<string>()) == false);
 
-        _razorContentType = Mock.Of<IContentType>(
-            c => c.IsOfType(RazorConstants.RazorLSPContentTypeName) == true,
-            MockBehavior.Strict);
+        _razorContentType = StrictMock.Of<IContentType>(
+            c => c.IsOfType(RazorConstants.RazorLSPContentTypeName) == true);
 
-        _razorBuffer ??= Mock.Of<ITextBuffer>(
-            b => b.ContentType == _razorContentType && b.Properties == new PropertyCollection(),
-            MockBehavior.Strict);
+        _razorBuffer ??= StrictMock.Of<ITextBuffer>(
+            b => b.ContentType == _razorContentType && b.Properties == new PropertyCollection());
 
-        _disposedRazorBuffer ??= Mock.Of<ITextBuffer>(
-            b => b.ContentType == _nonRazorContentType && b.Properties == new PropertyCollection(),
-            MockBehavior.Strict);
+        _disposedRazorBuffer ??= StrictMock.Of<ITextBuffer>(
+            b => b.ContentType == _nonRazorContentType && b.Properties == new PropertyCollection());
 
-        _razorTextDocument = Mock.Of<ITextDocument>(
-            td => td.TextBuffer == _razorBuffer && td.FilePath == "C:/path/to/file.razor",
-            MockBehavior.Strict);
+        _razorTextDocument = StrictMock.Of<ITextDocument>(
+            td => td.TextBuffer == _razorBuffer && td.FilePath == "C:/path/to/file.razor");
     }
 
     [Fact]
@@ -70,7 +65,7 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
         var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
         lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
             .Throws<Exception>();
-        var featureDetector = Mock.Of<ILspEditorFeatureDetector>(detector => detector.IsRemoteClient() == true, MockBehavior.Strict);
+        var featureDetector = StrictMock.Of<ILspEditorFeatureDetector>(detector => detector.IsRemoteClient() == true);
         var listener = CreateListener(lspDocumentManager.Object, featureDetector);
 
         // Act & Assert
@@ -184,7 +179,7 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
     {
         // Arrange
         var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-        var fileToContentTypeService = Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _nonRazorContentType, MockBehavior.Strict);
+        var fileToContentTypeService = StrictMock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _nonRazorContentType);
         var tracked = false;
         var untracked = false;
         lspDocumentManager.Setup(manager => manager.UntrackDocument(It.IsAny<ITextBuffer>()))
@@ -213,11 +208,11 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
         var textDocumentFactory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict).Object;
         Mock.Get(textDocumentFactory).Setup(f => f.TryGetTextDocument(It.IsAny<ITextBuffer>(), out It.Ref<ITextDocument>.IsAny)).Returns(false);
 
-        lspDocumentManager ??= Mock.Of<TrackingLSPDocumentManager>(MockBehavior.Strict);
-        lspEditorFeatureDetector ??= Mock.Of<ILspEditorFeatureDetector>(detector =>
+        lspDocumentManager ??= StrictMock.Of<TrackingLSPDocumentManager>();
+        lspEditorFeatureDetector ??= new MockRepository(MockBehavior.Strict).OneOf<ILspEditorFeatureDetector>(detector =>
             detector.IsLspEditorSupported(It.IsAny<string>()) == true &&
-            detector.IsRemoteClient() == false, MockBehavior.Strict);
-        fileToContentTypeService ??= Mock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType, MockBehavior.Strict);
+            detector.IsRemoteClient() == false);
+        fileToContentTypeService ??= StrictMock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType);
         var textManager = new Mock<IVsTextManager2>(MockBehavior.Strict);
         textManager.Setup(m => m.GetUserPreferences2(null, null, It.IsAny<LANGPREFERENCES2[]>(), null)).Returns(VSConstants.E_NOTIMPL);
         var listener = new RazorContentTypeChangeListener(

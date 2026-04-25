@@ -118,7 +118,7 @@ public class ViewCodeCommandHandlerTests(ITestOutputHelper testOutput) : Tooling
 
         var handler = new ViewCodeCommandHandler(serviceProvider, textDocumentFactory, JoinableTaskContext);
 
-        var textView = Mock.Of<ITextView>(MockBehavior.Strict);
+        var textView = StrictMock.Of<ITextView>();
         var args = new ViewCodeCommandArgs(textView, textBuffer);
 
         return (handler, args);

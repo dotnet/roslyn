@@ -33,7 +33,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     [InlineData("")]
     public void Ctor_EmptyLanguageName_Throws(string? languageName)
     {
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Assert.Throws<ArgumentException>(() => new InterceptionMiddleLayer(fakeInterceptorManager, languageName!));
     }
 
@@ -42,7 +42,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     [InlineData(false)]
     public void CanHandle_DelegatesToInterceptionManager(bool value)
     {
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Mock.Get(fakeInterceptorManager).Setup(x => x.HasInterceptor("testMessage", "testLanguage"))
                                         .Returns(value);
         var sut = new InterceptionMiddleLayer(fakeInterceptorManager, "testLanguage");
@@ -55,7 +55,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
     [Fact]
     public async Task HandleNotificationAsync_IfInterceptorReturnsNull_DoesNotSendNotification()
     {
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Mock.Get(fakeInterceptorManager)
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);
@@ -85,7 +85,7 @@ public class InterceptionMiddleLayerTest : ToolingTestBase
         var token = JToken.Parse("{}");
         var expected = JToken.Parse("\"expected\"");
         JToken? actual = null;
-        var fakeInterceptorManager = Mock.Of<InterceptorManager>(MockBehavior.Strict);
+        var fakeInterceptorManager = StrictMock.Of<InterceptorManager>();
         Mock.Get(fakeInterceptorManager)
             .Setup(x => x.HasInterceptor("testMethod", "testLanguage"))
             .Returns(true);

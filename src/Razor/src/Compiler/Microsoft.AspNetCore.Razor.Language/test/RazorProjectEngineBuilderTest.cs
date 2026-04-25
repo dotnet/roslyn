@@ -15,10 +15,10 @@ public class RazorProjectEngineBuilderTest
     public void Build_AddsFeaturesToRazorEngine()
     {
         // Arrange
-        var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, Mock.Of<RazorProjectFileSystem>());
-        builder.Features.Add(Mock.Of<IRazorEngineFeature>());
-        builder.Features.Add(Mock.Of<IRazorEngineFeature>());
-        builder.Features.Add(Mock.Of<IRazorProjectEngineFeature>());
+        var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, new Mock<RazorProjectFileSystem>(MockBehavior.Strict).Object);
+        builder.Features.Add(new Mock<IRazorEngineFeature>(MockBehavior.Strict).Object);
+        builder.Features.Add(new Mock<IRazorEngineFeature>(MockBehavior.Strict).Object);
+        builder.Features.Add(new Mock<IRazorProjectEngineFeature>(MockBehavior.Strict).Object);
 
         var features = builder.Features.ToArray();
 
@@ -35,9 +35,9 @@ public class RazorProjectEngineBuilderTest
     public void Build_AddsPhasesToRazorEngine()
     {
         // Arrange
-        var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, Mock.Of<RazorProjectFileSystem>());
-        builder.Phases.Add(Mock.Of<IRazorEnginePhase>());
-        builder.Phases.Add(Mock.Of<IRazorEnginePhase>());
+        var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, new Mock<RazorProjectFileSystem>(MockBehavior.Strict).Object);
+        builder.Phases.Add(new Mock<IRazorEnginePhase>(MockBehavior.Strict).Object);
+        builder.Phases.Add(new Mock<IRazorEnginePhase>(MockBehavior.Strict).Object);
 
         var phases = builder.Phases.ToArray();
 
@@ -54,7 +54,7 @@ public class RazorProjectEngineBuilderTest
     public void Build_CreatesProjectEngineWithFileSystem()
     {
         // Arrange
-        var fileSystem = Mock.Of<RazorProjectFileSystem>();
+        var fileSystem = new Mock<RazorProjectFileSystem>(MockBehavior.Strict).Object;
         var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, fileSystem);
 
         // Act

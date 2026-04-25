@@ -24,7 +24,7 @@ public class DefaultLSPDocumentTest : ToolingTestBase
         : base(testOutput)
     {
         _uri = new Uri("C:/path/to/file.razor__virtual.cs");
-        _notInertContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType("inert") == false, MockBehavior.Strict);
+        _notInertContentType = StrictMock.Of<IContentType>(contentType => contentType.IsOfType("inert") == false);
     }
 
     [Fact]

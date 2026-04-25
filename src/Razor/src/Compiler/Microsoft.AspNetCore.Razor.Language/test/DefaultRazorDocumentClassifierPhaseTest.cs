@@ -18,8 +18,8 @@ public class DefaultRazorDocumentClassifierPhaseTest
         // Arrange & Act
         var phase = new DefaultRazorDocumentClassifierPhase();
 
-        var first = Mock.Of<IRazorDocumentClassifierPass>(p => p.Order == 15);
-        var second = Mock.Of<IRazorDocumentClassifierPass>(p => p.Order == 17);
+        var first = new MockRepository(MockBehavior.Strict).OneOf<IRazorDocumentClassifierPass>(p => p.Order == 15);
+        var second = new MockRepository(MockBehavior.Strict).OneOf<IRazorDocumentClassifierPass>(p => p.Order == 17);
 
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {

@@ -29,24 +29,23 @@ public class DefaultLSPDocumentManagerTest : ToolingTestBase
     public DefaultLSPDocumentManagerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        var contentType = Mock.Of<IContentType>(contentType =>
+        var contentType = StrictMock.Of<IContentType>(contentType =>
             contentType.IsOfType("inert") == false &&
             contentType.IsOfType("test") == true &&
-            contentType.TypeName == "test",
-            MockBehavior.Strict);
+            contentType.TypeName == "test");
         _changeListeners = Enumerable.Empty<Lazy<LSPDocumentChangeListener, IContentTypeMetadata>>();
         _textBuffer = new TestTextBuffer(new StringTextSnapshot(string.Empty));
         _textBuffer.ChangeContentType(contentType, editTag: null);
         var snapshot = _textBuffer.CurrentSnapshot;
 
         _uri = new Uri("C:/path/to/file.razor");
-        _uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(_textBuffer) == _uri, MockBehavior.Strict);
+        _uriProvider = StrictMock.Of<FileUriProvider>(provider => provider.GetOrCreate(_textBuffer) == _uri);
         Mock.Get(_uriProvider).Setup(p => p.Remove(It.IsAny<ITextBuffer>())).Verifiable();
         var testVirtualDocument = new TestVirtualDocument();
         var lspDocument = new DefaultLSPDocument(_uri, _textBuffer, new[] { testVirtualDocument });
         _lspDocumentSnapshot = lspDocument.CurrentSnapshot;
         _lspDocument = lspDocument;
-        _lspDocumentFactory = Mock.Of<LSPDocumentFactory>(factory => factory.Create(_textBuffer) == _lspDocument, MockBehavior.Strict);
+        _lspDocumentFactory = StrictMock.Of<LSPDocumentFactory>(factory => factory.Create(_textBuffer) == _lspDocument);
     }
 
     [Fact]
@@ -169,14 +168,14 @@ public class DefaultLSPDocumentManagerTest : ToolingTestBase
         var testVirtualDocument2 = new TestVirtualDocument(new Uri("C:/path/to/doc2.razor.g.cs"));
 
         var lspDocument = new DefaultLSPDocument(_uri, _textBuffer, new[] { testVirtualDocument1, testVirtualDocument2 });
-        var lspDocumentFactory = Mock.Of<LSPDocumentFactory>(factory => factory.Create(_textBuffer) == lspDocument, MockBehavior.Strict);
+        var lspDocumentFactory = StrictMock.Of<LSPDocumentFactory>(factory => factory.Create(_textBuffer) == lspDocument);
         var lspDocumentSnapshot = lspDocument.CurrentSnapshot;
 
         var changeListenerMock = Mock.Get(changeListenerLazy.Value);
         changeListenerMock.Setup(l => l.Changed(null, lspDocumentSnapshot, It.IsAny<VirtualDocumentSnapshot>(), It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.Added));
         changeListenerMock.Setup(l => l.Changed(It.IsAny<LSPDocumentSnapshot>(), It.IsAny<LSPDocumentSnapshot>(), testVirtualDocument2.CurrentSnapshot, It.IsAny<VirtualDocumentSnapshot>(), LSPDocumentChangeKind.VirtualDocumentChanged));
 
-        var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(_textBuffer) == lspDocument.Uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(provider => provider.GetOrCreate(_textBuffer) == lspDocument.Uri);
 
         var manager = new DefaultLSPDocumentManager(JoinableTaskContext, uriProvider, lspDocumentFactory, new[] { changeListenerLazy });
         manager.TrackDocument(_textBuffer);
@@ -238,11 +237,10 @@ public class DefaultLSPDocumentManagerTest : ToolingTestBase
 
     private static Lazy<LSPDocumentChangeListener, IContentTypeMetadata> CreateChangeListenerForContentTypes(IEnumerable<string> contentTypes)
     {
-        var changeListenerObj = Mock.Of<LSPDocumentChangeListener>(MockBehavior.Strict);
+        var changeListenerObj = StrictMock.Of<LSPDocumentChangeListener>();
 
-        var metadata = Mock.Of<IContentTypeMetadata>(md =>
-            md.ContentTypes == contentTypes,
-            MockBehavior.Strict);
+        var metadata = new MockRepository(MockBehavior.Strict).OneOf<IContentTypeMetadata>(md =>
+            md.ContentTypes == contentTypes);
 
         return new Lazy<LSPDocumentChangeListener, IContentTypeMetadata>(() => changeListenerObj, metadata);
     }

@@ -122,9 +122,9 @@ public class DefaultLSPDocumentSynchronizerTest : ToolingTestBase
         var documentUri = new Uri("C:/path/to/file.razor");
         LSPDocumentSnapshot lspDocument = new TestLSPDocumentSnapshot(documentUri, 2, virtualDocument1, virtualDocument2);
 
-        var fileUriProvider = Mock.Of<FileUriProvider>(provider => provider.TryGet(buffer1, out virtualDocumentUri1) == true &&
-            provider.TryGet(buffer2, out virtualDocumentUri2) == true, MockBehavior.Strict);
-        var documentManager = Mock.Of<LSPDocumentManager>(m => m.TryGetDocument(documentUri, out lspDocument) == true, MockBehavior.Strict);
+        var fileUriProvider = StrictMock.Of<FileUriProvider>(provider => provider.TryGet(buffer1, out virtualDocumentUri1) == true &&
+            provider.TryGet(buffer2, out virtualDocumentUri2) == true);
+        var documentManager = StrictMock.Of<LSPDocumentManager>(m => m.TryGetDocument(documentUri, out lspDocument) == true);
 
         var synchronizer = new DefaultLSPDocumentSynchronizer(fileUriProvider, documentManager)
         {
@@ -380,7 +380,7 @@ public class DefaultLSPDocumentSynchronizerTest : ToolingTestBase
 
     private static FileUriProvider CreateUriProviderFor(ITextBuffer textBuffer, Uri bufferUri)
     {
-        var fileUriProvider = Mock.Of<FileUriProvider>(provider => provider.TryGet(textBuffer, out bufferUri) == true, MockBehavior.Strict);
+        var fileUriProvider = StrictMock.Of<FileUriProvider>(provider => provider.TryGet(textBuffer, out bufferUri) == true);
         return fileUriProvider;
     }
 

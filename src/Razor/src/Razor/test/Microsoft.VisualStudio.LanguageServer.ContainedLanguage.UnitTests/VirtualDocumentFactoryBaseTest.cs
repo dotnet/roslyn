@@ -27,20 +27,20 @@ public class VirtualDocumentFactoryBaseTest : ToolingTestBase
     public VirtualDocumentFactoryBaseTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _contentTypeRegistry = Mock.Of<IContentTypeRegistryService>(MockBehavior.Strict);
+        _contentTypeRegistry = StrictMock.Of<IContentTypeRegistryService>();
         var textBufferFactoryService = new Mock<ITextBufferFactoryService>(MockBehavior.Strict);
-        var factoryBuffer = Mock.Of<ITextBuffer>(buffer => buffer.CurrentSnapshot == Mock.Of<ITextSnapshot>(MockBehavior.Strict) && buffer.Properties == new PropertyCollection() && buffer.ContentType == TestVirtualDocumentFactory.LanguageLSPContentTypeInstance, MockBehavior.Strict);
+        var factoryBuffer = new MockRepository(MockBehavior.Strict).OneOf<ITextBuffer>(buffer => buffer.CurrentSnapshot == StrictMock.Of<ITextSnapshot>() && buffer.Properties == new PropertyCollection() && buffer.ContentType == TestVirtualDocumentFactory.LanguageLSPContentTypeInstance);
         Mock.Get(factoryBuffer).Setup(b => b.ChangeContentType(It.IsAny<IContentType>(), It.IsAny<object>())).Verifiable();
         textBufferFactoryService
             .Setup(factory => factory.CreateTextBuffer())
             .Returns(factoryBuffer);
         _textBufferFactoryService = textBufferFactoryService.Object;
 
-        var hostContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(TestVirtualDocumentFactory.HostDocumentContentTypeNameConst) == true, MockBehavior.Strict);
-        _hostLSPBuffer = Mock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == hostContentType, MockBehavior.Strict);
+        var hostContentType = StrictMock.Of<IContentType>(contentType => contentType.IsOfType(TestVirtualDocumentFactory.HostDocumentContentTypeNameConst) == true);
+        _hostLSPBuffer = StrictMock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == hostContentType);
 
-        var nonHostLSPContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(It.IsAny<string>()) == false, MockBehavior.Strict);
-        _nonHostLSPBuffer = Mock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == nonHostLSPContentType, MockBehavior.Strict);
+        var nonHostLSPContentType = StrictMock.Of<IContentType>(contentType => contentType.IsOfType(It.IsAny<string>()) == false);
+        _nonHostLSPBuffer = StrictMock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == nonHostLSPContentType);
 
         _textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict).Object;
         Mock.Get(_textDocumentFactoryService).Setup(s => s.CreateTextDocument(It.IsAny<ITextBuffer>(), It.IsAny<string>())).Returns((ITextDocument)null);
@@ -51,7 +51,7 @@ public class VirtualDocumentFactoryBaseTest : ToolingTestBase
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri);
         var factory = new TestVirtualDocumentFactory(_contentTypeRegistry, _textBufferFactoryService, _textDocumentFactoryService, uriProvider);
 
         // Act
@@ -69,7 +69,7 @@ public class VirtualDocumentFactoryBaseTest : ToolingTestBase
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(_hostLSPBuffer) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(provider => provider.GetOrCreate(_hostLSPBuffer) == uri);
         Mock.Get(uriProvider).Setup(p => p.AddOrUpdate(It.IsAny<ITextBuffer>(), It.IsAny<Uri>())).Verifiable();
         var factory = new TestVirtualDocumentFactory(_contentTypeRegistry, _textBufferFactoryService, _textDocumentFactoryService, uriProvider);
 

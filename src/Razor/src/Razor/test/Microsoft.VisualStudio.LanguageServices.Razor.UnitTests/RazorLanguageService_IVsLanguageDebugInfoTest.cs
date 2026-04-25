@@ -32,7 +32,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith(editorAdaptersFactory: editorAdaptersFactoryService.Object);
 
         // Act
-        var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
+        var result = languageService.ValidateBreakpointLocation(StrictMock.Of<IVsTextBuffer>(), 0, 0, _textSpans);
 
         // Assert
         Assert.Equal(VSConstants.E_NOTIMPL, result);
@@ -45,7 +45,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith();
 
         // Act
-        var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), int.MaxValue, 0, _textSpans);
+        var result = languageService.ValidateBreakpointLocation(StrictMock.Of<IVsTextBuffer>(), int.MaxValue, 0, _textSpans);
 
         // Assert
         Assert.Equal(VSConstants.E_FAIL, result);
@@ -58,7 +58,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith();
 
         // Act
-        var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
+        var result = languageService.ValidateBreakpointLocation(StrictMock.Of<IVsTextBuffer>(), 0, 0, _textSpans);
 
         // Assert
         Assert.Equal(VSConstants.E_FAIL, result);
@@ -69,11 +69,11 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
     {
         // Arrange
         var breakpointRange = LspFactory.CreateRange(2, 4, 3, 5);
-        var breakpointResolver = Mock.Of<IRazorBreakpointResolver>(resolver => resolver.TryResolveBreakpointRangeAsync(It.IsAny<ITextBuffer>(), 0, 0, It.IsAny<CancellationToken>()) == System.Threading.Tasks.Task.FromResult(breakpointRange), MockBehavior.Strict);
+        var breakpointResolver = new MockRepository(MockBehavior.Strict).OneOf<IRazorBreakpointResolver>(resolver => resolver.TryResolveBreakpointRangeAsync(It.IsAny<ITextBuffer>(), 0, 0, It.IsAny<CancellationToken>()) == System.Threading.Tasks.Task.FromResult(breakpointRange));
         var languageService = CreateLanguageServiceWith(breakpointResolver);
 
         // Act
-        var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
+        var result = languageService.ValidateBreakpointLocation(StrictMock.Of<IVsTextBuffer>(), 0, 0, _textSpans);
 
         // Assert
         Assert.Equal(VSConstants.S_OK, result);
@@ -93,7 +93,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith(uiThreadOperationExecutor: uiThreadExecutor.Object);
 
         // Act
-        var result = languageService.ValidateBreakpointLocation(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, _textSpans);
+        var result = languageService.ValidateBreakpointLocation(StrictMock.Of<IVsTextBuffer>(), 0, 0, _textSpans);
 
         // Assert
         Assert.Equal(VSConstants.E_FAIL, result);
@@ -108,7 +108,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith(editorAdaptersFactory: editorAdaptersFactoryService.Object);
 
         // Act
-        var result = languageService.GetProximityExpressions(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, 0, out _);
+        var result = languageService.GetProximityExpressions(StrictMock.Of<IVsTextBuffer>(), 0, 0, 0, out _);
 
         // Assert
         Assert.Equal(VSConstants.E_NOTIMPL, result);
@@ -121,7 +121,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith();
 
         // Act
-        var result = languageService.GetProximityExpressions(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), int.MaxValue, 0, 0, out _);
+        var result = languageService.GetProximityExpressions(StrictMock.Of<IVsTextBuffer>(), int.MaxValue, 0, 0, out _);
 
         // Assert
         Assert.Equal(VSConstants.E_FAIL, result);
@@ -134,7 +134,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith();
 
         // Act
-        var result = languageService.GetProximityExpressions(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, 0, out _);
+        var result = languageService.GetProximityExpressions(StrictMock.Of<IVsTextBuffer>(), 0, 0, 0, out _);
 
         // Assert
         Assert.Equal(VSConstants.E_FAIL, result);
@@ -145,11 +145,11 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
     {
         // Arrange
         IReadOnlyList<string> expressions = new[] { "something" };
-        var resolver = Mock.Of<IRazorProximityExpressionResolver>(resolver => resolver.TryResolveProximityExpressionsAsync(It.IsAny<ITextBuffer>(), 0, 0, It.IsAny<CancellationToken>()) == System.Threading.Tasks.Task.FromResult(expressions), MockBehavior.Strict);
+        var resolver = new MockRepository(MockBehavior.Strict).OneOf<IRazorProximityExpressionResolver>(resolver => resolver.TryResolveProximityExpressionsAsync(It.IsAny<ITextBuffer>(), 0, 0, It.IsAny<CancellationToken>()) == System.Threading.Tasks.Task.FromResult(expressions));
         var languageService = CreateLanguageServiceWith(proximityExpressionResolver: resolver);
 
         // Act
-        var result = languageService.GetProximityExpressions(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, 0, out var resolvedExpressions);
+        var result = languageService.GetProximityExpressions(StrictMock.Of<IVsTextBuffer>(), 0, 0, 0, out var resolvedExpressions);
 
         // Assert
         Assert.Equal(VSConstants.S_OK, result);
@@ -166,7 +166,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         var languageService = CreateLanguageServiceWith(uiThreadOperationExecutor: uiThreadOperationExecutor.Object);
 
         // Act
-        var result = languageService.GetProximityExpressions(Mock.Of<IVsTextBuffer>(MockBehavior.Strict), 0, 0, 0, out _);
+        var result = languageService.GetProximityExpressions(StrictMock.Of<IVsTextBuffer>(), 0, 0, 0, out _);
 
         // Assert
         Assert.Equal(VSConstants.E_FAIL, result);
@@ -203,7 +203,7 @@ public class RazorLanguageService_IVsLanguageDebugInfoTest(ITestOutputHelper tes
         }
 
         uiThreadOperationExecutor ??= new TestIUIThreadOperationExecutor();
-        editorAdaptersFactory ??= Mock.Of<IVsEditorAdaptersFactoryService>(service => service.GetDataBuffer(It.IsAny<IVsTextBuffer>()) == new TestTextBuffer(new StringTextSnapshot(Environment.NewLine), /* contentType */ null), MockBehavior.Strict);
+        editorAdaptersFactory ??= new MockRepository(MockBehavior.Strict).OneOf<IVsEditorAdaptersFactoryService>(service => service.GetDataBuffer(It.IsAny<IVsTextBuffer>()) == new TestTextBuffer(new StringTextSnapshot(Environment.NewLine), /* contentType */ null));
 
         var lspServerActivationTracker = new LspServerActivationTracker();
         lspServerActivationTracker.Activated();

@@ -22,7 +22,7 @@ public class DefaultFileUriProviderTest(ITestOutputHelper testOutput) : ToolingT
     {
         // Arrange
         var expectedUri = new Uri("C:/path/to/file.razor");
-        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        var uriProvider = new DefaultFileUriProvider(StrictMock.Of<ITextDocumentFactoryService>());
 
         // Act
         uriProvider.AddOrUpdate(_textBuffer, expectedUri);
@@ -37,7 +37,7 @@ public class DefaultFileUriProviderTest(ITestOutputHelper testOutput) : ToolingT
     {
         // Arrange
         var expectedUri = new Uri("C:/path/to/file.razor");
-        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        var uriProvider = new DefaultFileUriProvider(StrictMock.Of<ITextDocumentFactoryService>());
         uriProvider.AddOrUpdate(_textBuffer, new Uri("C:/original/uri.razor"));
 
         // Act
@@ -53,7 +53,7 @@ public class DefaultFileUriProviderTest(ITestOutputHelper testOutput) : ToolingT
     {
         // Arrange
         var expectedUri = new Uri("C:/path/to/file.razor");
-        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        var uriProvider = new DefaultFileUriProvider(StrictMock.Of<ITextDocumentFactoryService>());
         uriProvider.AddOrUpdate(_textBuffer, expectedUri);
 
         // Act
@@ -68,7 +68,7 @@ public class DefaultFileUriProviderTest(ITestOutputHelper testOutput) : ToolingT
     public void TryGet_DoesNotExist_ReturnsFalse()
     {
         // Arrange
-        var uriProvider = new DefaultFileUriProvider(Mock.Of<ITextDocumentFactoryService>(MockBehavior.Strict));
+        var uriProvider = new DefaultFileUriProvider(StrictMock.Of<ITextDocumentFactoryService>());
 
         // Act
         var result = uriProvider.TryGet(_textBuffer, out var uri);
@@ -116,7 +116,7 @@ public class DefaultFileUriProviderTest(ITestOutputHelper testOutput) : ToolingT
         // Arrange
         var factory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict);
         var expectedFilePath = "C:/path/to/file.razor";
-        var textDocument = Mock.Of<ITextDocument>(document => document.FilePath == expectedFilePath, MockBehavior.Strict);
+        var textDocument = new MockRepository(MockBehavior.Strict).OneOf<ITextDocument>(document => document.FilePath == expectedFilePath);
         factory.Setup(f => f.TryGetTextDocument(_textBuffer, out textDocument))
             .Returns(true);
         var uriProvider = new DefaultFileUriProvider(factory.Object);

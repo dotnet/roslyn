@@ -27,9 +27,9 @@ public class DefaultLSPDocumentFactoryTest : ToolingTestBase
     public void Create_BuildsLSPDocumentWithTextBufferURI()
     {
         // Arrange
-        var textBuffer = Mock.Of<ITextBuffer>(MockBehavior.Strict);
+        var textBuffer = StrictMock.Of<ITextBuffer>();
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri, MockBehavior.Strict);
+        var uriProvider = new MockRepository(MockBehavior.Strict).OneOf<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri);
         var factory = new DefaultLSPDocumentFactory(uriProvider, Enumerable.Empty<Lazy<VirtualDocumentFactory, IContentTypeMetadata>>());
 
         // Act
@@ -43,27 +43,23 @@ public class DefaultLSPDocumentFactoryTest : ToolingTestBase
     public void Create_MultipleFactories_CreatesLSPDocumentWithVirtualDocuments()
     {
         // Arrange
-        var contentType = Mock.Of<IContentType>(ct =>
+        var contentType = StrictMock.Of<IContentType>(ct =>
             ct.TypeName == "text" &&
-            ct.IsOfType("text"),
-            MockBehavior.Strict
-        );
-        var metadata = Mock.Of<IContentTypeMetadata>(md =>
-            md.ContentTypes == new[] { contentType.TypeName },
-            MockBehavior.Strict);
-        var textBuffer = Mock.Of<ITextBuffer>(b =>
-            b.ContentType == contentType,
-            MockBehavior.Strict);
+            ct.IsOfType("text"));
+        var metadata = StrictMock.Of<IContentTypeMetadata>(md =>
+            md.ContentTypes == new[] { contentType.TypeName });
+        var textBuffer = StrictMock.Of<ITextBuffer>(b =>
+            b.ContentType == contentType);
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri);
         var emptyVirtualDocuments = Array.Empty<VirtualDocument>();
-        var virtualDocument1 = Mock.Of<VirtualDocument>(MockBehavior.Strict);
-        var factory1 = Mock.Of<VirtualDocumentFactory>(f => f.TryCreateFor(textBuffer, out virtualDocument1) == true &&
-            f.TryCreateMultipleFor(textBuffer, out emptyVirtualDocuments) == false, MockBehavior.Strict);
+        var virtualDocument1 = StrictMock.Of<VirtualDocument>();
+        var factory1 = new MockRepository(MockBehavior.Strict).OneOf<VirtualDocumentFactory>(f => f.TryCreateFor(textBuffer, out virtualDocument1) == true &&
+            f.TryCreateMultipleFor(textBuffer, out emptyVirtualDocuments) == false);
         var factory1Lazy = new Lazy<VirtualDocumentFactory, IContentTypeMetadata>(() => factory1, metadata);
-        var virtualDocument2 = Mock.Of<VirtualDocument>(MockBehavior.Strict);
-        var factory2 = Mock.Of<VirtualDocumentFactory>(f => f.TryCreateFor(textBuffer, out virtualDocument2) == true &&
-            f.TryCreateMultipleFor(textBuffer, out emptyVirtualDocuments) == false, MockBehavior.Strict);
+        var virtualDocument2 = StrictMock.Of<VirtualDocument>();
+        var factory2 = new MockRepository(MockBehavior.Strict).OneOf<VirtualDocumentFactory>(f => f.TryCreateFor(textBuffer, out virtualDocument2) == true &&
+            f.TryCreateMultipleFor(textBuffer, out emptyVirtualDocuments) == false);
         var factory2Lazy = new Lazy<VirtualDocumentFactory, IContentTypeMetadata>(() => factory2, metadata);
         var factory = new DefaultLSPDocumentFactory(uriProvider, new[] { factory1Lazy, factory2Lazy });
 
@@ -81,20 +77,16 @@ public class DefaultLSPDocumentFactoryTest : ToolingTestBase
     public void Create_FiltersFactoriesByContentType()
     {
         // Arrange
-        var contentType = Mock.Of<IContentType>(ct =>
+        var contentType = StrictMock.Of<IContentType>(ct =>
             ct.TypeName == "text" &&
-            ct.IsOfType("NotText") == false,
-            MockBehavior.Strict
-        );
-        var metadata = Mock.Of<IContentTypeMetadata>(md =>
-            md.ContentTypes == new[] { "NotText" },
-            MockBehavior.Strict);
-        var textBuffer = Mock.Of<ITextBuffer>(b =>
-            b.ContentType == contentType,
-            MockBehavior.Strict);
+            ct.IsOfType("NotText") == false);
+        var metadata = StrictMock.Of<IContentTypeMetadata>(md =>
+            md.ContentTypes == new[] { "NotText" });
+        var textBuffer = StrictMock.Of<ITextBuffer>(b =>
+            b.ContentType == contentType);
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri, MockBehavior.Strict);
-        var factory1 = Mock.Of<VirtualDocumentFactory>(MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri);
+        var factory1 = StrictMock.Of<VirtualDocumentFactory>();
         var factory1Lazy = new Lazy<VirtualDocumentFactory, IContentTypeMetadata>(() => factory1, metadata);
         var factory = new DefaultLSPDocumentFactory(uriProvider, new[] { factory1Lazy, });
 
@@ -109,24 +101,20 @@ public class DefaultLSPDocumentFactoryTest : ToolingTestBase
     public void CreateMultiple_CreatesLSPDocumentWithVirtualDocuments()
     {
         // Arrange
-        var contentType = Mock.Of<IContentType>(ct =>
+        var contentType = new MockRepository(MockBehavior.Strict).OneOf<IContentType>(ct =>
             ct.TypeName == "text" &&
-            ct.IsOfType("text"),
-            MockBehavior.Strict
-        );
-        var metadata = Mock.Of<IContentTypeMetadata>(md =>
-            md.ContentTypes == new[] { contentType.TypeName },
-            MockBehavior.Strict);
-        var textBuffer = Mock.Of<ITextBuffer>(b =>
-            b.ContentType == contentType,
-            MockBehavior.Strict);
+            ct.IsOfType("text"));
+        var metadata = StrictMock.Of<IContentTypeMetadata>(md =>
+            md.ContentTypes == new[] { contentType.TypeName });
+        var textBuffer = StrictMock.Of<ITextBuffer>(b =>
+            b.ContentType == contentType);
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri);
         var emptyVirtualDocuments = Array.Empty<VirtualDocument>();
-        var virtualDocument1 = Mock.Of<VirtualDocument>(MockBehavior.Strict);
-        var virtualDocument2 = Mock.Of<VirtualDocument>(MockBehavior.Strict);
+        var virtualDocument1 = StrictMock.Of<VirtualDocument>();
+        var virtualDocument2 = StrictMock.Of<VirtualDocument>();
         var virtualDocuments = new[] { virtualDocument1, virtualDocument2 };
-        var factory1 = Mock.Of<VirtualDocumentFactory>(f => f.TryCreateMultipleFor(textBuffer, out virtualDocuments) == true, MockBehavior.Strict);
+        var factory1 = new MockRepository(MockBehavior.Strict).OneOf<VirtualDocumentFactory>(f => f.TryCreateMultipleFor(textBuffer, out virtualDocuments) == true);
         var factory1Lazy = new Lazy<VirtualDocumentFactory, IContentTypeMetadata>(() => factory1, metadata);
 
         var factory = new DefaultLSPDocumentFactory(uriProvider, new[] { factory1Lazy });
@@ -145,30 +133,26 @@ public class DefaultLSPDocumentFactoryTest : ToolingTestBase
     public void TryRefreshVirtualDocuments_Refreshes_CreatesNewVirtualDocuments()
     {
         // Arrange
-        var contentType = Mock.Of<IContentType>(ct =>
+        var contentType = StrictMock.Of<IContentType>(ct =>
             ct.TypeName == "text" &&
-            ct.IsOfType("text"),
-            MockBehavior.Strict
-        );
-        var metadata = Mock.Of<IContentTypeMetadata>(md =>
-            md.ContentTypes == new[] { contentType.TypeName },
-            MockBehavior.Strict);
-        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            ct.IsOfType("text"));
+        var metadata = StrictMock.Of<IContentTypeMetadata>(md =>
+            md.ContentTypes == new[] { contentType.TypeName });
+        var textBuffer = StrictMock.Of<ITextBuffer>(b =>
             b.ContentType == contentType &&
             b.CurrentSnapshot == null &&
-            b.CurrentSnapshot.Version.VersionNumber == 1337,
-            MockBehavior.Strict);
+            b.CurrentSnapshot.Version.VersionNumber == 1337);
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri);
 
         var snapshot = new TestVirtualDocumentSnapshot(uri, 1337);
-        var virtualDocument1 = Mock.Of<VirtualDocument>(d => d.CurrentSnapshot == snapshot, MockBehavior.Strict);
-        var virtualDocument2 = Mock.Of<VirtualDocument>(d => d.CurrentSnapshot == snapshot, MockBehavior.Strict);
+        var virtualDocument1 = StrictMock.Of<VirtualDocument>(d => d.CurrentSnapshot == snapshot);
+        var virtualDocument2 = StrictMock.Of<VirtualDocument>(d => d.CurrentSnapshot == snapshot);
         var virtualDocuments = new[] { virtualDocument1 };
         IReadOnlyList<VirtualDocument> newVirtualDocuments = new[] { virtualDocument2 };
-        var factory1 = Mock.Of<VirtualDocumentFactory>(f =>
+        var factory1 = StrictMock.Of<VirtualDocumentFactory>(f =>
             f.TryCreateMultipleFor(textBuffer, out virtualDocuments) == true &&
-            f.TryRefreshVirtualDocuments(It.IsAny<LSPDocument>(), out newVirtualDocuments) == true, MockBehavior.Strict);
+            f.TryRefreshVirtualDocuments(It.IsAny<LSPDocument>(), out newVirtualDocuments) == true);
         var factory1Lazy = new Lazy<VirtualDocumentFactory, IContentTypeMetadata>(() => factory1, metadata);
 
         var factory = new DefaultLSPDocumentFactory(uriProvider, new[] { factory1Lazy });
@@ -187,30 +171,26 @@ public class DefaultLSPDocumentFactoryTest : ToolingTestBase
     public void TryRefreshVirtualDocuments_NoRefresh_KeepsPreviousSnapshots()
     {
         // Arrange
-        var contentType = Mock.Of<IContentType>(ct =>
+        var contentType = StrictMock.Of<IContentType>(ct =>
             ct.TypeName == "text" &&
-            ct.IsOfType("text"),
-            MockBehavior.Strict
-        );
-        var metadata = Mock.Of<IContentTypeMetadata>(md =>
-            md.ContentTypes == new[] { contentType.TypeName },
-            MockBehavior.Strict);
-        var textBuffer = Mock.Of<ITextBuffer>(b =>
+            ct.IsOfType("text"));
+        var metadata = StrictMock.Of<IContentTypeMetadata>(md =>
+            md.ContentTypes == new[] { contentType.TypeName });
+        var textBuffer = StrictMock.Of<ITextBuffer>(b =>
             b.ContentType == contentType &&
             b.CurrentSnapshot == null &&
-            b.CurrentSnapshot.Version.VersionNumber == 1337,
-            MockBehavior.Strict);
+            b.CurrentSnapshot.Version.VersionNumber == 1337);
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(p => p.GetOrCreate(textBuffer) == uri);
 
         var snapshot = new TestVirtualDocumentSnapshot(uri, 1337);
-        var virtualDocument1 = Mock.Of<VirtualDocument>(d => d.CurrentSnapshot == snapshot, MockBehavior.Strict);
-        var virtualDocument2 = Mock.Of<VirtualDocument>(MockBehavior.Strict);
+        var virtualDocument1 = StrictMock.Of<VirtualDocument>(d => d.CurrentSnapshot == snapshot);
+        var virtualDocument2 = StrictMock.Of<VirtualDocument>();
         var virtualDocuments = new[] { virtualDocument1 };
         IReadOnlyList<VirtualDocument> newVirtualDocuments = new[] { virtualDocument2 };
-        var factory1 = Mock.Of<VirtualDocumentFactory>(f =>
+        var factory1 = new MockRepository(MockBehavior.Strict).OneOf<VirtualDocumentFactory>(f =>
             f.TryCreateMultipleFor(textBuffer, out virtualDocuments) == true &&
-            f.TryRefreshVirtualDocuments(It.IsAny<LSPDocument>(), out newVirtualDocuments) == false, MockBehavior.Strict);
+            f.TryRefreshVirtualDocuments(It.IsAny<LSPDocument>(), out newVirtualDocuments) == false);
         var factory1Lazy = new Lazy<VirtualDocumentFactory, IContentTypeMetadata>(() => factory1, metadata);
 
         var factory = new DefaultLSPDocumentFactory(uriProvider, new[] { factory1Lazy });

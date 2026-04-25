@@ -17,8 +17,8 @@ public class DefaultRazorSyntaxTreePhaseTest
         // Arrange & Act
         var phase = new DefaultRazorSyntaxTreePhase();
 
-        var first = Mock.Of<IRazorSyntaxTreePass>(p => p.Order == 15);
-        var second = Mock.Of<IRazorSyntaxTreePass>(p => p.Order == 17);
+        var first = new MockRepository(MockBehavior.Strict).OneOf<IRazorSyntaxTreePass>(p => p.Order == 15);
+        var second = new MockRepository(MockBehavior.Strict).OneOf<IRazorSyntaxTreePass>(p => p.Order == 17);
 
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {

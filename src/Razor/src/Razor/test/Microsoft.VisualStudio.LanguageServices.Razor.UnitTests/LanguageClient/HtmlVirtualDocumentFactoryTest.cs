@@ -26,22 +26,22 @@ public class HtmlVirtualDocumentFactoryTest : ToolingTestBase
     public HtmlVirtualDocumentFactoryTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        var htmlContentType = Mock.Of<IContentType>(MockBehavior.Strict);
-        _contentTypeRegistryService = Mock.Of<IContentTypeRegistryService>(
-            registry => registry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName) == htmlContentType, MockBehavior.Strict);
+        var htmlContentType = StrictMock.Of<IContentType>();
+        _contentTypeRegistryService = new MockRepository(MockBehavior.Strict).OneOf<IContentTypeRegistryService>(
+            registry => registry.GetContentType(RazorLSPConstants.HtmlLSPDelegationContentTypeName) == htmlContentType);
         var textBufferFactoryService = new Mock<ITextBufferFactoryService>(MockBehavior.Strict);
-        var factoryBuffer = Mock.Of<ITextBuffer>(buffer => buffer.CurrentSnapshot == Mock.Of<ITextSnapshot>(MockBehavior.Strict) && buffer.Properties == new PropertyCollection(), MockBehavior.Strict);
+        var factoryBuffer = StrictMock.Of<ITextBuffer>(buffer => buffer.CurrentSnapshot == StrictMock.Of<ITextSnapshot>() && buffer.Properties == new PropertyCollection());
         Mock.Get(factoryBuffer).Setup(b => b.ChangeContentType(It.IsAny<IContentType>(), It.IsAny<object>())).Verifiable();
         textBufferFactoryService
             .Setup(factory => factory.CreateTextBuffer())
             .Returns(factoryBuffer);
         _textBufferFactoryService = textBufferFactoryService.Object;
 
-        var razorLSPContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(RazorConstants.RazorLSPContentTypeName) == true, MockBehavior.Strict);
-        _razorLSPBuffer = Mock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == razorLSPContentType, MockBehavior.Strict);
+        var razorLSPContentType = StrictMock.Of<IContentType>(contentType => contentType.IsOfType(RazorConstants.RazorLSPContentTypeName) == true);
+        _razorLSPBuffer = StrictMock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == razorLSPContentType);
 
-        var nonRazorLSPContentType = Mock.Of<IContentType>(contentType => contentType.IsOfType(It.IsAny<string>()) == false, MockBehavior.Strict);
-        _nonRazorLSPBuffer = Mock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == nonRazorLSPContentType, MockBehavior.Strict);
+        var nonRazorLSPContentType = StrictMock.Of<IContentType>(contentType => contentType.IsOfType(It.IsAny<string>()) == false);
+        _nonRazorLSPBuffer = StrictMock.Of<ITextBuffer>(textBuffer => textBuffer.ContentType == nonRazorLSPContentType);
 
         _textDocumentFactoryService = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict).Object;
         Mock.Get(_textDocumentFactoryService).Setup(s => s.CreateTextDocument(It.IsAny<ITextBuffer>(), It.IsAny<string>())).Returns((ITextDocument)null);
@@ -52,7 +52,7 @@ public class HtmlVirtualDocumentFactoryTest : ToolingTestBase
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(provider => provider.GetOrCreate(It.IsAny<ITextBuffer>()) == uri);
         var factory = new HtmlVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, _textDocumentFactoryService, uriProvider, telemetryReporter: null);
 
         // Act
@@ -71,7 +71,7 @@ public class HtmlVirtualDocumentFactoryTest : ToolingTestBase
     {
         // Arrange
         var uri = new Uri("C:/path/to/file.razor");
-        var uriProvider = Mock.Of<FileUriProvider>(provider => provider.GetOrCreate(_razorLSPBuffer) == uri, MockBehavior.Strict);
+        var uriProvider = StrictMock.Of<FileUriProvider>(provider => provider.GetOrCreate(_razorLSPBuffer) == uri);
         Mock.Get(uriProvider).Setup(p => p.AddOrUpdate(It.IsAny<ITextBuffer>(), It.IsAny<Uri>())).Verifiable();
         var factory = new HtmlVirtualDocumentFactory(_contentTypeRegistryService, _textBufferFactoryService, _textDocumentFactoryService, uriProvider, telemetryReporter: null);
 

@@ -51,7 +51,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public void HasInterceptor_HasMatchingInterceptor_ReturnsTrue()
     {
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "expected", "testContentType")), GenerateLazyGenericInterceptors());
 
         Assert.True(sut.HasInterceptor("expected", "testContentType"));
@@ -60,7 +60,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public void HasInterceptor_HasMatchingGenericInterceptor_ReturnsTrue()
     {
-        var fakeInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors(), GenerateLazyGenericInterceptors((fakeInterceptor, "expected", "testContentType")));
 
         Assert.True(sut.HasInterceptor("expected", "testContentType"));
@@ -69,8 +69,8 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public void HasInterceptor_DoesNotHaveMatchingInterceptor_ReturnsFalse()
     {
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-        var fakeGenericInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
+        var fakeGenericInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "unexpected", "testContentType")), GenerateLazyGenericInterceptors((fakeGenericInterceptor, "unexpected", "testContentType")));
 
         Assert.False(sut.HasInterceptor("expected", "testContentType"));
@@ -79,8 +79,8 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public void HasInterceptor_HasMismatchedContentType_ReturnsFalse()
     {
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
-        var fakeGenericInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
+        var fakeGenericInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "expected", "testContentType")), GenerateLazyGenericInterceptors((fakeGenericInterceptor, "expected", "testContentType")));
 
         Assert.False(sut.HasInterceptor("expected", "unknownContentType"));
@@ -151,7 +151,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public async Task ProcessInterceptorsAsync_NoInterceptorMatches_NoChangesMadeToToken()
     {
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors((fakeInterceptor, "unexpected", "testContentType")), GenerateLazyGenericInterceptors());
         var testToken = JToken.Parse("\"theToken\"");
 
@@ -163,7 +163,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public async Task ProcessGenericInterceptorsAsync_JsonElement_NoInterceptorMatches_NoChangesMadeToToken()
     {
-        var fakeInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         var sut = new DefaultInterceptorManager(GenerateLazyInterceptors(), GenerateLazyGenericInterceptors((fakeInterceptor, "unexpected", "testContentType")));
         var testToken = JsonDocument.Parse("\"theToken\"").RootElement;
 
@@ -176,7 +176,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     public async Task ProcessInterceptorsAsync_InterceptorMatchesButDoesNotChangeDocumentUri_ChangesAppliedToToken()
     {
         var expected = JToken.Parse("\"new token\"");
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new InterceptionResult(expected, false));
@@ -192,7 +192,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     public async Task ProcessGenericInterceptorsAsync_JsonElement_InterceptorMatchesButDoesNotChangeDocumentUri_ChangesAppliedToToken()
     {
         var expected = JsonDocument.Parse("\"new token\"").RootElement;
-        var fakeInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync<JsonElement>(It.IsAny<JsonElement>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GenericInterceptionResult<JsonElement>(expected, false));
@@ -208,7 +208,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     public async Task ProcessInterceptorsAsync_InterceptorMatches_ChangedTokenPassedToSecondInterceptor()
     {
         var expected = JToken.Parse("\"new token\"");
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new InterceptionResult(expected, false));
@@ -235,7 +235,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     public async Task ProcessGenericInterceptorsAsync_JsonElement_InterceptorMatches_ChangedTokenPassedToSecondInterceptor()
     {
         var expected = JsonDocument.Parse("\"new token\"").RootElement;
-        var fakeInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync(It.IsAny<JsonElement>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GenericInterceptionResult<JsonElement>(expected, false));
@@ -305,7 +305,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public async Task ProcessInterceptorsAsync_InterceptorReturnsNull_DoesNotCallAdditionalInterceptors()
     {
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new InterceptionResult(null, false));
@@ -327,7 +327,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public async Task ProcessGenericInterceptorsAsync_InterceptorReturnsDefault_DoesNotCallAdditionalInterceptors()
     {
-        var fakeInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync(It.IsAny<JsonElement>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GenericInterceptionResult<JsonElement>(default, false));
@@ -349,7 +349,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public async Task ProcessInterceptorsAsync_InterceptorReturnsNull_ReturnsNull()
     {
-        var fakeInterceptor = Mock.Of<MessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<MessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync(It.IsAny<JToken>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new InterceptionResult(null, false));
@@ -367,7 +367,7 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
     [Fact]
     public async Task ProcessGenericInterceptorsAsync_InterceptorReturnsDefault_ReturnsDefault()
     {
-        var fakeInterceptor = Mock.Of<GenericMessageInterceptor>(MockBehavior.Strict);
+        var fakeInterceptor = StrictMock.Of<GenericMessageInterceptor>();
         Mock.Get(fakeInterceptor)
             .Setup(x => x.ApplyChangesAsync(It.IsAny<JsonElement>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new GenericInterceptionResult<JsonElement>(default, false));
@@ -389,10 +389,9 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
 
         foreach ((var i, var metadataString, var contentTypeName) in fakeInterceptors)
         {
-            var metadata = Mock.Of<IInterceptMethodMetadata>(m =>
+            var metadata = new MockRepository(MockBehavior.Strict).OneOf<IInterceptMethodMetadata>(m =>
                 m.InterceptMethods == new string[] { metadataString } &&
-                m.ContentTypes == new string[] { contentTypeName },
-                MockBehavior.Strict);
+                m.ContentTypes == new string[] { contentTypeName });
             result.Add(new Lazy<MessageInterceptor, IInterceptMethodMetadata>(() => i, metadata));
         }
 
@@ -405,10 +404,9 @@ public class DefaultInterceptionManagerTest : ToolingTestBase
 
         foreach ((var i, var metadataString, var contentTypeName) in fakeInterceptors)
         {
-            var metadata = Mock.Of<IInterceptMethodMetadata>(m =>
+            var metadata = StrictMock.Of<IInterceptMethodMetadata>(m =>
                 m.InterceptMethods == new string[] { metadataString } &&
-                m.ContentTypes == new string[] { contentTypeName },
-                MockBehavior.Strict);
+                m.ContentTypes == new string[] { contentTypeName });
             result.Add(new Lazy<GenericMessageInterceptor, IInterceptMethodMetadata>(() => i, metadata));
         }
 
