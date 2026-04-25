@@ -41,13 +41,16 @@ public class TestCollaborationSession : CollaborationSession
         return _isHost ? $"/host{path}" : $"/guest{path}";
     }
 
-    public override string SessionId => throw new NotImplementedException();
+    public override string SessionId => "test-session";
     public override IReadOnlyCollection<Peer> Peers => throw new NotImplementedException();
     public override IReadOnlyCollection<string> RemoteServiceNames => throw new NotImplementedException();
     public override int PeerNumber => throw new NotImplementedException();
     public override PeerIdentity Identity => throw new NotImplementedException();
     public override PeerRole Role => throw new NotImplementedException();
     public override PeerAccess Access => throw new NotImplementedException();
+    public override string ConversationId => SessionId;
+    public override bool IsSessionConnected => true;
+    public override Task SessionDisconnection => Task.CompletedTask;
 
     public override Task<string> DownloadFileAsync(Uri uri, CancellationToken cancellationToken)
     {
