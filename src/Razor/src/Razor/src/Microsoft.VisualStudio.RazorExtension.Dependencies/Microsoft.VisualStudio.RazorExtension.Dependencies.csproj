@@ -20,7 +20,7 @@
     <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
 
     <CreateVsixContainer Condition="'$(BuildDependencyVsix)' == 'true'">true</CreateVsixContainer>
-    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <DeployExtension Condition="'$(BuildDependencyVsix)' == 'true' OR '$(BuildDependencyVsix)' == ''" >true</DeployExtension>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
