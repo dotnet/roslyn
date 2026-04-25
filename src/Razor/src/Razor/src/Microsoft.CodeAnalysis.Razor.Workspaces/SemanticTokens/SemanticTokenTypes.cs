@@ -1,6 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+// AbstractRazorSemanticTokensLegendService.GetStaticFieldValues reflects over
+// SemanticTokenTypes' static fields, so they must remain fields instead of consts.
+#pragma warning disable CA1802
+
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Razor.SemanticTokens;
