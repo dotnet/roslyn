@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$(NetFxVS)</TargetFramework>
 
@@ -77,7 +77,7 @@
 
     <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
-    <AdditionalFiles Include="$(RepoRoot)src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
+    <AdditionalFiles Include="$(RepoRoot)src\Razor\src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
 
     <Resource Include="SyntaxTree.bmp" />
 
