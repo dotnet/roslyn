@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -18,10 +19,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Sdk.Razor" IncludeAssets="None" PrivateAssets="All" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.SDK" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" />
-    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" />
+    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
 
     <PackageReference Include="Microsoft.VisualStudio.LiveShare" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
@@ -179,7 +180,7 @@
   -->
   <Target Name="GrossProjectSystemSDKWorkaround" AfterTargets="GenerateRulePrep">
     <ItemGroup>
-      <Compile Remove="@(XamlPropertyRule->'$(IntermediateOutputPath)%(FileName)$(DefaultLanguageSourceExtension)')" />
+      <Compile Remove="@(XamlPropertyRule-&gt;'$(IntermediateOutputPath)%(FileName)$(DefaultLanguageSourceExtension)')" />
     </ItemGroup>
   </Target>
 

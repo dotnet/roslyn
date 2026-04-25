@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- needs to be compatible with NetVSCode as defined in Roslyn repo, eng/targets/TargetFrameworks.props -->
     <TargetFramework>$(NetVSCode)</TargetFramework>
@@ -20,11 +21,11 @@
 
   <ItemGroup>
     <!-- Below package references are covered by the binaries shipped by roslyn and do not need to be packaged-->
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
-    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
+    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
   </ItemGroup>
 
   <ItemGroup>

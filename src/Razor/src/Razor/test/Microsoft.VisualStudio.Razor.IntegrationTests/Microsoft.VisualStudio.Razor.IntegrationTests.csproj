@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>$(NetFxVS)</TargetFramework>
     <Nullable>enable</Nullable>
@@ -35,8 +36,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.Xunit" />
-    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\XUnit\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
     <PackageReference Include="NuGet.VisualStudio" />
     <!-- Manually upgrade to address CG alert. When the VS packages

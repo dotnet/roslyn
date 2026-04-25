@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -46,7 +47,7 @@
       CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
       Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
     -->
-    <PackageReference Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <PackageReference Include="Nerdbank.Streams" />
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
   </ItemGroup>

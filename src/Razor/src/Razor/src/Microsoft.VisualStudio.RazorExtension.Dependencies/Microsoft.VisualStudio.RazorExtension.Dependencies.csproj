@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--
       This project deploys extra dependencies that may not be included in the host VS.
@@ -21,7 +22,7 @@
 
     <CreateVsixContainer Condition="'$(BuildDependencyVsix)' == 'true'">true</CreateVsixContainer>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
-    <DeployExtension Condition="'$(BuildDependencyVsix)' == 'true' OR '$(BuildDependencyVsix)' == ''" >true</DeployExtension>
+    <DeployExtension Condition="'$(BuildDependencyVsix)' == 'true' OR '$(BuildDependencyVsix)' == ''">true</DeployExtension>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
@@ -61,12 +62,12 @@
 
   <!-- Reference the Roslyn dependencies so that Preview builds work -->
   <ItemGroup Condition="'$(IncludeRoslynDeps)' == 'true'">
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" />
-    <PackageReference Include="Microsoft.CodeAnalysis.EditorFeatures" />
-    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
-    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures" />
-    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServices" />
+    <ProjectReference Include="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\..\..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" />
   </ItemGroup>

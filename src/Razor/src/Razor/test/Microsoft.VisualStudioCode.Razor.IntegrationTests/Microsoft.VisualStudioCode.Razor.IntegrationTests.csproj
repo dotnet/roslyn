@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>$(NetVSCode)</TargetFramework>
@@ -15,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright" />
     <PackageReference Include="xunit" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Test.Utilities" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
