@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Text;
 using ExternalHandlers = Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
@@ -24,7 +26,9 @@ internal sealed class RoslynCodeActionHelpers : IRoslynCodeActionHelpers
         Debug.Assert(projectSnapshot is RemoteProjectSnapshot);
         var project = ((RemoteProjectSnapshot)projectSnapshot).Project;
 
-        var document = project.AddDocument(RazorUri.GetDocumentFilePathFromUri(csharpFileUri), newFileContent);
+        var filePath = RazorUri.GetDocumentFilePathFromUri(csharpFileUri);
+        var source = SourceText.From(newFileContent, Encoding.UTF8, checksumAlgorithm: SourceHashAlgorithm.Sha256);
+        var document = project.AddDocument(filePath, source, filePath: filePath);
 
         return ExternalHandlers.CodeActions.GetFormattedNewFileContentAsync(document, cancellationToken);
     }
