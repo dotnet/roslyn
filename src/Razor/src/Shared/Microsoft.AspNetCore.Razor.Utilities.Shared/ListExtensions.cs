@@ -49,12 +49,12 @@ internal static class ListExtensions
     /// </exception>
     public static void CopyTo<T>(this List<T> list, Span<T> destination)
     {
-#if NET8_0_OR_GREATER
-        CollectionExtensions.CopyTo(list, destination);
-#else
         ArgHelper.ThrowIfNull(list);
         ArgHelper.ThrowIfDestinationTooShort(destination, list.Count);
 
+#if NET8_0_OR_GREATER
+        CollectionExtensions.CopyTo(list, destination);
+#else
         var index = 0;
 
         foreach (var item in list)
