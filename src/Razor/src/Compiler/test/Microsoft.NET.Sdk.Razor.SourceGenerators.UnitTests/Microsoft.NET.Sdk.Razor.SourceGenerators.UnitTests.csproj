@@ -47,33 +47,58 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App.Ref" GeneratePathProperty="true" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" ExcludeAssets="all" GeneratePathProperty="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(PkgMicrosoft_AspNetCore_App_Ref)\ref\net10.0\*.dll" Private="false" />
   </ItemGroup>
 
   <Choose>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-x64'">
       <ItemGroup>
-        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\*.dll" />
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)\runtimes\win-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
       </ItemGroup>
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-arm64'">
       <ItemGroup>
-        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\*.dll" />
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)\runtimes\win-arm64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
       </ItemGroup>
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'linux-x64'">
       <ItemGroup>
-        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\*.dll" />
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)\runtimes\linux-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
       </ItemGroup>
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-x64'">
       <ItemGroup>
-        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\*.dll" />
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)\runtimes\osx-x64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
       </ItemGroup>
     </When>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-arm64'">
       <ItemGroup>
-        <Reference Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\*.dll" />
+        <None Include="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\*.dll"
+              Exclude="$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\Microsoft.Extensions.ObjectPool.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\System.Diagnostics.EventLog.dll;$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)\runtimes\osx-arm64\lib\net10.0\System.Security.Cryptography.Pkcs.dll"
+              CopyToOutputDirectory="PreserveNewest"
+              TargetPath="%(Filename)%(Extension)"
+              Visible="false" />
       </ItemGroup>
     </When>
   </Choose>

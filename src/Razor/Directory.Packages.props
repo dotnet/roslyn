@@ -18,6 +18,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Basic.Reference.Assemblies.AspNet80" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Microsoft.AspNetCore.App.Ref" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="10.0.1" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer" Version="$(MicrosoftCodeAnalysisCSharpAnalyzerTestingPackageVersion)" />
