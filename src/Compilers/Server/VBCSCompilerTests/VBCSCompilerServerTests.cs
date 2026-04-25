@@ -10,7 +10,6 @@ using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -56,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private Task<int> RunShutdownAsync(string pipeName, bool waitForProcess = true, CancellationToken cancellationToken = default(CancellationToken))
             {
-                var appSettings = new NameValueCollection();
-                return new BuildServerController(appSettings, Logger).RunShutdownAsync(pipeName, waitForProcess, Timeout.Infinite, cancellationToken);
+                return new BuildServerController(Logger).RunShutdownAsync(pipeName, waitForProcess, Timeout.Infinite, cancellationToken);
             }
 
             [Fact]
@@ -409,10 +407,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             private string _pipeName;
             private bool _shutdown;
+            private TimeSpan? _timeout;
+            private string _logFilePath;
 
             private bool Parse(params string[] args)
             {
-                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown);
+                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown, out _timeout, out _logFilePath);
             }
 
             [Fact]
@@ -421,6 +421,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(Parse());
                 Assert.Null(_pipeName);
                 Assert.False(_shutdown);
+                Assert.Null(_timeout);
+                Assert.Null(_logFilePath);
             }
 
             [Fact]
@@ -452,6 +454,52 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 Assert.False(Parse("-invalid"));
                 Assert.False(Parse("name"));
+            }
+
+            [Fact]
+            public void TimeoutSeconds()
+            {
+                Assert.True(Parse("-timeout:60"));
+                Assert.Equal(TimeSpan.FromSeconds(60), _timeout);
+            }
+
+            [Fact]
+            public void TimeoutNoTimeout()
+            {
+                Assert.True(Parse("-timeout:0"));
+                Assert.Equal(Timeout.InfiniteTimeSpan, _timeout);
+            }
+
+            [Fact]
+            public void TimeoutInvalid()
+            {
+                Assert.False(Parse("-timeout:abc"));
+                Assert.False(Parse("-timeout:-1"));
+                Assert.False(Parse("-timeout:-2"));
+                Assert.False(Parse("-timeout:"));
+            }
+
+            [Fact]
+            public void LogFilePathEmpty()
+            {
+                Assert.False(Parse("-log:"));
+            }
+
+            [Fact]
+            public void LogFilePath()
+            {
+                Assert.True(Parse("-log:/tmp/server.log"));
+                Assert.Equal("/tmp/server.log", _logFilePath);
+            }
+
+            [Fact]
+            public void AllArgs()
+            {
+                Assert.True(Parse("-pipename:test", "-timeout:120", "-log:/tmp/server.log"));
+                Assert.Equal("test", _pipeName);
+                Assert.Equal(TimeSpan.FromSeconds(120), _timeout);
+                Assert.Equal("/tmp/server.log", _logFilePath);
+                Assert.False(_shutdown);
             }
         }
     }

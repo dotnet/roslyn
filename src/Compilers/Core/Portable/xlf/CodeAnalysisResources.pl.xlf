@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="AllAnalyzersConcurrentMessage">
         <source>All analyzers have enabled concurrent execution.</source>
-        <target state="new">All analyzers have enabled concurrent execution.</target>
+        <target state="translated">Wszystkie analizatory mają włączone wykonywanie równoległe.</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Attribute">
         <source>attribute</source>
-        <target state="needs-review-translation">atrybut</target>
+        <target state="translated">atrybut</target>
         <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
@@ -190,7 +190,7 @@
       </trans-unit>
       <trans-unit id="NonConcurrentAnalyzersHeader">
         <source>Analyzers that have not enabled concurrent execution:</source>
-        <target state="new">Analyzers that have not enabled concurrent execution:</target>
+        <target state="translated">Analizatory, które nie mają włączonego wykonywania równoległego:</target>
         <note />
       </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
@@ -285,7 +285,7 @@
       </trans-unit>
       <trans-unit id="SuppressorsNonConcurrentCountMessage">
         <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
-        <target state="new">NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</target>
+        <target state="translated">UWAGA: znaleziono następującą liczbę wyłączników diagnostycznych: {0}. Wyłączniki diagnostyczne nigdy nie działają jednocześnie.</target>
         <note />
       </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
@@ -315,77 +315,77 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>assembly</source>
-        <target state="needs-review-translation">zestaw</target>
+        <target state="translated">zestaw</target>
         <note />
       </trans-unit>
       <trans-unit id="Class1">
         <source>class</source>
-        <target state="needs-review-translation">klasa</target>
+        <target state="translated">klasa</target>
         <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
-        <target state="needs-review-translation">konstruktor</target>
+        <target state="translated">konstruktor</target>
         <note />
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="needs-review-translation">delegat</target>
+        <target state="translated">delegat</target>
         <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
-        <target state="needs-review-translation">wyliczenie</target>
+        <target state="translated">wyliczenie</target>
         <note />
       </trans-unit>
       <trans-unit id="Event1">
         <source>event</source>
-        <target state="needs-review-translation">zdarzenie</target>
+        <target state="translated">zdarzenie</target>
         <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
-        <target state="needs-review-translation">pole</target>
+        <target state="translated">pole</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeParameter">
         <source>type parameter</source>
-        <target state="needs-review-translation">parametr typu</target>
+        <target state="translated">parametr typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface1">
         <source>interface</source>
-        <target state="needs-review-translation">interfejs</target>
+        <target state="translated">interfejs</target>
         <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
-        <target state="needs-review-translation">metoda</target>
+        <target state="translated">metoda</target>
         <note />
       </trans-unit>
       <trans-unit id="Module">
         <source>module</source>
-        <target state="needs-review-translation">moduł</target>
+        <target state="translated">moduł</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter">
         <source>parameter</source>
-        <target state="needs-review-translation">parametr</target>
+        <target state="translated">parametr</target>
         <note />
       </trans-unit>
       <trans-unit id="Property">
         <source>property, indexer</source>
-        <target state="needs-review-translation">właściwość, indeksator</target>
+        <target state="translated">właściwość, indeksator</target>
         <note />
       </trans-unit>
       <trans-unit id="Return1">
         <source>return</source>
-        <target state="needs-review-translation">zwracany</target>
+        <target state="translated">zwracany</target>
         <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>
-        <target state="needs-review-translation">struktura</target>
+        <target state="translated">struktura</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotCreateReferenceToSubmission">

@@ -391,7 +391,7 @@
 -vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="needs-review-translation">                  Opcje kompilatora Visual Basic
+        <target state="translated">                  Opcje kompilatora Visual Basic
 
                                   - PLIK WYJŚCIOWY -
 -out:&lt;file&gt;                       Określa nazwę pliku wyjściowego.
@@ -474,16 +474,16 @@
 
                                   - JĘZYK -
 -define:&lt;symbol_list&gt;             Deklarowanie globalnych symboli kompilacji
-                                  warunkowej. symbol_list:name=value,...
+                                  symbol_list:name=value,...
                                   (skrócona postać: -d)
 -imports:&lt;import_list&gt;            Deklarowanie globalnych importów dla przestrzeni nazw w
                                   przywoływanych plikach metadanych.
                                   import_list:namespace,...
 -langversion:?                    Wyświetlanie dozwolonych wartości dla wersji językowej
 -langversion:&lt;string&gt;             Określanie wersji językowej, na przykład
-                                  „default” (najnowsza wersja główna) lub
-                                  „latest” (najnowsza wersja, w tym wersje pomocnicze),
-                                  albo dokładnych wersji, takich jak „14” lub „15.3”
+                                  `default` (najnowsza wersja główna) lub
+                                  `latest` (najnowsza wersja, w tym wersje pomocnicze),
+                                  albo dokładnych wersji, takich jak `14` lub `15.3`
 -optionexplicit[+|-]              Wymaganie jawnej deklaracji zmiennych.
 -optioninfer[+|-]                 Zezwalanie na wnioskowanie o typie zmiennych.
 -rootnamespace:&lt;string&gt;           Określanie głównej przestrzeni nazw dla wszystkich deklaracji
@@ -509,7 +509,7 @@
                                   (szestnastkowy).
 -checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania sumy kontrolnej
                                   pliku źródłowego przechowywanego w pliku PDB. Obsługiwane wartości to:
-                                  SHA1 lub SHA256 (domyślna).
+                                  SHA1, SHA256 (domyślne), SHA384, or SHA512.
 -codepage:&lt;number&gt;                Określanie strony kodowej do użycia podczas otwierania
                                   plików źródłowych.
 -delaysign[+|-]                   Podpisywanie z opóźnieniem zestawu tylko przy użyciu publicznego

@@ -109,6 +109,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SemaphoreSlimExtensions.cs">
       <Link>InternalUtilities\SemaphoreSlimExtensions.cs</Link>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\NoMessagePumpSyncContext.cs">
+      <Link>InternalUtilities\NoMessagePumpSyncContext.cs</Link>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\SpecializedSyncContext.cs">
+      <Link>InternalUtilities\SpecializedSyncContext.cs</Link>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\..\..\Compilers\Core\Portable\InternalUtilities\StackGuard.cs">
       <Link>InternalUtilities\StackGuard.cs</Link>
     </Compile>

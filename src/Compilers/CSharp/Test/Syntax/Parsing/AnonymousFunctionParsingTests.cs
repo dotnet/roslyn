@@ -1864,7 +1864,7 @@ public class C
             var test = @"delegate*<void> ptr = &() => { };";
             var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testWithStatement).VerifyDiagnostics(
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &() => { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
@@ -1877,6 +1877,20 @@ public class C
                 // (1,51): error CS1002: ; expected
                 // class C { void M() { delegate*<void> ptr = &() => { }; } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 51));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,46): error CS1525: Invalid expression term ')'
+                // class C { void M() { delegate*<void> ptr = &() => { }; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 46),
+                // (1,48): error CS1003: Syntax error, ',' expected
+                // class C { void M() { delegate*<void> ptr = &() => { }; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 48),
+                // (1,51): error CS1002: ; expected
+                // class C { void M() { delegate*<void> ptr = &() => { }; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 51),
+            };
+            CreateCompilation(testWithStatement).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,22): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { delegate*<void> ptr = &() => { }; } }
@@ -1970,7 +1984,7 @@ public class C
             var test = @"delegate*<void> ptr = &static () => { };";
             var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testInMethod).VerifyDiagnostics(
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &static () => { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
@@ -1995,6 +2009,32 @@ public class C
                 // (1,58): error CS1002: ; expected
                 // class C { void M() { delegate*<void> ptr = &static () => { }; } }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 58));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,45): error CS1525: Invalid expression term 'static'
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "static").WithArguments("static").WithLocation(1, 45),
+                // (1,45): error CS1002: ; expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(1, 45),
+                // (1,45): error CS0106: The modifier 'static' is not valid for this item
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(1, 45),
+                // (1,53): error CS8124: Tuple must contain at least two elements.
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 53),
+                // (1,55): error CS1001: Identifier expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(1, 55),
+                // (1,55): error CS1003: Syntax error, ',' expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 55),
+                // (1,58): error CS1002: ; expected
+                // class C { void M() { delegate*<void> ptr = &static () => { }; } }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(1, 58),
+            };
+            CreateCompilation(testInMethod).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(testInMethod, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(testInMethod, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,22): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { delegate*<void> ptr = &static () => { }; } }
@@ -2093,13 +2133,21 @@ public class C
         {
             var test = @"delegate*<void> ptr = &delegate() { };";
 
-            CreateCompilation(test).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // delegate*<void> ptr = &delegate() { };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
                 // (1,24): error CS0211: Cannot take the address of the given expression
                 // delegate*<void> ptr = &delegate() { };
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 24));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,24): error CS0211: Cannot take the address of the given expression
+                // delegate*<void> ptr = &delegate() { };
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 24),
+            };
+            CreateCompilation(test).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(test, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // delegate*<void> ptr = &delegate() { };
@@ -2182,13 +2230,21 @@ public class C
             var test = @"delegate*<void> ptr = &delegate() { };";
             var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testWithStatement).VerifyDiagnostics(
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
                 // (1,45): error CS0211: Cannot take the address of the given expression
                 // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 45));
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (1,45): error CS0211: Cannot take the address of the given expression
+                // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "delegate() { }").WithLocation(1, 45),
+            };
+            CreateCompilation(testWithStatement).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
             CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
                 // (1,22): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // class C { void M() { delegate*<void> ptr = &delegate() { }; } }

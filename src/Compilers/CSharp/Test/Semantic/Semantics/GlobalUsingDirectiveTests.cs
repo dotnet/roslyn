@@ -5060,10 +5060,14 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     X Goo() => default;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(4, 5));
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5079,10 +5083,14 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
                 // (2,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // global using X = int*;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 18));
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
 
         [Fact]

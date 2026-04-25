@@ -146,6 +146,13 @@ public abstract class AbstractSemanticQuickInfoSourceTests
     protected static Action<QuickInfoItem> Captures(string capturesText)
         => item => AssertSection(capturesText, item.Sections, QuickInfoSectionKinds.Captures);
 
+    protected static Action<QuickInfoItem> InterceptedBy(
+        string expectedText,
+        FormattedClassification[] expectedClassifications = null)
+    {
+        return item => AssertSection(expectedText, item.Sections, QuickInfoSectionKinds.InterceptedBy, expectedClassifications);
+    }
+
     protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
     {
         var service = document.GetLanguageService<ISyntaxFactsService>();

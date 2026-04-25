@@ -3753,7 +3753,8 @@ class C
             }
             """);
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/22293")]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/22293")]
     [InlineData("void")]
     [InlineData("int")]
     public Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
@@ -4649,7 +4650,8 @@ unsafe class C
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50765")]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/50765")]
     public Task TestDelegateConstructorWithMissingType()
         => TestAsync("""
             <Workspace>

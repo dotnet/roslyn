@@ -83,10 +83,10 @@ public sealed class CSharpReferenceTests
         Assert.False(GetProject3ProjectReferences().Any(pr => pr.ProjectId == project2.Id));
         Assert.False(GetProject3MetadataReferences().Any(mr => mr.FilePath == metadaRefFilePath));
 
-        project1.Dispose();
-        project2.Dispose();
-        project4.Dispose();
-        project3.Dispose();
+        await project1.DisposeAsync();
+        await project2.DisposeAsync();
+        await project4.DisposeAsync();
+        await project3.DisposeAsync();
     }
 
     [WpfFact]
@@ -101,11 +101,11 @@ public sealed class CSharpReferenceTests
         Assert.Single(environment.Workspace.CurrentSolution.GetProject(project2.Id).AllProjectReferences);
 
         // Remove project1. project2's reference should have been converted back
-        project1.Dispose();
+        await project1.DisposeAsync();
         Assert.Empty(environment.Workspace.CurrentSolution.GetProject(project2.Id).AllProjectReferences);
         Assert.Single(environment.Workspace.CurrentSolution.GetProject(project2.Id).MetadataReferences);
 
-        project2.Dispose();
+        await project2.DisposeAsync();
     }
 
     [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
@@ -121,15 +121,15 @@ public sealed class CSharpReferenceTests
         // We should not have converted that to a project reference, because we would have no way to produce the compilation
         Assert.Empty(environment.Workspace.CurrentSolution.GetProject(project1.Id).AllProjectReferences);
 
-        project2.Dispose();
-        project1.Dispose();
+        await project2.DisposeAsync();
+        await project1.DisposeAsync();
     }
 
     [WpfFact]
     public async Task AddRemoveAnalyzerReference_CPS()
     {
         using var environment = new TestEnvironment();
-        using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
+        await using var project = await CreateCSharpCPSProjectAsync(environment, "project1");
         // Add analyzer reference
         using var tempRoot = new TempRoot();
         var analyzerAssemblyFullPath = tempRoot.CreateFile().Path;

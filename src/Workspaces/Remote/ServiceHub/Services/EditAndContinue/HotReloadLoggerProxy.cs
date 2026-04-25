@@ -11,7 +11,10 @@ using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 internal sealed class HotReloadLoggerProxy(IServiceBroker serviceBroker) :
-    BrokeredServiceProxy<IHotReloadLogger>(serviceBroker, BrokeredServiceDescriptors.HotReloadLoggerService),
+    BrokeredServiceProxy<IHotReloadLogger>(
+        serviceBroker,
+        BrokeredServiceDescriptors.HotReloadLoggerService,
+        BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy),
     IHotReloadLogger
 {
     public ValueTask LogAsync(HotReloadLogMessage message, CancellationToken cancellationToken)

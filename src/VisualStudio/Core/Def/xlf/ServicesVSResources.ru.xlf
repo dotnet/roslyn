@@ -287,6 +287,11 @@
         <target state="translated">Комментарии</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
+        <source>Completion behavior for items from unimported namespaces</source>
+        <target state="translated">Поведение завершения для элементов из неимпортированных пространств имен</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Содержащий член</target>
@@ -482,6 +487,11 @@
         <target state="translated">Форматировать документ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Formatting_new_document">
+        <source>Formatting new document...</source>
+        <target state="translated">Идет форматирование нового документа…</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Создать файл EDITORCONFIG на основе параметров</target>
@@ -674,7 +684,7 @@
       </trans-unit>
       <trans-unit id="Logging_Roslyn_Workspace_structure">
         <source>Logging Roslyn Workspace structure...</source>
-        <target state="new">Logging Roslyn Workspace structure...</target>
+        <target state="translated">Регистрация в журнале структуры рабочей области Roslyn...</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -1714,7 +1724,7 @@
       </trans-unit>
       <trans-unit id="Visual_Studio">
         <source>Visual Studio</source>
-        <target state="new">Visual Studio</target>
+        <target state="translated">Visual Studio</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_Settings">

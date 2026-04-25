@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     else
                                     {
                                         declarationBinder.ReportDiagnosticsIfObsolete(diagnostics, importedType, usingDirective.NamespaceOrType, hasBaseReceiver: false);
-                                        Binder.AssertNotUnsafeMemberAccess(importedType);
+                                        declarationBinder.AssertNotUnsafeMemberAccess(importedType);
 
                                         getOrCreateUsingsBuilder(ref usings, globalUsingNamespacesOrTypes).Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective, directiveDiagnostics.DependenciesBag.ToImmutableArray()));
                                     }
@@ -1005,8 +1005,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         alias.Alias.CheckConstraints(diagnostics);
 
+                        Debug.Assert(alias.UsingDirective != null);
+
+                        if (alias.UsingDirective.UnsafeKeyword == default)
+                        {
+                            compilation.GetBinder(alias.UsingDirective.NamespaceOrType).ReportDiagnosticsIfUnsafeMemberAccess(diagnostics.DiagnosticBag, alias.Alias.Target, alias.Alias.GetFirstLocation());
+                        }
+
                         semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);
-                        recordImportDependencies(alias.UsingDirective!, target);
+                        recordImportDependencies(alias.UsingDirective, target);
                     }
                 }
 
@@ -1033,6 +1040,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var typeSymbol = (TypeSymbol)target;
                         var location = usingDirective.NamespaceOrType.Location;
                         typeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics);
+
+                        if (usingDirective.UnsafeKeyword == default)
+                        {
+                            compilation.GetBinder(usingDirective.NamespaceOrType).ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, typeSymbol, usingDirective.NamespaceOrType);
+                        }
                     }
 
                     semanticDiagnostics.AddRange(diagnostics.DiagnosticBag);

@@ -66,7 +66,7 @@ Friend Module Extensions
         If members.Length = 0 Then
             Return Nothing
         ElseIf members.Length > 1 Then
-            Assert.True(False, "Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
+            Assert.Fail("Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
         End If
 
         Return members.Single()

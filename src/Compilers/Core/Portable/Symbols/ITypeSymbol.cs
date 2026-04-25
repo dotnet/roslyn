@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         bool IsRecord { get; }
 
+        // https://github.com/dotnet/roslyn/issues/82636: Add bool IsUnion { get; } ?
+
         /// <summary>
         /// Converts an <c>ITypeSymbol</c> and a nullable flow state to a string representation.
         /// </summary>

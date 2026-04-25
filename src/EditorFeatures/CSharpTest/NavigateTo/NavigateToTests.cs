@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -88,6 +88,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
             """);
         await TestAsync(testHost, composition, content, async w =>
         {
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
+        });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FindUnion(TestHost testHost, Composition composition)
+    {
+        // Exercises the full NavigateTo pipeline for union declarations
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            union Goo(int)
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider using separate NavigateToItemKind and Glyph for unions
             var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
             VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
         });
@@ -1001,6 +1025,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
         {
             var items = await _aggregator.GetItemsAsync("GTW");
             Assert.Empty(items);
+        });
+
+    [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_NoExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // G.*W is a valid regex but G and W are single-char literals — no 2+ char literals
+            // can be extracted for pre-filtering, so the regex search is skipped entirely.
+            var items = await _aggregator.GetItemsAsync("G.*W");
+            Assert.Empty(items);
+        });
+
+    [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_WithExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // Ge.*Wo has 2+ char literals ("ge", "wo") so the regex search runs.
+            // Matches any symbol containing "Ge" followed eventually by "Wo" (case-insensitive).
+            var items = await _aggregator.GetItemsAsync("Ge.*Wo");
+            Assert.Equal(4, items.Count());
+            Assert.Contains(items, i => i.Name == "GetKeyWord");
+            Assert.Contains(items, i => i.Name == "get_key_word");
+            Assert.Contains(items, i => i.Name == "get_keyword");
+            Assert.Contains(items, i => i.Name == "getkeyword");
         });
 
     [Theory, CombinatorialData]

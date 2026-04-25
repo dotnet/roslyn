@@ -5,12 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -100,6 +100,32 @@ internal sealed partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerSer
         }
 
         return builder.ToImmutableArray();
+    }
+
+    public async Task<ImmutableDictionary<ProjectId, ImmutableHashSet<string>>> GetAllDiagnosticIdsAsync(
+        Solution solution, ImmutableArray<ProjectId> projectIds, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(solution.Services, cancellationToken).ConfigureAwait(false);
+        if (client is not null)
+        {
+            var list = await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService, ImmutableDictionary<ProjectId, ImmutableHashSet<string>>>(
+                solution,
+                (service, solution, cancellationToken) => service.GetAllDiagnosticIdsAsync(
+                    solution, projectIds, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
+            if (!list.HasValue)
+                return [];
+
+            return list.Value;
+        }
+
+        var builder = ImmutableArray.CreateBuilder<Project>();
+
+        foreach (var projectId in projectIds)
+            builder.Add(solution.GetRequiredProject(projectId));
+
+        return solution.SolutionState.Analyzers.GetAllDiagnosticIds(
+            this._analyzerInfoCache, builder.ToImmutable());
     }
 
     public async Task<ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>>> GetDiagnosticDescriptorsPerReferenceAsync(

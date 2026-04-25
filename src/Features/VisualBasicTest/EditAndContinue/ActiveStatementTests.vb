@@ -3357,6 +3357,68 @@ End Class
                 Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "Using G(Function(a) a)", VBFeaturesResources.Using_statement))
         End Sub
 
+        <Fact>
+        Public Sub Using_VariableDeclaration_Update_Leaf()
+            Dim src1 = "
+Imports System
+Imports System.ComponentModel
+
+Class Test
+    Sub Main()
+        Using x As New Component()
+            <AS:0>Console.WriteLine(""Test"")</AS:0>
+        End Using
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.ComponentModel
+
+Class Test
+    Sub Main()
+        Using x As New Component()
+            <AS:0>Console.WriteLine(""Test2"")</AS:0>
+        End Using
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifySemanticDiagnostics(active)
+        End Sub
+
+        <Fact>
+        Public Sub Using_VariableDeclaration_Insert()
+            Dim src1 = "
+Imports System
+Imports System.ComponentModel
+
+Class Test
+    Sub Main()
+        <AS:0>Console.WriteLine(""Test"")</AS:0>
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+Imports System.ComponentModel
+
+Class Test
+    Sub Main()
+        Using x As New Component()
+            <AS:0>Console.WriteLine(""Test"")</AS:0>
+        End Using
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            ' Variable declaration Using blocks don't introduce compiler-generated temporaries,
+            ' so no rude edit is reported for insert.
+            edits.VerifySemanticDiagnostics(active)
+        End Sub
+
 #End Region
 
 #Region "With"
