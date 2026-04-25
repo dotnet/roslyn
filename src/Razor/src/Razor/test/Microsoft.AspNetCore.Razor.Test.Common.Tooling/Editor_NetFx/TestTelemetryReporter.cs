@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Razor.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -37,6 +38,15 @@ internal class TestTelemetryReporter(ILoggerFactory loggerFactory) : VSTelemetry
     /// </summary>
     public void AssertMetrics(params Action<TelemetryInstrumentEvent>[] elementInspectors)
     {
-        Assert.Collection(Metrics, elementInspectors);
+        Assert.Collection(
+            Metrics
+                .OrderBy(static evt => GetInstrumentName(evt), StringComparer.Ordinal)
+                .ThenBy(static evt => evt.Event.Name, StringComparer.Ordinal),
+            elementInspectors);
     }
+
+    private static string GetInstrumentName(TelemetryInstrumentEvent evt)
+        => evt.Instrument is Microsoft.VisualStudio.Telemetry.Metrics.IHistogram<long> histogram
+            ? histogram.Name
+            : evt.Instrument.GetType().FullName ?? string.Empty;
 }
