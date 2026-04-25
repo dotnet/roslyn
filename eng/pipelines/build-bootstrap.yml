@@ -10,6 +10,9 @@ steps:
     - powershell: eng/make-bootstrap.ps1 -ci -toolset ${{parameters.toolset}} -output '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
       displayName: Build Bootstrap Compiler
 
+    - powershell: dotnet build src/CodeStyle/CSharp/Analyzers/Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj -c Release -p:DotNetUseShippingVersions=true
+      displayName: Build CodeStyle Analyzers
+
     - powershell: eng/test-build-correctness.ps1 -ci -configuration Release -enableDumps -bootstrapDir '$(Build.SourcesDirectory)/artifacts/bootstrap/ci-bootstrap'
       displayName: Build - Validate Correctness
 
