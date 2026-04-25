@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 [CompilerTrait(CompilerFeature.Extensions)]
 public sealed class ExtensionMembersOnTypelessReceivers_Smoke_Tests : CompilingTestBase
 {
-    [Fact(Skip = "TODO: collection-expression receiver triggers AssertUnderlyingConversionsCheckedRecursive failure during coerceArgument; the CollectionExpression conversion produced by ClassifyImplicitConversionFromExpression is reaching CreateConversion via a path that does not mark its element-wise underlying conversions as checked. Needs investigation of how the receiver flows from BindInstanceMemberAccess through BindInvocationExpressionContinued's CheckAndCoerceArguments. Tracking as the headline scenario for the feature; remaining smoke tests prove the rule itself binds correctly for other typeless forms.")]
+    [Fact]
     public void CollectionExpression_ClassicExtensionMethod_Executes()
     {
         var source = """
@@ -39,7 +39,7 @@ public sealed class ExtensionMembersOnTypelessReceivers_Smoke_Tests : CompilingT
         CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "3").VerifyDiagnostics();
     }
 
-    [Fact]
+    [Fact(Skip = "TODO: enable null-literal receiver in Phase 2 NullLiteral area PRs.")]
     public void NullLiteral_ClassicExtensionMethod_Executes()
     {
         var source = """
@@ -59,7 +59,7 @@ public sealed class ExtensionMembersOnTypelessReceivers_Smoke_Tests : CompilingT
         CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "empty").VerifyDiagnostics();
     }
 
-    [Fact]
+    [Fact(Skip = "TODO: enable lambda-without-natural-type receiver in Phase 2 Lambda area PRs.")]
     public void Lambda_ClassicExtensionMethod_Executes()
     {
         var source = """

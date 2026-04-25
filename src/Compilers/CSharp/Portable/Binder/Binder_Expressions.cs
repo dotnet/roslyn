@@ -8305,17 +8305,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool indexed,
             BindingDiagnosticBag diagnostics)
         {
-            // Receiver must have no type and be a supported form. Throw expressions are excluded
-            // by design (the call would be unreachable). Namespace and type expressions are not
-            // typeless receivers; they are handled by the namespace / type branches in
-            // BindMemberAccessWithBoundLeft.
+            // Receiver must have no type and be one of the receiver categories supported by the
+            // proposal: collection expression, target-typed `new()` / `new(args)`, conditional /
+            // switch with no common arm type, lambda without natural type, method group, tuple
+            // literal with at least one typeless element, default literal, or null literal.
+            // Anything else (e.g. BoundBaseReference when there is no base class, BoundPropertyGroup
+            // for COM indexed properties, throw expressions, namespace / type expressions, bad
+            // expressions, expressions already in error state) falls back to existing behavior so
+            // pre-existing diagnostics are preserved.
             if (boundLeft.Type is not null)
             {
                 return null;
             }
-            if (boundLeft.Kind is BoundKind.ThrowExpression or BoundKind.NamespaceExpression or BoundKind.TypeExpression)
+            if (boundLeft.HasErrors)
             {
                 return null;
+            }
+            // Phase 1 supports only the headline scenario: collection-expression receivers
+            // (e.g. `[1, 2, 3].ToImmutableArray()`). The other typeless receiver categories named
+            // in the spec (target-typed `new()`, conditional / switch with no common arm type,
+            // lambda without natural type, method group, tuple literal with at least one typeless
+            // element, default literal, null literal) will be enabled in their respective Phase 2
+            // area PRs together with their test coverage. Until then, those categories continue
+            // to produce their pre-feature diagnostics.
+            switch (boundLeft.Kind)
+            {
+                case BoundKind.UnconvertedCollectionExpression:
+                    break;
+                default:
+                    return null;
             }
 
             // Feature gate. CheckFeatureAvailability reports ERR_FeatureInPreview when the
