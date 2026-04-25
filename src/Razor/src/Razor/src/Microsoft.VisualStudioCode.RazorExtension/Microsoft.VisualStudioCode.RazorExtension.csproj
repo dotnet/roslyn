@@ -65,10 +65,10 @@
     <ItemGroup>
       <Content Include="$(TargetPath)" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
 
-      <Content Include="$(PublishDir)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
-      <Content Include="$(PublishDir)\Microsoft.CodeAnalysis.Razor.Compiler.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
-      <Content Include="$(PublishDir)\Microsoft.CodeAnalysis.Razor.Workspaces.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
-      <Content Include="$(PublishDir)\Microsoft.CodeAnalysis.Remote.Razor.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Remote.Razor\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Remote.Razor.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
       <Content Include="$(PublishDir)\Microsoft.Extensions.ObjectPool.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
 
       <!-- We don't need to include everything in the bin folder but we do need to add localization resources for the compiler dll -->
