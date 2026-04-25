@@ -17,8 +17,11 @@ public class DefaultRazorDirectiveClassifierPhaseTest
         // Arrange & Act
         var phase = new DefaultRazorDirectiveClassifierPhase();
 
-        var first = new MockRepository(MockBehavior.Strict).OneOf<IRazorDirectiveClassifierPass>(p => p.Order == 15);
-        var second = new MockRepository(MockBehavior.Strict).OneOf<IRazorDirectiveClassifierPass>(p => p.Order == 17);
+        var first = RazorEngineMockFactory.CreateFeature<IRazorDirectiveClassifierPass>(mock =>
+
+            mock.SetupGet(p => p.Order).Returns(15));
+        var second = RazorEngineMockFactory.CreateFeature<IRazorDirectiveClassifierPass>(mock =>
+            mock.SetupGet(p => p.Order).Returns(17));
 
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {

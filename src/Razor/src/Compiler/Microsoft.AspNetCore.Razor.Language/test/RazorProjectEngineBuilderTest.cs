@@ -16,9 +16,9 @@ public class RazorProjectEngineBuilderTest
     {
         // Arrange
         var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, new Mock<RazorProjectFileSystem>(MockBehavior.Strict).Object);
-        builder.Features.Add(new Mock<IRazorEngineFeature>(MockBehavior.Strict).Object);
-        builder.Features.Add(new Mock<IRazorEngineFeature>(MockBehavior.Strict).Object);
-        builder.Features.Add(new Mock<IRazorProjectEngineFeature>(MockBehavior.Strict).Object);
+        builder.Features.Add(RazorEngineMockFactory.CreateFeature<IRazorEngineFeature>());
+        builder.Features.Add(RazorEngineMockFactory.CreateFeature<IRazorEngineFeature>());
+        builder.Features.Add(RazorEngineMockFactory.CreateProjectFeature<IRazorProjectEngineFeature>());
 
         var features = builder.Features.ToArray();
 
@@ -36,8 +36,8 @@ public class RazorProjectEngineBuilderTest
     {
         // Arrange
         var builder = new RazorProjectEngineBuilder(RazorConfiguration.Default, new Mock<RazorProjectFileSystem>(MockBehavior.Strict).Object);
-        builder.Phases.Add(new Mock<IRazorEnginePhase>(MockBehavior.Strict).Object);
-        builder.Phases.Add(new Mock<IRazorEnginePhase>(MockBehavior.Strict).Object);
+        builder.Phases.Add(RazorEngineMockFactory.CreatePhase<IRazorEnginePhase>());
+        builder.Phases.Add(RazorEngineMockFactory.CreatePhase<IRazorEnginePhase>());
 
         var phases = builder.Phases.ToArray();
 

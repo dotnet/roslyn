@@ -17,8 +17,11 @@ public class DefaultRazorOptimizationPhaseTest
         // Arrange & Act
         var phase = new DefaultRazorOptimizationPhase();
 
-        var first = new MockRepository(MockBehavior.Strict).OneOf<IRazorOptimizationPass>(p => p.Order == 15);
-        var second = new MockRepository(MockBehavior.Strict).OneOf<IRazorOptimizationPass>(p => p.Order == 17);
+        var first = RazorEngineMockFactory.CreateFeature<IRazorOptimizationPass>(mock =>
+
+            mock.SetupGet(p => p.Order).Returns(15));
+        var second = RazorEngineMockFactory.CreateFeature<IRazorOptimizationPass>(mock =>
+            mock.SetupGet(p => p.Order).Returns(17));
 
         var engine = RazorProjectEngine.CreateEmpty(b =>
         {
