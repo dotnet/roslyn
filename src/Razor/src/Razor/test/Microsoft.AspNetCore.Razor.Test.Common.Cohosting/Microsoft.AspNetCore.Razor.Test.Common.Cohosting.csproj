@@ -42,7 +42,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit.analyzers" VersionOverride="$(XUnitAnalyzersVersion)" />
+    <PackageReference Include="xunit.analyzers" />
     <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="Xunit.StaFact" />
