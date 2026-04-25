@@ -8344,6 +8344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnboundLambda:
                 case BoundKind.UnconvertedObjectCreationExpression:
                 case BoundKind.DefaultLiteral:
+                case BoundKind.UnconvertedConditionalOperator:
                     break;
                 case BoundKind.MethodGroup when ((BoundMethodGroup)boundLeft).Methods.Length > 0 && ((BoundMethodGroup)boundLeft).LookupError is null:
                     // Real method group with at least one candidate. Empty / errored method groups
