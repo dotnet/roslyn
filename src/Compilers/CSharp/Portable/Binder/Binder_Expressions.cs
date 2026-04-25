@@ -8350,6 +8350,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // falls through to extension-method search and finds nothing) are excluded so
                     // the existing diagnostic on the inner lookup is preserved.
                     break;
+                case BoundKind.Literal when ((BoundLiteral)boundLeft).ConstantValueOpt?.IsNull == true:
+                    // null literal (BoundLiteral with constant value null and no type).
+                    break;
                 default:
                     return null;
             }

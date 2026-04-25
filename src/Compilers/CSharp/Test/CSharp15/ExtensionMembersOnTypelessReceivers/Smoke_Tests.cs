@@ -39,7 +39,7 @@ public sealed class ExtensionMembersOnTypelessReceivers_Smoke_Tests : CompilingT
         CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "3").VerifyDiagnostics();
     }
 
-    [Fact(Skip = "TODO: enable null-literal receiver in Phase 2 NullLiteral area PRs.")]
+    [Fact]
     public void NullLiteral_ClassicExtensionMethod_Executes()
     {
         var source = """
