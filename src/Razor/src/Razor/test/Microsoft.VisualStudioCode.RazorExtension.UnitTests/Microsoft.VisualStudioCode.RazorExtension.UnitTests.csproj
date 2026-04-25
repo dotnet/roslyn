@@ -33,6 +33,6 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
   </ItemGroup>
 
-  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared.Test\Microsoft.CodeAnalysis.Razor.CohostingShared.Test.projitems" Label="Shared" />
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems" Label="Shared" />
 
 </Project>

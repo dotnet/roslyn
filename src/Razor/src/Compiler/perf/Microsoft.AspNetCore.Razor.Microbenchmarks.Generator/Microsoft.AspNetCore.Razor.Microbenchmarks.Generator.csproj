@@ -11,7 +11,7 @@
     <Nullable>enable</Nullable>
     <Configurations>Debug;Release</Configurations>
     <IsTestProject>true</IsTestProject>
-    <IsUnitTestProject>true</IsUnitTestProject>
+    <IsUnitTestProject>false</IsUnitTestProject>
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
@@ -31,6 +31,7 @@
     <ProjectReference Include="..\..\..\..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
     <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
 
   <!-- Reference the local source generator when building in regular configurations -->

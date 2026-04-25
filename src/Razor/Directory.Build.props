@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-  <!--
-    We don't follow Arcade conventions for project naming.
+    <!--
+    Razor unit test projects are renamed to Roslyn's UnitTests convention during post-merge cleanup.
   -->
-  <PropertyGroup Condition="'$(IsUnitTestProject)' == ''">
+  <PropertyGroup Condition="'$(IsUnitTestProject)' == '' OR '$(IsIntegrationTestProject)' == ''">
     <IsUnitTestProject>false</IsUnitTestProject>
-    <IsUnitTestProject Condition="$(MSBuildProjectName.EndsWith('.Test'))">true</IsUnitTestProject>
+    <IsUnitTestProject Condition="$(MSBuildProjectName.EndsWith('.UnitTests')) OR $(MSBuildProjectName.EndsWith('.Tests'))">true</IsUnitTestProject>
+    <IsIntegrationTestProject>false</IsIntegrationTestProject>
+    <IsIntegrationTestProject Condition="$(MSBuildProjectName.EndsWith('.IntegrationTests'))">true</IsIntegrationTestProject>
+    <AddPublicApiAnalyzers Condition="'$(IsTestProject)' == 'true' OR '$(IsUnitTestProject)' == 'true' OR '$(IsIntegrationTestProject)' == 'true'">false</AddPublicApiAnalyzers>
   </PropertyGroup>
-
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <Import

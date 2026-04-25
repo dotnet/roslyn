@@ -6,7 +6,7 @@
     <SharedGUID>4369f151-7b14-4973-ada4-ba6b8e26f847</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.CohostingShared.Test</Import_RootNamespace>
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\AutoClosingTagOnAutoInsertProviderTest.cs" />

@@ -10,10 +10,9 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-
     <!-- Don't run in CI when running the rest of the unit tests or integration tests -->
     <IsUnitTestProject>false</IsUnitTestProject>
-    <IsIntegrationTestProject>false</IsIntegrationTestProject>
+    <IsIntegrationTestProject>true</IsIntegrationTestProject>
   </PropertyGroup>
 
   <ItemGroup>

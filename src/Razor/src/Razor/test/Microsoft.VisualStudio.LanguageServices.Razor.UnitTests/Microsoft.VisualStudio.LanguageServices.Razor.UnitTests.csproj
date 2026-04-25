@@ -39,6 +39,6 @@
     </None>
   </ItemGroup>
 
-  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared.Test\Microsoft.CodeAnalysis.Razor.CohostingShared.Test.projitems" Label="Shared" />
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.projitems" Label="Shared" />
 
 </Project>

@@ -422,7 +422,7 @@
   <Project Path="src/Deployment/RoslynDeployment.csproj" />
   <Folder Name="/Razor/" />
   <Folder Name="/Razor/Analyzers/">
-    <Project Path="src/Razor/src/Analyzers/Razor.Diagnostics.Analyzers.Test/Razor.Diagnostics.Analyzers.Test.csproj" />
+    <Project Path="src/Razor/src/Analyzers/Razor.Diagnostics.Analyzers.UnitTests/Razor.Diagnostics.Analyzers.UnitTests.csproj" />
     <Project Path="src/Razor/src/Analyzers/Razor.Diagnostics.Analyzers/Razor.Diagnostics.Analyzers.csproj" />
   </Folder>
   <Folder Name="/Razor/benchmarks/">
@@ -446,28 +446,28 @@
   </Folder>
   <Folder Name="/Razor/Compiler/" />
   <Folder Name="/Razor/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X/">
-    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.Test.csproj" />
+    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X/">
-    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.Test.csproj" />
+    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions/">
-    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.Test.csproj" />
+    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Mvc.Razor.Extensions/test/Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.AspNetCore.Razor.Language/">
-    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/Microsoft.AspNetCore.Razor.Language.Test.csproj" />
+    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/Microsoft.AspNetCore.Razor.Language.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/">
     <Project Path="src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor.Compiler/src/Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/Microsoft.CodeAnalysis.Razor/">
-    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/legacyTest/Microsoft.AspNetCore.Razor.Language.Legacy.Test.csproj" />
-    <Project Path="src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor/test/Microsoft.CodeAnalysis.Razor.Test.csproj" />
+    <Project Path="src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/legacyTest/Microsoft.AspNetCore.Razor.Language.Legacy.UnitTests.csproj" />
+    <Project Path="src/Razor/src/Compiler/Microsoft.CodeAnalysis.Razor/test/Microsoft.CodeAnalysis.Razor.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/sdk/">
     <Project Path="src/Razor/src/Compiler/Microsoft.Net.Compilers.Razor.Toolset/Microsoft.Net.Compilers.Razor.Toolset.csproj" />
     <Project Path="src/Razor/src/Compiler/Microsoft.NET.Sdk.Razor.SourceGenerators.Transport/Microsoft.NET.Sdk.Razor.SourceGenerators.Transport.csproj" />
-    <Project Path="src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.Tests/Microsoft.NET.Sdk.Razor.SourceGenerators.Test.csproj" />
+    <Project Path="src/Razor/src/Compiler/test/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests/Microsoft.NET.Sdk.Razor.SourceGenerators.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Compiler/tools/">
     <Project Path="src/Razor/src/Compiler/tools/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal/Microsoft.AspNetCore.Mvc.Razor.Extensions.Tooling.Internal.csproj" />
@@ -476,20 +476,20 @@
   </Folder>
   <Folder Name="/Razor/Shared/">
     <Project Path="src/Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common/Microsoft.AspNetCore.Razor.Test.Common.csproj" />
-    <Project Path="src/Razor/src/Shared/Microsoft.AspNetCore.Razor.Utilities.Shared.Test/Microsoft.AspNetCore.Razor.Utilities.Shared.Test.csproj" />
+    <Project Path="src/Razor/src/Shared/Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests/Microsoft.AspNetCore.Razor.Utilities.Shared.UnitTests.csproj" />
     <Project Path="src/Razor/src/Shared/Microsoft.AspNetCore.Razor.Utilities.Shared/Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
   </Folder>
   <Folder Name="/Razor/Tooling Tests/">
     <Project Path="src/Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Cohosting/Microsoft.AspNetCore.Razor.Test.Common.Cohosting.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling/Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.CohostingShared.Test/Microsoft.CodeAnalysis.Razor.CohostingShared.Test.shproj" Id="4369f151-7b14-4973-ada4-ba6b8e26f847" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.Workspaces.Test/Microsoft.CodeAnalysis.Razor.Workspaces.Test.csproj" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Remote.Razor.Test/Microsoft.CodeAnalysis.Remote.Razor.Test.csproj" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.csproj" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServices.Razor.Test/Microsoft.VisualStudio.LanguageServices.Razor.Test.csproj" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.shproj" Id="4369f151-7b14-4973-ada4-ba6b8e26f847" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests/Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests.csproj" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Remote.Razor.UnitTests/Microsoft.CodeAnalysis.Remote.Razor.UnitTests.csproj" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests.csproj" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServices.Razor.UnitTests/Microsoft.VisualStudio.LanguageServices.Razor.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.Razor.IntegrationTests/Microsoft.VisualStudio.Razor.IntegrationTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudioCode.Razor.IntegrationTests/Microsoft.VisualStudioCode.Razor.IntegrationTests.csproj" />
-    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudioCode.RazorExtension.Test/Microsoft.VisualStudioCode.RazorExtension.Test.csproj" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudioCode.RazorExtension.UnitTests/Microsoft.VisualStudioCode.RazorExtension.UnitTests.csproj" />
   </Folder>
   <Folder Name="/Razor/Tooling/">
     <File Path="src/Razor/src/Razor/src/Directory.Build.props" />
