@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,7 +18,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Test.Endpoints;
 
 public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task OneMethod()
     {
         return VerifyCodeLensAsync("""
@@ -33,7 +34,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["0 references"]);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task TwoMethods()
     {
         return VerifyCodeLensAsync("""
@@ -54,7 +55,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             expectedTitles: ["0 references", "1 reference"]);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public Task UsageInRazor()
     {
         return VerifyCodeLensAsync("""

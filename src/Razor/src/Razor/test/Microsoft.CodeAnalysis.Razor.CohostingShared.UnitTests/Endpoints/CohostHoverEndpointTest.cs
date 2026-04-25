@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -144,7 +145,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public async Task CSharp()
     {
         TestCode code = """

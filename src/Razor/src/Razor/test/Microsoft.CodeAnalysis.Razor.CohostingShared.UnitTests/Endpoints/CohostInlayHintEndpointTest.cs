@@ -15,12 +15,13 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
-    [Fact]
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
     public Task InlayHints()
         => VerifyInlayHintsAsync(
             input: """
@@ -62,7 +63,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
             """);
 
-    [Fact]
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
     public Task InlayHints_DisplayAllOverride()
         => VerifyInlayHintsAsync(
             input: """
@@ -154,7 +155,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
         Assert.Null(hints);
     }
 
-    [Fact]
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
     public Task PageDirective()
        => VerifyInlayHintsAsync(
            input: """
@@ -174,7 +175,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
             """);
 
-    [Fact]
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
     public Task AttributeDirective()
        => VerifyInlayHintsAsync(
            input: """

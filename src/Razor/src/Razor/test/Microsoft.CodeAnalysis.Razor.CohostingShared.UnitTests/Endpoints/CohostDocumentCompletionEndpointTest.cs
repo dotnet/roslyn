@@ -26,6 +26,7 @@ using Roslyn.Text.Adornments;
 using Xunit;
 using Xunit.Abstractions;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
+using RoslynConditionalFact = Roslyn.Test.Utilities.ConditionalFactAttribute;
 
 #if !VSCODE
 using Microsoft.VisualStudio.ProjectSystem;
@@ -271,7 +272,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["DaysInMonth", "IsLeapYear", "Now"]);
     }
 
-    [Fact]
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
     public async Task CSharpOverrideMethods()
     {
         await VerifyCompletionListAsync(
@@ -349,7 +350,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 "attribute", "implements", "inherits", "inject", "layout", "namespace", "page",
                 "preservewhitespace", "typeparam", "using"
             };
-        var expectedDirectiveSnippetLabels = expectedDirectiveLabels.Select(label => $"{label} directive ...");
+        var expectedDirectiveSnippetLabels = expectedDirectiveLabels.Select(label => $"{label} {SR.Directive} ...");
         var expectedCSharpLabels = new string[] { "char", "DateTime", "Exception" };
         var expectedLabels = expectedDirectiveLabels
             .Concat(expectedDirectiveSnippetLabels)
@@ -1063,7 +1064,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: [.. CSharpRazorKeywordCompletionItemProvider.CSharpRazorKeywords]);
     }
 
-    [Fact]
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
     public async Task CSharp_AwaitKeyword()
     {
         await VerifyCompletionListAsync(

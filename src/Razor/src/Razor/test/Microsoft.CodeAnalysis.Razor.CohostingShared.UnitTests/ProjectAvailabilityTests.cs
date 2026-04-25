@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using SR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.CodeAnalysis.Razor.Tooltip;
 
@@ -65,9 +66,9 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : CohostEndp
 
         var availability = await GetAvailabilityAsync("AnotherProject.OtherComponent", solution);
 
-        AssertEx.EqualOrDiff("""
+        AssertEx.EqualOrDiff($"""
 
-            ⚠️ Not available in:
+            ⚠️ {SR.Not_Available_In}:
                 SomeProject
             """, availability);
     }
@@ -84,9 +85,9 @@ public class ProjectAvailabilityTests(ITestOutputHelper testOutput) : CohostEndp
 
         var availability = await GetAvailabilityAsync("SomeProject.OtherComponent", solution);
 
-        AssertEx.EqualOrDiff("""
+        AssertEx.EqualOrDiff($"""
 
-            ⚠️ Not available in:
+            ⚠️ {SR.Not_Available_In}:
                 AnotherProject
                 SomeProject
             """, availability);

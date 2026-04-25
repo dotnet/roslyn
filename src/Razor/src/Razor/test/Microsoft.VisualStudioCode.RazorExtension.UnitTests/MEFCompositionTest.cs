@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudioCode.RazorExtension.Test;
 
 public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void Composes()
     {
         var testComposition = TestComposition.RoslynFeatures
