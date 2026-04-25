@@ -8300,6 +8300,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
+        /// A method-group receiver is "valid" for the typeless-extension-receiver path when it has
+        /// at least one candidate method and no lookup error. Empty / errored method groups
+        /// (produced when an inaccessible nested-type lookup or other failed lookup falls through
+        /// to extension-method search and finds nothing) should fall back to the existing
+        /// diagnostic instead of being routed through the new feature.
+        /// </summary>
+        private static bool IsValidMethodGroupReceiver(BoundMethodGroup methodGroup)
+            => methodGroup.Methods.Length > 0 && methodGroup.LookupError is null;
+
+        /// <summary>
         /// If the receiver expression has no type and is a supported typeless form, route the
         /// member access through extension lookup (the "extension members on typeless receivers"
         /// feature). Returns null if the receiver is not a supported typeless form, leaving the
@@ -8349,14 +8359,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.TupleLiteral:
                     break;
-                case BoundKind.MethodGroup when ((BoundMethodGroup)boundLeft).Methods.Length > 0 && ((BoundMethodGroup)boundLeft).LookupError is null:
-                    // Real method group with at least one candidate. Empty / errored method groups
-                    // (produced when an inaccessible nested type lookup or other failed lookup
-                    // falls through to extension-method search and finds nothing) are excluded so
-                    // the existing diagnostic on the inner lookup is preserved.
+                case BoundKind.MethodGroup when IsValidMethodGroupReceiver((BoundMethodGroup)boundLeft):
                     break;
-                case BoundKind.Literal when ((BoundLiteral)boundLeft).ConstantValueOpt?.IsNull == true:
-                    // null literal (BoundLiteral with constant value null and no type).
+                case BoundKind.Literal when boundLeft.IsLiteralNull():
                     break;
                 default:
                     return null;
