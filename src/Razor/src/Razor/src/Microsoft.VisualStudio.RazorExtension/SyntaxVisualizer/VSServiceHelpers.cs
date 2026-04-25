@@ -21,7 +21,7 @@ internal static class VSServiceHelpers
 
             if (s_globalServiceProvider == null)
             {
-                s_globalServiceProvider = (IServiceProvider)Package.GetGlobalService(typeof(IServiceProvider));
+                s_globalServiceProvider = (IServiceProvider)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(IServiceProvider));
             }
 
             return s_globalServiceProvider;

@@ -22,7 +22,7 @@ internal class VisualStudioLanguageServerFeatureOptions : LanguageServerFeatureO
 
         _showAllCSharpCodeActions = new Lazy<bool>(() =>
         {
-            var featureFlags = (IVsFeatureFlags)Package.GetGlobalService(typeof(SVsFeatureFlags));
+            var featureFlags = (IVsFeatureFlags)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(SVsFeatureFlags));
             var showAllCSharpCodeActions = featureFlags.IsFeatureEnabled(WellKnownFeatureFlagNames.ShowAllCSharpCodeActions, defaultValue: false);
             return showAllCSharpCodeActions;
         });
