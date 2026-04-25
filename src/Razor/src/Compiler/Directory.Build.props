@@ -38,8 +38,13 @@
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(DotNetBuildFromVMR)' != 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" NoWarn="NU1608" PrivateAssets="All" />
+    <!-- TODO: Re-enable the Razor.Diagnostics.Analyzers project reference once the merged Roslyn build can load it cleanly again.
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
+    -->
     
 
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
-  </ItemGroup>
+</ItemGroup>
 </Project>
