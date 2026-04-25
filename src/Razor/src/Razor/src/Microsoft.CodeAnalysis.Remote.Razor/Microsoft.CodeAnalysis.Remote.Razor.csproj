@@ -88,6 +88,11 @@
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.Razor.*" Exclude="@(_ExcludedFiles)" />
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.AspNetCore.*" />
       <_PublishedFiles Include="$(PublishDir)**\Microsoft.Extensions.ObjectPool.dll" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\**\Microsoft.AspNetCore.Razor.Utilities.Shared.resources.dll" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Workspaces.dll" />
+      <_PublishedFiles Include="$(ArtifactsDir)bin\Microsoft.CodeAnalysis.Razor.Workspaces\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.Razor.Workspaces.resources.dll" />
 
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
       <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.xml'" />
@@ -97,4 +102,8 @@
     </ItemGroup>
   </Target>
 
+
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="PublishProjectOutputGroup" Returns="@(_PublishedFiles)" />
+
+  <Target Name="PublishVsixItems" DependsOnTargets="Publish;PublishedProjectOutputGroup" Returns="@(_PublishedFiles)" />
 </Project>
