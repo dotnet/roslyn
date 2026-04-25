@@ -56,8 +56,13 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
         void SymbolAction(SymbolAnalysisContext symbolContext)
         {
             var sourceTree = symbolContext.Symbol.Locations.FirstOrDefault()?.SourceTree;
-            if (sourceTree == null
-                || ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
+            if (sourceTree == null)
+            {
+                return;
+            }
+
+            if (!symbolContext.Options.GetAnalyzerOptions(sourceTree).EnforceNamingStyleOnBuild
+                && ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
             {
                 return;
             }
@@ -77,7 +82,8 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
 
         void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            if (ShouldSkipAnalysis(syntaxContext, notification: null))
+            if (!syntaxContext.Options.GetAnalyzerOptions(syntaxContext.Node.SyntaxTree).EnforceNamingStyleOnBuild
+                && ShouldSkipAnalysis(syntaxContext, notification: null))
             {
                 return;
             }
