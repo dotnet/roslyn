@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!--
+    Roslyn ServiceHub (out-of-proc) brokered services.
+
+    Used to generate
+    1) {service-name}.servicehub.service.json files included in Roslyn setup VSIX and in ServiceHub install directory.
+    2) ServiceHub brokered service registrations in pkgdef file.
+
+    Note that brokered services must be defined in Microsoft.VisualStudio service namespace in order to be considered first party.
+
+    IMPORTANT: The Include needs to be "Microsoft.VisualStudio.Razor.{ShortServiceName}"
+    "ShortServiceName" is the name of your remote service interface, without "IRemote" at the start, or "Service" at the end.
+    For example, if your service interface is IRemoteFrobulatorService, then the Include should be "Microsoft.VisualStudio.Razor.Frobulator".
+  -->
+  <ItemGroup>
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.LinkedEditingRange" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteLinkedEditingRangeService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.SemanticTokens" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSemanticTokensService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.HtmlDocument" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteHtmlDocumentService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.MEFInitialization" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteMEFInitializationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.ClientInitialization" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteClientInitializationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.ClientSettings" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteClientSettingsService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.UriPresentation" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteUriPresentationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.FoldingRange" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteFoldingRangeService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.SignatureHelp" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSignatureHelpService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.DocumentHighlight" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDocumentHighlightService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.InlayHint" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteInlayHintService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.DocumentSymbol" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDocumentSymbolService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.GoToDefinition" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteGoToDefinitionService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.Rename" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteRenameService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.AutoInsert" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteAutoInsertService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.Formatting" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteFormattingService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.GoToImplementation" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteGoToImplementationService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.SpellCheck" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSpellCheckService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.Diagnostics" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDiagnosticsService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.Hover" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteHoverService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.Completion" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteCompletionService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.CodeActions" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteCodeActionsService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.AddNestedFile" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteAddNestedFileService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.FindAllReferences" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteFindAllReferencesService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.InlineCompletion" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteInlineCompletionService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.DebugInfo" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDebugInfoService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.WrapWithTag" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteWrapWithTagService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.SpanMapping" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteSpanMappingService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.CodeLens" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteCodeLensService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.DevTools" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDevToolsService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.DataTipRange" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteDataTipRangeService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.Razor.RemoveAndSortUsings" ClassName="Microsoft.CodeAnalysis.Remote.Razor.RemoteRemoveAndSortUsingsService+Factory" />
+  </ItemGroup>
+</Project>

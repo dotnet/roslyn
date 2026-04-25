@@ -36,7 +36,7 @@
   </PropertyGroup>
 
   <!-- Import the list of service hub services we proffer, to generate various files to include in the VSIX -->
-  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
+  <Import Project="$(RepositoryEngineeringDir)targets\RazorServices.props" />
 
   <!-- Include Razor SDK design time assets in the VSIX -->
   <ItemGroup>
