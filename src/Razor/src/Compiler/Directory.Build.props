@@ -6,7 +6,6 @@
     <!-- $(RepoRoot) is normally set globally and Arcade overrides it to ensure a trailing slash. -->
     <RepoRoot Condition=" '$(RepoRoot)' == '' OR !HasTrailingSlash('$(RepoRoot)') ">$(MSBuildThisFileDirectory)</RepoRoot>
 
-    <RepositoryUrl>https://github.com/dotnet/razor</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 

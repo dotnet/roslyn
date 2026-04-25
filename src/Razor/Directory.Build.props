@@ -28,8 +28,6 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
-    <!-- When building in the VMR, we still want the package project url to point to this repo -->
-    <PackageProjectUrl>https://github.com/dotnet/razor</PackageProjectUrl>
 
     <!-- VS does not require Windows PDBs to be published anymore. -->
     <PublishWindowsPdb>false</PublishWindowsPdb>
