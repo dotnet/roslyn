@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
+using SR = Microsoft.CodeAnalysis.Razor.Workspaces.Resources.SR;
 
 namespace Microsoft.CodeAnalysis.Razor.Completion;
 
@@ -99,7 +100,7 @@ public class CSharpRazorKeywordCompletionItemProviderTests(ITestOutputHelper tes
         Assert.Equal(keyword, item.DisplayText);
 
         var completionDescription = Assert.IsType<CSharpRazorKeywordCompletionDescription>(item.DescriptionInfo);
-        Assert.Equal(keyword + " Keyword", completionDescription.Description);
+        Assert.Equal(string.Format(SR.KeywordDescription, keyword), completionDescription.Description);
 
         Assert.Equal(CSharpRazorKeywordCompletionItemProvider.KeywordCommitCharacters, item.CommitCharacters);
     }
