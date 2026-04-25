@@ -8303,8 +8303,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the receiver expression has no type and is a supported typeless form, route the
         /// member access through extension lookup (the "extension members on typeless receivers"
         /// feature). Returns null if the receiver is not a supported typeless form, leaving the
-        /// caller to fall back to the existing behavior. If the feature is not yet enabled by
-        /// the language version, reports <c>ERR_FeatureInPreview</c> and returns a bad expression.
+        /// caller to fall back to the existing behavior. The feature-availability check reports
+        /// <c>ERR_FeatureInPreview</c> when the language version is too low but binding continues
+        /// either way, so the SemanticModel and downstream features see the call as bound.
         /// </summary>
         /// <remarks>
         /// See <see href="https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md"/>.
@@ -8357,14 +8358,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            // Feature gate. CheckFeatureAvailability reports ERR_FeatureInPreview when the
-            // language version is too low and returns false. In that case we report only the
-            // version error, not whatever existing diagnostic the caller would otherwise have
-            // raised.
-            if (!MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node))
-            {
-                return BadExpression(node, boundLeft);
-            }
+            // Feature-availability check reports ERR_FeatureInPreview when the language version is
+            // too low. Binding continues regardless, matching the established convention in this
+            // file - so the SemanticModel and downstream features see the call as bound on every
+            // language version, even when the version diagnostic is reported.
+            MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
 
             var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName
                 ? ((GenericNameSyntax)right).TypeArgumentList.Arguments
