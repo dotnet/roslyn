@@ -25,13 +25,13 @@
   <!-- Global Analyzer Config -->
   <ItemGroup>
     <!-- Always include Common.globalconfig -->
-    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\globalconfigs\Common.globalconfig" />
+    <EditorConfigFiles Include="$(MSBuildThisFileDirectory)Common.globalconfig" />
     <!-- Include Shipping.globalconfig for shipping projects -->
-    <EditorConfigFiles Condition="'$(IsShipping)' == 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\Shipping.globalconfig" />
+    <EditorConfigFiles Condition="'$(IsShipping)' == 'true'" Include="$(MSBuildThisFileDirectory)Shipping.globalconfig" />
     <!-- Include NonShipping.globalconfig for non-shipping projects, except for API shims -->
-    <EditorConfigFiles Condition="'$(IsShipping)' != 'true' AND '$(IsApiShim)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
+    <EditorConfigFiles Condition="'$(IsShipping)' != 'true' AND '$(IsApiShim)' != 'true'" Include="$(MSBuildThisFileDirectory)NonShipping.globalconfig" />
     <!-- Include ApiShim.globalconfig for API shim projects -->
-    <EditorConfigFiles Condition="'$(IsApiShim)' == 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\ApiShim.globalconfig" />
+    <EditorConfigFiles Condition="'$(IsApiShim)' == 'true'" Include="$(MSBuildThisFileDirectory)ApiShim.globalconfig" />
   </ItemGroup>
 
   <!--
