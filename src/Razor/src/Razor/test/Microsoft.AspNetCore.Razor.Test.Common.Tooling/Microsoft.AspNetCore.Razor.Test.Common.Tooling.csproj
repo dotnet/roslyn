@@ -2,9 +2,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(NetVSAndVSCode);$(NetFxVS)</TargetFrameworks>
     <IsShipping>false</IsShipping>
-
     <RootNamespace>Microsoft.AspNetCore.Razor.Test.Common</RootNamespace>
 
     <!-- To generate baselines, run tests with /p:GenerateBaselines=true -->
