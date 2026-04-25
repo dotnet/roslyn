@@ -7898,6 +7898,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
+            // Extension members on typeless receivers: when the receiver expression has no type
+            // and is one of the supported typeless forms, route the member access through
+            // extension lookup. This check runs before:
+            //   - the default-literal and unbound-lambda early rejections below, which would
+            //     otherwise reject those receivers outright,
+            //   - BindToNaturalType, which converts unconverted typeless forms (collection
+            //     expressions, conditional expressions, switch expressions, target-typed `new()`,
+            //     etc.) into error-typed wrappers, and
+            //   - the switch's default branch's null-literal rejection.
+            // The feature-availability check is performed inside the helper.
+            // See https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md
+            if (TryBindMemberAccessOnTypelessReceiver(node, boundLeft, right, invoked, indexed, diagnostics) is { } typelessExtensionResult)
+            {
+                return typelessExtensionResult;
+            }
+
             // No member accesses on default
             if (boundLeft.IsLiteralDefault())
             {
@@ -8273,6 +8289,64 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
+#nullable enable
+        /// <summary>
+        /// If the receiver expression has no type and is a supported typeless form, route the
+        /// member access through extension lookup (the "extension members on typeless receivers"
+        /// feature). Returns null if the receiver is not a supported typeless form, leaving the
+        /// caller to fall back to the existing behavior. If the feature is not yet enabled by
+        /// the language version, reports <c>ERR_FeatureInPreview</c> and returns a bad expression.
+        /// </summary>
+        /// <remarks>
+        /// See <see href="https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md"/>.
+        /// </remarks>
+        private BoundExpression? TryBindMemberAccessOnTypelessReceiver(
+            SyntaxNode node,
+            BoundExpression boundLeft,
+            SimpleNameSyntax right,
+            bool invoked,
+            bool indexed,
+            BindingDiagnosticBag diagnostics)
+        {
+            // Receiver must have no type and be a supported form. Throw expressions are excluded
+            // by design (the call would be unreachable). Namespace and type expressions are not
+            // typeless receivers; they are handled by the namespace / type branches in
+            // BindMemberAccessWithBoundLeft.
+            if (boundLeft.Type is not null)
+            {
+                return null;
+            }
+            if (boundLeft.Kind is BoundKind.ThrowExpression or BoundKind.NamespaceExpression or BoundKind.TypeExpression)
+            {
+                return null;
+            }
+
+            // Feature gate. CheckFeatureAvailability reports ERR_FeatureInPreview when the
+            // language version is too low and returns false. In that case we report only the
+            // version error, not whatever existing diagnostic the caller would otherwise have
+            // raised.
+            if (!MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node))
+            {
+                return BadExpression(node, boundLeft);
+            }
+
+            var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName
+                ? ((GenericNameSyntax)right).TypeArgumentList.Arguments
+                : default(SeparatedSyntaxList<TypeSyntax>);
+            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0
+                ? BindTypeArguments(typeArgumentsSyntax, diagnostics)
+                : default(ImmutableArray<TypeWithAnnotations>);
+            var rightName = right.Identifier.ValueText;
+            var rightArity = right.Arity;
+
+            boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
+            return BindInstanceMemberAccess(
+                node, right, boundLeft, rightName, rightArity,
+                typeArgumentsSyntax, typeArgumentsWithAnnotations,
+                invoked, indexed, diagnostics);
+        }
+#nullable disable
+
         private BoundExpression BindInstanceMemberAccess(
             SyntaxNode node,
             SyntaxNode right,
@@ -8300,7 +8374,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                this.LookupInstanceMember(lookupResult, leftType, leftIsBaseReference, rightName, rightArity, invoked, ref useSiteInfo);
+                if ((object)leftType != null)
+                {
+                    // Typed receiver: look up members in the receiver's type.
+                    this.LookupInstanceMember(lookupResult, leftType, leftIsBaseReference, rightName, rightArity, invoked, ref useSiteInfo);
+                }
+                // Typeless receiver: skip instance member lookup (there is no type), and
+                // proceed directly to the extension-search path below.
                 diagnostics.Add(right, useSiteInfo);
 
                 // SPEC: Otherwise, an attempt is made to process E.I as an extension method invocation.
