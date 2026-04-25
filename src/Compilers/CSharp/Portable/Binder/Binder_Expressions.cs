@@ -7876,6 +7876,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(boundLeft != null);
 
+            // Extension members on typeless receivers: when the receiver expression has no type
+            // and is one of the supported typeless forms, route the member access through
+            // extension lookup. This check runs BEFORE MakeMemberAccessValue, which would
+            // otherwise force unconverted typeless forms into error-typed wrappers via
+            // BindToNaturalType, and BEFORE the default-literal / unbound-lambda / null-literal
+            // early rejections below. The feature-availability check is performed inside the
+            // helper.
+            // See https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md
+            if (TryBindMemberAccessOnTypelessReceiver(node, boundLeft, right, invoked, indexed, diagnostics) is { } typelessExtensionResult)
+            {
+                return typelessExtensionResult;
+            }
+
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
@@ -7896,22 +7909,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOp, operatorToken.GetLocation(), SyntaxFacts.GetText(operatorToken.Kind()), leftType);
                 return BadExpression(node, boundLeft);
-            }
-
-            // Extension members on typeless receivers: when the receiver expression has no type
-            // and is one of the supported typeless forms, route the member access through
-            // extension lookup. This check runs before:
-            //   - the default-literal and unbound-lambda early rejections below, which would
-            //     otherwise reject those receivers outright,
-            //   - BindToNaturalType, which converts unconverted typeless forms (collection
-            //     expressions, conditional expressions, switch expressions, target-typed `new()`,
-            //     etc.) into error-typed wrappers, and
-            //   - the switch's default branch's null-literal rejection.
-            // The feature-availability check is performed inside the helper.
-            // See https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md
-            if (TryBindMemberAccessOnTypelessReceiver(node, boundLeft, right, invoked, indexed, diagnostics) is { } typelessExtensionResult)
-            {
-                return typelessExtensionResult;
             }
 
             // No member accesses on default
