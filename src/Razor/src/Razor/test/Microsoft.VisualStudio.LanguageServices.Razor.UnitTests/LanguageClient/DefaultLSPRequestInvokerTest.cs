@@ -148,7 +148,7 @@ public class DefaultLSPRequestInvokerTest(ITestOutputHelper testOutput) : Toolin
         var broker = new StrictMock<ILanguageServiceBroker2>();
 #pragma warning disable CS0618 // Type or member is obsolete
         broker.Setup(b => b.RequestAsync(It.IsAny<Request<object, object>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((null))
+            .ReturnsAsync((object)null)
             .Callback((Request<object, object> request, CancellationToken _) => callback(request.Method));
 #pragma warning restore CS0618 // Type or member is obsolete
 
