@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <!--
     We don't follow Arcade conventions for project naming.
@@ -8,7 +8,7 @@
     <IsUnitTestProject Condition="$(MSBuildProjectName.EndsWith('.Test'))">true</IsUnitTestProject>
   </PropertyGroup>
 
-  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
   <Import
     Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), AspNetCoreSettings.props))\AspNetCoreSettings.props"
