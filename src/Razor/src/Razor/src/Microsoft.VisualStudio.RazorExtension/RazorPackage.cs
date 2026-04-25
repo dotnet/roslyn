@@ -33,7 +33,9 @@ namespace Microsoft.VisualStudio.RazorExtension;
 [ProvideService(typeof(RazorLanguageService))]
 [ProvideLanguageService(typeof(RazorLanguageService), RazorConstants.RazorLSPContentTypeName, 110)]
 [ProvideMenuResource("Menus.ctmenu", 1)]
+#pragma warning disable VSSDK003 // Tool windows should support async construction
 [ProvideToolWindow(typeof(SyntaxVisualizerToolWindow))]
+#pragma warning restore VSSDK003 // Tool windows should support async construction
 [ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\razor.registration.json")]
 [Guid(PackageGuidString)]
 // We activate cohosting when the first Razor file is opened. This matches the previous behavior where the
