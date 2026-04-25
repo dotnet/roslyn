@@ -1,0 +1,29 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [31] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Value -  - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - c
+                    ComponentAttribute - (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - ValueChanged -  - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+                            IntermediateToken -  - CSharp - __value => c = __value
+                            IntermediateToken -  - CSharp - , c)
+                HtmlContent - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            CSharpCode - (42:2,7 [34] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (42:2,7 [34] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyClass c = new();\n

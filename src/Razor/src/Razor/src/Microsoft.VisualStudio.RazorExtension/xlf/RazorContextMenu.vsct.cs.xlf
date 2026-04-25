@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="cs" original="../RazorContextMenu.vsct">
+    <body>
+      <trans-unit id="cmdIdShowAllTagHelpers|ButtonText">
+        <source>Show All Tag Helpers</source>
+        <target state="translated">Zobrazit všechny pomocné elementy značek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowInScopeTagHelpers|ButtonText">
+        <source>Show In Scope Tag Helpers</source>
+        <target state="translated">Zobrazit pomocné elementy značek v oboru</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowReferencedTagHelpers|ButtonText">
+        <source>Show Referenced Tag Helpers</source>
+        <target state="translated">Zobrazit odkazované pomocné elementy značek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddNestedCsFileEditor|ButtonText">
+        <source>Add Nested .cs File</source>
+        <target state="translated">Přidat vnořený soubor .cs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddNestedCsFileEditor|CommandName">
+        <source>AddNestedCsFileEditor</source>
+        <target state="translated">AddNestedCsFileEditor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddNestedCsFileEditor|LocCanonicalName">
+        <source>AddNestedCsFileEditor</source>
+        <target state="translated">AddNestedCsFileEditor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedCsFile|ButtonText">
+        <source>Add or View Nested .cs File</source>
+        <target state="translated">Přidat nebo zobrazit vnořený soubor .cs</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedCsFile|CommandName">
+        <source>AddOrViewNestedCsFile</source>
+        <target state="translated">AddOrViewNestedCsFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedCsFile|LocCanonicalName">
+        <source>AddOrViewNestedCsFile</source>
+        <target state="translated">AddOrViewNestedCsFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedCssFile|ButtonText">
+        <source>Add or View Nested .css File</source>
+        <target state="translated">Přidat nebo zobrazit vnořený soubor .css</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedCssFile|CommandName">
+        <source>AddOrViewNestedCssFile</source>
+        <target state="translated">AddOrViewNestedCssFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedCssFile|LocCanonicalName">
+        <source>AddOrViewNestedCssFile</source>
+        <target state="translated">AddOrViewNestedCssFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedJsFile|ButtonText">
+        <source>Add or View Nested .js File</source>
+        <target state="translated">Přidat nebo zobrazit vnořený soubor .js</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedJsFile|CommandName">
+        <source>AddOrViewNestedJsFile</source>
+        <target state="translated">AddOrViewNestedJsFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAddOrViewNestedJsFile|LocCanonicalName">
+        <source>AddOrViewNestedJsFile</source>
+        <target state="translated">AddOrViewNestedJsFile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRazorSyntaxVisualizer|ButtonText">
+        <source>Razor Syntax Visualizer</source>
+        <target state="translated">Razor Syntax Visualizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRazorSyntaxVisualizer|CommandName">
+        <source>RazorSyntaxVisualizer</source>
+        <target state="translated">RazorSyntaxVisualizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidShowFormattingDocument|ButtonText">
+        <source>Show Formatting Document</source>
+        <target state="translated">Zobrazit formátovací dokument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidShowGeneratedCode|ButtonText">
+        <source>Show Generated C#</source>
+        <target state="translated">Zobrazit vygenerovaný kód v jazyku C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
+        <source>Show Generated HTML</source>
+        <target state="translated">Zobrazit vygenerovaný kód HTML</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidViewPageEditor|ButtonText">
+        <source>View Page</source>
+        <target state="translated">Zobrazit stránku</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidViewPageEditor|CommandName">
+        <source>ViewPageEditor</source>
+        <target state="translated">ViewPageEditor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidViewPageEditor|LocCanonicalName">
+        <source>ViewPageEditor</source>
+        <target state="translated">ViewPageEditor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="menuidToolWindowToolbar|ButtonText">
+        <source>Razor Syntax Visualizer</source>
+        <target state="translated">Razor Syntax Visualizer</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

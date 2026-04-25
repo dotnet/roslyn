@@ -1,0 +1,24 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(1,13): error CS0592: Attribute 'System.Runtime.InteropServices.DllImport' is not valid on this declaration type. It is only valid on 'method' declarations.
+//            [System.Runtime.InteropServices.DllImport("user32.dll")]
+Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "System.Runtime.InteropServices.DllImport").WithArguments("System.Runtime.InteropServices.DllImport", "method").WithLocation(1, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(2,13): warning CS0657: 'assembly' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
+//            [assembly: AssemblyTitleAttribute("Some assembly")]
+Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "assembly").WithArguments("assembly", "type").WithLocation(2, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(3,13): error CS0246: The type or namespace name 'DllImportAttribute' could not be found (are you missing a using directive or an assembly reference?)
+//            [DllImport("user32.dll", SetLastError=false, ExactSpelling=false)]
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "DllImport").WithArguments("DllImportAttribute").WithLocation(3, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(3,13): error CS0246: The type or namespace name 'DllImport' could not be found (are you missing a using directive or an assembly reference?)
+//            [DllImport("user32.dll", SetLastError=false, ExactSpelling=false)]
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "DllImport").WithArguments("DllImport").WithLocation(3, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(4,13): error CS0246: The type or namespace name 'ConditionalAttribute' could not be found (are you missing a using directive or an assembly reference?)
+//            [Conditional("DEBUG"), Conditional("TEST1")]
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Conditional").WithArguments("ConditionalAttribute").WithLocation(4, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(4,13): error CS0246: The type or namespace name 'Conditional' could not be found (are you missing a using directive or an assembly reference?)
+//            [Conditional("DEBUG"), Conditional("TEST1")]
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Conditional").WithArguments("Conditional").WithLocation(4, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(4,35): error CS0246: The type or namespace name 'ConditionalAttribute' could not be found (are you missing a using directive or an assembly reference?)
+//            [Conditional("DEBUG"), Conditional("TEST1")]
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Conditional").WithArguments("ConditionalAttribute").WithLocation(4, 35),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/AttributeDirective.cshtml(4,35): error CS0246: The type or namespace name 'Conditional' could not be found (are you missing a using directive or an assembly reference?)
+//            [Conditional("DEBUG"), Conditional("TEST1")]
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Conditional").WithArguments("Conditional").WithLocation(4, 35)

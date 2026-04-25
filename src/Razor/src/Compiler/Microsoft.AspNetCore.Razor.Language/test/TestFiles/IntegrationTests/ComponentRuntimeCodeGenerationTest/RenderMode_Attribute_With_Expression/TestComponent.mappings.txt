@@ -1,0 +1,25 @@
+﻿Source Location: (1:0,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestComponent|
+Generated Location: (703:19,49 [13] )
+|TestComponent|
+
+Source Location: (30:0,30 [38] x:\dir\subdir\Test\TestComponent.cshtml)
+|new MyRenderMode() { Extra = "Hello" }|
+Generated Location: (895:23,0 [38] )
+|new MyRenderMode() { Extra = "Hello" }|
+
+Source Location: (83:2,1 [135] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+    {
+        public string Extra {get;set;}
+    }
+|
+Generated Location: (1233:36,0 [135] )
+|
+    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
+    {
+        public string Extra {get;set;}
+    }
+|
+

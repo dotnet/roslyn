@@ -1,0 +1,38 @@
+﻿Source Location: (21:0,21 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|CustomValue|
+Generated Location: (1033:29,21 [11] )
+|CustomValue|
+
+Source Location: (51:0,51 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (1348:38,51 [11] )
+|ParentValue|
+
+Source Location: (81:0,81 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|UpdateValue|
+Generated Location: (1956:48,81 [11] )
+|UpdateValue|
+
+Source Location: (40:0,40 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2430:61,40 [5] )
+|Value|
+
+Source Location: (70:0,70 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2715:70,70 [5] )
+|Value|
+
+Source Location: (105:1,7 [179] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+
+        public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
+|
+Generated Location: (3130:88,7 [179] )
+|
+    public CustomValue ParentValue { get; set; } = new CustomValue();
+
+        public Task UpdateValue(CustomValue value) { ParentValue = value; return Task.CompletedTask; }
+|
+

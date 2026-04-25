@@ -1,0 +1,48 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(64,9): error CS7014: Attributes are not valid in this context.
+//         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
+Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]").WithLocation(64, 9),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,9): error CS0106: The modifier 'public' is not valid for this item
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(65, 9),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,87): warning CS0168: The variable 'ModelExpressionProvider' is declared but never used
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.WRN_UnreferencedVar, "ModelExpressionProvider").WithArguments("ModelExpressionProvider").WithLocation(65, 87),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,111): error CS1002: ; expected
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(65, 111),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,113): error CS0103: The name 'get' does not exist in the current context
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "get").WithArguments("get").WithLocation(65, 113),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,113): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_IllegalStatement, "get").WithLocation(65, 113),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,118): error CS1513: } expected
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(65, 118),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,118): error CS1513: } expected
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_RbraceExpected, "private").WithLocation(65, 118),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,129): error CS1519: Invalid token ';' in a member declaration
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(65, 129),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,129): error CS1519: Invalid token ';' in a member declaration
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(65, 129),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(65,133): error CS1022: Type or namespace definition, or end-of-file expected
+//         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_EOFExpected, "=").WithLocation(65, 133),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(69,60): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+//         public global::Microsoft.AspNetCore.Mvc.IUrlHelper Url { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Url").WithLocation(69, 60),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(73,70): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+//         public global::Microsoft.AspNetCore.Mvc.IViewComponentHelper Component { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Component").WithLocation(73, 70),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(77,71): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+//         public global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper Json { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Json").WithLocation(77, 71),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(81,80): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+//         public global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<dynamic> Html { get; private set; } = default!;
+Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Html").WithLocation(81, 80),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/OpenedIf.cshtml(84,1): error CS1022: Type or namespace definition, or end-of-file expected
+// }
+Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(84, 1)

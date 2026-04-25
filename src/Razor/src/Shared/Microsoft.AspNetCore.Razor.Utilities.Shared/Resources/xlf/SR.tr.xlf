@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../SR.resx">
+    <body>
+      <trans-unit id="0_1_must_be_a_non_negative_and_non_zero_value">
+        <source>{0} ('{1}') must be a non-negative and non-zero value.</source>
+        <target state="translated">{0} ('{1}'), negatif ve sıfır olmayan bir değer olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_a_non_negative_value">
+        <source>{0} ('{1}') must be a non-negative value.</source>
+        <target state="translated">{0} ('{1}'), negatif olmayan bir değer olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_a_non_zero_value">
+        <source>{0} ('{1}') must be a non-zero value.</source>
+        <target state="translated">{0} ('{1}'), sıfır olmayan bir değer olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_equal_to_2">
+        <source>{0} ('{1}') must be equal to '{2}'.</source>
+        <target state="translated">{0} ('{1}'), '{2}' değerine eşit olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_greater_than_2">
+        <source>{0} ('{1}') must be greater than '{2}'.</source>
+        <target state="translated">{0} ('{1}'), '{2}' değerinden büyük olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_greater_than_or_equal_to_2">
+        <source>{0} ('{1}') must be greater than or equal to '{2}'.</source>
+        <target state="translated">{0} ('{1}'), '{2}' değerinden büyük veya buna eşit olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_less_than_2">
+        <source>{0} ('{1}') must be less than '{2}'.</source>
+        <target state="translated">{0} ('{1}'), '{2}' değerinden küçük olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_less_than_or_equal_to_2">
+        <source>{0} ('{1}') must be less than or equal to '{2}'.</source>
+        <target state="translated">{0} ('{1}'), '{2}' değerinden küçük veya buna eşit olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_not_be_equal_to_2">
+        <source>{0} ('{1}') must not be equal to '{2}'.</source>
+        <target state="translated">{0} ('{1}'), '{2}' değerine eşit olmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_advance_past_end_of_the_buffer_which_has_a_size_of_0">
+        <source>Cannot advance past the end of the buffer, which has a size of {0}.</source>
+        <target state="translated">Boyutu {0} olan arabelleğin sonuna ilerlenemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_allocate_a_buffer_of_size_0">
+        <source>Cannot allocate a buffer of size {0}.</source>
+        <target state="translated">Boyutu {0} olan arabellek ayrılamıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_more_than_one_element">
+        <source>Contains more than one element</source>
+        <target state="translated">Birden çok öğe içeriyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_more_than_one_matching_element">
+        <source>Contains more than one matching element</source>
+        <target state="translated">Birden çok eşleşen öğe içeriyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_no_elements">
+        <source>Contains no elements</source>
+        <target state="translated">Öğe içermiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_no_matching_elements">
+        <source>Contains no matching elements</source>
+        <target state="translated">Eşleşen öğe içermiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_is_too_short">
+        <source>Destination is too short.</source>
+        <target state="translated">Hedef çok kısa.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_0_to_be_non_null">
+        <source>Expected '{0}' to be non-null.</source>
+        <target state="translated">'{0}' null olmamalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_condition_to_be_false">
+        <source>Expected condition to be false.</source>
+        <target state="translated">Koşulun yanlış olması bekleniyordu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_condition_to_be_true">
+        <source>Expected condition to be true.</source>
+        <target state="translated">Koşulun doğru olması bekleniyordu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_0_Line_1">
+        <source> File='{0}', Line={1}</source>
+        <target state="translated"> Dosya='{0}', Satır={1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_negative_number_required">
+        <source>Non-negative number required.</source>
+        <target state="translated">Negatif olmayan sayı gerekiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_value_cannot_be_an_empty_string">
+        <source>The value cannot be an empty string.</source>
+        <target state="translated">Değer boş bir dize olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_value_cannot_be_an_empty_string_composed_entirely_of_whitespace">
+        <source>The value cannot be an empty string or composed entirely of whitespace.</source>
+        <target state="translated">Değer boş bir dize olamaz veya tamamen boşluklardan oluşamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_program_location_is_thought_to_be_unreachable">
+        <source>This program location is thought to be unreachable.</source>
+        <target state="translated">Bu program konumu erişilemez olarak görülüyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">Desteklenmeyen tür: '{0}'.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

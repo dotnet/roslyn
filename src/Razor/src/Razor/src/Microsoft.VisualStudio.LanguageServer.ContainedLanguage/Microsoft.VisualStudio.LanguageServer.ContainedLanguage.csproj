@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetFxVS)</TargetFramework>
+    <Description>This package contains the Visual Studio Language Server infrastructure for interacting with contained languages.</Description>
+    <EnableApiCheck>false</EnableApiCheck>
+    <IsShippingPackage>false</IsShippingPackage>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Copilot" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" />
+    <!-- Manually upgrade to address CG alert. When the VS packages
+         pull in the right version, this can be removed. -->
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+    <AdditionalFiles Include="InternalAPI.Shipped.txt" />
+    <AdditionalFiles Include="InternalAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.RazorExtension" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.IntegrationTests" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.LanguageServer" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.LanguageServer.Test" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.LanguageServer.Delegation" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.LanguageServer.Delegation.Test" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.LanguageServer.IntegrationTests" Key="$(VisualStudioKey)" />
+    <InternalsVisibleTo Include="Microsoft.WebTools.Languages.TestServices" Key="$(VisualStudioKey)" />
+  </ItemGroup>
+
+</Project>

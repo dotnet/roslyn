@@ -1,0 +1,10 @@
+﻿Source Location: (10:0,10 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+|BaseComponent<string?>|
+Generated Location: (652:21,0 [22] )
+|BaseComponent<string?>|
+
+Source Location: (61:3,2 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+|_field.ToString()|
+Generated Location: (1197:38,6 [17] )
+|_field.ToString()|
+

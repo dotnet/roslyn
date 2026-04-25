@@ -1,0 +1,35 @@
+﻿RazorDocument - [0..27)::27 - [<p class="@DateTime.Now" />]
+    MarkupBlock - [0..27)::27
+        MarkupTagHelperElement - [0..27)::27 - p[SelfClosing] - pTagHelper
+            MarkupTagHelperStartTag - [0..27)::27 - [<p class="@DateTime.Now" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperAttribute - [2..24)::22 - class - DoubleQuotes - Unbound - [ class="@DateTime.Now"]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..8)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [9..10)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [10..23)::13
+                        MarkupDynamicAttributeValue - [10..23)::13 - [@DateTime.Now]
+                            GenericBlock - [10..23)::13
+                                CSharpCodeBlock - [10..23)::13
+                                    CSharpImplicitExpression - [10..23)::13
+                                        CSharpTransition - [10..11)::1 - Gen<None>
+                                            Transition;[@];
+                                        CSharpImplicitExpressionBody - [11..23)::12
+                                            CSharpCodeBlock - [11..23)::12
+                                                CSharpExpressionLiteral - [11..23)::12 - [DateTime.Now] - Gen<Expr>
+                                                    Identifier;[DateTime];
+                                                    Dot;[.];
+                                                    Identifier;[Now];
+                    MarkupTextLiteral - [23..24)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [24..25)::1
+                    MarkupTextLiteral - [24..25)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,0 +1,22 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (42:2,0 [20] x:\dir\subdir\Test\TestComponent.cshtml) - Col
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (47:2,5 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (47:2,5 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - in markup
+                CSharpCode - (66:3,2 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (66:3,2 [2] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n
+                Component - (72:4,4 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Col
+                CSharpCode - (77:4,9 [51] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (77:4,9 [51] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - in code block</Col>\n    RenderFragment template = 
+                Template - (129:5,31 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                    Component - (129:5,31 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Col
+                CSharpCode - (134:5,36 [20] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (134:5,36 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - in template</Col>;\n

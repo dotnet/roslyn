@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="1050">
+        <source>Advanced</source>
+        <target state="translated">Gelişmiş</target>
+        <note>Advanced Page Group. Name must match the pkgdef definition</note>
+      </trans-unit>
+      <trans-unit id="1060">
+        <source>Formatting; Format On Type;</source>
+        <target state="translated">Biçimlendirme; Yazarken Biçimlendir;</target>
+        <note>Delimited list of search terms for the advanced options page</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Razor (ASP.NET Core)</source>
+        <target state="translated">Razor (ASP.NET Core)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="112">
+        <source>Provides languages services for ASP.NET Core Razor.</source>
+        <target state="translated">ASP.NET Core Razor için dil hizmetleri sağlar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Tamamlama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="translated">Biçimlendirme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Other</source>
+        <target state="translated">Diğer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RazorSyntaxVisualizer">
+        <source>Razor Syntax Visualizer</source>
+        <target state="translated">Razor Syntax Visualizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleAlignWithFirst">
+        <source>Align with first attribute</source>
+        <target state="translated">İlk öznitelikle hizala</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleDescription">
+        <source>Defines how Html and component tag attributes should be indented</source>
+        <target state="translated">Html ve bileşen etiketi özniteliklerinin nasıl girintileneceğini belirler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleDisplayName">
+        <source>Attribute Indent Style</source>
+        <target state="translated">Öznitelik Girinti Stili</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
+        <source>Indent by one level</source>
+        <target state="translated">Bir düzey girintile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleIndentByTwo">
+        <source>Indent by two levels</source>
+        <target state="translated">İki düzey girintile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDescription">
+        <source>If true, closing tags will be automatically inserted</source>
+        <target state="translated">True ise, kapanış etiketleri otomatik olarak eklenir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDisplayName">
+        <source>Auto insert closing tag</source>
+        <target state="translated">Otomatik olarak kapanış etiketi ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
+        <source>If true, completion on attributes will add quotation marks</source>
+        <target state="translated">True ise öznitelikler üzerinde tamamlama tırnak işaretleri ekler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDisplayName">
+        <source>Auto insert attribute quotes</source>
+        <target state="translated">Öznitelik tırnaklarını otomatik ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDescription">
+        <source>Forces the open brace after an @code or @functions directive to be on the following line</source>
+        <target state="translated">Açık küme ayracını bir @code veya @functions yönergesinden sonra aşağıdaki satırda olmaya zorlar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDisplayName">
+        <source>Code/functions block open brace on next line</source>
+        <target state="translated">Sonraki satırda kod/İşlevler bloğu açık küme ayracı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDescription">
+        <source>If true, gives C# code in Razor files a background color</source>
+        <target state="translated">True ise Razor dosyalarında C# kodu bir arka plan rengi verir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDisplayName">
+        <source>Background for C# code</source>
+        <target state="translated">C# kodu için arka plan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for HTML elements and components</source>
+        <target state="translated">True ise, boşluk çubuğuna basıldığında HTML öğeleri ve bileşenleri ile ilgili öneriler işlenir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit elements with space</source>
+        <target state="translated">Öğeleri boşluk çubuğuyla işle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDescription">
+        <source>If true, formatting will be enabled when pasting content</source>
+        <target state="translated">Doğru ise içerik yapıştırılırken biçimlendirme etkinleştirilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDisplayName">
+        <source>Format on paste</source>
+        <target state="translated">Yapıştırma sırasında biçimlendir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDescription">
+        <source>If true, formatting will be enabled while typing</source>
+        <target state="translated">True ise, yazma sırasında biçimlendirme etkinleştirilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDisplayName">
+        <source>Format on type</source>
+        <target state="translated">Yazarken biçimlendir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelCritical">
+        <source>Critical</source>
+        <target state="translated">Kritik</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDebug">
+        <source>Debug</source>
+        <target state="translated">Hata Ayıkla</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDescription">
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
+        <target state="translated">Çıkış Penceresinin Razor Günlük Çıkış kategorisinde gösterilecek günlüğe kaydetme düzeyini ayarlar.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDisplayName">
+        <source>Output Window Log Level</source>
+        <target state="translated">Çıkış Penceresi Günlük Düzeyi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelError">
+        <source>Error</source>
+        <target state="translated">Hata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelInformation">
+        <source>Information</source>
+        <target state="translated">Bilgi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelNone">
+        <source>None</source>
+        <target state="translated">Yok</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelTrace">
+        <source>Trace</source>
+        <target state="translated">İzleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelWarning">
+        <source>Warning</source>
+        <target state="translated">Uyarı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsAll">
+        <source>All</source>
+        <target state="translated">Tümü</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsCustom">
+        <source>Custom</source>
+        <target state="translated">Özel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">Razor dosyasına eklenecek kod parçacıkları. Özel olarak ayarlanırsa, yalnızca Visual Studio’ya dahil edilmemiş kod parçacıkları gösterilir. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">Dahil Edilen Kod Parçacıkları</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsNone">
+        <source>None</source>
+        <target state="translated">Yok</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Typing">
+        <source>Typing</source>
+        <target state="translated">Yazım</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

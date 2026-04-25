@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="it" original="../Resources.resx">
+    <body>
+      <trans-unit id="IRemoteJsonServiceParameterDescription">
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not Json serializable.</source>
+        <target state="translated">I metodi nelle interfacce che ereditano da IRemoteJsonService non devono avere parametri di tipo RazorPinnedSolutionInfoWrapper o DocumentId, poiché non sono serializzabili in Json.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterMessage">
+        <source>'{0}' parameter in '{1}.{2}' has a parameter of type '{3}' which is not allowed in a Json service</source>
+        <target state="translated">Il parametro '{0}' in '{1}.{2}' ha un parametro di tipo '{3}' che non è consentito in un servizio Json</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterTitle">
+        <source>Invalid parameter type in IRemoteJsonService method</source>
+        <target state="translated">Tipo di parametro non valido nel metodo IRemoteJsonService</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingDescription">
+        <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
+        <target state="translated">La chiamata ai metodi EnumerableExtensions o ReadOnlyListExtensions su ImmutableArray&lt;T&gt; causa la struttura in riquadro, creando allocazioni non necessarie. Usare invece i metodi di estensione ImmutableArray&lt;T&gt; corrispondenti.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingMessage">
+        <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
+        <target state="translated">La chiamata a '{0}' su ImmutableArray&lt;T&gt; causa l'esecuzione in riquadro. Considerare invece l'uso del metodo di estensione ImmutableArray&lt;T&gt;.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingTitle">
+        <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
+        <target state="translated">ImmutableArray&lt;T&gt; viene eseguito in riquadro in IReadOnlyList&lt;T&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefDescription">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">L'istanza di PooledArrayBuilder&lt;T&gt;.AsRef() deve essere una variabile 'using'.</target>
+        <note>An optional longer localizable description of the diagnostic.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefMessage">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">L'istanza di PooledArrayBuilder&lt;T&gt;.AsRef() deve essere una variabile 'using'</target>
+        <note>The format-able message the diagnostic displays.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefTitle">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">L'istanza di PooledArrayBuilder&lt;T&gt;.AsRef() deve essere una variabile 'using'</target>
+        <note>The title of the diagnostic.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

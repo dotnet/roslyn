@@ -1,0 +1,20 @@
+﻿RazorDocument - [0..12)::12 - [<p @@attr />]
+    MarkupBlock - [0..12)::12
+        MarkupElement - [0..12)::12
+            MarkupStartTag - [0..12)::12 - [<p @@attr />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                    Whitespace;[ ];
+                MarkupEphemeralTextLiteral - [3..4)::1 - [@] - Gen<Markup>
+                    Transition;[@];
+                MarkupMinimizedAttributeBlock - [4..9)::5 - [@attr]
+                    MarkupTextLiteral - [4..9)::5 - [@attr] - Gen<Markup>
+                        Transition;[@];
+                        Text;[attr];
+                MarkupMiscAttributeContent - [9..10)::1
+                    MarkupTextLiteral - [9..10)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ru" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="1050">
+        <source>Advanced</source>
+        <target state="translated">Дополнительно</target>
+        <note>Advanced Page Group. Name must match the pkgdef definition</note>
+      </trans-unit>
+      <trans-unit id="1060">
+        <source>Formatting; Format On Type;</source>
+        <target state="translated">Форматирование; Форматировать по типу;</target>
+        <note>Delimited list of search terms for the advanced options page</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Razor (ASP.NET Core)</source>
+        <target state="translated">Razor (ASP.NET Core)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="112">
+        <source>Provides languages services for ASP.NET Core Razor.</source>
+        <target state="translated">Предоставляет языковые службы для ASP.NET Core Razor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Завершение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="translated">Форматирование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Other</source>
+        <target state="translated">Другое</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RazorSyntaxVisualizer">
+        <source>Razor Syntax Visualizer</source>
+        <target state="translated">Razor Syntax Visualizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleAlignWithFirst">
+        <source>Align with first attribute</source>
+        <target state="translated">Выровнять по первому атрибуту</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleDescription">
+        <source>Defines how Html and component tag attributes should be indented</source>
+        <target state="translated">Определяет отступ атрибутов тегов HTML и компонентов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleDisplayName">
+        <source>Attribute Indent Style</source>
+        <target state="translated">Стиль отступа атрибута</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
+        <source>Indent by one level</source>
+        <target state="translated">Отступ на один уровень</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleIndentByTwo">
+        <source>Indent by two levels</source>
+        <target state="translated">Отступ на два уровня</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDescription">
+        <source>If true, closing tags will be automatically inserted</source>
+        <target state="translated">При значении true закрывающие теги вставляются автоматически</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDisplayName">
+        <source>Auto insert closing tag</source>
+        <target state="translated">Автоматически вставлять закрывающий тег</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
+        <source>If true, completion on attributes will add quotation marks</source>
+        <target state="translated">Если задано значение true, то при завершении атрибутов будут добавлены кавычки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDisplayName">
+        <source>Auto insert attribute quotes</source>
+        <target state="translated">Автоматически вставлять кавычки атрибутов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDescription">
+        <source>Forces the open brace after an @code or @functions directive to be on the following line</source>
+        <target state="translated">Принудительно добавляет открывающую фигурную скобку после директивы @code или @functions на следующей строке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDisplayName">
+        <source>Code/functions block open brace on next line</source>
+        <target state="translated">Открывающая скобка блока кода/функций на следующей строке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDescription">
+        <source>If true, gives C# code in Razor files a background color</source>
+        <target state="translated">Если ИСТИНА, коду C# в файлах Razor присваивается цвет фона.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDisplayName">
+        <source>Background for C# code</source>
+        <target state="translated">Фон для кода C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for HTML elements and components</source>
+        <target state="translated">Если настроено значение true, при нажатии клавиши ПРОБЕЛ будут фиксироваться предложения для HTML-элементов и компонентов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit elements with space</source>
+        <target state="translated">Фиксация элементов клавишей ПРОБЕЛ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDescription">
+        <source>If true, formatting will be enabled when pasting content</source>
+        <target state="translated">Если ИСТИНА, форматирование будет включено при вставке контента.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDisplayName">
+        <source>Format on paste</source>
+        <target state="translated">Форматировать при вставке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDescription">
+        <source>If true, formatting will be enabled while typing</source>
+        <target state="translated">Если задано значение true, при вводе текста будет включено форматирование</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDisplayName">
+        <source>Format on type</source>
+        <target state="translated">Форматировать по типу</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelCritical">
+        <source>Critical</source>
+        <target state="translated">Критический</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDebug">
+        <source>Debug</source>
+        <target state="translated">Отладка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDescription">
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
+        <target state="translated">Задает уровень ведения журнала для отображения в категории "Выходные данные средства ведения журнала Razor" в окне вывода.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDisplayName">
+        <source>Output Window Log Level</source>
+        <target state="translated">Уровень ведения журнала для окна вывода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelError">
+        <source>Error</source>
+        <target state="translated">Ошибка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelInformation">
+        <source>Information</source>
+        <target state="translated">Информация</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelNone">
+        <source>None</source>
+        <target state="translated">Нет</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelTrace">
+        <source>Trace</source>
+        <target state="translated">Трассировка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelWarning">
+        <source>Warning</source>
+        <target state="translated">Предупреждение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsAll">
+        <source>All</source>
+        <target state="translated">Все</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsCustom">
+        <source>Custom</source>
+        <target state="translated">Настраиваемый</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">Какие фрагменты кода нужно включить в файл Razor. Если настроено пользовательское значение, будут отображаться только фрагменты кода, не включенные в Visual Studio. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">Включенные фрагменты кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsNone">
+        <source>None</source>
+        <target state="translated">Нет</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Typing">
+        <source>Typing</source>
+        <target state="translated">Ввод с клавиатуры</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

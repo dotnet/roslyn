@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>4369f151-7b14-4973-ada4-ba6b8e26f847</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.CohostingShared.Test</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\AutoClosingTagOnAutoInsertProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\CloseTextTagOnAutoInsertProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\PreferHtmlInAttributeValuesDocumentPositionInfoStrategyTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoInsert\RazorOnAutoInsertProviderTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\AddUsingTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CohostCodeActionsEndpointTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CreateComponentFromTagTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CSharpCodeActionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCodeBehindTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToComponentTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCssTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\GenerateEventHandlerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionProviderTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\Html\HtmlCodeActionResolverTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\PromoteUsingDirectiveTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\RemoveUnnecessaryDirectiveTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SimplifyFullyQualifiedComponentTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SimplifyTagToSelfClosingTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SortAndConsolidateUsingsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\TypeAccessibilityTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\UnboundDirectiveAttributeAddUsingTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\WrapAttributeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ComputedTargetPathTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\RazorDiagnosticHelperTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentExcerpt\DocumentExcerptServiceTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentExcerpt\RazorDocumentExcerptServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentCompletionEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentCompletionResolveEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentHighlightEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentPullDiagnosticsTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentSymbolEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostFindAllReferencesEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostFoldingRangeEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostGeneratedDocumentContentsEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostGoToDefinitionEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostGoToImplementationEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostHoverEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostInlayHintEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostLinkedEditingRangeEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostOnAutoInsertEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostRenameEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSemanticTokensRangeEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostSignatureHelpEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostWillRenameEndpointTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NestedFiles\RemoteAddNestedFileServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CascadingTypeParameterFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CodeDirectiveFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest_Generator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingContentValidationPassTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingDiagnosticValidationPassTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\HtmlFormattingPassTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\HtmlFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\MoreHtmlFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\RazorFormattingServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Mapping\RazorEditServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ProjectAvailabilityTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorDocumentMappingServiceTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ThrowingSnippetCompletionItemResolveProvider.cs" />
+  </ItemGroup>
+</Project>

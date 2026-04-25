@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetVSCode)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!-- Don't run in CI when running the rest of the unit tests or integration tests -->
+    <IsUnitTestProject>false</IsUnitTestProject>
+    <IsIntegrationTestProject>false</IsIntegrationTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Test.Utilities" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+        We can't actually make use of anything in the C# extension project, because the tests run in a mostly isolated environment
+        but hopefully this will mean code changes will get built automatically when running tests from VS.
+    -->
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudioCode.RazorExtension\Microsoft.VisualStudioCode.RazorExtension.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,91 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- needs to be compatible with NetVSCode as defined in Roslyn repo, eng/targets/TargetFrameworks.props -->
+    <TargetFramework>$(NetVSCode)</TargetFramework>
+    <Nullable>enable</Nullable>
+    <IsShippingPackage>true</IsShippingPackage>
+    <DefineConstants>$(DefineConstants);VSCODE</DefineConstants>
+
+    <!--
+        Build a nuget package for this project.  This is not consumed as a standard NuGet package; it just
+    contains the extension binaries to be packaged in the VS Code VSIX.
+    -->
+    <IsPackable>true</IsPackable>
+
+    <!-- This is not a standard nuget package and only consumed by the extension build. We don't care if the folder structure doesn't match what nuget expects. -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+
+    <BeforePack>PackPublishContent;$(BeforePack)</BeforePack>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Below package references are covered by the binaries shipped by roslyn and do not need to be packaged-->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" />
+    <PackageReference Include="Microsoft.Extensions.ObjectPool" GeneratePathProperty="true" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.Features" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Since we're including these DLLs in the package, we mark them as private assets so they're not also dependencies -->
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\GlobalUsings.cs" Link="GlobalUsings.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" Key="$(RazorKey)" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_ObjectPoolLibTfm>$(TargetFramework)</_ObjectPoolLibTfm>
+    <!-- When building from the VMR, the ObjectPool package version targets NetCurrent (e.g. net11.0)
+         which may be newer than this project's TFM (e.g. net10.0). -->
+    <_ObjectPoolLibTfm Condition="'$(DotNetBuildFromVMR)' == 'true'">$(NetCurrent)</_ObjectPoolLibTfm>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Need to make sure ObjectPool is in the bin folder for local development scenarios -->
+    <None Include="$(PkgMicrosoft_Extensions_ObjectPool)\lib\$(_ObjectPoolLibTfm)\Microsoft.Extensions.ObjectPool.dll" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+
+    <Content Include=".\Targets\**\*.*">
+      <Pack>true</Pack>
+      <PackagePath>content\Targets</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="PackPublishContent" DependsOnTargets="Publish">
+    <ItemGroup>
+      <Content Include="$(TargetPath)" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+
+      <Content Include="$(PublishDir)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\Microsoft.CodeAnalysis.Razor.Compiler.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\Microsoft.CodeAnalysis.Razor.Workspaces.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\Microsoft.CodeAnalysis.Remote.Razor.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\Microsoft.Extensions.ObjectPool.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+
+      <!-- We don't need to include everything in the bin folder but we do need to add localization resources for the compiler dll -->
+      <Content Include="$(PublishDir)\cs\**\*.*" Pack="true" PackagePath="content\cs\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\de\**\*.*" Pack="true" PackagePath="content\de\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\es\**\*.*" Pack="true" PackagePath="content\es\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\fr\**\*.*" Pack="true" PackagePath="content\fr\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\it\**\*.*" Pack="true" PackagePath="content\it\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\ja\**\*.*" Pack="true" PackagePath="content\ja\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\ko\**\*.*" Pack="true" PackagePath="content\ko\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\pl\**\*.*" Pack="true" PackagePath="content\pl\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\pt-BR\**\*.*" Pack="true" PackagePath="content\pt-BR\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\ru\**\*.*" Pack="true" PackagePath="content\ru\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\tr\**\*.*" Pack="true" PackagePath="content\tr\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\zh-Hans\**\*.*" Pack="true" PackagePath="content\zh-Hans\" CopyToOutputDirectory="PreserveNewest" />
+      <Content Include="$(PublishDir)\zh-Hant\**\*.*" Pack="true" PackagePath="content\zh-Hant\" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.CohostingShared\Microsoft.CodeAnalysis.Razor.CohostingShared.projitems" Label="Shared" />
+</Project>

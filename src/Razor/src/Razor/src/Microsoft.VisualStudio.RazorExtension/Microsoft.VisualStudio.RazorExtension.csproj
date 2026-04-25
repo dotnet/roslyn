@@ -1,0 +1,260 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$(NetFxVS)</TargetFramework>
+
+    <VSSDKTargetPlatformRegRootSuffix>$(RazorVSSDKTargetPlatformRegRootSuffix)</VSSDKTargetPlatformRegRootSuffix>
+
+    <!-- Required to run the project localy -->
+    <StartArguments>/rootsuffix $(VSSDKTargetPlatformRegRootSuffix) /log</StartArguments>
+
+    <!-- Required to place the vsix in the right location by WTE MSI -->
+    <ExtensionInstallationRoot>$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>$(RazorExtensionInstallationFolderBase)</ExtensionInstallationFolder>
+    <IsProductComponent>true</IsProductComponent>
+    <VisualStudioInsertionComponent>$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
+
+    <!-- Don't automatically include dependencies -->
+    <IncludePackageReferencesInVSIXContainer>false</IncludePackageReferencesInVSIXContainer>
+
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <IsPackable>true</IsPackable>
+    <IsShippingAssembly>true</IsShippingAssembly>
+
+    <GenerateResourceUsePreserializedResources Condition="'$(MSBuildRuntimeType)' == 'Core'">true</GenerateResourceUsePreserializedResources>
+
+    <SetupProductArch>neutral</SetupProductArch>
+    <ServiceHubCoreSubPath>$(RazorServiceHubCoreSubFolder)</ServiceHubCoreSubPath>
+
+    <!-- for the syntax visualizer -->
+    <UseWPF>true</UseWPF>
+    <!-- Cause the vsix to get deployed to the RootSuffix.
+         Without this the Razor Extension won't be deployed for IntegrationTests
+         to use in the "build.cmd" scenario -->
+    <DeployExtension>true</DeployExtension>
+
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+  </PropertyGroup>
+
+  <!-- Import the list of service hub services we proffer, to generate various files to include in the VSIX -->
+  <Import Project="$(RepositoryEngineeringDir)targets\Services.props" />
+
+  <!-- Include Razor SDK design time assets in the VSIX -->
+  <ItemGroup>
+    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\build\netstandard2.0\Microsoft.NET.Sdk.Razor.DesignTime.targets">
+      <IncludeInVsix>true</IncludeInVsix>
+      <InstallRoot>MSBuild</InstallRoot>
+      <VSIXSubPath>Microsoft\VisualStudio\Razor\</VSIXSubPath>
+    </Content>
+    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\build\netstandard2.0\Rules\*.xaml">
+      <IncludeInVsix>true</IncludeInVsix>
+      <InstallRoot>MSBuild</InstallRoot>
+      <VSIXSubPath>Microsoft\VisualStudio\Razor\Rules\</VSIXSubPath>
+    </Content>
+    <VSCTCompile Include="RazorContextMenu.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+      <SubType>Designer</SubType>
+    </VSCTCompile>
+  </ItemGroup>
+
+  <!-- Misc other content -->
+  <ItemGroup>
+    <Content Include="$(RepositoryRoot)NOTICE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="WebConfiguration.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Resources\RazorPackage.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="Microsoft.VisualStudio.RazorExtension.Custom.pkgdef">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+    <AdditionalFiles Include="$(RepoRoot)src\Razor\src\Razor\vs-threading.MainThreadAssertingMethods.txt" Link="AnalyzerConfig\vs-threading.MainThreadAssertingMethods.txt" />
+
+    <Resource Include="SyntaxTree.bmp" />
+
+    <!-- Embedded grammars -->
+
+    <Content Include="EmbeddedGrammars\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <VSIXSubPath>Grammars\</VSIXSubPath>
+    </Content>
+
+    <!-- Language configurations -->
+
+    <Content Include="language-configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="razordirective-language-configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="csharp-language-configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="css-language-configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="javascript-language-configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <!-- Unified Settings -->
+    <Content Include="UnifiedSettings\razor.registration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
+  </ItemGroup>
+
+  <!-- Resources are a little bit special in a VSIX -->
+  <PropertyGroup>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="VSPackage.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Don't trim this list. It is used to feed into the binding redirects -->
+    <ProjectReference Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj">
+      <AdditionalProperties>TargetFramework=$(NetFxVS)</AdditionalProperties>
+      <NgenPriority>2</NgenPriority>
+    </ProjectReference>
+
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">
+      <AdditionalProperties>TargetFramework=$(NetFxVS)</AdditionalProperties>
+    </ProjectReference>
+
+    <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServer.ContainedLanguage\Microsoft.VisualStudio.LanguageServer.ContainedLanguage.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj">
+      <NgenPriority>2</NgenPriority>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj">
+      <Name>Microsoft.CodeAnalysis.Razor.Compiler</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <NgenPriority>2</NgenPriority>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- We reference the core components only for developer builds. In the official build they are inserted via the corecomponents VSIX alongside this VSIX -->
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" Condition="'$(OfficialBuildId)' == ''">
+
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
+      <Private>false</Private>
+      <AdditionalProperties>TargetFramework=$(NetVS)</AdditionalProperties>
+      <VSIXSubPath>ServiceHubCore</VSIXSubPath>
+
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Sdk.Razor" IncludeAssets="None" PrivateAssets="All" GeneratePathProperty="true" />
+    <PackageReference Include="System.Resources.Extensions" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
+    <!-- Manually upgrade to address CG alert. When the VS packages
+         pull in the right version, this can be removed. -->
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
+
+    <!--
+      Pinning packages to avoid misaligned reference CI failures.
+      CI builds here: https://github.com/dotnet/razor-tooling/issues/4327
+      Now we aren't sure why this exposes a "flaky" issue; however, to workaround the break we pin the following packages to workaround the issue.
+    -->
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
+  </ItemGroup>
+
+  <!-- Include our Razor package dependency dlls in our extension -->
+  <ItemGroup>
+    <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Razor.Compiler.dll">
+      <Ngen>true</Ngen>
+      <NgenPriority>2</NgenPriority>
+    </VSIXSourceItem>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_GeneratedVSIXBindingRedirectFile>$(IntermediateOutputPath)$(MSBuildProjectName).BindingRedirects.cs</_GeneratedVSIXBindingRedirectFile>
+  </PropertyGroup>
+
+  <Target Name="_GenerateVSIXBindingRedirects" DependsOnTargets="PrepareForBuild;GetAssemblyVersion" BeforeTargets="CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(_GeneratedVSIXBindingRedirectFile)">
+    <ItemGroup>
+      <BindingRedirectAssemblies Include="@(ProjectReference)" AssemblyName="%(Filename)" />
+      <BindingRedirectAssemblies Remove="@(ProjectReference)" Condition="%(ProjectReference.ReferenceOutputAssembly) == 'false'" />
+      <BindingRedirectAssemblies Include="$(AssemblyName)" AssemblyName="$(AssemblyName)" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_GeneratedVSIXBindingRedirectContent>
+        <![CDATA[
+// <auto-generated />
+using Microsoft.VisualStudio.Shell;
+
+@(BindingRedirectAssemblies->'[assembly: ProvideBindingRedirection(AssemblyName = "%(AssemblyName)", GenerateCodeBase = true, PublicKeyToken = "adb9793829ddae60", OldVersionLowerBound = "0.0.0.0", OldVersionUpperBound = "$(AssemblyVersion)", NewVersion = "$(AssemblyVersion)")]', '%0A')
+]]>
+      </_GeneratedVSIXBindingRedirectContent>
+    </PropertyGroup>
+    <WriteLinesToFile Lines="$([MSBuild]::Escape($(_GeneratedVSIXBindingRedirectContent)))" File="$(_GeneratedVSIXBindingRedirectFile)" Overwrite="True" WriteOnlyWhenDifferent="True" />
+    <ItemGroup>
+      <Compile Include="$(_GeneratedVSIXBindingRedirectFile)">
+        <Visible>false</Visible>
+      </Compile>
+      <FileWrites Include="$(_GeneratedVSIXBindingRedirectFile)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="WORKAROUND_SETINFORMATIONVERSION" BeforeTargets="AddSourceRevisionToInformationalVersion">
+    <!--
+      We use the VS release versioning for the VSIX. We also need this to flow into the AssemblyInformationVersionAttribute
+      for the about... dialog
+    -->
+    <PropertyGroup>
+      <InformationalVersion>$(VsixVersion)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_RemoveFrameworkReferenceAnalyzers" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <ResolvedAnalyzers Remove="@(ResolvedAnalyzers)" Condition="'%(ResolvedAnalyzers.NuGetPackageId)' == 'System.Text.Json'" />
+    </ItemGroup>
+  </Target>
+</Project>

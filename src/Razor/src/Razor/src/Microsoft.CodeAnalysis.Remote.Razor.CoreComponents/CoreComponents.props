@@ -1,0 +1,50 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <TargetFramework>$(NetVS)</TargetFramework>
+    <IsShipping>false</IsShipping>
+  </PropertyGroup>
+
+  <!-- VSIX properties -->
+  <PropertyGroup>
+
+    <IsVsixProject>true</IsVsixProject>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <DeployExtension>false</DeployExtension>
+    
+    <SetupProductArch>$(ComponentArchitecture)</SetupProductArch>
+    <IsProductComponent>true</IsProductComponent>
+
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+
+    <VSSDKTargetPlatformRegRootSuffix>$(RazorVSSDKTargetPlatformRegRootSuffix)</VSSDKTargetPlatformRegRootSuffix>
+    <ExtensionInstallationRoot>$(RazorExtensionInstallationRoot)</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>$(RazorExtensionInstallationFolderBase)\$(RazorServiceHubCoreSubFolder)</ExtensionInstallationFolder>
+    <VisualStudioInsertionComponent>$(RazorVisualStudioInsertionComponent)</VisualStudioInsertionComponent>
+
+    <!-- Only create the VSIX for official builds. In dev builds we reference the bits directly in the razor extension -->
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <CreateVsixContainer Condition="'$(OfficialBuildId)' != ''">true</CreateVsixContainer>
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj">
+
+      <!-- Don't directly reference the project -->
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+
+      <!-- Instead call this target to get a list of what should be included when we build as a VSIX -->
+      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+
+      <!-- Ensure we consume the right components for our architecture and RID -->
+      <AdditionalProperties>RuntimeIdentifier=win-$(ComponentArchitecture);TargetFramework=$(NetVS)</AdditionalProperties>
+
+      <!-- Do not NGEN at install time. They are R2R compiled as part of the build instead -->
+      <Ngen>false</Ngen>
+    </ProjectReference>
+  </ItemGroup>
+  
+</Project>

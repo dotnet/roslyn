@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <ComponentArchitecture>arm64</ComponentArchitecture>    
+  </PropertyGroup>
+
+  <Import Project="../CoreComponents.props"/>
+
+</Project>
+

@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="de" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="1050">
+        <source>Advanced</source>
+        <target state="translated">Erweitert</target>
+        <note>Advanced Page Group. Name must match the pkgdef definition</note>
+      </trans-unit>
+      <trans-unit id="1060">
+        <source>Formatting; Format On Type;</source>
+        <target state="translated">Formatierung; Format bei Eingabe;</target>
+        <note>Delimited list of search terms for the advanced options page</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Razor (ASP.NET Core)</source>
+        <target state="translated">Razor (ASP.NET Core)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="112">
+        <source>Provides languages services for ASP.NET Core Razor.</source>
+        <target state="translated">Stellt Sprachdienste für ASP.NET Core Razor bereit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Completion">
+        <source>Completion</source>
+        <target state="translated">Abschluss</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting">
+        <source>Formatting</source>
+        <target state="translated">Formatierung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Other</source>
+        <target state="translated">Andere</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RazorSyntaxVisualizer">
+        <source>Razor Syntax Visualizer</source>
+        <target state="translated">Razor-Syntax-Visualizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleAlignWithFirst">
+        <source>Align with first attribute</source>
+        <target state="translated">Am ersten Attribut ausrichten</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleDescription">
+        <source>Defines how Html and component tag attributes should be indented</source>
+        <target state="translated">Definiert, wie HTML- und Komponenten-Tagattribute eingerückt werden sollen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleDisplayName">
+        <source>Attribute Indent Style</source>
+        <target state="translated">Attribut-Einrückungsstil</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
+        <source>Indent by one level</source>
+        <target state="translated">Um eine Ebene einrücken</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AttributeIndentStyleIndentByTwo">
+        <source>Indent by two levels</source>
+        <target state="translated">Einzug um zwei Stufen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDescription">
+        <source>If true, closing tags will be automatically inserted</source>
+        <target state="translated">Bei "true" werden schließende Tags automatisch eingefügt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoClosingTagsDisplayName">
+        <source>Auto insert closing tag</source>
+        <target state="translated">Schließendes Tag automatisch einfügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
+        <source>If true, completion on attributes will add quotation marks</source>
+        <target state="translated">Bei einer Festlegung auf TRUE werden bei der Vervollständigung von Attributen Anführungszeichen hinzugefügt.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_AutoInsertAttributeQuotesDisplayName">
+        <source>Auto insert attribute quotes</source>
+        <target state="translated">Anführungszeichen für Attribute automatisch einfügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDescription">
+        <source>Forces the open brace after an @code or @functions directive to be on the following line</source>
+        <target state="translated">Erzwingt, dass die öffnende geschweifte Klammer nach einer @code- oder @functions-Anweisung in der folgenden Zeile steht</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CodeBlockBraceOnNextLineDisplayName">
+        <source>Code/functions block open brace on next line</source>
+        <target state="translated">Code/Funktionen blockieren öffnende Klammer in nächster Zeile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDescription">
+        <source>If true, gives C# code in Razor files a background color</source>
+        <target state="translated">Bei „true“ erhält C#-Code in Razor-Dateien eine Hintergrundfarbe.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ColorBackgroundDisplayName">
+        <source>Background for C# code</source>
+        <target state="translated">Hintergrund für C#-Code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDescription">
+        <source>If true, pressing space will commit suggestions for HTML elements and components</source>
+        <target state="translated">Wenn TRUE, werden beim Drücken der LEERTASTE Vorschläge für HTML-Elemente und -Komponenten committet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_CommitElementsWithSpaceDisplayName">
+        <source>Commit elements with space</source>
+        <target state="translated">Elemente durch Drücken der LEERTASTE committen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDescription">
+        <source>If true, formatting will be enabled when pasting content</source>
+        <target state="translated">„True“ gibt an, dass die Formatierung beim Einfügen von Inhalten aktiviert wird.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnPasteDisplayName">
+        <source>Format on paste</source>
+        <target state="translated">Beim Einfügen formatieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDescription">
+        <source>If true, formatting will be enabled while typing</source>
+        <target state="translated">Bei "true" wird die Formatierung während der Eingabe aktiviert.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_FormattingOnTypeDisplayName">
+        <source>Format on type</source>
+        <target state="translated">Bei Eingabe formatieren</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelCritical">
+        <source>Critical</source>
+        <target state="translated">Kritisch</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDebug">
+        <source>Debug</source>
+        <target state="translated">Debuggen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDescription">
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
+        <target state="translated">Legt den Protokolliergrad fest, der in der Kategorie "Razor-Protokollierungsausgabe" des Ausgabefenster angezeigt wird.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelDisplayName">
+        <source>Output Window Log Level</source>
+        <target state="translated">Protokollebene des Ausgabefensters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelError">
+        <source>Error</source>
+        <target state="translated">Fehler</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelInformation">
+        <source>Information</source>
+        <target state="translated">Informationen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelNone">
+        <source>None</source>
+        <target state="translated">Keine</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelTrace">
+        <source>Trace</source>
+        <target state="translated">Ablaufverfolgung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_LogLevelWarning">
+        <source>Warning</source>
+        <target state="translated">Warnung</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsAll">
+        <source>All</source>
+        <target state="translated">Alle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsCustom">
+        <source>Custom</source>
+        <target state="translated">Benutzerdefiniert</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDescription">
+        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="translated">Welche Ausschnitte in eine Razor-Datei eingeschlossen werden sollen. Bei Festlegung auf "Benutzerdefiniert" werden nur Ausschnitte angezeigt, die nicht in Visual Studio enthalten sind. </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsDisplayName">
+        <source>Included Snippets</source>
+        <target state="translated">Enthaltene Ausschnitte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_SnippetsNone">
+        <source>None</source>
+        <target state="translated">Keine</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Typing">
+        <source>Typing</source>
+        <target state="translated">Eingabe</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

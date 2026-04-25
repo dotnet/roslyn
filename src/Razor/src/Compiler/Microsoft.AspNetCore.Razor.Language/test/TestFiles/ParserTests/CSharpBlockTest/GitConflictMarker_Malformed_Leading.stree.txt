@@ -1,0 +1,93 @@
+﻿RazorDocument - [0..120)::120 - [@{LFvar x = 0; <<<<<<< HEAD LF    var x = 1;LFvar x = 3; ======= LF    var x = 2;LFvar x = 4; >>>>>>> feature-branch LF}]
+    MarkupBlock - [0..120)::120
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..120)::120
+            CSharpStatement - [0..120)::120
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..120)::119
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..119)::117
+                        CSharpStatementLiteral - [2..119)::117 - [LFvar x = 0; <<<<<<< HEAD LF    var x = 1;LFvar x = 3; ======= LF    var x = 2;LFvar x = 4; >>>>>>> feature-branch LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[0];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                            CSharpOperator;[<<];
+                            CSharpOperator;[<<];
+                            CSharpOperator;[<<];
+                            LessThan;[<];
+                            Whitespace;[ ];
+                            Identifier;[HEAD];
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[3];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                            CSharpOperator;[==];
+                            CSharpOperator;[==];
+                            CSharpOperator;[==];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[2];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[4];
+                            Semicolon;[;];
+                            Whitespace;[ ];
+                            GreaterThan;[>];
+                            GreaterThan;[>];
+                            GreaterThan;[>];
+                            GreaterThan;[>];
+                            GreaterThan;[>];
+                            GreaterThan;[>];
+                            GreaterThan;[>];
+                            Whitespace;[ ];
+                            Identifier;[feature];
+                            CSharpOperator;[-];
+                            Identifier;[branch];
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                    RazorMetaCode - [119..120)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [120..120)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

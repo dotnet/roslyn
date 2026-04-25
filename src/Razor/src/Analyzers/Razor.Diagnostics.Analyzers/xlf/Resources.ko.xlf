@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../Resources.resx">
+    <body>
+      <trans-unit id="IRemoteJsonServiceParameterDescription">
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not Json serializable.</source>
+        <target state="translated">IRemoteJsonService에서 상속되는 인터페이스의 메서드는 Json 직렬화가 불가능하므로 RazorPinnedSolutionInfoWrapper 또는 DocumentId 형식의 매개 변수를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterMessage">
+        <source>'{0}' parameter in '{1}.{2}' has a parameter of type '{3}' which is not allowed in a Json service</source>
+        <target state="translated">'{0}' 매개 변수는 '{1}.{2}'에서 Json 서비스에서 허용되지 않는 '{3}' 형식의 매개 변수를 가지고 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterTitle">
+        <source>Invalid parameter type in IRemoteJsonService method</source>
+        <target state="translated">IRemoteJsonService 메서드의 매개 변수 형식이 잘못되었습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingDescription">
+        <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
+        <target state="translated">ImmutableArray&lt;T&gt;에서 EnumerableExtensions 또는 ReadOnlyListExtensions 메서드를 호출하면 구조체가 boxing되어 불필요한 할당이 발생합니다. 대신 해당 ImmutableArray&lt;T&gt; 확장 메서드를 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingMessage">
+        <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
+        <target state="translated">ImmutableArray&lt;T&gt;에서 '{0}'을(를) 호출하면 boxing이 발생합니다. 대신 ImmutableArray&lt;T&gt; 확장 메서드를 사용해 보세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingTitle">
+        <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
+        <target state="translated">ImmutableArray&lt;T&gt;이(가) IReadOnlyList&lt;T&gt;(으)로 boxing되고 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefDescription">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">PooledArrayBuilder&lt;T&gt; 인스턴스입니다. AsRef()는 반드시 'using' 변수여야 합니다.</target>
+        <note>An optional longer localizable description of the diagnostic.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefMessage">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">PooledArrayBuilder&lt;T&gt; 인스턴스입니다. AsRef()는 반드시 'using' 변수여야 합니다.</target>
+        <note>The format-able message the diagnostic displays.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefTitle">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">PooledArrayBuilder&lt;T&gt; 인스턴스입니다. AsRef()는 반드시 'using' 변수여야 합니다.</target>
+        <note>The title of the diagnostic.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

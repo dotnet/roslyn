@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!--
+      This project defines a 'deployment' project that references all vsixes relevant to local development and integration testing.
+      It ensures that a single F5 command will build and deploy the independent MS.VS.RazorExtension vsix and MS.VS.RazorExtension.Dependencies vsix.
+      We rely on launch settings to run devenv with the appropriate hive that the vsixes have been deployed to.
+    -->
+
+    <TargetFramework>$(NetFxVS)</TargetFramework>
+
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Copilot" />
+    <!-- References the main RazorExtension vsix to ensure all the actual code is deployed to the hive. -->
+    <ProjectReference Include="..\Microsoft.VisualStudio.RazorExtension.Dependencies\Microsoft.VisualStudio.RazorExtension.Dependencies.csproj" />
+    <!-- References the dependencies vsix to ensure that we also deploy any dependencies needed by the RazorExtension that might not be included in public VS instances. -->
+    <ProjectReference Include="..\Microsoft.VisualStudio.RazorExtension\Microsoft.VisualStudio.RazorExtension.csproj" />
+  </ItemGroup>
+</Project>

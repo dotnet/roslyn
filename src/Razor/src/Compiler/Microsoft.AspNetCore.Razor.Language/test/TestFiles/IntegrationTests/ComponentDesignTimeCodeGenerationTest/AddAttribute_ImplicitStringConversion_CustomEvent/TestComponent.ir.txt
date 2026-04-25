@@ -1,0 +1,37 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [169] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - MyParameter - MyParameter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (26:0,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - c
+                    ComponentAttribute - (43:1,13 [9] x:\dir\subdir\Test\TestComponent.cshtml) - MyEvent - MyEvent - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (43:1,13 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                    ComponentAttribute - (74:2,19 [4] x:\dir\subdir\Test\TestComponent.cshtml) - BoolParameter - BoolParameter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (74:2,19 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - true
+                    ComponentAttribute - (102:3,21 [3] x:\dir\subdir\Test\TestComponent.cshtml) - StringParameter - StringParameter - AttributeStructure.DoubleQuotes
+                        HtmlContent - (102:3,21 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (102:3,21 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - str
+                    ComponentAttribute - (131:4,23 [9] x:\dir\subdir\Test\TestComponent.cshtml) - DelegateParameter - DelegateParameter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (131:4,23 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
+                    ComponentAttribute - (164:5,21 [1] x:\dir\subdir\Test\TestComponent.cshtml) - ObjectParameter - ObjectParameter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (164:5,21 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - c
+                HtmlContent - (169:5,26 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (169:5,26 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            CSharpCode - (180:7,7 [42] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (180:7,7 [42] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private MyClass<string> c = new();\n
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

@@ -1,0 +1,6 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml(2,6): error CS0103: The name 'Da' does not exist in the current context
+//      @Da
+Diagnostic(ErrorCode.ERR_NameNotInContext, "@Da").WithArguments("Da").WithLocation(2, 6),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/HiddenSpansInCode.cshtml(2,9): error CS1002: ; expected
+//      @Da
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 9)

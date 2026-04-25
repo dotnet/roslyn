@@ -1,0 +1,44 @@
+﻿Source Location: (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web|
+Generated Location: (372:12,0 [41] )
+|using Microsoft.AspNetCore.Components.Web|
+
+Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1146:30,0 [9] )
+|() => { }|
+
+Source Location: (110:2,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestComponent|
+Generated Location: (1555:40,49 [13] )
+|TestComponent|
+
+Source Location: (161:3,35 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (2060:47,0 [9] )
+|() => { }|
+
+Source Location: (200:4,5 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestComponent|
+Generated Location: (2507:57,54 [13] )
+|TestComponent|
+
+Source Location: (255:5,39 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (3034:64,0 [9] )
+|() => { }|
+
+Source Location: (346:7,35 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (3888:82,0 [9] )
+|() => { }|
+
+Source Location: (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public RenderFragment ChildContent { get; set; }
+|
+Generated Location: (4424:98,0 [68] )
+|
+    [Parameter] public RenderFragment ChildContent { get; set; }
+|
+

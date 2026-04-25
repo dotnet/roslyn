@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,63): Error RZ10016: Attribute 'bind-Placeholder:set' was used but no attribute 'bind-Placeholder:get' was found.

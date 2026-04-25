@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../SR.resx">
+    <body>
+      <trans-unit id="0_is_not_a_Razor_file_path">
+        <source>'{0}' is not a Razor file path.</source>
+        <target state="translated">'{0}' は Razor ファイル パスではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AddTagHelper_directive_is_unnecessary">
+        <source>@addTagHelper directive is unnecessary.</source>
+        <target state="translated">@addTagHelper ディレクティブは不要です。</target>
+        <note>@addTagHelper is a keyword</note>
+      </trans-unit>
+      <trans-unit id="Couldnt_get_a_source_generator_run_result">
+        <source>Couldn't get a source generator run result for project '{0}'.</source>
+        <target state="translated">プロジェクト '{0}' のソース ジェネレーターの実行結果を取得できませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Couldnt_get_the_source_generated_document_for_hint_name">
+        <source>Couldn't get the source generated document for hint name '{0}' that we got from the generator run result.</source>
+        <target state="translated">ジェネレーターの実行結果から取得したヒント名 '{0}' のソース生成ドキュメントを取得できませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_does_not_belong_to_this_project">
+        <source>Document does not belong to this project.</source>
+        <target state="translated">ドキュメントはこのプロジェクトに属していません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Document_is_not_a_Razor_document">
+        <source>Document is not a Razor document.</source>
+        <target state="translated">ドキュメントは Razor ドキュメントではありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generator_run_result_did_not_contain_a_code_document">
+        <source>Generator run result did not contain a code document for '{0}'.</source>
+        <target state="translated">ジェネレーターの実行結果に '{0}' のコード ドキュメントが含まれていませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_belong_to_this_solution">
+        <source>Project does not belong to this solution.</source>
+        <target state="translated">プロジェクトはこのソリューションに属していません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Project_does_not_contain_any_Razor_documents">
+        <source>Project does not contain any Razor documents.</source>
+        <target state="translated">プロジェクトには Razor ドキュメントが含まれていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Razor_source_generator_did_not_produce_a_host_output">
+        <source>Razor source generator did not produce a host output for project '{0}': {1}</source>
+        <target state="translated">Razor ソース ジェネレーターは、プロジェクト '{0}': {1} のホスト出力を生成しませんでした</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Razor_source_generator_host_output_is_not_RazorGeneratorResult">
+        <source>Razor source generator host output is not of type RazorGeneratorResult for project '{0}': {1}</source>
+        <target state="translated">Razor ソース ジェネレーターのホスト出力は、プロジェクト '{0}': {1} の RazorGeneratorResult 型ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Razor_source_generator_is_not_referenced">
+        <source>Razor source generator is not referenced or no run result found for project '{0}'.</source>
+        <target state="translated">Razor ソース ジェネレーターが参照されていないか、プロジェクト '{0}' の実行結果が見つかりません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Razor_source_generator_reference_incorrect">
+        <source>Razor source generator is referenced from '{0}' but we are expecting '{1}', for project '{2}'.</source>
+        <target state="translated">Razor ソース ジェネレーターは '{0}' から参照されていますが、プロジェクト '{2}' に対して '{1}' が必要です。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

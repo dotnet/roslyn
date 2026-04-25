@@ -1,0 +1,51 @@
+﻿Source Location: (65:1,46 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|ActionText|
+Generated Location: (1031:28,46 [10] )
+|ActionText|
+
+Source Location: (84:2,3 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+|if (!Collapsed)
+  {
+    |
+Generated Location: (1167:35,3 [26] )
+|if (!Collapsed)
+  {
+    |
+
+Source Location: (154:5,7 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildContent|
+Generated Location: (1322:44,7 [12] )
+|ChildContent|
+
+Source Location: (178:6,10 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+  }|
+Generated Location: (1467:51,10 [5] )
+|
+  }|
+
+Source Location: (201:10,1 [277] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+  [Parameter]
+  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+  [Parameter]
+  public bool Collapsed { get; set; }
+  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
+  void Toggle()
+  {
+    Collapsed = !Collapsed;
+  }
+|
+Generated Location: (1645:61,1 [277] )
+|
+  [Parameter]
+  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
+  [Parameter]
+  public bool Collapsed { get; set; }
+  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
+  void Toggle()
+  {
+    Collapsed = !Collapsed;
+  }
+|
+

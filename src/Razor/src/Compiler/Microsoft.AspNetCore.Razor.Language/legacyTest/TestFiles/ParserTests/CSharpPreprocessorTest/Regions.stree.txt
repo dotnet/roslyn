@@ -1,0 +1,28 @@
+﻿RazorDocument - [0..37)::37 - [@{LF#region MyRegion }LF#endregionLF}]
+    MarkupBlock - [0..37)::37
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..22)::22
+            CSharpStatement - [0..22)::22
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..22)::21
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..21)::19
+                        CSharpStatementLiteral - [2..21)::19 - [LF#region MyRegion ] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[region];
+                            Whitespace;[ ];
+                            Identifier;[MyRegion];
+                            Whitespace;[ ];
+                    RazorMetaCode - [21..22)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [22..24)::2 - [LF] - Gen<None> - SpanEditHandler;Accepts:Any
+            NewLine;[LF];
+        MarkupTextLiteral - [24..37)::13 - [#endregionLF}] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Text;[#endregion];
+            NewLine;[LF];
+            Text;[}];
+    EndOfFile;[];

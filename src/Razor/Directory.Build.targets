@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+
+  <PropertyGroup>
+    <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(Version)</PackageVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      Disable nullable warnings when targeting anything other than our supported .NET core version(s).
+      This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
+      to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+      We still check $(TargetFrameworks) for empty though, because for single-targeted builds we want to
+      allow nullable warnings regardless of target framework.
+    -->
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND  '$(TargetFrameworks)' != '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
+    <NoWarn>$(NoWarn);Nullable</NoWarn>
+  </PropertyGroup>
+
+  <Import Project="$(RepositoryEngineeringDir)targets\Common.targets" />
+
+  <!-- Global Analyzer Config -->
+  <ItemGroup>
+    <!-- Always include Common.globalconfig -->
+    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\globalconfigs\Common.globalconfig" />
+    <!-- Include Shipping.globalconfig for shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' == 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\Shipping.globalconfig" />
+    <!-- Include NonShipping.globalconfig for non-shipping projects, except for API shims -->
+    <EditorConfigFiles Condition="'$(IsShipping)' != 'true' AND '$(IsApiShim)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
+    <!-- Include ApiShim.globalconfig for API shim projects -->
+    <EditorConfigFiles Condition="'$(IsApiShim)' == 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\ApiShim.globalconfig" />
+  </ItemGroup>
+
+  <!--
+    Where necessary, do not pretend we support iOS or Android. This file is imported after project
+    has a chance to set $(RemoveDevicePlatformSupport) and long after @(SupportedPlatforms) is initialized.
+  -->
+  <ItemGroup Condition=" '$(RemoveDevicePlatformSupport)' == 'true' ">
+    <SupportedPlatform Remove="Android" />
+    <SupportedPlatform Remove="iOS" />
+  </ItemGroup>
+
+  <!--
+    We provide a simple mechanism for including NetFx-only files.
+    If a C# file should only be compiled under NetFx, it can be named with a ".NetFx.cs" extension.
+    Or, the file can be included in a folder called "NetFx" or has a name that ends in "_NetFx".
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' != '$(NetFxVS)'">
+    <Compile Remove="**\*.NetFx.cs" />
+    <Compile Remove="**\NetFx\**\*.*" />
+    <Compile Remove="**\*_NetFx\**\*.*" />
+
+    <None Include="**\*.NetFx.cs" />
+    <None Include="**\NetFx\**\*.*" />
+    <None Include="**\*_NetFx\**\*.*" />
+  </ItemGroup>
+
+  <!--
+    We provide a simple mechanism for including NetCore-only files.
+    If a C# file should only be compiled under NetCore, it can be named with a ".NetCore.cs" extension.
+    Or, the file can be included in a folder called "NetCore" or has a name that ends in "_NetCore".
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' != '$(NetVS)' AND '$(TargetFramework)' != '$(NetVSCode)' AND '$(TargetFramework)' != '$(NetCurrent)' AND '$(TargetFramework)' != '$(NetPrevious)'">
+    <Compile Remove="**\*.NetCore.cs" />
+    <Compile Remove="**\NetCore\**\*.*" />
+    <Compile Remove="**\*_NetCore\**\*.*" />
+
+    <None Include="**\*.NetCore.cs" />
+    <None Include="**\NetCore\**\*.*" />
+    <None Include="**\*_NetCore\**\*.*" />
+  </ItemGroup>
+
+  <!--
+    Warn consumers until the underlying issue is fixed
+    https://github.com/dotnet/roslyn/issues/72657
+  -->
+  <Target Name="CheckNuPkgEnvEndsWithSlash"
+          AfterTargets="AfterCompile">
+    <Warning Condition="'$(NUGET_PACKAGES)' != '' AND !$(NUGET_PACKAGES.EndsWith($([System.String]::new($([System.IO.Path]::DirectorySeparatorChar)))))"
+             Text="NUGET_PACKAGES should end with a slash or it will lead to editorconfig issues: $(NUGET_PACKAGES)" />
+  </Target>
+
+  <Target Name="GetCustomAssemblyAttributes"
+          BeforeTargets="GetAssemblyAttributes"
+          Condition=" '$(MSBuildProjectExtension)' == '.csproj' "
+          DependsOnTargets="InitializeSourceControlInformation">
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute" Condition="'$(Serviceable)' == 'true'">
+        <_Parameter1>Serviceable</_Parameter1>
+        <_Parameter2>True</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
+  <!-- RestrictedInternalsVisibleTo -->
+  <ItemDefinitionGroup>
+    <RestrictedInternalsVisibleTo>
+      <Visible>false</Visible>
+    </RestrictedInternalsVisibleTo>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="@(RestrictedInternalsVisibleTo)" Key="%(Key)" />
+  </ItemGroup>
+
+  <Target Name="PrepareGenerateRestrictedInternalsVisibleTo"
+          BeforeTargets="PrepareGenerateInternalsVisibleToFile"
+          Condition="'@(RestrictedInternalsVisibleTo)' != ''">
+    <ItemGroup>
+      <_InternalsVisibleToAttribute Include="System.Runtime.CompilerServices.RestrictedInternalsVisibleToAttribute">
+        <_Parameter1>%(RestrictedInternalsVisibleTo.Identity)</_Parameter1>
+        <_Parameter2 Condition="'%(RestrictedInternalsVisibleTo.Namespace)' != ''">%(RestrictedInternalsVisibleTo.Namespace)</_Parameter2>
+      </_InternalsVisibleToAttribute>
+    </ItemGroup>
+
+    <Warning Condition="'%(RestrictedInternalsVisibleTo.Partner)' == '' and '%(RestrictedInternalsVisibleTo.Namespace)' == ''" Text="RestrictedInternalsVisibleTo items must specify the 'Partner' or 'Namespace' attribute. Target assembly: %(Identity)" />
+  </Target>
+</Project>

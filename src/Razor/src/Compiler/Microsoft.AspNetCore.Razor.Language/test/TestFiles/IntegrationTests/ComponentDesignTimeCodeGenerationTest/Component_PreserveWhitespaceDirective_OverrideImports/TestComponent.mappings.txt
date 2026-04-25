@@ -1,0 +1,10 @@
+﻿Source Location: (20:0,20 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|false|
+Generated Location: (721:21,38 [5] )
+|false|
+
+Source Location: (52:3,13 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime.Now|
+Generated Location: (1232:38,13 [12] )
+|DateTime.Now|
+
