@@ -6,6 +6,22 @@
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(Version)</PackageVersion>
   </PropertyGroup>
 
+  <Target Name="MoveRazorShippingSymbolsPackageToNonShipping" AfterTargets="Pack" Condition="'$(IsPackable)' == 'true' and '$(PackageOutputPath)' != '' and ($([System.String]::Copy('$(PackageOutputPath)').Contains('\Shipping\')) or $([System.String]::Copy('$(PackageOutputPath)').Contains('/Shipping/')))">
+    <ItemGroup>
+      <_RazorShippingSymbolsPackage Include="$(PackageOutputPath)$(PackageId).$(PackageVersion).symbols.nupkg"
+                                   Condition="Exists('$(PackageOutputPath)$(PackageId).$(PackageVersion).symbols.nupkg')" />
+      <_MovedRazorShippingSymbolsPackage Include="@(_RazorShippingSymbolsPackage)">
+        <TargetPath>$(ArtifactsNonShippingPackagesDir)%(_RazorShippingSymbolsPackage.Filename)%(_RazorShippingSymbolsPackage.Extension)</TargetPath>
+      </_MovedRazorShippingSymbolsPackage>
+    </ItemGroup>
+    <Delete Files="@(_MovedRazorShippingSymbolsPackage->'%(TargetPath)')" Condition="'@(_MovedRazorShippingSymbolsPackage)' != ''" />
+    <Move SourceFiles="@(_RazorShippingSymbolsPackage)"
+          DestinationFiles="@(_MovedRazorShippingSymbolsPackage->'%(TargetPath)')"
+          Condition="'@(_RazorShippingSymbolsPackage)' != ''">
+      <Output TaskParameter="DestinationFiles" ItemName="_FilesWritten" />
+    </Move>
+  </Target>
+
   <PropertyGroup>
     <!--
       Disable nullable warnings when targeting anything other than our supported .NET core version(s).
