@@ -33,7 +33,7 @@ internal static class DiagnosticDataExtensions
                         var commaIndex = unnecessaryIndices.IndexOf(',', start, end - start);
                         var elementEnd = commaIndex < 0 ? end : commaIndex;
 
-                        var index = unnecessaryIndices.AsSpan(start, elementEnd - start).Trim().ToString().ParseInt();
+                        var index = int.Parse(unnecessaryIndices.AsSpan(start, elementEnd - start).Trim().ToString());
 
                         locationsToTag.Add(diagnosticData.AdditionalLocations[index]);
                         start = elementEnd + 1;
