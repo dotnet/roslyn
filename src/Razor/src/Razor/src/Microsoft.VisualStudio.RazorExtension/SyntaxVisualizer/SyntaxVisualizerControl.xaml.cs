@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.RazorExtension.SyntaxVisualizer;
 
 internal partial class SyntaxVisualizerControl : UserControl, IVsRunningDocTableEvents, IDisposable
 {
-    private static string s_baseTempPath = Path.Combine(Path.GetTempPath(), "RazorDevTools");
+    private static readonly string s_baseTempPath = Path.Combine(Path.GetTempPath(), "RazorDevTools");
 
     private JoinableTaskFactory? _joinableTaskFactory;
     private LSPDocumentManager? _documentManager;

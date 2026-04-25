@@ -13,7 +13,7 @@ internal partial class AbstractMemoryLoggerProvider
     /// </summary>
     private class Buffer(int bufferSize)
     {
-        private string[] _memory = new string[bufferSize];
+        private readonly string[] _memory = new string[bufferSize];
 
         // Start at -1 because append always increments, so we want to start at value 0
         private int _head = -1;

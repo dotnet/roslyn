@@ -20,7 +20,7 @@ internal sealed partial class RenameProjectTreeHandler
         private readonly string _title;
         private readonly IVsThreadedWaitDialog3 _dialog;
 
-        private string _message;
+        private readonly string _message;
 
         public WaitIndicator(IVsThreadedWaitDialogFactory waitDialogFactory, string title, string message)
         {

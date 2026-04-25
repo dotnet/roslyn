@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.Razor.Snippets;
 [Export(typeof(SnippetCache))]
 internal sealed class SnippetCache
 {
-    private Dictionary<SnippetLanguage, ImmutableArray<SnippetInfo>> _snippetCache = new();
-    private ReadWriterLocker _lock = new();
+    private readonly Dictionary<SnippetLanguage, ImmutableArray<SnippetInfo>> _snippetCache = new();
+    private readonly ReadWriterLocker _lock = new();
 
     internal void Update(SnippetLanguage language, ImmutableArray<SnippetInfo> snippets)
     {
