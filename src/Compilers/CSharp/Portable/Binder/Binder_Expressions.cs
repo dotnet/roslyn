@@ -8357,8 +8357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundKind.MethodGroup when IsValidMethodGroupReceiver((BoundMethodGroup)boundLeft):
                     break;
-                case BoundKind.Literal when ((BoundLiteral)boundLeft).ConstantValueOpt?.IsNull == true:
-                    // null literal (BoundLiteral with constant value null and no type).
+                case BoundKind.Literal when boundLeft.IsLiteralNull():
                     break;
                 default:
                     return null;
