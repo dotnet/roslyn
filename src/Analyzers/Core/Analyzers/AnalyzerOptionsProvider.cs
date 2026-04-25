@@ -36,7 +36,7 @@ internal readonly struct AnalyzerOptionsProvider(IOptionsReader options, string 
     // CodeGenerationOptions
 
     public NamingStylePreferences NamingPreferences => GetOption(NamingStyleOptions.NamingPreferences);
-    public bool EnforceNamingStyleOnBuild => GetOption(NamingStyleOptions.EnforceNamingStyleOnBuild);
+    public bool EnforceNamingStyleInBuild => GetOption(NamingStyleOptions.EnforceNamingStyleInBuild);
 
     // CodeStyleOptions
 

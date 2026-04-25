@@ -31,15 +31,15 @@ internal static class NamingStyleOptions
     /// and respect individual <c>dotnet_naming_rule.*.severity</c> values. By default, the analyzer is
     /// skipped on build because it has a default severity of <see cref="DiagnosticSeverity.Hidden"/>.
     /// </summary>
-    internal static PerLanguageOption2<bool> EnforceNamingStyleOnBuild { get; } = new(
-        "dotnet_naming_style_enforce_on_build",
+    internal static PerLanguageOption2<bool> EnforceNamingStyleInBuild { get; } = new(
+        "dotnet_naming_style_enforce_in_build",
         defaultValue: false,
         isEditorConfigOption: true);
 
     /// <summary>
     /// Options that we expect the user to set in editorconfig.
     /// </summary>
-    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = [NamingPreferences, EnforceNamingStyleOnBuild];
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = [NamingPreferences, EnforceNamingStyleInBuild];
 }
 
 internal interface NamingStylePreferencesProvider

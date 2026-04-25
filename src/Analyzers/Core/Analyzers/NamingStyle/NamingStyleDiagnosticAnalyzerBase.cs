@@ -61,7 +61,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
                 return;
             }
 
-            if (!symbolContext.Options.GetAnalyzerOptions(sourceTree).EnforceNamingStyleOnBuild
+            if (!symbolContext.Options.GetAnalyzerOptions(sourceTree).EnforceNamingStyleInBuild
                 && ShouldSkipAnalysis(sourceTree, symbolContext.Options, symbolContext.Compilation.Options, notification: null, symbolContext.CancellationToken))
             {
                 return;
@@ -82,7 +82,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
 
         void SyntaxNodeAction(SyntaxNodeAnalysisContext syntaxContext)
         {
-            if (!syntaxContext.Options.GetAnalyzerOptions(syntaxContext.Node.SyntaxTree).EnforceNamingStyleOnBuild
+            if (!syntaxContext.Options.GetAnalyzerOptions(syntaxContext.Node.SyntaxTree).EnforceNamingStyleInBuild
                 && ShouldSkipAnalysis(syntaxContext, notification: null))
             {
                 return;
