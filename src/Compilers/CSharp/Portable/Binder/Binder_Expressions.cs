@@ -8262,7 +8262,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetExtensionMemberAccess(SyntaxNode syntax, BoundExpression? receiver, Symbol extensionMember, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureExtensions.CheckFeatureAvailability(diagnostics, syntax);
-            receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
+
+            // For extension members on typeless receivers (e.g. `[1, 2, 3].First` where `First` is
+            // an extension property), skip ReplaceTypeOrValueReceiver. Its default branch calls
+            // BindToNaturalType, which destructively converts typeless forms (collection expression,
+            // new(), conditional / switch with no common type, tuple, default) into error-recovery
+            // wrappers and reports ERR_CollectionExpressionNoTargetType / similar. The conversion
+            // is applied below by CheckAndConvertExtensionReceiver against the extension's declared
+            // receiver parameter. The function's named purpose (replacing TypeOrValueExpression or
+            // unwrapping QueryClause) does not apply since both wrappers always have a type.
+            if (receiver is not { Type: null })
+            {
+                receiver = ReplaceTypeOrValueReceiver(receiver, useType: extensionMember.IsStatic, diagnostics);
+            }
 
             switch (extensionMember)
             {
