@@ -38,11 +38,8 @@
 
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(DotNetBuildFromVMR)' != 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" NoWarn="NU1608" PrivateAssets="All" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="All" />
+    
 
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj"
-                      PrivateAssets="all"
-                      ReferenceOutputAssembly="false"
-                      OutputItemType="Analyzer" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
   </ItemGroup>
 </Project>
