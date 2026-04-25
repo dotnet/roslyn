@@ -128,8 +128,10 @@ internal sealed class NestedFileCommandHandler(
             // Add: send LSP request to create the file, then open it.
             // FileAndForget ensures exceptions are reported to telemetry rather than silently swallowed.
 #pragma warning disable VSSDK007 // Fire-and-forget from synchronous EventHandler is intentional
+#pragma warning disable RS0030 // NestedFileCommandHandler does not currently flow IThreadingContext.
             ThreadHelper.JoinableTaskFactory.RunAsync(
                 () => CreateAndOpenNestedFileAsync(razorFilePath, nestedFilePath, CancellationToken.None)).FileAndForget("NestedFileCommandHandler.Execute");
+#pragma warning restore RS0030
 #pragma warning restore VSSDK007
         }
     }
@@ -149,7 +151,9 @@ internal sealed class NestedFileCommandHandler(
 
         if (File.Exists(nestedFilePath))
         {
+#pragma warning disable RS0030 // NestedFileCommandHandler does not currently flow IThreadingContext.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+#pragma warning restore RS0030
 
             // The workspace/applyEdit creates the file and inserts content via TextDocumentEdit,
             // which leaves the buffer dirty. Save it so the user sees a clean document.
