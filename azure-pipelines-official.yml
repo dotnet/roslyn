@@ -250,7 +250,6 @@ extends:
                 displayName: Publish symbols to symbol server
                 condition: and(succeeded(), eq(variables['SignType'], 'Real'))
 
-
               - task: CopyFiles@2
                 displayName: 'Collect Built Packages from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
                 inputs:
@@ -258,6 +257,16 @@ extends:
                   Contents: '**\*.nupkg'
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\packages'
                   FlattenFolders: true
+                condition: succeeded()
+
+              - task: 1ES.PublishNuGet@1
+                displayName: 'NuGet push (VS-CoreXtFeeds)'
+                inputs:
+                  packageParentPath: '$(Build.ArtifactStagingDirectory)'
+                  packagesToPush: $(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg
+                  nuGetFeedType: 'internal'
+                  publishVstsFeed: 37a181e8-5ec9-4e8d-a499-07b754f9b4f8
+                  allowPackageConflicts: true
                 condition: succeeded()
 
               - task: CopyFiles@2
@@ -279,4 +288,4 @@ extends:
                   skipUploadIfExists: true
                   dropServiceUri: 'https://devdiv.artifacts.visualstudio.com'
                   vsDropServiceUri: 'https://vsdrop.corp.microsoft.com/file/v1'
-                # condition: and(succeeded(), eq(variables['SignType'], 'Real'))
+                condition: and(succeeded(), eq(variables['SignType'], 'Real'))
