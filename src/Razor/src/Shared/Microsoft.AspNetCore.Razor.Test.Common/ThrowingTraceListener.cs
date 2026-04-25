@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
@@ -14,9 +13,6 @@ public sealed class ThrowingTraceListener : TraceListener
 
     public static string[] Fails => _fails.ToArray();
 
-#pragma warning disable CA2255
-    [ModuleInitializer]
-#pragma warning restore CA2255
     internal static void Initialize()
     {
         Trace.Listeners.Clear();
