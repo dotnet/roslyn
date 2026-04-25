@@ -43,6 +43,7 @@
     <ProjectReference Include="..\..\..\..\..\VisualStudio\IntegrationTest\Harness\SourceGenerator\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" SetTargetFramework="TargetFramework=netstandard2.0" SkipGetTargetFrameworkProperties="true" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" />
     <PackageReference Include="NuGet.VisualStudio" />
+    <PackageReference Include="NuGet.SolutionRestoreManager.Interop" />
     <!-- Manually upgrade to address CG alert. When the VS packages
          pull in the right version, this can be removed. -->
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
