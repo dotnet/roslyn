@@ -80,7 +80,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="$(RepositoryEngineeringDir)BannedSymbols.txt" />
+    <AdditionalFiles Include="$(RepositoryRoot)BannedSymbols.txt" />
 
     <!--
       This language support type (used for init-only properties) is linked directly into every project to avoid conflicts with

@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="$(RepositoryEngineeringDir)BannedSymbols.MEFv2.txt" />
+    <AdditionalFiles Include="$(RepositoryRoot)BannedSymbols.MEFv2.txt" />
   </ItemGroup>
 
   <ItemGroup>
