@@ -8744,8 +8744,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool acceptOnlyMethods,
             in CallingConventionInfo callingConvention = default)
         {
-            Debug.Assert(left.Type is not null);
-            Debug.Assert(!left.Type.IsDynamic());
+            // The receiver may be typeless when the typeless-extension-receivers feature is enabled.
+            // The feature gate is checked by callers; once we are here, a null Type is permitted.
+            Debug.Assert(left.Type is null || !left.Type.IsDynamic());
             Debug.Assert((options & ~(OverloadResolution.Options.IsMethodGroupConversion |
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
@@ -8837,7 +8838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics,
                 out MethodGroupResolution result)
             {
-                Debug.Assert(left.Type is not null);
+                // left.Type may be null when the typeless-extension-receivers feature is enabled.
                 result = default;
 
                 // 1. gather candidates
@@ -8945,12 +8946,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (analyzedArguments == null)
                 {
                     // Without arguments (for scenarios such as `nameof` or conversion to non-delegate/dynamic type)
-                    // we can still prune the inapplicable extension methods using the receiver type
-                    for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
+                    // we can still prune the inapplicable extension methods using the receiver type.
+                    // Skip pruning when the receiver expression has no type (typeless-extension-receivers
+                    // feature); inapplicability is determined later, by overload resolution against the
+                    // candidate's first parameter type.
+                    TypeSymbol? receiverType = left.Type;
+                    for (int i = methodGroup.Methods.Count - 1; receiverType is not null && i >= 0; i--)
                     {
                         MethodSymbol method = methodGroup.Methods[i];
-                        TypeSymbol? receiverType = left.Type;
-                        Debug.Assert(receiverType is not null);
 
                         bool inapplicable = false;
                         if (method.IsExtensionMethod
