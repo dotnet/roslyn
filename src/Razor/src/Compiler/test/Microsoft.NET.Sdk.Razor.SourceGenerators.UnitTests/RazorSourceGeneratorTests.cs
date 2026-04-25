@@ -449,7 +449,7 @@ namespace MyApp.Pages
                 IncrementalStepRunReason.Modified); // Counter changed
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task IncrementalCompilation_RazorFiles_WhenNewTypeIsAdded()
         {
             // Arrange
@@ -550,7 +550,7 @@ namespace MyApp.Pages
             result.VerifyIncrementalSteps("TagHelpersFromCompilation", IncrementalStepRunReason.Unchanged); // Re-ran but no new tag helpers
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task IncrementalCompilation_RazorFiles_WhenCSharpTypeChanges()
         {
             // Arrange
@@ -1688,7 +1688,7 @@ namespace AspNetCoreGeneratedDocument
 
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task SourceGenerator_CshtmlFiles_CSharpTypeChanges()
         {
             // Arrange

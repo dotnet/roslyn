@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 
@@ -126,6 +127,11 @@ public static class Is
     /// </summary>
     public const string AnyUnix = nameof(AnyUnix);
 
+    /// <summary>
+    ///  Only execute if the current culture and UI culture are English-based.
+    /// </summary>
+    public const string EnglishLocale = nameof(EnglishLocale);
+
     public static class Not
     {
         /// <summary>
@@ -153,6 +159,11 @@ public static class Is
         /// </summary>
         public const string AnyUnix = $"!{nameof(AnyUnix)}";
 
+        /// <summary>
+        ///  Only execute if the current culture and UI culture are not English-based.
+        /// </summary>
+        public const string EnglishLocale = $"!{nameof(EnglishLocale)}";
+
     }
 }
 
@@ -171,6 +182,16 @@ public static class Conditions
         Add(Is.AnyUnix, static () => PlatformInformation.IsLinux ||
                                      PlatformInformation.IsMacOS ||
                                      PlatformInformation.IsFreeBSD);
+        Add(Is.EnglishLocale, static () =>
+        {
+            if (string.IsNullOrEmpty(CultureInfo.CurrentCulture.Name))
+            {
+                return true;
+            }
+
+            return CultureInfo.CurrentUICulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase)
+                && CultureInfo.CurrentCulture.Name.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        });
 
         return map.ToFrozenDictionary();
 

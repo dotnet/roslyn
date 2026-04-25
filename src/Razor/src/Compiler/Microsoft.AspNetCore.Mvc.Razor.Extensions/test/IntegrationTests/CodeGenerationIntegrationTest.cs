@@ -32,7 +32,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     #region Runtime
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void UsingDirectives_Runtime()
     {
         // Arrange
@@ -163,7 +163,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         AssertLinePragmas(compiled.CodeDocument);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void AttributeDirectiveWithViewImports_Runtime()
     {
         // Arrange
@@ -930,7 +930,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     #region DesignTime
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void UsingDirectives_DesignTime()
     {
         // Arrange
@@ -1072,7 +1072,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
     }
 
-    [Fact]
+    [ConditionalFact(typeof(IsEnglishLocal))]
     public void AttributeDirectiveWithViewImports_DesignTime()
     {
         // Arrange

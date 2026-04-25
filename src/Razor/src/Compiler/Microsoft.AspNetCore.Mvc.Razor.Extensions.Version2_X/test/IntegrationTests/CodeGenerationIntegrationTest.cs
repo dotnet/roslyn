@@ -4,6 +4,7 @@
 #nullable disable
 
 using System.Linq;
+using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -31,7 +32,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     #region Runtime
 
-    [Fact]
+    [ConditionalFact(Is.EnglishLocale)]
     public void UsingDirectives_Runtime()
     {
         // Arrange
@@ -479,7 +480,7 @@ public class AllTagHelper : {{typeof(TagHelper).FullName}}
 
     #region DesignTime
 
-    [Fact]
+    [ConditionalFact(Is.EnglishLocale)]
     public void UsingDirectives_DesignTime()
     {
         // Arrange

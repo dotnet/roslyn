@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Razor.Compiler.Analyzers;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
 {
     public class ComponentParameterNullableWarningSuppressorTests
     {
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ParameterEditorRequiredNoWarning()
         {
             var testCode = """
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task NoEditorRequiredStillReports()
         {
             var testCode = """
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task NoParameterRequiredStillReports()
         {
             var testCode = """
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task NotComponentStillReports()
         {
             var testCode = """
@@ -96,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task AliasedAttributes()
         {
             var testCode = """
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task LocallyDefinedAttributes()
         {
             var testCode = """
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task LocallyDefinedAttributesDifferentNamespace()
         {
             var testCode = """
@@ -177,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task LocallyDefinedAttributesAndSdkAttributes()
         {
             var testCode = """
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsEnglishLocal))]
         [InlineData("internal")]
         [InlineData("private")]
         [InlineData("protected internal")]
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Theory]
+        [ConditionalTheory(typeof(IsEnglishLocal))]
         [InlineData("")]
         [InlineData("private set;")]
         [InlineData("private init;")]
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task RequiredPropertyDoesNotReport()
         {
             var testCode = $$"""
@@ -281,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
             await VerifyAnalyzerAsync(testCode);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task DerivedBaseType()
         {
             var testCode = """
@@ -306,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task DerivedBaseTypeWithBaseParameter()
         {
             var testCode = """
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task DerivedBaseTypeNotComponentWithBaseParameter()
         {
             var testCode = """
@@ -358,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task NullableReturnType()
         {
             var testCode = """
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.Razor.Analyzers.Tests
             await VerifyAnalyzerAsync(testCode);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task ParameterWithInit()
         {
             var testCode = """
