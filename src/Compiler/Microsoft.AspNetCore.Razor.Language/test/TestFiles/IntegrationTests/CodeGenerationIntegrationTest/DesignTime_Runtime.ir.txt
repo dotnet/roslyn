@@ -1,0 +1,80 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_DesignTime - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (0:0,0 [7] DesignTime.cshtml)
+                    LazyIntermediateToken - (0:0,0 [4] DesignTime.cshtml) - Html - <div
+                    LazyIntermediateToken - (4:0,4 [1] DesignTime.cshtml) - Html - >
+                    LazyIntermediateToken - (5:0,5 [2] DesignTime.cshtml) - Html - \n
+                CSharpCode - (7:1,0 [12] DesignTime.cshtml)
+                    LazyIntermediateToken - (7:1,0 [12] DesignTime.cshtml) - CSharp -             
+                CSharpCode - (20:1,13 [32] DesignTime.cshtml)
+                    LazyIntermediateToken - (20:1,13 [32] DesignTime.cshtml) - CSharp - for(int i = 1; i <= 10; i++) {\n
+                HtmlContent - (52:2,0 [21] DesignTime.cshtml)
+                    LazyIntermediateToken - (52:2,0 [4] DesignTime.cshtml) - Html -     
+                    LazyIntermediateToken - (56:2,4 [2] DesignTime.cshtml) - Html - <p
+                    LazyIntermediateToken - (58:2,6 [1] DesignTime.cshtml) - Html - >
+                    LazyIntermediateToken - (59:2,7 [14] DesignTime.cshtml) - Html - This is item #
+                CSharpExpression - (74:2,22 [1] DesignTime.cshtml)
+                    LazyIntermediateToken - (74:2,22 [1] DesignTime.cshtml) - CSharp - i
+                HtmlContent - (75:2,23 [6] DesignTime.cshtml)
+                    LazyIntermediateToken - (75:2,23 [4] DesignTime.cshtml) - Html - </p>
+                    LazyIntermediateToken - (79:2,27 [2] DesignTime.cshtml) - Html - \n
+                CSharpCode - (81:3,0 [15] DesignTime.cshtml)
+                    LazyIntermediateToken - (81:3,0 [15] DesignTime.cshtml) - CSharp -             }\n
+                HtmlContent - (96:4,0 [15] DesignTime.cshtml)
+                    LazyIntermediateToken - (96:4,0 [6] DesignTime.cshtml) - Html - </div>
+                    LazyIntermediateToken - (102:4,6 [4] DesignTime.cshtml) - Html - \n\n
+                    LazyIntermediateToken - (106:6,0 [2] DesignTime.cshtml) - Html - <p
+                    LazyIntermediateToken - (108:6,2 [1] DesignTime.cshtml) - Html - >
+                    LazyIntermediateToken - (109:6,3 [2] DesignTime.cshtml) - Html - \n
+                CSharpExpression - (113:7,2 [12] DesignTime.cshtml)
+                    LazyIntermediateToken - (113:7,2 [12] DesignTime.cshtml) - CSharp - Foo(Bar.Baz)
+                HtmlContent - (126:7,15 [2] DesignTime.cshtml)
+                    LazyIntermediateToken - (126:7,15 [2] DesignTime.cshtml) - Html - \n
+                CSharpExpression - (129:8,1 [24] DesignTime.cshtml)
+                    LazyIntermediateToken - (129:8,1 [4] DesignTime.cshtml) - CSharp - Foo(
+                    Template - (134:8,6 [19] DesignTime.cshtml)
+                        HtmlContent - (134:8,6 [7] DesignTime.cshtml)
+                            LazyIntermediateToken - (134:8,6 [2] DesignTime.cshtml) - Html - <p
+                            LazyIntermediateToken - (136:8,8 [1] DesignTime.cshtml) - Html - >
+                            LazyIntermediateToken - (137:8,9 [4] DesignTime.cshtml) - Html - Bar 
+                        CSharpExpression - (142:8,14 [3] DesignTime.cshtml)
+                            LazyIntermediateToken - (142:8,14 [3] DesignTime.cshtml) - CSharp - baz
+                        HtmlContent - (145:8,17 [8] DesignTime.cshtml)
+                            LazyIntermediateToken - (145:8,17 [4] DesignTime.cshtml) - Html -  Biz
+                            LazyIntermediateToken - (149:8,21 [4] DesignTime.cshtml) - Html - </p>
+                    LazyIntermediateToken - (153:8,25 [1] DesignTime.cshtml) - CSharp - )
+                HtmlContent - (154:8,26 [10] DesignTime.cshtml)
+                    LazyIntermediateToken - (154:8,26 [2] DesignTime.cshtml) - Html - \n
+                    LazyIntermediateToken - (156:9,0 [4] DesignTime.cshtml) - Html - </p>
+                    LazyIntermediateToken - (160:9,4 [4] DesignTime.cshtml) - Html - \n\n
+                Section -  - Footer
+                    HtmlContent - (181:11,17 [22] DesignTime.cshtml)
+                        LazyIntermediateToken - (181:11,17 [6] DesignTime.cshtml) - Html - \n    
+                        LazyIntermediateToken - (187:12,4 [2] DesignTime.cshtml) - Html - <p
+                        LazyIntermediateToken - (189:12,6 [1] DesignTime.cshtml) - Html - >
+                        LazyIntermediateToken - (190:12,7 [3] DesignTime.cshtml) - Html - Foo
+                        LazyIntermediateToken - (193:12,10 [4] DesignTime.cshtml) - Html - </p>
+                        LazyIntermediateToken - (197:12,14 [2] DesignTime.cshtml) - Html - \n
+                        LazyIntermediateToken - (199:13,0 [4] DesignTime.cshtml) - Html -     
+                    CSharpExpression - (204:13,5 [3] DesignTime.cshtml)
+                        LazyIntermediateToken - (204:13,5 [3] DesignTime.cshtml) - CSharp - bar
+                    HtmlContent - (207:13,8 [2] DesignTime.cshtml)
+                        LazyIntermediateToken - (207:13,8 [2] DesignTime.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

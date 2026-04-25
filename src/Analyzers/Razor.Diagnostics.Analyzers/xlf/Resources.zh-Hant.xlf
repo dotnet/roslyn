@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../Resources.resx">
+    <body>
+      <trans-unit id="IRemoteJsonServiceParameterDescription">
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not Json serializable.</source>
+        <target state="translated">介面中繼承自 IRemoteJsonService 的方法不得具有 RazorPinnedSolutionInfoWrapper 或 DocumentId 類型的參數，因為它們不是 Json 可序列化的。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterMessage">
+        <source>'{0}' parameter in '{1}.{2}' has a parameter of type '{3}' which is not allowed in a Json service</source>
+        <target state="translated">'{1}.{2}' 中的 '{0}' 參數具有 '{3}' 類型的參數，而 Json 服務不允許此參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterTitle">
+        <source>Invalid parameter type in IRemoteJsonService method</source>
+        <target state="translated">IRemoteJsonService 方法中無效的參數類型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingDescription">
+        <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
+        <target state="translated">在 ImmutableArray&lt;T&gt; 上呼叫 EnumerableExtensions 或 ReadOnlyListExtensions 方法會導致結構裝箱，這會產生不必要的配置。請改為使用對應的 ImmutableArray&lt;T&gt; 擴充方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingMessage">
+        <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
+        <target state="translated">在 ImmutableArray&lt;T&gt; 上呼叫 '{0}' 會導致裝箱。請考慮改用 ImmutableArray&lt;T&gt; 擴充方法。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingTitle">
+        <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
+        <target state="translated">ImmutableArray&lt;T&gt; 正在裝箱至 IReadOnlyList&lt;T&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefDescription">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">PooledArrayBuilder 的執行個體&lt;T&gt;。AsRef() 必須是 'using' 變數。</target>
+        <note>An optional longer localizable description of the diagnostic.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefMessage">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">PooledArrayBuilder 的執行個體&lt;T&gt;。AsRef() 必須是 'using' 變數</target>
+        <note>The format-able message the diagnostic displays.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefTitle">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">PooledArrayBuilder 的執行個體&lt;T&gt;。AsRef() 必須是 'using' 變數</target>
+        <note>The title of the diagnostic.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

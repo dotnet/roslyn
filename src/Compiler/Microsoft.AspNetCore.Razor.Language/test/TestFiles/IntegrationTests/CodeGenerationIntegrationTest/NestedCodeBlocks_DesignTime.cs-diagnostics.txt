@@ -1,0 +1,6 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml(1,5): error CS0103: The name 'foo' does not exist in the current context
+//  if(foo) {
+Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo").WithLocation(1, 5),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/NestedCodeBlocks.cshtml(2,9): error CS0103: The name 'bar' does not exist in the current context
+//      if(bar) {
+Diagnostic(ErrorCode.ERR_NameNotInContext, "bar").WithArguments("bar").WithLocation(2, 9)

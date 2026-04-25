@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Razor is a markup syntax for adding server-side logic to web pages. This package contains the Razor compiler.</Description>
+    <TargetFrameworks>$(NetVSAndVSCode);netstandard2.0</TargetFrameworks>
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+    <IsPackable>true</IsPackable>
+    <IsShippingAssembly>true</IsShippingAssembly>
+    <IncludeSymbols>true</IncludeSymbols>
+
+    <!--
+      RS2008: Enable analyzer release tracking
+      RS1036: Specify analyzer banned API enforcement setting
+    -->
+    <NoWarn>$(NoWarn);RS2008;RS1036</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(SharedSourceRoot)\Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Analyzers\*.resx" Namespace="Microsoft.CodeAnalysis.Razor.Compiler.Analyzers" />
+    <EmbeddedResource Update="CSharp\*.resx" Namespace="Microsoft.CodeAnalysis.Razor" />
+    <EmbeddedResource Update="Language\*.resx" Namespace="Microsoft.AspNetCore.Razor.Language" />
+    <EmbeddedResource Update="Mvc\*.resx" Namespace="Microsoft.AspNetCore.Mvc.Razor.Extensions" />
+    <EmbeddedResource Update="Mvc.Version1_X\*.resx" Namespace="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X" />
+    <EmbeddedResource Update="Mvc.Version2_X\*.resx" Namespace="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X" />
+    <EmbeddedResource Update="SourceGenerators\Diagnostics\*.resx" Namespace="Microsoft.NET.Sdk.Razor.SourceGenerators.Diagnostics" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SDK: src/RazorSdk/Tool/Microsoft.NET.Sdk.Razor.Tool.csproj -->
+    <InternalsVisibleTo Include="rzc" Key="$(RazorKey)" />
+
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version2_X.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Language.Legacy.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Language.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Compiler" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Tooling" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.RazorExtension" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudioCode.RazorExtension.Test" Key="$(RazorKey)" />
+  </ItemGroup>
+
+</Project>

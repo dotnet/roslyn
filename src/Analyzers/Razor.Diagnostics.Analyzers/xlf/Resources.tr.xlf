@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../Resources.resx">
+    <body>
+      <trans-unit id="IRemoteJsonServiceParameterDescription">
+        <source>Methods in interfaces inheriting from IRemoteJsonService should not have parameters of type RazorPinnedSolutionInfoWrapper or DocumentId as they are not Json serializable.</source>
+        <target state="translated">IRemoteJsonService'ten devralan arabirimlerde RazorPinnedSolutionInfoWrapper veya DocumentId türünde parametreler bulunmamalıdır, çünkü bunlar Json seri hale getirilebilir değildir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterMessage">
+        <source>'{0}' parameter in '{1}.{2}' has a parameter of type '{3}' which is not allowed in a Json service</source>
+        <target state="translated">'{1}.{2}' içindeki '{0}' parametresi, Json hizmetlerinde izin verilmeyen '{3}' türünde bir parametre içeriyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IRemoteJsonServiceParameterTitle">
+        <source>Invalid parameter type in IRemoteJsonService method</source>
+        <target state="translated">IRemoteJsonService yönteminde geçersiz parametre türü</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingDescription">
+        <source>Calling EnumerableExtensions or ReadOnlyListExtensions methods on ImmutableArray&lt;T&gt; causes the struct to be boxed, which creates unnecessary allocations. Use the corresponding ImmutableArray&lt;T&gt; extension methods instead.</source>
+        <target state="translated">ImmutableArray&lt;T&gt; üzerinde EnumerableExtensions veya ReadOnlyListExtensions yöntemlerini çağırmak, yapının paketlenmesine neden olur ve bu da gereksiz ayırmalara yol açar. Bunun yerine karşılık gelen ImmutableArray&lt;T&gt; genişletme yöntemlerini kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingMessage">
+        <source>Call to '{0}' on ImmutableArray&lt;T&gt; causes boxing. Consider using the ImmutableArray&lt;T&gt; extension method instead.</source>
+        <target state="translated">ImmutableArray&lt;T&gt; üzerinde '{0}' çağrıldığında paketleme ile sonuçlanır. Bunun yerine ImmutableArray&lt;T&gt; genişletme yöntemini kullanabilirsiniz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImmutableArrayBoxingTitle">
+        <source>ImmutableArray&lt;T&gt; is being boxed to IReadOnlyList&lt;T&gt;</source>
+        <target state="translated">ImmutableArray&lt;T&gt; IReadOnlyList&lt;T&gt; olarak paketleniyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefDescription">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable.</source>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır.</target>
+        <note>An optional longer localizable description of the diagnostic.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefMessage">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır</target>
+        <note>The format-able message the diagnostic displays.</note>
+      </trans-unit>
+      <trans-unit id="PooledArrayBuilderAsRefTitle">
+        <source>Instance of PooledArrayBuilder&lt;T&gt;.AsRef() must be a 'using' variable</source>
+        <target state="translated">PooledArrayBuilder&lt;T&gt;.AsRef() örneği bir 'using' değişkeni olmalıdır</target>
+        <note>The title of the diagnostic.</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

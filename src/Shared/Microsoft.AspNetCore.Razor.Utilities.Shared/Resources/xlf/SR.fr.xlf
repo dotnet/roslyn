@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="fr" original="../SR.resx">
+    <body>
+      <trans-unit id="0_1_must_be_a_non_negative_and_non_zero_value">
+        <source>{0} ('{1}') must be a non-negative and non-zero value.</source>
+        <target state="translated">{0} (« {1} ») doit être une valeur non négative et non nulle.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_a_non_negative_value">
+        <source>{0} ('{1}') must be a non-negative value.</source>
+        <target state="translated">{0} (« {1} ») doit être une valeur non négative.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_a_non_zero_value">
+        <source>{0} ('{1}') must be a non-zero value.</source>
+        <target state="translated">{0} (« {1} ») doit être une valeur différente de zéro.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_equal_to_2">
+        <source>{0} ('{1}') must be equal to '{2}'.</source>
+        <target state="translated">{0} (« {1} ») doit être égal à « {2} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_greater_than_2">
+        <source>{0} ('{1}') must be greater than '{2}'.</source>
+        <target state="translated">{0} (« {1} ») doit être supérieur à « {2} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_greater_than_or_equal_to_2">
+        <source>{0} ('{1}') must be greater than or equal to '{2}'.</source>
+        <target state="translated">{0} (« {1} ») doit être supérieur ou égal à « {2} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_less_than_2">
+        <source>{0} ('{1}') must be less than '{2}'.</source>
+        <target state="translated">{0} (« {1} ») doit être inférieur à « {2} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_less_than_or_equal_to_2">
+        <source>{0} ('{1}') must be less than or equal to '{2}'.</source>
+        <target state="translated">{0} (« {1} ») doit être inférieur ou égal à « {2} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_not_be_equal_to_2">
+        <source>{0} ('{1}') must not be equal to '{2}'.</source>
+        <target state="translated">{0} (« {1} ») ne doit pas être égal à « {2} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_advance_past_end_of_the_buffer_which_has_a_size_of_0">
+        <source>Cannot advance past the end of the buffer, which has a size of {0}.</source>
+        <target state="translated">Impossible d’avancer au-delà de la fin de la mémoire tampon, qui a une taille de {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_allocate_a_buffer_of_size_0">
+        <source>Cannot allocate a buffer of size {0}.</source>
+        <target state="translated">Impossible d’allouer une mémoire tampon de taille {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_more_than_one_element">
+        <source>Contains more than one element</source>
+        <target state="translated">Contient plusieurs éléments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_more_than_one_matching_element">
+        <source>Contains more than one matching element</source>
+        <target state="translated">Contient plusieurs éléments correspondants</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_no_elements">
+        <source>Contains no elements</source>
+        <target state="translated">Ne contient aucun élément</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_no_matching_elements">
+        <source>Contains no matching elements</source>
+        <target state="translated">Ne contient aucun élément correspondant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_is_too_short">
+        <source>Destination is too short.</source>
+        <target state="translated">La destination est trop courte.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_0_to_be_non_null">
+        <source>Expected '{0}' to be non-null.</source>
+        <target state="translated">Le '{0}' est censé être non null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_condition_to_be_false">
+        <source>Expected condition to be false.</source>
+        <target state="translated">La condition attendue doit être false.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_condition_to_be_true">
+        <source>Expected condition to be true.</source>
+        <target state="translated">Condition attendue pour être true.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_0_Line_1">
+        <source> File='{0}', Line={1}</source>
+        <target state="translated"> File='{0}', Ligne={1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_negative_number_required">
+        <source>Non-negative number required.</source>
+        <target state="translated">Nombre non négatif obligatoire.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_value_cannot_be_an_empty_string">
+        <source>The value cannot be an empty string.</source>
+        <target state="translated">La valeur ne peut pas être une chaîne vide.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_value_cannot_be_an_empty_string_composed_entirely_of_whitespace">
+        <source>The value cannot be an empty string or composed entirely of whitespace.</source>
+        <target state="translated">La valeur ne peut pas être une chaîne vide ou composée entièrement d’espaces blancs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_program_location_is_thought_to_be_unreachable">
+        <source>This program location is thought to be unreachable.</source>
+        <target state="translated">Cet emplacement du programme est considéré comme inaccessible.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">Type non pris en charge : '{0}'.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

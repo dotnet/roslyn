@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(12,47): error CS0103: The name 'items' does not exist in the current context
+// __TestNamespace_CatchAllTagHelper.ListItems = items;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "items").WithArguments("items").WithLocation(12, 47),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(13,48): error CS0103: The name 'items' does not exist in the current context
+// __TestNamespace_CatchAllTagHelper.ArrayItems = items;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "items").WithArguments("items").WithLocation(13, 48),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(14,44): error CS0103: The name 'doSomething' does not exist in the current context
+// __TestNamespace_CatchAllTagHelper.Event1 = doSomething();
+Diagnostic(ErrorCode.ERR_NameNotInContext, "doSomething").WithArguments("doSomething").WithLocation(14, 44),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SymbolBoundAttributes.cshtml(15,44): error CS0103: The name 'doSomething' does not exist in the current context
+// __TestNamespace_CatchAllTagHelper.Event2 = doSomething();
+Diagnostic(ErrorCode.ERR_NameNotInContext, "doSomething").WithArguments("doSomething").WithLocation(15, 44)

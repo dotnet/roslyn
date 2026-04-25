@@ -1,0 +1,29 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components.Web
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (44:1,0 [149] x:\dir\subdir\Test\TestComponent.cshtml) - button
+                    HtmlContent - (176:1,132 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (176:1,132 [8] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Click Me
+                    HtmlAttribute - (62:1,18 [17] x:\dir\subdir\Test\TestComponent.cshtml) - onclick=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, 
+                            IntermediateToken - (62:1,18 [17] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => Foo = false
+                            IntermediateToken -  - CSharp - )
+                    ComponentAttribute - (106:1,62 [4] x:\dir\subdir\Test\TestComponent.cshtml) - onfocus - PreventDefault - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (106:1,62 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - true
+                    ComponentAttribute - (138:1,94 [3] x:\dir\subdir\Test\TestComponent.cshtml) - onclick - StopPropagation - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (138:1,94 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Foo
+                    ComponentAttribute - (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml) - onfocus - StopPropagation - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - false
+            CSharpCode - (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    bool Foo { get; set; }\n

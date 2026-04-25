@@ -1,0 +1,13 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [25] x:\dir\subdir\Test\TestComponent.cshtml) - dynamic
+                    ComponentAttribute - (16:0,16 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Value - Value - AttributeStructure.DoubleQuotes
+                        HtmlContent - (16:0,16 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (16:0,16 [5] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Hello

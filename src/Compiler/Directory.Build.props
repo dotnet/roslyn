@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <!-- $(RepoRoot) is normally set globally and Arcade overrides it to ensure a trailing slash. -->
+    <RepoRoot Condition=" '$(RepoRoot)' == '' OR !HasTrailingSlash('$(RepoRoot)') ">$(MSBuildThisFileDirectory)</RepoRoot>
+
+    <RepositoryUrl>https://github.com/dotnet/razor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>Latest</AnalysisLevel>
+    <AnalysisMode>Default</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);EnableGenerateDocumentationFile</NoWarn>
+    <!-- Disable XLIFF tasks -->
+    <UsingToolXliff>false</UsingToolXliff>
+    <DebugType>portable</DebugType>
+    <RollForward Condition="'$(IsTestProject)' == 'true'">LatestMajor</RollForward>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Warning Suppressions">
+
+    <!-- Ensure API docs are available. -->
+    <NoWarn>$(NoWarn.Replace('1591', ''))</NoWarn>
+    <NoWarn Condition=" '$(BuildingInsideVisualStudio)' == 'true' ">$(NoWarn);0105</NoWarn>
+
+    <!-- For local builds, don't make missing XML docs a fatal build error, but still surface so we have visibility into undocumented APIs. -->
+    <WarningsNotAsErrors Condition=" '$(ContinuousIntegrationBuild)' != 'true' ">$(WarningsNotAsErrors);CS1591</WarningsNotAsErrors>
+
+    <!-- xUnit1004 = warns about skipped tests. Make this a non-fatal build warning. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);xUnit1004</WarningsNotAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(DotNetBuildFromVMR)' != 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" NoWarn="NU1608" PrivateAssets="All" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="All" />
+
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
+  </ItemGroup>
+</Project>

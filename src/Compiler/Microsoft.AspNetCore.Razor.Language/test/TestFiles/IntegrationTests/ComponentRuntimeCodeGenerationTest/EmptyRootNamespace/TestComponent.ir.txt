@@ -1,0 +1,14 @@
+﻿Document - 
+    NamespaceDeclaration -  - 
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupBlock -  - <h1>Generated</h1>\n
+                Component - (20:1,0 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Component1
+                HtmlContent - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (34:1,14 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (36:2,0 [21] x:\dir\subdir\Test\TestComponent.cshtml) - Shared.Component2

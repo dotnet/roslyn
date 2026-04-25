@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [86] x:\dir\subdir\Test\TestComponent.cshtml) - Grid
+                    ComponentChildContent -  - ChildContent - context
+                        Component - (41:0,41 [38] x:\dir\subdir\Test\TestComponent.cshtml) - Column
+                            ComponentAttribute - (61:0,61 [14] x:\dir\subdir\Test\TestComponent.cshtml) - SomeLambda - SomeLambda - AttributeStructure.DoubleQuotes
+                                LazyIntermediateToken - (63:0,63 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - x => x.Year
+                    ComponentAttribute - (13:0,13 [26] x:\dir\subdir\Test\TestComponent.cshtml) - Items - Items - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (15:0,15 [23] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Array.Empty<DateTime>()
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateGrid_0
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateColumn_1

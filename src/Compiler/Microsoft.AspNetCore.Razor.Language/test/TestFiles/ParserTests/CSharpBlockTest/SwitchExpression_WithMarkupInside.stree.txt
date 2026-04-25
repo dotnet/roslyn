@@ -1,0 +1,68 @@
+﻿RazorDocument - [0..111)::111 - [@{LF    var val = 0 switchLF    {LF        0 => <span>some <i>html</i></span>,LF        _ => "value"LF    };LF}]
+    MarkupBlock - [0..111)::111
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..111)::111
+            CSharpStatement - [0..111)::111
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..111)::110
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..110)::108
+                        CSharpStatementLiteral - [2..110)::108 - [LF    var val = 0 switchLF    {LF        0 => <span>some <i>html</i></span>,LF        _ => "value"LF    };LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            Keyword;[switch];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            LessThan;[<];
+                            Identifier;[span];
+                            GreaterThan;[>];
+                            Identifier;[some];
+                            Whitespace;[ ];
+                            LessThan;[<];
+                            Identifier;[i];
+                            GreaterThan;[>];
+                            Identifier;[html];
+                            LessThan;[<];
+                            CSharpOperator;[/];
+                            Identifier;[i];
+                            GreaterThan;[>];
+                            LessThan;[<];
+                            CSharpOperator;[/];
+                            Identifier;[span];
+                            GreaterThan;[>];
+                            Comma;[,];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            Keyword;[_];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            StringLiteral;["value"];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            RightBrace;[}];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [110..111)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [111..111)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

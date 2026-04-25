@@ -1,0 +1,37 @@
+﻿RazorDocument - [0..43)::43 - [@{LF    var x = #if trueLF    var y = 1;LF}]
+    MarkupBlock - [0..43)::43
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..43)::43
+            CSharpStatement - [0..43)::43
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..43)::42
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..42)::40
+                        CSharpStatementLiteral - [2..42)::40 - [LF    var x = #if trueLF    var y = 1;LF] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[x];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            CSharpComment;[#if trueLF];RZ1043(16:1,12 [10] )
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[y];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[1];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [42..43)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [43..43)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

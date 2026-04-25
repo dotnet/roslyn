@@ -1,0 +1,24 @@
+﻿<Project>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props"  />
+
+  <PropertyGroup>
+    <PackageTags>aspnetcore;cshtml;razor</PackageTags>
+    <IsPackable>true</IsPackable>
+    <IsShipping>true</IsShipping>
+    <IncludeSymbols>true</IncludeSymbols>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <RollForward Condition="'$(IsTestProject)' == 'true'">LatestMajor</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(DotNetBuildFromVMR)' != 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" NoWarn="NU1608" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
+
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\Analyzers\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj"
+                      PrivateAssets="all"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="Analyzer" />
+  </ItemGroup>
+
+</Project>

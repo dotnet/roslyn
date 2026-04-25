@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../SR.resx">
+    <body>
+      <trans-unit id="0_1_must_be_a_non_negative_and_non_zero_value">
+        <source>{0} ('{1}') must be a non-negative and non-zero value.</source>
+        <target state="translated">{0} ('{1}')은(는) 음수가 아니고 0이 아닌 값이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_a_non_negative_value">
+        <source>{0} ('{1}') must be a non-negative value.</source>
+        <target state="translated">{0} ('{1}')은(는) 음수가 아닌 값이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_a_non_zero_value">
+        <source>{0} ('{1}') must be a non-zero value.</source>
+        <target state="translated">{0} (‘{1}’)은(는) 0이 아닌 값이어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_equal_to_2">
+        <source>{0} ('{1}') must be equal to '{2}'.</source>
+        <target state="translated">{0} (‘{1}’)은(는) ‘{2}’과(와) 같아야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_greater_than_2">
+        <source>{0} ('{1}') must be greater than '{2}'.</source>
+        <target state="translated">{0} (‘{1}’)은(는) ‘{2}’보다 커야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_greater_than_or_equal_to_2">
+        <source>{0} ('{1}') must be greater than or equal to '{2}'.</source>
+        <target state="translated">{0} (‘{1}’)은(는) ‘{2}’보다 크거나 같아야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_less_than_2">
+        <source>{0} ('{1}') must be less than '{2}'.</source>
+        <target state="translated">{0} (‘{1}’)은(는) ‘{2}’보다 작아야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_be_less_than_or_equal_to_2">
+        <source>{0} ('{1}') must be less than or equal to '{2}'.</source>
+        <target state="translated">{0} (‘{1}’)은(는) ‘{2}’보다 작거나 같아야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="0_1_must_not_be_equal_to_2">
+        <source>{0} ('{1}') must not be equal to '{2}'.</source>
+        <target state="translated">{0} (‘{1}’)은(는) ‘{2}’과(와) 같을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_advance_past_end_of_the_buffer_which_has_a_size_of_0">
+        <source>Cannot advance past the end of the buffer, which has a size of {0}.</source>
+        <target state="translated">크기가 {0}인 버퍼의 끝을 지나서 진행할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Cannot_allocate_a_buffer_of_size_0">
+        <source>Cannot allocate a buffer of size {0}.</source>
+        <target state="translated">{0} 크기의 버퍼를 할당할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_more_than_one_element">
+        <source>Contains more than one element</source>
+        <target state="translated">둘 이상의 요소 있음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_more_than_one_matching_element">
+        <source>Contains more than one matching element</source>
+        <target state="translated">둘 이상의 일치하는 요소 있음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_no_elements">
+        <source>Contains no elements</source>
+        <target state="translated">요소 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Contains_no_matching_elements">
+        <source>Contains no matching elements</source>
+        <target state="translated">일치하는 요소 없음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Destination_is_too_short">
+        <source>Destination is too short.</source>
+        <target state="translated">대상이 너무 짧습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_0_to_be_non_null">
+        <source>Expected '{0}' to be non-null.</source>
+        <target state="translated">null이 아닌 '{0}' 필요합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_condition_to_be_false">
+        <source>Expected condition to be false.</source>
+        <target state="translated">조건이 false여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Expected_condition_to_be_true">
+        <source>Expected condition to be true.</source>
+        <target state="translated">조건이 true여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_0_Line_1">
+        <source> File='{0}', Line={1}</source>
+        <target state="translated"> File=’{0}’, Line={1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Non_negative_number_required">
+        <source>Non-negative number required.</source>
+        <target state="translated">음수가 아닌 수가 필요합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_value_cannot_be_an_empty_string">
+        <source>The value cannot be an empty string.</source>
+        <target state="translated">값은 빈 문자열일 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_value_cannot_be_an_empty_string_composed_entirely_of_whitespace">
+        <source>The value cannot be an empty string or composed entirely of whitespace.</source>
+        <target state="translated">값은 빈 문자열이거나 공백으로만 구성될 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_program_location_is_thought_to_be_unreachable">
+        <source>This program location is thought to be unreachable.</source>
+        <target state="translated">이 프로그램 위치에 연결할 수 없는 것으로 생각됩니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_type_0">
+        <source>Unsupported type: '{0}'.</source>
+        <target state="translated">지원되지 않는 유형: '{0}'.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
