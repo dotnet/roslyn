@@ -25,11 +25,13 @@ internal sealed partial class RenameProjectTreeHandler(
     [Import(ExportContractNames.Scopes.UnconfiguredProject)] IProjectAsynchronousTasksService projectAsynchronousTasksService,
     SVsServiceProvider serviceProvider,
     Lazy<LSPRequestInvokerWrapper> requestInvoker,
+    JoinableTaskContext joinableTaskContext,
     ILoggerFactory loggerFactory) : ProjectTreeActionHandlerBase
 {
     private readonly IProjectAsynchronousTasksService _projectAsynchronousTasksService = projectAsynchronousTasksService;
     private readonly SVsServiceProvider _serviceProvider = serviceProvider;
     private readonly Lazy<LSPRequestInvokerWrapper> _requestInvoker = requestInvoker;
+    private readonly JoinableTaskFactory _jtf = joinableTaskContext.Factory;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RenameProjectTreeHandler>();
 
     public override async Task RenameAsync(IProjectTreeActionHandlerContext context, IProjectTree node, string value)
@@ -105,7 +107,7 @@ internal sealed partial class RenameProjectTreeHandler(
 
         await _projectAsynchronousTasksService.LoadedProjectAsync(async () =>
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            await _jtf.SwitchToMainThreadAsync();
 
             var fromComponentName = Path.GetFileNameWithoutExtension(request.OldFilePath);
             var toComponentName = Path.GetFileNameWithoutExtension(request.NewFilePath);
