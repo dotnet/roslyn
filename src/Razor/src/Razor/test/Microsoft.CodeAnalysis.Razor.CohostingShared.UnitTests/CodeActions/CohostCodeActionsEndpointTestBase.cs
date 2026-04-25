@@ -144,7 +144,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         {
             // If we're making a diagnostics request, we're going to ignore any hard coded diagnostics, so make sure there aren't
             // any to avoid false negatives/positives.
-            Assert.Empty(input.NamedSpans.Where(kvp => kvp.Key.Length > 0));
+            Assert.DoesNotContain(input.NamedSpans, kvp => kvp.Key.Length > 0);
 
             var result = await CohostDocumentPullDiagnosticsTest.MakeDiagnosticsRequestAsync(document, taskListRequest: false, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, LoggerFactory, DisposalToken);
 

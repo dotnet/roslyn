@@ -283,14 +283,14 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             if (razorDocumentUri.Equals(location.DocumentUri.GetRequiredParsedUri()))
             {
                 matchedText = inputText.Lines[location.Range.Start.Line].ToString();
-                Assert.Single(input.Spans.Where(s => inputText.GetRange(s).Equals(location.Range)));
+                Assert.Single(input.Spans, s => inputText.GetRange(s).Equals(location.Range));
             }
             else
             {
-                var (fileName, testCode) = Assert.Single(additionalFiles.Where(f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.DocumentUri.GetRequiredParsedUri().AbsolutePath)));
+                var (fileName, testCode) = Assert.Single(additionalFiles, f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.DocumentUri.GetRequiredParsedUri().AbsolutePath));
                 var text = SourceText.From(testCode.Text);
                 matchedText = text.Lines[location.Range.Start.Line].ToString();
-                Assert.Single(testCode.Spans.Where(s => text.GetRange(s).Equals(location.Range)));
+                Assert.Single(testCode.Spans, s => text.GetRange(s).Equals(location.Range));
             }
 
             if (result.TryGetFirst(out var referenceItem))

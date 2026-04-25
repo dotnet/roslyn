@@ -88,7 +88,7 @@ namespace TestAssembly
         // Assert
         Assert.NotNull(compilation.GetTypeByMetadataName(testTagHelper));
         Assert.NotEmpty(result);
-        Assert.Empty(result.Where(f => f.TypeName == testTagHelper));
+        Assert.DoesNotContain(result, f => f.TypeName == testTagHelper);
         Assert.NotEmpty(result.Where(f => f.TypeName == enumTagHelper));
     }
 }

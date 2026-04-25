@@ -1335,7 +1335,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             // In the real world the client will send us back the data for the item to resolve, but in tests its easier if we just set it here.
             // We clone the item first though, to ensure us setting the data doesn't hide a bug in our caching logic, around wrapping" the data.
-            var item = Assert.Single(result.Items.Where(i => i.Label == itemToResolve));
+            var item = Assert.Single(result.Items, i => i.Label == itemToResolve);
             item = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(item, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
             item.Data ??= result.Data ?? result.ItemDefaults?.Data;
 

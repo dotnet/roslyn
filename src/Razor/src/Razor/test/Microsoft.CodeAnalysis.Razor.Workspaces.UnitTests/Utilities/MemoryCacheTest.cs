@@ -128,7 +128,7 @@ public class MemoryCacheTest(ITestOutputHelper testOutput) : ToolingTestBase(tes
 
         // Only one entry should remain
         var keys = new[] { "key1", "key2" };
-        Assert.Single(keys.Where(key => cache.TryGetValue(key, out _)));
+        Assert.Single(keys, key => cache.TryGetValue(key, out _));
     }
 
     [Fact]

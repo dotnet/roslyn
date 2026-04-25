@@ -1548,8 +1548,8 @@ namespace Test
         // Assert
         Assert.NotNull(compilation.GetTypeByMetadataName(testComponent));
         Assert.Empty(result); // Target assembly contains no components
-        Assert.Empty(result.Where(f => f.TypeName == testComponent));
-        Assert.Empty(result.Where(f => f.TypeName == routerComponent));
+        Assert.DoesNotContain(result, f => f.TypeName == testComponent);
+        Assert.DoesNotContain(result, f => f.TypeName == routerComponent);
     }
 
     [Fact]

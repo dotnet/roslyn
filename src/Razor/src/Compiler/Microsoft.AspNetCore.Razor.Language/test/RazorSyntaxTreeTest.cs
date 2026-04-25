@@ -57,7 +57,7 @@ public class RazorSyntaxTreeTest
         var root = syntaxTree.Root;
         Assert.NotNull(syntaxTree);
         Assert.Equal(61, root.EndPosition);
-        Assert.Single(root.DescendantNodes().OfType<RazorDirectiveBodySyntax>().Where(body => body.Keyword.GetContent() == "tagHelperPrefix"));
+        Assert.Single(root.DescendantNodes().OfType<RazorDirectiveBodySyntax>(), body => body.Keyword.GetContent() == "tagHelperPrefix");
         Assert.Empty(root.DescendantNodes().OfType<MarkupElementSyntax>());
         Assert.Empty(syntaxTree.Diagnostics);
     }
