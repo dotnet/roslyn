@@ -15,7 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
     <EmbeddedResource Include="..\..\src\Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json" />
   </ItemGroup>
 

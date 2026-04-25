@@ -34,7 +34,6 @@
 
   <ItemGroup>
     <EmbeddedResource Include="TestFiles\**\*" />
-    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

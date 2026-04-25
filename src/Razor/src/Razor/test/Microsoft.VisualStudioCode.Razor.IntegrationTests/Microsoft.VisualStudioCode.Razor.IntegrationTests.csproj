@@ -22,10 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!--
         We can't actually make use of anything in the C# extension project, because the tests run in a mostly isolated environment
         but hopefully this will mean code changes will get built automatically when running tests from VS.

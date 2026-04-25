@@ -51,10 +51,7 @@
       <Link>NuGet.Frameworks.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$([System.IO.Directory]::GetParent($(BundledRuntimeIdentifierGraphFile)))\System.CodeDom.dll">
-      <Link>System.CodeDom.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+
   </ItemGroup>
 
 </Project>

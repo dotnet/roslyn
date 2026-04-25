@@ -14,10 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.VisualStudio.LanguageServices.Razor\Microsoft.VisualStudio.LanguageServices.Razor.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
