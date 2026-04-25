@@ -11,7 +11,7 @@ namespace Microsoft.AspNetCore.Mvc.Razor.Extensions;
 
 public class ViewComponentTagHelperDescriptorFactoryTest
 {
-    private static readonly Compilation _compilation = TestCompilation.Create(syntaxTrees: [CSharpSyntaxTree.ParseText(AdditionalCode)], references: []);
+    private static readonly Compilation _compilation = TestCompilation.Create(syntaxTrees: [CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(AdditionalCode, System.Text.Encoding.UTF8))], references: []);
 
     [Fact]
     public void CreateDescriptor_UnderstandsStringParameters()

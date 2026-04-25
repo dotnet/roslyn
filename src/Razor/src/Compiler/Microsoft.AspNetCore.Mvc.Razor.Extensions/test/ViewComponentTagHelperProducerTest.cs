@@ -22,7 +22,7 @@ public class ViewComponentTagHelperProducerTest
         }
 ";
 
-        var compilation = TestCompilation.Create().AddSyntaxTrees(CSharpSyntaxTree.ParseText(code));
+        var compilation = TestCompilation.Create().AddSyntaxTrees(CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(code, System.Text.Encoding.UTF8)));
 
         var projectEngine = RazorProjectEngine.CreateEmpty(static b =>
         {

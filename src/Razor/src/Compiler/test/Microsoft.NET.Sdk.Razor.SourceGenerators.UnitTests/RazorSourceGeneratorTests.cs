@@ -1162,14 +1162,14 @@ using SurveyPromptRootNamspace;
             {
                 var updatedCompilation = currentCompilation.RemoveAllSyntaxTrees()
                     .WithAssemblyName("SurveyPromptAssembly")
-                    .AddSyntaxTrees(CSharpSyntaxTree.ParseText(@"
+                    .AddSyntaxTrees(CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(@"
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 namespace SurveyPromptRootNamspace;
 public class SurveyPrompt : ComponentBase
 {
     protected override void BuildRenderTree(RenderTreeBuilder builder) {}
-}"));
+}", System.Text.Encoding.UTF8)));
                 var stream = new MemoryStream();
                 var emitResult = updatedCompilation.Emit(stream);
                 Assert.True(emitResult.Success);

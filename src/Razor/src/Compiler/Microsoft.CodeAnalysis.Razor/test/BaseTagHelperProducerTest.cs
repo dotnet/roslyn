@@ -77,7 +77,7 @@ public abstract class TagHelperDescriptorProviderTestBase
 
     protected CSharpSyntaxTree Parse(string text)
     {
-        return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, CSharpParseOptions);
+        return (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(text, System.Text.Encoding.UTF8), CSharpParseOptions);
     }
 
     protected static bool IsBuiltInComponent(TagHelperDescriptor tagHelper)

@@ -26,7 +26,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
             assemblyName: "Microsoft.AspNetCore.Razor.Language.Test",
             syntaxTrees:
             [
-                CSharpSyntaxTree.ParseText(TestTagHelperDescriptors.Code),
+                CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(TestTagHelperDescriptors.Code, System.Text.Encoding.UTF8)),
             ],
             references: ReferenceUtil.AspNetLatestAll,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));

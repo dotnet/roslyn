@@ -107,7 +107,7 @@ public abstract class IntegrationTestBase
 
     protected CSharpSyntaxTree AddCSharpSyntaxTree(string text, string? filePath = null)
     {
-        var syntaxTree = (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(text, CSharpParseOptions, path: filePath ?? string.Empty);
+        var syntaxTree = (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(Microsoft.CodeAnalysis.Text.SourceText.From(text, System.Text.Encoding.UTF8), CSharpParseOptions, path: filePath ?? string.Empty);
         CSharpSyntaxTrees.Add(syntaxTree);
         return syntaxTree;
     }
