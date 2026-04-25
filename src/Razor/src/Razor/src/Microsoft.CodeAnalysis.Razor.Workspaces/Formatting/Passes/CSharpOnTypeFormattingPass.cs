@@ -69,7 +69,7 @@ internal sealed class CSharpOnTypeFormattingPass(
                 projectedIndex,
                 context.Options.ToIndentationOptions(),
                 autoFormattingOptions,
-                indentStyle: CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart,
+                indentStyle: RazorIndentStyle.Smart,
                 context.Options.CSharpSyntaxFormattingOptions,
                 cancellationToken).ConfigureAwait(false);
 
