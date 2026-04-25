@@ -22,6 +22,28 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public class RazorIntegrationTestBase
 {
+    protected static DiagnosticDescription Diagnostic(
+        object code,
+        string? squiggledText = null,
+        object[]? arguments = null,
+        Microsoft.CodeAnalysis.Text.LinePosition? startLocation = null,
+        Func<Microsoft.CodeAnalysis.SyntaxNode, bool>? syntaxNodePredicate = null,
+        bool argumentOrderDoesNotMatter = false,
+        bool isSuppressed = false)
+    {
+        var normalizedCode = code is ErrorCode razorErrorCode
+            ? (object)(int)razorErrorCode
+            : code;
+
+        return Roslyn.Test.Utilities.TestHelpers.Diagnostic(
+            normalizedCode,
+            squiggledText,
+            arguments,
+            startLocation,
+            syntaxNodePredicate,
+            argumentOrderDoesNotMatter,
+            isSuppressed);
+    }
     internal const string ArbitraryWindowsPath = "x:\\dir\\subdir\\Test";
     internal const string ArbitraryMacLinuxPath = "/dir/subdir/Test";
 

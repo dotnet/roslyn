@@ -28,6 +28,28 @@ namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
 public abstract class IntegrationTestBase
 {
+    protected static DiagnosticDescription Diagnostic(
+        object code,
+        string? squiggledText = null,
+        object[]? arguments = null,
+        Microsoft.CodeAnalysis.Text.LinePosition? startLocation = null,
+        Func<Microsoft.CodeAnalysis.SyntaxNode, bool>? syntaxNodePredicate = null,
+        bool argumentOrderDoesNotMatter = false,
+        bool isSuppressed = false)
+    {
+        var normalizedCode = code is ErrorCode razorErrorCode
+            ? (object)(int)razorErrorCode
+            : code;
+
+        return Roslyn.Test.Utilities.TestHelpers.Diagnostic(
+            normalizedCode,
+            squiggledText,
+            arguments,
+            startLocation,
+            syntaxNodePredicate,
+            argumentOrderDoesNotMatter,
+            isSuppressed);
+    }
     // UTF-8 with BOM
     private static readonly Encoding _baselineEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
