@@ -125,10 +125,72 @@ public class LanguageConfigurationTest(ITestOutputHelper output)
 
     private static JObject GetLanguageConfigurationJson()
     {
-        var dir = Environment.CurrentDirectory;
-        dir = dir.Substring(0, dir.IndexOf("artifacts"));
-        var langConfigFile = Path.Combine(dir, @"src\Razor\src\Razor\src\Microsoft.VisualStudio.RazorExtension", "language-configuration.json");
-        var langConfig = JObject.Parse(File.ReadAllText(langConfigFile));
-        return langConfig;
+        var langConfigFile = GetLanguageConfigurationJsonPath();
+        return JObject.Parse(File.ReadAllText(langConfigFile));
+    }
+
+    private static string GetLanguageConfigurationJsonPath()
+    {
+        var appContextBaseDirectory = AppContext.BaseDirectory;
+        var currentDirectory = Environment.CurrentDirectory;
+
+        var langConfigFile = TryFindLanguageConfigurationFile(appContextBaseDirectory)
+            ?? (string.Equals(currentDirectory, appContextBaseDirectory, StringComparison.OrdinalIgnoreCase)
+                ? null
+                : TryFindLanguageConfigurationFile(currentDirectory));
+
+        if (langConfigFile is null)
+        {
+            throw new InvalidOperationException($"Could not locate language-configuration.json from '{appContextBaseDirectory}' or '{currentDirectory}'.");
+        }
+
+        return langConfigFile;
+    }
+
+    private static string? TryFindLanguageConfigurationFile(string baseDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(baseDirectory) || !Directory.Exists(baseDirectory))
+        {
+            return null;
+        }
+
+        var outputLocalPath = Path.Combine(baseDirectory, "language-configuration.json");
+        if (File.Exists(outputLocalPath))
+        {
+            return outputLocalPath;
+        }
+
+        var repoRoot = SearchUp(baseDirectory, "global.json");
+        if (repoRoot is not null)
+        {
+            var razorRepoRoot = Directory.Exists(Path.Combine(repoRoot, "src", "Razor", "src"))
+                ? Path.Combine(repoRoot, "src", "Razor")
+                : repoRoot;
+            var repoPath = Path.Combine(razorRepoRoot, "src", "Microsoft.VisualStudio.RazorExtension", "language-configuration.json");
+            if (File.Exists(repoPath))
+            {
+                return repoPath;
+            }
+        }
+
+        foreach (var candidatePath in Directory.EnumerateFiles(baseDirectory, "language-configuration.json", SearchOption.AllDirectories))
+        {
+            return candidatePath;
+        }
+
+        return null;
+    }
+
+    private static string? SearchUp(string baseDirectory, string fileName)
+    {
+        for (var current = new DirectoryInfo(baseDirectory); current is not null; current = current.Parent)
+        {
+            if (File.Exists(Path.Combine(current.FullName, fileName)))
+            {
+                return current.FullName;
+            }
+        }
+
+        return null;
     }
 }

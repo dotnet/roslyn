@@ -30,6 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\src\Microsoft.VisualStudio.RazorExtension\language-configuration.json">
+      <Link>language-configuration.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <None Update="Cohost\TestSnippets.snippet">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
