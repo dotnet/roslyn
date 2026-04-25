@@ -67,7 +67,6 @@ partial class Program
         }
 
         return ManualConfig.CreateEmpty()
-            .WithBuildTimeout(TimeSpan.FromMinutes(15)) // for slow machines
             .AddLogger(ConsoleLogger.Default) // log output to console
             .AddValidator(DefaultConfig.Instance.GetValidators().ToArray()) // copy default validators
             .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
@@ -83,7 +82,6 @@ partial class Program
     private static DisassemblyDiagnoser CreateDisassembler()
         => new(new DisassemblyDiagnoserConfig(
             maxDepth: 1, // TODO: is depth == 1 enough?
-            syntax: DisassemblySyntax.Masm, // TODO: enable diffable format
             printSource: false, // we are not interested in getting C#
             printInstructionAddresses: false, // would make the diffing hard, however could be useful to determine alignment
             exportGithubMarkdown: false,

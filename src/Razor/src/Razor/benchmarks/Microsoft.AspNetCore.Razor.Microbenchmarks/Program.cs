@@ -51,13 +51,12 @@ internal class Program
         }
 
         var config = ManualConfig.CreateEmpty()
-            .WithBuildTimeout(TimeSpan.FromMinutes(15)) // for slow machines
             .AddLogger(ConsoleLogger.Default) // log output to console
             .AddValidator(DefaultConfig.Instance.GetValidators().ToArray()) // copy default validators
             .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
             .AddExporter(MarkdownExporter.GitHub) // export to GitHub markdown
             .AddColumnProvider(DefaultColumnProviders.Instance) // display default columns (method name, args etc)
-            .AddJob(GetJob(CsProjCoreToolchain.NetCoreApp80)) // tell BDN that these are our default settings
+            .AddJob(Job.Default.DontEnforcePowerPlan()) // use the current runtime with Roslyn's shared BenchmarkDotNet defaults
             .AddJob(GetJob(CsProjClassicNetToolchain.Net472))
             .AddDiagnoser(MemoryDiagnoser.Default)
             .AddExporter(JsonExporter.Full)
@@ -80,7 +79,6 @@ internal class Program
     private static DisassemblyDiagnoser CreateDisassembler()
         => new(new DisassemblyDiagnoserConfig(
             maxDepth: 1, // TODO: is depth == 1 enough?
-            syntax: DisassemblySyntax.Masm, // TODO: enable diffable format
             printSource: false, // we are not interested in getting C#
             printInstructionAddresses: false, // would make the diffing hard, however could be useful to determine alignment
             exportGithubMarkdown: false,
