@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public class TagHelperMatchingConventionsTest
 {
-    public static TheoryData RequiredAttributeDescriptorData
+    public static TheoryData<Action<RequiredAttributeDescriptorBuilder>, string, string, bool> RequiredAttributeDescriptorData
     {
         get
         {

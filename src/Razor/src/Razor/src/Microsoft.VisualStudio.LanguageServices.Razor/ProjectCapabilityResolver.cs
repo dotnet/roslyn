@@ -87,8 +87,18 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
             var remoteHierarchyService = await session
                 .GetRemoteServiceAsync<IRemoteHierarchyService>(nameof(IRemoteHierarchyService), cancellationToken)
                 .ConfigureAwait(false);
+            if (remoteHierarchyService is null)
+            {
+                _logger.LogWarning("Live Share remote hierarchy service was unavailable during capability resolution.");
+                return new(IsInProject: false, HasCapability: false);
+            }
 
             var documentFilePathUri = session.ConvertLocalPathToSharedUri(documentFilePath);
+            if (documentFilePathUri is null)
+            {
+                _logger.LogWarning($"Live Share could not convert document path to shared URI: {documentFilePath}");
+                return new(IsInProject: false, HasCapability: false);
+            }
 
             var isMatch = await remoteHierarchyService
                 .HasCapabilityAsync(documentFilePathUri, capability, cancellationToken)

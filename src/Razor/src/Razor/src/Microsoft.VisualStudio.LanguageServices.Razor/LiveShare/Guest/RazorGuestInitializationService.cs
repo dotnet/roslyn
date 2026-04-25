@@ -22,7 +22,7 @@ internal class RazorGuestInitializationService(
 
     private Task? _viewImportsCopyTask;
 
-    public Task<ICollaborationService> CreateServiceAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
+    public Task<ICollaborationService?> CreateServiceAsync(CollaborationSession sessionContext, CancellationToken cancellationToken)
     {
         var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -34,7 +34,7 @@ internal class RazorGuestInitializationService(
             cts.Cancel();
             _sessionAccessor.SetSession(session: null);
         });
-        return Task.FromResult<ICollaborationService>(sessionDetector);
+        return Task.FromResult<ICollaborationService?>(sessionDetector);
     }
 
     // Today we ensure that all _ViewImports in the shared project exist on the guest because we don't currently track import documents

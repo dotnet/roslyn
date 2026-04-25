@@ -21,9 +21,9 @@ internal class ProjectHierarchyProxyFactory(
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     JoinableTaskContext joinableTaskContext) : ICollaborationServiceFactory
 {
-    public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
+    public Task<ICollaborationService?> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
     {
         var service = new ProjectHierarchyProxy(session, serviceProvider, joinableTaskContext.Factory);
-        return Task.FromResult<ICollaborationService>(service);
+        return Task.FromResult<ICollaborationService?>(service);
     }
 }

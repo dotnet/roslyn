@@ -23,9 +23,11 @@ internal class ProxyAccessor(
 
     private TProxy CreateServiceProxy<TProxy>() where TProxy : class
     {
-        Assumes.NotNull(_liveShareSessionAccessor.Session);
+        var session = _liveShareSessionAccessor.Session;
+        Assumes.NotNull(session);
 
-        return _jtf.Run(
-            () => _liveShareSessionAccessor.Session.GetRemoteServiceAsync<TProxy>(typeof(TProxy).Name, CancellationToken.None));
+        var proxy = _jtf.Run(
+            () => session.GetRemoteServiceAsync<TProxy>(typeof(TProxy).Name, CancellationToken.None));
+        return proxy ?? throw new global::System.InvalidOperationException($"Unable to resolve Live Share proxy for {typeof(TProxy).Name}.");
     }
 }

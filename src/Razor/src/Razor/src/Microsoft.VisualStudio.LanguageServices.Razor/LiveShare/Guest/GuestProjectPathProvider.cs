@@ -52,10 +52,20 @@ internal class GuestProjectPathProvider(
 
     private Uri? GetHostProjectPath(ITextDocument textDocument)
     {
-        Assumes.NotNull(_liveShareSessionAccessor.Session);
+        var session = _liveShareSessionAccessor.Session;
+        Assumes.NotNull(session);
+
+        if (string.IsNullOrEmpty(textDocument.FilePath))
+        {
+            return null;
+        }
 
         // The path we're given is from the guest so following other patterns we always ask the host information in its own form (aka convert on guest instead of on host).
-        var ownerPath = _liveShareSessionAccessor.Session.ConvertLocalPathToSharedUri(textDocument.FilePath);
+        var ownerPath = session.ConvertLocalPathToSharedUri(textDocument.FilePath);
+        if (ownerPath is null)
+        {
+            return null;
+        }
 
         var hostProjectPath = _joinableTaskFactory.Run(() =>
         {
@@ -73,8 +83,9 @@ internal class GuestProjectPathProvider(
     [MethodImpl(MethodImplOptions.NoInlining)]
     private string ResolveGuestPath(Uri hostProjectPath)
     {
-        Assumes.NotNull(_liveShareSessionAccessor.Session);
+        var session = _liveShareSessionAccessor.Session;
+        Assumes.NotNull(session);
 
-        return _liveShareSessionAccessor.Session.ConvertSharedUriToLocalPath(hostProjectPath);
+        return session.ConvertSharedUriToLocalPath(hostProjectPath) ?? hostProjectPath.LocalPath;
     }
 }

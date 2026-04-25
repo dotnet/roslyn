@@ -41,7 +41,7 @@ public class CodeFoldingTests(ITestOutputHelper testOutputHelper) : AbstractRazo
         var tries = 0;
         const int MaxTries = 10;
         const int Delay = 500;
-        ImmutableArray<CollapsibleBlock> missingLines;
+        ImmutableArray<CollapsibleBlock> missingLines = [];
         var outlines = new ICollapsible[0];
         while (tries++ < MaxTries)
         {

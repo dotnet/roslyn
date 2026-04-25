@@ -24,9 +24,9 @@ internal sealed class RemoteHierarchyServiceFactory(
     IVsService<SVsUIShellOpenDocument, IVsUIShellOpenDocument> vsUIShellOpenDocumentService,
     JoinableTaskContext joinableTaskContext) : ICollaborationServiceFactory
 {
-    public Task<ICollaborationService> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
+    public Task<ICollaborationService?> CreateServiceAsync(CollaborationSession session, CancellationToken cancellationToken)
     {
-        return Task.FromResult<ICollaborationService>(
+        return Task.FromResult<ICollaborationService?>(
             new RemoteHierarchyService(session, vsUIShellOpenDocumentService, joinableTaskContext.Factory));
     }
 }
