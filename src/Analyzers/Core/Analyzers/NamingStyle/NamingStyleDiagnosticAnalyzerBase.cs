@@ -23,7 +23,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
     protected NamingStyleDiagnosticAnalyzerBase()
         : base(IDEDiagnosticIds.NamingRuleId,
                EnforceOnBuildValues.NamingRule,
-               option: null,    // No unique option to configure the diagnosticId
+               option: NamingStyleOptions.NamingPreferences,
                s_localizableTitleNamingStyle,
                s_localizableMessageFormat)
     {
