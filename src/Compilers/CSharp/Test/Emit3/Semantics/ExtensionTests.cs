@@ -25262,6 +25262,10 @@ static class E
     [Fact]
     public void LiteralReceiver_Property_Default()
     {
+        // Under the extension-members-on-typeless-receivers feature, `default.Property` routes
+        // the typeless `default` literal through extension lookup. The extension Property is
+        // found and the access binds to it (instead of producing the pre-feature
+        // ERR_DefaultLiteralNoTargetType).
         var src = """
 default.Property = 1;
 _ = default.Property;
@@ -25275,13 +25279,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS8716: There is no target type for the default literal.
-            // default.Property = 1;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(1, 1),
-            // (2,5): error CS8716: There is no target type for the default literal.
-            // _ = default.Property;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 5));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
