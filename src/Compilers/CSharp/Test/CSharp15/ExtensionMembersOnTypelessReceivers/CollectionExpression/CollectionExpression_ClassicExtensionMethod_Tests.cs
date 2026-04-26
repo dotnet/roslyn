@@ -394,6 +394,36 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
     }
 
     [Fact]
+    public void HasErroredElement_DoesNotEnterTypelessPath()
+    {
+        // Collection expression with an undeclared element causes the receiver to bind with
+        // HasErrors=true. The typeless-receiver feature path short-circuits in that case so
+        // the user sees the inner "name does not exist" error without an additional cascading
+        // diagnostic about an unsupported feature, and the existing collection-expression
+        // diagnostics still apply.
+        var source = """
+            using System.Collections.Generic;
+
+            public static class Ext
+            {
+                public static int CountIt<T>(this IEnumerable<T> xs) => 0;
+            }
+
+            public class Goo
+            {
+                public static void M()
+                {
+                    _ = [1, undecl].CountIt();
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (12,17): error CS0103: The name 'undecl' does not exist in the current context
+            //         _ = [1, undecl].CountIt();
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "undecl").WithArguments("undecl").WithLocation(12, 17));
+    }
+
+    [Fact]
     public void OverloadResolution_PrefersMoreSpecific()
     {
         // T[] is more specific than IEnumerable<T>. Both are applicable for [1,2,3];
@@ -491,6 +521,36 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
             }
             """;
         CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "2").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ParamsAdditionalArgs_Executes()
+    {
+        // params on the additional argument list expands as expected when the receiver is a
+        // typeless collection expression.
+        var source = """
+            using System.Collections.Generic;
+
+            public static class Ext
+            {
+                public static int Combine<T>(this IEnumerable<T> xs, params int[] extras)
+                {
+                    int s = 0;
+                    foreach (var _ in xs) s++;
+                    foreach (var x in extras) s += x;
+                    return s;
+                }
+            }
+
+            public class Goo
+            {
+                public static void Main()
+                {
+                    System.Console.Write([1, 2, 3].Combine(10, 20, 30));
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "63").VerifyDiagnostics();
     }
 
     [Fact]
