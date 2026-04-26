@@ -2617,7 +2617,7 @@ static class C
     }
 }
 """;
-        var comp = CreateCompilation(src);
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
             // (5,19): error CS1642: Fixed size buffer fields may only be members of structs
             //         fixed int field[10];
@@ -2628,6 +2628,19 @@ static class C
             // (5,19): error CS9282: This member is not allowed in an extension block
             //         fixed int field[10];
             Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 19));
+
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (5,19): error CS1642: Fixed size buffer fields may only be members of structs
+            //         fixed int field[10];
+            Diagnostic(ErrorCode.ERR_FixedNotInStruct, "field").WithLocation(5, 19),
+            // (5,19): error CS9282: This member is not allowed in an extension block
+            //         fixed int field[10];
+            Diagnostic(ErrorCode.ERR_ExtensionDisallowsMember, "field").WithLocation(5, 19),
+        };
+
+        CreateCompilation(src).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(src, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedPreviewDiagnostics);
 
         UsingTree(src, TestOptions.RegularPreview);
 

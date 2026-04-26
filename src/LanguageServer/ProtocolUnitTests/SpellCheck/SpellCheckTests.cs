@@ -630,7 +630,7 @@ class {|Identifier:A{{v}}|}
                 spans = progress!.Value.GetFlattenedValues();
             }
 
-            AssertEx.NotNull(spans);
+            Assert.NotNull(spans);
             return spans;
         }
 
@@ -651,7 +651,7 @@ class {|Identifier:A{{v}}|}
                 spans = progress!.Value.GetFlattenedValues();
             }
 
-            AssertEx.NotNull(spans);
+            Assert.NotNull(spans);
             return spans;
         }
 

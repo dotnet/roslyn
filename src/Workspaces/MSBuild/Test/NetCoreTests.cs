@@ -305,7 +305,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Unexpected project: {project.Name}");
+                    Assert.Fail($"Unexpected project: {project.Name}");
                     break;
             }
         }
@@ -382,7 +382,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
                     break;
 
                 default:
-                    Assert.True(false, $"Encountered unexpected project: {project.FilePath}");
+                    Assert.Fail($"Encountered unexpected project: {project.FilePath}");
                     return;
             }
 
@@ -412,7 +412,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase
             }
             else
             {
-                Assert.True(false, "OutputFilePath with expected TFM not found.");
+                Assert.Fail("OutputFilePath with expected TFM not found.");
             }
         }
     }

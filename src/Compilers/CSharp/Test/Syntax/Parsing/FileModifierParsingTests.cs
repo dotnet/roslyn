@@ -723,12 +723,14 @@ public sealed class FileModifierParsingTests : ParsingTests
     [Fact]
     public void FileModifier_18()
     {
-        UsingNode("""
+        var src = """
             class C
             {
                 file delegate*<int, void> M();
             }
-            """,
+            """;
+        UsingNode(src,
+            options: TestOptions.Regular14,
             expectedBindingDiagnostics: new[]
             {
                 // (3,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -741,6 +743,18 @@ public sealed class FileModifierParsingTests : ParsingTests
                 //     file delegate*<int, void> M();
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(3, 31)
             });
+
+        var expectedPreviewDiagnostics = new[]
+        {
+            // (3,31): error CS0106: The modifier 'file' is not valid for this item
+            //     file delegate*<int, void> M();
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("file").WithLocation(3, 31),
+            // (3,31): error CS0501: 'C.M()' must declare a body because it is not marked abstract, extern, or partial
+            //     file delegate*<int, void> M();
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M").WithArguments("C.M()").WithLocation(3, 31),
+        };
+        CreateCompilation(src).VerifyDiagnostics(expectedPreviewDiagnostics);
+        CreateCompilation(src, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
 
         N(SyntaxKind.CompilationUnit);
         {
