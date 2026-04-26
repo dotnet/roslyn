@@ -58,7 +58,7 @@ try {
   }
 
   Write-Host "Building Roslyn"
-  & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties:"/p:RoslynEnforceCodeStyle=true /p:DogfoodCodeStyleAnalyzers=$configuration"
+  & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties:"/p:RoslynEnforceCodeStyle=true","/p:DogfoodCodeStyleAnalyzers=$configuration"
   Test-LastExitCode
 
   Subst-TempDir
