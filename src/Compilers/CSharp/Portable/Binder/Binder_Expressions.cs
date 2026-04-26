@@ -7885,9 +7885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // helper.
             // See https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md
             if (TryBindMemberAccessOnTypelessReceiver(node, boundLeft, right, invoked, indexed, diagnostics) is { } typelessExtensionResult)
-            {
                 return typelessExtensionResult;
-            }
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
 
@@ -8327,9 +8325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // expressions) falls back to existing behavior so pre-existing diagnostics are
             // preserved.
             if (boundLeft.Type is not null)
-            {
                 return null;
-            }
+
             switch (boundLeft.Kind)
             {
                 case BoundKind.UnconvertedCollectionExpression:
@@ -8349,9 +8346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rightName = right.Identifier.ValueText;
             var rightArity = right.Arity;
             if (!HasExtensionMemberCandidateInScope(rightName, rightArity))
-            {
                 return null;
-            }
 
             // Feature-availability check reports ERR_FeatureInPreview when the language version is
             // too low. Binding continues regardless, matching the established convention in this
@@ -8391,10 +8386,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ref discardedUseSiteInfo, ref discardedUseSiteInfo);
 
                     if (singleLookupResults.Count > 0)
-                    {
                         return true;
-                    }
                 }
+
                 return false;
             }
             finally
