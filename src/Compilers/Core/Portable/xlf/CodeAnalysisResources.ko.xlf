@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
         <source>A language name cannot be specified for this option.</source>
-        <target state="translated">이 옵션에 대한 언어 이름을 지정할 수 없습니다.</target>
+        <target state="new">A language name cannot be specified for this option.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_must_be_specified_for_this_option">
         <source>A language name must be specified for this option.</source>
-        <target state="translated">이 옵션에 대한 언어 이름을 지정해야 합니다.</target>
+        <target state="new">A language name must be specified for this option.</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
@@ -220,7 +220,7 @@
       </trans-unit>
       <trans-unit id="PathReturnedByResolveMetadataFileMustBeAbsolute">
         <source>Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</source>
-        <target state="translated">{0}.ResolveMetadataFile에서 반환한 경로는 절대 경로여야 합니다. '{1}'</target>
+        <target state="new">Path returned by {0}.ResolveMetadataFile must be absolute: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblyMustHaveAtLeastOneModule">
@@ -400,7 +400,7 @@
       </trans-unit>
       <trans-unit id="AssemblyFileNotFound">
         <source>Assembly file not found</source>
-        <target state="translated">어셈블리 파일을 찾을 수 없습니다.</target>
+        <target state="new">Assembly file not found</target>
         <note />
       </trans-unit>
       <trans-unit id="CannotEmbedInteropTypesFromModule">
@@ -420,7 +420,7 @@
       </trans-unit>
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
-        <target state="translated">{0}.GetMetadata()는 {1}의 인스턴스를 반환해야 합니다.</target>
+        <target state="new">{0}.GetMetadata() must return an instance of {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="UnsupportedSuppressionReported">
@@ -430,12 +430,12 @@
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
-        <target state="translated">값이 너무 커서 30비트 정수로 표시할 수 없습니다.</target>
+        <target state="new">Value too large to be represented as a 30 bit unsigned integer.</target>
         <note />
       </trans-unit>
       <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
         <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">차원이 두 개 이상인 배열을 직렬화할 수 없습니다.</target>
+        <target state="new">Arrays with more than one dimension cannot be serialized.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidAssemblyName">
@@ -460,7 +460,7 @@
       </trans-unit>
       <trans-unit id="CompilationOptionsMustNotHaveErrors">
         <source>Compilation options must not have errors.</source>
-        <target state="translated">컴파일 옵션에 오류가 없어야 합니다.</target>
+        <target state="new">Compilation options must not have errors.</target>
         <note />
       </trans-unit>
       <trans-unit id="ReturnTypeCannotBeValuePointerbyRefOrOpen">
@@ -525,12 +525,12 @@
       </trans-unit>
       <trans-unit id="PathReturnedByResolveStrongNameKeyFileMustBeAbsolute">
         <source>Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</source>
-        <target state="translated">{0}.ResolveStrongNameKeyFile에서 반환한 경로는 절대 경로여야 합니다. '{1}'</target>
+        <target state="new">Path returned by {0}.ResolveStrongNameKeyFile must be absolute: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="TypeMustBeASubclassOfSyntaxAnnotation">
         <source>type must be a subclass of SyntaxAnnotation.</source>
-        <target state="translated">형식은 SyntaxAnnotation의 하위 클래스여야 합니다.</target>
+        <target state="new">type must be a subclass of SyntaxAnnotation.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidModuleName">
@@ -540,7 +540,7 @@
       </trans-unit>
       <trans-unit id="FileSizeExceedsMaximumAllowed">
         <source>File size exceeds maximum allowed size of a valid metadata file.</source>
-        <target state="translated">파일 크기가 유효한 메타데이터 파일에 허용된 최대 크기를 초과했습니다.</target>
+        <target state="new">File size exceeds maximum allowed size of a valid metadata file.</target>
         <note />
       </trans-unit>
       <trans-unit id="NameCannotBeNull">
@@ -585,7 +585,7 @@
       </trans-unit>
       <trans-unit id="ExpectedNonEmptyPublicKey">
         <source>Expected non-empty public key</source>
-        <target state="translated">비어 있지 않은 공용 키가 필요합니다.</target>
+        <target state="new">Expected non-empty public key</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidSizeOfPublicKeyToken">
@@ -600,7 +600,7 @@
       </trans-unit>
       <trans-unit id="InvalidCharactersInAssemblyCultureName">
         <source>Invalid characters in assembly culture name</source>
-        <target state="translated">어셈블리 문화권 이름에 잘못된 문자가 있습니다.</target>
+        <target state="new">Invalid characters in assembly culture name</target>
         <note />
       </trans-unit>
       <trans-unit id="StreamMustSupportReadAndSeek">
@@ -640,7 +640,7 @@
       </trans-unit>
       <trans-unit id="MustIncludePrivateMembersUnlessRefAssembly">
         <source>Must include private members unless emitting a ref assembly.</source>
-        <target state="translated">참조 어셈블리를 내보내지 않는 경우 프라이빗 멤버를 포함해야 합니다.</target>
+        <target state="new">Must include private members unless emitting a ref assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
@@ -735,7 +735,7 @@
       </trans-unit>
       <trans-unit id="PEImageNotAvailable">
         <source>PE image not available.</source>
-        <target state="translated">PE 이미지를 사용할 수 없습니다.</target>
+        <target state="new">PE image not available.</target>
         <note />
       </trans-unit>
       <trans-unit id="AssemblySigningNotSupported">
@@ -750,7 +750,7 @@
       </trans-unit>
       <trans-unit id="FailedToResolveRuleSetName">
         <source>Could not locate the rule set file '{0}'.</source>
-        <target state="translated">규칙 집합 파일 '{0}'을(를) 찾을 수 없습니다.</target>
+        <target state="new">Could not locate the rule set file '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidRuleSetInclude">
@@ -849,17 +849,17 @@
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
         <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">직렬화 바인더가 '{0}' 형식을 인식할 수 없습니다.</target>
+        <target state="new">The type '{0}' is not understood by the serialization binder.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_deserialize_type_0">
         <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">'{0}' 형식을 역직렬화할 수 없습니다.</target>
+        <target state="new">Cannot deserialize type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_serialize_type_0">
         <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">'{0}' 형식을 직렬화할 수 없습니다.</target>
+        <target state="new">Cannot serialize type '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidNodeToTrack">
@@ -1081,7 +1081,7 @@
       </trans-unit>
       <trans-unit id="TheStreamCannotBeWrittenTo">
         <source>The stream cannot be written to.</source>
-        <target state="translated">스트림에 쓸 수 없습니다.</target>
+        <target state="new">The stream cannot be written to.</target>
         <note />
       </trans-unit>
       <trans-unit id="ElementIsExpected">
@@ -1096,17 +1096,17 @@
       </trans-unit>
       <trans-unit id="TheStreamCannotBeReadFrom">
         <source>The stream cannot be read from.</source>
-        <target state="translated">스트림에서 읽을 수 없습니다.</target>
+        <target state="new">The stream cannot be read from.</target>
         <note />
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">'{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
+        <target state="new">Deserialization reader for '{0}' read incorrect number of values.</target>
         <note />
       </trans-unit>
       <trans-unit id="Stream_contains_invalid_data">
         <source>Stream contains invalid data</source>
-        <target state="translated">스트림에 잘못된 데이터가 들어 있습니다.</target>
+        <target state="new">Stream contains invalid data</target>
         <note />
       </trans-unit>
       <trans-unit id="InvalidDiagnosticSpanReported">
@@ -1116,7 +1116,7 @@
       </trans-unit>
       <trans-unit id="ExceptionEnablingMulticoreJit">
         <source>Warning: Could not enable multicore JIT due to exception: {0}.</source>
-        <target state="translated">경고: 다음 예외 때문에 멀티 코어 JIT를 사용할 수 없습니다. {0}</target>
+        <target state="new">Warning: Could not enable multicore JIT due to exception: {0}.</target>
         <note />
       </trans-unit>
     </body>
