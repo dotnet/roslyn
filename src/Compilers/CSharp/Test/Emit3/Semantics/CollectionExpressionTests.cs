@@ -4986,51 +4986,10 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            // Under the extension-members-on-typeless-receivers feature, `[].GetHashCode()` no
-            // longer reports ERR_CollectionExpressionNoTargetType: the collection-expression
-            // receiver enters the extension-method-search path, finds no `GetHashCode` extension,
-            // and reports ERR_NoSuchMember instead. The `?.` and `[]` operators on a typeless
-            // collection expression are out of scope per the spec, so they continue to produce
-            // ERR_CollectionExpressionNoTargetType.
             comp.VerifyEmitDiagnostics(
-                // (5,12): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                // (5,9): error CS9176: There is no target type for the collection expression.
                 //         [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 12),
-                // (6,9): error CS9176: There is no target type for the collection expression.
-                //         []?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 9),
-                // (7,9): error CS9176: There is no target type for the collection expression.
-                //         [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9));
-        }
-
-        [Fact]
-        public void MemberAccess_01_CSharp14()
-        {
-            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
-            // gated by ERR_FeatureInPreview for the first call. Binding continues, so we get
-            // both the lang-version error and the same ERR_NoSuchMember the preview run sees.
-            // The `?.` and `[]` operators on a typeless collection expression continue to
-            // produce ERR_CollectionExpressionNoTargetType regardless of language version.
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        [].GetHashCode();
-                        []?.GetHashCode();
-                        [][0].GetHashCode();
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
-            comp.VerifyEmitDiagnostics(
-                // (5,9): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 9),
-                // (5,12): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
-                //         [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(5, 9),
                 // (6,9): error CS9176: There is no target type for the collection expression.
                 //         []?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 9),
@@ -5054,43 +5013,10 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            // Same pattern as MemberAccess_01: `[1].GetHashCode()` enters the extension-method
-            // search path under the new feature; `?.` and `[]` are out of scope.
             comp.VerifyEmitDiagnostics(
-                // (5,13): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                // (5,9): error CS9176: There is no target type for the collection expression.
                 //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 13),
-                // (6,9): error CS9176: There is no target type for the collection expression.
-                //         [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 9),
-                // (7,9): error CS9176: There is no target type for the collection expression.
-                //         [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3]").WithLocation(7, 9));
-        }
-
-        [Fact]
-        public void MemberAccess_02_CSharp14()
-        {
-            // Same pattern as MemberAccess_01_CSharp14 with non-empty collection literals.
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        [1].GetHashCode();
-                        [2]?.GetHashCode();
-                        [3][0].GetHashCode();
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
-            comp.VerifyEmitDiagnostics(
-                // (5,9): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 9),
-                // (5,13): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
-                //         [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 13),
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1]").WithLocation(5, 9),
                 // (6,9): error CS9176: There is no target type for the collection expression.
                 //         [2]?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 9),
@@ -5114,42 +5040,10 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            // Same pattern as MemberAccess_01 / _02 (with leading `_ =`).
             comp.VerifyEmitDiagnostics(
-                // (5,16): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                // (5,13): error CS9176: There is no target type for the collection expression.
                 //         _ = [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 16),
-                // (6,13): error CS9176: There is no target type for the collection expression.
-                //         _ = []?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 13),
-                // (7,13): error CS9176: There is no target type for the collection expression.
-                //         _ = [][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 13));
-        }
-
-        [Fact]
-        public void MemberAccess_03_CSharp14()
-        {
-            // Same pattern as MemberAccess_01_CSharp14 (with leading `_ =`).
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        _ = [].GetHashCode();
-                        _ = []?.GetHashCode();
-                        _ = [][0].GetHashCode();
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
-            comp.VerifyEmitDiagnostics(
-                // (5,13): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 13),
-                // (5,16): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
-                //         _ = [].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 16),
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(5, 13),
                 // (6,13): error CS9176: There is no target type for the collection expression.
                 //         _ = []?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 13),
@@ -5173,42 +5067,10 @@ static class Program
                 }
                 """;
             var comp = CreateCompilation(source);
-            // Same pattern as MemberAccess_02 (with leading `_ =`).
             comp.VerifyEmitDiagnostics(
-                // (5,17): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                // (5,13): error CS9176: There is no target type for the collection expression.
                 //         _ = [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 17),
-                // (6,13): error CS9176: There is no target type for the collection expression.
-                //         _ = [2]?.GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 13),
-                // (7,13): error CS9176: There is no target type for the collection expression.
-                //         _ = [3][0].GetHashCode();
-                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3]").WithLocation(7, 13));
-        }
-
-        [Fact]
-        public void MemberAccess_04_CSharp14()
-        {
-            // Same pattern as MemberAccess_02_CSharp14 (with leading `_ =`).
-            string source = """
-                class Program
-                {
-                    static void Main()
-                    {
-                        _ = [1].GetHashCode();
-                        _ = [2]?.GetHashCode();
-                        _ = [3][0].GetHashCode();
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
-            comp.VerifyEmitDiagnostics(
-                // (5,13): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         _ = [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 13),
-                // (5,17): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
-                //         _ = [1].GetHashCode();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 17),
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1]").WithLocation(5, 13),
                 // (6,13): error CS9176: There is no target type for the collection expression.
                 //         _ = [2]?.GetHashCode();
                 Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 13),
