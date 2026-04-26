@@ -7919,14 +7919,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
-            if (boundLeft.Kind == BoundKind.UnboundLambda)
-            {
-                Debug.Assert((object)leftType == null);
-
-                var msgId = ((UnboundLambda)boundLeft).MessageID;
-                diagnostics.Add(ErrorCode.ERR_BadUnaryOp, node.Location, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
-                return BadExpression(node, boundLeft);
-            }
+            // Typeless lambdas are routed through TryBindMemberAccessOnTypelessReceiver above,
+            // which owns both the success and HasErrors paths for that kind.
+            Debug.Assert(boundLeft.Kind != BoundKind.UnboundLambda);
 
             boundLeft = BindToNaturalType(boundLeft, diagnostics);
             leftType = boundLeft.Type;
