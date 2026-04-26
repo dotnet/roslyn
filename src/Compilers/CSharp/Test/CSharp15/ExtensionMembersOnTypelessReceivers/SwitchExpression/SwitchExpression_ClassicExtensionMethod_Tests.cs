@@ -36,8 +36,11 @@ public sealed class ExtensionMembersOnTypelessReceivers_SwitchExpression_Classic
     }
 
     [Fact]
-    public void Switch_NoApplicableExtension_ReportsNoSuchMember()
+    public void Switch_NoExtensionInScope_FallsBackToSwitchExpressionNoBestType()
     {
+        // No extension is in scope. The typeless-receiver feature only engages when at least
+        // one extension candidate exists; without one, the helper returns null and the legacy
+        // switch-expression binding produces ERR_SwitchExpressionNoBestType.
         var source = """
             public class Goo
             {
@@ -49,8 +52,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_SwitchExpression_Classic
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (6,46): error CS0117: 'switch expression' does not contain a definition for 'DoesNotExist'
+            // (6,16): error CS8506: No best type was found for the switch expression.
             //         _ = (n switch { 0 => null, _ => 5 }).DoesNotExist();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("<switch expression>", "DoesNotExist").WithLocation(6, 46));
+            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(6, 16));
     }
 }

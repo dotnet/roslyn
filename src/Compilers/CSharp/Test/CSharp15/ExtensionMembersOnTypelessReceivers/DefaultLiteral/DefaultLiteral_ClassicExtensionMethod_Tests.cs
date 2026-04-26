@@ -53,8 +53,11 @@ public sealed class ExtensionMembersOnTypelessReceivers_DefaultLiteral_ClassicEx
     }
 
     [Fact]
-    public void NoApplicableExtension_ReportsNoSuchMember()
+    public void NoExtensionInScope_FallsBackToDefaultLiteralNoTargetType()
     {
+        // No extension is in scope. The typeless-receiver feature only engages when at least
+        // one extension candidate exists; without one, the helper returns null and the legacy
+        // default-literal binding produces ERR_DefaultLiteralNoTargetType.
         var source = """
             public class Goo
             {
@@ -65,8 +68,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_DefaultLiteral_ClassicEx
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,21): error CS0117: 'default' does not contain a definition for 'DoesNotExist'
+            // (5,13): error CS8716: There is no target type for the default literal.
             //         _ = default.DoesNotExist();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("default", "DoesNotExist").WithLocation(5, 21));
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(5, 13));
     }
 }
