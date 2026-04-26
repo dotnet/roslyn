@@ -1239,7 +1239,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // instance methods. Therefore we must detect this scenario here, rather than in
             // overload resolution.
 
-            var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
+            // For extension members on typeless receivers, the receiver-to-parameter conversion is
+            // applied later by CheckAndCoerceArguments using the Conversion stored by overload
+            // resolution. ReplaceTypeOrValueReceiver's default branch calls BindToNaturalType, which
+            // destructively converts typeless forms (collection expression, new(), conditional /
+            // switch with no common type, tuple, default) into error-recovery wrappers. The function's
+            // named purpose (replacing a TypeOrValueExpression or unwrapping a QueryClause) does not
+            // apply here, since both of those wrappers always have a type.
+            var receiver = invokedAsExtensionMethod && methodGroup.Receiver.Type is null
+                ? methodGroup.Receiver
+                : ReplaceTypeOrValueReceiver(methodGroup.Receiver, useType: !method.RequiresInstanceReceiver && !invokedAsExtensionMethod, diagnostics);
 
             if (invokedAsExtensionMethod && (object)receiver != methodGroup.Receiver)
             {
