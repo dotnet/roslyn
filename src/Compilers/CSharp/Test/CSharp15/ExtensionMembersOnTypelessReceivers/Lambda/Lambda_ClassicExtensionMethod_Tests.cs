@@ -223,4 +223,61 @@ public sealed class ExtensionMembersOnTypelessReceivers_Lambda_ClassicExtensionM
             """;
         CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "2525").VerifyDiagnostics();
     }
+
+    [Fact]
+    public void AsyncExtension_OnLambdaReceiver_Executes()
+    {
+        // An async extension method (returning Task<int>) on a typeless lambda receiver
+        // executes correctly: the lambda is the receiver, and the extension awaits a value
+        // computed from invoking it.
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+
+            public static class Ext
+            {
+                public static async Task<int> ApplyAsync(this Func<int, int> f, int arg)
+                {
+                    await Task.Yield();
+                    return f(arg);
+                }
+            }
+
+            public class Goo
+            {
+                public static async Task Main()
+                {
+                    int r = await ((int x) => x + 1).ApplyAsync(41);
+                    System.Console.Write(r);
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void TypelessLambdaReceiver_InsideExpressionTree_Compiles()
+    {
+        // A typeless lambda receiver participating in an extension call inside an
+        // expression-tree lambda compiles cleanly: the inner lambda is typed via the
+        // extension-method receiver inference and the call is captured by the tree.
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            public static class Ext
+            {
+                public static int Apply(this Func<int, int> f, int arg) => f(arg);
+            }
+
+            public class Goo
+            {
+                public static void M()
+                {
+                    Expression<Func<int>> e = () => ((int x) => x + 1).Apply(1);
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+    }
 }
