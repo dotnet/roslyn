@@ -643,5 +643,39 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
         CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.RegularPreview, expectedOutput: "high").VerifyDiagnostics();
     }
 
+    [Fact]
+    public void DynamicArgument_OnTypelessReceiver_ReportsBadArgTypeDynamic()
+    {
+        // Extension methods cannot be dynamically dispatched. With a typeless receiver, the
+        // diagnostic for that situation (CS1973) used to assert that the method group's
+        // ReceiverOpt had a non-null Type - which is never true for a typeless receiver. This
+        // test pins that the call now produces a clean ERR_BadArgTypeDynamicExtension instead
+        // of tripping the assert under debug.
+        var source = """
+            using System.Collections.Generic;
+
+            public static class Ext
+            {
+                public static int CombineWith<T>(this IEnumerable<T> xs, object o) => o.GetHashCode();
+            }
+
+            public class Goo
+            {
+                public static void M()
+                {
+                    dynamic d = 7;
+                    _ = [1, 2, 3].CombineWith(d);
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, references: new[] { CSharpRef }).VerifyDiagnostics(
+            // (13,13): error CS1973: 'collection expression' has no applicable method named 'CombineWith' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+            //         _ = [1, 2, 3].CombineWith(d);
+            Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "[1, 2, 3].CombineWith(d)").WithArguments("collection expression", "CombineWith").WithLocation(13, 13),
+            // (13,13): error CS9176: There is no target type for the collection expression.
+            //         _ = [1, 2, 3].CombineWith(d);
+            Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1, 2, 3]").WithLocation(13, 13));
+    }
+
     #endregion
 }
