@@ -11,8 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.ExtractClass;
-using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Suggestions;
@@ -44,6 +42,7 @@ internal static class CodeActionHelpers
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
+        var services = document.Project.Solution.Services;
         using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var codeActions);
         // VS-LSP support nested code action, but standard LSP doesn't.
         if (hasVsLspCapability)
@@ -58,7 +57,7 @@ internal static class CodeActionHelpers
                 var currentSetNumber = ++currentHighestSetNumber;
                 foreach (var suggestedAction in set.Actions)
                 {
-                    if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                    if (!IsCodeActionNotSupportedByLSP(suggestedAction, services))
                     {
                         codeActions.Add(GenerateVSCodeAction(
                             request, documentText,
@@ -79,7 +78,7 @@ internal static class CodeActionHelpers
             {
                 foreach (var suggestedAction in set.Actions)
                 {
-                    if (!IsCodeActionNotSupportedByLSP(suggestedAction))
+                    if (!IsCodeActionNotSupportedByLSP(suggestedAction, services))
                     {
                         codeActions.AddRange(GenerateCodeActions(
                             request,
@@ -93,13 +92,13 @@ internal static class CodeActionHelpers
         return codeActions.ToArray();
     }
 
-    private static bool IsCodeActionNotSupportedByLSP(SuggestedAction suggestedAction)
-        // Filter out code actions with options since they'll show dialogs and we can't remote the UI and the options.
-        // Exceptions are made for ExtractClass and ExtractInterface because we have OptionsServices which
-        // provide reasonable defaults without user interaction.
-        => (suggestedAction.CodeAction is CodeActionWithOptions
-            && suggestedAction.CodeAction is not ExtractInterfaceCodeAction
-            && suggestedAction.CodeAction is not ExtractClassWithDialogCodeAction)
+    private static bool IsCodeActionNotSupportedByLSP(SuggestedAction suggestedAction, Host.SolutionServices services)
+        // Filter out code actions with options since they'll show dialogs and we can't remote the UI.
+        // Allow through any CodeActionWithOptions that has opted in to a headless mode (either because
+        // it always has reasonable defaults, or because a workspace options service is registered that
+        // can supply defaults without user interaction).
+        => (suggestedAction.CodeAction is CodeActionWithOptions cawo
+            && !cawo.IsApplicableInLspWithoutUI(services))
         // Skip code actions that requires non-document changes.  We can't apply them in LSP currently.
         // https://github.com/dotnet/roslyn/issues/48698
         || suggestedAction.CodeAction.Tags.Contains(CodeAction.RequiresNonDocumentChange);
@@ -319,12 +318,13 @@ internal static class CodeActionHelpers
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
+        var services = document.Project.Solution.Services;
         var _ = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
         foreach (var set in actionSets)
         {
             foreach (var suggestedAction in set.Actions)
             {
-                if (IsCodeActionNotSupportedByLSP(suggestedAction))
+                if (IsCodeActionNotSupportedByLSP(suggestedAction, services))
                 {
                     continue;
                 }
