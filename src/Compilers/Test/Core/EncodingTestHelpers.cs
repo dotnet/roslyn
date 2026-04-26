@@ -32,9 +32,9 @@ public static class EncodingTestHelpers
             yield return info.GetEncoding();
         }
 #else
-            yield return Encoding.ASCII;
-            yield return Encoding.GetEncoding("SJIS");
-            yield return Encoding.GetEncoding(1250);
+        yield return Encoding.ASCII;
+        yield return Encoding.GetEncoding("SJIS");
+        yield return Encoding.GetEncoding(1250);
 #endif
     }
 
