@@ -581,4 +581,66 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
     }
 
     #endregion
+
+    #region Attribute interactions
+
+    [Fact]
+    public void ObsoleteExtensionMethod_OnTypelessReceiver_ReportsObsolete()
+    {
+        // [Obsolete] on an extension method called via a typeless collection-expression
+        // receiver still produces the obsolete diagnostic at the call site.
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            public static class Ext
+            {
+                [Obsolete("don't use", error: true)]
+                public static int CountIt<T>(this IEnumerable<T> xs) => 0;
+            }
+
+            public class Goo
+            {
+                public static void M()
+                {
+                    _ = [1, 2, 3].CountIt();
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (14,13): error CS0619: 'Ext.CountIt<T>(IEnumerable<T>)' is obsolete: 'don't use'
+            //         _ = [1, 2, 3].CountIt();
+            Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "[1, 2, 3].CountIt()").WithArguments("Ext.CountIt<T>(System.Collections.Generic.IEnumerable<T>)", "don't use").WithLocation(14, 13));
+    }
+
+    [Fact]
+    public void OverloadResolutionPriority_OnTypelessReceiver_PicksHigherPriority()
+    {
+        // Two equally-applicable extension candidates differ only in
+        // [OverloadResolutionPriority]. The higher-priority candidate is selected for the
+        // typeless-collection-expression receiver, just as it would be for a typed receiver.
+        var source = """
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            public static class Ext
+            {
+                [OverloadResolutionPriority(1)]
+                public static string Tag(this IEnumerable<int> xs) => "high";
+
+                public static string Tag(this int[] xs) => "low";
+            }
+
+            public class Goo
+            {
+                public static void Main()
+                {
+                    System.Console.Write([1, 2, 3].Tag());
+                }
+            }
+            """;
+        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.RegularPreview, expectedOutput: "high").VerifyDiagnostics();
+    }
+
+    #endregion
 }
