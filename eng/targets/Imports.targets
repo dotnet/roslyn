@@ -69,7 +69,7 @@
     Usage:
     > dotnet build src\CodeStyle\CSharp\Analyzers -p:DotNetUseShippingVersions=true -o artifacts\dogfood\codestyle
     > .\eng\make-bootstrap.ps1
-    > dotnet build -p:DogfoodCodeStyleAnalyzers=artifacts\dogfood\codestyle -p:RoslynEnforceCodeStyle=true -p:RunAnalyzersDuringBuild=true "-p:BootstrapBuildPath=$(pwd)\artifacts\bootstrap\local"
+    > dotnet build "-p:DogfoodCodeStyleAnalyzers=$(pwd)\artifacts\dogfood\codestyle" -p:RoslynEnforceCodeStyle=true -p:RunAnalyzersDuringBuild=true "-p:BootstrapBuildPath=$(pwd)\artifacts\bootstrap\local"
   -->
   <Target Name="_DogfoodCodeStyleAnalyzers"
           BeforeTargets="CoreCompile"
