@@ -127,8 +127,12 @@ public sealed class ExtensionMembersOnTypelessReceivers_Lambda_ClassicExtensionM
     }
 
     [Fact]
-    public void NoApplicableExtension_ReportsNoSuchMember()
+    public void NoExtensionInScope_FallsBackToBadUnaryOp()
     {
+        // No extension method named DoesNotExist is in scope. The typeless-receiver feature
+        // only engages when at least one extension candidate exists; without one, the helper
+        // returns null and the legacy unbound-lambda rejection in BindMemberAccessWithBoundLeft
+        // produces the pre-feature ERR_BadUnaryOp.
         var source = """
             public class Goo
             {
@@ -139,9 +143,9 @@ public sealed class ExtensionMembersOnTypelessReceivers_Lambda_ClassicExtensionM
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,22): error CS0117: 'lambda expression' does not contain a definition for 'DoesNotExist'
+            // (5,13): error CS0023: Operator '.' cannot be applied to operand of type 'lambda expression'
             //         _ = (x => x).DoesNotExist();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("lambda expression", "DoesNotExist").WithLocation(5, 22));
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "(x => x).DoesNotExist").WithArguments(".", "lambda expression").WithLocation(5, 13));
     }
 
     [Fact]
