@@ -342,11 +342,13 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
     }
 
     [Fact]
-    public void NoExtensionInScope_ReportsNoSuchMember()
+    public void NoExtensionInScope_FallsBackToCollectionExpressionNoTargetType()
     {
-        // No extension method named Count is in scope. The receiver enters extension lookup
-        // (collection expression has no instance members), finds nothing, and reports
-        // "collection expression does not contain a definition for Count".
+        // No extension method named Count is in scope. The typeless-receiver feature only
+        // engages when at least one extension candidate exists; without one, the helper
+        // returns null and the legacy `BindToNaturalType` path produces the pre-feature
+        // ERR_CollectionExpressionNoTargetType. This avoids a misleading "feature is in
+        // Preview" diagnostic for a plain typo where no extension would have applied either.
         var source = """
             public class Goo
             {
@@ -357,9 +359,9 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,23): error CS0117: 'collection expression' does not contain a definition for 'Count'
+            // (5,13): error CS9176: There is no target type for the collection expression.
             //         _ = [1, 2, 3].Count();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Count").WithArguments("collection expression", "Count").WithLocation(5, 23));
+            Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1, 2, 3]").WithLocation(5, 13));
     }
 
     [Fact]
@@ -394,13 +396,12 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
     }
 
     [Fact]
-    public void HasErroredElement_DoesNotEnterTypelessPath()
+    public void HasErroredElement_ProducesOnlyInnerError()
     {
         // Collection expression with an undeclared element causes the receiver to bind with
-        // HasErrors=true. The typeless-receiver feature path short-circuits in that case so
-        // the user sees the inner "name does not exist" error without an additional cascading
-        // diagnostic about an unsupported feature, and the existing collection-expression
-        // diagnostics still apply.
+        // HasErrors=true. TryBindMemberAccessOnTypelessReceiver takes ownership of the errored
+        // case and returns a BoundBadExpression, so the user sees only the inner "name does
+        // not exist" error - no cascading "no target type" diagnostic on top.
         var source = """
             using System.Collections.Generic;
 
