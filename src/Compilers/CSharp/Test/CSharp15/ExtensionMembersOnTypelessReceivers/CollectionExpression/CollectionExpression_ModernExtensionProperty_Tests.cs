@@ -174,8 +174,12 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Mod
     // scope (the diagnostic-reporting bug also affects typed receivers in the same scenario).
 
     [Fact]
-    public void Property_NoCandidateInScope_ReportsNoSuchMember()
+    public void Property_NoCandidateInScope_FallsBackToCollectionExpressionNoTargetType()
     {
+        // No extension property `Length` is in scope. The typeless-receiver feature only
+        // engages when at least one extension candidate exists; without one, the helper
+        // returns null and the legacy `BindToNaturalType` path produces the pre-feature
+        // ERR_CollectionExpressionNoTargetType.
         var source = """
             public class Goo
             {
@@ -186,9 +190,9 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Mod
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,23): error CS0117: 'collection expression' does not contain a definition for 'Length'
+            // (5,13): error CS9176: There is no target type for the collection expression.
             //         _ = [1, 2, 3].Length;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("collection expression", "Length").WithLocation(5, 23));
+            Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[1, 2, 3]").WithLocation(5, 13));
     }
 
     [Fact]
