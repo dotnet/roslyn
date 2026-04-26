@@ -394,13 +394,12 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Cla
     }
 
     [Fact]
-    public void HasErroredElement_DoesNotEnterTypelessPath()
+    public void HasErroredElement_ProducesOnlyInnerError()
     {
         // Collection expression with an undeclared element causes the receiver to bind with
-        // HasErrors=true. The typeless-receiver feature path short-circuits in that case so
-        // the user sees the inner "name does not exist" error without an additional cascading
-        // diagnostic about an unsupported feature, and the existing collection-expression
-        // diagnostics still apply.
+        // HasErrors=true. TryBindMemberAccessOnTypelessReceiver takes ownership of the errored
+        // case and returns a BoundBadExpression, so the user sees only the inner "name does
+        // not exist" error - no cascading "no target type" diagnostic on top.
         var source = """
             using System.Collections.Generic;
 
