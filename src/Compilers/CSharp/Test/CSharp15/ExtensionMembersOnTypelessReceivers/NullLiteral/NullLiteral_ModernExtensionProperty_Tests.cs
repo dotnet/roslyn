@@ -36,8 +36,10 @@ public sealed class ExtensionMembersOnTypelessReceivers_NullLiteral_ModernExtens
     }
 
     [Fact]
-    public void Property_NoCandidateInScope_ReportsNoSuchMember()
+    public void Property_NoCandidateInScope_FallsBackToBadUnaryOp()
     {
+        // No extension is in scope. Helper returns null; legacy "operator '.' cannot be applied
+        // to <null>" diagnostic fires.
         var source = """
             public class Goo
             {
@@ -48,8 +50,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_NullLiteral_ModernExtens
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,18): error CS0117: '<null>' does not contain a definition for 'DoesNotExist'
+            // (5,13): error CS0023: Operator '.' cannot be applied to operand of type '<null>'
             //         _ = null.DoesNotExist;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("<null>", "DoesNotExist").WithLocation(5, 18));
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "null.DoesNotExist").WithArguments(".", "<null>").WithLocation(5, 13));
     }
 }
