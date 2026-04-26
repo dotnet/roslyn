@@ -8301,12 +8301,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         /// <summary>
         /// A method-group receiver is "valid" for the typeless-extension-receiver path when its
-        /// lookup was viable and produced at least one candidate. This is the same gate that
-        /// <see cref="GetMethodGroupDelegateType(BoundMethodGroup)"/> uses to decide whether a
-        /// method group could naturally have a delegate type. Inaccessible lookups, ambiguous
-        /// lookups, and empty / errored method groups (e.g. inaccessible nested-type lookups that
-        /// fell through to extension search and found nothing) fall back to the existing diagnostic
-        /// instead of being routed through the new feature.
+        /// lookup was viable and produced at least one candidate. This is the same conceptual
+        /// gate that <see cref="GetUniqueSignatureFromMethodGroup(BoundMethodGroup, out bool)"/>
+        /// applies to the instance-method branch when computing whether a method group could
+        /// naturally have a delegate type (the inlined <c>ResultKind == LookupResultKind.Viable</c>
+        /// guard around its instance-methods loop). The natural-type code adds a
+        /// signature-uniqueness check on top, which we don't need here. Inaccessible lookups,
+        /// ambiguous lookups, and empty / errored method groups (e.g. inaccessible nested-type
+        /// lookups that fell through to extension search and found nothing) fall back to the
+        /// existing diagnostic instead of being routed through the new feature.
         /// </summary>
         private static bool IsValidMethodGroupReceiver(BoundMethodGroup methodGroup)
             => methodGroup.ResultKind == LookupResultKind.Viable && methodGroup.Methods.Length > 0;
@@ -8354,15 +8357,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName
-                ? ((GenericNameSyntax)right).TypeArgumentList.Arguments
-                : default(SeparatedSyntaxList<TypeSyntax>);
-            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0
-                ? BindTypeArguments(typeArgumentsSyntax, diagnostics)
-                : default(ImmutableArray<TypeWithAnnotations>);
-            var rightName = right.Identifier.ValueText;
-            var rightArity = right.Arity;
-
             // Only route through the new feature when there is at least one extension member
             // candidate by this name in scope. Without this check, every typo on a typeless
             // receiver (e.g. `(() => {}).GetType()`) would emit a misleading "feature is in
@@ -8371,6 +8365,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // lets the caller's existing kind-specific rejections (ERR_BadUnaryOp on a lambda,
             // ERR_BadOpOnNullOrDefaultOrNew on default, ERR_CollectionExpressionNoTargetType
             // through BindToNaturalType, etc.) produce their pre-feature diagnostics.
+            var rightName = right.Identifier.ValueText;
+            var rightArity = right.Arity;
             if (!HasExtensionMemberCandidateInScope(rightName, rightArity))
             {
                 return null;
@@ -8382,6 +8378,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // language version, even when the version diagnostic is reported.
             MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
 
+            var typeArgumentsSyntax = right is GenericNameSyntax { TypeArgumentList.Arguments: var arguments } ? arguments : default;
+            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default;
             boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
             return BindInstanceMemberAccess(
                 node, right, boundLeft, rightName, rightArity,
