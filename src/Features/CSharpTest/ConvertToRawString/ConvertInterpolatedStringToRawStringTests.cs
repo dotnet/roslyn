@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString;
@@ -1294,7 +1295,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestStringWithNewLine()
         => VerifyRefactoringAsync("""
             public class C
@@ -1365,7 +1366,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestStringWithNewLineAtStartAndEnd()
         => VerifyRefactoringAsync("""
             public class C
@@ -1465,7 +1466,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIndentedString()
         => VerifyRefactoringAsync("""
             public class C
@@ -1515,7 +1516,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """", index: 1);
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIndentedStringTopLevel()
         => VerifyRefactoringAsync("""
             var v = [||]$"goo\r\nbar";
@@ -1565,7 +1566,7 @@ public sealed class ConvertInterpolatedStringToRawStringTests
             }
             """");
 
-    [Fact]
+    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
     public Task TestIndentedStringOnOwnLine()
         => VerifyRefactoringAsync("""
             public class C

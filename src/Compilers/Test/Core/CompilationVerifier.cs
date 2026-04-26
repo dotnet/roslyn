@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     builder.AppendLine(AssertEx.GetAssertMessage(expected[i], actual[i], prefix: names[i], escapeQuotes: true));
                 }
-                Assert.True(false, builder.ToString());
+                Assert.Fail(builder.ToString());
             }
             actual.Free();
             expected.Free();

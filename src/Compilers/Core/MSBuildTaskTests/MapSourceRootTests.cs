@@ -340,7 +340,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
                     "MapSourceRoots.ContainsDuplicate", "SourceRoot", Utilities.GetFullPathNoThrow(path1), "SourceLinkUrl", "URL1", "URL2")) + Environment.NewLine,
                 engine.Log);
 
-            AssertEx.NotNull(task.MappedSourceRoots);
+            Assert.NotNull(task.MappedSourceRoots);
             AssertEx.Equal(string.Join("\n",
             [
                 $"'{Utilities.GetFullPathNoThrow(path1)}' SourceControl='git' RevisionId='RevId1' NestedRoot='NR1A' ContainingRoot='{(deterministic ? Utilities.GetFullPathNoThrow(path3) : path3)}' MappedPath='{(deterministic ? "/_/NR1A/" : Utilities.GetFullPathNoThrow(path1))}' SourceLinkUrl='URL1'",
@@ -445,7 +445,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             }
             else
             {
-                AssertEx.NotNull(task.MappedSourceRoots);
+                Assert.NotNull(task.MappedSourceRoots);
                 AssertEx.Equal(string.Join("\n",
                 [
                     $"'{Utilities.GetFullPathNoThrow(path1)}' SourceControl='' RevisionId='' NestedRoot='a/b' ContainingRoot='{(deterministic ? Utilities.GetFullPathNoThrow(path1) : path1)}' MappedPath='{Utilities.GetFullPathNoThrow(path1)}' SourceLinkUrl=''",
@@ -488,7 +488,7 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
             var expectedContainingRoot = deterministic ? Utilities.GetFullPathNoThrow(normalizedPath1) : originalPath1;
             var expectedMappedPath2 = deterministic ? "/_/e/" : Utilities.GetFullPathNoThrow(normalizedPath2);
 
-            AssertEx.NotNull(task.MappedSourceRoots);
+            Assert.NotNull(task.MappedSourceRoots);
             AssertEx.Equal(
                 $"""
                 '{Utilities.GetFullPathNoThrow(normalizedPath1)}' SourceControl='' RevisionId='' NestedRoot='' ContainingRoot='' MappedPath='{expectedMappedPath1}' SourceLinkUrl=''
@@ -500,4 +500,3 @@ ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslas
         }
     }
 }
-

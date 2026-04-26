@@ -23,6 +23,17 @@ jobs:
         with:
           global-json-file: global.json
 
+      - name: Install .NET agent skills
+        continue-on-error: true
+        run: |
+          copilot plugin marketplace add dotnet/skills || true
+          copilot plugin install dotnet@dotnet-agent-skills || true
+          copilot plugin install dotnet-diag@dotnet-agent-skills || true
+          copilot plugin install dotnet-msbuild@dotnet-agent-skills || true
+          copilot plugin install dotnet-nuget@dotnet-agent-skills || true
+          copilot plugin install dotnet-test@dotnet-agent-skills || true
+          copilot plugin list || true
+
       # Restore dependencies - this is critical for Copilot to understand the project structure
       - name: Restore dependencies
         continue-on-error: true
@@ -38,6 +49,7 @@ jobs:
         run: |
           dotnet tool install --global dotnet-format
           dotnet tool install --global complog
+          dotnet tool install --global roslyn-language-server --prerelease
 
       # Setup PATH to include .NET tools
       - name: Setup PATH
@@ -57,5 +69,9 @@ jobs:
           ls -la
           echo "=== Build artifacts ==="
           ls -la artifacts/ || true
+          echo "=== Copilot personal skills ==="
+          find "$HOME/.copilot/skills" -mindepth 1 -maxdepth 1 -type d | sort || true
+          echo "=== Roslyn language server ==="
+          roslyn-language-server --help | head -n 5 || true
           echo "=== Global.json ==="
           cat global.json

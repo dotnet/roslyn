@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.LiveShareLspServer), Shared]
@@ -15,7 +16,7 @@ using Roslyn.LanguageServer.Protocol;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LiveShareCapabilitiesProvider(DefaultCapabilitiesProvider defaultCapabilitiesProvider, IGlobalOptionService globalOptionService) : ICapabilitiesProvider
 {
-    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
+    public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
         var isLspEditorEnabled = globalOptionService.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
@@ -33,7 +34,7 @@ internal sealed class LiveShareCapabilitiesProvider(DefaultCapabilitiesProvider 
             };
         }
 
-        var defaultCapabilities = defaultCapabilitiesProvider.GetCapabilities(clientCapabilities);
+        var defaultCapabilities = defaultCapabilitiesProvider.GetCapabilities(clientCapabilities, lspServices);
 
         // If the LSP semantic tokens feature flag is enabled, advertise no semantic tokens capabilities for this Live Share
         // LSP server as LSP semantic tokens requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and
