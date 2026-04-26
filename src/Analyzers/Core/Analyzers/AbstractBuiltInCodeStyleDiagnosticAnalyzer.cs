@@ -45,6 +45,26 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
     }
 
     /// <summary>
+    /// Constructor for a code style analyzer that has custom severity configuration
+    /// (e.g., via multiple editorconfig properties) but no single <see cref="IOption2"/> to register.
+    /// </summary>
+    /// <param name="hasAnyCodeStyleOption">
+    /// When <see langword="true"/>, the diagnostic descriptor is tagged so the compiler doesn't suppress the analyzer on build.
+    /// </param>
+    protected AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        string diagnosticId,
+        EnforceOnBuild enforceOnBuild,
+        bool hasAnyCodeStyleOption,
+        LocalizableString title,
+        LocalizableString? messageFormat = null,
+        bool isUnnecessary = false,
+        bool configurable = true)
+        : this(diagnosticId, enforceOnBuild, title, messageFormat, isUnnecessary, configurable,
+               hasAnyCodeStyleOption)
+    {
+    }
+
+    /// <summary>
     /// Constructor for a code style analyzer with a single diagnostic descriptor and
     /// two or more <see cref="IOption2 "/> code style options.
     /// </summary>

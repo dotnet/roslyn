@@ -23,7 +23,7 @@ internal abstract class NamingStyleDiagnosticAnalyzerBase<TLanguageKindEnum>
     protected NamingStyleDiagnosticAnalyzerBase()
         : base(IDEDiagnosticIds.NamingRuleId,
                EnforceOnBuildValues.NamingRule,
-               option: NamingStyleOptions.NamingPreferences,
+               hasAnyCodeStyleOption: true,    // Naming rules use dotnet_naming_rule.*.severity for custom severity configuration
                s_localizableTitleNamingStyle,
                s_localizableMessageFormat)
     {
