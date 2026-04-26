@@ -63,8 +63,11 @@ public sealed class ExtensionMembersOnTypelessReceivers_Lambda_ModernExtensionPr
     }
 
     [Fact]
-    public void Property_NoCandidateInScope_ReportsNoSuchMember()
+    public void Property_NoCandidateInScope_FallsBackToBadUnaryOp()
     {
+        // No extension property `Length` is in scope. The typeless-receiver feature only
+        // engages when at least one extension candidate exists; without one, the helper
+        // returns null and the legacy unbound-lambda rejection produces ERR_BadUnaryOp.
         var source = """
             public class Goo
             {
@@ -75,8 +78,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_Lambda_ModernExtensionPr
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,22): error CS0117: 'lambda expression' does not contain a definition for 'Length'
+            // (5,13): error CS0023: Operator '.' cannot be applied to operand of type 'lambda expression'
             //         _ = (x => x).Length;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("lambda expression", "Length").WithLocation(5, 22));
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "(x => x).Length").WithArguments(".", "lambda expression").WithLocation(5, 13));
     }
 }
