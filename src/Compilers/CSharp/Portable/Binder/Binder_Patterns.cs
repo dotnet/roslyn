@@ -166,15 +166,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            PropertySymbol? hasValueProperty = TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo);
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
 
-            if (hasValueProperty?.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+            if (membersInterfaceForDefinition is not null)
             {
-                return null; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
+                foreach (var member in membersInterfaceForDefinition.GetMembers(WellKnownMemberNames.HasValuePropertyName))
+                {
+                    if (isSuitableProperty(member, out PropertySymbol? valueProperty))
+                    {
+                        return checkAndReturnProperty(valueProperty.AsMember(membersInterfaceForDefinition.AsMember(inputUnionType)));
+                    }
+                }
+
+                return null;
+            }
+            else
+            {
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                return checkAndReturnProperty(TryGetOwnOrInheritedUnionProperty(inputUnionType, WellKnownMemberNames.HasValuePropertyName, isSuitableProperty, ref useSiteInfo));
             }
 
-            return hasValueProperty;
+            static PropertySymbol? checkAndReturnProperty(PropertySymbol? hasValueProperty)
+            {
+                if (hasValueProperty?.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity == DiagnosticSeverity.Error)
+                {
+                    return null; // https://github.com/dotnet/roslyn/issues/82636: Cover this code path
+                }
+
+                return hasValueProperty;
+            }
 
             static bool isSuitableProperty(Symbol m, [NotNullWhen(true)] out PropertySymbol? hasValueProperty)
             {
