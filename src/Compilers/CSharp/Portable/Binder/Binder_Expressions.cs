@@ -8300,14 +8300,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// A method-group receiver is "valid" for the typeless-extension-receiver path when it has
-        /// at least one candidate method and no lookup error. Empty / errored method groups
-        /// (produced when an inaccessible nested-type lookup or other failed lookup falls through
-        /// to extension-method search and finds nothing) should fall back to the existing
-        /// diagnostic instead of being routed through the new feature.
+        /// A method-group receiver is "valid" for the typeless-extension-receiver path when its
+        /// lookup was viable and produced at least one candidate. This is the same gate that
+        /// <see cref="GetMethodGroupDelegateType(BoundMethodGroup)"/> uses to decide whether a
+        /// method group could naturally have a delegate type. Inaccessible lookups, ambiguous
+        /// lookups, and empty / errored method groups (e.g. inaccessible nested-type lookups that
+        /// fell through to extension search and found nothing) fall back to the existing diagnostic
+        /// instead of being routed through the new feature.
         /// </summary>
         private static bool IsValidMethodGroupReceiver(BoundMethodGroup methodGroup)
-            => methodGroup.Methods.Length > 0 && methodGroup.LookupError is null;
+            => methodGroup.ResultKind == LookupResultKind.Viable && methodGroup.Methods.Length > 0;
 
         /// <summary>
         /// If the receiver expression has no type and is a supported typeless form, route the
