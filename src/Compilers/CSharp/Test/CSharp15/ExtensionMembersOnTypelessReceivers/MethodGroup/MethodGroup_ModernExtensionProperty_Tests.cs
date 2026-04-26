@@ -45,8 +45,11 @@ public sealed class ExtensionMembersOnTypelessReceivers_MethodGroup_ModernExtens
     // generic property test; tracked separately, outside this PR's scope.
 
     [Fact]
-    public void Property_NoCandidateInScope_ReportsNoSuchMember()
+    public void Property_NoCandidateInScope_FallsBackToBadSKunknown()
     {
+        // No extension property `Length` is in scope. The typeless-receiver feature only
+        // engages when at least one extension candidate exists; without one, the helper
+        // returns null and the legacy method-group binding produces ERR_BadSKunknown.
         var source = """
             public class Goo
             {
@@ -58,8 +61,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_MethodGroup_ModernExtens
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (6,20): error CS0117: 'method group' does not contain a definition for 'Length'
+            // (6,13): error CS0119: 'Goo.Square(int)' is a method, which is not valid in the given context
             //         _ = Square.Length;
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("method group", "Length").WithLocation(6, 20));
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "Square").WithArguments("Goo.Square(int)", "method").WithLocation(6, 13));
     }
 }
