@@ -7082,7 +7082,7 @@ class C
                 return methodDef.GetDeclaringType() == attributeTypeDefHandle && reader0.StringComparer.Equals(methodDef.Name, ".ctor");
             });
 
-            void ValidateReplacedType(CompilationDifference diff, MetadataReader[] readers)
+            void validateReplacedType(CompilationDifference diff, MetadataReader[] readers)
             {
                 var generation = diff.NextGeneration.Ordinal;
                 var reader = readers[generation];
@@ -7144,7 +7144,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c1)));
 
             using var md1 = diff1.GetMetadata();
-            ValidateReplacedType(diff1, new[] { reader0, md1.Reader });
+            validateReplacedType(diff1, new[] { reader0, md1.Reader });
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -7152,7 +7152,7 @@ class C
                     SemanticEdit.Create(SemanticEditKind.Replace, null, c2)));
 
             using var md2 = diff2.GetMetadata();
-            ValidateReplacedType(diff2, new[] { reader0, md1.Reader, md2.Reader });
+            validateReplacedType(diff2, new[] { reader0, md1.Reader, md2.Reader });
 
             // This update is an EnC update - even reloadable types are updated in-place
             var diff3 = compilation3.EmitDifference(

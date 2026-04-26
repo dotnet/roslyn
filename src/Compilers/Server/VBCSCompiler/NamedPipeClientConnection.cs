@@ -63,11 +63,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // The result is deliberately discarded here. The idea is to kick off the monitor code and 
             // when it completes it will trigger the task. Don't want to block on that here.
-            _ = MonitorDisconnectAsync();
+            _ = monitorDisconnectAsync();
 
             return request;
 
-            async Task MonitorDisconnectAsync()
+            async Task monitorDisconnectAsync()
             {
                 try
                 {

@@ -24,16 +24,16 @@ namespace Roslyn.Test.Utilities
         {
             var dotNetExeName = "dotnet" + (Path.DirectorySeparatorChar == '/' ? "" : ".exe");
 
-            bool DotNetExeExists(string? directory)
+            bool dotNetExeExists(string? directory)
                 => directory != null
                 && File.Exists(Path.Combine(directory, dotNetExeName));
 
             var dotNetInstallDir = Environment.GetEnvironmentVariable("DOTNET_INSTALL_DIR");
-            if (!DotNetExeExists(dotNetInstallDir))
+            if (!dotNetExeExists(dotNetInstallDir))
             {
                 dotNetInstallDir = Environment.GetEnvironmentVariable("PATH")!
                     .Split(Path.PathSeparator)
-                    .FirstOrDefault(DotNetExeExists);
+                    .FirstOrDefault(dotNetExeExists);
             }
 
             if (dotNetInstallDir != null)

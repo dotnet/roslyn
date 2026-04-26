@@ -122,16 +122,16 @@ typeKind + " Test1 " + @": I1
                     Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                     compilation1.VerifyDiagnostics();
 
-                    void Validate1(ModuleSymbol m)
+                    void validate1(ModuleSymbol m)
                     {
                         ValidateMethodImplementationTest1_011(m, "void I1.M1()", isStatic);
                     }
 
-                    Validate1(compilation1.SourceModule);
+                    validate1(compilation1.SourceModule);
 
                     CompileAndVerify(compilation1,
                                      expectedOutput: Execute(isStatic) ? "M1" : null,
-                                     verify: Verify(isStatic), symbolValidator: Validate1);
+                                     verify: Verify(isStatic), symbolValidator: validate1);
 
                     string source2;
 
@@ -173,17 +173,17 @@ typeKind + " Test2 " + @": I1
                                                              targetFramework: TargetFramework.Net60);
                         Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-                        void Validate2(ModuleSymbol m)
+                        void validate2(ModuleSymbol m)
                         {
                             ValidateMethodImplementationTest2_011(m, "void I1.M1()");
                         }
 
-                        Validate2(compilation2.SourceModule);
+                        validate2(compilation2.SourceModule);
 
                         compilation2.VerifyDiagnostics();
                         CompileAndVerify(compilation2,
                                          expectedOutput: Execute(isStatic) ? "M1" : null,
-                                         verify: Verify(isStatic), symbolValidator: Validate2);
+                                         verify: Verify(isStatic), symbolValidator: validate2);
                     }
                 }
             }
@@ -293,16 +293,16 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 ValidateMethodImplementationTest1_011(m, "void Test1.M1()", isStatic);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                              expectedOutput: Execute(isStatic) ? "Test1 M1" : null,
-                             verify: Verify(isStatic), symbolValidator: Validate1);
+                             verify: Verify(isStatic), symbolValidator: validate1);
 
             var source2 =
 @"
@@ -349,27 +349,27 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate2(ModuleSymbol m)
+            void validate2(ModuleSymbol m)
             {
                 ValidateMethodImplementationTest2_011(m, "void Test2.M1()");
             }
 
-            Validate2(compilation2.SourceModule);
+            validate2(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
                              expectedOutput: Execute(isStatic) ? "Test2 M1" : null,
-                             verify: Verify(isStatic), symbolValidator: Validate2);
+                             verify: Verify(isStatic), symbolValidator: validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            Validate2(compilation3.SourceModule);
+            validate2(compilation3.SourceModule);
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
                              expectedOutput: Execute(isStatic) ? "Test2 M1" : null,
-                             verify: Verify(isStatic), symbolValidator: Validate2);
+                             verify: Verify(isStatic), symbolValidator: validate2);
         }
 
         [Theory]
@@ -433,16 +433,16 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 ValidateMethodImplementationTest1_011(m, "void Test1.I1.M1()", isStatic);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                              expectedOutput: Execute(isStatic) ? "Test1 M1" : null,
-                             verify: Verify(isStatic), symbolValidator: Validate1);
+                             verify: Verify(isStatic), symbolValidator: validate1);
 
             var source2 =
 @"
@@ -489,28 +489,28 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate2(ModuleSymbol m)
+            void validate2(ModuleSymbol m)
             {
                 ValidateMethodImplementationTest2_011(m, "void Test2.I1.M1()");
             }
 
-            Validate2(compilation2.SourceModule);
+            validate2(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
                              expectedOutput: Execute(isStatic) ? "Test2 M1" : null,
-                             verify: Verify(isStatic), symbolValidator: Validate2);
+                             verify: Verify(isStatic), symbolValidator: validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            Validate2(compilation3.SourceModule);
+            validate2(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
                              expectedOutput: Execute(isStatic) ? "Test2 M1" : null,
-                             verify: Verify(isStatic), symbolValidator: Validate2);
+                             verify: Verify(isStatic), symbolValidator: validate2);
         }
 
         [Theory]
@@ -584,7 +584,7 @@ class Test : I1 {}
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var m1 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M1");
                 var m2 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M2");
@@ -595,7 +595,7 @@ class Test : I1 {}
                 Assert.Same(m2, derived.FindImplementationForInterfaceMember(m2));
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic) ? null :
@@ -607,7 +607,7 @@ M2",
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -682,7 +682,7 @@ class Test : I1 {}
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var m1 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M1");
                 var m2 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M2");
@@ -693,7 +693,7 @@ class Test : I1 {}
                 Assert.Same(m2, derived.FindImplementationForInterfaceMember(m2));
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic) ? null :
@@ -705,7 +705,7 @@ M2",
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -784,7 +784,7 @@ class Test : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var m1 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M1");
                 var m2 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M2");
@@ -795,7 +795,7 @@ class Test : I1
                 Assert.Equal("void Test.I1.M2()", derived.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
@@ -807,7 +807,7 @@ Test.M2",
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -886,7 +886,7 @@ class Test : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var m1 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M1");
                 var m2 = m.GlobalNamespace.GetMember<MethodSymbol>("I1.M2");
@@ -897,7 +897,7 @@ class Test : I1
                 Assert.Equal("void Test.M2()", derived.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
@@ -909,7 +909,7 @@ Test.M2",
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -2585,16 +2585,16 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 ValidatePropertyImplementationTest1_101(m, propertyName, haveGet, haveSet, isStatic);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
             CompileAndVerify(compilation1,
                 expectedOutput: Execute(isStatic) ? expectedOutput : null,
                 verify: Verify(isStatic),
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
             var source2 =
 @"
@@ -2638,29 +2638,29 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate2(ModuleSymbol m)
+            void validate2(ModuleSymbol m)
             {
                 ValidatePropertyImplementationTest2_101(m, propertyName, haveGet, haveSet);
             }
 
-            Validate2(compilation2.SourceModule);
+            validate2(compilation2.SourceModule);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
                 expectedOutput: Execute(isStatic) ? expectedOutput : null,
                 verify: Verify(isStatic),
-                symbolValidator: Validate2);
+                symbolValidator: validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            Validate2(compilation3.SourceModule);
+            validate2(compilation3.SourceModule);
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
                 expectedOutput: Execute(isStatic) ? expectedOutput : null,
                 verify: Verify(isStatic),
-                symbolValidator: Validate2);
+                symbolValidator: validate2);
         }
 
         private static void ValidatePropertyImplementationTest1_101(ModuleSymbol m, string propertyName, bool haveGet, bool haveSet, bool isStatic)
@@ -2673,7 +2673,7 @@ class Test2 : I1
 
             if (haveGet)
             {
-                ValidateAccessor(p1.GetMethod);
+                validateAccessor(p1.GetMethod);
             }
             else
             {
@@ -2682,14 +2682,14 @@ class Test2 : I1
 
             if (haveSet)
             {
-                ValidateAccessor(p1.SetMethod);
+                validateAccessor(p1.SetMethod);
             }
             else
             {
                 Assert.Null(p1.SetMethod);
             }
 
-            void ValidateAccessor(MethodSymbol accessor)
+            void validateAccessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -3996,7 +3996,7 @@ class Test : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var p1 = m.GlobalNamespace.GetMember<PropertySymbol>("I1.P1");
                 var p2 = m.GlobalNamespace.GetMember<PropertySymbol>("I1.P2");
@@ -4030,7 +4030,7 @@ class Test : I1
                 Assert.Equal("void Test.I1.P8.set", derived.FindImplementationForInterfaceMember(p8.SetMethod).ToTestDisplayString());
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
@@ -4051,7 +4051,7 @@ class Test : I1
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -4148,7 +4148,7 @@ class Test : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var p1 = m.GlobalNamespace.GetMember<PropertySymbol>("I1.P1");
                 var p2 = m.GlobalNamespace.GetMember<PropertySymbol>("I1.P2");
@@ -4182,7 +4182,7 @@ class Test : I1
                 Assert.Equal("void Test.P8.set", derived.FindImplementationForInterfaceMember(p8.SetMethod).ToTestDisplayString());
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
@@ -4203,7 +4203,7 @@ class Test : I1
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -5605,7 +5605,7 @@ class Test : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var indexers = i1.GetMembers("this[]");
@@ -5659,7 +5659,7 @@ class Test : I1
                 }
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -5680,7 +5680,7 @@ class Test : I1
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -5750,7 +5750,7 @@ class Test : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var indexers = i1.GetMembers("this[]");
@@ -5786,7 +5786,7 @@ class Test : I1
                 Assert.Equal("void Test.this[System.UInt64 i].set", derived.FindImplementationForInterfaceMember(p8.SetMethod).ToTestDisplayString());
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -5807,7 +5807,7 @@ class Test : I1
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -6381,15 +6381,15 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate2(ModuleSymbol m)
+            void validate2(ModuleSymbol m)
             {
                 ValidateEventImplementationTest2_101(m, haveAdd, haveRemove);
             }
 
-            Validate2(compilation2.SourceModule);
+            validate2(compilation2.SourceModule);
             compilation2.VerifyDiagnostics();
             Assert.NotEmpty(expected);
-            CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
+            CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate2);
         }
 
         private static void ValidateEventImplementationTest1_101(ModuleSymbol m, bool haveAdd, bool haveRemove, bool isStatic = false)
@@ -6401,7 +6401,7 @@ class Test2 : I1
 
             if (haveAdd)
             {
-                ValidateAccessor(addE1);
+                validateAccessor(addE1);
             }
             else
             {
@@ -6410,14 +6410,14 @@ class Test2 : I1
 
             if (haveRemove)
             {
-                ValidateAccessor(rmvE1);
+                validateAccessor(rmvE1);
             }
             else
             {
                 Assert.Null(rmvE1);
             }
 
-            void ValidateAccessor(MethodSymbol accessor)
+            void validateAccessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -6555,12 +6555,12 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 ValidateEventImplementationTest1_101(m, haveAdd: true, haveRemove: true, isStatic: isStatic);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic) ? null :
@@ -6568,7 +6568,7 @@ class Test1 : I1
 remove E1
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
             var source2 =
 @"
@@ -6611,12 +6611,12 @@ class Test2 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate2(ModuleSymbol m)
+            void validate2(ModuleSymbol m)
             {
                 ValidateEventImplementationTest2_101(m, haveAdd: true, haveRemove: true);
             }
 
-            Validate2(compilation2.SourceModule);
+            validate2(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
@@ -6625,14 +6625,14 @@ class Test2 : I1
 remove E1
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate2);
+                symbolValidator: validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            Validate2(compilation3.SourceModule);
+            validate2(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
@@ -6641,7 +6641,7 @@ remove E1
 remove E1
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate2);
+                symbolValidator: validate2);
         }
 
         [Theory]
@@ -7155,7 +7155,7 @@ class Test : I1
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E7").WithArguments("Base.E7").WithLocation(10, 25 + implModifiers.Length)
                 );
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
                 var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
@@ -7171,7 +7171,7 @@ class Test : I1
                 Assert.Equal("void Test.I1.E8.remove", derived.FindImplementationForInterfaceMember(e8.RemoveMethod).ToTestDisplayString());
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
@@ -7185,7 +7185,7 @@ remove E8",
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -7262,7 +7262,7 @@ class Test : I1
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E7").WithArguments("Base.E7").WithLocation(10, 29 + implModifiers.Length)
                 );
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var e7 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E7");
                 var e8 = m.GlobalNamespace.GetMember<EventSymbol>("I1.E8");
@@ -7278,7 +7278,7 @@ class Test : I1
                 Assert.Equal("void Test.E8.remove", derived.FindImplementationForInterfaceMember(e8.RemoveMethod).ToTestDisplayString());
             }
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic, hasImplementationOfVirtualInDerivedType: true) ? null :
@@ -7292,7 +7292,7 @@ remove E8",
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
                     Assert.Equal("I1", derivedResult.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
 
-                    Validate(m);
+                    validate(m);
                 });
         }
 
@@ -8783,11 +8783,11 @@ class Test1 : I1
 
             CompileAndVerify(compilation1, expectedOutput:
 @"M1
-M2", symbolValidator: Validate);
+M2", symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -8885,11 +8885,11 @@ class Test1 : I1
             CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 M2
-M3", symbolValidator: Validate);
+M3", symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -9055,11 +9055,11 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M4
-M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -10146,7 +10146,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -10164,8 +10164,8 @@ class Test1 : I1
                 Assert.Null(test1.FindImplementationForInterfaceMember(m1));
             }
 
-            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
-            Validate(compilation1.SourceModule);
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+            validate(compilation1.SourceModule);
         }
 
         [Fact]
@@ -10383,11 +10383,11 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var test2 = m.GlobalNamespace.GetTypeMember("Test2");
@@ -10513,7 +10513,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M5").WithArguments("I1.M5()").WithLocation(8, 24)
                 );
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
@@ -10552,7 +10552,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M5").WithArguments("I1.M5()").WithLocation(8, 24)
                 );
 
-            Validate(compilation3.SourceModule);
+            validate(compilation3.SourceModule);
         }
 
         [Fact]
@@ -10839,11 +10839,11 @@ class Test1 : I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "M1", symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -10896,21 +10896,21 @@ class Test1 : I1
             CompileAndVerify(compilation1,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
                 var m1 = i1.GetMember<MethodSymbol>("M1");
 
-                ValidateMethod(m1);
+                validateMethod(m1);
                 Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
             }
 
-            void ValidateMethod(MethodSymbol m1)
+            void validateMethod(MethodSymbol m1)
             {
                 Assert.False(m1.IsAbstract);
                 Assert.True(m1.IsVirtual);
@@ -10932,7 +10932,7 @@ class Test1 : I1
             {
                 var i1 = compilation2.GetTypeByMetadataName("I1");
                 var m1 = i1.GetMember<MethodSymbol>("M1");
-                ValidateMethod(m1);
+                validateMethod(m1);
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -10942,9 +10942,9 @@ class Test1 : I1
             CompileAndVerify(compilation3,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation3.SourceModule);
+            validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -10953,9 +10953,9 @@ class Test1 : I1
             CompileAndVerify(compilation4,
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
         }
 
         [Fact]
@@ -13135,9 +13135,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            ValidateP01Accessor(p01.GetMethod);
-            ValidateP01Accessor(p01.SetMethod);
-            void ValidateP01Accessor(MethodSymbol accessor)
+            validateP01Accessor(p01.GetMethod);
+            validateP01Accessor(p01.SetMethod);
+            void validateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -13349,9 +13349,9 @@ public interface I1
             Assert.False(p11.IsOverride);
             Assert.Equal(Accessibility.Public, p11.DeclaredAccessibility);
 
-            ValidateP11Accessor(p11.GetMethod);
-            ValidateP11Accessor(p11.SetMethod);
-            void ValidateP11Accessor(MethodSymbol accessor)
+            validateP11Accessor(p11.GetMethod);
+            validateP11Accessor(p11.SetMethod);
+            void validateP11Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -13374,9 +13374,9 @@ public interface I1
             Assert.False(p12.IsOverride);
             Assert.Equal(Accessibility.Public, p12.DeclaredAccessibility);
 
-            ValidateP12Accessor(p12.GetMethod);
-            ValidateP12Accessor(p12.SetMethod);
-            void ValidateP12Accessor(MethodSymbol accessor)
+            validateP12Accessor(p12.GetMethod);
+            validateP12Accessor(p12.SetMethod);
+            void validateP12Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -13399,9 +13399,9 @@ public interface I1
             Assert.False(p13.IsOverride);
             Assert.Equal(Accessibility.Public, p13.DeclaredAccessibility);
 
-            ValidateP13Accessor(p13.GetMethod, Accessibility.Public);
-            ValidateP13Accessor(p13.SetMethod, Accessibility.Protected);
-            void ValidateP13Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP13Accessor(p13.GetMethod, Accessibility.Public);
+            validateP13Accessor(p13.SetMethod, Accessibility.Protected);
+            void validateP13Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -13424,9 +13424,9 @@ public interface I1
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.Public, p14.DeclaredAccessibility);
 
-            ValidateP14Accessor(p14.GetMethod, Accessibility.ProtectedOrInternal);
-            ValidateP14Accessor(p14.SetMethod, Accessibility.Public);
-            void ValidateP14Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP14Accessor(p14.GetMethod, Accessibility.ProtectedOrInternal);
+            validateP14Accessor(p14.SetMethod, Accessibility.Public);
+            void validateP14Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -13449,9 +13449,9 @@ public interface I1
             Assert.False(p15.IsOverride);
             Assert.Equal(Accessibility.Public, p15.DeclaredAccessibility);
 
-            ValidateP15Accessor(p15.GetMethod, Accessibility.Public);
-            ValidateP15Accessor(p15.SetMethod, Accessibility.Internal);
-            void ValidateP15Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP15Accessor(p15.GetMethod, Accessibility.Public);
+            validateP15Accessor(p15.SetMethod, Accessibility.Internal);
+            void validateP15Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -13474,9 +13474,9 @@ public interface I1
             Assert.False(p16.IsOverride);
             Assert.Equal(Accessibility.Public, p16.DeclaredAccessibility);
 
-            ValidateP16Accessor(p16.GetMethod, Accessibility.Private);
-            ValidateP16Accessor(p16.SetMethod, Accessibility.Public);
-            void ValidateP16Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP16Accessor(p16.GetMethod, Accessibility.Private);
+            validateP16Accessor(p16.SetMethod, Accessibility.Public);
+            void validateP16Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -13541,8 +13541,8 @@ public interface I1
             Assert.False(p19.IsOverride);
             Assert.Equal(Accessibility.Public, p19.DeclaredAccessibility);
 
-            ValidateP13Accessor(p19.GetMethod, Accessibility.Public);
-            ValidateP13Accessor(p19.SetMethod, Accessibility.ProtectedAndInternal);
+            validateP13Accessor(p19.GetMethod, Accessibility.Public);
+            validateP13Accessor(p19.SetMethod, Accessibility.ProtectedAndInternal);
         }
 
         [Fact]
@@ -14006,11 +14006,11 @@ class Test2 : I2
 @"get_P1
 set_P1
 get_P2
-set_P2", symbolValidator: Validate);
+set_P2", symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 for (int i = 1; i <= 2; i++)
                 {
@@ -14028,10 +14028,10 @@ set_P2", symbolValidator: Validate);
                     Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
                     Assert.Same(test1P1, test1.FindImplementationForInterfaceMember(p1));
 
-                    ValidateAccessor(p1.GetMethod, test1P1.GetMethod);
-                    ValidateAccessor(p1.SetMethod, test1P1.SetMethod);
+                    validateAccessor(p1.GetMethod, test1P1.GetMethod);
+                    validateAccessor(p1.SetMethod, test1P1.SetMethod);
 
-                    void ValidateAccessor(MethodSymbol accessor, MethodSymbol implementation)
+                    void validateAccessor(MethodSymbol accessor, MethodSymbol implementation)
                     {
                         Assert.True(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -14101,10 +14101,10 @@ public interface I1
             Assert.False(p1.IsOverride);
             Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
 
-            ValidateAccessor(p1.GetMethod);
-            ValidateAccessor(p1.SetMethod);
+            validateAccessor(p1.GetMethod);
+            validateAccessor(p1.SetMethod);
 
-            void ValidateAccessor(MethodSymbol accessor)
+            void validateAccessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -14234,9 +14234,9 @@ get_P4
 get_P5
 get_P6
 set_P7
-set_P8", symbolValidator: Validate);
+set_P8", symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
@@ -14277,9 +14277,9 @@ set_P8", symbolValidator: Validate);
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(63, 9)
                 );
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -14309,21 +14309,21 @@ set_P8", symbolValidator: Validate);
                         case "P7":
                         case "P8":
                             Assert.Null(p1.GetMethod);
-                            ValidateAccessor(p1.SetMethod);
+                            validateAccessor(p1.SetMethod);
                             break;
                         case "P4":
                         case "P5":
                         case "P6":
                             Assert.Null(p1.SetMethod);
-                            ValidateAccessor(p1.GetMethod);
+                            validateAccessor(p1.GetMethod);
                             break;
                         default:
-                            ValidateAccessor(p1.GetMethod);
-                            ValidateAccessor(p1.SetMethod);
+                            validateAccessor(p1.GetMethod);
+                            validateAccessor(p1.SetMethod);
                             break;
                     }
 
-                    void ValidateAccessor(MethodSymbol accessor)
+                    void validateAccessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -14631,11 +14631,11 @@ set_P6
 get_P7
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
 
@@ -14658,21 +14658,21 @@ get_P7
                         case 3:
                         case 6:
                             Assert.Null(p1.GetMethod);
-                            ValidateAccessor(p1.SetMethod);
+                            validateAccessor(p1.SetMethod);
                             break;
                         case 1:
                         case 4:
                         case 7:
                             Assert.Null(p1.SetMethod);
-                            ValidateAccessor(p1.GetMethod);
+                            validateAccessor(p1.GetMethod);
                             break;
                         default:
-                            ValidateAccessor(p1.GetMethod);
-                            ValidateAccessor(p1.SetMethod);
+                            validateAccessor(p1.GetMethod);
+                            validateAccessor(p1.SetMethod);
                             break;
                     }
 
-                    void ValidateAccessor(MethodSymbol accessor)
+                    void validateAccessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -14802,9 +14802,9 @@ class Test1 : I1
             Assert.Equal(Accessibility.Private, p3.DeclaredAccessibility);
             Assert.Null(test1.FindImplementationForInterfaceMember(p3));
 
-            ValidateP3Accessor(p3.GetMethod);
-            ValidateP3Accessor(p3.SetMethod);
-            void ValidateP3Accessor(MethodSymbol accessor)
+            validateP3Accessor(p3.GetMethod);
+            validateP3Accessor(p3.SetMethod);
+            void validateP3Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -16188,7 +16188,7 @@ class Test7 : I7
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 for (int i = 1; i <= 7; i++)
                 {
@@ -16210,21 +16210,21 @@ class Test7 : I7
                         case 3:
                         case 6:
                             Assert.Null(p1.GetMethod);
-                            ValidateAccessor(p1.SetMethod);
+                            validateAccessor(p1.SetMethod);
                             break;
                         case 1:
                         case 4:
                         case 7:
                             Assert.Null(p1.SetMethod);
-                            ValidateAccessor(p1.GetMethod);
+                            validateAccessor(p1.GetMethod);
                             break;
                         default:
-                            ValidateAccessor(p1.GetMethod);
-                            ValidateAccessor(p1.SetMethod);
+                            validateAccessor(p1.GetMethod);
+                            validateAccessor(p1.SetMethod);
                             break;
                     }
 
-                    void ValidateAccessor(MethodSymbol accessor)
+                    void validateAccessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -16253,8 +16253,8 @@ set_P6
 get_P7
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate);
-            Validate(compilation1.SourceModule);
+                symbolValidator: validate);
+            validate(compilation1.SourceModule);
         }
 
         [Fact]
@@ -16617,22 +16617,22 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                     case 3:
                     case 6:
                         Assert.Null(p2.GetMethod);
-                        ValidateAccessor(p2.SetMethod, test1P2.SetMethod);
+                        validateAccessor(p2.SetMethod, test1P2.SetMethod);
                         break;
                     case 1:
                     case 4:
                     case 7:
                     case 8:
                         Assert.Null(p2.SetMethod);
-                        ValidateAccessor(p2.GetMethod, test1P2.GetMethod);
+                        validateAccessor(p2.GetMethod, test1P2.GetMethod);
                         break;
                     default:
-                        ValidateAccessor(p2.GetMethod, test1P2.GetMethod);
-                        ValidateAccessor(p2.SetMethod, test1P2.SetMethod);
+                        validateAccessor(p2.GetMethod, test1P2.GetMethod);
+                        validateAccessor(p2.SetMethod, test1P2.SetMethod);
                         break;
                 }
 
-                void ValidateAccessor(MethodSymbol accessor, MethodSymbol implementedBy)
+                void validateAccessor(MethodSymbol accessor, MethodSymbol implementedBy)
                 {
                     Assert.True(accessor.IsAbstract);
                     Assert.True(accessor.IsVirtual);
@@ -16779,11 +16779,11 @@ class Test2 : I1, I2, I3, I4, I5
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var test2 = m.GlobalNamespace.GetTypeMember("Test2");
@@ -16856,9 +16856,9 @@ class Test2 : I1, I2, I3, I4, I5
                     Assert.Null(test1.FindImplementationForInterfaceMember(p3));
                     Assert.Null(test2.FindImplementationForInterfaceMember(p3));
 
-                    ValidateP3Accessor(p3.GetMethod);
-                    ValidateP3Accessor(p3.SetMethod);
-                    void ValidateP3Accessor(MethodSymbol accessor)
+                    validateP3Accessor(p3.GetMethod);
+                    validateP3Accessor(p3.SetMethod);
+                    void validateP3Accessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -16931,7 +16931,7 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected1);
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
@@ -16939,7 +16939,7 @@ class Test2 : I1, I2, I3, I4, I5
 
             compilation3.VerifyDiagnostics(expected2);
 
-            Validate(compilation3.SourceModule);
+            validate(compilation3.SourceModule);
         }
 
         [Fact]
@@ -17096,9 +17096,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Same(p3.IsIndexer ? p3 : null, test1.FindImplementationForInterfaceMember(p3));
             Assert.Same(p3.IsIndexer ? test2P3 : null, test2.FindImplementationForInterfaceMember(p3));
 
-            ValidateP3Accessor(p3.GetMethod, p3.IsIndexer ? test2P3.GetMethod : null);
-            ValidateP3Accessor(p3.SetMethod, p3.IsIndexer ? test2P3.SetMethod : null);
-            void ValidateP3Accessor(MethodSymbol accessor, MethodSymbol test2Implementation)
+            validateP3Accessor(p3.GetMethod, p3.IsIndexer ? test2P3.GetMethod : null);
+            validateP3Accessor(p3.SetMethod, p3.IsIndexer ? test2P3.SetMethod : null);
+            void validateP3Accessor(MethodSymbol accessor, MethodSymbol test2Implementation)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.Equal(p3.IsIndexer, accessor.IsVirtual);
@@ -17125,9 +17125,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p4));
             Assert.Null(test2.FindImplementationForInterfaceMember(p4));
 
-            ValidateP4Accessor(p4.GetMethod);
-            ValidateP4Accessor(p4.SetMethod);
-            void ValidateP4Accessor(MethodSymbol accessor)
+            validateP4Accessor(p4.GetMethod);
+            validateP4Accessor(p4.SetMethod);
+            void validateP4Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -17294,9 +17294,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p1));
             Assert.Same(test2P1, test2.FindImplementationForInterfaceMember(p1));
 
-            ValidateP1Accessor(p1.GetMethod, test2P1.GetMethod);
-            ValidateP1Accessor(p1.SetMethod, test2P1.SetMethod);
-            void ValidateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            validateP1Accessor(p1.GetMethod, test2P1.GetMethod);
+            validateP1Accessor(p1.SetMethod, test2P1.SetMethod);
+            void validateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -17350,9 +17350,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Same(p3.IsIndexer ? p3 : null, test1.FindImplementationForInterfaceMember(p3));
             Assert.Same(p3.IsIndexer ? test2P3 : null, test2.FindImplementationForInterfaceMember(p3));
 
-            ValidateP3Accessor(p3.GetMethod, p3.IsIndexer ? test2P3.GetMethod : null);
-            ValidateP3Accessor(p3.SetMethod, p3.IsIndexer ? test2P3.SetMethod : null);
-            void ValidateP3Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            validateP3Accessor(p3.GetMethod, p3.IsIndexer ? test2P3.GetMethod : null);
+            validateP3Accessor(p3.SetMethod, p3.IsIndexer ? test2P3.SetMethod : null);
+            void validateP3Accessor(MethodSymbol accessor, MethodSymbol implementation)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.Equal(p3.IsIndexer, accessor.IsVirtual);
@@ -17380,9 +17380,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p4));
             Assert.Same(p4.IsIndexer ? test2P4 : null, test2.FindImplementationForInterfaceMember(p4));
 
-            ValidateP4Accessor(p4.GetMethod, p4.IsIndexer ? test2P4.GetMethod : null);
-            ValidateP4Accessor(p4.SetMethod, p4.IsIndexer ? test2P4.SetMethod : null);
-            void ValidateP4Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            validateP4Accessor(p4.GetMethod, p4.IsIndexer ? test2P4.GetMethod : null);
+            validateP4Accessor(p4.SetMethod, p4.IsIndexer ? test2P4.SetMethod : null);
+            void validateP4Accessor(MethodSymbol accessor, MethodSymbol implementation)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -17474,11 +17474,11 @@ class Test1 : I1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
@@ -17486,15 +17486,15 @@ set_P1
                 var p1get = p1.GetMethod;
                 var p1set = p1.SetMethod;
 
-                ValidateProperty(p1);
-                ValidateMethod(p1get);
-                ValidateMethod(p1set);
+                validateProperty(p1);
+                validateMethod(p1get);
+                validateMethod(p1set);
                 Assert.Same(p1, test1.FindImplementationForInterfaceMember(p1));
                 Assert.Same(p1get, test1.FindImplementationForInterfaceMember(p1get));
                 Assert.Same(p1set, test1.FindImplementationForInterfaceMember(p1set));
             }
 
-            void ValidateProperty(PropertySymbol p1)
+            void validateProperty(PropertySymbol p1)
             {
                 Assert.False(p1.IsAbstract);
                 Assert.True(p1.IsVirtual);
@@ -17505,7 +17505,7 @@ set_P1
                 Assert.Equal(accessibility, p1.DeclaredAccessibility);
             }
 
-            void ValidateMethod(MethodSymbol m1)
+            void validateMethod(MethodSymbol m1)
             {
                 Assert.False(m1.IsAbstract);
                 Assert.True(m1.IsVirtual);
@@ -17530,9 +17530,9 @@ set_P1
                 var p1get = p1.GetMethod;
                 var p1set = p1.SetMethod;
 
-                ValidateProperty(p1);
-                ValidateMethod(p1get);
-                ValidateMethod(p1set);
+                validateProperty(p1);
+                validateMethod(p1get);
+                validateMethod(p1set);
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -17545,9 +17545,9 @@ set_P1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation3.SourceModule);
+            validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -17559,9 +17559,9 @@ set_P1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
         }
 
         [Fact]
@@ -17750,11 +17750,11 @@ get_P4
 set_P4
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
 
@@ -17776,20 +17776,20 @@ set_P4
                     {
                         case 1:
                         case 3:
-                            ValidateAccessor(p1.GetMethod, accessibility);
-                            ValidateAccessor(p1.SetMethod, Accessibility.Public);
+                            validateAccessor(p1.GetMethod, accessibility);
+                            validateAccessor(p1.SetMethod, Accessibility.Public);
                             break;
                         case 2:
                         case 4:
-                            ValidateAccessor(p1.GetMethod, Accessibility.Public);
-                            ValidateAccessor(p1.SetMethod, accessibility);
+                            validateAccessor(p1.GetMethod, Accessibility.Public);
+                            validateAccessor(p1.SetMethod, accessibility);
                             break;
                         default:
                             Assert.False(true);
                             break;
                     }
 
-                    void ValidateAccessor(MethodSymbol accessor, Accessibility access)
+                    void validateAccessor(MethodSymbol accessor, Accessibility access)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.Equal(accessor.DeclaredAccessibility != Accessibility.Private, accessor.IsVirtual);
@@ -18296,9 +18296,9 @@ class Test66 : Test6 {}
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyDiagnostics();
 
-                Validate1(compilation1.SourceModule);
+                validate1(compilation1.SourceModule);
 
-                void Validate1(ModuleSymbol m)
+                void validate1(ModuleSymbol m)
                 {
                     var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                     var im = test1.InterfacesNoUseSiteDiagnostics().Single().ContainingModule;
@@ -18321,7 +18321,7 @@ Test6.get_P6
 set_P6
 ";
 
-                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate1);
 
                 var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(metadataImportOptions),
                                                      parseOptions: TestOptions.Regular,
@@ -18342,9 +18342,9 @@ set_P6
                                                          targetFramework: TargetFramework.NetCoreApp);
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                     compilation3.VerifyDiagnostics();
-                    Validate1(compilation3.SourceModule);
+                    validate1(compilation3.SourceModule);
 
-                    CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
+                    CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate1);
                 }
             }
         }
@@ -18471,7 +18471,7 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expectedIn9);
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
             compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                              parseOptions: TestOptions.Regular,
@@ -18480,11 +18480,11 @@ class Test1 : I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => validate1(m)).VerifyDiagnostics();
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var im = test1.InterfacesNoUseSiteDiagnostics().Single().ContainingModule;
@@ -18509,7 +18509,7 @@ set_P1",
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
-                Validate1(compilation3.SourceModule);
+                validate1(compilation3.SourceModule);
 
                 compilation3 = CreateCompilation(source2, new[] { reference },
                                                  options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
@@ -18526,10 +18526,10 @@ set_P1",
                     CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                     verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                                     verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => validate1(m)).VerifyDiagnostics();
                 }
 
-                Validate1(compilation3.SourceModule);
+                validate1(compilation3.SourceModule);
             }
         }
 
@@ -19855,11 +19855,11 @@ class Test1 : I1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
@@ -19867,15 +19867,15 @@ set_P1
                 var p1get = p1.GetMethod;
                 var p1set = p1.SetMethod;
 
-                ValidateProperty(p1);
-                ValidateMethod(p1get, Accessibility.Public);
-                ValidateMethod(p1set, Accessibility.Internal);
+                validateProperty(p1);
+                validateMethod(p1get, Accessibility.Public);
+                validateMethod(p1set, Accessibility.Internal);
                 Assert.Same(p1, test1.FindImplementationForInterfaceMember(p1));
                 Assert.Same(p1get, test1.FindImplementationForInterfaceMember(p1get));
                 Assert.Same(p1set, test1.FindImplementationForInterfaceMember(p1set));
             }
 
-            void ValidateProperty(PropertySymbol p1)
+            void validateProperty(PropertySymbol p1)
             {
                 Assert.False(p1.IsAbstract);
                 Assert.True(p1.IsVirtual);
@@ -19886,7 +19886,7 @@ set_P1
                 Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
             }
 
-            void ValidateMethod(MethodSymbol m1, Accessibility access)
+            void validateMethod(MethodSymbol m1, Accessibility access)
             {
                 Assert.False(m1.IsAbstract);
                 Assert.True(m1.IsVirtual);
@@ -19911,9 +19911,9 @@ set_P1
                 var p1get = p1.GetMethod;
                 var p1set = p1.SetMethod;
 
-                ValidateProperty(p1);
-                ValidateMethod(p1get, Accessibility.Public);
-                ValidateMethod(p1set, Accessibility.Internal);
+                validateProperty(p1);
+                validateMethod(p1get, Accessibility.Public);
+                validateMethod(p1set, Accessibility.Internal);
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -19926,9 +19926,9 @@ set_P1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation3.SourceModule);
+            validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -19940,9 +19940,9 @@ set_P1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
         }
 
         [Fact]
@@ -21612,9 +21612,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            ValidateP01Accessor(p01.GetMethod);
-            ValidateP01Accessor(p01.SetMethod);
-            void ValidateP01Accessor(MethodSymbol accessor)
+            validateP01Accessor(p01.GetMethod);
+            validateP01Accessor(p01.SetMethod);
+            void validateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -21826,9 +21826,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p11.IsOverride);
             Assert.Equal(Accessibility.Public, p11.DeclaredAccessibility);
 
-            ValidateP11Accessor(p11.GetMethod);
-            ValidateP11Accessor(p11.SetMethod);
-            void ValidateP11Accessor(MethodSymbol accessor)
+            validateP11Accessor(p11.GetMethod);
+            validateP11Accessor(p11.SetMethod);
+            void validateP11Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -21851,9 +21851,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p12.IsOverride);
             Assert.Equal(Accessibility.Public, p12.DeclaredAccessibility);
 
-            ValidateP12Accessor(p12.GetMethod);
-            ValidateP12Accessor(p12.SetMethod);
-            void ValidateP12Accessor(MethodSymbol accessor)
+            validateP12Accessor(p12.GetMethod);
+            validateP12Accessor(p12.SetMethod);
+            void validateP12Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -21876,9 +21876,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p13.IsOverride);
             Assert.Equal(Accessibility.Public, p13.DeclaredAccessibility);
 
-            ValidateP13Accessor(p13.GetMethod, Accessibility.Public);
-            ValidateP13Accessor(p13.SetMethod, Accessibility.Protected);
-            void ValidateP13Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP13Accessor(p13.GetMethod, Accessibility.Public);
+            validateP13Accessor(p13.SetMethod, Accessibility.Protected);
+            void validateP13Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -21901,9 +21901,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.Public, p14.DeclaredAccessibility);
 
-            ValidateP14Accessor(p14.GetMethod, Accessibility.ProtectedOrInternal);
-            ValidateP14Accessor(p14.SetMethod, Accessibility.Public);
-            void ValidateP14Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP14Accessor(p14.GetMethod, Accessibility.ProtectedOrInternal);
+            validateP14Accessor(p14.SetMethod, Accessibility.Public);
+            void validateP14Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -21926,9 +21926,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p15.IsOverride);
             Assert.Equal(Accessibility.Public, p15.DeclaredAccessibility);
 
-            ValidateP15Accessor(p15.GetMethod, Accessibility.Public);
-            ValidateP15Accessor(p15.SetMethod, Accessibility.Internal);
-            void ValidateP15Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP15Accessor(p15.GetMethod, Accessibility.Public);
+            validateP15Accessor(p15.SetMethod, Accessibility.Internal);
+            void validateP15Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -21951,9 +21951,9 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p16.IsOverride);
             Assert.Equal(Accessibility.Public, p16.DeclaredAccessibility);
 
-            ValidateP16Accessor(p16.GetMethod, Accessibility.Private);
-            ValidateP16Accessor(p16.SetMethod, Accessibility.Public);
-            void ValidateP16Accessor(MethodSymbol accessor, Accessibility accessibility)
+            validateP16Accessor(p16.GetMethod, Accessibility.Private);
+            validateP16Accessor(p16.SetMethod, Accessibility.Public);
+            void validateP16Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -22018,8 +22018,8 @@ public interface I19{ int this[int x] { get; private protected set;} }
             Assert.False(p19.IsOverride);
             Assert.Equal(Accessibility.Public, p19.DeclaredAccessibility);
 
-            ValidateP13Accessor(p19.GetMethod, Accessibility.Public);
-            ValidateP13Accessor(p19.SetMethod, Accessibility.ProtectedAndInternal);
+            validateP13Accessor(p19.GetMethod, Accessibility.Public);
+            validateP13Accessor(p19.SetMethod, Accessibility.ProtectedAndInternal);
         }
 
         [Fact]
@@ -26857,9 +26857,9 @@ public interface I1
             Assert.False(p01.IsOverride);
             Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
 
-            ValidateP01Accessor(p01.AddMethod);
-            ValidateP01Accessor(p01.RemoveMethod);
-            void ValidateP01Accessor(MethodSymbol accessor)
+            validateP01Accessor(p01.AddMethod);
+            validateP01Accessor(p01.RemoveMethod);
+            void validateP01Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -27073,9 +27073,9 @@ public interface I1
                 Assert.False(p11.IsOverride);
                 Assert.Equal(Accessibility.Public, p11.DeclaredAccessibility);
 
-                ValidateP11Accessor(p11.AddMethod);
-                ValidateP11Accessor(p11.RemoveMethod);
-                void ValidateP11Accessor(MethodSymbol accessor)
+                validateP11Accessor(p11.AddMethod);
+                validateP11Accessor(p11.RemoveMethod);
+                void validateP11Accessor(MethodSymbol accessor)
                 {
                     Assert.False(accessor.IsAbstract);
                     Assert.True(accessor.IsVirtual);
@@ -27099,9 +27099,9 @@ public interface I1
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.ProtectedAndInternal, p14.DeclaredAccessibility);
 
-            ValidateP14Accessor(p14.AddMethod);
-            ValidateP14Accessor(p14.RemoveMethod);
-            void ValidateP14Accessor(MethodSymbol accessor)
+            validateP14Accessor(p14.AddMethod);
+            validateP14Accessor(p14.RemoveMethod);
+            void validateP14Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -27634,11 +27634,11 @@ class Test2 : I2
 @"get_P1
 set_P1
 get_P2
-set_P2", symbolValidator: Validate);
+set_P2", symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 for (int i = 1; i <= 2; i++)
                 {
@@ -27656,10 +27656,10 @@ set_P2", symbolValidator: Validate);
                     Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
                     Assert.Same(test1P1, test1.FindImplementationForInterfaceMember(p1));
 
-                    ValidateAccessor(p1.AddMethod, test1P1.AddMethod);
-                    ValidateAccessor(p1.RemoveMethod, test1P1.RemoveMethod);
+                    validateAccessor(p1.AddMethod, test1P1.AddMethod);
+                    validateAccessor(p1.RemoveMethod, test1P1.RemoveMethod);
 
-                    void ValidateAccessor(MethodSymbol accessor, MethodSymbol implementation)
+                    void validateAccessor(MethodSymbol accessor, MethodSymbol implementation)
                     {
                         Assert.True(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -27729,10 +27729,10 @@ public interface I1
             Assert.False(p1.IsOverride);
             Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
 
-            ValidateAccessor(p1.AddMethod);
-            ValidateAccessor(p1.RemoveMethod);
+            validateAccessor(p1.AddMethod);
+            validateAccessor(p1.RemoveMethod);
 
-            void ValidateAccessor(MethodSymbol accessor)
+            void validateAccessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -27806,11 +27806,11 @@ set_P1
 get_P2
 get_P3
 set_P2
-set_P3", symbolValidator: Validate);
+set_P3", symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -27830,10 +27830,10 @@ set_P3", symbolValidator: Validate);
                     Assert.Equal(tuple.access, p1.DeclaredAccessibility);
                     Assert.Null(test1.FindImplementationForInterfaceMember(p1));
 
-                    ValidateAccessor(p1.AddMethod);
-                    ValidateAccessor(p1.RemoveMethod);
+                    validateAccessor(p1.AddMethod);
+                    validateAccessor(p1.RemoveMethod);
 
-                    void ValidateAccessor(MethodSymbol accessor)
+                    void validateAccessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -27889,7 +27889,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "P3").WithArguments("I1.P3").WithLocation(12, 40)
                 );
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
@@ -27921,7 +27921,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "P3").WithArguments("I1.P3").WithLocation(12, 40)
                 );
 
-            Validate(compilation3.SourceModule);
+            validate(compilation3.SourceModule);
         }
 
         [Fact]
@@ -27998,9 +27998,9 @@ class Test2 : I1
             Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
             Assert.Null(test1.FindImplementationForInterfaceMember(p1));
 
-            ValidateAccessor1(p1.AddMethod);
-            ValidateAccessor1(p1.RemoveMethod);
-            void ValidateAccessor1(MethodSymbol accessor)
+            validateAccessor1(p1.AddMethod);
+            validateAccessor1(p1.RemoveMethod);
+            void validateAccessor1(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -28025,9 +28025,9 @@ class Test2 : I1
             Assert.Equal(Accessibility.Public, p2.DeclaredAccessibility);
             Assert.Same(p2, test1.FindImplementationForInterfaceMember(p2));
 
-            ValidateAccessor2(p2.AddMethod);
-            ValidateAccessor2(p2.RemoveMethod);
-            void ValidateAccessor2(MethodSymbol accessor)
+            validateAccessor2(p2.AddMethod);
+            validateAccessor2(p2.RemoveMethod);
+            void validateAccessor2(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -28052,9 +28052,9 @@ class Test2 : I1
             Assert.Equal(Accessibility.Public, p3.DeclaredAccessibility);
             Assert.Null(test1.FindImplementationForInterfaceMember(p3));
 
-            ValidateAccessor3(p3.AddMethod);
-            ValidateAccessor3(p3.RemoveMethod);
-            void ValidateAccessor3(MethodSymbol accessor)
+            validateAccessor3(p3.AddMethod);
+            validateAccessor3(p3.RemoveMethod);
+            void validateAccessor3(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -28137,11 +28137,11 @@ get_P2
 set_P2
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
 
@@ -28159,10 +28159,10 @@ set_P2
                     Assert.Equal(Accessibility.Private, p1.DeclaredAccessibility);
                     Assert.Null(test1.FindImplementationForInterfaceMember(p1));
 
-                    ValidateAccessor(p1.AddMethod);
-                    ValidateAccessor(p1.RemoveMethod);
+                    validateAccessor(p1.AddMethod);
+                    validateAccessor(p1.RemoveMethod);
 
-                    void ValidateAccessor(MethodSymbol accessor)
+                    void validateAccessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -28255,9 +28255,9 @@ class Test1 : I1
             Assert.Equal(Accessibility.Private, p1.DeclaredAccessibility);
             Assert.Null(test1.FindImplementationForInterfaceMember(p1));
 
-            ValidateP1Accessor(p1.AddMethod);
-            ValidateP1Accessor(p1.RemoveMethod);
-            void ValidateP1Accessor(MethodSymbol accessor)
+            validateP1Accessor(p1.AddMethod);
+            validateP1Accessor(p1.RemoveMethod);
+            void validateP1Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -28282,9 +28282,9 @@ class Test1 : I1
             Assert.Equal(Accessibility.Private, p2.DeclaredAccessibility);
             Assert.Same(p2, test1.FindImplementationForInterfaceMember(p2));
 
-            ValidateP2Accessor(p2.AddMethod);
-            ValidateP2Accessor(p2.RemoveMethod);
-            void ValidateP2Accessor(MethodSymbol accessor)
+            validateP2Accessor(p2.AddMethod);
+            validateP2Accessor(p2.RemoveMethod);
+            void validateP2Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -28309,9 +28309,9 @@ class Test1 : I1
             Assert.Equal(Accessibility.Private, p3.DeclaredAccessibility);
             Assert.Null(test1.FindImplementationForInterfaceMember(p3));
 
-            ValidateP3Accessor(p3.AddMethod);
-            ValidateP3Accessor(p3.RemoveMethod);
-            void ValidateP3Accessor(MethodSymbol accessor)
+            validateP3Accessor(p3.AddMethod);
+            validateP3Accessor(p3.RemoveMethod);
+            void validateP3Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -28336,9 +28336,9 @@ class Test1 : I1
             Assert.Equal(Accessibility.Private, p4.DeclaredAccessibility);
             Assert.Null(test1.FindImplementationForInterfaceMember(p4));
 
-            ValidateP4Accessor(p4.AddMethod);
-            ValidateP4Accessor(p4.RemoveMethod);
-            void ValidateP4Accessor(MethodSymbol accessor)
+            validateP4Accessor(p4.AddMethod);
+            validateP4Accessor(p4.RemoveMethod);
+            void validateP4Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -28432,7 +28432,7 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expectedIn9);
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
             compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                              parseOptions: TestOptions.Regular,
@@ -28441,11 +28441,11 @@ class Test1 : I1
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => validate1(m)).VerifyDiagnostics();
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
@@ -28454,15 +28454,15 @@ set_P1",
                 var p1add = p1.AddMethod;
                 var p1remove = p1.RemoveMethod;
 
-                ValidateEvent(p1);
-                ValidateMethod(p1add);
-                ValidateMethod(p1remove);
+                validateEvent(p1);
+                validateMethod(p1add);
+                validateMethod(p1remove);
                 Assert.Same(test1P1, test1.FindImplementationForInterfaceMember(p1));
                 Assert.Same(test1P1.AddMethod, test1.FindImplementationForInterfaceMember(p1add));
                 Assert.Same(test1P1.RemoveMethod, test1.FindImplementationForInterfaceMember(p1remove));
             }
 
-            void ValidateEvent(EventSymbol p1)
+            void validateEvent(EventSymbol p1)
             {
                 Assert.True(p1.IsAbstract);
                 Assert.False(p1.IsVirtual);
@@ -28473,7 +28473,7 @@ set_P1",
                 Assert.Equal(accessibility, p1.DeclaredAccessibility);
             }
 
-            void ValidateMethod(MethodSymbol m1)
+            void validateMethod(MethodSymbol m1)
             {
                 Assert.True(m1.IsAbstract);
                 Assert.False(m1.IsVirtual);
@@ -28495,9 +28495,9 @@ set_P1",
             {
                 var i1 = compilation2.GetTypeByMetadataName("I1");
                 var p1 = GetSingleEvent(i1);
-                ValidateEvent(p1);
-                ValidateMethod(p1.AddMethod);
-                ValidateMethod(p1.RemoveMethod);
+                validateEvent(p1);
+                validateMethod(p1.AddMethod);
+                validateMethod(p1.RemoveMethod);
             }
 
             var source3 =
@@ -28515,7 +28515,7 @@ class Test2 : I1
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation3.VerifyDiagnostics(expectedAcrossAssemblyBoundaries.Length != 0 ? expectedAcrossAssemblyBoundaries : expectedIn9);
 
-                Validate1(compilation3.SourceModule);
+                validate1(compilation3.SourceModule);
 
                 compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -28531,10 +28531,10 @@ class Test2 : I1
                     CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1",
-                                     verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => Validate1(m)).VerifyDiagnostics();
+                                     verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => validate1(m)).VerifyDiagnostics();
                 }
 
-                Validate1(compilation3.SourceModule);
+                validate1(compilation3.SourceModule);
 
                 var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.Regular,
@@ -29591,7 +29591,7 @@ class Test2 : I2
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 for (int i = 1; i <= 2; i++)
                 {
@@ -29608,10 +29608,10 @@ class Test2 : I2
                     Assert.Equal(Accessibility.Public, p1.DeclaredAccessibility);
                     Assert.Null(test1.FindImplementationForInterfaceMember(p1));
 
-                    ValidateAccessor(p1.AddMethod);
-                    ValidateAccessor(p1.RemoveMethod);
+                    validateAccessor(p1.AddMethod);
+                    validateAccessor(p1.RemoveMethod);
 
-                    void ValidateAccessor(MethodSymbol accessor)
+                    void validateAccessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -29635,8 +29635,8 @@ get_P2
 set_P2
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate);
-            Validate(compilation1.SourceModule);
+                symbolValidator: validate);
+            validate(compilation1.SourceModule);
         }
 
         [Fact]
@@ -29724,9 +29724,9 @@ class Test2 : I1, I2, I3
             Assert.Null(test1.FindImplementationForInterfaceMember(p1));
             Assert.Null(test2.FindImplementationForInterfaceMember(p1));
 
-            Validate1(p1.AddMethod);
-            Validate1(p1.RemoveMethod);
-            void Validate1(MethodSymbol accessor)
+            validate1(p1.AddMethod);
+            validate1(p1.RemoveMethod);
+            void validate1(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -29754,9 +29754,9 @@ class Test2 : I1, I2, I3
             Assert.Null(test1.FindImplementationForInterfaceMember(p2));
             Assert.Null(test2.FindImplementationForInterfaceMember(p2));
 
-            Validate2(p2.AddMethod);
-            Validate2(p2.RemoveMethod);
-            void Validate2(MethodSymbol accessor)
+            validate2(p2.AddMethod);
+            validate2(p2.RemoveMethod);
+            void validate2(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -29784,9 +29784,9 @@ class Test2 : I1, I2, I3
             Assert.Null(test1.FindImplementationForInterfaceMember(p3));
             Assert.Null(test2.FindImplementationForInterfaceMember(p3));
 
-            Validate3(p3.AddMethod);
-            Validate3(p3.RemoveMethod);
-            void Validate3(MethodSymbol accessor)
+            validate3(p3.AddMethod);
+            validate3(p3.RemoveMethod);
+            void validate3(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -30031,21 +30031,21 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                     case 6:
                     case 8:
                         Assert.Null(p2.AddMethod);
-                        ValidateAccessor(p2.RemoveMethod, test1P2.RemoveMethod);
+                        validateAccessor(p2.RemoveMethod, test1P2.RemoveMethod);
                         break;
                     case 1:
                     case 4:
                     case 7:
                         Assert.Null(p2.RemoveMethod);
-                        ValidateAccessor(p2.AddMethod, test1P2.AddMethod);
+                        validateAccessor(p2.AddMethod, test1P2.AddMethod);
                         break;
                     default:
-                        ValidateAccessor(p2.AddMethod, test1P2.AddMethod);
-                        ValidateAccessor(p2.RemoveMethod, test1P2.RemoveMethod);
+                        validateAccessor(p2.AddMethod, test1P2.AddMethod);
+                        validateAccessor(p2.RemoveMethod, test1P2.RemoveMethod);
                         break;
                 }
 
-                void ValidateAccessor(MethodSymbol accessor, MethodSymbol implementedBy)
+                void validateAccessor(MethodSymbol accessor, MethodSymbol implementedBy)
                 {
                     Assert.True(accessor.IsAbstract);
                     Assert.True(accessor.IsVirtual);
@@ -30115,11 +30115,11 @@ class Test2 : I1, I2, I3, I4, I5
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetCoreApp);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var test2 = m.GlobalNamespace.GetTypeMember("Test2");
@@ -30137,9 +30137,9 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Same(p1, test1.FindImplementationForInterfaceMember(p1));
                 Assert.Same(test2P1, test2.FindImplementationForInterfaceMember(p1));
 
-                ValidateP1Accessor(p1.AddMethod, test2P1.AddMethod);
-                ValidateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
-                void ValidateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
+                validateP1Accessor(p1.AddMethod, test2P1.AddMethod);
+                validateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
+                void validateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
                 {
                     Assert.False(accessor.IsAbstract);
                     Assert.True(accessor.IsVirtual);
@@ -30167,9 +30167,9 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Same(p2, test1.FindImplementationForInterfaceMember(p2));
                 Assert.Same(test2P2, test2.FindImplementationForInterfaceMember(p2));
 
-                ValidateP2Accessor(p2.AddMethod, test2P2.AddMethod);
-                ValidateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
-                void ValidateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
+                validateP2Accessor(p2.AddMethod, test2P2.AddMethod);
+                validateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
+                void validateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
                 {
                     Assert.False(accessor.IsAbstract);
                     Assert.True(accessor.IsVirtual);
@@ -30197,9 +30197,9 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Null(test1.FindImplementationForInterfaceMember(p3));
                 Assert.Null(test2.FindImplementationForInterfaceMember(p3));
 
-                ValidateP3Accessor(p3.AddMethod);
-                ValidateP3Accessor(p3.RemoveMethod);
-                void ValidateP3Accessor(MethodSymbol accessor)
+                validateP3Accessor(p3.AddMethod);
+                validateP3Accessor(p3.RemoveMethod);
+                void validateP3Accessor(MethodSymbol accessor)
                 {
                     Assert.False(accessor.IsAbstract);
                     Assert.False(accessor.IsVirtual);
@@ -30226,9 +30226,9 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Null(test1.FindImplementationForInterfaceMember(p4));
                 Assert.Null(test2.FindImplementationForInterfaceMember(p4));
 
-                ValidateP4Accessor(p4.AddMethod);
-                ValidateP4Accessor(p4.RemoveMethod);
-                void ValidateP4Accessor(MethodSymbol accessor)
+                validateP4Accessor(p4.AddMethod);
+                validateP4Accessor(p4.RemoveMethod);
+                void validateP4Accessor(MethodSymbol accessor)
                 {
                     Assert.False(accessor.IsAbstract);
                     Assert.False(accessor.IsVirtual);
@@ -30255,9 +30255,9 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Null(test1.FindImplementationForInterfaceMember(p5));
                 Assert.Null(test2.FindImplementationForInterfaceMember(p5));
 
-                ValidateP5Accessor(p5.AddMethod);
-                ValidateP5Accessor(p5.RemoveMethod);
-                void ValidateP5Accessor(MethodSymbol accessor)
+                validateP5Accessor(p5.AddMethod);
+                validateP5Accessor(p5.RemoveMethod);
+                void validateP5Accessor(MethodSymbol accessor)
                 {
                     Assert.False(accessor.IsAbstract);
                     Assert.False(accessor.IsVirtual);
@@ -30325,7 +30325,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32)
                 );
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
@@ -30370,7 +30370,7 @@ class Test2 : I1, I2, I3, I4, I5
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(27, 9)
                 );
 
-            Validate(compilation3.SourceModule);
+            validate(compilation3.SourceModule);
         }
 
         [Fact]
@@ -30467,9 +30467,9 @@ class Test2 : I1, I2, I3, I4
             Assert.Null(test1.FindImplementationForInterfaceMember(p1));
             Assert.Same(test2P1, test2.FindImplementationForInterfaceMember(p1));
 
-            ValidateP1Accessor(p1.AddMethod, test2P1.AddMethod);
-            ValidateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
-            void ValidateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            validateP1Accessor(p1.AddMethod, test2P1.AddMethod);
+            validateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
+            void validateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30497,9 +30497,9 @@ class Test2 : I1, I2, I3, I4
             Assert.Same(p2, test1.FindImplementationForInterfaceMember(p2));
             Assert.Same(test2P2, test2.FindImplementationForInterfaceMember(p2));
 
-            ValidateP2Accessor(p2.AddMethod, test2P2.AddMethod);
-            ValidateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
-            void ValidateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            validateP2Accessor(p2.AddMethod, test2P2.AddMethod);
+            validateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
+            void validateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.True(accessor.IsVirtual);
@@ -30527,9 +30527,9 @@ class Test2 : I1, I2, I3, I4
             Assert.Null(test1.FindImplementationForInterfaceMember(p3));
             Assert.Null(test2.FindImplementationForInterfaceMember(p3));
 
-            ValidateP3Accessor(p3.AddMethod);
-            ValidateP3Accessor(p3.RemoveMethod);
-            void ValidateP3Accessor(MethodSymbol accessor)
+            validateP3Accessor(p3.AddMethod);
+            validateP3Accessor(p3.RemoveMethod);
+            void validateP3Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30556,9 +30556,9 @@ class Test2 : I1, I2, I3, I4
             Assert.Null(test1.FindImplementationForInterfaceMember(p4));
             Assert.Null(test2.FindImplementationForInterfaceMember(p4));
 
-            ValidateP4Accessor(p4.AddMethod);
-            ValidateP4Accessor(p4.RemoveMethod);
-            void ValidateP4Accessor(MethodSymbol accessor)
+            validateP4Accessor(p4.AddMethod);
+            validateP4Accessor(p4.RemoveMethod);
+            void validateP4Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30688,9 +30688,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p1));
             Assert.Same(test2P1, test2.FindImplementationForInterfaceMember(p1));
 
-            ValidateP1Accessor(p1.AddMethod, test2P1.AddMethod);
-            ValidateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
-            void ValidateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            validateP1Accessor(p1.AddMethod, test2P1.AddMethod);
+            validateP1Accessor(p1.RemoveMethod, test2P1.RemoveMethod);
+            void validateP1Accessor(MethodSymbol accessor, MethodSymbol implementation)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30718,9 +30718,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p2));
             Assert.Same(test2P2, test2.FindImplementationForInterfaceMember(p2));
 
-            ValidateP2Accessor(p2.AddMethod, test2P2.AddMethod);
-            ValidateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
-            void ValidateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
+            validateP2Accessor(p2.AddMethod, test2P2.AddMethod);
+            validateP2Accessor(p2.RemoveMethod, test2P2.RemoveMethod);
+            void validateP2Accessor(MethodSymbol accessor, MethodSymbol implementation)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30748,9 +30748,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p3));
             Assert.Null(test2.FindImplementationForInterfaceMember(p3));
 
-            ValidateP3Accessor(p3.AddMethod);
-            ValidateP3Accessor(p3.RemoveMethod);
-            void ValidateP3Accessor(MethodSymbol accessor)
+            validateP3Accessor(p3.AddMethod);
+            validateP3Accessor(p3.RemoveMethod);
+            void validateP3Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30778,9 +30778,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p4));
             Assert.Null(test2.FindImplementationForInterfaceMember(p4));
 
-            ValidateP4Accessor(p4.AddMethod);
-            ValidateP4Accessor(p4.RemoveMethod);
-            void ValidateP4Accessor(MethodSymbol accessor)
+            validateP4Accessor(p4.AddMethod);
+            validateP4Accessor(p4.RemoveMethod);
+            void validateP4Accessor(MethodSymbol accessor)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30807,9 +30807,9 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Null(test1.FindImplementationForInterfaceMember(p5));
             Assert.Null(test2.FindImplementationForInterfaceMember(p5));
 
-            ValidateP5Accessor(p5.AddMethod);
-            ValidateP5Accessor(p5.RemoveMethod);
-            void ValidateP5Accessor(MethodSymbol accessor)
+            validateP5Accessor(p5.AddMethod);
+            validateP5Accessor(p5.RemoveMethod);
+            void validateP5Accessor(MethodSymbol accessor)
             {
                 Assert.False(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -30879,11 +30879,11 @@ class Test1 : I1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
@@ -30891,15 +30891,15 @@ set_P1
                 var p1add = p1.AddMethod;
                 var p1remove = p1.RemoveMethod;
 
-                ValidateEvent(p1);
-                ValidateMethod(p1add);
-                ValidateMethod(p1remove);
+                validateEvent(p1);
+                validateMethod(p1add);
+                validateMethod(p1remove);
                 Assert.Same(p1, test1.FindImplementationForInterfaceMember(p1));
                 Assert.Same(p1add, test1.FindImplementationForInterfaceMember(p1add));
                 Assert.Same(p1remove, test1.FindImplementationForInterfaceMember(p1remove));
             }
 
-            void ValidateEvent(EventSymbol p1)
+            void validateEvent(EventSymbol p1)
             {
                 Assert.False(p1.IsAbstract);
                 Assert.True(p1.IsVirtual);
@@ -30910,7 +30910,7 @@ set_P1
                 Assert.Equal(accessibility, p1.DeclaredAccessibility);
             }
 
-            void ValidateMethod(MethodSymbol m1)
+            void validateMethod(MethodSymbol m1)
             {
                 Assert.False(m1.IsAbstract);
                 Assert.True(m1.IsVirtual);
@@ -30933,9 +30933,9 @@ set_P1
                 var i1 = compilation2.GetTypeByMetadataName("I1");
                 var p1 = GetSingleEvent(i1);
 
-                ValidateEvent(p1);
-                ValidateMethod(p1.AddMethod);
-                ValidateMethod(p1.RemoveMethod);
+                validateEvent(p1);
+                validateMethod(p1.AddMethod);
+                validateMethod(p1.RemoveMethod);
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -30948,9 +30948,9 @@ set_P1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation3.SourceModule);
+            validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -30962,9 +30962,9 @@ set_P1
 set_P1
 ",
                 verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
         }
 
         [Fact]
@@ -31249,10 +31249,10 @@ set_P2",
                     Assert.Equal(tuple.access, p1.DeclaredAccessibility);
                     Assert.Null(test1.FindImplementationForInterfaceMember(p1));
 
-                    ValidateAccessor(p1.AddMethod);
-                    ValidateAccessor(p1.RemoveMethod);
+                    validateAccessor(p1.AddMethod);
+                    validateAccessor(p1.RemoveMethod);
 
-                    void ValidateAccessor(MethodSymbol accessor)
+                    void validateAccessor(MethodSymbol accessor)
                     {
                         Assert.False(accessor.IsAbstract);
                         Assert.False(accessor.IsVirtual);
@@ -33778,9 +33778,9 @@ class Test1 : I1
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20 + implModifiers.Length)
                 );
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
@@ -33805,7 +33805,7 @@ class Test1 : I1
                 Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
             }
 
-            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
@@ -33838,7 +33838,7 @@ class Test1 : I1
                     );
             }
 
-            Validate1(compilation2.SourceModule);
+            validate1(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
@@ -33869,7 +33869,7 @@ class Test1 : I1
                     );
             }
 
-            Validate1(compilation3.SourceModule);
+            validate1(compilation3.SourceModule);
 
             var source2 =
 @"
@@ -33902,7 +33902,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20 + implModifiers.Length)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
         }
 
         private static void ValidateExplicitExternImplementation(MethodSymbol m1, bool isStatic = false)
@@ -33994,9 +33994,9 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
@@ -34008,7 +34008,7 @@ class Test1 : I1
                 Assert.True(i1.IsAbstract);
                 Assert.True(i1.IsMetadataAbstract);
 
-                Validate2(i1i2m1);
+                validate2(i1i2m1);
 
                 Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
                 Assert.Equal("System.Threading.Tasks.Task I1.I2.M1()", test1.FindImplementationForInterfaceMember(i2m1).ToTestDisplayString());
@@ -34021,7 +34021,7 @@ class Test1 : I1
                 Assert.Equal("System.Threading.Tasks.Task I1.I2.M1()", i3.FindImplementationForInterfaceMember(i2m1).ToTestDisplayString());
             }
 
-            void Validate2(MethodSymbol m1)
+            void validate2(MethodSymbol m1)
             {
                 Assert.Equal(!isStatic, m1.IsMetadataVirtual());
                 Assert.Equal(!isStatic, m1.IsMetadataFinal);
@@ -34046,7 +34046,7 @@ class Test1 : I1
             CompileAndVerify(compilation1,
                 expectedOutput: !Execute(isStatic, haveImplementationInDerivedInterface: true) ? null : "I2.M1",
                 verify: Verify(isStatic),
-                symbolValidator: Validate1);
+                symbolValidator: validate1);
         }
 
         [Theory]
@@ -34296,9 +34296,9 @@ public interface I6 : I1, I2, I3, I5
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = FindType(m, "I1");
                 var i1m1 = i1.GetMember<MethodSymbol>("M1");
@@ -34317,7 +34317,7 @@ public interface I6 : I1, I2, I3, I5
                 Assert.Same(i5m1, i6.FindImplementationForInterfaceMember(i1m1));
             }
 
-            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -34480,11 +34480,11 @@ class Test12 : I8
                 // we do not require interfaces to have a most specific implementation of all members. Therefore, there are no
                 // errors in this compilation.
                 compilation2.VerifyDiagnostics();
-                Validate2(compilation2.SourceModule);
+                validate2(compilation2.SourceModule);
 
-                void Validate2(ModuleSymbol m)
+                void validate2(ModuleSymbol m)
                 {
-                    Validate1(m);
+                    validate1(m);
 
                     var i1 = FindType(m, "I1");
                     var i1m1 = i1.GetMember<MethodSymbol>("M1");
@@ -34495,7 +34495,7 @@ class Test12 : I8
                     Assert.Null(i8.FindImplementationForInterfaceMember(i1m1));
                 }
 
-                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
@@ -34503,9 +34503,9 @@ class Test12 : I8
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
-                Validate2(compilation2.SourceModule);
+                validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
@@ -34515,11 +34515,11 @@ class Test12 : I8
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
-                Validate4(compilation4.SourceModule);
+                validate4(compilation4.SourceModule);
 
-                void Validate4(ModuleSymbol m)
+                void validate4(ModuleSymbol m)
                 {
-                    Validate1(m);
+                    validate1(m);
 
                     var i1 = FindType(m, "I1");
                     var i1m1 = i1.GetMember<MethodSymbol>("M1");
@@ -34544,7 +34544,7 @@ I5.I1.M1
 "
 ,
                     verify: Verify(isStatic),
-                    symbolValidator: Validate4);
+                    symbolValidator: validate4);
 
                 foreach (var ref2 in refs2)
                 {
@@ -34571,12 +34571,12 @@ I5.I1.M1
                         Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(14, 15)
                         );
 
-                    Validate3(compilation3.SourceModule);
+                    validate3(compilation3.SourceModule);
 
-                    void Validate3(ModuleSymbol m)
+                    void validate3(ModuleSymbol m)
                     {
-                        Validate1(m);
-                        Validate2(m);
+                        validate1(m);
+                        validate2(m);
 
                         var i1 = FindType(m, "I1");
                         var i1m1 = i1.GetMember<MethodSymbol>("M1");
@@ -34600,9 +34600,9 @@ I5.I1.M1
 
                     compilation5.VerifyDiagnostics();
 
-                    Validate5(compilation5.SourceModule);
+                    validate5(compilation5.SourceModule);
 
-                    void Validate5(ModuleSymbol m)
+                    void validate5(ModuleSymbol m)
                     {
                         var i1 = FindType(m, "I1");
                         var i1m1 = i1.GetMember<MethodSymbol>("M1");
@@ -34628,7 +34628,7 @@ Test11.M1
 Test12.M1
 ",
                         verify: Verify(isStatic),
-                        symbolValidator: Validate5);
+                        symbolValidator: validate5);
                 }
             }
         }
@@ -34811,9 +34811,9 @@ class Test2 : I2<long>
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var i1 = FindType(m, "I1");
                 var i1m1 = i1.GetMember<MethodSymbol>("M1");
@@ -34900,14 +34900,14 @@ I2.I1.M1
 I2.I1.M2
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
@@ -34918,13 +34918,13 @@ I2.I1.M1
 I2.I1.M2
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            Validate(compilation3.SourceModule);
+            validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
@@ -34935,7 +34935,7 @@ I2.I1.M1
 I2.I1.M2
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
         }
 
         [Theory]
@@ -37092,10 +37092,10 @@ I4.M1
         private static void VerifyFindImplementationForInterfaceMemberSame(PropertySymbol expected, NamedTypeSymbol implementingType, PropertySymbol interfaceProperty)
         {
             Assert.Same(expected, implementingType.FindImplementationForInterfaceMember(interfaceProperty));
-            ValidateAccessor(expected?.GetMethod, interfaceProperty.GetMethod);
-            ValidateAccessor(expected?.SetMethod, interfaceProperty.SetMethod);
+            validateAccessor(expected?.GetMethod, interfaceProperty.GetMethod);
+            validateAccessor(expected?.SetMethod, interfaceProperty.SetMethod);
 
-            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            void validateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
             {
                 if ((object)interfaceAccessor != null)
                 {
@@ -37111,10 +37111,10 @@ I4.M1
         private static void VerifyFindImplementationForInterfaceMemberEqual(PropertySymbol expected, NamedTypeSymbol implementingType, PropertySymbol interfaceProperty)
         {
             Assert.Equal(expected, implementingType.FindImplementationForInterfaceMember(interfaceProperty));
-            ValidateAccessor(expected?.GetMethod, interfaceProperty.GetMethod);
-            ValidateAccessor(expected?.SetMethod, interfaceProperty.SetMethod);
+            validateAccessor(expected?.GetMethod, interfaceProperty.GetMethod);
+            validateAccessor(expected?.SetMethod, interfaceProperty.SetMethod);
 
-            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            void validateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
             {
                 if ((object)interfaceAccessor != null)
                 {
@@ -37137,10 +37137,10 @@ I4.M1
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
-            ValidateAccessor(m1.GetMethod, isAbstract, isStatic);
-            ValidateAccessor(m1.SetMethod, isAbstract, isStatic);
+            validateAccessor(m1.GetMethod, isAbstract, isStatic);
+            validateAccessor(m1.SetMethod, isAbstract, isStatic);
 
-            static void ValidateAccessor(MethodSymbol accessor, bool isAbstract, bool isStatic)
+            static void validateAccessor(MethodSymbol accessor, bool isAbstract, bool isStatic)
             {
                 if ((object)accessor != null)
                 {
@@ -37966,9 +37966,9 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var test1 = m.GlobalNamespace.GetTypeMember("Test1");
                 var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
@@ -37993,7 +37993,7 @@ class Test1 : I1
                 VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
             }
 
-            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
@@ -38001,14 +38001,14 @@ class Test1 : I1
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(expected2);
 
-            Validate1(compilation2.SourceModule);
+            validate1(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             compilation3.VerifyDiagnostics(expected3);
 
-            Validate1(compilation3.SourceModule);
+            validate1(compilation3.SourceModule);
 
             var compilation4 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
@@ -38016,7 +38016,7 @@ class Test1 : I1
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected4);
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
         }
 
         private static void ValidateExplicitExternImplementation(PropertySymbol m1, bool isStatic)
@@ -38029,10 +38029,10 @@ class Test1 : I1
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
-            ValidateAccessor(m1.GetMethod);
-            ValidateAccessor(m1.SetMethod);
+            validateAccessor(m1.GetMethod);
+            validateAccessor(m1.SetMethod);
 
-            void ValidateAccessor(MethodSymbol accessor)
+            void validateAccessor(MethodSymbol accessor)
             {
                 if ((object)accessor != null)
                 {
@@ -38755,9 +38755,9 @@ class Test12 : I8
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = FindType(m, "I1");
                 var i1m1 = GetSingleProperty(i1);
@@ -38776,7 +38776,7 @@ class Test12 : I8
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -38817,11 +38817,11 @@ class Test5 : I8
                 // we do not require interfaces to have a most specific implementation of all members. Therefore, there are no
                 // errors in this compilation.
                 compilation2.VerifyDiagnostics();
-                Validate2(compilation2.SourceModule);
+                validate2(compilation2.SourceModule);
 
-                void Validate2(ModuleSymbol m)
+                void validate2(ModuleSymbol m)
                 {
-                    Validate1(m);
+                    validate1(m);
 
                     var i1 = FindType(m, "I1");
                     var i1m1 = GetSingleProperty(i1);
@@ -38832,7 +38832,7 @@ class Test5 : I8
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
@@ -38840,9 +38840,9 @@ class Test5 : I8
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
-                Validate2(compilation2.SourceModule);
+                validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
@@ -38852,11 +38852,11 @@ class Test5 : I8
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
-                Validate4(compilation4.SourceModule);
+                validate4(compilation4.SourceModule);
 
-                void Validate4(ModuleSymbol m)
+                void validate4(ModuleSymbol m)
                 {
-                    Validate1(m);
+                    validate1(m);
 
                     var i1 = FindType(m, "I1");
                     var i1m1 = GetSingleProperty(i1);
@@ -38884,7 +38884,7 @@ I5.I1.M1.set
 "
 ,
                     verify: Verify(isStatic),
-                    symbolValidator: Validate4);
+                    symbolValidator: validate4);
 
                 foreach (var ref2 in refs2)
                 {
@@ -38895,12 +38895,12 @@ I5.I1.M1.set
 
                     compilation3.VerifyDiagnostics(ref1 is CompilationReference ? expected1 : expected2 ?? expected1);
 
-                    Validate3(compilation3.SourceModule);
+                    validate3(compilation3.SourceModule);
 
-                    void Validate3(ModuleSymbol m)
+                    void validate3(ModuleSymbol m)
                     {
-                        Validate1(m);
-                        Validate2(m);
+                        validate1(m);
+                        validate2(m);
 
                         var i1 = FindType(m, "I1");
                         var i1m1 = GetSingleProperty(i1);
@@ -38924,9 +38924,9 @@ I5.I1.M1.set
 
                     compilation5.VerifyDiagnostics();
 
-                    Validate5(compilation5.SourceModule);
+                    validate5(compilation5.SourceModule);
 
-                    void Validate5(ModuleSymbol m)
+                    void validate5(ModuleSymbol m)
                     {
                         var i1 = FindType(m, "I1");
                         var i1m1 = GetSingleProperty(i1);
@@ -38957,7 +38957,7 @@ Test12.M1.get
 Test12.M1.set
 ",
                         verify: Verify(isStatic),
-                        symbolValidator: Validate5);
+                        symbolValidator: validate5);
                 }
             }
         }
@@ -39120,9 +39120,9 @@ class Test2 : I2<long>
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var i1 = FindType(m, "I1");
                 var i1m1 = GetSingleProperty(i1);
@@ -39181,14 +39181,14 @@ I2.I1.M1.get
 I2.I1.M1.set
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
@@ -39199,13 +39199,13 @@ I2.I1.M1.get
 I2.I1.M1.set
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            Validate(compilation3.SourceModule);
+            validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
@@ -39216,7 +39216,7 @@ I2.I1.M1.get
 I2.I1.M1.set
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
         }
 
         [Theory]
@@ -40125,10 +40125,10 @@ I4.M1.remove
         private static void VerifyFindImplementationForInterfaceMemberSame(EventSymbol expected, NamedTypeSymbol implementingType, EventSymbol interfaceEvent)
         {
             Assert.Same(expected, implementingType.FindImplementationForInterfaceMember(interfaceEvent));
-            ValidateAccessor(expected?.AddMethod, interfaceEvent.AddMethod);
-            ValidateAccessor(expected?.RemoveMethod, interfaceEvent.RemoveMethod);
+            validateAccessor(expected?.AddMethod, interfaceEvent.AddMethod);
+            validateAccessor(expected?.RemoveMethod, interfaceEvent.RemoveMethod);
 
-            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            void validateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
             {
                 if ((object)interfaceAccessor != null)
                 {
@@ -40144,10 +40144,10 @@ I4.M1.remove
         private static void VerifyFindImplementationForInterfaceMemberEqual(EventSymbol expected, NamedTypeSymbol implementingType, EventSymbol interfaceEvent)
         {
             Assert.Equal(expected, implementingType.FindImplementationForInterfaceMember(interfaceEvent));
-            ValidateAccessor(expected?.AddMethod, interfaceEvent.AddMethod);
-            ValidateAccessor(expected?.RemoveMethod, interfaceEvent.RemoveMethod);
+            validateAccessor(expected?.AddMethod, interfaceEvent.AddMethod);
+            validateAccessor(expected?.RemoveMethod, interfaceEvent.RemoveMethod);
 
-            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            void validateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
             {
                 if ((object)interfaceAccessor != null)
                 {
@@ -40170,10 +40170,10 @@ I4.M1.remove
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
 
-            ValidateAccessor(m1.AddMethod, isAbstract);
-            ValidateAccessor(m1.RemoveMethod, isAbstract);
+            validateAccessor(m1.AddMethod, isAbstract);
+            validateAccessor(m1.RemoveMethod, isAbstract);
 
-            void ValidateAccessor(MethodSymbol accessor, bool isAbstract)
+            void validateAccessor(MethodSymbol accessor, bool isAbstract)
             {
                 if ((object)accessor != null)
                 {
@@ -41252,9 +41252,9 @@ public interface I6 : I1, I2, I3, I5
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = FindType(m, "I1");
                 var i1m1 = GetSingleEvent(i1);
@@ -41273,7 +41273,7 @@ public interface I6 : I1, I2, I3, I5
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: Verify(isStatic), symbolValidator: validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -41479,11 +41479,11 @@ class Test12 : I8
                 // we do not require interfaces to have a most specific implementation of all members. Therefore, there are no
                 // errors in this compilation.
                 compilation2.VerifyDiagnostics();
-                Validate2(compilation2.SourceModule);
+                validate2(compilation2.SourceModule);
 
-                void Validate2(ModuleSymbol m)
+                void validate2(ModuleSymbol m)
                 {
-                    Validate1(m);
+                    validate1(m);
 
                     var i1 = FindType(m, "I1");
                     var i1m1 = GetSingleEvent(i1);
@@ -41494,7 +41494,7 @@ class Test12 : I8
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3,
@@ -41502,9 +41502,9 @@ class Test12 : I8
                 Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation2.VerifyDiagnostics();
-                Validate2(compilation2.SourceModule);
+                validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: Verify(isStatic), symbolValidator: validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
@@ -41514,11 +41514,11 @@ class Test12 : I8
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                 compilation4.VerifyDiagnostics();
-                Validate4(compilation4.SourceModule);
+                validate4(compilation4.SourceModule);
 
-                void Validate4(ModuleSymbol m)
+                void validate4(ModuleSymbol m)
                 {
-                    Validate1(m);
+                    validate1(m);
 
                     var i1 = FindType(m, "I1");
                     var i1m1 = GetSingleEvent(i1);
@@ -41546,7 +41546,7 @@ I5.I1.M1.remove
 "
 ,
                     verify: Verify(isStatic),
-                    symbolValidator: Validate4);
+                    symbolValidator: validate4);
 
                 foreach (var ref2 in refs2)
                 {
@@ -41573,12 +41573,12 @@ I5.I1.M1.remove
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(14, 15)
                         );
 
-                    Validate3(compilation3.SourceModule);
+                    validate3(compilation3.SourceModule);
 
-                    void Validate3(ModuleSymbol m)
+                    void validate3(ModuleSymbol m)
                     {
-                        Validate1(m);
-                        Validate2(m);
+                        validate1(m);
+                        validate2(m);
 
                         var i1 = FindType(m, "I1");
                         var i1m1 = GetSingleEvent(i1);
@@ -41602,9 +41602,9 @@ I5.I1.M1.remove
 
                     compilation5.VerifyDiagnostics();
 
-                    Validate5(compilation5.SourceModule);
+                    validate5(compilation5.SourceModule);
 
-                    void Validate5(ModuleSymbol m)
+                    void validate5(ModuleSymbol m)
                     {
                         var i1 = FindType(m, "I1");
                         var i1m1 = GetSingleEvent(i1);
@@ -41635,7 +41635,7 @@ Test12.M1.add
 Test12.M1.remove
 ",
                         verify: Verify(isStatic),
-                        symbolValidator: Validate5);
+                        symbolValidator: validate5);
                 }
             }
         }
@@ -41796,9 +41796,9 @@ class Test2 : I2<long>
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
-            Validate(compilation1.SourceModule);
+            validate(compilation1.SourceModule);
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var i1 = FindType(m, "I1");
                 var i1m1 = GetSingleEvent(i1);
@@ -41857,14 +41857,14 @@ I2.I1.M1.add
 I2.I1.M1.remove
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            Validate(compilation2.SourceModule);
+            validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
@@ -41875,13 +41875,13 @@ I2.I1.M1.add
 I2.I1.M1.remove
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            Validate(compilation3.SourceModule);
+            validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
@@ -41892,7 +41892,7 @@ I2.I1.M1.add
 I2.I1.M1.remove
 ",
                 verify: Verify(isStatic),
-                symbolValidator: Validate);
+                symbolValidator: validate);
         }
 
         [Theory]
@@ -43802,7 +43802,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<FieldSymbol>("F1");
@@ -43824,9 +43824,9 @@ class Test1 : I1
                 Assert.Null(cctor);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -43874,7 +43874,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -43895,7 +43895,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 24)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -43932,7 +43932,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<FieldSymbol>("F1");
@@ -43964,9 +43964,9 @@ class Test1 : I1
                 Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -44010,7 +44010,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
@@ -44030,7 +44030,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 33)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -44067,7 +44067,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<FieldSymbol>("F1");
@@ -44094,9 +44094,9 @@ class Test1 : I1
                 Assert.Null(cctor);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -44140,7 +44140,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
@@ -44160,7 +44160,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 23)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -45060,7 +45060,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<PropertySymbol>("F1");
@@ -45082,9 +45082,9 @@ class Test1 : I1
                 Assert.Null(cctor);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -45141,7 +45141,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -45174,7 +45174,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(7, 33)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -45211,7 +45211,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<PropertySymbol>("F1");
@@ -45238,9 +45238,9 @@ class Test1 : I1
                 Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -45294,7 +45294,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(9, 18)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -45315,7 +45315,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(7, 28)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -45353,7 +45353,7 @@ class Test1 : I1
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.NetCoreApp);
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<PropertySymbol>("F1");
@@ -45376,9 +45376,9 @@ class Test1 : I1
                 Assert.Null(cctor);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "123", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "123", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -45436,7 +45436,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "TestHelper").WithArguments("default interface implementation", "8.0").WithLocation(8, 18)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -45463,7 +45463,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(6, 42)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -45544,7 +45544,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<EventSymbol>("F1");
@@ -45566,9 +45566,9 @@ class Test1 : I1
                 Assert.Null(cctor);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -45624,7 +45624,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 40)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
@@ -45644,7 +45644,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 40)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -45684,7 +45684,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            void Validate1(ModuleSymbol m)
+            void validate1(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var f1 = i1.GetMember<EventSymbol>("F1");
@@ -45706,9 +45706,9 @@ class Test1 : I1
                 Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
             }
 
-            Validate1(compilation1.SourceModule);
+            validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "1234", symbolValidator: validate1);
 
             var source2 =
 @"
@@ -45761,7 +45761,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "F4").WithArguments("private", "7.3", "8.0").WithLocation(7, 40)
                 );
 
-            Validate1(compilation4.SourceModule);
+            validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
@@ -45781,7 +45781,7 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "F4").WithLocation(7, 40)
                 );
 
-            Validate1(compilation5.SourceModule);
+            validate1(compilation5.SourceModule);
         }
 
         [Fact]
@@ -62708,7 +62708,7 @@ class C1 : I1, Interface<int>
             {
                 var comp = CreateCompilationWithIL(source, ilSource, options: options, targetFramework: TargetFramework.Net60, references: new[] { windowsRuntimeRef });
 
-                void Validate(ModuleSymbol m)
+                void validate(ModuleSymbol m)
                 {
                     var i1 = m.GlobalNamespace.GetTypeMember("I1");
                     var c1 = m.GlobalNamespace.GetTypeMember("C1");
@@ -62748,9 +62748,9 @@ class C1 : I1, Interface<int>
                     Assert.Equal("void I1.Interface<System.Int32>.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
                 }
 
-                Validate(comp.SourceModule);
+                validate(comp.SourceModule);
 
-                CompileAndVerify(comp, verify: Verify(isStatic), symbolValidator: Validate);
+                CompileAndVerify(comp, verify: Verify(isStatic), symbolValidator: validate);
             }
         }
 
@@ -62781,7 +62781,7 @@ class C1 : I1
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var c1 = m.GlobalNamespace.GetTypeMember("C1");
@@ -62798,9 +62798,9 @@ class C1 : I1
                 Assert.Equal("void I1.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
             }
 
-            Validate(comp.SourceModule);
+            validate(comp.SourceModule);
 
-            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
         }
 
         [Fact]
@@ -62834,7 +62834,7 @@ class C1 : I1, Interface
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugWinMD, targetFramework: TargetFramework.NetCoreApp, references: new[] { CompilationExtensions.CreateWindowsRuntimeMetadataReference() });
 
-            void Validate(ModuleSymbol m)
+            void validate(ModuleSymbol m)
             {
                 var i1 = m.GlobalNamespace.GetTypeMember("I1");
                 var c1 = m.GlobalNamespace.GetTypeMember("C1");
@@ -62862,9 +62862,9 @@ class C1 : I1, Interface
                 Assert.Equal("void I1.Interface.WinRT.remove", i1WinRT.RemoveMethod.ToTestDisplayString());
             }
 
-            Validate(comp.SourceModule);
+            validate(comp.SourceModule);
 
-            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
+            CompileAndVerify(comp, verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
         }
 
         [ConditionalTheory(typeof(MonoOrCoreClrOnly))]

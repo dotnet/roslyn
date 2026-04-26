@@ -125,40 +125,40 @@ namespace System.IO.Hashing
             Debug.Assert(InternalBufferLengthBytes % StripeLengthBytes == 0);
 
             ReadOnlySpan<ulong> defaultSecretUInt64 = MemoryMarshal.Cast<byte, ulong>(DefaultSecret);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[0]) == DefaultSecretUInt64_0);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[1]) == DefaultSecretUInt64_1);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[2]) == DefaultSecretUInt64_2);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[3]) == DefaultSecretUInt64_3);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[4]) == DefaultSecretUInt64_4);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[5]) == DefaultSecretUInt64_5);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[6]) == DefaultSecretUInt64_6);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[7]) == DefaultSecretUInt64_7);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[8]) == DefaultSecretUInt64_8);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[9]) == DefaultSecretUInt64_9);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[10]) == DefaultSecretUInt64_10);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[11]) == DefaultSecretUInt64_11);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[12]) == DefaultSecretUInt64_12);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[13]) == DefaultSecretUInt64_13);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[14]) == DefaultSecretUInt64_14);
-            Debug.Assert(ReadLE64(defaultSecretUInt64[15]) == DefaultSecretUInt64_15);
+            Debug.Assert(readLE64(defaultSecretUInt64[0]) == DefaultSecretUInt64_0);
+            Debug.Assert(readLE64(defaultSecretUInt64[1]) == DefaultSecretUInt64_1);
+            Debug.Assert(readLE64(defaultSecretUInt64[2]) == DefaultSecretUInt64_2);
+            Debug.Assert(readLE64(defaultSecretUInt64[3]) == DefaultSecretUInt64_3);
+            Debug.Assert(readLE64(defaultSecretUInt64[4]) == DefaultSecretUInt64_4);
+            Debug.Assert(readLE64(defaultSecretUInt64[5]) == DefaultSecretUInt64_5);
+            Debug.Assert(readLE64(defaultSecretUInt64[6]) == DefaultSecretUInt64_6);
+            Debug.Assert(readLE64(defaultSecretUInt64[7]) == DefaultSecretUInt64_7);
+            Debug.Assert(readLE64(defaultSecretUInt64[8]) == DefaultSecretUInt64_8);
+            Debug.Assert(readLE64(defaultSecretUInt64[9]) == DefaultSecretUInt64_9);
+            Debug.Assert(readLE64(defaultSecretUInt64[10]) == DefaultSecretUInt64_10);
+            Debug.Assert(readLE64(defaultSecretUInt64[11]) == DefaultSecretUInt64_11);
+            Debug.Assert(readLE64(defaultSecretUInt64[12]) == DefaultSecretUInt64_12);
+            Debug.Assert(readLE64(defaultSecretUInt64[13]) == DefaultSecretUInt64_13);
+            Debug.Assert(readLE64(defaultSecretUInt64[14]) == DefaultSecretUInt64_14);
+            Debug.Assert(readLE64(defaultSecretUInt64[15]) == DefaultSecretUInt64_15);
 
             ReadOnlySpan<ulong> defaultSecret3UInt64 = MemoryMarshal.Cast<byte, ulong>(DefaultSecret.Slice(3));
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[0]) == DefaultSecret3UInt64_0);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[1]) == DefaultSecret3UInt64_1);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[2]) == DefaultSecret3UInt64_2);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[3]) == DefaultSecret3UInt64_3);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[4]) == DefaultSecret3UInt64_4);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[5]) == DefaultSecret3UInt64_5);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[6]) == DefaultSecret3UInt64_6);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[7]) == DefaultSecret3UInt64_7);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[8]) == DefaultSecret3UInt64_8);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[9]) == DefaultSecret3UInt64_9);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[10]) == DefaultSecret3UInt64_10);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[11]) == DefaultSecret3UInt64_11);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[12]) == DefaultSecret3UInt64_12);
-            Debug.Assert(ReadLE64(defaultSecret3UInt64[13]) == DefaultSecret3UInt64_13);
+            Debug.Assert(readLE64(defaultSecret3UInt64[0]) == DefaultSecret3UInt64_0);
+            Debug.Assert(readLE64(defaultSecret3UInt64[1]) == DefaultSecret3UInt64_1);
+            Debug.Assert(readLE64(defaultSecret3UInt64[2]) == DefaultSecret3UInt64_2);
+            Debug.Assert(readLE64(defaultSecret3UInt64[3]) == DefaultSecret3UInt64_3);
+            Debug.Assert(readLE64(defaultSecret3UInt64[4]) == DefaultSecret3UInt64_4);
+            Debug.Assert(readLE64(defaultSecret3UInt64[5]) == DefaultSecret3UInt64_5);
+            Debug.Assert(readLE64(defaultSecret3UInt64[6]) == DefaultSecret3UInt64_6);
+            Debug.Assert(readLE64(defaultSecret3UInt64[7]) == DefaultSecret3UInt64_7);
+            Debug.Assert(readLE64(defaultSecret3UInt64[8]) == DefaultSecret3UInt64_8);
+            Debug.Assert(readLE64(defaultSecret3UInt64[9]) == DefaultSecret3UInt64_9);
+            Debug.Assert(readLE64(defaultSecret3UInt64[10]) == DefaultSecret3UInt64_10);
+            Debug.Assert(readLE64(defaultSecret3UInt64[11]) == DefaultSecret3UInt64_11);
+            Debug.Assert(readLE64(defaultSecret3UInt64[12]) == DefaultSecret3UInt64_12);
+            Debug.Assert(readLE64(defaultSecret3UInt64[13]) == DefaultSecret3UInt64_13);
 
-            static ulong ReadLE64(ulong data) => BitConverter.IsLittleEndian ? data : BinaryPrimitives.ReverseEndianness(data);
+            static ulong readLE64(ulong data) => BitConverter.IsLittleEndian ? data : BinaryPrimitives.ReverseEndianness(data);
         }
 #endif
 

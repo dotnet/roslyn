@@ -302,10 +302,10 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
-                AssertProperty(type.GetProperty("P1"));
-                AssertProperty(type.GetProperty("P2"));
+                assertProperty(type.GetProperty("P1"));
+                assertProperty(type.GetProperty("P2"));
 
-                void AssertProperty(PropertySymbol property)
+                void assertProperty(PropertySymbol property)
                 {
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
@@ -331,10 +331,10 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
-                AssertProperty(type.GetProperty("P1"));
-                AssertProperty(type.GetProperty("P2"));
+                assertProperty(type.GetProperty("P1"));
+                assertProperty(type.GetProperty("P2"));
 
-                void AssertProperty(PropertySymbol property)
+                void assertProperty(PropertySymbol property)
                 {
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);
@@ -368,10 +368,10 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
-                AssertProperty(type.GetProperty("P1"));
-                AssertProperty(type.GetProperty("P2"));
+                assertProperty(type.GetProperty("P1"));
+                assertProperty(type.GetProperty("P2"));
 
-                void AssertProperty(PropertySymbol property)
+                void assertProperty(PropertySymbol property)
                 {
                     Assert.Equal(RefKind.RefReadOnly, property.RefKind);
                     Assert.True(property.ReturnsByRefReadonly);

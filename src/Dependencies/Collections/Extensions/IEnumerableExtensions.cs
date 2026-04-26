@@ -1111,9 +1111,9 @@ namespace System.Linq
         /// <exception cref="ArgumentNullException"><paramref name="source" /> is <see langword="null" />.</exception>
         public static IEnumerable<(int Index, TSource Item)> Index<TSource>(this IEnumerable<TSource> source)
         {
-            return source is TSource[] { Length: 0 } ? [] : IndexIterator(source);
+            return source is TSource[] { Length: 0 } ? [] : indexIterator(source);
 
-            static IEnumerable<(int Index, TSource Item)> IndexIterator(IEnumerable<TSource> source)
+            static IEnumerable<(int Index, TSource Item)> indexIterator(IEnumerable<TSource> source)
             {
                 int index = -1;
                 foreach (TSource element in source)

@@ -914,8 +914,8 @@ RETRY:
 
                 while (blobReader.RemainingBytes > 0)
                 {
-                    var name = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
-                    var value = ReadNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
+                    var name = readNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
+                    var value = readNullTerminatedString(ref blobReader) ?? throw new BadImageFormatException();
 
                     // There shall be no two entries with the same name in the list.
                     if (result.ContainsKey(name))
@@ -934,7 +934,7 @@ RETRY:
                 result.Free();
             }
 
-            static string? ReadNullTerminatedString(ref BlobReader reader)
+            static string? readNullTerminatedString(ref BlobReader reader)
             {
                 var nullIndex = reader.IndexOf(0);
                 if (nullIndex == -1)

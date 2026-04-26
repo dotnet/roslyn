@@ -115,14 +115,14 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             const int Threshold = 85000;
 
             var segmentSize = 2;
-            while (ArraySize(elementSize, segmentSize << 1) < Threshold)
+            while (arraySize(elementSize, segmentSize << 1) < Threshold)
             {
                 segmentSize <<= 1;
             }
 
             return segmentSize;
 
-            static int ArraySize(int elementSize, int segmentSize)
+            static int arraySize(int elementSize, int segmentSize)
             {
                 // Array object header, plus space for the elements
                 return (2 * IntPtr.Size + 8) + (elementSize * segmentSize);

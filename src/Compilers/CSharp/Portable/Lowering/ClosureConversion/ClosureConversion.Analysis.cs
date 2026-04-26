@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!cantRemove)
                     {
-                        RemoveEnv();
+                        removeEnv();
                     }
                 }
                 // If we are in a variant interface, runtime might not consider the 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // environment, so by removing the 'this' environment, all
                     // nested environments which captured a pointer to the 'this'
                     // environment will now capture 'this'
-                    RemoveEnv();
+                    removeEnv();
                     VisitNestedFunctions(ScopeTree, (scope, closure) =>
                     {
                         if (closure.ContainingEnvironmentOpt == env)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     });
                 }
 
-                void RemoveEnv()
+                void removeEnv()
                 {
                     ScopeTree.DeclaredEnvironment = null;
                     VisitNestedFunctions(ScopeTree, (scope, nested) =>
@@ -618,9 +618,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             public static Scope GetScopeWithMatchingBoundNode(Scope treeRoot, BoundNode node)
             {
-                return Helper(treeRoot) ?? throw ExceptionUtilities.Unreachable();
+                return helper(treeRoot) ?? throw ExceptionUtilities.Unreachable();
 
-                Scope Helper(Scope currentScope)
+                Scope helper(Scope currentScope)
                 {
                     if (currentScope.BoundNode == node)
                     {
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var nestedScope in currentScope.NestedScopes)
                     {
-                        var found = Helper(nestedScope);
+                        var found = helper(nestedScope);
                         if (found != null)
                         {
                             return found;

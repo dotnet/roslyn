@@ -29,13 +29,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new LineMapping(new LinePositionSpan(new LinePosition(0, 1), new LinePosition(1, 1)), null, new FileLinePositionSpan("", new LinePositionSpan(new LinePosition(0, 0), new LinePosition(1, 1)), hasMappedPath: false)),
                 new LineMapping(new LinePositionSpan(new LinePosition(1, 0), new LinePosition(1, 1)), null, new FileLinePositionSpan("", new LinePositionSpan(new LinePosition(0, 0), new LinePosition(1, 1)), hasMappedPath: false)),
             };
-            var equalityUnits = lineMappings.SelectMany((left, leftIndex) => lineMappings.Select((right, rightIndex) => CreateEqualityUnit(left, leftIndex, right, rightIndex))).ToArray();
+            var equalityUnits = lineMappings.SelectMany((left, leftIndex) => lineMappings.Select((right, rightIndex) => createEqualityUnit(left, leftIndex, right, rightIndex))).ToArray();
             EqualityUtil.RunAll(
                 (left, right) => left == right,
                 (left, right) => left != right,
                 equalityUnits);
 
-            static EqualityUnit<LineMapping> CreateEqualityUnit(LineMapping left, int leftIndex, LineMapping right, int rightIndex)
+            static EqualityUnit<LineMapping> createEqualityUnit(LineMapping left, int leftIndex, LineMapping right, int rightIndex)
             {
                 var leftUnit = EqualityUnit.Create(left);
                 return (leftIndex == rightIndex) ? leftUnit.WithEqualValues(right) : leftUnit.WithNotEqualValues(right);

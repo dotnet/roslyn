@@ -479,15 +479,15 @@ namespace Roslyn.Test.Utilities
                 return subtext.ToString();
             }
 
-            static string TruncateStart(string text, int maxLength)
+            static string truncateStart(string text, int maxLength)
                 => (text.Length < maxLength) ? text : text[..maxLength];
 
-            static string TruncateEnd(string text, int maxLength)
+            static string truncateEnd(string text, int maxLength)
                 => (text.Length < maxLength) ? text : text.Substring(text.Length - maxLength - 1, maxLength);
 
             var start = subtext.Lines[0].ToString();
             var end = subtext.Lines[^1].ToString();
-            return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
+            return truncateStart(start, 12) + " ... " + truncateEnd(end, 12);
         }
     }
 }
