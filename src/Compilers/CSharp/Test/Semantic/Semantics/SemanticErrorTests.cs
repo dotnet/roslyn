@@ -1222,9 +1222,14 @@ class X
     }
 }
 ";
+            // Under the extension-members-on-typeless-receivers feature, typeless lambdas /
+            // anonymous methods are valid member-access receivers. With no applicable extension
+            // ToString, lookup reports ERR_NoSuchMember instead of the pre-feature ERR_BadUnaryOp.
             CreateCompilation(text).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "arg => { arg = 2; return arg; }.ToString").WithArguments(".", "lambda expression"),
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "delegate { }.ToString").WithArguments(".", "anonymous method"));
+                // (6,67): error CS0117: 'lambda expression' does not contain a definition for 'ToString'
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("lambda expression", "ToString").WithLocation(6, 67),
+                // (8,30): error CS0117: 'anonymous method' does not contain a definition for 'ToString'
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("anonymous method", "ToString").WithLocation(8, 30));
         }
 
         [Fact]
