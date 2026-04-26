@@ -991,21 +991,11 @@ class C
     }
 }
 ";
-            // Under the extension-members-on-typeless-receivers feature, `default.ToString()` is
-            // a valid member-access on a typeless `default` literal: it routes through extension
-            // lookup, finds no applicable extension, and reports ERR_NoSuchMember instead of the
-            // pre-feature ERR_DefaultLiteralNoTargetType. Pre-preview language versions also
-            // report ERR_FeatureInPreview alongside. The other lines (`default[0]`, `throw default`)
-            // do not enter the typeless-extension path and continue to report
-            // ERR_DefaultLiteralNoTargetType.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,9): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8716: There is no target type for the default literal.
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "default.ToString").WithArguments("extension members on typeless receivers").WithLocation(6, 9),
-                // (6,17): error CS0117: 'default' does not contain a definition for 'ToString'
-                //         default.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("default", "ToString").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 9),
                 // (7,9): error CS8716: There is no target type for the default literal.
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(7, 9),
@@ -1025,12 +1015,9 @@ class C
                 // (6,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         default.ToString();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 9),
-                // (6,9): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS8716: There is no target type for the default literal.
                 //         default.ToString();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "default.ToString").WithArguments("extension members on typeless receivers").WithLocation(6, 9),
-                // (6,17): error CS0117: 'default' does not contain a definition for 'ToString'
-                //         default.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "ToString").WithArguments("default", "ToString").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(6, 9),
                 // (7,9): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //         default[0].ToString();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 9),
