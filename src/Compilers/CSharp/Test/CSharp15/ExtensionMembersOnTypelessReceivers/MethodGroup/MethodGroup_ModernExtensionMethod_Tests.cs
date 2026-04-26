@@ -67,8 +67,11 @@ public sealed class ExtensionMembersOnTypelessReceivers_MethodGroup_ModernExtens
     }
 
     [Fact]
-    public void NoApplicableExtension_ReportsNoSuchMember()
+    public void NoExtensionInScope_FallsBackToBadSKunknown()
     {
+        // No extension method named DoesNotExist is in scope. The typeless-receiver feature
+        // only engages when at least one extension candidate exists; without one, the helper
+        // returns null and the legacy method-group binding produces ERR_BadSKunknown.
         var source = """
             public class Goo
             {
@@ -80,8 +83,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_MethodGroup_ModernExtens
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (6,20): error CS0117: 'method group' does not contain a definition for 'DoesNotExist'
+            // (6,13): error CS0119: 'Goo.Square(int)' is a method, which is not valid in the given context
             //         _ = Square.DoesNotExist();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("method group", "DoesNotExist").WithLocation(6, 20));
+            Diagnostic(ErrorCode.ERR_BadSKunknown, "Square").WithArguments("Goo.Square(int)", "method").WithLocation(6, 13));
     }
 }
