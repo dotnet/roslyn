@@ -167,6 +167,57 @@ public sealed class ExtensionMembersOnTypelessReceivers_CollectionExpression_Mod
     }
 
     [Fact]
+    public void Indexer_VarLocal_NonConstIndex_Executes()
+    {
+        // The `var` on the LHS does not provide target-type pressure for the collection
+        // expression. Instead, the extension indexer's receiver parameter type (`int[]`) is what
+        // drives target typing on `[a, b, c]`, and `var` just inherits the indexer's return type.
+        var source = """
+            public static class Ext
+            {
+                extension(int[] xs)
+                {
+                    public int this[int i] => xs[i];
+                }
+            }
+
+            public class Goo
+            {
+                public static void Main()
+                {
+                    int a = 10, b = 20, c = 30;
+                    int idx = int.Parse("1");
+                    var v = [a, b, c][idx];
+                    System.Console.Write(v);
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "20").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Indexer_VarLocal_NonConstIndex_NoCandidateInScope_FallsBack()
+    {
+        // No extension indexer is in scope, so there is nothing to drive target typing on the
+        // collection expression and the legacy ERR_CollectionExpressionNoTargetType fires.
+        var source = """
+            public class Goo
+            {
+                public static void M()
+                {
+                    int a = 1, b = 2, c = 3;
+                    int idx = int.Parse("1");
+                    var v = [a, b, c][idx];
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (7,17): error CS9176: There is no target type for the collection expression.
+            //         var v = [a, b, c][idx];
+            Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[a, b, c]").WithLocation(7, 17));
+    }
+
+    [Fact]
     public void Indexer_NoCandidateInScope_FallsBackToCollectionExpressionNoTargetType()
     {
         // No extension indexer is in scope. The typeless-receiver feature only engages when at
