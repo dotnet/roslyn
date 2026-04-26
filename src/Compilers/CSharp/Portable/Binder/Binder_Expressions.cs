@@ -7911,17 +7911,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, boundLeft);
             }
 
-            // No member accesses on default
-            if (boundLeft.IsLiteralDefault())
-            {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, SyntaxFacts.GetText(operatorToken.Kind()), boundLeft.Display);
-                diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
-                return BadExpression(node, boundLeft);
-            }
-
-            // Typeless lambdas are routed through TryBindMemberAccessOnTypelessReceiver above,
-            // which owns both the success and HasErrors paths for that kind.
+            // Typeless lambdas and typeless `default` literals are routed through
+            // TryBindMemberAccessOnTypelessReceiver above, which owns both the success and
+            // HasErrors paths for those kinds.
             Debug.Assert(boundLeft.Kind != BoundKind.UnboundLambda);
+            Debug.Assert(!boundLeft.IsLiteralDefault());
 
             boundLeft = BindToNaturalType(boundLeft, diagnostics);
             leftType = boundLeft.Type;
