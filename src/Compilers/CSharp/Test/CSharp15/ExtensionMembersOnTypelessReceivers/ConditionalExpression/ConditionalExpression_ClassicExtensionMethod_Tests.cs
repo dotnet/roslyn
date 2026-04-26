@@ -59,8 +59,11 @@ public sealed class ExtensionMembersOnTypelessReceivers_ConditionalExpression_Cl
     }
 
     [Fact]
-    public void Conditional_NoApplicableExtension_ReportsNoSuchMember()
+    public void Conditional_NoExtensionInScope_FallsBackToInvalidQM()
     {
+        // No extension is in scope. The typeless-receiver feature only engages when at least
+        // one extension candidate exists; without one, the helper returns null and the legacy
+        // conditional-expression binding produces ERR_InvalidQM.
         var source = """
             public class Goo
             {
@@ -72,8 +75,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_ConditionalExpression_Cl
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (6,28): error CS0117: '?:' does not contain a definition for 'DoesNotExist'
+            // (6,14): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and 'int'
             //         _ = (b ? null : 5).DoesNotExist();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("target-typed conditional expression", "DoesNotExist").WithLocation(6, 28));
+            Diagnostic(ErrorCode.ERR_InvalidQM, "b ? null : 5").WithArguments("<null>", "int").WithLocation(6, 14));
     }
 }
