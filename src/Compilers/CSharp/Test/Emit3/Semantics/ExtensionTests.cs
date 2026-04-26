@@ -25349,6 +25349,11 @@ static class E
     [Fact]
     public void LiteralReceiver_Property_Tuple_Default()
     {
+        // Under the extension-members-on-typeless-receivers feature, the typeless
+        // `(default, default)` tuple now routes through extension lookup. The extension Property
+        // binds, the assignment form fails because the by-value receiver isn't an l-value, and
+        // the read form succeeds. The SemanticModel resolves both member-access nodes to the
+        // extension Property.
         var src = """
 (default, default).Property = 1;
 _ = (default, default).Property;
@@ -25363,28 +25368,22 @@ static class E
 """;
         var comp = CreateCompilation(src);
         comp.VerifyEmitDiagnostics(
-            // (1,2): error CS8716: There is no target type for the default literal.
+            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
             // (default, default).Property = 1;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(1, 2),
-            // (1,11): error CS8716: There is no target type for the default literal.
-            // (default, default).Property = 1;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(1, 11),
-            // (2,6): error CS8716: There is no target type for the default literal.
-            // _ = (default, default).Property;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 6),
-            // (2,15): error CS8716: There is no target type for the default literal.
-            // _ = (default, default).Property;
-            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(2, 15));
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(default, default).Property").WithLocation(1, 1));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
+        // The assignment-side member access has the extension Property as a candidate but no
+        // resolved Symbol (CandidateReason.NotAVariable) because the by-value tuple receiver
+        // isn't an l-value. The read-side resolves to the extension Property cleanly.
         var memberAccess1 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "(default, default).Property").First();
         Assert.Null(model.GetSymbolInfo(memberAccess1).Symbol);
-        Assert.Equal([], model.GetSymbolInfo(memberAccess1).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess1).CandidateReason);
+        Assert.NotEmpty(model.GetSymbolInfo(memberAccess1).CandidateSymbols);
+        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess1).CandidateReason);
 
         var memberAccess2 = GetSyntaxes<MemberAccessExpressionSyntax>(tree, "(default, default).Property").Last();
-        Assert.Null(model.GetSymbolInfo(memberAccess2).Symbol);
+        Assert.NotNull(model.GetSymbolInfo(memberAccess2).Symbol);
         Assert.Equal([], model.GetSymbolInfo(memberAccess2).CandidateSymbols.ToTestDisplayStrings());
         Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess2).CandidateReason);
     }
@@ -50604,13 +50603,12 @@ static class E
 }
 ";
         var comp = CreateCompilation(source);
+        // Under the extension-members-on-typeless-receivers feature, the typeless switch
+        // expression `(b switch { true => 1, false => null })` routes through extension lookup
+        // and target-types against M's `int?` receiver parameter, so the previous
+        // ERR_SwitchExpressionNoBestType / WRN_NullabilityMismatchInAssignment fall away. Only
+        // the unrelated ERR_NameNotInContext for `ERROR` remains.
         comp.VerifyEmitDiagnostics(
-            // (5,4): error CS8506: No best type was found for the switch expression.
-            // (b switch { true => 1, false => null}).M(ERROR);
-            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 4),
-            // (5,33): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-            // (b switch { true => 1, false => null}).M(ERROR);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(5, 33),
             // (5,42): error CS0103: The name 'ERROR' does not exist in the current context
             // (b switch { true => 1, false => null}).M(ERROR);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 42));
