@@ -124,4 +124,54 @@ public sealed class ExtensionMembersOnTypelessReceivers_NullLiteral_ClassicExten
             //         _ = null.DoesNotExist();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("<null>", "DoesNotExist").WithLocation(5, 18));
     }
+
+    [Fact]
+    public void NullLiteralReceiver_NullableEnabled_NoNRTWarning()
+    {
+        // Inside a nullable-enabled context, `null.Ext()` should not warn about possible
+        // null dereference: extension method calls do not dereference the receiver and the
+        // user explicitly wrote `null`.
+        var source = """
+            #nullable enable
+            public static class Ext
+            {
+                public static string OrEmpty(this string? s) => s ?? "empty";
+            }
+
+            public class Goo
+            {
+                public static void Main()
+                {
+                    System.Console.Write(null.OrEmpty());
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "empty").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void NullConditionalOnNullLiteral_RejectedByConditionalAccess()
+    {
+        // `null?.Ext()` is rejected at the `?.` operator level - the null-conditional
+        // operator itself disallows a literal-null operand and emits CS0023 before the
+        // typeless-receiver feature path is consulted.
+        var source = """
+            public static class Ext
+            {
+                public static int Side(this string s) => 1;
+            }
+
+            public class Goo
+            {
+                public static void M()
+                {
+                    int? r = null?.Side();
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (10,22): error CS0023: Operator '?' cannot be applied to operand of type '<null>'
+            //         int? r = null?.Side();
+            Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "<null>").WithLocation(10, 22));
+    }
 }
