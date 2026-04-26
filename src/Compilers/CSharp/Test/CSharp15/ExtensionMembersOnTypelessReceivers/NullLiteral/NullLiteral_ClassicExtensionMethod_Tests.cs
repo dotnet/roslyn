@@ -174,4 +174,28 @@ public sealed class ExtensionMembersOnTypelessReceivers_NullLiteral_ClassicExten
             //         int? r = null?.Side();
             Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "<null>").WithLocation(10, 22));
     }
+
+    [Fact]
+    public void NullSuppressed_OnNullLiteralReceiver_Executes()
+    {
+        // The null-forgiving operator `!` on a null-literal receiver doesn't change the
+        // receiver kind - it still binds as a typeless null literal and the extension call
+        // succeeds in a nullable-enabled context.
+        var source = """
+            #nullable enable
+            public static class Ext
+            {
+                public static string OrEmpty(this string? s) => s ?? "empty";
+            }
+
+            public class Goo
+            {
+                public static void Main()
+                {
+                    System.Console.Write(null!.OrEmpty());
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "empty").VerifyDiagnostics();
+    }
 }
