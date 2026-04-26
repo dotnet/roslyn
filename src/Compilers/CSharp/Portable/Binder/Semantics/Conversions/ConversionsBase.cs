@@ -2005,6 +2005,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Extension members on typeless receivers: when the receiver expression has no type,
+            // fall back to the standard expression-to-type implicit conversions used for any other
+            // typeless argument (null literal, default literal, anonymous function, method group,
+            // tuple expression, throw expression, collection expression, target-typed `new()`,
+            // target-typed conditional / switch). The feature flag check is performed by the binder
+            // before a typeless receiver reaches this path.
+            // See https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md
+            if (sourceExpressionOpt is not null && (object)sourceType == null)
+            {
+                var fromExpressionConversion = ClassifyImplicitConversionFromExpression(sourceExpressionOpt, destination, ref useSiteInfo);
+                if (fromExpressionConversion.Exists)
+                {
+                    return fromExpressionConversion;
+                }
+            }
+
             return Conversion.NoConversion;
         }
 
