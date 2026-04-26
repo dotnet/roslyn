@@ -2862,13 +2862,19 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: ?) (Syntax: 'y')
 ";
+            // Under the extension-members-on-typeless-receivers feature, `Main.Select(...)` is a
+            // valid member-access on a typeless method group. With Linq's extension Select in
+            // scope, type inference is attempted on the call site and reports
+            // ERR_CantInferMethTypeArgs (instead of the pre-feature ERR_BadSKunknown).
+            // The query form (`from y in Main`) is bound differently and continues to report
+            // ERR_BadSKunknown.
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0119: 'Program.Main()' is a method, which is not valid in the given context
                 //         var q1 = /*<bind>*/from y in Main select y/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "Main").WithArguments("Program.Main()", "method").WithLocation(9, 38),
-                // CS0119: 'Program.Main()' is a method, which is not valid in the given context
+                // (10,23): error CS0411: The type arguments for method 'Queryable.Select<TSource, TResult>(IQueryable<TSource>, Expression<Func<TSource, TResult>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         var q2 = Main.Select(y => y);
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "Main").WithArguments("Program.Main()", "method").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Select").WithArguments("System.Linq.Queryable.Select<TSource, TResult>(System.Linq.IQueryable<TSource>, System.Linq.Expressions.Expression<System.Func<TSource, TResult>>)").WithLocation(10, 23)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
