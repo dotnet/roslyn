@@ -8300,21 +8300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// A method-group receiver is "valid" for the typeless-extension-receiver path when its
-        /// lookup was viable and produced at least one candidate. This is the same conceptual
-        /// gate that <see cref="GetUniqueSignatureFromMethodGroup(BoundMethodGroup, out bool)"/>
-        /// applies to the instance-method branch when computing whether a method group could
-        /// naturally have a delegate type (the inlined <c>ResultKind == LookupResultKind.Viable</c>
-        /// guard around its instance-methods loop). The natural-type code adds a
-        /// signature-uniqueness check on top, which we don't need here. Inaccessible lookups,
-        /// ambiguous lookups, and empty / errored method groups (e.g. inaccessible nested-type
-        /// lookups that fell through to extension search and found nothing) fall back to the
-        /// existing diagnostic instead of being routed through the new feature.
-        /// </summary>
-        private static bool IsValidMethodGroupReceiver(BoundMethodGroup methodGroup)
-            => methodGroup.ResultKind == LookupResultKind.Viable && methodGroup.Methods.Length > 0;
-
-        /// <summary>
         /// If the receiver expression has no type and is a supported typeless form, route the
         /// member access through extension lookup (the "extension members on typeless receivers"
         /// feature). Returns null if the receiver is not a supported typeless form, leaving the
@@ -8355,7 +8340,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.TupleLiteral:
                     break;
-                case BoundKind.MethodGroup when IsValidMethodGroupReceiver((BoundMethodGroup)boundLeft):
+                // A method-group receiver is "valid" for the typeless-extension-receiver path when
+                // its lookup was viable and produced at least one candidate. This is the same
+                // conceptual gate that GetUniqueSignatureFromMethodGroup applies to the instance-
+                // method branch when computing whether a method group could naturally have a
+                // delegate type (the inlined ResultKind == LookupResultKind.Viable guard around
+                // its instance-methods loop). The natural-type code adds a signature-uniqueness
+                // check on top, which we don't need here. Inaccessible lookups, ambiguous lookups,
+                // and empty / errored method groups (e.g. inaccessible nested-type lookups that
+                // fell through to extension search and found nothing) fall back to the existing
+                // diagnostic instead of being routed through the new feature.
+                case BoundKind.MethodGroup when boundLeft is BoundMethodGroup { ResultKind: LookupResultKind.Viable, Methods.Length: > 0 }:
                     break;
                 case BoundKind.Literal when boundLeft.IsLiteralNull():
                     break;
