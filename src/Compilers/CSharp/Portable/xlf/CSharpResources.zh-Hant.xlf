@@ -2937,6 +2937,11 @@
         <target state="translated">擴充屬性模式</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureExtensionMembersOnTypelessReceivers">
+        <source>extension members on typeless receivers</source>
+        <target state="new">extension members on typeless receivers</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureExtensions">
         <source>extensions</source>
         <target state="translated">擴充</target>
