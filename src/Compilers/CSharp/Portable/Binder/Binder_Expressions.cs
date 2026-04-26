@@ -8417,6 +8417,103 @@ namespace Microsoft.CodeAnalysis.CSharp
                 singleLookupResults.Free();
             }
         }
+
+        /// <summary>
+        /// If the receiver expression has no type and is a supported typeless form, route the
+        /// element access through extension-indexer lookup (the "extension members on typeless
+        /// receivers" feature). Returns null if the receiver is not a supported typeless form or
+        /// if no extension indexer candidate is in scope, leaving the caller to fall back to the
+        /// existing behavior. The feature-availability check reports <c>ERR_FeatureInPreview</c>
+        /// when the language version is too low but binding continues either way.
+        /// </summary>
+        /// <remarks>
+        /// See <see href="https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md"/>.
+        /// </remarks>
+        private BoundExpression? TryBindElementAccessOnTypelessReceiver(
+            ExpressionSyntax node,
+            BoundExpression receiver,
+            AnalyzedArguments analyzedArguments,
+            BindingDiagnosticBag diagnostics)
+        {
+            if (receiver.Type is not null)
+                return null;
+
+            switch (receiver.Kind)
+            {
+                case BoundKind.UnconvertedCollectionExpression:
+                case BoundKind.UnboundLambda:
+                case BoundKind.UnconvertedObjectCreationExpression:
+                case BoundKind.DefaultLiteral:
+                case BoundKind.UnconvertedConditionalOperator:
+                case BoundKind.UnconvertedSwitchExpression:
+                case BoundKind.TupleLiteral:
+                    break;
+                case BoundKind.MethodGroup when receiver is BoundMethodGroup { ResultKind: LookupResultKind.Viable, Methods.Length: > 0 }:
+                    break;
+                case BoundKind.Literal when receiver.IsLiteralNull():
+                    break;
+                default:
+                    return null;
+            }
+
+            // Only route through the new feature when there is at least one extension indexer
+            // candidate in scope. Mirrors HasExtensionMemberCandidateInScope: without this
+            // check, every element access on a typeless receiver (e.g. `[1, 2, 3][0]` with no
+            // indexer extension defined) would emit a misleading "feature is in Preview"
+            // diagnostic on older language versions. Falling back to null lets the caller's
+            // existing legacy path produce its pre-feature diagnostic
+            // (ERR_CollectionExpressionNoTargetType, ERR_BadOpOnNullOrDefaultOrNew, etc.).
+            if (!HasExtensionIndexerCandidateInScope())
+                return null;
+
+            MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
+
+            receiver = CheckValue(receiver, BindValueKind.RValue, diagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            if (TryBindExtensionRealIndexer(node, receiver, analyzedArguments, ref useSiteInfo, diagnostics, out BoundExpression? extensionIndexerAccess))
+            {
+                diagnostics.Add(node, useSiteInfo);
+                return extensionIndexerAccess;
+            }
+
+            diagnostics.Add(node, useSiteInfo);
+
+            // Speculation said an indexer candidate exists but binding produced no applicable
+            // candidate. Fall through to BadIndexerExpression to surface the lookup-failure
+            // diagnostic in a shape consistent with typed-receiver indexer-binding failures.
+            receiver = BindToNaturalType(receiver, diagnostics);
+            return BadIndexerExpression(node, receiver, analyzedArguments, errorOpt: null, diagnostics);
+        }
+
+        /// <summary>
+        /// Returns true if any extension indexer is in scope. Used to decide whether a typeless-
+        /// receiver element access should route through the new feature path.
+        /// </summary>
+        private bool HasExtensionIndexerCandidateInScope()
+        {
+            var lookupResult = LookupResult.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            try
+            {
+                foreach (var scope in new ExtensionScopes(this))
+                {
+                    lookupResult.Clear();
+                    scope.Binder.LookupExtensionBlockIndexersInSingleBinder(
+                        lookupResult, WellKnownMemberNames.Indexer, arity: 0, LookupOptions.Default,
+                        originalBinder: this, useSiteInfo: ref discardedUseSiteInfo);
+
+                    if (lookupResult.IsMultiViable && lookupResult.Symbols.Any(s => s is PropertySymbol { IsIndexer: true }))
+                        return true;
+                }
+
+                return false;
+            }
+            finally
+            {
+                lookupResult.Free();
+            }
+        }
 #nullable disable
 
         private BoundExpression BindInstanceMemberAccess(
@@ -9298,10 +9395,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Debug.Assert(left.Type is not null);
-            Debug.Assert(!left.Type.IsDynamic());
-            Debug.Assert(!left.Type.IsArray());
-            Debug.Assert(left.Type.SpecialType != SpecialType.System_String);
+            // left.Type may be null when the typeless-extension-receivers feature is enabled.
+            Debug.Assert(left.Type is null
+                || (!left.Type.IsDynamic() && !left.Type.IsArray() && left.Type.SpecialType != SpecialType.System_String));
 
             var lookupResult = LookupResult.GetInstance();
             AnalyzedArguments? actualExtensionArguments = null;
@@ -9351,7 +9447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindingDiagnosticBag diagnostics,
                 out BoundExpression? extensionIndexerAccess)
             {
-                Debug.Assert(receiver.Type is not null);
+                // receiver.Type may be null when the typeless-extension-receivers feature is enabled.
                 Debug.Assert(lookupResult.IsClear);
 
                 // 1. gather candidates
@@ -10423,6 +10519,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindIndexedPropertyAccess(node, propertyGroup.ReceiverOpt, propertyGroup.Properties, analyzedArguments, diagnostics);
                 }
 
+                // Extension indexers on typeless receivers: when the receiver expression has no type
+                // and is one of the supported typeless forms, route the element access through
+                // extension lookup. This check runs BEFORE CheckValue / BindToNaturalType, which
+                // would otherwise force unconverted typeless forms into error-typed wrappers and
+                // prevent the extension-indexer binding from succeeding.
+                // See https://github.com/dotnet/csharplang/blob/main/proposals/extension-members-on-typeless-receivers.md
+                if (TryBindElementAccessOnTypelessReceiver(node, receiver, analyzedArguments, diagnostics) is { } typelessIndexerResult)
+                    return typelessIndexerResult;
+
                 receiver = CheckValue(receiver, BindValueKind.RValue, diagnostics);
                 receiver = BindToNaturalType(receiver, diagnostics);
 
@@ -11320,7 +11425,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Make sure that the result of overload resolution is valid.
             var gotError = MemberGroupFinalValidationAccessibilityChecks(receiver, property, syntax, diagnostics, invokedAsExtensionMethod: false);
 
-            receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
+            // For extension indexers on typeless receivers (e.g. `[1, 2, 3][0]` where the indexer
+            // is an extension on IEnumerable<T>), skip ReplaceTypeOrValueReceiver. Its default
+            // branch calls BindToNaturalType, which destructively converts typeless forms into
+            // error-recovery wrappers and reports ERR_CollectionExpressionNoTargetType / similar.
+            // The conversion is applied below by CheckAndConvertExtensionReceiver against the
+            // extension's declared receiver parameter. The function's named purpose (replacing
+            // TypeOrValueExpression or unwrapping QueryClause) does not apply since both wrappers
+            // always have a type.
+            if (receiver is not { Type: null })
+            {
+                receiver = ReplaceTypeOrValueReceiver(receiver, property.IsStatic, diagnostics);
+            }
 
             ImmutableArray<int> argsToParams;
             this.CheckAndCoerceArguments<PropertySymbol>(syntax, resolutionResult, analyzedArguments, diagnostics, receiver, invokedAsExtensionMethod: false, out argsToParams);

@@ -126,4 +126,29 @@ public sealed class ExtensionMembersOnTypelessReceivers_Smoke_Tests : CompilingT
             // (12,13): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1, 2, 3].CountIt").WithArguments("extension members on typeless receivers").WithLocation(12, 13));
     }
+
+    [Fact]
+    public void CollectionExpression_ExtensionIndexer_Executes()
+    {
+        // Sanity smoke test for the new indexer entry point on a typeless collection-expression
+        // receiver. Per-area coverage lives in the matching ExtensionIndexer Tests PR.
+        var source = """
+            public static class Extensions
+            {
+                extension(int[] xs)
+                {
+                    public int this[long i] => xs[(int)i];
+                }
+            }
+
+            public class Goo
+            {
+                public static void Main()
+                {
+                    System.Console.Write([10, 20, 30][1L]);
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "20").VerifyDiagnostics();
+    }
 }
