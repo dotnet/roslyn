@@ -50604,13 +50604,12 @@ static class E
 }
 ";
         var comp = CreateCompilation(source);
+        // Under the extension-members-on-typeless-receivers feature, the typeless switch
+        // expression `(b switch { true => 1, false => null })` routes through extension lookup
+        // and target-types against M's `int?` receiver parameter, so the previous
+        // ERR_SwitchExpressionNoBestType / WRN_NullabilityMismatchInAssignment fall away. Only
+        // the unrelated ERR_NameNotInContext for `ERROR` remains.
         comp.VerifyEmitDiagnostics(
-            // (5,4): error CS8506: No best type was found for the switch expression.
-            // (b switch { true => 1, false => null}).M(ERROR);
-            Diagnostic(ErrorCode.ERR_SwitchExpressionNoBestType, "switch").WithLocation(5, 4),
-            // (5,33): warning CS8619: Nullability of reference types in value of type '<null>' doesn't match target type 'int'.
-            // (b switch { true => 1, false => null}).M(ERROR);
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "null").WithArguments("<null>", "int").WithLocation(5, 33),
             // (5,42): error CS0103: The name 'ERROR' does not exist in the current context
             // (b switch { true => 1, false => null}).M(ERROR);
             Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(5, 42));
