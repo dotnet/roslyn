@@ -3917,24 +3917,18 @@ class Program
     }
 }";
 
-            // Under the extension-members-on-typeless-receivers feature, a typeless lambda is a
-            // valid member-access receiver. The lookup falls through to extension search; with no
-            // applicable extension, ERR_NoSuchMember is reported instead of the pre-feature
-            // ERR_BadUnaryOp. On C#14 and earlier, ERR_FeatureInPreview is reported alongside.
+            var expectedDiagnostics = new[]
+            {
+                // (6,27): error CS0023: Operator '.' cannot be applied to operand of type 'lambda expression'
+                //         Console.WriteLine((() => { }).GetType());
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "(() => { }).GetType").WithArguments(".", "lambda expression").WithLocation(6, 27)
+            };
+
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (6,27): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         Console.WriteLine((() => { }).GetType());
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(() => { }).GetType").WithArguments("extension members on typeless receivers").WithLocation(6, 27),
-                // (6,39): error CS0117: 'lambda expression' does not contain a definition for 'GetType'
-                //         Console.WriteLine((() => { }).GetType());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetType").WithArguments("lambda expression", "GetType").WithLocation(6, 39));
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (6,39): error CS0117: 'lambda expression' does not contain a definition for 'GetType'
-                //         Console.WriteLine((() => { }).GetType());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetType").WithArguments("lambda expression", "GetType").WithLocation(6, 39));
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
