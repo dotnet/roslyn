@@ -8312,13 +8312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // literal with at least one typeless element, default literal, or null literal.
             // Anything else (e.g. BoundBaseReference when there is no base class, BoundPropertyGroup
             // for COM indexed properties, throw expressions, namespace / type expressions, bad
-            // expressions, expressions already in error state) falls back to existing behavior so
-            // pre-existing diagnostics are preserved.
+            // expressions) falls back to existing behavior so pre-existing diagnostics are
+            // preserved.
             if (boundLeft.Type is not null)
-            {
-                return null;
-            }
-            if (boundLeft.HasErrors)
             {
                 return null;
             }
@@ -8328,6 +8324,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     return null;
+            }
+
+            // Once we've decided the receiver is a supported typeless form, take ownership of
+            // the diagnostic flow so the caller can assert it never sees these kinds. If the
+            // receiver is already in error, return a BoundBadExpression rather than re-binding
+            // (binding the call would only add cascading noise on top of the inner error).
+            if (boundLeft.HasErrors)
+            {
+                return BadExpression(node, boundLeft);
             }
 
             // Feature-availability check reports ERR_FeatureInPreview when the language version is
