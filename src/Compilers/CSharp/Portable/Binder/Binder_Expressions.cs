@@ -8326,15 +8326,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName
-                ? ((GenericNameSyntax)right).TypeArgumentList.Arguments
-                : default(SeparatedSyntaxList<TypeSyntax>);
-            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0
-                ? BindTypeArguments(typeArgumentsSyntax, diagnostics)
-                : default(ImmutableArray<TypeWithAnnotations>);
-            var rightName = right.Identifier.ValueText;
-            var rightArity = right.Arity;
-
             // Only route through the new feature when there is at least one extension member
             // candidate by this name in scope. Without this check, every typo on a typeless
             // receiver (e.g. `(() => {}).GetType()`) would emit a misleading "feature is in
@@ -8343,6 +8334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // lets the caller's existing kind-specific rejections (ERR_BadUnaryOp on a lambda,
             // ERR_BadOpOnNullOrDefaultOrNew on default, ERR_CollectionExpressionNoTargetType
             // through BindToNaturalType, etc.) produce their pre-feature diagnostics.
+            var rightName = right.Identifier.ValueText;
+            var rightArity = right.Arity;
             if (!HasExtensionMemberCandidateInScope(rightName, rightArity))
             {
                 return null;
@@ -8354,6 +8347,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // language version, even when the version diagnostic is reported.
             MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
 
+            var typeArgumentsSyntax = right is GenericNameSyntax { TypeArgumentList.Arguments: var arguments } ? arguments : default;
+            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default;
             boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
             return BindInstanceMemberAccess(
                 node, right, boundLeft, rightName, rightArity,
