@@ -91,10 +91,11 @@ public sealed class ExtensionMembersOnTypelessReceivers_NewExpression_ClassicExt
     }
 
     [Fact]
-    public void NoApplicableExtension_ReportsNoSuchMember()
+    public void NoExtensionInScope_FallsBackToImplicitObjectCreationNoTargetType()
     {
-        // No extension is in scope. The receiver enters extension lookup via the typeless path,
-        // finds nothing, and reports "new() does not contain a definition for ...".
+        // No extension is in scope. The typeless-receiver feature only engages when at least
+        // one extension candidate exists; without one, the helper returns null and the legacy
+        // implicit-creation binding produces ERR_ImplicitObjectCreationNoTargetType.
         var source = """
             public class Goo
             {
@@ -105,8 +106,8 @@ public sealed class ExtensionMembersOnTypelessReceivers_NewExpression_ClassicExt
             }
             """;
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-            // (5,19): error CS0117: 'new()' does not contain a definition for 'DoesNotExist'
+            // (5,13): error CS8754: There is no target type for 'new()'
             //         _ = new().DoesNotExist();
-            Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("new()", "DoesNotExist").WithLocation(5, 19));
+            Diagnostic(ErrorCode.ERR_ImplicitObjectCreationNoTargetType, "new()").WithArguments("new()").WithLocation(5, 13));
     }
 }
