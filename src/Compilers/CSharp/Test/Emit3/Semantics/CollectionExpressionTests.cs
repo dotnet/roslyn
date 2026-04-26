@@ -3465,6 +3465,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_07_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview. Binding continues (fire-and-forget feature gate),
+            // so no other diagnostics fire here.
+            string source = """
+                static class Program
+                {
+                    static T[] AsArray<T>(this T[] args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = [1, 2, 3].AsArray();
+                        a.Report();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (9,17): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var a = [1, 2, 3].AsArray();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1, 2, 3].AsArray").WithArguments("extension members on typeless receivers").WithLocation(9, 17));
+        }
+
+        [Fact]
         public void TypeInference_08()
         {
             string source = """
@@ -3505,6 +3532,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeInference_08_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview. Binding continues, so the second call still
+            // succeeds otherwise.
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                struct S<T> : IEnumerable<T>
+                {
+                    private List<T> _list;
+                    public void Add(T t)
+                    {
+                        _list ??= new List<T>();
+                        _list.Add(t);
+                    }
+                    public IEnumerator<T> GetEnumerator()
+                    {
+                        _list ??= new List<T>();
+                        return _list.GetEnumerator();
+                    }
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+                static class Program
+                {
+                    static S<T> AsCollection<T>(this S<T> args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        var a = AsCollection([1, 2, 3]);
+                        var b = [4].AsCollection();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (27,17): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var b = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[4].AsCollection").WithArguments("extension members on typeless receivers").WithLocation(27, 17));
+        }
+
+        [Fact]
         public void TypeInference_09()
         {
             string source = """
@@ -3537,6 +3608,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (15,13): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = AsCollection([1, 2, 3]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(15, 13),
+                // (16,17): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         _ = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(16, 17));
+        }
+
+        [Fact]
+        public void TypeInference_09_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview. Binding continues and the same type-inference
+            // failure still fires for both call shapes.
+            string source = """
+                using System.Collections;
+                struct S<T> : IEnumerable
+                {
+                    public void Add(T t) { }
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+                }
+                static class Program
+                {
+                    static S<T> AsCollection<T>(this S<T> args)
+                    {
+                        return args;
+                    }
+                    static void Main()
+                    {
+                        _ = AsCollection([1, 2, 3]);
+                        _ = [4].AsCollection();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (15,13): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         _ = AsCollection([1, 2, 3]);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(15, 13),
+                // (16,13): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[4].AsCollection").WithArguments("extension members on typeless receivers").WithLocation(16, 13),
                 // (16,17): error CS0411: The type arguments for method 'Program.AsCollection<T>(S<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         _ = [4].AsCollection();
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsCollection").WithArguments("Program.AsCollection<T>(S<T>)").WithLocation(16, 17));
@@ -4819,6 +4929,49 @@ static class Program
         }
 
         [Fact]
+        public void TypeInference_NullableValueType_ExtensionMethod_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview; binding still succeeds otherwise.
+            string source = """
+using System.Collections;
+using System.Collections.Generic;
+struct S<T> : IEnumerable<T>
+{
+    private List<T> _list;
+    public void Add(T t)
+    {
+        _list ??= new List<T>();
+        _list.Add(t);
+    }
+    public IEnumerator<T> GetEnumerator()
+    {
+        _list ??= new List<T>();
+        return _list.GetEnumerator();
+    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+static class Program
+{
+    static S<T>? AsCollection<T>(this S<T>? args)
+    {
+        return args;
+    }
+    static void Main()
+    {
+        var a = AsCollection([1, 2, 3]);
+        var b = [4].AsCollection();
+    }
+}
+""";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (27,17): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var b = [4].AsCollection();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[4].AsCollection").WithArguments("extension members on typeless receivers").WithLocation(27, 17));
+        }
+
+        [Fact]
         public void MemberAccess_01()
         {
             string source = """
@@ -4840,6 +4993,41 @@ static class Program
             // collection expression are out of scope per the spec, so they continue to produce
             // ERR_CollectionExpressionNoTargetType.
             comp.VerifyEmitDiagnostics(
+                // (5,12): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                //         [].GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 12),
+                // (6,9): error CS9176: There is no target type for the collection expression.
+                //         []?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 9),
+                // (7,9): error CS9176: There is no target type for the collection expression.
+                //         [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void MemberAccess_01_CSharp14()
+        {
+            // Pre-feature behavior on C#14: the typeless collection-expression receiver is
+            // gated by ERR_FeatureInPreview for the first call. Binding continues, so we get
+            // both the lang-version error and the same ERR_NoSuchMember the preview run sees.
+            // The `?.` and `[]` operators on a typeless collection expression continue to
+            // produce ERR_CollectionExpressionNoTargetType regardless of language version.
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [].GetHashCode();
+                        []?.GetHashCode();
+                        [][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         [].GetHashCode();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 9),
                 // (5,12): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
                 //         [].GetHashCode();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 12),
@@ -4881,6 +5069,37 @@ static class Program
         }
 
         [Fact]
+        public void MemberAccess_02_CSharp14()
+        {
+            // Same pattern as MemberAccess_01_CSharp14 with non-empty collection literals.
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        [1].GetHashCode();
+                        [2]?.GetHashCode();
+                        [3][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 9),
+                // (5,13): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                //         [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 13),
+                // (6,9): error CS9176: There is no target type for the collection expression.
+                //         [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 9),
+                // (7,9): error CS9176: There is no target type for the collection expression.
+                //         [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3]").WithLocation(7, 9));
+        }
+
+        [Fact]
         public void MemberAccess_03()
         {
             string source = """
@@ -4909,6 +5128,37 @@ static class Program
         }
 
         [Fact]
+        public void MemberAccess_03_CSharp14()
+        {
+            // Same pattern as MemberAccess_01_CSharp14 (with leading `_ =`).
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = [].GetHashCode();
+                        _ = []?.GetHashCode();
+                        _ = [][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = [].GetHashCode();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 13),
+                // (5,16): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                //         _ = [].GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 16),
+                // (6,13): error CS9176: There is no target type for the collection expression.
+                //         _ = []?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(6, 13),
+                // (7,13): error CS9176: There is no target type for the collection expression.
+                //         _ = [][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[]").WithLocation(7, 13));
+        }
+
+        [Fact]
         public void MemberAccess_04()
         {
             string source = """
@@ -4925,6 +5175,37 @@ static class Program
             var comp = CreateCompilation(source);
             // Same pattern as MemberAccess_02 (with leading `_ =`).
             comp.VerifyEmitDiagnostics(
+                // (5,17): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
+                //         _ = [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 17),
+                // (6,13): error CS9176: There is no target type for the collection expression.
+                //         _ = [2]?.GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[2]").WithLocation(6, 13),
+                // (7,13): error CS9176: There is no target type for the collection expression.
+                //         _ = [3][0].GetHashCode();
+                Diagnostic(ErrorCode.ERR_CollectionExpressionNoTargetType, "[3]").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void MemberAccess_04_CSharp14()
+        {
+            // Same pattern as MemberAccess_02_CSharp14 (with leading `_ =`).
+            string source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = [1].GetHashCode();
+                        _ = [2]?.GetHashCode();
+                        _ = [3][0].GetHashCode();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            comp.VerifyEmitDiagnostics(
+                // (5,13): error CS9202: Feature 'extension members on typeless receivers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = [1].GetHashCode();
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "[1].GetHashCode").WithArguments("extension members on typeless receivers").WithLocation(5, 13),
                 // (5,17): error CS0117: 'collection expression' does not contain a definition for 'GetHashCode'
                 //         _ = [1].GetHashCode();
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "GetHashCode").WithArguments("collection expression", "GetHashCode").WithLocation(5, 17),
