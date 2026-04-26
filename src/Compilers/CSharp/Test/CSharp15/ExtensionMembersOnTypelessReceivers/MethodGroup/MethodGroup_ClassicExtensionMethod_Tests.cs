@@ -174,4 +174,73 @@ public sealed class ExtensionMembersOnTypelessReceivers_MethodGroup_ClassicExten
             //         _ = Square.DoesNotExist();
             Diagnostic(ErrorCode.ERR_NoSuchMember, "DoesNotExist").WithArguments("method group", "DoesNotExist").WithLocation(14, 20));
     }
+
+    [Fact]
+    public void InaccessibleMethodGroup_DoesNotEnterTypelessPath()
+    {
+        // The method-group lookup finds a private method whose accessibility check fails;
+        // ResultKind is Inaccessible, so IsValidMethodGroupReceiver rejects the receiver and
+        // we fall back to the existing diagnostic about accessibility instead of routing
+        // through the new feature.
+        var source = """
+            using System;
+
+            public static class Ext
+            {
+                public static int RunIt(this Func<int, int> f, int arg) => f(arg);
+            }
+
+            public class Other
+            {
+                private static int Square(int x) => x * x;
+            }
+
+            public class Goo
+            {
+                public static void M()
+                {
+                    _ = Other.Square.RunIt(5);
+                }
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (17,19): error CS0122: 'Other.Square(int)' is inaccessible due to its protection level
+            //         _ = Other.Square.RunIt(5);
+            Diagnostic(ErrorCode.ERR_BadAccess, "Square").WithArguments("Other.Square(int)").WithLocation(17, 19));
+    }
+
+    [Fact]
+    public void IteratorExtension_OnMethodGroupReceiver_Executes()
+    {
+        // An iterator extension method (returning IEnumerable<int> via yield) on a typeless
+        // method-group receiver enumerates as expected.
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            public static class Ext
+            {
+                public static IEnumerable<int> Take3(this Func<int, int> f)
+                {
+                    yield return f(0);
+                    yield return f(1);
+                    yield return f(2);
+                }
+            }
+
+            public class Goo
+            {
+                public static int Square(int x) => x * x;
+
+                public static void Main()
+                {
+                    int s = 0;
+                    foreach (var v in Square.Take3()) s += v;
+                    System.Console.Write(s);
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "5").VerifyDiagnostics();
+    }
+
 }

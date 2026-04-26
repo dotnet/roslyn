@@ -57,6 +57,29 @@ public sealed class ExtensionMembersOnTypelessReceivers_TupleExpression_ClassicE
     }
 
     [Fact]
+    public void InExtension_OnTypelessTupleReceiver_Executes()
+    {
+        // ValueTuple is a struct so an `in this` extension is valid. A typeless tuple
+        // receiver (one with a `null` element) is converted to the target tuple struct
+        // type and passed by readonly reference.
+        var source = """
+            public static class Ext
+            {
+                public static int Combine(in this (string s, int n) t) => (t.s ?? "x").Length + t.n;
+            }
+
+            public class Goo
+            {
+                public static void Main()
+                {
+                    System.Console.Write((null, 41).Combine());
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: "42").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void TupleNoApplicableExtension_ReportsNoSuchMember()
     {
         var source = """
