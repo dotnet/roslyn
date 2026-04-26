@@ -8300,18 +8300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// A method-group receiver is "valid" for the typeless-extension-receiver path when its
-        /// lookup was viable and produced at least one candidate. This is the same gate that
-        /// <see cref="GetMethodGroupDelegateType(BoundMethodGroup)"/> uses to decide whether a
-        /// method group could naturally have a delegate type. Inaccessible lookups, ambiguous
-        /// lookups, and empty / errored method groups (e.g. inaccessible nested-type lookups that
-        /// fell through to extension search and found nothing) fall back to the existing diagnostic
-        /// instead of being routed through the new feature.
-        /// </summary>
-        private static bool IsValidMethodGroupReceiver(BoundMethodGroup methodGroup)
-            => methodGroup.ResultKind == LookupResultKind.Viable && methodGroup.Methods.Length > 0;
-
-        /// <summary>
         /// If the receiver expression has no type and is a supported typeless form, route the
         /// member access through extension lookup (the "extension members on typeless receivers"
         /// feature). Returns null if the receiver is not a supported typeless form, leaving the
@@ -8336,13 +8324,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // literal with at least one typeless element, default literal, or null literal.
             // Anything else (e.g. BoundBaseReference when there is no base class, BoundPropertyGroup
             // for COM indexed properties, throw expressions, namespace / type expressions, bad
-            // expressions, expressions already in error state) falls back to existing behavior so
-            // pre-existing diagnostics are preserved.
+            // expressions) falls back to existing behavior so pre-existing diagnostics are
+            // preserved.
             if (boundLeft.Type is not null)
-            {
-                return null;
-            }
-            if (boundLeft.HasErrors)
             {
                 return null;
             }
@@ -8354,12 +8338,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DefaultLiteral:
                 case BoundKind.UnconvertedConditionalOperator:
                     break;
-                case BoundKind.MethodGroup when IsValidMethodGroupReceiver((BoundMethodGroup)boundLeft):
+                // A method-group receiver is "valid" for the typeless-extension-receiver path when
+                // its lookup was viable and produced at least one candidate. This is the same
+                // conceptual gate that GetUniqueSignatureFromMethodGroup applies to the instance-
+                // method branch when computing whether a method group could naturally have a
+                // delegate type (the inlined ResultKind == LookupResultKind.Viable guard around
+                // its instance-methods loop). The natural-type code adds a signature-uniqueness
+                // check on top, which we don't need here. Inaccessible lookups, ambiguous lookups,
+                // and empty / errored method groups (e.g. inaccessible nested-type lookups that
+                // fell through to extension search and found nothing) fall back to the existing
+                // diagnostic instead of being routed through the new feature.
+                case BoundKind.MethodGroup when boundLeft is BoundMethodGroup { ResultKind: LookupResultKind.Viable, Methods.Length: > 0 }:
                     break;
                 case BoundKind.Literal when boundLeft.IsLiteralNull():
                     break;
                 default:
                     return null;
+            }
+
+            // Only route through the new feature when there is at least one extension member
+            // candidate by this name in scope. Without this check, every typo on a typeless
+            // receiver (e.g. `(() => {}).GetType()`) would emit a misleading "feature is in
+            // Preview" diagnostic on older language versions, suggesting that a version upgrade
+            // would help when no extension would have applied either way. Falling back to null
+            // lets the caller's existing kind-specific rejections (ERR_BadUnaryOp on a lambda,
+            // ERR_BadOpOnNullOrDefaultOrNew on default, ERR_CollectionExpressionNoTargetType
+            // through BindToNaturalType, etc.) produce their pre-feature diagnostics.
+            var rightName = right.Identifier.ValueText;
+            var rightArity = right.Arity;
+            if (!HasExtensionMemberCandidateInScope(rightName, rightArity))
+            {
+                return null;
             }
 
             // Feature-availability check reports ERR_FeatureInPreview when the language version is
@@ -8368,20 +8377,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             // language version, even when the version diagnostic is reported.
             MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
 
-            var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName
-                ? ((GenericNameSyntax)right).TypeArgumentList.Arguments
-                : default(SeparatedSyntaxList<TypeSyntax>);
-            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0
-                ? BindTypeArguments(typeArgumentsSyntax, diagnostics)
-                : default(ImmutableArray<TypeWithAnnotations>);
-            var rightName = right.Identifier.ValueText;
-            var rightArity = right.Arity;
-
+            var typeArgumentsSyntax = right is GenericNameSyntax { TypeArgumentList.Arguments: var arguments } ? arguments : default;
+            var typeArgumentsWithAnnotations = typeArgumentsSyntax.Count > 0 ? BindTypeArguments(typeArgumentsSyntax, diagnostics) : default;
             boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
             return BindInstanceMemberAccess(
                 node, right, boundLeft, rightName, rightArity,
                 typeArgumentsSyntax, typeArgumentsWithAnnotations,
                 invoked, indexed, diagnostics);
+        }
+
+        /// <summary>
+        /// Returns true if any extension member with the given name is in scope. Used to decide
+        /// whether a typeless-receiver member access should route through the new feature path.
+        /// Walks <see cref="ExtensionScopes"/> and short-circuits on the first match, so the cost
+        /// is no greater than the work the regular extension lookup would do anyway.
+        /// </summary>
+        private bool HasExtensionMemberCandidateInScope(string name, int arity)
+        {
+            LookupOptions options = arity == 0 ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            try
+            {
+                foreach (var scope in new ExtensionScopes(this))
+                {
+                    singleLookupResults.Clear();
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(
+                        singleLookupResults, name, arity, options,
+                        originalBinder: this,
+                        ref discardedUseSiteInfo, ref discardedUseSiteInfo);
+
+                    if (singleLookupResults.Count > 0)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                singleLookupResults.Free();
+            }
         }
 #nullable disable
 
