@@ -841,10 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var F = _factory;
 
             BoundNode resultExpr;
-            if (TypeSymbol.Equals(
-                indexType,
-                _compilation.GetWellKnownType(WellKnownType.System_Range),
-                TypeCompareKind.ConsiderEverything))
+            if (Binder.IsWellKnownSystemRange(indexType, _compilation))
             {
                 // array[Range] is compiled to:
                 // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)

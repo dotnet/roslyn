@@ -223,15 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<Symbol> BindExtensionMemberCref(ExtensionMemberCrefSyntax syntax, NamespaceOrTypeSymbol? containerOpt, out Symbol? ambiguityWinner, BindingDiagnosticBag diagnostics)
         {
-            CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
-
             int arity = 0;
             TypeArgumentListSyntax? typeArgumentListSyntax = null;
-            CrefParameterListSyntax? parameters = null;
+            BaseCrefParameterListSyntax? parameters = null;
             string? memberName = null;
 
             if (syntax.Member is NameMemberCrefSyntax { Name: SimpleNameSyntax simpleName } nameMember)
             {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
                 arity = simpleName.Arity;
                 typeArgumentListSyntax = simpleName is GenericNameSyntax genericName ? genericName.TypeArgumentList : null;
                 parameters = nameMember.Parameters;
@@ -239,8 +238,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (syntax.Member is OperatorMemberCrefSyntax operatorSyntax)
             {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensions, diagnostics);
                 memberName = GetOperatorMethodName(operatorSyntax);
                 parameters = operatorSyntax.Parameters;
+            }
+            else if (syntax.Member is IndexerMemberCrefSyntax indexerSyntax)
+            {
+                CheckFeatureAvailability(syntax, MessageID.IDS_FeatureExtensionIndexers, diagnostics);
+                memberName = WellKnownMemberNames.Indexer;
+                parameters = indexerSyntax.Parameters;
             }
 
             if (memberName == null)
@@ -326,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (var candidate in candidates)
                     {
-                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate))
+                        if (!SourceMemberContainerTypeSymbol.IsAllowedExtensionMember(candidate, LanguageVersion.Preview))
                         {
                             continue;
                         }

@@ -750,8 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ImplicitIndexerAccess:
                     {
                         var implicitIndexerAccess = (BoundImplicitIndexerAccess)originalLHS;
-                        Debug.Assert(implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Index))
-                            || implicitIndexerAccess.Argument.Type!.Equals(_compilation.GetWellKnownType(WellKnownType.System_Range)));
+                        Debug.Assert(Binder.IsWellKnownSystemIndex(implicitIndexerAccess.Argument.Type, _compilation)
+                            || Binder.IsWellKnownSystemRange(implicitIndexerAccess.Argument.Type, _compilation));
 
                         if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {
