@@ -478,7 +478,7 @@
       </trans-unit>
       <trans-unit id="_0_statement_implicitly_converts_1_to_2_Add_an_explicit_cast_to_make_intent_clearer_as_it_may_fail_at_runtime">
         <source>'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</source>
-        <target state="translated">'{0}' deyimi örtük olarak '{1}' öğesini '{2}' öğesine dönüştürür. Çalışma zamanında başarısız olabileceğinden amacı daha net hale getirmek için açık bir tür dönüştürme ekleyin</target>
+        <target state="new">'{0}' statement implicitly converts '{1}' to '{2}'. Add an explicit cast to make intent clearer, as it may fail at runtime</target>
         <note />
       </trans-unit>
     </body>
