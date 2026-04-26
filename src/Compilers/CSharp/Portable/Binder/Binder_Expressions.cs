@@ -8326,21 +8326,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
             }
 
-            // Once we've decided the receiver is a supported typeless form, take ownership of
-            // the diagnostic flow so the caller can assert it never sees these kinds. If the
-            // receiver is already in error, return a BoundBadExpression rather than re-binding
-            // (binding the call would only add cascading noise on top of the inner error).
-            if (boundLeft.HasErrors)
-            {
-                return BadExpression(node, boundLeft);
-            }
-
-            // Feature-availability check reports ERR_FeatureInPreview when the language version is
-            // too low. Binding continues regardless, matching the established convention in this
-            // file - so the SemanticModel and downstream features see the call as bound on every
-            // language version, even when the version diagnostic is reported.
-            MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
-
             var typeArgumentsSyntax = right.Kind() == SyntaxKind.GenericName
                 ? ((GenericNameSyntax)right).TypeArgumentList.Arguments
                 : default(SeparatedSyntaxList<TypeSyntax>);
@@ -8350,11 +8335,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rightName = right.Identifier.ValueText;
             var rightArity = right.Arity;
 
+            // Only route through the new feature when there is at least one extension member
+            // candidate by this name in scope. Without this check, every typo on a typeless
+            // receiver (e.g. `(() => {}).GetType()`) would emit a misleading "feature is in
+            // Preview" diagnostic on older language versions, suggesting that a version upgrade
+            // would help when no extension would have applied either way. Falling back to null
+            // lets the caller's existing kind-specific rejections (ERR_BadUnaryOp on a lambda,
+            // ERR_BadOpOnNullOrDefaultOrNew on default, ERR_CollectionExpressionNoTargetType
+            // through BindToNaturalType, etc.) produce their pre-feature diagnostics.
+            if (!HasExtensionMemberCandidateInScope(rightName, rightArity))
+            {
+                return null;
+            }
+
+            // Feature-availability check reports ERR_FeatureInPreview when the language version is
+            // too low. Binding continues regardless, matching the established convention in this
+            // file - so the SemanticModel and downstream features see the call as bound on every
+            // language version, even when the version diagnostic is reported.
+            MessageID.IDS_FeatureExtensionMembersOnTypelessReceivers.CheckFeatureAvailability(diagnostics, node);
+
             boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
             return BindInstanceMemberAccess(
                 node, right, boundLeft, rightName, rightArity,
                 typeArgumentsSyntax, typeArgumentsWithAnnotations,
                 invoked, indexed, diagnostics);
+        }
+
+        /// <summary>
+        /// Returns true if any extension member with the given name is in scope. Used to decide
+        /// whether a typeless-receiver member access should route through the new feature path.
+        /// Walks <see cref="ExtensionScopes"/> and short-circuits on the first match, so the cost
+        /// is no greater than the work the regular extension lookup would do anyway.
+        /// </summary>
+        private bool HasExtensionMemberCandidateInScope(string name, int arity)
+        {
+            LookupOptions options = arity == 0 ? LookupOptions.AllMethodsOnArityZero : LookupOptions.Default;
+            var singleLookupResults = ArrayBuilder<SingleLookupResult>.GetInstance();
+            CompoundUseSiteInfo<AssemblySymbol> discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            try
+            {
+                foreach (var scope in new ExtensionScopes(this))
+                {
+                    singleLookupResults.Clear();
+                    scope.Binder.EnumerateAllExtensionMembersInSingleBinder(
+                        singleLookupResults, name, arity, options,
+                        originalBinder: this,
+                        ref discardedUseSiteInfo, ref discardedUseSiteInfo);
+
+                    if (singleLookupResults.Count > 0)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                singleLookupResults.Free();
+            }
         }
 #nullable disable
 
