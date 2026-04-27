@@ -934,9 +934,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 subtypes.Add(namedType);
                             }
 
-                            foreach (var nestedType in namedType.GetTypeMembers())
+                            var nestedTypes = namedType.GetTypeMembers();
+                            for (var i = nestedTypes.Length - 1; i >= 0; i--)
                             {
-                                stack.Add(nestedType);
+                                stack.Add(nestedTypes[i]);
                             }
                         }
                         else

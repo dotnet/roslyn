@@ -1396,6 +1396,55 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_07()
+    {
+        // nested hierarchy in nested type declarations
+        var source = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        Container.E1 => 1,
+                        Container.F1 => 2,
+                        Container.E2 => 3,
+                        Container.F2 => 4,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class Container
+            {
+                public closed class D1 : C { }
+                public class E1 : D1 { }
+                public class F1 : D1 { }
+
+                public closed class D2 : C { }
+                public class E2 : D2 { }
+                public class F2 : D2 { }
+            }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Container.E1' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Container.E1").WithLocation(5, 18));
+    }
+
+    [Fact]
     public void Exhaustiveness_UnionOfClosedClasses_01()
     {
         // Union with closed classes as case types
