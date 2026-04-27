@@ -1,7 +1,8 @@
 {
   "feeds": {
     "vssdk": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json",
-    "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json"
+    "vs-impl": "https://pkgs.dev.azure.com/azure-public/vside/_packaging/vs-impl/nuget/v3/index.json",
+    "vs": "https://pkgs.dev.azure.com/DevDiv/_packaging/VS/nuget/v3/index.json"
   },
   "packages": {
     "default": {
