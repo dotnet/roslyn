@@ -1641,6 +1641,93 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_ClosedClassCustomUnion_03()
+    {
+        // Test scenario where a subclass of closed class is a custom union.
+        // Demonstrate that the "expanded set" of closed subtypes does not include union case types.
+        var source1 = """
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            public closed class C;
+
+            public sealed class D1 : C;
+
+            [Union]
+            public sealed class D2 : C
+            {
+                public D2(string value) => Value = value;
+                public D2(int value) => Value = value;
+
+                public object? Value { get; }
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                public int Match1(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+
+                public int Match2(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+            #line 100
+                        string => 2,
+                        int => 3,
+                        D2 => 2,
+                    };
+
+                public int Match3(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+                        D2 and int => 3,
+                    };
+
+                public int Match4(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+            #line 200
+                        int => 3,
+                    };
+
+                public int Match5(C c)
+            #line 300
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+                    };
+            }
+            """;
+
+        // PROTOTYPE(cc): The pattern suggested for line 300 is invalid
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'string'.
+            //             string => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("C", "string").WithLocation(100, 13),
+            // (101,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
+            //             int => 3,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(101, 13),
+            // (200,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
+            //             int => 3,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(200, 13),
+            // (300,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+            //         => c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(300, 14));
+    }
+
+    [Fact]
     public void Exhaustiveness_Generic_01()
     {
         // Simple generic closed hierarchy
