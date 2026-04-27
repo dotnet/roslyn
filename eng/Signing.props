@@ -47,5 +47,8 @@
   -->
   <ItemGroup Condition="'$(PreReleaseVersionLabel)' == 'pr-validation' And '$(DotNetSignType)' == 'test'">
     <FileExtensionSignInfo Update=".nupkg" CertificateName="None" />
+    <!-- Arcade 6 still validates nupkg signature markers in this path, so exclude package containers entirely. -->
+    <ItemsToSign Remove="$(ArtifactsPackagesDir)**\*.nupkg" />
+    <ItemsToSign Remove="$(VisualStudioBuildPackagesDir)**\*.nupkg" />
   </ItemGroup>
 </Project>

@@ -13,6 +13,7 @@ Param(
   [string]$branchName = "",
   [string]$releaseName = "",
   [switch]$test,
+  [switch]$prValidation,
 
   # Credentials
   [string]$nugetApiKey = ""
@@ -44,7 +45,7 @@ function Publish-Nuget($publishData, [string]$packageDir) {
     }
 
     # If the configured packageFeeds is arcade, then skip publishing here.  Arcade will handle publishing packages to their feeds.
-    if ($packageFeeds.equals("arcade")) {
+    if ($packageFeeds.equals("arcade") -and -not $prValidation) {
       Write-Host "    Skipping publishing for all packages as they will be published by arcade"
       continue
     }
@@ -67,6 +68,10 @@ function Publish-Nuget($publishData, [string]$packageDir) {
       }
 
       $feedName = $packagesData.$nupkgWithoutVersion
+
+      if ($prValidation) {
+        $feedName = "vs"
+      }
 
       # If the configured feed is arcade, then skip publishing here.  Arcade will handle publishing to their feeds.
       if ($feedName.equals("arcade")) {
