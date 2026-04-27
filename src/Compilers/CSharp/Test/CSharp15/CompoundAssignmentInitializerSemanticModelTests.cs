@@ -32,7 +32,7 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
             .Single(a => a.Parent is InitializerExpressionSyntax);
     }
 
-    private static IdentifierNameSyntax GetLhsIdentifier(CSharpCompilation comp, string name)
+    private static IdentifierNameSyntax GetLeftHandSideIdentifier(CSharpCompilation comp, string name)
     {
         var tree = comp.SyntaxTrees.Single();
         return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
@@ -221,7 +221,7 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     }
 
     [Fact]
-    public void GetSymbolInfo_OnLhsIdentifier_ResolvesProperty()
+    public void GetSymbolInfo_OnLeftHandSideIdentifier_ResolvesProperty()
     {
         var source = """
             class C
@@ -233,13 +233,13 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var info = model.GetSymbolInfo(GetLhsIdentifier(comp, "P"));
+        var info = model.GetSymbolInfo(GetLeftHandSideIdentifier(comp, "P"));
         Assert.Equal("P", info.Symbol!.Name);
         Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
     }
 
     [Fact]
-    public void GetSymbolInfo_OnLhsIdentifier_OfEventCompound_ResolvesEvent()
+    public void GetSymbolInfo_OnLeftHandSideIdentifier_OfEventCompound_ResolvesEvent()
     {
         var source = """
             using System;
@@ -254,17 +254,17 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
             // (4,31): warning CS0067: The event 'C.E' is never used
             Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var info = model.GetSymbolInfo(GetLhsIdentifier(comp, "E"));
+        var info = model.GetSymbolInfo(GetLeftHandSideIdentifier(comp, "E"));
         Assert.Equal("E", info.Symbol!.Name);
         Assert.Equal(SymbolKind.Event, info.Symbol.Kind);
     }
 
     [Fact]
-    public void GetSymbolInfo_OnRhs_ResolvesNormally()
+    public void GetSymbolInfo_OnRightHandSide_ResolvesNormally()
     {
-        // The compound's RHS binds in the enclosing context — the initializer placeholder receiver
-        // is *only* available on the LHS. Pin that the RHS sees method-local context (the parameter
-        // `h`, here) cleanly.
+        // The compound's right-hand side binds in the enclosing context — the initializer
+        // placeholder receiver is *only* available on the left-hand side. Pin that the right-hand
+        // side sees method-local context (the parameter `h`, here) cleanly.
         var source = """
             using System;
             class C
@@ -278,8 +278,8 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
             // (4,31): warning CS0067: The event 'C.E' is never used
             Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(4, 31));
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var rhs = (IdentifierNameSyntax)GetMemberAssignment(comp).Right;
-        var info = model.GetSymbolInfo(rhs);
+        var rightHandSide = (IdentifierNameSyntax)GetMemberAssignment(comp).Right;
+        var info = model.GetSymbolInfo(rightHandSide);
         Assert.Equal("h", info.Symbol!.Name);
         Assert.Equal(SymbolKind.Parameter, info.Symbol.Kind);
     }
@@ -331,7 +331,7 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     }
 
     [Fact]
-    public void GetTypeInfo_OnLhsIdentifier_IsPropertyType()
+    public void GetTypeInfo_OnLeftHandSideIdentifier_IsPropertyType()
     {
         var source = """
             class C
@@ -343,12 +343,12 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var info = model.GetTypeInfo(GetLhsIdentifier(comp, "P"));
+        var info = model.GetTypeInfo(GetLeftHandSideIdentifier(comp, "P"));
         Assert.Equal(SpecialType.System_Int32, info.Type!.SpecialType);
     }
 
     [Fact]
-    public void GetTypeInfo_OnRhsLiteral_IsLiteralType()
+    public void GetTypeInfo_OnRightHandSideLiteral_IsLiteralType()
     {
         var source = """
             class C
@@ -360,8 +360,8 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var rhs = GetMemberAssignment(comp).Right;
-        var info = model.GetTypeInfo(rhs);
+        var rightHandSide = GetMemberAssignment(comp).Right;
+        var info = model.GetTypeInfo(rightHandSide);
         Assert.Equal(SpecialType.System_Int32, info.Type!.SpecialType);
     }
 
@@ -423,10 +423,11 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     }
 
     [Fact]
-    public void LookupSymbols_AtLhsPosition_SeesContainerMembers()
+    public void LookupSymbols_AtLeftHandSidePosition_SeesContainerMembers()
     {
-        // The LHS identifier is bound against the placeholder receiver (the implicit `this` of the
-        // type being initialized). LookupSymbols at that position should see container members.
+        // The left-hand-side identifier is bound against the placeholder receiver (the implicit
+        // `this` of the type being initialized). LookupSymbols at that position should see
+        // container members.
         var source = """
             class C
             {
@@ -438,8 +439,8 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var lhs = GetLhsIdentifier(comp, "P");
-        var symbols = model.LookupSymbols(lhs.SpanStart, name: "Other");
+        var leftHandSide = GetLeftHandSideIdentifier(comp, "P");
+        var symbols = model.LookupSymbols(leftHandSide.SpanStart, name: "Other");
         Assert.Single(symbols);
         Assert.Equal("Other", symbols[0].Name);
     }
@@ -491,10 +492,11 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     #region GetConversion / ClassifyConversion
 
     [Fact]
-    public void GetConversion_OnRhsImplicitConversion_IsImplicitNumeric()
+    public void GetConversion_OnRightHandSideImplicitConversion_IsImplicitNumeric()
     {
-        // `byte += int`-typed RHS goes through an implicit numeric conversion. `GetConversion` on
-        // the RHS expression reflects the conversion the compound applies.
+        // `short` right-hand side into `int` target goes through an implicit numeric conversion;
+        // `GetConversion` on the right-hand-side expression reflects the conversion the compound
+        // applies.
         var source = """
             class C
             {
@@ -505,17 +507,18 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var rhs = GetMemberAssignment(comp).Right;
-        var conv = model.GetConversion(rhs);
+        var rightHandSide = GetMemberAssignment(comp).Right;
+        var conv = model.GetConversion(rightHandSide);
         Assert.True(conv.IsImplicit);
         Assert.True(conv.IsNumeric);
     }
 
     [Fact]
-    public void ClassifyConversion_AtRhsPosition_FromStringToInt_IsNoConversion()
+    public void ClassifyConversion_AtRightHandSidePosition_FromStringToInt_IsNoConversion()
     {
-        // ClassifyConversion at the RHS position confirms `string` is not implicitly convertible
-        // to `int`, even though the *actual* RHS in the source is convertible.
+        // ClassifyConversion at the right-hand-side position confirms `string` is not implicitly
+        // convertible to `int`, even though the *actual* right-hand-side in the source is
+        // convertible.
         var source = """
             class C
             {
@@ -526,11 +529,11 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics();
         var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
-        var rhs = GetMemberAssignment(comp).Right;
+        var rightHandSide = GetMemberAssignment(comp).Right;
         ITypeSymbol intType = ((Compilation)comp).GetSpecialType(SpecialType.System_Int32);
-        var conv = model.ClassifyConversion(rhs.SpanStart, SyntaxFactory.ParseExpression("\"abc\""), intType);
+        var conv = model.ClassifyConversion(rightHandSide.SpanStart, SyntaxFactory.ParseExpression("\"abc\""), intType);
         Assert.False(conv.IsImplicit);
-        var conv2 = model.ClassifyConversion(rhs.SpanStart, SyntaxFactory.ParseExpression("0"), intType);
+        var conv2 = model.ClassifyConversion(rightHandSide.SpanStart, SyntaxFactory.ParseExpression("0"), intType);
         Assert.True(conv2.IsImplicit);
         Assert.True(conv2.IsIdentity);
     }
@@ -540,10 +543,11 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     #region AnalyzeDataFlow / AnalyzeControlFlow
 
     [Fact]
-    public void AnalyzeDataFlow_OverInitializerWithCompound_SeesRhsParameterRead()
+    public void AnalyzeDataFlow_OverInitializerWithCompound_SeesRightHandSideParameterRead()
     {
-        // The RHS `s` of the compound initializer is read inside the initializer expression. Pin
-        // that AnalyzeDataFlow on the wrapping `var c = ...;` statement reports that read.
+        // The right-hand side `s` of the compound initializer is read inside the initializer
+        // expression. Pin that AnalyzeDataFlow on the wrapping `var c = ...;` statement reports
+        // that read.
         var source = """
             class C
             {
@@ -618,8 +622,8 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     [Fact]
     public void AnalyzeDataFlow_BadShape_DoesNotThrow()
     {
-        // `P += { 1, 2 }` is invalid (nested-initializer RHS on compound). Public flow APIs must
-        // not NRE on the bad-shape bound tree.
+        // `P += { 1, 2 }` is invalid (nested-initializer right-hand side on compound). Public
+        // flow APIs must not NRE on the bad-shape bound tree.
         var source = """
             class C
             {
@@ -643,7 +647,7 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     #region Speculative binding
 
     [Fact]
-    public void GetSpeculativeSymbolInfo_ReplacedRhs_ResolvesInOriginalContext()
+    public void GetSpeculativeSymbolInfo_ReplacedRightHandSide_ResolvesInOriginalContext()
     {
         // Speculate replacing the `5` in `new C { P += 5 }` with `Other`; the speculative bind
         // should see container member `Other` from the enclosing context.
@@ -659,15 +663,15 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         comp.VerifyDiagnostics();
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var rhs = GetMemberAssignment(comp).Right;
-        var newRhs = SyntaxFactory.ParseExpression("Other");
-        var info = model.GetSpeculativeSymbolInfo(rhs.SpanStart, newRhs, SpeculativeBindingOption.BindAsExpression);
+        var rightHandSide = GetMemberAssignment(comp).Right;
+        var replacement = SyntaxFactory.ParseExpression("Other");
+        var info = model.GetSpeculativeSymbolInfo(rightHandSide.SpanStart, replacement, SpeculativeBindingOption.BindAsExpression);
         Assert.Equal("Other", info.Symbol!.Name);
         Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
     }
 
     [Fact]
-    public void GetSpeculativeTypeInfo_ReplacedRhs_ReportsTypeOfReplacement()
+    public void GetSpeculativeTypeInfo_ReplacedRightHandSide_ReportsTypeOfReplacement()
     {
         var source = """
             class C
@@ -680,9 +684,9 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         comp.VerifyDiagnostics();
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
-        var rhs = GetMemberAssignment(comp).Right;
-        var newRhs = SyntaxFactory.ParseExpression("\"abc\"");
-        var info = model.GetSpeculativeTypeInfo(rhs.SpanStart, newRhs, SpeculativeBindingOption.BindAsExpression);
+        var rightHandSide = GetMemberAssignment(comp).Right;
+        var replacement = SyntaxFactory.ParseExpression("\"abc\"");
+        var info = model.GetSpeculativeTypeInfo(rightHandSide.SpanStart, replacement, SpeculativeBindingOption.BindAsExpression);
         Assert.Equal(SpecialType.System_String, info.Type!.SpecialType);
     }
 
@@ -695,7 +699,7 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     {
         // `P += { 1, 2 }` produces a bad-bound tree (CS0747 + CS1918). Pin what each public
         // SemanticModel API returns so analyzers / IDE features that walk the bad shape get a
-        // predictable surface — no exceptions, and the LHS still resolves to the property.
+        // predictable surface — no exceptions, and the left-hand side type is preserved.
         var source = """
             class C
             {
@@ -722,13 +726,14 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
 
         Assert.Empty(model.GetMemberGroup(assignment));
 
-        // The LHS identifier loses its symbol on the bad shape (the binder doesn't carry it
-        // through the BoundBadExpression). Its type *is* preserved at `int`, so analyzers
-        // querying the LHS still get a non-null type even on a bad shape.
+        // The left-hand-side identifier loses its symbol on the bad shape (the binder doesn't
+        // carry it through the BoundBadExpression). Its type *is* preserved at `int`, so analyzers
+        // querying the left-hand side still get a non-null type even on a bad shape.
         Assert.Null(model.GetSymbolInfo(assignment.Left).Symbol);
         Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(assignment.Left).Type!.SpecialType);
 
-        // The RHS is the malformed `{ 1, 2 }` brace list — no symbol and no resolved type.
+        // The right-hand side is the malformed `{ 1, 2 }` brace list — no symbol and no resolved
+        // type.
         Assert.Null(model.GetSymbolInfo(assignment.Right).Symbol);
         Assert.Null(model.GetTypeInfo(assignment.Right).Type);
     }
