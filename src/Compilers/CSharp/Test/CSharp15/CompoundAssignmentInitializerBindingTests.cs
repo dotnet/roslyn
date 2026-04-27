@@ -1377,6 +1377,130 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(3, 51));
     }
 
+    [Fact]
+    public void Duplicate_NestedInit_ThenCompound_Fails()
+    {
+        // Resolution 2: `target = { … }` is exclusive — compound after nested init now fires CS1912.
+        // Previously this combination silently compiled.
+        var source = """
+            class Inner
+            {
+                public int X { get; set; }
+                public static Inner operator +(Inner a, Inner b) => a;
+            }
+            class C
+            {
+                public Inner P { get; set; } = new();
+                public static C Make() => new C { P = { X = 1 }, P += new Inner() };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,54): error CS1912: Duplicate initialization of member 'P'
+            //     public static C Make() => new C { P = { X = 1 }, P += new Inner() };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(9, 54));
+    }
+
+    [Fact]
+    public void Duplicate_NestedInit_ThenSimple_Fails()
+    {
+        // Resolution 2: nested-init followed by another `=` (non-nested) → CS1912.
+        var source = """
+            class Inner { public int X { get; set; } }
+            class C
+            {
+                public Inner P { get; set; } = new();
+                public static C Make() => new C { P = { X = 1 }, P = new Inner() };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,54): error CS1912: Duplicate initialization of member 'P'
+            //     public static C Make() => new C { P = { X = 1 }, P = new Inner() };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(5, 54));
+    }
+
+    [Fact]
+    public void Duplicate_TwoNestedInits_Fails()
+    {
+        // Resolution 2: `target = { … }` is exclusive of itself too — at most one nested-init per
+        // target. This case already errored under the existing "two `=`" rule, but pin it under
+        // the new framing.
+        var source = """
+            using System.Collections.Generic;
+            class C
+            {
+                public List<int> Items { get; set; } = new();
+                public static C Make() => new C { Items = { 1, 2 }, Items = { 3 } };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,57): error CS1912: Duplicate initialization of member 'Items'
+            //     public static C Make() => new C { Items = { 1, 2 }, Items = { 3 } };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "Items").WithArguments("Items").WithLocation(5, 57));
+    }
+
+    [Fact]
+    public void Duplicate_Simple_ThenNestedInit_Fails()
+    {
+        // Simple `=` then nested-init → CS1912. Already errored under the existing rule (current
+        // is `=`, name already seen) but exclusivity is the more precise framing.
+        var source = """
+            class Inner { public int X { get; set; } }
+            class C
+            {
+                public Inner P { get; set; } = new();
+                public static C Make() => new C { P = new Inner(), P = { X = 1 } };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (5,56): error CS1912: Duplicate initialization of member 'P'
+            //     public static C Make() => new C { P = new Inner(), P = { X = 1 } };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(5, 56));
+    }
+
+    [Fact]
+    public void Duplicate_Compound_ThenNestedInit_Fails()
+    {
+        // Compound followed by nested-init → CS1912. Already errored under the existing rule
+        // (compound-then-`=`) — pin it under exclusivity.
+        var source = """
+            class Inner
+            {
+                public int X { get; set; }
+                public static Inner operator +(Inner a, Inner b) => a;
+            }
+            class C
+            {
+                public Inner P { get; set; } = new();
+                public static C Make() => new C { P += new Inner(), P = { X = 1 } };
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (9,57): error CS1912: Duplicate initialization of member 'P'
+            //     public static C Make() => new C { P += new Inner(), P = { X = 1 } };
+            Diagnostic(ErrorCode.ERR_MemberAlreadyInitialized, "P").WithArguments("P").WithLocation(9, 57));
+    }
+
+    [Fact]
+    public void Duplicate_NestedInit_AsSoleInitializer_Succeeds()
+    {
+        // Sanity counterpart to the new exclusivity tests: a single `target = { … }` with no
+        // sibling initializers continues to work (Resolution 2 forbids combinations, not the form
+        // itself).
+        var source = """
+            using System.Collections.Generic;
+            class C
+            {
+                public List<int> Items { get; } = new();
+                public static void Main()
+                {
+                    var c = new C { Items = { 1, 2, 3 } };
+                    System.Console.Write($"{c.Items[0]},{c.Items[1]},{c.Items[2]}");
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1,2,3");
+    }
+
     #endregion
 
     #region Misc shape rejections
@@ -1986,6 +2110,27 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CompileAndVerify([source, Polyfills], expectedOutput: "1");
+    }
+
+    [Fact]
+    public void Required_CompoundAlone_InWith_Succeeds()
+    {
+        // Resolution 1: `with` admits compound-only on a `required` target — the receiver was
+        // already constructed with its required members satisfied, so no `=` is needed in the
+        // `with` clause. Counterpart to `Required_CompoundAlone_DoesNotSatisfy` (object initializer).
+        var source = """
+            record C
+            {
+                public required int P { get; init; }
+                public static void Main()
+                {
+                    var c = new C { P = 10 };
+                    var d = c with { P += 5 };
+                    System.Console.Write(d.P);
+                }
+            }
+            """;
+        CompileAndVerify([source, Polyfills], expectedOutput: "15");
     }
 
     [Fact]

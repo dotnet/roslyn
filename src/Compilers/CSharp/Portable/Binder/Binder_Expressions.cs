@@ -5850,12 +5850,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
-            // Tracks names we've seen any initializer for so that the duplicate-member rules can be
-            // enforced: at most one `=` per field/property target, any number of compound assignments,
-            // and `=` must appear before any compound assignment for the same target. Event
-            // (BoundEventAssignmentOperator) and indexer (ImplicitElementAccess) targets are
-            // unrestricted; ReportDuplicateObjectMemberInitializers filters them out before checking.
-            var memberNameMap = PooledHashSet<string>.GetInstance();
+            // Tracks each member name's first-seen initializer kind so the duplicate-member rules can
+            // be enforced: at most one `=` per field/property target, any number of compound
+            // assignments after a `=`, and `=` must appear before any compound assignment for the
+            // same target. The `target = { … }` (object/collection-initializer-valued) form is
+            // exclusive — no other initializer may target the same member. Indexer
+            // (ImplicitElementAccess) targets are unrestricted; ReportDuplicateObjectMemberInitializers
+            // filters them out before checking.
+            var memberNameMap = PooledDictionary<string, MemberInitializerKind>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
                 BoundExpression boundMemberInitializer = BindInitializerMemberAssignment(
@@ -6332,7 +6334,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(boundMember, (valueKind == BindValueKind.RValue) ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable);
         }
 
-        private static void ReportDuplicateObjectMemberInitializers(BoundExpression boundMemberInitializer, HashSet<string> memberNameMap, BindingDiagnosticBag diagnostics)
+        private enum MemberInitializerKind
+        {
+            /// <summary>`=` (with non-nested RHS), `+= / -= / *= / …`, or event `+= / -=`.</summary>
+            SimpleOrCompound,
+
+            /// <summary>`target = { … }` — the object/collection-initializer-valued `=` form, which is exclusive.</summary>
+            NestedInitializer,
+        }
+
+        private static void ReportDuplicateObjectMemberInitializers(BoundExpression boundMemberInitializer, Dictionary<string, MemberInitializerKind> memberNameMap, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(memberNameMap != null);
 
@@ -6340,7 +6351,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:    Any number of member initializers using a compound_assignment_operator are permitted for the
             // SPEC:    same target. If both are present for the same target, the `=` member initializer shall appear
             // SPEC:    in lexical order before any compound_assignment_operator member initializer for that target.
-            // SPEC:    No such restriction applies to event or indexer targets.
+            // SPEC:    A member_initializer whose initializer_value is an object_or_collection_initializer (the
+            // SPEC:    `target = { … }` form) is exclusive: no other member_initializer may target the same field,
+            // SPEC:    property, or event. No such restriction applies to indexer targets.
 
             if (boundMemberInitializer.HasAnyErrors)
                 return;
@@ -6355,17 +6368,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var memberName = memberNameSyntax.Identifier.ValueText;
             bool isSimpleAssignment = namedAssignment.Kind() == SyntaxKind.SimpleAssignmentExpression;
+            bool isNestedInitializer = isSimpleAssignment && namedAssignment.Right is InitializerExpressionSyntax;
+            var currentKind = isNestedInitializer ? MemberInitializerKind.NestedInitializer : MemberInitializerKind.SimpleOrCompound;
 
-            // `Add` returns true if newly recorded, false if we've already seen this member. A second
-            // touch is only an error for simple assignment (the spec's "at most one `=`, `=` must come
-            // first" rule); compound forms are unrestricted but still get recorded so a later `=` is
-            // flagged. Event `+= / -=` (BoundEventAssignmentOperator) names are also recorded here so
-            // that a subsequent `E = h` on the same event is rejected too — compounds before a plain
-            // assignment violate the ordering rule regardless of whether the member is a field,
-            // property, or event.
-            if (!memberNameMap.Add(memberName) && isSimpleAssignment)
+            if (memberNameMap.TryGetValue(memberName, out var existingKind))
             {
-                Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
+                // Duplicate fires when:
+                // * either side is the exclusive `= { … }` form (the new spec rule), OR
+                // * the current is a simple `=` (the existing "at most one `=`, `=` before any
+                //   compound" rule — repeating `=` and compound-then-`=` both reach here as
+                //   `isSimpleAssignment`).
+                // Compound-then-compound and `=`-then-compound fall through silently.
+                if (existingKind == MemberInitializerKind.NestedInitializer || isNestedInitializer || isSimpleAssignment)
+                {
+                    Error(diagnostics, ErrorCode.ERR_MemberAlreadyInitialized, memberNameSyntax, memberName);
+                }
+            }
+            else
+            {
+                memberNameMap.Add(memberName, currentKind);
             }
         }
 
