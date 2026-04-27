@@ -207,7 +207,7 @@ internal static class QuickInfoUtilities
                 continue;
 
             if (tokenText[i + 1] == 'u' &&
-                HasExactlyHexDigits(tokenText, i + shortUnicodeEscapePrefixLength, count: shortUnicodeEscapeHexDigitCount))
+                HasExactHexDigitSequence(tokenText, i + shortUnicodeEscapePrefixLength, count: shortUnicodeEscapeHexDigitCount))
             {
                 return true;
             }
@@ -216,7 +216,7 @@ internal static class QuickInfoUtilities
         return false;
     }
 
-    private static bool HasExactlyHexDigits(string text, int start, int count)
+    private static bool HasExactHexDigitSequence(string text, int start, int count)
     {
         if (start + count > text.Length)
             return false;
@@ -227,7 +227,10 @@ internal static class QuickInfoUtilities
                 return false;
         }
 
-        return start + count >= text.Length || GetHexDigitValue(text[start + count]) < 0;
+        if (start + count >= text.Length)
+            return true;
+
+        return GetHexDigitValue(text[start + count]) < 0;
     }
 
     private static int GetHexDigitValue(char c)
