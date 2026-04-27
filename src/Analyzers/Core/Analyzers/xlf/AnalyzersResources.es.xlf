@@ -193,7 +193,7 @@
       </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
-        <target state="translated">Hacer el archivo de solo lectura</target>
+        <target state="translated">Hacer el campo de solo lectura</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_synchronous">
