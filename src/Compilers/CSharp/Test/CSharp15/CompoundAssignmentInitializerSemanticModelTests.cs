@@ -716,13 +716,13 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         // both null, no member group.
         Assert.IsAssignableFrom<IInvalidOperation>(model.GetOperation(assignment));
 
-        var asgSymbolInfo = model.GetSymbolInfo(assignment);
-        Assert.Null(asgSymbolInfo.Symbol);
-        Assert.Empty(asgSymbolInfo.CandidateSymbols);
+        var assignmentSymbolInfo = model.GetSymbolInfo(assignment);
+        Assert.Null(assignmentSymbolInfo.Symbol);
+        Assert.Empty(assignmentSymbolInfo.CandidateSymbols);
 
-        var asgTypeInfo = model.GetTypeInfo(assignment);
-        Assert.Null(asgTypeInfo.Type);
-        Assert.Null(asgTypeInfo.ConvertedType);
+        var assignmentTypeInfo = model.GetTypeInfo(assignment);
+        Assert.Null(assignmentTypeInfo.Type);
+        Assert.Null(assignmentTypeInfo.ConvertedType);
 
         Assert.Empty(model.GetMemberGroup(assignment));
 
