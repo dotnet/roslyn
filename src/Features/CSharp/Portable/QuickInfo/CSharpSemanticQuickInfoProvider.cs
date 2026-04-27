@@ -104,7 +104,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         ImmutableArray<ISymbol> symbols,
         CancellationToken cancellationToken)
     {
-        if (symbols is not [INamedTypeSymbol { SpecialType: SpecialType.System_Char }, ..])
+        if (symbols.FirstOrDefault() is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
             return default;
 
         if (token.Value is not char character)
