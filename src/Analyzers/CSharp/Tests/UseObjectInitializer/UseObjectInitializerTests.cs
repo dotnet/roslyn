@@ -486,6 +486,47 @@ public sealed partial class UseObjectInitializerTests
         }.RunAsync();
 
     [Fact]
+    public Task TestWithExistingInitializerNotIfAlreadyInitialized_Compound()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C()
+                    {
+                        i += 1,
+                    };
+                    [|c.|]j = 1;
+                    c.i = 2;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i += 1,
+                        j = 1
+                    };
+                    c.i = 2;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
     public Task TestMissingBeforeCSharp3()
         => TestMissingInRegularAndScriptAsync(
             """
