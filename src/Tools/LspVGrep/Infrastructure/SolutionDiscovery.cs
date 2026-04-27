@@ -1,13 +1,31 @@
+using System.Text.Json;
+
 namespace LspVGrepTool.Infrastructure;
 
 internal enum RoslynLoadTargetKind
 {
     Solution,
-    Project
+    Project,
+    MultipleProjects
 }
 
-internal sealed record RoslynLoadTarget(string Path, RoslynLoadTargetKind Kind);
+internal sealed record RoslynLoadTarget(RoslynLoadTargetKind Kind, IReadOnlyList<string> Paths)
+{
+    /// <summary>
+    /// Returns the single path for <see cref="RoslynLoadTargetKind.Solution"/> and
+    /// <see cref="RoslynLoadTargetKind.Project"/>, or a summary for <see cref="RoslynLoadTargetKind.MultipleProjects"/>.
+    /// </summary>
+    public string DisplayPath => Kind == RoslynLoadTargetKind.MultipleProjects
+        ? $"{Paths.Count} projects"
+        : Paths[0];
+}
 
+/// <summary>
+/// Discovers what to load using the same priority order as the Roslyn language server:
+/// 1. <c>.vscode/settings.json</c> → <c>dotnet.defaultSolution</c>
+/// 2. Exactly one <c>.sln</c> / <c>.slnx</c> at the root directory
+/// 3. All <c>.csproj</c> files discovered recursively
+/// </summary>
 internal static class SolutionDiscovery
 {
     public static RoslynLoadTarget Find(string directoryPath)
@@ -17,37 +35,76 @@ internal static class SolutionDiscovery
             throw new DirectoryNotFoundException($"The configured directory '{directoryPath}' does not exist.");
         }
 
-        // Prefer .slnx, then .sln, then .csproj — shallowest first, alphabetical tiebreak.
-        var slnxFiles = EnumerateCandidates(directoryPath, "*.slnx");
-        if (slnxFiles.Count > 0)
+        // 1. Check .vscode/settings.json for dotnet.defaultSolution.
+        var solutionFromSettings = TryGetDefaultSolutionFromVSCodeSettings(directoryPath);
+        if (solutionFromSettings is not null)
         {
-            return new RoslynLoadTarget(slnxFiles[0], RoslynLoadTargetKind.Solution);
+            return new RoslynLoadTarget(RoslynLoadTargetKind.Solution, [solutionFromSettings]);
         }
 
-        var solutions = EnumerateCandidates(directoryPath, "*.sln");
-        if (solutions.Count > 0)
+        // 2. If exactly one .sln or .slnx exists at the root, load it.
+        var rootSolutions = Directory.EnumerateFiles(directoryPath, "*.sln", SearchOption.TopDirectoryOnly)
+            .Concat(Directory.EnumerateFiles(directoryPath, "*.slnx", SearchOption.TopDirectoryOnly))
+            .ToArray();
+
+        if (rootSolutions.Length == 1)
         {
-            return new RoslynLoadTarget(solutions[0], RoslynLoadTargetKind.Solution);
+            return new RoslynLoadTarget(RoslynLoadTargetKind.Solution, [rootSolutions[0]]);
         }
 
-        var projects = EnumerateCandidates(directoryPath, "*.csproj");
-        if (projects.Count > 0)
+        // 3. Fall back to discovering all .csproj files recursively, excluding test projects.
+        var projects = Directory
+            .EnumerateFiles(directoryPath, "*.csproj", SearchOption.AllDirectories)
+            .Where(path => !IsBuildArtifact(path) && !IsTestProject(path))
+            .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (projects.Count == 0)
         {
-            return new RoslynLoadTarget(projects[0], RoslynLoadTargetKind.Project);
+            throw new FileNotFoundException(
+                $"No solution or project files were found under '{directoryPath}'.");
         }
 
-        throw new FileNotFoundException(
-            $"No .sln or .csproj files were found under '{directoryPath}'.");
+        if (projects.Count == 1)
+        {
+            return new RoslynLoadTarget(RoslynLoadTargetKind.Project, projects);
+        }
+
+        return new RoslynLoadTarget(RoslynLoadTargetKind.MultipleProjects, projects);
     }
 
-    private static List<string> EnumerateCandidates(string directoryPath, string searchPattern)
+    private static string? TryGetDefaultSolutionFromVSCodeSettings(string directoryPath)
     {
-        return Directory
-            .EnumerateFiles(directoryPath, searchPattern, SearchOption.AllDirectories)
-            .Where(path => !IsBuildArtifact(path))
-            .OrderBy(path => GetRelativeDepth(directoryPath, path))
-            .ThenBy(path => path, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var settingsPath = Path.Combine(directoryPath, ".vscode", "settings.json");
+        if (!File.Exists(settingsPath))
+            return null;
+
+        try
+        {
+            var json = File.ReadAllText(settingsPath);
+            using var doc = JsonDocument.Parse(json, new JsonDocumentOptions
+            {
+                CommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            });
+
+            if (!doc.RootElement.TryGetProperty("dotnet.defaultSolution", out var value))
+                return null;
+
+            var defaultSolution = value.GetString();
+            if (string.IsNullOrWhiteSpace(defaultSolution) || string.Equals(defaultSolution, "disable", StringComparison.Ordinal))
+                return null;
+
+            var solutionPath = Path.IsPathRooted(defaultSolution)
+                ? defaultSolution
+                : Path.GetFullPath(Path.Combine(directoryPath, defaultSolution));
+
+            return File.Exists(solutionPath) ? solutionPath : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static bool IsBuildArtifact(string path)
@@ -55,12 +112,27 @@ internal static class SolutionDiscovery
         var segments = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         return segments.Any(segment =>
             segment.Equals("bin", StringComparison.OrdinalIgnoreCase) ||
-            segment.Equals("obj", StringComparison.OrdinalIgnoreCase));
+            segment.Equals("obj", StringComparison.OrdinalIgnoreCase) ||
+            segment.Equals("artifacts", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static int GetRelativeDepth(string rootPath, string candidatePath)
+    private static bool IsTestProject(string path)
     {
-        var relativePath = Path.GetRelativePath(rootPath, candidatePath);
-        return relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Length;
+        var fileName = Path.GetFileNameWithoutExtension(path);
+
+        // File name contains ".Test." / ".Tests." or ends with ".Test" / ".Tests"
+        if (fileName.Contains(".Test.", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Contains(".Tests.", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith(".Test", StringComparison.OrdinalIgnoreCase) ||
+            fileName.EndsWith(".Tests", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Project lives under a "test" or "tests" directory segment
+        var segments = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return segments.Any(segment =>
+            segment.Equals("test", StringComparison.OrdinalIgnoreCase) ||
+            segment.Equals("tests", StringComparison.OrdinalIgnoreCase));
     }
 }

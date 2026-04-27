@@ -22,7 +22,7 @@
 <body>
   <h1>LspVGrepTool Report</h1>
   <p><strong>Directory:</strong> Q:\repos\msbuild</p>
-  <p><strong>Roslyn target:</strong> Solution - Q:\repos\msbuild\MSBuild.slnx (loaded in 55.4s)</p>
+  <p><strong>Roslyn target:</strong> Solution - Q:\repos\msbuild\MSBuild.slnx (loaded in 31.8s)</p>
   <section>
     <article class="query">
       <h2>find-type-definition</h2>
@@ -31,13 +31,13 @@
       </dl>
       <section class="algorithm">
         <h3>find-type-definition-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 209 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 3.3s | string search for &#39;(class|record|struct|interface|enum) Project&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 209 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 3.4s | string search for &#39;(class|record|struct|interface|enum) Project&#39;</p>
         <pre>Q:\repos\msbuild\src\Build\Definition\Project.cs:50: public class Project : ILinkableObject
 Q:\repos\msbuild\src\Samples\XmlFileLogger\ObjectModel\Project.cs:18: internal sealed class Project : LogProcessNode</pre>
       </section>
       <section class="algorithm">
         <h3>find-type-definition-grep-nameonly</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 2111055 | <strong>Lines:</strong> 15263 | <strong>Time:</strong> 4.5s | string search for &#39;Project&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 2111055 | <strong>Lines:</strong> 15263 | <strong>Time:</strong> 4.6s | string search for &#39;Project&#39;</p>
         <pre id="expand-0-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:54: //       The rationale for this is that we can detect during design-time builds in the Evaluator (which populates this) that the project cache will be used so that we don&#39;t
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:55: //       need to evaluate the project at build time just to figure that out, which would regress perf for scenarios which don&#39;t use the project cache.
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:189: /// Mapping of unnamed project instances to the file names assigned to them.
@@ -15322,7 +15322,7 @@ Microsoft.Build.Logging.StructuredLogger.Project - Q:\repos\msbuild\src\Samples\
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-with-pattern</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 58252 | <strong>Lines:</strong> 360 | <strong>Time:</strong> 2.7s | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;Project&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 58252 | <strong>Lines:</strong> 360 | <strong>Time:</strong> 2.6s | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;Project&#39;, SymbolFilter.Type)</p>
         <pre id="expand-1-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 MSBuild.Benchmarks.DefiningProjectModifiersBenchmark - Q:\repos\msbuild\src\MSBuild.Benchmarks\DefiningProjectModifiersBenchmark.cs(13,14)
 Microsoft.Build.BackEnd.Logging.ProjectFullKey - Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelLoggerHelpers.cs(592,20)
@@ -16078,12 +16078,12 @@ Microsoft.Build.UnitTests.XamlDataDrivenToolTask_Tests.ProjectFileTests - Q:\rep
       </dl>
       <section class="algorithm">
         <h3>find-type-definition-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 301 | <strong>Lines:</strong> 1 | <strong>Time:</strong> 2.9s | string search for &#39;(class|record|struct|interface|enum) ProjectInstance&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 301 | <strong>Lines:</strong> 1 | <strong>Time:</strong> 2.8s | string search for &#39;(class|record|struct|interface|enum) ProjectInstance&#39;</p>
         <pre>Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:79: public class ProjectInstance : IPropertyProvider&lt;ProjectPropertyInstance&gt;, IItemProvider&lt;ProjectItemInstance&gt;, IEvaluatorData&lt;ProjectPropertyInstance, ProjectItemInstance, ProjectMetadataInstance, ProjectItemDefinitionInstance&gt;, ITranslatable</pre>
       </section>
       <section class="algorithm">
         <h3>find-type-definition-grep-nameonly</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 175741 | <strong>Lines:</strong> 1097 | <strong>Time:</strong> 2.6s | string search for &#39;ProjectInstance&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 175741 | <strong>Lines:</strong> 1097 | <strong>Time:</strong> 2.5s | string search for &#39;ProjectInstance&#39;</p>
         <pre id="expand-3-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:191: private readonly Dictionary&lt;ProjectInstance, string&gt; _unnamedProjectInstanceToNames;
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:306: _unnamedProjectInstanceToNames = new Dictionary&lt;ProjectInstance, string&gt;();
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:921: /// This methods requests the BuildManager to find a matching ProjectInstance in its cache of previously-built projects.
@@ -17195,13 +17195,13 @@ Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:305: ProjectInstance
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 153 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 33ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 153 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 52ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
         <pre>Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Execution.ProjectInstance - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(79,18)</pre>
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-with-pattern</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 18ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 19ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;, SymbolFilter.Type)</p>
         <pre id="expand-4-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Engine.UnitTests.Instance.ProjectItemGroupTaskItemInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectItemGroupTaskItemInstance_Internal_Tests.cs(17,18)
 Microsoft.Build.Engine.UnitTests.Instance.ProjectPropertyGroupTaskPropertyInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectPropertyGroupTaskPropertyInstance_Internal_Tests.cs(16,18)
@@ -17264,7 +17264,7 @@ Microsoft.Build.UnitTests.ObjectModelHelpers.ProjectItemInstanceTestItemAdapter 
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-workspaceSymbol</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 173ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;) without SymbolFilter</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 7228 | <strong>Lines:</strong> 48 | <strong>Time:</strong> 171ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;ProjectInstance&#39;) without SymbolFilter</p>
         <pre id="expand-5-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Engine.UnitTests.Instance.ProjectItemGroupTaskItemInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectItemGroupTaskItemInstance_Internal_Tests.cs(17,18)
 Microsoft.Build.Engine.UnitTests.Instance.ProjectPropertyGroupTaskPropertyInstance_Internal_Tests - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectPropertyGroupTaskPropertyInstance_Internal_Tests.cs(16,18)
@@ -17333,7 +17333,7 @@ Microsoft.Build.UnitTests.ObjectModelHelpers.ProjectItemInstanceTestItemAdapter 
       </dl>
       <section class="algorithm">
         <h3>find-type-definition-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 394 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 2.9s | string search for &#39;(class|record|struct|interface|enum) TaskItem&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 394 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 3.1s | string search for &#39;(class|record|struct|interface|enum) TaskItem&#39;</p>
         <pre>Q:\repos\msbuild\src\Build\Instance\ProjectItemInstance.cs:781: internal sealed class TaskItem :
 Q:\repos\msbuild\src\Tasks.UnitTests\CommandLineGenerator_Tests.cs:158: private sealed class TaskItem : ITaskItem
 Q:\repos\msbuild\src\ThreadSafeTaskAnalyzer.Tests\TestHelpers.cs:62: public class TaskItem : ITaskItem
@@ -20292,7 +20292,7 @@ Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\TrackedDependencies
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 399 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 81ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;TaskItem&#39;, SymbolFilter.Type)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 399 | <strong>Lines:</strong> 4 | <strong>Time:</strong> 34ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;TaskItem&#39;, SymbolFilter.Type)</p>
         <pre>Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.Execution.ProjectItemInstance.TaskItem - Q:\repos\msbuild\src\Build\Instance\ProjectItemInstance.cs(781,31)
 Microsoft.Build.UnitTests.CommandLineGenerator_Tests.TaskItem - Q:\repos\msbuild\src\Tasks.UnitTests\CommandLineGenerator_Tests.cs(158,30)
@@ -20348,7 +20348,7 @@ Microsoft.Build.Utilities.TaskItem - Q:\repos\msbuild\src\Utilities\TaskItem.cs(
       </section>
       <section class="algorithm">
         <h3>roslyn-find-declarations-workspaceSymbol</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 4491 | <strong>Lines:</strong> 33 | <strong>Time:</strong> 181ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;TaskItem&#39;) without SymbolFilter</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 4491 | <strong>Lines:</strong> 33 | <strong>Time:</strong> 208ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;TaskItem&#39;) without SymbolFilter</p>
         <pre id="expand-8-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Microsoft.Build.BackEnd.Logging.BaseConsoleLogger.ITaskItemItemSpecComparer - Q:\repos\msbuild\src\Build\Logging\BaseConsoleLogger.cs(107,24)
 Microsoft.Build.BackEnd.TaskParameter.TaskParameterTaskItem - Q:\repos\msbuild\src\Shared\TaskParameter.cs(538,23)
@@ -20402,7 +20402,7 @@ Microsoft.Build.Utilities.TaskItem - Q:\repos\msbuild\src\Utilities\TaskItem.cs(
       </dl>
       <section class="algorithm">
         <h3>find-derived-types-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 35288 | <strong>Lines:</strong> 244 | <strong>Time:</strong> 2.8s | string search for &#39;(class|record|struct) \w+ ... Task&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 35288 | <strong>Lines:</strong> 244 | <strong>Time:</strong> 2.7s | string search for &#39;(class|record|struct) \w+ ... Task&#39;</p>
         <pre id="expand-9-short">Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\CallTarget.cs:16: /// This class implements the &quot;CallTarget&quot; task, which invokes other targets within the same
 Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs:20: /// This class implements the &quot;MSBuild&quot; task, which hands off child project files to the MSBuild engine to be built.
 Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\PropertyGroupIntrinsicTask.cs:19: /// This class represents a PropertyGroup intrinsic task.
@@ -20661,7 +20661,7 @@ Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\TrackedDependencies
       </section>
       <section class="algorithm">
         <h3>roslyn-find-derived-types</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 17235 | <strong>Lines:</strong> 155 | <strong>Time:</strong> 274ms | called SymbolFinder.FindDerivedClassesAsync(Microsoft.Build.Utilities.Task)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 17235 | <strong>Lines:</strong> 155 | <strong>Time:</strong> 245ms | called SymbolFinder.FindDerivedClassesAsync(Microsoft.Build.Utilities.Task)</p>
         <pre id="expand-10-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Target: Microsoft.Build.Utilities.Task (Class)
 AssemblyLoadContextTest.RegisterObject - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(69,18)
@@ -20865,7 +20865,7 @@ Q:\repos\msbuild\src\Utilities\Task.cs:15: public abstract class Task : ITask</p
       </section>
       <section class="algorithm">
         <h3>roslyn-find-implementations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 18940 | <strong>Lines:</strong> 170 | <strong>Time:</strong> 86ms | called SymbolFinder.FindImplementationsAsync(Microsoft.Build.Framework.ITask)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 18940 | <strong>Lines:</strong> 170 | <strong>Time:</strong> 85ms | called SymbolFinder.FindImplementationsAsync(Microsoft.Build.Framework.ITask)</p>
         <pre id="expand-12-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 Target: Microsoft.Build.Framework.ITask (Interface)
 AssemblyLoadContextTest.RegisterObject - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(69,18)
@@ -21056,7 +21056,7 @@ TaskWithDependency.LogStringFromDependency - Q:\repos\msbuild\src\Samples\TaskWi
       </dl>
       <section class="algorithm">
         <h3>find-member-definition-grep</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 84402 | <strong>Lines:</strong> 771 | <strong>Time:</strong> 5.1s | string search for member declaration &#39;Execute&#39;</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 84402 | <strong>Lines:</strong> 771 | <strong>Time:</strong> 5.0s | string search for member declaration &#39;Execute&#39;</p>
         <pre id="expand-13-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:62: public abstract TResultData Execute();
 Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:182: public override BuildResult Execute()
 Q:\repos\msbuild\src\Build\BackEnd\Client\MSBuildClient.cs:152: public MSBuildClientExitResult Execute(CancellationToken cancellationToken)
@@ -21842,7 +21842,7 @@ Q:\repos\msbuild\src\Utilities.UnitTests\TrackedDependencies\TrackedDependencies
       </section>
       <section class="algorithm">
         <h3>roslyn-find-member-declarations</h3>
-        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 22279 | <strong>Lines:</strong> 167 | <strong>Time:</strong> 207ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;Execute&#39;, SymbolFilter.Member)</p>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 22279 | <strong>Lines:</strong> 167 | <strong>Time:</strong> 165ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;Execute&#39;, SymbolFilter.Member)</p>
         <pre id="expand-14-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
 AssemblyLoadContextTest.RegisterObject.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(73,30)
 AssemblyLoadContextTest.RetrieveObject.Execute() - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\AssemblyLoadContextTestTasks.cs(87,30)
@@ -22021,6 +22021,751 @@ PortableTask.Sleep.Execute() - Q:\repos\msbuild\src\Samples\PortableTask\Sleep.c
 SampleTask.ExampleTaskX64.Execute() - Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX64\ExampleTaskX64.cs(12,30)
 SampleTask.ExampleTaskX86.Execute() - Q:\repos\msbuild\src\Build.UnitTests\TestAssets\ExampleFrameworkTask\ExampleTaskX86\ExampleTaskX86.cs(12,30)
 TaskWithDependency.LogStringFromDependency.Execute() - Q:\repos\msbuild\src\Samples\TaskWithDependency\LogStringFromDependency.cs(12,30)</pre>
+      </section>
+    </article>
+    <article class="query">
+      <h2>find-type-definition</h2>
+      <dl>
+        <dt>name</dt><dd>BuildManager</dd>
+      </dl>
+      <section class="algorithm">
+        <h3>find-type-definition-grep</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 148 | <strong>Lines:</strong> 1 | <strong>Time:</strong> 2.8s | string search for &#39;(class|record|struct|interface|enum) BuildManager&#39;</p>
+        <pre>Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:51: public class BuildManager : INodePacketHandler, IBuildComponentHost, IDisposable</pre>
+      </section>
+      <section class="algorithm">
+        <h3>find-type-definition-grep-nameonly</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 51237 | <strong>Lines:</strong> 360 | <strong>Time:</strong> 2.4s | string search for &#39;BuildManager&#39;</p>
+        <pre id="expand-15-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:51: public class BuildManager : INodePacketHandler, IBuildComponentHost, IDisposable
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:64: /// The object used for thread-safe synchronization of BuildManager shared data and the Scheduler.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:69: /// The singleton instance for the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:71: private static BuildManager? s_singletonInstance;
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:146: /// The current state of the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:151: /// The name given to this BuildManager as the component host.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:246: /// When the BuildManager was created.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:285: public BuildManager()
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:295: public BuildManager(string hostName)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:321: /// Finalizes an instance of the &lt;see cref=&quot;BuildManager&quot;/&gt; class.
+<span class="truncated-link" onclick="document.getElementById('expand-15-short').style.display='none'; document.getElementById('expand-15-full').style.display='block';">... truncated (350 more lines) — click to expand</span></pre>
+        <pre id="expand-15-full" class="full-result">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:51: public class BuildManager : INodePacketHandler, IBuildComponentHost, IDisposable
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:64: /// The object used for thread-safe synchronization of BuildManager shared data and the Scheduler.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:69: /// The singleton instance for the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:71: private static BuildManager? s_singletonInstance;
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:146: /// The current state of the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:151: /// The name given to this BuildManager as the component host.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:246: /// When the BuildManager was created.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:285: public BuildManager()
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:295: public BuildManager(string hostName)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:321: /// Finalizes an instance of the &lt;see cref=&quot;BuildManager&quot;/&gt; class.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:323: ~BuildManager()
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:339: /// This is the state the BuildManager is in after &lt;see cref=&quot;BeginBuild(BuildParameters)&quot;/&gt; has been called but before &lt;see cref=&quot;EndBuild()&quot;/&gt; has been called.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:340: /// &lt;see cref=&quot;PendBuildRequest(BuildRequestData)&quot;/&gt;, &lt;see cref=&quot;BuildRequest(BuildRequestData)&quot;/&gt;, &lt;see cref=&quot;PendBuildRequest(GraphBuildRequestData)&quot;/&gt;, &lt;see cref=&quot;BuildManager.BuildRequest(GraphBuildRequestData)&quot;/&gt;, and &lt;see cref=&quot;BuildManager.EndBuild()&quot;/&gt; may be called in this state.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:345: /// This is the state the BuildManager is in after &lt;see cref=&quot;EndBuild()&quot;/&gt; has been called but before all existing submissions have completed.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:353: public static BuildManager DefaultBuildManager
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:363: s_singletonInstance = new BuildManager(&quot;Default&quot;);
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:410: /// &lt;see cref=&quot;BuildManager.BeginBuild(BuildParameters,IEnumerable{DeferredBuildMessage})&quot;/&gt;
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:460: /// Prepares the BuildManager to receive build requests.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:472: // BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:491: /// Prepares the BuildManager to receive build requests.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:891: /// Point in time snapshot of all worker processes leveraged by this BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:921: /// This methods requests the BuildManager to find a matching ProjectInstance in its cache of previously-built projects.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1010: /// Signals that no more build requests are expected (or allowed) and the BuildManager may clean up.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1825: // action block.  Instead, send them over to the main handler for the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1902: ErrorUtilities.ThrowInternalError(&quot;Unexpected packet received by BuildManager: {0}&quot;, packet.Type);
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:2052: /// The submission is a top level build request entering the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:2371: /// Errors if the BuildManager is in the specified state.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:2382: /// Verifies the BuildManager is in the required state, and throws a &lt;see cref=&quot;System.InvalidOperationException&quot;/&gt; if it is not.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:2390: /// Verifies the BuildManager is in the required state, and throws a &lt;see cref=&quot;System.InvalidOperationException&quot;/&gt; if it is not.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildParameters.cs:514: /// thread owned by the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildParameters.cs:987: // InputResultsCacheFiles and OutputResultsCacheFile are not transmitted, as they are only used by the BuildManager
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildRequestData.cs:176: internal override BuildSubmissionBase&lt;BuildRequestData, BuildResult&gt; CreateSubmission(BuildManager buildManager,
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildRequestData.cs:179: new BuildSubmission(buildManager, submissionId, requestData, legacyThreadingSemantics);
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildRequestDataBase.cs:65: BuildManager buildManager, int submissionId, TRequestData requestData, bool legacyThreadingSemantics);
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:35: protected internal BuildSubmissionBase(BuildManager buildManager, int submissionId, TRequestData requestData)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:36: : base(buildManager, submissionId)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:72: BuildManager.ExecuteSubmission(this, allowMainThreadBuild);
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:140: /// A BuildSubmission represents a build request which has been submitted to the BuildManager for processing.  It may be used to
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:158: internal BuildSubmission(BuildManager buildManager, int submissionId, BuildRequestData requestData, bool legacyThreadingSemantics)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:159: : base(buildManager, submissionId, requestData)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:184: LegacyThreadingData legacyThreadingData = ((IBuildComponentHost)BuildManager).LegacyThreadingData;
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:240: ((IBuildComponentHost)BuildManager).LoggingService.HasBuildSubmissionLoggedErrors(BuildResult.SubmissionId))
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:253: /// &lt;inheritdoc cref=&quot;BuildSubmissionBase.BuildManager&quot;/&gt;
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmission.cs:254: public new BuildManager BuildManager =&gt; base.BuildManager;
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmissionBase.cs:37: protected internal BuildSubmissionBase(BuildManager buildManager, int submissionId)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmissionBase.cs:39: ErrorUtilities.VerifyThrowArgumentNull(buildManager);
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmissionBase.cs:41: BuildManager = buildManager;
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmissionBase.cs:49: /// The BuildManager with which this submission is associated.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildSubmissionBase.cs:51: public BuildManager BuildManager { get; }
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\EnvironmentVariableValidator.cs:15: /// This class centralizes environment variable validation logic to avoid bloating BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\EnvironmentVariableValidator.cs:21: /// Called once at the start of a build session from BuildManager.BeginBuild.
+Q:\repos\msbuild\src\Build\BackEnd\Components\Communications\NodeManager.cs:63: /// Interactions between the in-proc node communication thread and the shutdown mechanism must be investigated to determine how BuildManager.EndBuild is allowing itself
+Q:\repos\msbuild\src\Build\BackEnd\Components\Communications\NodeProviderOutOfProcBase.cs:219: if (Execution.BuildManager.WaitForDebugger)
+Q:\repos\msbuild\src\Build\BackEnd\Components\Communications\NodeProviderOutOfProcBase.cs:1098: /// under the primary lock (BuildManager&#39;s _syncLock)
+Q:\repos\msbuild\src\Build\BackEnd\Components\Logging\LoggingService.cs:1903: Execution.BuildManager.NullLogger =&gt; null,
+Q:\repos\msbuild\src\Build\BackEnd\Components\Logging\LoggingServiceLogMethods.cs:419: // Because the project cache runs in the BuildManager, it makes some sense to associate logging with the in-proc node.
+Q:\repos\msbuild\src\Build\BackEnd\Components\Logging\NodeLoggingContext.cs:29: // The in-proc node will have its BuildStarted, BuildFinished events sent by the BuildManager itself.
+Q:\repos\msbuild\src\Build\BackEnd\Components\Logging\NodeLoggingContext.cs:52: // The in-proc node will have its BuildStarted, BuildFinished events sent by the BuildManager itself.
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\ProjectCachePluginBase.cs:13: ///     Only one plugin instance can exist for a given BuildManager BeginBuild / EndBuild session.
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\ProjectCacheService.cs:40: private readonly BuildManager _buildManager;
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\ProjectCacheService.cs:81: BuildManager buildManager,
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\ProjectCacheService.cs:89: _buildManager = buildManager;
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\ProjectCacheService.cs:90: _componentHost = buildManager;
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\ProjectCacheService.cs:820: //   1. Pre-build (BuildManager.ExecuteSubmission): decides whether to issue a cache request.
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\ProjectCacheService.cs:824: //   2. Post-build (BuildManager.HandleResult): decides whether to notify cache plugins about
+Q:\repos\msbuild\src\Build\BackEnd\Components\ProjectCache\Experimental\ProjectCachePluginBase.cs:14: ///     Only one plugin instance can exist for a given BuildManager BeginBuild / EndBuild session.
+Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\RequestBuilder.cs:258: /// as we should no longer be receiving any messages from the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\Node\InProcNode.cs:365: // Notify the BuildManager that we are done.
+Q:\repos\msbuild\src\Build\BackEnd\Node\InProcNode.cs:455: // Configurations are already in the cache, which we share with the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\Node\OutOfProcNode.cs:533: // Notify the BuildManager that we are done.
+Q:\repos\msbuild\src\Build\BackEnd\Node\OutOfProcServerNode.cs:345: BuildManager.DefaultBuildManager.CancelAllSubmissions();
+Q:\repos\msbuild\src\Build\BackEnd\Shared\BuildRequestConfiguration.cs:156: /// Initializes a configuration from a BuildRequestData structure.  Used by the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\Shared\BuildRequestConfiguration.cs:168: /// Initializes a configuration from a BuildRequestData structure.  Used by the BuildManager.
+Q:\repos\msbuild\src\Build\BackEnd\Shared\BuildRequestConfiguration.cs:214: /// Used by the BuildManager to populate configurations from a solution.
+Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckReplayModeConnector.cs:20: /// &lt;param name=&quot;buildManager&quot;&gt;&lt;see cref=&quot;BuildManager&quot;/&gt; to get the registered &lt;see cref=&quot;IBuildCheckManagerProvider&quot;/&gt; component from.&lt;/param&gt;
+Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckReplayModeConnector.cs:24: BuildManager buildManager,
+Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckReplayModeConnector.cs:27: buildManager.EnableBuildCheck();
+Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckReplayModeConnector.cs:29: var buildCheckManagerProvider = ((IBuildComponentHost)buildManager)
+Q:\repos\msbuild\src\Build\BuildCheck\OM\BuildCheckDataContext.cs:41: ///// InstanceId (ConfigurationId): https://github.com/dotnet/msbuild/blob/2a8b16dbabd25782554ff0fe77619d58eccfe603/src/Build/BackEnd/BuildManager/BuildManager.cs#L2186-L2244
+Q:\repos\msbuild\src\Build\Evaluation\Evaluator.cs:799: // TODO: Figure out a more elegant way to do this. See the comment on BuildManager.ProjectCacheDescriptors for explanation.
+Q:\repos\msbuild\src\Build\Evaluation\Evaluator.cs:864: BuildManager.ProjectCacheDescriptors.TryAdd(projectCacheItem, projectCacheItem);
+Q:\repos\msbuild\src\Build\Graph\GraphBuildRequestData.cs:190: internal override BuildSubmissionBase&lt;GraphBuildRequestData, GraphBuildResult&gt; CreateSubmission(BuildManager buildManager, int submissionId, GraphBuildRequestData requestData,
+Q:\repos\msbuild\src\Build\Graph\GraphBuildRequestData.cs:192: new GraphBuildSubmission(buildManager, submissionId, requestData);
+Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs:20: /// A GraphBuildSubmission represents a graph build request which has been submitted to the BuildManager for processing.  It may be used to
+Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs:28: internal GraphBuildSubmission(BuildManager buildManager, int submissionId, GraphBuildRequestData requestData) :
+Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs:29: base(buildManager, submissionId, requestData)
+Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs:84: /// &lt;inheritdoc cref=&quot;BuildSubmissionBase.BuildManager&quot;/&gt;
+Q:\repos\msbuild\src\Build\Graph\GraphBuildSubmission.cs:85: public new BuildManager BuildManager =&gt; base.BuildManager;
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2807: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2841: results = buildManager.Build(parameters, data);
+Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelConsoleLogger.cs:517: // Add the project to the BuildManager so we can use the start information later in the build process
+Q:\repos\msbuild\src\Build.OM.UnitTests\Definition\ProjectItem_Tests.cs:3755: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.OM.UnitTests\Definition\ProjectItem_Tests.cs:3756: var projectInstance = buildManager.GetProjectInstanceForBuild(project);
+Q:\repos\msbuild\src\Build.OM.UnitTests\Instance\ProjectInstance_Tests.cs:400: BuildManager.DefaultBuildManager.Build(new BuildParameters(), buildRequestData1);
+Q:\repos\msbuild\src\Build.OM.UnitTests\Instance\ProjectInstance_Tests.cs:406: BuildManager.DefaultBuildManager.Build(new BuildParameters(), buildRequestData2);
+Q:\repos\msbuild\src\Build.UnitTests\BinaryLogger_Tests.cs:439: using var buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BinaryLogger_Tests.cs:483: using var buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BinaryLogger_Tests.cs:602: using var buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BinaryLogger_Tests.cs:626: buildManager.Build(new BuildParameters() { Loggers = new ILogger[] { binaryLogger } },
+Q:\repos\msbuild\src\Build.UnitTests\ConsoleLogger_Tests.cs:216: BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\ConsoleLogger_Tests.cs:257: BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\ConsoleLogger_Tests.cs:309: BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\EvaluationProfiler_Tests.cs:26: private readonly BuildManager _buildManager;
+Q:\repos\msbuild\src\Build.UnitTests\EvaluationProfiler_Tests.cs:56: // Ensure that any previous tests which may have been using the default BuildManager do not conflict with us.
+Q:\repos\msbuild\src\Build.UnitTests\EvaluationProfiler_Tests.cs:57: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\EvaluationProfiler_Tests.cs:59: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs:53: private readonly BuildManager _buildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs:67: // Ensure that any previous tests which may have been using the default BuildManager do not conflict with us.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs:68: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs:71: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:35: /// The test fixture for the BuildManager
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:47: private readonly BuildManager _buildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:73: // Ensure that any previous tests which may have been using the default BuildManager do not conflict with us.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:74: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:83: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:320: /// Verify if idle nodes are shutdown when BuildManager.ShutdownAllNodes is evoked.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:370: // Use a separate BuildManager for the node shutdown build, so that we don&#39;t have
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:373: using var shutdownManager = new BuildManager(&quot;IdleNodeShutdown&quot;);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:984: new BuildManager.DeferredBuildMessage(highMessage, MessageImportance.High),
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:985: new BuildManager.DeferredBuildMessage(normalMessage, MessageImportance.Normal),
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:986: new BuildManager.DeferredBuildMessage(lowMessage, MessageImportance.Low)
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:1155: using (var bm = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:1164: var bm = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:1886: /// Retrieving a ProjectInstance from the BuildManager stores it in the cache
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:1906: /// Retrieving a ProjectInstance from the BuildManager after a build.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:2144: /// Verify that using a second BuildManager doesn&#39;t cause the system to crash.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:2168: using (var newBuildManager = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:2345: using (var outerBuildManager = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:2353: using (var innerBuildManager = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3135: BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3140: ProjectInstance pi = BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(project1);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3143: BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3151: ProjectInstance pi = BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(project2);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3153: BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3161: BuildManager.DefaultBuildManager.EndBuild();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3213: BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3219: ProjectInstance pi = BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(project2);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3222: BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3231: ProjectInstance pi = BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(project1);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3233: BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3242: BuildManager.DefaultBuildManager.EndBuild();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3300: BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3306: ProjectInstance pi = BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(project2);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3309: BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3318: ProjectInstance pi = BuildManager.DefaultBuildManager.GetProjectInstanceForBuild(project1);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3320: BuildSubmission submission = BuildManager.DefaultBuildManager.PendBuildRequest(requestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3329: BuildManager.DefaultBuildManager.EndBuild();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3533: private static string BuildAndCheckCache(BuildManager localBuildManager, IEnumerable&lt;string&gt; exceptCacheDirectories)
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:3733: using (var manager = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4110: handoff logging completion to the BuildManager.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4118: using var manager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4143: * BuildManager.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4607: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4608: BuildResult result = BuildManager.DefaultBuildManager.Build(buildParameters, data);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4691: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4692: BuildResult result = BuildManager.DefaultBuildManager.Build(buildParameters, data);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildOMCompatibility_Tests.cs:39: [InlineData(&quot;BuildManager&quot;)]
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildOMCompatibility_Tests.cs:55: [InlineData(&quot;BuildManager&quot;)]
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:53: private BuildManager _buildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:70: // Since we&#39;re creating our own BuildManager, we need to make sure that the default
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:72: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)BuildManager.DefaultBuildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:89: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:377: // Since we&#39;re creating our own BuildManager, we need to make sure that the default
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:379: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)BuildManager.DefaultBuildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:392: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:565: /// With something approximating the BuildManager&#39;s build loop, make sure that we don&#39;t end up
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:571: // Since we&#39;re creating our own BuildManager, we need to make sure that the default
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:573: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)BuildManager.DefaultBuildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:584: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\Scheduler_Tests.cs:931: /// Method that fakes the actions done by BuildManager.PerformSchedulingActions
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\SdkResultOutOfProc_Tests.cs:35: private readonly BuildManager _buildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\SdkResultOutOfProc_Tests.cs:46: // Ensure that any previous tests which may have been using the default BuildManager do not conflict with us.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\SdkResultOutOfProc_Tests.cs:47: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\SdkResultOutOfProc_Tests.cs:50: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetEntry_Tests.cs:728: // Since we&#39;re creating our own BuildManager, we need to make sure that the default
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetEntry_Tests.cs:730: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)BuildManager.DefaultBuildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetEntry_Tests.cs:744: BuildManager manager = null;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetEntry_Tests.cs:775: manager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilder_Tests.cs:132: BuildManager manager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilder_Tests.cs:975: BuildResult result = BuildManager.DefaultBuildManager.Build(parameters, new BuildRequestData(project.CreateProjectInstance(), new string[] { &quot;Foo&quot; }));
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHost_MultiThreadableTask_Tests.cs:93: var result = BuildManager.DefaultBuildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:18: /// These tests use BuildManager to run real builds with TaskHostFactory.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:55: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:89: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:131: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:162: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:196: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:251: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:303: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:352: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:391: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:437: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:477: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallback_Tests.cs:517: BuildResult buildResult = BuildManager.DefaultBuildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostCallbackPacket_Tests.cs:16: /// No I/O or BuildManager -- just round-trip translation.
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostFactory_Tests.cs:75: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostFactory_Tests.cs:76: BuildResult buildResult = buildManager.Build(buildParameters, new BuildRequestData(projectInstance, targetsToBuild: [&quot;AccessPID&quot;]));
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostFactory_Tests.cs:391: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHostFactory_Tests.cs:392: BuildResult buildResult = buildManager.Build(new BuildParameters(), new BuildRequestData(projectInstance, targetsToBuild: new[] { &quot;TestTarget&quot; }));
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRegistry_Tests.cs:616: using (var buildManager = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRegistry_Tests.cs:630: var result = buildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:79: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:80: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:124: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:125: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:169: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:170: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:214: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:215: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:258: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:259: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:312: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:313: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:370: var buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:371: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:920: /// with the version that is being built as when a property is part of the version added to the cache, but that version is not passed to the BuildManager.
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2183: BuildManager buildManager = null;
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2187: // Since we&#39;re creating our own BuildManager, we need to make sure that the default
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2189: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)BuildManager.DefaultBuildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2199: buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2205: BuildResult result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2214: if (buildManager != null)
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2216: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)buildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2218: buildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2271: BuildManager buildManager = null;
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2275: // Since we&#39;re creating our own BuildManager, we need to make sure that the default
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2277: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)BuildManager.DefaultBuildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2287: buildManager = new BuildManager();
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2293: BuildResult result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2302: if (buildManager != null)
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2304: NodeProviderInProc nodeProviderInProc = ((IBuildComponentHost)buildManager).GetComponent(BuildComponentType.InProcNodeProvider) as NodeProviderInProc;
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:2306: buildManager.Dispose();
+Q:\repos\msbuild\src\Build.UnitTests\Graph\ResultCacheBasedBuilds_Tests.cs:100: using (var buildManager = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\Graph\ResultCacheBasedBuilds_Tests.cs:102: buildManager.BeginBuild(new BuildParameters
+Q:\repos\msbuild\src\Build.UnitTests\Graph\ResultCacheBasedBuilds_Tests.cs:109: buildManager.EndBuild();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:38: BuildManager.ProjectCacheDescriptors.ShouldBeEmpty();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:39: _env.WithInvariant(new CustomConditionInvariant(() =&gt; BuildManager.ProjectCacheDescriptors.IsEmpty));
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:586: BuildManager.ProjectCacheDescriptors.ShouldBeEmpty();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:590: BuildManager.ProjectCacheDescriptors.ShouldHaveSingleItem();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:639: BuildManager.ProjectCacheDescriptors.Clear();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:737: BuildManager.ProjectCacheDescriptors.Clear();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:1150: // Plugin construction, initialization, and query all end up throwing in BuildManager.ExecuteSubmission and thus
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:1171: // BuildManager.EndBuild calls plugin.EndBuild, so if only plugin.EndBuild fails it means everything else passed,
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:1467: BuildManager.ProjectCacheDescriptors.ShouldBeEmpty();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:1480: BuildManager.ProjectCacheDescriptors.ShouldHaveSingleItem();
+Q:\repos\msbuild\src\Build.UnitTests\ProjectCache\ProjectCacheTests.cs:1523: BuildManager.ProjectCacheDescriptors.Clear();
+Q:\repos\msbuild\src\Build.UnitTests\Telemetry\Telemetry_Tests.cs:292: using (var buildManager = new BuildManager())
+Q:\repos\msbuild\src\Build.UnitTests\Telemetry\Telemetry_Tests.cs:295: buildManager.BeginBuild(buildParameters);
+Q:\repos\msbuild\src\Build.UnitTests\Telemetry\Telemetry_Tests.cs:305: buildManager.BuildRequest(buildRequestData1);
+Q:\repos\msbuild\src\Build.UnitTests\Telemetry\Telemetry_Tests.cs:314: buildManager.BuildRequest(buildRequestData2);
+Q:\repos\msbuild\src\Build.UnitTests\Telemetry\Telemetry_Tests.cs:317: buildManager.EndBuild();
+Q:\repos\msbuild\src\BuildCheck.UnitTests\TaskInvocationAnalysisDataTests.cs:86: using (var buildManager = new BuildManager())
+Q:\repos\msbuild\src\BuildCheck.UnitTests\TaskInvocationAnalysisDataTests.cs:97: var result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\Framework\ItemSpecModifiers.cs:102: ///  (e.g., from &lt;c&gt;BuildManager.EndBuild&lt;/c&gt;) to prevent stale entries from accumulating
+Q:\repos\msbuild\src\Framework\MSBuildEventSource.cs:65: /// Call this method to notify listeners of information relevant to the setup for a BuildManager to receive build requests.
+Q:\repos\msbuild\src\Framework\Telemetry\BuildTelemetry.cs:24: /// It is time when build started, not when BuildManager start executing build.
+Q:\repos\msbuild\src\Framework\Telemetry\BuildTelemetry.cs:33: /// It is time when build internally started, i.e. when BuildManager starts it.
+Q:\repos\msbuild\src\Framework\Telemetry\CrashTelemetry.cs:38: /// used by the unhandled exception handler and BuildManager.
+Q:\repos\msbuild\src\Framework\Telemetry\CrashTelemetry.cs:80: /// An exception occurred during EndBuild in BuildManager.
+Q:\repos\msbuild\src\Framework\Telemetry\CrashTelemetry.cs:287: /// Whether a thread exception has been recorded on the BuildManager.
+Q:\repos\msbuild\src\Framework\Telemetry\CrashTelemetry.cs:309: /// Whether the BuildManager has started shutting down.
+Q:\repos\msbuild\src\Framework\Telemetry\CrashTelemetry.cs:319: /// Number of pending work items in the BuildManager&#39;s work queue.
+Q:\repos\msbuild\src\Framework\Telemetry\CrashTelemetryRecorder.cs:119: // Do not call TelemetryManager.Initialize here - the caller (Main or BuildManager)
+Q:\repos\msbuild\src\Framework.UnitTests\CrashTelemetry_Tests.cs:276: [InlineData(&quot;Microsoft.Build.Execution.BuildManager.Build&quot;, &quot;Microsoft.Build.Execution&quot;)]
+Q:\repos\msbuild\src\Framework.UnitTests\CrashTelemetry_Tests.cs:382: &quot;   at Microsoft.Build.BackEnd.BuildManager.Build()&quot;;
+Q:\repos\msbuild\src\Framework.UnitTests\CrashTelemetry_Tests.cs:620: &quot;   at Microsoft.Build.BackEnd.BuildManager.Build() in C:\\Users\\user\\src\\mgr.cs:line 100&quot;;
+Q:\repos\msbuild\src\Framework.UnitTests\CrashTelemetry_Tests.cs:630: telemetry.FullStackTrace.ShouldContain(&quot;BuildManager.Build&quot;);
+Q:\repos\msbuild\src\MSBuild\OutOfProcTaskHostNode.cs:1320: // Notify the BuildManager that we are done.
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1227: BuildManager.DefaultBuildManager.CancelAllSubmissions();
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1276: private static readonly List&lt;BuildManager.DeferredBuildMessage&gt; s_globalMessagesToLogInBuildLoggers = new();
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1566: List&lt;BuildManager.DeferredBuildMessage&gt; messagesToLogInBuildLoggers = new();
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1568: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1584: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1593: buildManager.BeginBuild(parameters, messagesToLogInBuildLoggers);
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1633: result = ExecuteRestore(projectFile, toolsVersion, buildManager, restoreProperties.Count &gt; 0 ? restoreProperties : globalProperties, saveProjectResult: saveProjectResult);
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1649: graphResult = ExecuteGraphBuild(buildManager, graphBuildRequest);
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1671: result = ExecuteBuild(buildManager, buildRequest);
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1678: buildManager.EndBuild();
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1743: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1772: private static List&lt;BuildManager.DeferredBuildMessage&gt; GetMessagesToLogInBuildLoggers(string commandLineString)
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1774: List&lt;BuildManager.DeferredBuildMessage&gt; messages = new(s_globalMessagesToLogInBuildLoggers)
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1776: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1781: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1786: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1791: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1796: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1807: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1819: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1830: new BuildManager.DeferredBuildMessage(
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1840: private static BuildResult ExecuteBuild(BuildManager buildManager, BuildRequestData request)
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1845: submission = buildManager.PendBuildRequest(request);
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1852: buildManager.CancelAllSubmissions();
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1859: private static GraphBuildResult ExecuteGraphBuild(BuildManager buildManager, GraphBuildRequestData request)
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1864: submission = buildManager.PendBuildRequest(request);
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1871: buildManager.CancelAllSubmissions();
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1878: private static BuildResult ExecuteRestore(string projectFile, string toolsVersion, BuildManager buildManager, Dictionary&lt;string, string&gt; globalProperties, bool saveProjectResult = false)
+Q:\repos\msbuild\src\MSBuild\XMake.cs:1912: return ExecuteBuild(buildManager, restoreRequest);
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2074: BuildManager.WaitForDebugger = true;
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2144: // BuildManager crash/hang telemetry also reports correctly.
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2401: new BuildManager.DeferredBuildMessage(ResourceUtilities.GetResourceString(&quot;TerminalLoggerNotUsedAutomated&quot;), MessageImportance.Low));
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2410: new BuildManager.DeferredBuildMessage(ResourceUtilities.GetResourceString(&quot;TerminalLoggerNotUsedRedirected&quot;), MessageImportance.Low));
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2418: new BuildManager.DeferredBuildMessage(ResourceUtilities.GetResourceString(&quot;TerminalLoggerNotUsedNotSupported&quot;), MessageImportance.Low));
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2425: new BuildManager.DeferredBuildMessage(ResourceUtilities.GetResourceString(&quot;TerminalLoggerNotUsedDisabled&quot;), MessageImportance.Low));
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2500: new BuildManager.DeferredBuildMessage($&quot;The environment variable MSBUILDTERMINALLOGGER was set to {terminalLoggerArg}.&quot;, MessageImportance.Low));
+Q:\repos\msbuild\src\MSBuild\XMake.cs:2509: new BuildManager.DeferredBuildMessage($&quot;The environment variable MSBUILDLIVELOGGER was set to {liveLoggerArg}.&quot;, MessageImportance.Low));
+Q:\repos\msbuild\src\MSBuild\XMake.cs:4052: BuildCheckReplayModeConnector.GetMergedEventSource(BuildManager.DefaultBuildManager, replayEventSource) :
+Q:\repos\msbuild\src\MSBuild\CommandLine\CommandLineParser.cs:18: using static Microsoft.Build.Execution.BuildManager;
+Q:\repos\msbuild\src\MSBuild.UnitTests\MSBuildServer_Tests.cs:256: BuildManager.DefaultBuildManager.ShutdownAllNodes();
+Q:\repos\msbuild\src\MSBuild.UnitTests\XMake_BinlogSwitch_Tests.cs:262: List&lt;BuildManager.DeferredBuildMessage&gt; deferredBuildMessages = new();
+Q:\repos\msbuild\src\MSBuildTaskHost\OutOfProcTaskHostNode.cs:549: // Notify the BuildManager that we are done.
+Q:\repos\msbuild\src\MSBuildTaskHost\BackEnd\NodeEngineShutdownReason.cs:12: /// The BuildManager sent a command instructing the node to terminate.
+Q:\repos\msbuild\src\MSBuildTaskHost\BackEnd\NodeEngineShutdownReason.cs:17: /// The BuildManager sent a command instructing the node to terminate, but to restart for reuse.
+Q:\repos\msbuild\src\MSBuildTaskHost\BackEnd\NodeShutdown.cs:31: /// This is the last packet the BuildManager will receive from a Node, and as such can be used to trigger
+Q:\repos\msbuild\src\Shared\NodeEngineShutdownReason.cs:14: /// The BuildManager sent a command instructing the node to terminate.
+Q:\repos\msbuild\src\Shared\NodeEngineShutdownReason.cs:19: /// The BuildManager sent a command instructing the node to terminate, but to restart for reuse.
+Q:\repos\msbuild\src\Shared\NodeShutdown.cs:33: /// This is the last packet the BuildManager will receive from a Node, and as such can be used to trigger
+Q:\repos\msbuild\src\Tasks.UnitTests\CreateItem_Tests.cs:211: BuildResult result = BuildManager.DefaultBuildManager.Build(parameters, data);
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:963: using (var buildManager = new BuildManager())
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:987: var result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:1019: using (var buildManager = new BuildManager())
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:1044: var result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\UnitTests.Shared\EngineTestEnvironment.cs:48: BuildManager.DefaultBuildManager.BeginBuild(
+Q:\repos\msbuild\src\UnitTests.Shared\EngineTestEnvironment.cs:57: BuildManager.DefaultBuildManager.EndBuild();
+Q:\repos\msbuild\src\UnitTests.Shared\EngineTestEnvironment.cs:58: BuildManager.DefaultBuildManager.Dispose();
+Q:\repos\msbuild\src\UnitTests.Shared\EngineTestEnvironment.cs:66: SingletonField = typeof(BuildManager).GetField(&quot;s_singletonInstance&quot;, BindingFlags.Static | BindingFlags.NonPublic);
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:1020: BuildResult result = BuildManager.DefaultBuildManager.Build(parameters, data);
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:1426: using (var buildManager = new BuildManager())
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:1444: var result = buildManager.Build(
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:1495: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:1503: BuildResult buildResult = buildManager.Build(parameters, data);
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:2075: private readonly BuildManager _buildManager;
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:2084: IEnumerable&lt;BuildManager.DeferredBuildMessage&gt; deferredMessages = null)
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:2100: _buildManager = new BuildManager();
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:29: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:33: buildManager.BeginBuild(parameters);
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:34: buildManager.EndBuild();
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:54: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:58: buildManager.Build(parameters, new BuildRequestData(project, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:88: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:98: buildManager.Build(parameters, new BuildRequestData(project, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:108: buildManager.BeginBuild(parameters);
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:114: BuildSubmission submission = buildManager.PendBuildRequest(new BuildRequestData(project, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:120: buildManager.EndBuild();
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:149: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:153: buildManager.BeginBuild(parameters);
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:158: BuildSubmission submission = buildManager.PendBuildRequest(new BuildRequestData(project, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:165: buildManager.EndBuild();
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:203: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:209: buildManager.BeginBuild(parameters);
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:213: BuildSubmission submission1 = buildManager.PendBuildRequest(new BuildRequestData(project1, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:217: BuildSubmission submission2 = buildManager.PendBuildRequest(new BuildRequestData(project2, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:223: buildManager.EndBuild();
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:258: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:264: buildManager.BeginBuild(parameters);
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:267: BuildSubmission submission = buildManager.PendBuildRequest(new BuildRequestData(project, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:275: buildManager.EndBuild();
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:307: BuildManager buildManager = BuildManager.DefaultBuildManager;
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:313: buildManager.BeginBuild(parameters);
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:319: BuildSubmission submission = buildManager.PendBuildRequest(new BuildRequestData(project, Array.Empty&lt;string&gt;(), null));
+Q:\repos\msbuild\src\Utilities.UnitTests\MuxLogger_Tests.cs:329: buildManager.EndBuild();</pre>
+      </section>
+      <section class="algorithm">
+        <h3>roslyn-find-declarations</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 159 | <strong>Lines:</strong> 2 | <strong>Time:</strong> 47ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;BuildManager&#39;, SymbolFilter.Type)</p>
+        <pre>Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+Microsoft.Build.Execution.BuildManager - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(51,18)</pre>
+      </section>
+      <section class="algorithm">
+        <h3>roslyn-find-declarations-with-pattern</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 2148 | <strong>Lines:</strong> 15 | <strong>Time:</strong> 14ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;BuildManager&#39;, SymbolFilter.Type)</p>
+        <pre id="expand-16-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+Microsoft.Build.BackEnd.Logging.BuildEventManager - Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelLoggerHelpers.cs(17,20)
+Microsoft.Build.BuildCheck.UnitTests.BuildCheckManagerTests - Q:\repos\msbuild\src\BuildCheck.UnitTests\BuildCheckManagerProviderTests.cs(21,14)
+Microsoft.Build.Engine.UnitTests.BackEnd.BuildManager_Logging_Tests - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs(23,18)
+Microsoft.Build.Execution.BuildManager - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(51,18)
+Microsoft.Build.Execution.BuildManager.BuildManagerState - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(331,22)
+Microsoft.Build.Experimental.BuildCheck.IBuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManager.cs(34,20)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(26,23)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider.BuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(63,27)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.IBuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManagerProvider.cs(8,20)
+<span class="truncated-link" onclick="document.getElementById('expand-16-short').style.display='none'; document.getElementById('expand-16-full').style.display='block';">... truncated (5 more lines) — click to expand</span></pre>
+        <pre id="expand-16-full" class="full-result">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+Microsoft.Build.BackEnd.Logging.BuildEventManager - Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelLoggerHelpers.cs(17,20)
+Microsoft.Build.BuildCheck.UnitTests.BuildCheckManagerTests - Q:\repos\msbuild\src\BuildCheck.UnitTests\BuildCheckManagerProviderTests.cs(21,14)
+Microsoft.Build.Engine.UnitTests.BackEnd.BuildManager_Logging_Tests - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs(23,18)
+Microsoft.Build.Execution.BuildManager - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(51,18)
+Microsoft.Build.Execution.BuildManager.BuildManagerState - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(331,22)
+Microsoft.Build.Experimental.BuildCheck.IBuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManager.cs(34,20)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(26,23)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider.BuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(63,27)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.IBuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManagerProvider.cs(8,20)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.NullBuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\NullBuildCheckManager.cs(10,16)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.NullBuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\NullBuildCheckManagerProvider.cs(8,16)
+Microsoft.Build.UnitTests.BackEnd.BuildManager_Tests - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs(37,18)
+Microsoft.Build.UnitTests.Helpers.BuildManagerSession - Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs(2072,29)
+Microsoft.Build.UnitTests.TestEnvironment.ResetDefaultBuildManager - Q:\repos\msbuild\src\UnitTests.Shared\EngineTestEnvironment.cs(32,30)</pre>
+      </section>
+      <section class="algorithm">
+        <h3>roslyn-find-declarations-workspaceSymbol</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 2148 | <strong>Lines:</strong> 15 | <strong>Time:</strong> 118ms | called SymbolFinder.FindSourceDeclarationsWithPatternAsync(solution, &#39;BuildManager&#39;) without SymbolFilter</p>
+        <pre id="expand-17-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+Microsoft.Build.BackEnd.Logging.BuildEventManager - Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelLoggerHelpers.cs(17,20)
+Microsoft.Build.BuildCheck.UnitTests.BuildCheckManagerTests - Q:\repos\msbuild\src\BuildCheck.UnitTests\BuildCheckManagerProviderTests.cs(21,14)
+Microsoft.Build.Engine.UnitTests.BackEnd.BuildManager_Logging_Tests - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs(23,18)
+Microsoft.Build.Execution.BuildManager - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(51,18)
+Microsoft.Build.Execution.BuildManager.BuildManagerState - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(331,22)
+Microsoft.Build.Experimental.BuildCheck.IBuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManager.cs(34,20)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(26,23)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider.BuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(63,27)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.IBuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManagerProvider.cs(8,20)
+<span class="truncated-link" onclick="document.getElementById('expand-17-short').style.display='none'; document.getElementById('expand-17-full').style.display='block';">... truncated (5 more lines) — click to expand</span></pre>
+        <pre id="expand-17-full" class="full-result">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+Microsoft.Build.BackEnd.Logging.BuildEventManager - Q:\repos\msbuild\src\Build\Logging\ParallelLogger\ParallelLoggerHelpers.cs(17,20)
+Microsoft.Build.BuildCheck.UnitTests.BuildCheckManagerTests - Q:\repos\msbuild\src\BuildCheck.UnitTests\BuildCheckManagerProviderTests.cs(21,14)
+Microsoft.Build.Engine.UnitTests.BackEnd.BuildManager_Logging_Tests - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Logging_Tests.cs(23,18)
+Microsoft.Build.Execution.BuildManager - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(51,18)
+Microsoft.Build.Execution.BuildManager.BuildManagerState - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(331,22)
+Microsoft.Build.Experimental.BuildCheck.IBuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManager.cs(34,20)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(26,23)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.BuildCheckManagerProvider.BuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\BuildCheckManagerProvider.cs(63,27)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.IBuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\IBuildCheckManagerProvider.cs(8,20)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.NullBuildCheckManager - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\NullBuildCheckManager.cs(10,16)
+Microsoft.Build.Experimental.BuildCheck.Infrastructure.NullBuildCheckManagerProvider - Q:\repos\msbuild\src\Build\BuildCheck\Infrastructure\NullBuildCheckManagerProvider.cs(8,16)
+Microsoft.Build.UnitTests.BackEnd.BuildManager_Tests - Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs(37,18)
+Microsoft.Build.UnitTests.Helpers.BuildManagerSession - Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs(2072,29)
+Microsoft.Build.UnitTests.TestEnvironment.ResetDefaultBuildManager - Q:\repos\msbuild\src\UnitTests.Shared\EngineTestEnvironment.cs(32,30)</pre>
+      </section>
+    </article>
+    <article class="query">
+      <h2>find-member-definition</h2>
+      <dl>
+        <dt>name</dt><dd>Build</dd>
+      </dl>
+      <section class="algorithm">
+        <h3>find-member-definition-grep</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 25369 | <strong>Lines:</strong> 194 | <strong>Time:</strong> 5.0s | string search for member declaration &#39;Build&#39;</p>
+        <pre id="expand-18-short">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1382: private TResultData Build&lt;TRequestData, TResultData&gt;(BuildParameters parameters, TRequestData requestData)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1409: public BuildResult Build(BuildParameters parameters, BuildRequestData requestData)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1416: public GraphBuildResult Build(BuildParameters parameters, GraphBuildRequestData requestData)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1491: public bool Build()
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1505: public bool Build(ILogger logger)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1520: public bool Build(IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1535: public bool Build(IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1549: public bool Build(string target)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1564: public bool Build(string target, IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1580: public bool Build(string target, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+<span class="truncated-link" onclick="document.getElementById('expand-18-short').style.display='none'; document.getElementById('expand-18-full').style.display='block';">... truncated (184 more lines) — click to expand</span></pre>
+        <pre id="expand-18-full" class="full-result">Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1382: private TResultData Build&lt;TRequestData, TResultData&gt;(BuildParameters parameters, TRequestData requestData)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1409: public BuildResult Build(BuildParameters parameters, BuildRequestData requestData)
+Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs:1416: public GraphBuildResult Build(BuildParameters parameters, GraphBuildRequestData requestData)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1491: public bool Build()
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1505: public bool Build(ILogger logger)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1520: public bool Build(IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1535: public bool Build(IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1549: public bool Build(string target)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1564: public bool Build(string target, IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1580: public bool Build(string target, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1597: public bool Build(string[] targets)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1613: public bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1630: public bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:1643: public bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, EvaluationContext evaluationContext)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:3349: public override bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, EvaluationContext evaluationContext)
+Q:\repos\msbuild\src\Build\Definition\Project.cs:3368: bool result = instance.Build(targets, loggers, remoteLoggers, null, ProjectCollection.MaxNodeCount, out _);
+Q:\repos\msbuild\src\Build\Evaluation\Expander.cs:3708: internal readonly Function&lt;T&gt; Build()
+Q:\repos\msbuild\src\Build\Graph\GraphBuildRequestData.cs:20: public bool Build { get; init; } = true;
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2197: public bool Build()
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2212: public bool Build(IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2227: public bool Build(IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2243: public bool Build(string target, IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2260: public bool Build(string target, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2278: public bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2295: public bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2313: public bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, out IDictionary&lt;string, TargetResult&gt; targetOutputs)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2330: public bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, out IDictionary&lt;string, TargetResult&gt; targetOutputs)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2796: internal bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, ILoggingService loggingService, int maxNodeCount, out IDictionary&lt;string, TargetResult&gt; targetOutputs)
+Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs:2851: internal bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, ILoggingService loggingService, out IDictionary&lt;string, TargetResult&gt; targetOutputs)
+Q:\repos\msbuild\src\Build\ObjectModelRemoting\DefinitionObjectsLinks\ProjectLink.cs:254: public abstract bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, EvaluationContext evaluationContext);
+Q:\repos\msbuild\src\Build\Utilities\NuGetFrameworkWrapper.cs:114: var nonZeroVersionParts = version.Revision == 0 ? version.Build == 0 ? version.Minor == 0 ? 1 : 2 : 3 : 4;
+Q:\repos\msbuild\src\Build\Utilities\SimpleVersion.cs:46: public readonly int Build;
+Q:\repos\msbuild\src\Build\Utilities\SimpleVersion.cs:49: public SimpleVersion(int major, int minor = 0, int build = 0, int revision = 0)
+Q:\repos\msbuild\src\Build\Utilities\SimpleVersion.cs:114: int minor = 0, build = 0, revision = 0;
+Q:\repos\msbuild\src\Build.OM.UnitTests\Definition\Project_Tests.cs:110: bool result = project.Build(new ILogger[] { mockLogger });
+Q:\repos\msbuild\src\Build.OM.UnitTests\Definition\Project_Tests.cs:139: bool result = project.Build();
+Q:\repos\msbuild\src\Build.OM.UnitTests\Definition\Project_Tests.cs:167: bool result = project.Build(mockLogger);
+Q:\repos\msbuild\src\Build.OM.UnitTests\Definition\Project_Tests.cs:2059: bool result = project.Build();
+Q:\repos\msbuild\src\Build.OM.UnitTests\Definition\Project_Tests.cs:2075: bool result = project.Build(new string[] { &quot;nonexistent&quot; }, new List&lt;ILogger&gt;() { logger });
+Q:\repos\msbuild\src\Build.OM.UnitTests\ObjectModelRemoting\RemoteProjectsProviderMock\EvaluationLinkMocks\MockProjectLink.cs:183: public override bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, EvaluationContext evaluationContext)
+Q:\repos\msbuild\src\Build.UnitTests\EscapingInProjects_Tests.cs:687: bool success = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\EscapingInProjects_Tests.cs:717: bool success = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\EscapingInProjects_Tests.cs:810: bool success = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\EscapingInProjects_Tests.cs:1007: bool success = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\EscapingInProjects_Tests.cs:1072: bool success = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\EvaluationProfiler_Tests.cs:287: var result = _buildManager.Build(parameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\FixPathOnUnix_Tests.cs:48: var result = project.Build(&quot;Build&quot;);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:196: var result = _buildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4091: var result = _buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\BuildManager_Tests.cs:4401: graphBuildOptions: new GraphBuildOptions { Build = false });
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\IntrinsicTask_Tests.cs:3286: bool success = p.Build(new string[] { &quot;a&quot; }, new ILogger[] { logger });
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\IntrinsicTask_Tests.cs:3314: bool success = p.Build(new string[] { &quot;a&quot; }, new ILogger[] { logger });
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\IntrinsicTask_Tests.cs:3360: bool success = p.Build(new string[] { &quot;a&quot; }, new ILogger[] { logger });
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:85: bool success = p.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:146: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:189: bool success = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:559: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:628: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:935: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:999: bool success = p.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1055: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1124: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1191: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1256: bool success = p.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1342: bool success = p.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1466: bool success = p.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1561: bool success = p.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1582: bool success2 = p2.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1691: bool success = p.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1806: bool success = pi.Build(null, null, null, out targetOutputs);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1915: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1936: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1964: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:1993: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:2056: bool result = project.Build(&quot;CheckSplit&quot;, [logger]);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\MSBuild_Tests.cs:2133: bool result = project.Build(&quot;ResolveProjectReferences&quot;, [logger]);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\ProjectTelemetry_Tests.cs:179: var result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetBuilder_Tests.cs:561: (string name, TargetBuiltReason reason)[] target = { (&quot;Build;Me&quot;, TargetBuiltReason.None) };
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetBuilder_Tests.cs:932: (string name, TargetBuiltReason reason)[] target = { (&quot;Build;Me&quot;, TargetBuiltReason.None) };
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetBuilder_Tests.cs:1353: bool success = project.Build(_mockLogger);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetUpToDateChecker_Tests.cs:60: bool success = p.Build(new string[] { &quot;Build&quot; }, new ILogger[] { ml });
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetUpToDateChecker_Tests.cs:91: bool success = p.Build(new string[] { &quot;Build&quot; }, new ILogger[] { ml });
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TargetUpToDateChecker_Tests.cs:121: bool success = p.Build(&quot;Build&quot;, new ILogger[] { ml });
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilder_Tests.cs:468: bool result = project.Build(&quot;t&quot;, loggers);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilder_Tests.cs:492: bool result = project.Build(&quot;t&quot;, loggers);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilder_Tests.cs:523: bool result = project.Build(&quot;t&quot;, loggers);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskBuilder_Tests.cs:554: bool result = project.Build(&quot;t&quot;, loggers);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskHost_MultiThreadableTask_Tests.cs:93: var result = BuildManager.DefaultBuildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRegistry_Tests.cs:630: var result = buildManager.Build(
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:80: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:125: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:170: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:215: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:259: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:313: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\BackEnd\TaskRouter_IntegrationTests.cs:371: var result = buildManager.Build(buildParameters, buildRequestData);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:221: string output = RunnerUtilities.ExecMSBuild(solutionFile.Path + &quot; /t:Clean;Build;Custom&quot;, out bool success);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:299: var output = RunnerUtilities.ExecMSBuild(solutionFile.Path + &quot; /m /t:Clean;Build;Custom&quot;, out bool success);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:1103: var buildResult = automaticProject.Build(loggers);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:1803: bool success = msbuildProject.Build(&quot;GetFrameworkPathAndRedistList&quot;, null);
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:1831: bool success = msbuildProject.Build(&quot;GetFrameworkPathAndRedistList&quot;, new ILogger[] { logger });
+Q:\repos\msbuild\src\Build.UnitTests\Construction\SolutionProjectGenerator_Tests.cs:1859: bool success = msbuildProject.Build(&quot;GetFrameworkPathAndRedistList&quot;, null);
+Q:\repos\msbuild\src\Build.UnitTests\Definition\ItemDefinitionGroup_Tests.cs:1069: bool result = p.Build(&quot;t&quot;, new ILogger[] { logger });
+Q:\repos\msbuild\src\Build.UnitTests\Definition\ToolsVersion_Tests.cs:490: bool success = project.Build(mockLogger);
+Q:\repos\msbuild\src\Build.UnitTests\Definition\ToolsVersion_Tests.cs:521: bool success = project.Build(mockLogger);
+Q:\repos\msbuild\src\Build.UnitTests\Definition\ToolsVersion_Tests.cs:671: bool success = pi.Build(new ILogger[] { mockLogger });
+Q:\repos\msbuild\src\Build.UnitTests\Definition\ToolsVersion_Tests.cs:827: bool success = pi.Build(new ILogger[] { mockLogger });
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:127: var result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:358: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:487: bool result = project.Build(new ILogger[] { logger });
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:553: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:596: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:641: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:684: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:730: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:774: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:820: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:883: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:1191: bool result = project.Build(&quot;t2&quot;, new ILogger[] { logger });
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:1247: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:1311: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:1348: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:2899: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:2926: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:2951: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:2976: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3006: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3036: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3066: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3096: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3140: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3212: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3246: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3391: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3445: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3506: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3566: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3640: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3713: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3776: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3838: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3890: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3945: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:3997: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:4049: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:4108: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:4171: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:4230: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:4282: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:4326: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:4605: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:5091: bool result = project.Build();
+Q:\repos\msbuild\src\Build.UnitTests\Evaluation\Evaluator_Tests.cs:5242: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectInstance_Internal_Tests.cs:560: public void Build()
+Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectInstance_Internal_Tests.cs:583: bool success = projectInstance.Build(&quot;Build&quot;, loggers);
+Q:\repos\msbuild\src\Build.UnitTests\InstanceFromRemote\FakeProjectLink.cs:85: public override bool Build(string[] targets, IEnumerable&lt;ILogger&gt; loggers, IEnumerable&lt;ForwardingLoggerRecord&gt; remoteLoggers, EvaluationContext evaluationContext) =&gt; throw new NotImplementedException();
+Q:\repos\msbuild\src\BuildCheck.UnitTests\EndToEndTests.cs:977: var buildLog = ExecuteDotnetCommand($&quot;build {workFolder.Path}&quot;);
+Q:\repos\msbuild\src\BuildCheck.UnitTests\TaskInvocationAnalysisDataTests.cs:97: var result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\Framework\OperatingSystem.cs:22: public static bool IsOSPlatformVersionAtLeast(string platform, int major, int minor = 0, int build = 0, int revision = 0)
+Q:\repos\msbuild\src\Framework\OperatingSystem.cs:29: public static bool IsFreeBSDVersionAtLeast(int major, int minor = 0, int build = 0, int revision = 0) =&gt; false;
+Q:\repos\msbuild\src\Framework\OperatingSystem.cs:33: public static bool IsMacOSVersionAtLeast(int major, int minor = 0, int build = 0) =&gt; false;
+Q:\repos\msbuild\src\Framework\OperatingSystem.cs:37: public static bool IsWindowsVersionAtLeast(int major, int minor = 0, int build = 0, int revision = 0)
+Q:\repos\msbuild\src\Framework\BackEnd\TranslatorHelpers.cs:328: int build = 0;
+Q:\repos\msbuild\src\Framework\Telemetry\TelemetryConstants.cs:49: public const string Build = &quot;Build&quot;;
+Q:\repos\msbuild\src\MSBuild.UnitTests\CommandLineSwitches_Tests.cs:1534: var noBuildOptions = new GraphBuildOptions { Build = false };
+Q:\repos\msbuild\src\Samples\XmlFileLogger\XmlFileLogger.cs:46: eventSource.BuildStarted += (s, args) =&gt; _build = new Build(args);
+Q:\repos\msbuild\src\Samples\XmlFileLogger\ObjectModel\Build.cs:32: public Build(BuildStartedEventArgs buildStartedEventArgs)
+Q:\repos\msbuild\src\Tasks\BootstrapperUtil\BootstrapperBuilder.cs:133: public BuildResults Build(BuildSettings settings)
+Q:\repos\msbuild\src\Tasks\ManifestUtil\LauncherBuilder.cs:35: public BuildResults Build(string filename, string outputPath)
+Q:\repos\msbuild\src\Tasks.UnitTests\AddToWin32Manifest_Tests.cs:113: bool result = project.Build(new MockLogger(_testOutput));
+Q:\repos\msbuild\src\Tasks.UnitTests\CallTarget_Tests.cs:177: bool success = instance.Build();
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:987: var result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\Tasks.UnitTests\Exec_Tests.cs:1044: var result = buildManager.Build(parameters, request);
+Q:\repos\msbuild\src\Tasks.UnitTests\MSBuild_Tests.cs:170: bool success = project.Build();
+Q:\repos\msbuild\src\Tasks.UnitTests\RegressionTests.cs:45: bool result = project.Build(new MockLogger(_output));
+Q:\repos\msbuild\src\Tasks.UnitTests\RegressionTests.cs:78: bool result = project.Build(logger);
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3816: bool success = project.Build(new string[] { &quot;GetResolvedSDKReferences&quot; }, new ILogger[] { logger }, out targetResults);
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:3959: bool success = project.Build(new string[] { &quot;GetResolvedSDKReferences&quot; }, new ILogger[] { logger }, out targetResults);
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:4068: bool success = project.Build(new string[] { &quot;GetResolvedSDKReferences&quot; }, new ILogger[] { logger }, out targetResults);
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:4165: bool success = project.Build(new string[] { &quot;GetResolvedSDKReferences&quot; }, new ILogger[] { logger }, out targetResults);
+Q:\repos\msbuild\src\Tasks.UnitTests\ResolveSDKReference_Tests.cs:4334: bool success = project.Build(new string[] { &quot;GetResolvedSDKReferences&quot; }, new ILogger[] { logger }, out targetResults);
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteLinesToFile_Tests.cs:439: var buildResult = project.Build(&quot;Build&quot;);
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteLinesToFile_Tests.cs:500: var buildResult = project.Build(&quot;Build&quot;);
+Q:\repos\msbuild\src\Tasks.UnitTests\WriteLinesToFile_Tests.cs:583: var buildSucceeded = project.Build(&quot;Build&quot;);
+Q:\repos\msbuild\src\Tasks.UnitTests\XamlDataDrivenToolTask_Tests.cs:274: bool success = p.Build(logger);
+Q:\repos\msbuild\src\Tasks.UnitTests\XamlDataDrivenToolTask_Tests.cs:321: bool success = p.Build(logger);
+Q:\repos\msbuild\src\Tasks.UnitTests\XamlDataDrivenToolTask_Tests.cs:370: bool success = p.Build(logger);
+Q:\repos\msbuild\src\UnitTests.Shared\MockEngine.cs:340: bool success = instance.Build(targetNames, loggers, out IDictionary&lt;string, TargetResult&gt; targetOutputs);
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:1444: var result = buildManager.Build(
+Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs:2139: public BuildResult Build(BuildRequestData requestData) =&gt; _buildManager.BuildRequest(requestData);
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolLocationHelper_Tests.cs:1113: bool success = p.Build(logger);
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolLocationHelper_Tests.cs:1154: bool success = p.Build(logger);
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolLocationHelper_Tests.cs:1197: bool success = p.Build(logger);
+Q:\repos\msbuild\src\Utilities.UnitTests\ToolLocationHelper_Tests.cs:1250: bool success = p.Build(logger);</pre>
+      </section>
+      <section class="algorithm">
+        <h3>roslyn-find-member-declarations</h3>
+        <p><span class="status status-succeeded">Succeeded</span> | <strong>Characters:</strong> 14410 | <strong>Lines:</strong> 63 | <strong>Time:</strong> 61ms | called SymbolFinder.FindDeclarationsAsync(project, &#39;Build&#39;, SymbolFilter.Member)</p>
+        <pre id="expand-19-short">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+Microsoft.Build.BackEnd.MSBuild.SkipNonExistentProjectsBehavior.Build - Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs(48,13)
+Microsoft.Build.Engine.UnitTests.InstanceFromRemote.FakeProjectLink.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build.UnitTests\InstanceFromRemote\FakeProjectLink.cs(85,30)
+Microsoft.Build.Engine.UnitTests.InstanceFromRemote.FakeProjectLink.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build.UnitTests\InstanceFromRemote\FakeProjectLink.cs(85,30)
+Microsoft.Build.Evaluation.Expander&lt;P, I&gt;.FunctionBuilder&lt;T&gt;.Build() - Q:\repos\msbuild\src\Build\Evaluation\Expander.cs(3708,43)
+Microsoft.Build.Evaluation.Project.Build() - Q:\repos\msbuild\src\Build\Definition\Project.cs(1491,21)
+Microsoft.Build.Evaluation.Project.Build(IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1520,21)
+Microsoft.Build.Evaluation.Project.Build(IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1535,21)
+Microsoft.Build.Evaluation.Project.Build(Microsoft.Build.Framework.ILogger) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1505,21)
+Microsoft.Build.Evaluation.Project.Build(System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1520,21)
+<span class="truncated-link" onclick="document.getElementById('expand-19-short').style.display='none'; document.getElementById('expand-19-full').style.display='block';">... truncated (53 more lines) — click to expand</span></pre>
+        <pre id="expand-19-full" class="full-result">Loaded Solution: Q:\repos\msbuild\MSBuild.slnx
+Microsoft.Build.BackEnd.MSBuild.SkipNonExistentProjectsBehavior.Build - Q:\repos\msbuild\src\Build\BackEnd\Components\RequestBuilder\IntrinsicTasks\MSBuild.cs(48,13)
+Microsoft.Build.Engine.UnitTests.InstanceFromRemote.FakeProjectLink.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build.UnitTests\InstanceFromRemote\FakeProjectLink.cs(85,30)
+Microsoft.Build.Engine.UnitTests.InstanceFromRemote.FakeProjectLink.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build.UnitTests\InstanceFromRemote\FakeProjectLink.cs(85,30)
+Microsoft.Build.Evaluation.Expander&lt;P, I&gt;.FunctionBuilder&lt;T&gt;.Build() - Q:\repos\msbuild\src\Build\Evaluation\Expander.cs(3708,43)
+Microsoft.Build.Evaluation.Project.Build() - Q:\repos\msbuild\src\Build\Definition\Project.cs(1491,21)
+Microsoft.Build.Evaluation.Project.Build(IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1520,21)
+Microsoft.Build.Evaluation.Project.Build(IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1535,21)
+Microsoft.Build.Evaluation.Project.Build(Microsoft.Build.Framework.ILogger) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1505,21)
+Microsoft.Build.Evaluation.Project.Build(System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1520,21)
+Microsoft.Build.Evaluation.Project.Build(System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1535,21)
+Microsoft.Build.Evaluation.Project.Build(string) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1549,21)
+Microsoft.Build.Evaluation.Project.Build(string, IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1564,21)
+Microsoft.Build.Evaluation.Project.Build(string, IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1580,21)
+Microsoft.Build.Evaluation.Project.Build(string, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1564,21)
+Microsoft.Build.Evaluation.Project.Build(string, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1580,21)
+Microsoft.Build.Evaluation.Project.Build(string[]) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1597,21)
+Microsoft.Build.Evaluation.Project.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1613,21)
+Microsoft.Build.Evaluation.Project.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1630,21)
+Microsoft.Build.Evaluation.Project.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1643,21)
+Microsoft.Build.Evaluation.Project.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1613,21)
+Microsoft.Build.Evaluation.Project.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1630,21)
+Microsoft.Build.Evaluation.Project.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build\Definition\Project.cs(1643,21)
+Microsoft.Build.Evaluation.Project.ProjectImpl.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build\Definition\Project.cs(3349,34)
+Microsoft.Build.Evaluation.Project.ProjectImpl.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build\Definition\Project.cs(3349,34)
+Microsoft.Build.Execution.BuildManager.Build(Microsoft.Build.Execution.BuildParameters, Microsoft.Build.Execution.BuildRequestData) - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(1409,28)
+Microsoft.Build.Execution.BuildManager.Build(Microsoft.Build.Execution.BuildParameters, Microsoft.Build.Graph.GraphBuildRequestData) - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(1416,33)
+Microsoft.Build.Execution.BuildManager.Build&lt;TRequestData, TResultData&gt;(Microsoft.Build.Execution.BuildParameters, TRequestData) - Q:\repos\msbuild\src\Build\BackEnd\BuildManager\BuildManager.cs(1382,29)
+Microsoft.Build.Execution.ProjectInstance.Build() - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2197,21)
+Microsoft.Build.Execution.ProjectInstance.Build(IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2212,21)
+Microsoft.Build.Execution.ProjectInstance.Build(IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2227,21)
+Microsoft.Build.Execution.ProjectInstance.Build(System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2212,21)
+Microsoft.Build.Execution.ProjectInstance.Build(System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2227,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string, IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2243,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string, IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2260,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2243,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2260,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2278,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2295,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.BackEnd.Logging.ILoggingService, int, out IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2796,23)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.BackEnd.Logging.ILoggingService, out IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2851,23)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, out IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2330,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, out IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2313,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2278,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2295,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.BackEnd.Logging.ILoggingService, int, out System.Collections.Generic.IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2796,23)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.BackEnd.Logging.ILoggingService, out System.Collections.Generic.IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2851,23)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, out System.Collections.Generic.IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2330,21)
+Microsoft.Build.Execution.ProjectInstance.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, out System.Collections.Generic.IDictionary&lt;string, Microsoft.Build.Execution.TargetResult&gt;) - Q:\repos\msbuild\src\Build\Instance\ProjectInstance.cs(2313,21)
+Microsoft.Build.Framework.RegisteredTaskObjectLifetime.Build - Q:\repos\msbuild\src\Framework\IBuildEngine4.cs(18,9)
+Microsoft.Build.Framework.Telemetry.TelemetryConstants.Build - Q:\repos\msbuild\src\Framework\Telemetry\TelemetryConstants.cs(49,25)
+Microsoft.Build.Graph.GraphBuildOptions.Build - Q:\repos\msbuild\src\Build\Graph\GraphBuildRequestData.cs(20,21)
+Microsoft.Build.ObjectModelRemoting.ProjectLink.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build\ObjectModelRemoting\DefinitionObjectsLinks\ProjectLink.cs(254,30)
+Microsoft.Build.ObjectModelRemoting.ProjectLink.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build\ObjectModelRemoting\DefinitionObjectsLinks\ProjectLink.cs(254,30)
+Microsoft.Build.Tasks.Deployment.Bootstrapper.BootstrapperBuilder.Build(Microsoft.Build.Tasks.Deployment.Bootstrapper.BuildSettings) - Q:\repos\msbuild\src\Tasks\BootstrapperUtil\BootstrapperBuilder.cs(133,29)
+Microsoft.Build.Tasks.Deployment.Bootstrapper.IBootstrapperBuilder.Build(Microsoft.Build.Tasks.Deployment.Bootstrapper.BuildSettings) - Q:\repos\msbuild\src\Tasks\BootstrapperUtil\Interfaces.cs(37,22)
+Microsoft.Build.Tasks.Deployment.ManifestUtilities.LauncherBuilder.Build(string, string) - Q:\repos\msbuild\src\Tasks\ManifestUtil\LauncherBuilder.cs(35,29)
+Microsoft.Build.Tasks.MSBuild.SkipNonExistentProjectsBehavior.Build - Q:\repos\msbuild\src\Tasks\MSBuild.cs(47,13)
+Microsoft.Build.UnitTests.Helpers.BuildManagerSession.Build(Microsoft.Build.Execution.BuildRequestData) - Q:\repos\msbuild\src\UnitTests.Shared\ObjectModelHelpers.cs(2139,32)
+Microsoft.Build.UnitTests.OM.Instance.ProjectInstance_Internal_Tests.Build() - Q:\repos\msbuild\src\Build.UnitTests\Instance\ProjectInstance_Internal_Tests.cs(560,21)
+Microsoft.Build.UnitTests.OM.ObjectModelRemoting.MockProjectLink.Build(string[], IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build.OM.UnitTests\ObjectModelRemoting\RemoteProjectsProviderMock\EvaluationLinkMocks\MockProjectLink.cs(183,30)
+Microsoft.Build.UnitTests.OM.ObjectModelRemoting.MockProjectLink.Build(string[], System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Framework.ILogger&gt;, System.Collections.Generic.IEnumerable&lt;Microsoft.Build.Logging.ForwardingLoggerRecord&gt;, Microsoft.Build.Evaluation.Context.EvaluationContext) - Q:\repos\msbuild\src\Build.OM.UnitTests\ObjectModelRemoting\RemoteProjectsProviderMock\EvaluationLinkMocks\MockProjectLink.cs(183,30)
+Microsoft.Build.Utilities.SimpleVersion.Build - Q:\repos\msbuild\src\Build\Utilities\SimpleVersion.cs(46,29)</pre>
       </section>
     </article>
   </section>
