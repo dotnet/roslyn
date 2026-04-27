@@ -163,6 +163,18 @@ internal static class QuickInfoUtilities
             => sections.Add(QuickInfoSection.Create(kind, taggedParts));
     }
 
+    /// <summary>
+    /// Attempts to produce a rendered-glyph Quick Info documentation line for a C# <see langword="char"/> literal.
+    /// </summary>
+    /// <remarks>
+    /// This only applies when all of the following are true:
+    /// <list type="bullet">
+    /// <item><description>The symbol is C# <see cref="SpecialType.System_Char"/>.</description></item>
+    /// <item><description>The literal's parsed value is a displayable UTF-16 code unit (not control and not surrogate).</description></item>
+    /// <item><description>The source text includes a lowercase <c>\\uXXXX</c> escape.</description></item>
+    /// </list>
+    /// Example output: <c>Represents the character '·' as a UTF-16 code unit.</c>
+    /// </remarks>
     private static bool TryCreateCharacterLiteralDocumentation(
         SemanticModel semanticModel,
         TextSpan span,
@@ -188,17 +200,19 @@ internal static class QuickInfoUtilities
         if (!IsDisplayableCharacter(character))
             return false;
 
-        if (!ContainsSupportedUnicodeEscape(token.Text))
+        if (!ContainsSupportedUnicodeEscape(token))
             return false;
 
         documentation = ImmutableArray.Create(new TaggedText(TextTags.Text, CreateCharacterDocumentationText(character)));
         return true;
     }
 
-    private static bool ContainsSupportedUnicodeEscape(string tokenText)
+    private static bool ContainsSupportedUnicodeEscape(SyntaxToken token)
     {
-        const int shortUnicodeEscapePrefixLength = 2;
-        const int shortUnicodeEscapeHexDigitCount = 4;
+        if (token.ContainsDiagnostics)
+            return false;
+
+        var tokenText = token.Text;
         var maxStartIndex = tokenText.Length - 1;
 
         for (var i = 0; i < maxStartIndex; i++)
@@ -206,8 +220,7 @@ internal static class QuickInfoUtilities
             if (tokenText[i] != '\\')
                 continue;
 
-            if (tokenText[i + 1] == 'u' &&
-                HasExactHexDigitSequence(tokenText, i + shortUnicodeEscapePrefixLength, count: shortUnicodeEscapeHexDigitCount))
+            if (tokenText[i + 1] == 'u')
             {
                 return true;
             }
@@ -215,32 +228,6 @@ internal static class QuickInfoUtilities
 
         return false;
     }
-
-    private static bool HasExactHexDigitSequence(string text, int start, int count)
-    {
-        if (start + count > text.Length)
-            return false;
-
-        for (var i = start; i < start + count; i++)
-        {
-            if (GetHexDigitValue(text[i]) < 0)
-                return false;
-        }
-
-        if (start + count == text.Length)
-            return true;
-
-        return GetHexDigitValue(text[start + count]) < 0;
-    }
-
-    private static int GetHexDigitValue(char c)
-        => c switch
-        {
-            >= '0' and <= '9' => c - '0',
-            >= 'a' and <= 'f' => c - 'a' + 10,
-            >= 'A' and <= 'F' => c - 'A' + 10,
-            _ => -1,
-        };
 
     private static bool IsDisplayableCharacter(char character)
         => !char.IsControl(character) && !char.IsSurrogate(character);
