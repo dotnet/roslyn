@@ -41,8 +41,15 @@ internal sealed class CSharpQualifyMemberAccessDiagnosticAnalyzer
         if (IsInPropertyOrFieldInitialization(containingSymbol, node))
             return false;
 
-        if (node.Parent is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression), Left: var left } &&
-            left == node)
+        // The LHS member of an object/`with` initializer (`new C { Prop = … }`, `r with { Prop += … }`)
+        // refers to the freshly-constructed/clone target, not `this`. Compound forms (`+=`, `??=`, …)
+        // and event `+=`/`-=` flow through the same `AssignmentExpressionSyntax` shape and are also
+        // excluded.
+        if (node.Parent is AssignmentExpressionSyntax
+            {
+                Parent: InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression or SyntaxKind.WithInitializerExpression),
+                Left: var left,
+            } && left == node)
         {
             return false;
         }
