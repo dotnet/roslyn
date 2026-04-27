@@ -227,7 +227,7 @@ internal static class QuickInfoUtilities
                 return false;
         }
 
-        if (start + count >= text.Length)
+        if (start + count == text.Length)
             return true;
 
         return GetHexDigitValue(text[start + count]) < 0;
