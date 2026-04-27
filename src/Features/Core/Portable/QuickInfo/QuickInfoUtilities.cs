@@ -197,9 +197,8 @@ internal static class QuickInfoUtilities
 
     private static bool ContainsSupportedUnicodeEscape(string tokenText)
     {
-        const int longUnicodeEscapeHexDigitCount = 8;
-        const int longUnicodeEscapePrefixLength = 2;
-        const int maxSingleUtf16CodeUnitValue = 0xFFFF;
+        const int shortUnicodeEscapePrefixLength = 2;
+        const int shortUnicodeEscapeHexDigitCount = 4;
         var maxStartIndex = tokenText.Length - 1;
 
         for (var i = 0; i < maxStartIndex; i++)
@@ -207,13 +206,8 @@ internal static class QuickInfoUtilities
             if (tokenText[i] != '\\')
                 continue;
 
-            if (tokenText[i + 1] == 'u')
-                return true;
-
-            if (tokenText[i + 1] == 'U' &&
-                TryParseHexValue(tokenText, i + longUnicodeEscapePrefixLength, count: longUnicodeEscapeHexDigitCount, out var value) &&
-                // Quick Info text currently describes a single UTF-16 code unit (System.Char).
-                value <= maxSingleUtf16CodeUnitValue)
+            if (tokenText[i + 1] == 'u' &&
+                HasExactlyHexDigits(tokenText, i + shortUnicodeEscapePrefixLength, count: shortUnicodeEscapeHexDigitCount))
             {
                 return true;
             }
@@ -222,22 +216,18 @@ internal static class QuickInfoUtilities
         return false;
     }
 
-    private static bool TryParseHexValue(string text, int start, int count, out int value)
+    private static bool HasExactlyHexDigits(string text, int start, int count)
     {
-        value = 0;
         if (start + count > text.Length)
             return false;
 
         for (var i = start; i < start + count; i++)
         {
-            var digit = GetHexDigitValue(text[i]);
-            if (digit < 0)
+            if (GetHexDigitValue(text[i]) < 0)
                 return false;
-
-            value = (value << 4) + digit;
         }
 
-        return true;
+        return start + count >= text.Length || GetHexDigitValue(text[start + count]) < 0;
     }
 
     private static int GetHexDigitValue(char c)
