@@ -27,7 +27,4 @@ internal sealed class CSharpUseNamedMemberInitializerAnalyzer :
 
     protected override bool SupportsCompoundAssignmentInInitializer(ParseOptions options)
         => options.LanguageVersion().SupportsCompoundAssignmentInInitializer();
-
-    protected override bool IsAddOrRemoveEventHandlerStatement(ExpressionStatementSyntax statement)
-        => statement is { Expression: AssignmentExpressionSyntax(SyntaxKind.AddAssignmentExpression or SyntaxKind.SubtractAssignmentExpression) };
 }

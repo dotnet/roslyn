@@ -27,11 +27,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Protected Overrides Function SupportsCompoundAssignmentInInitializer(options As ParseOptions) As Boolean
             Return False
         End Function
-
-        ' VB has no `+=`/`-=` event-handler statement form (uses AddHandler/RemoveHandler instead),
-        ' so this case never applies; combined with the language gate above it's unreachable.
-        Protected Overrides Function IsAddOrRemoveEventHandlerStatement(statement As AssignmentStatementSyntax) As Boolean
-            Return False
-        End Function
     End Class
 End Namespace

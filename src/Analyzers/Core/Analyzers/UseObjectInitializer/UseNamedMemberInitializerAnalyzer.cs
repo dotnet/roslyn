@@ -76,14 +76,6 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     /// </summary>
     protected abstract bool SupportsCompoundAssignmentInInitializer(ParseOptions options);
 
-    /// <summary>
-    /// Returns true if <paramref name="statement"/> is the language-specific shape for adding or
-    /// removing an event handler (C# `event += h` / `event -= h`). Used to allow stacked event
-    /// subscriptions (`Click += h1, Click += h2`) when folding subsequent statements into an
-    /// initializer — the canonical multi-handler pattern for compound member initializers.
-    /// </summary>
-    protected abstract bool IsAddOrRemoveEventHandlerStatement(TAssignmentStatementSyntax statement);
-
     protected sealed override bool TryAddMatches(
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
@@ -92,13 +84,12 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     {
         changesSemantics = false;
 
-        // For each member name we've already added an initializer for, track whether the prior
-        // entry was an event `+=`/`-=` subscription. Stacking multiple handler subscriptions is a
-        // valid initializer pattern (`Click += h1, Click += h2`); any other repeat would either
-        // duplicate an `=` initializer or violate the "= before any compound" ordering rule.
-        // Existing initializer entries are recorded as non-event-stacking by default — without
-        // pulling semantic info into the existing-initializer scan we conservatively block
-        // additional folds against them.
+        // Per-name state for repeat-target handling. `target = { ... }` is exclusive (no further
+        // initializer for that target is permitted, per the spec's nested-init exclusivity rule);
+        // every other shape (`=` with non-init RHS, `+=`, `-=`, `??=`, event `+=`/`-=`, …) is
+        // "set but not exclusive" and admits one or more compound follow-ups (`= → +=`, `+= → +=`,
+        // event `+= h1 → += h2`, etc.). It does NOT admit a follow-up `=` (would either duplicate
+        // an `=` or violate the "= before any compound" ordering rule).
         using var _1 = PooledDictionary<string, bool>.GetInstance(out var seenNames);
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
@@ -108,8 +99,11 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             {
                 if (this.SyntaxFacts.IsNamedMemberInitializer(init))
                 {
-                    this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out _);
-                    seenNames[this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText] = false;
+                    this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out var rhs);
+                    var nameText = this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText;
+                    var isExclusiveNested = this.SyntaxFacts.IsObjectMemberInitializer(rhs)
+                        || this.SyntaxFacts.IsObjectCollectionInitializer(rhs);
+                    seenNames[nameText] = isExclusiveNested;
                 }
             }
         }
@@ -193,23 +187,23 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
 
             // found a match!
             //
-            // If we see an assignment to the same property/field, we generally can't convert it to
-            // an initializer (would either repeat an `=` initializer or violate the "= before any
-            // compound" ordering rule). The one exception is stacked event handler subscriptions
-            // (`Click += h1, Click += h2`) — multiple handlers on the same event in one initializer
-            // is a valid and idiomatic pattern enabled by compound member initializers.
+            // For repeat-target folds: a subsequent `=` is never foldable (would either duplicate
+            // an `=` or violate the "= before any compound" ordering rule), and a subsequent
+            // compound (`+=`, `??=`, event `+=`/`-=`, …) is foldable iff the prior occurrence is
+            // not the exclusive `target = { ... }` form. Subsequent statements never produce a
+            // nested `= { ... }` (it isn't a statement form), so newly-folded entries are always
+            // recorded as non-exclusive.
             var name = this.SyntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
             var identifier = this.SyntaxFacts.GetIdentifierOfSimpleName(name);
-            var thisIsEventStacking = leftSymbol is IEventSymbol && this.IsAddOrRemoveEventHandlerStatement(statement);
 
-            if (seenNames.TryGetValue(identifier.ValueText, out var priorWasEventStacking))
+            if (seenNames.TryGetValue(identifier.ValueText, out var priorIsExclusiveNested))
             {
-                // Allow stacking only when both the prior fold and this one are event `+=`/`-=`.
-                if (!priorWasEventStacking || !thisIsEventStacking)
+                var subsequentIsCompound = !this.SyntaxFacts.IsSimpleAssignmentStatement(statement);
+                if (priorIsExclusiveNested || !subsequentIsCompound)
                     break;
             }
 
-            seenNames[identifier.ValueText] = thisIsEventStacking;
+            seenNames[identifier.ValueText] = false;
 
             postMatches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                 statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));

@@ -689,12 +689,50 @@ public sealed partial class UseObjectInitializerTests
         }.RunAsync();
 
     [Fact]
-    public Task TestSubsequentCompoundStatement_StopsAtAlreadyInitializedNonEventTarget()
-        // Existing `i = 1` already names `i`; the fold loop breaks on the first repeat-name (`c.i += 5`).
-        // Because nothing past that repeat is foldable either (the existing initializer alone has nothing
-        // to merge in), no diagnostic fires. This pins the conservative stance for non-event targets —
-        // the "= before any compound" ordering rule means we can't safely produce
-        // `{ i = 1, i += 5, j = 7 }`.
+    public Task TestSubsequentCompoundStatement_StacksOntoExistingEqualsInitializer()
+        // `{ i = 1 } + c.i += 5` is a valid stack per spec ("= before any compound"); the analyzer
+        // folds the subsequent compound and continues to fold further unrelated targets.
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C { i = 1 };
+                    [|c.|]i += 5;
+                    [|c.|]j = 7;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1,
+                        i += 5,
+                        j = 7
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_StopsAfterEqualsAtSubsequentEquals()
+        // After `{ i = 1 } + c.i = 5` is invalid (would duplicate `=`), so the analyzer stops at
+        // the repeat-name `c.i = 5`. Nothing past that point is folded either; no diagnostic since
+        // there's nothing to do.
         => TestMissingInRegularAndScriptAsync("""
             class C
             {
@@ -704,8 +742,51 @@ public sealed partial class UseObjectInitializerTests
                 void M()
                 {
                     var c = new C { i = 1 };
-                    c.i += 5;
+                    c.i = 5;
                     c.j = 7;
+                }
+            }
+            """, LanguageVersion.Preview);
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_StopsAfterCompoundAtSubsequentEquals()
+        // `{ i += 1 } + c.i = 5` would be `{ i += 1, i = 5 }`, which violates the "= before any
+        // compound" ordering rule. The analyzer stops at the offending `c.i = 5`. The earlier
+        // existing initializer is left untouched (no further valid fold on either name).
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int i;
+
+                void M()
+                {
+                    var c = new C { i += 1 };
+                    c.i = 5;
+                }
+            }
+            """, LanguageVersion.Preview);
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_NestedInitializerIsExclusive()
+        // `{ Inner = { X = 1 } }` is the spec's exclusive nested-init form. Any further fold on
+        // `Inner` (compound or otherwise) is rejected.
+        => TestMissingInRegularAndScriptAsync("""
+            class Inner
+            {
+                public int X;
+            }
+
+            class C
+            {
+                public Inner Inner = new Inner();
+            }
+
+            class D
+            {
+                void M()
+                {
+                    var c = new C { Inner = { X = 1 } };
+                    c.Inner = null;
                 }
             }
             """, LanguageVersion.Preview);
