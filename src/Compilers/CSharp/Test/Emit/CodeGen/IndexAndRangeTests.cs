@@ -4866,5 +4866,89 @@ static class C
 }
 """);
         }
+
+        [Fact]
+        public void SliceStart_11()
+        {
+            var src = """
+class Program
+{
+    public static string F;
+
+    static void Main()
+    {
+        F = "1";
+        Test();
+        System.Console.Write($"final:{F}");
+    }
+
+    static void Test()
+    {
+        _ = F[GetStart()..];
+    }
+
+    public static int GetStart() { System.Console.Write($"GetStart:{Program.F} "); Program.F = "2"; return 1; }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart:1 final:2"), verify: Verification.Skipped)
+                 .VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "string Program.F"
+  IL_0006:  call       "int Program.GetStart()"
+  IL_000b:  callvirt   "string string.Substring(int)"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void SliceStart_12()
+        {
+            var src = """
+class Program
+{
+    public static string F;
+
+    static void Main()
+    {
+        F = "1";
+        Test(ref F);
+        System.Console.Write($"final:{F}");
+    }
+
+    static void Test(ref string f)
+    {
+        _ = f[GetStart()..];
+    }
+
+    public static int GetStart() { System.Console.Write($"GetStart:{Program.F} "); Program.F = "2"; return 1; }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart:1 final:2"), verify: Verification.Skipped)
+                 .VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "string Program.F"
+  IL_0006:  call       "int Program.GetStart()"
+  IL_000b:  callvirt   "string string.Substring(int)"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+        }
     }
 }

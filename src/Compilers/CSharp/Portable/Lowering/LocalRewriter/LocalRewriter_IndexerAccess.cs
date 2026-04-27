@@ -293,6 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (rangeExpr is not null && endMakeOffsetInput is null &&
                         TryGetStartOnlyOverload(getItemOrSliceHelper, node.Syntax) is MethodSymbol startOnlyOverload)
                     {
+                        Debug.Assert(!startOnlyOverload.IsExtensionBlockMember());
                         BoundExpression startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
                         if (isInt32ConstantZero(startExpr))
                         {
@@ -573,16 +574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
                         Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
-                        bool isPossibleReferenceTypeReceiver = node.LengthOrCountAccess.ExpressionSymbol.IsExtensionBlockMember()
-                            ? !receiverLocal.Type.IsValueType
-                            : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
-
-                        if (!isPossibleReferenceTypeReceiver)
-                        {
-                            isPossibleReferenceTypeReceiver = node.IndexerOrSliceAccess.ExpressionSymbol.IsExtensionBlockMember()
-                                ? !receiverLocal.Type.IsValueType
-                                : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
-                        }
+                        bool isPossibleReferenceTypeReceiver =
+                            IsPossibleReferenceTypeReceiverOfConstrainedCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
+                            || IsPossibleReferenceTypeReceiverOfConstrainedCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
 
                         if (isPossibleReferenceTypeReceiver &&
                             !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
@@ -846,6 +840,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenIndexerAccess);
         }
 
+        private bool IsPossibleReferenceTypeReceiverOfConstrainedCall(Symbol symbol, BoundLocal receiverLocal)
+        {
+            return symbol.IsExtensionBlockMember()
+                ? !receiverLocal.Type.IsValueType
+                : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
+        }
+
         private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, bool cacheAllArgumentsOnly)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
@@ -893,16 +894,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
                     Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
-                    bool isPossibleReferenceTypeReceiver = node.LengthOrCountAccess.ExpressionSymbol.IsExtensionBlockMember()
-                        ? !receiverLocal.Type.IsValueType
-                        : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
-
-                    if (!isPossibleReferenceTypeReceiver)
-                    {
-                        isPossibleReferenceTypeReceiver = node.IndexerOrSliceAccess.ExpressionSymbol.IsExtensionBlockMember()
-                            ? !receiverLocal.Type.IsValueType
-                            : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
-                    }
+                    bool isPossibleReferenceTypeReceiver =
+                        IsPossibleReferenceTypeReceiverOfConstrainedCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
+                        || IsPossibleReferenceTypeReceiverOfConstrainedCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
 
                     if (isPossibleReferenceTypeReceiver &&
                         !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal))
@@ -960,6 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     endMakeOffsetInput is null &&
                     TryGetStartOnlyOverload(sliceCall.Method, node.Syntax) is MethodSymbol startOnlyOverload)
                 {
+                    Debug.Assert(!startOnlyOverload.IsExtensionBlockMember());
                     if (startStrategy is PatternIndexOffsetLoweringStrategy.SubtractFromLength or PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI)
                     {
                         if (startStrategy == PatternIndexOffsetLoweringStrategy.SubtractFromLength)
@@ -974,6 +969,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     startExpr = MakePatternIndexOffsetExpression(startMakeOffsetInput, lengthAccess, startStrategy);
 
                     RemovePlaceholderReplacement(node.ReceiverPlaceholder);
+                    // Note: if the optimization is extended to new types or to support extension members,
+                    // we may need to add special handling for receiver capture and argument side-effects.
                     return F.Call(receiver, startOnlyOverload, startExpr);
                 }
 
@@ -1042,6 +1039,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((rewriteFlags & captureStartOffset) == 0 || (rewriteFlags & captureEndOffset) != 0 || endStrategy == PatternIndexOffsetLoweringStrategy.Length);
                 Debug.Assert(endStrategy != PatternIndexOffsetLoweringStrategy.Length || (rewriteFlags & captureEndOffset) == 0);
                 Debug.Assert((rewriteFlags & captureLength) == 0 || (rewriteFlags & useLength) != 0);
+
+                bool needSpecialExtensionReceiverReadOrder =
+                    IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.LengthOrCountAccess.ExpressionSymbol)
+                    || IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.IndexerOrSliceAccess.ExpressionSymbol);
+
+                if (needSpecialExtensionReceiverReadOrder)
+                {
+                    if (startMakeOffsetInput is not null)
+                    {
+                        rewriteFlags |= captureStartOffset;
+                    }
+
+                    if (endMakeOffsetInput is not null)
+                    {
+                        rewriteFlags |= captureEndOffset;
+                    }
+
+                    if ((rewriteFlags & useLength) != 0)
+                    {
+                        rewriteFlags |= captureLength;
+                    }
+                }
 
                 if ((rewriteFlags & captureStartOffset) != 0)
                 {

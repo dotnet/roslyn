@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 #nullable disable
@@ -39473,5 +39473,1141 @@ namespace Outer
             // (4,1): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
             // o.M();
             Diagnostic(ErrorCode.ERR_NoTypeDef, "o.M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_01()
+    {
+        // struct lvalue receiver passed by value
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+
+    public static void M3(this S1 x, int i) { System.Console.Write($"M3:{x.F1} "); }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public void M2(int i) { System.Console.Write($"M2:{F1} "); }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test1();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($"final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        Test3();
+        System.Console.Write($"final:{F.F1}");
+    }
+
+    static void Test1()
+    {
+        F.M(GetArg());
+    }
+
+    static void Test2()
+    {
+        F.M2(GetArg());
+    }
+
+    static void Test3()
+    {
+        F.M3(GetArg());
+    }
+
+    public static int GetArg() { System.Console.Write($"GetArg:{Program.F.F1} "); Program.F.F1++; return 42; }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetArg:3 M:3 final:4, GetArg:3 M2:4 final:4, GetArg:3 M3:3 final:4"), verify: Verification.Skipped)
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(S1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void S1.M2(int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test3", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M3(S1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void Invocation_LValueReceiver_02(string refKind)
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_02
+        // struct lvalue receiver passed by ref/in/ref readonly to extension method
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1}"); }
+    }
+
+    public static void M3(this {{{refKind}}} S1 x, int i) { System.Console.Write($"M3:{x.F1}"); }
+}
+
+struct S1
+{
+    public int F1;
+
+    public void M2(int i) { System.Console.Write($"M2:{F1}"); }
+
+    public void Test()
+    {
+        this.M(Program.GetArg());
+        System.Console.Write(", ");
+        this.M2(Program.GetArg());
+        System.Console.Write(", ");
+        this.M3(Program.GetArg());
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test();
+        System.Console.Write($" final:{F.F1}");
+
+        System.Console.Write(", ");
+
+        F = new S1 { F1 = 3 };
+        F.Test();
+        System.Console.Write($" final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        F.M(GetArg());
+        System.Console.Write(", ");
+        F.M2(GetArg());
+        System.Console.Write(", ");
+        F.M3(GetArg());
+    }
+
+    public static int GetArg() { System.Console.Write($"GetArg:{Program.F.F1} "); Program.F.F1++; return 42; }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:4, GetArg:4 M2:5, GetArg:5 M3:6 final:6, GetArg:3 M:4, GetArg:4 M2:5, GetArg:5 M3:6 final:6")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       72 (0x48)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsflda    "S1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M({{refKind}} S1, int)"
+  IL_0010:  nop
+  IL_0011:  ldstr      ", "
+  IL_0016:  call       "void System.Console.Write(string)"
+  IL_001b:  nop
+  IL_001c:  ldsflda    "S1 Program.F"
+  IL_0021:  call       "int Program.GetArg()"
+  IL_0026:  call       "void S1.M2(int)"
+  IL_002b:  nop
+  IL_002c:  ldstr      ", "
+  IL_0031:  call       "void System.Console.Write(string)"
+  IL_0036:  nop
+  IL_0037:  ldsflda    "S1 Program.F"
+  IL_003c:  call       "int Program.GetArg()"
+  IL_0041:  call       "void E.M3({{refKind}} S1, int)"
+  IL_0046:  nop
+  IL_0047:  ret
+}
+""");
+
+        verifier.VerifyIL("S1.Test", $$"""
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "int Program.GetArg()"
+  IL_0007:  call       "void E.M({{refKind}} S1, int)"
+  IL_000c:  nop
+  IL_000d:  ldstr      ", "
+  IL_0012:  call       "void System.Console.Write(string)"
+  IL_0017:  nop
+  IL_0018:  ldarg.0
+  IL_0019:  call       "int Program.GetArg()"
+  IL_001e:  call       "void S1.M2(int)"
+  IL_0023:  nop
+  IL_0024:  ldstr      ", "
+  IL_0029:  call       "void System.Console.Write(string)"
+  IL_002e:  nop
+  IL_002f:  ldarg.0
+  IL_0030:  call       "int Program.GetArg()"
+  IL_0035:  call       "void E.M3({{refKind}} S1, int)"
+  IL_003a:  nop
+  IL_003b:  ret
+}
+""");
+
+        var src2 = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public void M(int i) { }
+    }
+}
+
+struct S1;
+
+class Program
+{
+    static void Test()
+    {
+        default(S1).M(0);
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        if (refKind == "ref")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): error CS1510: A ref or out value must be an assignable variable
+                //         default(S1).M(0);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp2.VerifyDiagnostics(
+                // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         default(S1).M(0);
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9));
+        }
+        else
+        {
+            comp2.VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_03()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_03
+        // class lvalue receiver
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1}"); }
+    }
+
+    public static void M3(this C1 x, int i) { System.Console.Write($"M3:{x.F1}"); }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    public static C1 F;
+
+    static void Main()
+    {
+        F = new C1 { F1 = 3 };
+        Test();
+        System.Console.Write($" final:{F.F1}");
+    }
+
+    static void Test()
+    {
+        F.M(GetArg());
+        System.Console.Write(", ");
+        F.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program.F.F1} ");
+        Program.F = new C1 { F1 = Program.F.F1 + 1 };
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:3, GetArg:4 M3:4 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", """
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     "C1 Program.F"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(C1, int)"
+  IL_0010:  nop
+  IL_0011:  ldstr      ", "
+  IL_0016:  call       "void System.Console.Write(string)"
+  IL_001b:  nop
+  IL_001c:  ldsfld     "C1 Program.F"
+  IL_0021:  call       "int Program.GetArg()"
+  IL_0026:  call       "void E.M3(C1, int)"
+  IL_002b:  nop
+  IL_002c:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_04()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_04
+        // unconstrained generic extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((S1)(object)x).F1}"); }
+    }
+
+    public static void M3<T>(this T x, int i) { System.Console.Write($"M3:{((S1)(object)x).F1}"); }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test1(ref Program<S1>.F);
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program<S1>.F.F1} ");
+        Program<S1>.F.F1++;
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:3, GetArg:4 M3:4 final:5, GetArg:3 M:3, GetArg:4 M3:4 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_05()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_05
+        // 'ref T' (struct) extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public void M(int i) { System.Console.Write($"M:{((S1)(object)x).F1}"); }
+    }
+
+    public static void M3<T>(this ref T x, int i) where T : struct { System.Console.Write($"M3:{((S1)(object)x).F1}"); }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<S1>.F = new S1 { F1 = 3 };
+        Test2(ref Program<S1>.F);
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<S1>.F = new S1 { F1 = 3 };
+        await Test3<S1>();
+        System.Console.Write($" final:{Program<S1>.F.F1}");
+    }
+
+    static void Test2<T>(ref T f) where T : struct
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program<S1>.F.F1} ");
+        Program<S1>.F.F1++;
+        return 42;
+    }
+
+    static async Task Test3<T>() where T : struct
+    {
+        Program<T>.F.M(await GetArgAsync());
+        System.Console.Write(", ");
+        Program<T>.F.M3(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        System.Console.Write($"GetArg:{Program<S1>.F.F1} ");
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:4, GetArg:4 M3:5 final:5, GetArg:3 M:4, GetArg:4 M3:5 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)", """
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "int Program.GetArg()"
+  IL_0007:  call       "void E.M<T>(ref T, int)"
+  IL_000c:  nop
+  IL_000d:  ldstr      ", "
+  IL_0012:  call       "void System.Console.Write(string)"
+  IL_0017:  nop
+  IL_0018:  ldarg.0
+  IL_0019:  call       "int Program.GetArg()"
+  IL_001e:  call       "void E.M3<T>(ref T, int)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
+
+        var src2 = """
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public void M(int i) { }
+    }
+}
+
+class Program
+{
+    static void Test<T>() where T : struct
+    {
+        default(T).M(0);
+    }
+}
+""";
+
+        var comp2 = CreateCompilation([src2]);
+        comp2.VerifyDiagnostics(
+            // (13,9): error CS1510: A ref or out value must be an assignable variable
+            //         default(T).M(0);
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(T)").WithLocation(13, 9));
+    }
+
+    [Fact]
+    public void Invocation_LValueReceiver_06()
+    {
+        // sibling of IndexerAccess_Get_LValueReceiver_06
+        // unconstrained generic extension receiver with class type at runtime.
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((C1)(object)x).F1}"); }
+    }
+
+    public static void M3<T>(this T x, int i) { System.Console.Write($"M3:{((C1)(object)x).F1}"); }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Program<C1>.F = new C1 { F1 = 3 };
+        Test1(ref Program<C1>.F);
+        System.Console.Write($" final:{Program<C1>.F.F1}");
+
+        System.Console.Write(", ");
+
+        Program<C1>.F = new C1 { F1 = 3 };
+        Test2(ref Program<C1>.F);
+        System.Console.Write($" final:{Program<C1>.F.F1}");
+    }
+
+    static void Test1<T>(ref T f)
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static void Test2<T>(ref T f) where T : class
+    {
+        f.M(GetArg());
+        System.Console.Write(", ");
+        f.M3(GetArg());
+    }
+
+    static int GetArg()
+    {
+        System.Console.Write($"GetArg:{Program<C1>.F.F1} ");
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "GetArg:3 M:3, GetArg:4 M3:4 final:5, GetArg:3 M:3, GetArg:4 M3:4 final:5")
+            .VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>(ref T)", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "T"
+  IL_0007:  call       "int Program.GetArg()"
+  IL_000c:  call       "void E.M<T>(T, int)"
+  IL_0011:  nop
+  IL_0012:  ldstr      ", "
+  IL_0017:  call       "void System.Console.Write(string)"
+  IL_001c:  nop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      "T"
+  IL_0023:  call       "int Program.GetArg()"
+  IL_0028:  call       "void E.M3<T>(T, int)"
+  IL_002d:  nop
+  IL_002e:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_01()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_01
+        // struct rvalue receiver
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        GetS1().M(GetArg());
+    }
+
+    static S1 GetS1() => new S1 { F1 = 3 };
+
+    public static int GetArg() => 42;
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetS1()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(S1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Theory]
+    [InlineData("ref")]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void Invocation_RValueReceiver_02(string refKind)
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_02
+        // struct rvalue receiver with ref/in/ref readonly extension parameter
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        GetS1().M(GetArg());
+    }
+
+    static S1 GetS1() => new S1 { F1 = 3 };
+
+    public static int GetArg() => 42;
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe.WithAllowUnsafe(true));
+        if (refKind == "ref")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (23,9): error CS1510: A ref or out value must be an assignable variable
+                //         GetS1().M(GetArg());
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetS1()").WithLocation(23, 9));
+            return;
+        }
+        else if (refKind == "ref readonly")
+        {
+            comp.VerifyEmitDiagnostics(
+                // (23,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetS1().M(GetArg());
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetS1()").WithArguments("0").WithLocation(23, 9));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3");
+
+        verifier.VerifyIL("Program.Test", $$"""
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetS1()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.GetArg()"
+  IL_000e:  call       "void E.M({{refKind}} S1, int)"
+  IL_0013:  nop
+  IL_0014:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_03()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_03
+        // class rvalue receiver
+        var src = """
+static class E
+{
+    extension(C1 x)
+    {
+        public void M(int i) { System.Console.Write($"M:{x.F1} "); }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test();
+    }
+
+    static void Test()
+    {
+        GetC1().M(GetArg());
+    }
+
+    static C1 GetC1() => new C1 { F1 = 3 };
+
+    static int GetArg() => 42;
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "C1 Program.GetC1()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M(C1, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_04()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_04
+        // unconstrained generic extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((S1)(object)x).F1} "); }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(", ");
+
+        Test2<S1>();
+
+        System.Console.Write(", ");
+
+        await Test3<S1>();
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 3 };
+
+    static void Test1<T>()
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static int GetArg() => 42;
+
+    static async Task Test3<T>()
+    {
+        GetT<T>().M(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3 , M:3 , M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_05()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_05
+        // 'ref T' (struct) extension receiver
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(ref T x) where T : struct
+    {
+        public void M(int i) { }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test2<S1>();
+
+        System.Console.Write(":");
+
+        await Test3<S1>();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static T GetT<T>() => (T)(object)new S1 { F1 = 3 };
+
+    static int GetArg() => 42;
+
+    static async Task Test3<T>() where T : struct
+    {
+        GetT<T>().M(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        comp.VerifyEmitDiagnostics(
+            // (29,9): error CS1510: A ref or out value must be an assignable variable
+            //         GetT<T>().M(GetArg());
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(29, 9),
+            // (38,9): error CS1510: A ref or out value must be an assignable variable
+            //         GetT<T>().M(await GetArgAsync());
+            Diagnostic(ErrorCode.ERR_RefLvalueExpected, "GetT<T>()").WithLocation(38, 9));
+    }
+
+    [Fact]
+    public void Invocation_RValueReceiver_06()
+    {
+        // sibling of IndexerAccess_Get_RValueReceiver_06
+        // unconstrained generic extension receiver with class type at runtime
+        var src = """
+using System.Threading.Tasks;
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public void M(int i) { System.Console.Write($"M:{((C1)(object)x).F1} "); }
+    }
+}
+
+class C1
+{
+    public int F1;
+}
+
+class Program
+{
+    static async Task Main()
+    {
+        Test1<C1>();
+
+        System.Console.Write(", ");
+
+        Test2<C1>();
+
+        System.Console.Write(", ");
+
+        await Test3<C1>();
+    }
+
+    static T GetT<T>() => (T)(object)new C1 { F1 = 3 };
+
+    static void Test1<T>()
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static void Test2<T>() where T : class
+    {
+        GetT<T>().M(GetArg());
+    }
+
+    static int GetArg() => 42;
+
+    static async Task Test3<T>()
+    {
+        GetT<T>().M(await GetArgAsync());
+    }
+
+    static async Task<int> GetArgAsync()
+    {
+        await Task.Yield();
+        return 42;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "M:3 , M:3 , M:3").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>()", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "int Program.GetArg()"
+  IL_000b:  call       "void E.M<T>(T, int)"
+  IL_0010:  nop
+  IL_0011:  ret
+}
+""");
     }
 }

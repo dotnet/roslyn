@@ -329,9 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             temps.Add(receiverTemp.LocalSymbol);
 
             if (receiverTemp.LocalSymbol.IsRef &&
-                (propertyOrEvent.IsExtensionBlockMember() ?
-                     !receiverTemp.Type.IsValueType :
-                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverTemp)) &&
+                IsPossibleReferenceTypeReceiverOfConstrainedCall(propertyOrEvent, receiverTemp) &&
                 !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp))
             {
                 BoundAssignmentOperator? extraRefInitialization;
