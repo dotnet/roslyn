@@ -68,6 +68,22 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         return !this.SyntaxFacts.IsObjectCollectionInitializer(this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
     }
 
+    /// <summary>
+    /// Returns true if the language (and its current version) admits compound assignment forms
+    /// (`+=`, `-=`, `??=`, …) as <em>member initializers</em> in object/<c>with</c> initializers.
+    /// When true, a subsequent compound expression-statement targeting the initialized object is a
+    /// candidate for being folded into the initializer; when false, only `=` statements qualify.
+    /// </summary>
+    protected abstract bool SupportsCompoundAssignmentInInitializer(ParseOptions options);
+
+    /// <summary>
+    /// Returns true if <paramref name="statement"/> is the language-specific shape for adding or
+    /// removing an event handler (C# `event += h` / `event -= h`). Used to allow stacked event
+    /// subscriptions (`Click += h1, Click += h2`) when folding subsequent statements into an
+    /// initializer — the canonical multi-handler pattern for compound member initializers.
+    /// </summary>
+    protected abstract bool IsAddOrRemoveEventHandlerStatement(TAssignmentStatementSyntax statement);
+
     protected sealed override bool TryAddMatches(
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
@@ -75,7 +91,15 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         CancellationToken cancellationToken)
     {
         changesSemantics = false;
-        using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
+
+        // For each member name we've already added an initializer for, track whether the prior
+        // entry was an event `+=`/`-=` subscription. Stacking multiple handler subscriptions is a
+        // valid initializer pattern (`Click += h1, Click += h2`); any other repeat would either
+        // duplicate an `=` initializer or violate the "= before any compound" ordering rule.
+        // Existing initializer entries are recorded as non-event-stacking by default — without
+        // pulling semantic info into the existing-initializer scan we conservatively block
+        // additional folds against them.
+        using var _1 = PooledDictionary<string, bool>.GetInstance(out var seenNames);
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
         if (initializer != null)
@@ -85,10 +109,12 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
                 if (this.SyntaxFacts.IsNamedMemberInitializer(init))
                 {
                     this.SyntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out _);
-                    seenNames.Add(this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText);
+                    seenNames[this.SyntaxFacts.GetIdentifierOfIdentifierName(name).ValueText] = false;
                 }
             }
         }
+
+        var supportsCompound = this.SupportsCompoundAssignmentInInitializer(_objectCreationExpression.SyntaxTree.Options);
 
         foreach (var subsequentStatement in this.State.GetSubsequentStatements())
         {
@@ -97,7 +123,13 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             if (subsequentStatement is not TAssignmentStatementSyntax statement)
                 break;
 
-            if (!this.SyntaxFacts.IsSimpleAssignmentStatement(statement))
+            // Subsequent compound expression-statements (`c.x += 1;`) are foldable only on languages
+            // that admit compound member initializers; otherwise the produced initializer would be
+            // syntactically invalid for the target language version.
+            var matches = supportsCompound
+                ? this.SyntaxFacts.IsAnyAssignmentStatement(statement)
+                : this.SyntaxFacts.IsSimpleAssignmentStatement(statement);
+            if (!matches)
                 break;
 
             this.SyntaxFacts.GetPartsOfAssignmentStatement(
@@ -161,12 +193,23 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
 
             // found a match!
             //
-            // If we see an assignment to the same property/field, we can't convert it
-            // to an initializer.
+            // If we see an assignment to the same property/field, we generally can't convert it to
+            // an initializer (would either repeat an `=` initializer or violate the "= before any
+            // compound" ordering rule). The one exception is stacked event handler subscriptions
+            // (`Click += h1, Click += h2`) — multiple handlers on the same event in one initializer
+            // is a valid and idiomatic pattern enabled by compound member initializers.
             var name = this.SyntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
             var identifier = this.SyntaxFacts.GetIdentifierOfSimpleName(name);
-            if (!seenNames.Add(identifier.ValueText))
-                break;
+            var thisIsEventStacking = leftSymbol is IEventSymbol && this.IsAddOrRemoveEventHandlerStatement(statement);
+
+            if (seenNames.TryGetValue(identifier.ValueText, out var priorWasEventStacking))
+            {
+                // Allow stacking only when both the prior fold and this one are event `+=`/`-=`.
+                if (!priorWasEventStacking || !thisIsEventStacking)
+                    break;
+            }
+
+            seenNames[identifier.ValueText] = thisIsEventStacking;
 
             postMatches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                 statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));

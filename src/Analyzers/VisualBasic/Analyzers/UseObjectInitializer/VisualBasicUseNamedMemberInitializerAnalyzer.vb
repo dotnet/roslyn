@@ -21,5 +21,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
         Protected Overrides Function IsInitializerOfLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax, rootExpression As ObjectCreationExpressionSyntax, ByRef variableDeclarator As VariableDeclaratorSyntax) As Boolean
             Return VisualBasicObjectCreationHelpers.IsInitializerOfLocalDeclarationStatement(localDeclarationStatement, rootExpression, variableDeclarator)
         End Function
+
+        ' Visual Basic has no compound-in-initializer language feature; only `=` member initializers are
+        ' valid in `With { ... }`, so subsequent compound expression-statements are never foldable.
+        Protected Overrides Function SupportsCompoundAssignmentInInitializer(options As ParseOptions) As Boolean
+            Return False
+        End Function
+
+        ' VB has no `+=`/`-=` event-handler statement form (uses AddHandler/RemoveHandler instead),
+        ' so this case never applies; combined with the language gate above it's unreachable.
+        Protected Overrides Function IsAddOrRemoveEventHandlerStatement(statement As AssignmentStatementSyntax) As Boolean
+            Return False
+        End Function
     End Class
 End Namespace

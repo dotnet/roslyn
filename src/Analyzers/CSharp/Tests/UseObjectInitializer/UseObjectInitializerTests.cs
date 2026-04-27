@@ -527,6 +527,190 @@ public sealed partial class UseObjectInitializerTests
         }.RunAsync();
 
     [Fact]
+    public Task TestSubsequentCompoundStatement_FoldsIntoInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C { i = 1 };
+                    [|c.|]j += 1;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1,
+                        j += 1
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_PreservesOperatorKind()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+                int k;
+                string s;
+
+                void M()
+                {
+                    var c = [|new|] C();
+                    [|c.|]i += 1;
+                    [|c.|]j -= 2;
+                    [|c.|]k *= 3;
+                    [|c.|]s ??= "x";
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+                int k;
+                string s;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i += 1,
+                        j -= 2,
+                        k *= 3,
+                        s ??= "x"
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_Event_StackedSubscriptions()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System;
+
+            class C
+            {
+                public event EventHandler Click;
+
+                void M(EventHandler h1, EventHandler h2)
+                {
+                    var c = [|new|] C();
+                    [|c.|]Click += h1;
+                    [|c.|]Click += h2;
+                }
+            }
+            """,
+            FixedCode = """
+            using System;
+
+            class C
+            {
+                public event EventHandler Click;
+
+                void M(EventHandler h1, EventHandler h2)
+                {
+                    var c = new C
+                    {
+                        Click += h1,
+                        Click += h2
+                    };
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_NotOfferedBeforePreview()
+        => new VerifyCS.Test
+        {
+            // The feature is gated to LanguageVersion.Preview. On C# 14 the resulting initializer
+            // would itself be a binder error, so the analyzer must not offer to fold compound-form
+            // subsequent statements. The diagnostic still fires on the `new` for the simple `i = 1`
+            // case (so the pre-existing simple-fold path stays intact), but `c.j += 1;` is left
+            // alone — no `[|c.|]` marker on it.
+            TestCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = [|new|] C();
+                    [|c.|]i = 1;
+                    c.j += 1;
+                }
+            }
+            """,
+            FixedCode = """
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C
+                    {
+                        i = 1
+                    };
+                    c.j += 1;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestSubsequentCompoundStatement_StopsAtAlreadyInitializedNonEventTarget()
+        // Existing `i = 1` already names `i`; the fold loop breaks on the first repeat-name (`c.i += 5`).
+        // Because nothing past that repeat is foldable either (the existing initializer alone has nothing
+        // to merge in), no diagnostic fires. This pins the conservative stance for non-event targets —
+        // the "= before any compound" ordering rule means we can't safely produce
+        // `{ i = 1, i += 5, j = 7 }`.
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int i;
+                int j;
+
+                void M()
+                {
+                    var c = new C { i = 1 };
+                    c.i += 5;
+                    c.j = 7;
+                }
+            }
+            """, LanguageVersion.Preview);
+
+    [Fact]
     public Task TestMissingBeforeCSharp3()
         => TestMissingInRegularAndScriptAsync(
             """
