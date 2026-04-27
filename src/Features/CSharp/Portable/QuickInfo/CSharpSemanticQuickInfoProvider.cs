@@ -125,7 +125,8 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
             return false;
 
         var tokenText = token.Text;
-        for (var i = 0; i < tokenText.Length - 1; i++)
+        var maxStartIndex = tokenText.Length - 1;
+        for (var i = 0; i < maxStartIndex; i++)
         {
             if (tokenText[i] != '\\')
                 continue;

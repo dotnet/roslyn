@@ -165,6 +165,8 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
+        // This overload preserves existing callers (including language-specific providers)
+        // that don't supply language-specific documentation comments.
         => CreateContentAsync(services, semanticModel, token, tokenInformation, supportedPlatforms, documentationComments: default, options, onTheFlyDocsInfo, cancellationToken);
 
     protected static Task<QuickInfoItem> CreateContentAsync(
