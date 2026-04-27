@@ -19,8 +19,16 @@ namespace IdeBenchmarks
 
         public static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")
         {
-            //This file is located at [Roslyn]\src\Tools\IdeBenchmarks\Program.cs
-            return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
+            var current = Path.GetDirectoryName(sourceFilePath);
+            while (current != null)
+            {
+                if (File.Exists(Path.Combine(current, "Roslyn.slnx")))
+                    return current;
+
+                current = Path.GetDirectoryName(current);
+            }
+
+            throw new Exception("Cannot find Roslyn.slnx in any parent directory of " + sourceFilePath);
         }
 
         private static void Main(string[] args)
