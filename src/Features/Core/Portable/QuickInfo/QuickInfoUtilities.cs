@@ -164,7 +164,7 @@ internal static class QuickInfoUtilities
     }
 
     /// <summary>
-    /// Attempts to produce a rendered-glyph Quick Info documentation line for a C# <see langword="char"/> literal.
+    /// Attempts to produce a rendered glyph Quick Info documentation line for a C# <see langword="char"/> literal.
     /// </summary>
     /// <remarks>
     /// This only applies when all of the following are true:

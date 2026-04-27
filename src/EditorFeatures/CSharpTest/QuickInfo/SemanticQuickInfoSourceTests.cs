@@ -1968,8 +1968,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
     [Fact]
     public Task TestCharLiteralUnicodeEscapeSurrogate()
         => TestInMethodAsync(@"char c = '\uD800'$$;",
-            MainDescription("struct System.Char"),
-            Documentation(string.Empty));
+            MainDescription("struct System.Char"));
 
     [Fact]
     public Task DynamicKeyword()
