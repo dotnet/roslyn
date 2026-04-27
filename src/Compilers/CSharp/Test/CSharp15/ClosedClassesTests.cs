@@ -1396,7 +1396,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void Exhaustiveness_07()
+    public void Exhaustiveness_UnionOfClosedClasses_01()
     {
         // Union with closed classes as case types
         var source = """
@@ -1443,7 +1443,156 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
-    public void Exhaustiveness_08()
+    public void Exhaustiveness_ClosedClassCustomUnion_01()
+    {
+        // Test a class which is both closed and a union.
+        // The "union-ness" wins over the "closed-ness" in terms of pattern matching behavior.
+        var source1 = """
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            [Union]
+            public closed class MyUnion
+            {
+                public MyUnion(string value) => Value = value;
+                public MyUnion(int value) => Value = value;
+
+                public object? Value { get; }
+            }
+
+            public sealed class D1() : MyUnion(0);
+            public sealed class D2() : MyUnion("a");
+            """;
+
+        var source2 = """
+            class Program
+            {
+                public int Match1(MyUnion u)
+                    => u switch
+                    {
+                        string => 1,
+                        int => 2,
+                    };
+
+                public int Match2(MyUnion u)
+            #line 100
+                    => u switch
+                    {
+                        int => 2,
+                    };
+
+                public int Match3(MyUnion u)
+                    => u switch
+                    {
+            #line 200
+                        D1 => 1,
+                        D2 => 2,
+                    };
+
+                public int Match4(MyUnion u)
+                    => u switch
+                    {
+            #line 300
+                        D2 => 2,
+                    };
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+            //         => u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(100, 14),
+            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(200, 13),
+            // (201,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(201, 13),
+            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(300, 13));
+    }
+
+    [Fact]
+    public void Exhaustiveness_ClosedClassCustomUnion_02()
+    {
+        // Test a class which is both closed and a union, and has no union case types.
+        var source1 = """
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            [Union]
+            public closed class MyUnion
+            {
+                public object? Value { get; }
+            }
+
+            public sealed class D1 : MyUnion;
+            public sealed class D2 : MyUnion;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                public int Match1(MyUnion u)
+                    => u switch
+                    {
+            #line 100
+                        MyUnion => 1
+                    };
+
+                public int Match2(MyUnion u)
+                    => u switch
+                    {
+            #line 200
+                        object => 1
+                    };
+
+                public int Match3(MyUnion u)
+                    => u switch
+                    {
+                        not null => 1
+                    };
+
+                public int Match4(MyUnion u)
+                    => u switch
+                    {
+            #line 300
+                        D1 => 1,
+                        D2 => 2,
+                    };
+
+                public int Match5(MyUnion u)
+                    => u switch
+                    {
+            #line 400
+                        D2 => 2,
+                    };
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'MyUnion'.
+            //             MyUnion => 1
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "MyUnion").WithArguments("MyUnion", "MyUnion").WithLocation(100, 13),
+            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'object'.
+            //             object => 1
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("MyUnion", "object").WithLocation(200, 13),
+            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(300, 13),
+            // (301,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(301, 13),
+            // (400,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(400, 13));
+    }
+
+    [Fact]
+    public void Exhaustiveness_Generic_01()
     {
         // Simple generic closed hierarchy
         var source = """
@@ -1481,7 +1630,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
     /// <summary>Tests an exhaustiveness scenario similar to <see cref="Subtypes_03"/>.</summary>
     [Fact]
-    public void Exhaustiveness_09()
+    public void Exhaustiveness_Generic_02()
     {
         var source = """
             using System.Collections.Immutable;
