@@ -2085,6 +2085,39 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
             """, "global::System.Int32", mode);
 
     [Theory, CombinatorialData]
+    public Task TestObjectInitializer_FlagsEnum_BitwiseCompound(
+        TestMode mode,
+        [CombinatorialValues("|=", "&=", "^=")] string op)
+        => TestAsync($$"""
+            using System;
+
+            [Flags]
+            enum Color { Red = 1, Green = 2, Blue = 4 }
+
+            class C
+            {
+                public Color Flags { get; set; }
+                C M() => new C { Flags {{op}} [|Goo()|] };
+            }
+            """, "global::Color", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestWithExpression_FlagsEnum_BitwiseCompound(
+        TestMode mode,
+        [CombinatorialValues("|=", "&=", "^=")] string op)
+        => TestAsync($$"""
+            using System;
+
+            [Flags]
+            enum Color { Red = 1, Green = 2, Blue = 4 }
+
+            record R(Color Flags)
+            {
+                R M(R r) => r with { Flags {{op}} [|Goo()|] };
+            }
+            """, "global::Color", mode);
+
+    [Theory, CombinatorialData]
     public Task TestCustomCollectionInitializerAddMethodWithNullableParameter(TestMode mode)
         => TestAsync("""
             class C : System.Collections.IEnumerable
