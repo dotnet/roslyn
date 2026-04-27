@@ -91,11 +91,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
 
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => ThreeState.Unknown;
+
         internal override bool IsNullableAnalysisEnabled() => false;
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
+
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
         {

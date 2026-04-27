@@ -4164,7 +4164,7 @@ class C : ITuple
             var binder = model.GetEnclosingBinder(@switch.SpanStart);
             var boundSwitch = (BoundSwitchStatement)binder.BindStatement(@switch, BindingDiagnosticBag.Discarded);
             AssertEx.Equal(
-@"[0]: t0 is System.Runtime.CompilerServices.ITuple ? [1] : [28]
+@"[0]: t0 != null ? [1] : [28]
 [1]: t1 = t0.Length; [2]
 [2]: t1 == 3 ? [3] : [28]
 [3]: t2 = t0[0]; [4]
@@ -7186,13 +7186,16 @@ _ = s is not null and (var s4, _);
 _ = s is (_, _) and (_, _); // 1
 _ = s is (_, _) and (_, var s5);
 _ = s is (_, _) and (_, _) s6; // 2, 3
+#line 13
 _ = s is { Length: 2 } and (_, _);
+#line 14
 _ = s is not ({ Length: 2 } and (_, _));
 
 _ = s switch
 {
     null => 0,
     { Length: not 2 } => 0,
+#line 20
     not (_, _) => 1,
     _ => 2,
 };
@@ -7212,6 +7215,15 @@ _ = s is { Length: 3 } and (_, _); // 6
                 // (12,21): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'ITuple', with 2 out parameters and a void return type.
                 // _ = s is (_, _) and (_, _) s6; // 2, 3
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(_, _)").WithArguments("System.Runtime.CompilerServices.ITuple", "2").WithLocation(12, 21),
+                // (13,28): hidden CS9335: The pattern is redundant.
+                // _ = s is { Length: 2 } and (_, _);
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(13, 28),
+                // (14,33): hidden CS9335: The pattern is redundant.
+                // _ = s is not ({ Length: 2 } and (_, _));
+                Diagnostic(ErrorCode.HDN_RedundantPattern, "(_, _)").WithLocation(14, 33),
+                // (20,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     not (_, _) => 1,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not (_, _)").WithLocation(20, 5),
                 // (24,5): error CS8518: An expression of type 'ITuple' can never match the provided pattern.
                 // _ = s is (_, _, _) and (_, _); // 4
                 Diagnostic(ErrorCode.ERR_IsPatternImpossible, "s is (_, _, _) and (_, _)").WithArguments("System.Runtime.CompilerServices.ITuple").WithLocation(24, 5),

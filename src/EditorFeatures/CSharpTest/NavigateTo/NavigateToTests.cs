@@ -94,6 +94,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
     }
 
     [Theory, CombinatorialData]
+    public async Task FindUnion(TestHost testHost, Composition composition)
+    {
+        // Exercises the full NavigateTo pipeline for union declarations
+        var content = XElement.Parse("""
+            <Workspace>
+                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                    <Document FilePath="File1.cs">
+            union Goo(int)
+            {
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+        await TestAsync(testHost, composition, content, async w =>
+        {
+            // Tracked by https://github.com/dotnet/roslyn/issues/82607
+            // Consider using separate NavigateToItemKind and Glyph for unions
+            var item = (await _aggregator.GetItemsAsync("Goo")).Single(x => x.Kind != "Method");
+            VerifyNavigateToResultItem(item, "Goo", "[|Goo|]", PatternMatchKind.Exact, NavigateToItemKind.Structure, Glyph.StructureInternal);
+        });
+    }
+
+    [Theory, CombinatorialData]
     public async Task FindClassInFileScopedNamespace(TestHost testHost, Composition composition)
     {
         var content = XElement.Parse("""
@@ -1004,6 +1028,30 @@ public sealed class NavigateToTests : AbstractNavigateToTests
         });
 
     [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_NoExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // G.*W is a valid regex but G and W are single-char literals — no 2+ char literals
+            // can be extracted for pre-filtering, so the regex search is skipped entirely.
+            var items = await _aggregator.GetItemsAsync("G.*W");
+            Assert.Empty(items);
+        });
+
+    [Theory, CombinatorialData]
+    public Task TermSplittingTest_DotStarRegex_WithExtractableLiterals(TestHost testHost, Composition composition)
+        => TestAsync(testHost, composition, "class SyllableBreaking {int GetKeyWord; int get_key_word; string get_keyword; int getkeyword; int wake;}", async w =>
+        {
+            // Ge.*Wo has 2+ char literals ("ge", "wo") so the regex search runs.
+            // Matches any symbol containing "Ge" followed eventually by "Wo" (case-insensitive).
+            var items = await _aggregator.GetItemsAsync("Ge.*Wo");
+            Assert.Equal(4, items.Count());
+            Assert.Contains(items, i => i.Name == "GetKeyWord");
+            Assert.Contains(items, i => i.Name == "get_key_word");
+            Assert.Contains(items, i => i.Name == "get_keyword");
+            Assert.Contains(items, i => i.Name == "getkeyword");
+        });
+
+    [Theory, CombinatorialData]
     public Task TestIndexer1(TestHost testHost, Composition composition)
         => TestAsync(testHost, composition, """
             class C
@@ -1864,7 +1912,7 @@ public sealed class NavigateToTests : AbstractNavigateToTests
     /// <summary>
     /// Verifies that a fuzzy match is found when the length bitset check passes (symbol length
     /// within ±2 of pattern length). With the split fuzzy/non-fuzzy pre-filtering, the length
-    /// check sets 'allowFuzzyMatching', enabling the PatternMatcher's edit-distance computation.
+    /// and bigram checks enable the FuzzyPatternMatcher's edit-distance computation.
     /// "ToEror" (length 6) fuzzy-matches "ToError" (length 7), delta=1, within ±2.
     /// </summary>
     [Theory, CombinatorialData]

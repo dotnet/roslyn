@@ -87,7 +87,7 @@ internal static partial class Extensions
         }
 
         void LogReason(string message)
-            => log?.Write($"Project '{project.GetLogDisplay()}' ignored for EnC: {message}");
+            => log?.Write($"Project {project.GetLogDisplay()} ignored for EnC: {message}");
 
         return false;
     }
@@ -95,7 +95,7 @@ internal static partial class Extensions
     public static string GetLogDisplay(this Project project)
         => project.FilePath != null
             ? $"'{project.FilePath}'" + (project.State.NameAndFlavor.flavor is { } flavor ? $" ('{flavor}')" : "")
-            : $"'{project.Name}' ('{project.Id.DebugName}'";
+            : $"'{project.Name}' ('{project.Id.DebugName}')";
 
     public static bool SupportsEditAndContinue(this TextDocumentState textDocumentState)
     {

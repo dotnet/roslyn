@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             Debug.Assert(sourceMethod.IsDefinition);
             Debug.Assert(TypeSymbol.Equals((TypeSymbol)sourceMethod.ContainingSymbol, container.SubstitutedSourceType.OriginalDefinition, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(sourceLocals.All(l => l.ContainingSymbol == sourceMethod));
+            Debug.Assert(!sourceMethod.IsAsync);
 
             _container = container;
             _name = name;
@@ -325,6 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal override ThreeState RuntimeAsyncMethodGenerationAttributeSetting => throw ExceptionUtilities.Unreachable();
+
         public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
@@ -467,6 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool HasUnscopedRefAttribute => false;
 
         internal override bool UseUpdatedEscapeRules => false;
+
+        internal override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
 
         internal ResultProperties ResultProperties
         {

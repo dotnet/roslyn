@@ -33,6 +33,9 @@
         <NetRoslyn>$(NetCurrent)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent)</NetRoslynSourceBuild>
         <NetRoslynAll>$(NetCurrent)</NetRoslynAll>
+        <NetVS>$(NetCurrent)</NetVS>
+        <NetVSCode>$(NetCurrent)</NetVSCode>
+        <NetVSShared>$(NetCurrent)</NetVSShared>
         <NetRoslynBuildHostNetCoreVersion>$(NetCurrent)</NetRoslynBuildHostNetCoreVersion>
         <NetRoslynNext>$(NetCurrent)</NetRoslynNext>
       </PropertyGroup>

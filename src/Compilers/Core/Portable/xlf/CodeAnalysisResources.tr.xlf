@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../CodeAnalysisResources.resx">
     <body>
+      <trans-unit id="AllAnalyzersConcurrentMessage">
+        <source>All analyzers have enabled concurrent execution.</source>
+        <target state="translated">Tüm çözümleyiciler paralel yürütmeyi etkinleştirdi.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="AssemblyReferencesNetFramework">
         <source>The assembly containing type '{0}' references .NET Framework, which is not supported.</source>
         <target state="translated">'{0}' türünü içeren bütünleştirilmiş kod, desteklenmeyen .NET Framework'e başvuruyor.</target>
@@ -10,7 +15,7 @@
       <trans-unit id="Attribute">
         <source>attribute</source>
         <target state="translated">öznitelik</target>
-        <note />
+        <note>Refers to a programming attribute/annotation (noun), not the verb "to attribute"</note>
       </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
@@ -183,6 +188,11 @@
         <target state="translated">Modülde geçersiz öznitelikler var.</target>
         <note />
       </trans-unit>
+      <trans-unit id="NonConcurrentAnalyzersHeader">
+        <source>Analyzers that have not enabled concurrent execution:</source>
+        <target state="translated">Paralel yürütmeyi etkinleştirmemiş çözümleyiciler:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="NonReportedDiagnosticCannotBeSuppressed">
         <source>Non-reported diagnostic with ID '{0}' cannot be suppressed.</source>
         <target state="translated">'{0}' kimlikli raporlanamayan tanılama gizlenemiyor.</target>
@@ -273,6 +283,11 @@
         <target state="translated">SuppressionDescriptor türünün kimliği, null veya boş bir dize ya da yalnızca boşluk içeren bir dize olmamalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SuppressorsNonConcurrentCountMessage">
+        <source>NOTE: {0} diagnostic suppressors were found. Diagnostic suppressors never run concurrently.</source>
+        <target state="translated">NOT: {0} tanılama koruyucusu bulundu. Tanılama koruyucuları hiçbir zaman paralel çalışmaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
         <target state="translated">Hata ayıklama meta veri boyutu '{0}' sınırı aşıldığından yöntem {1} için yerel PDB {2}.</target>
@@ -306,7 +321,7 @@
       <trans-unit id="Class1">
         <source>class</source>
         <target state="translated">sınıf</target>
-        <note />
+        <note>Refers to a class type in programming (noun), not the verb "to classify"</note>
       </trans-unit>
       <trans-unit id="Constructor">
         <source>constructor</source>
@@ -316,7 +331,7 @@
       <trans-unit id="Delegate1">
         <source>delegate</source>
         <target state="translated">temsilci</target>
-        <note />
+        <note>Refers to a delegate type in programming (noun), not the verb "to delegate"</note>
       </trans-unit>
       <trans-unit id="Enum1">
         <source>enum</source>
@@ -326,7 +341,7 @@
       <trans-unit id="Event1">
         <source>event</source>
         <target state="translated">olay</target>
-        <note />
+        <note>Refers to a programming event member (noun), not "to occur" or other verb meanings</note>
       </trans-unit>
       <trans-unit id="Field">
         <source>field</source>
@@ -341,7 +356,7 @@
       <trans-unit id="Interface1">
         <source>interface</source>
         <target state="translated">arabirim</target>
-        <note />
+        <note>Refers to an interface type in programming (noun), not the verb "to interface"</note>
       </trans-unit>
       <trans-unit id="Method">
         <source>method</source>
@@ -366,7 +381,7 @@
       <trans-unit id="Return1">
         <source>return</source>
         <target state="translated">dönüş</target>
-        <note />
+        <note>Refers to a method return value/type (noun), not the verb "to return"</note>
       </trans-unit>
       <trans-unit id="Struct1">
         <source>struct</source>

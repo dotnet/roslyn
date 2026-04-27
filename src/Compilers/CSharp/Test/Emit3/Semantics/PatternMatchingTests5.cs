@@ -4932,5 +4932,180 @@ Evaluated C14.F False
 }
 ");
         }
+
+        [Fact]
+        public void SideeffectEvaluations_09()
+        {
+            var src = @"
+using System;
+
+class C11;
+
+class C12;
+
+struct S1
+{
+
+    static void Main()
+    {
+        object[] s = [null, (new C11()), (new C12()), (1), (""1""), (2), (""2""), (3), (""3"")]; 
+        int[] i = [1, 2, 3];
+        foreach (var s1 in s)
+        {
+            foreach (var j in i)
+            {
+                var t = Test1((s1, j));
+                System.Console.WriteLine(t);
+            }
+        }
+    }
+
+    static bool Test1((object, int) u)
+    {
+        return u is (int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1);
+    }   
+}
+
+static class IComparableExtensions
+{
+    extension(IComparable c)
+    {
+        public int? AsInt => c as int?;
+    }
+}
+";
+            var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+            VerifyDecisionDagDump<IsPatternExpressionSyntax>(comp,
+@"[0]: t1 = t0.Item1; [1]
+[1]: t1 is int ? [2] : [11]
+[2]: t2 = (int)t1; [3]
+[3]: t2 == 1 ? [4] : [12]
+[4]: t3 = t0.Item2; [5]
+[5]: t3 == 2 ? [19] : [6]
+[6]: t4 = (System.IComparable)t1; [7]
+[7]: t5 = t4.AsInt; [8]
+[8]: t5 != null ? [9] : [20]
+[9]: t6 = (int)t5; [10]
+[10]: t6 == 3 ? [18] : [20]
+[11]: t1 is System.IComparable ? [12] : [20]
+[12]: t4 = (System.IComparable)t1; [13]
+[13]: t5 = t4.AsInt; [14]
+[14]: t5 != null ? [15] : [20]
+[15]: t6 = (int)t5; [16]
+[16]: t6 == 3 ? [17] : [20]
+[17]: t3 = t0.Item2; [18]
+[18]: t3 == 1 ? [19] : [20]
+[19]: leaf <isPatternSuccess> `(int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+[20]: leaf <isPatternFailure> `(int and 1, 2) or (System.IComparable and { AsInt: 3 }, 1)`
+",
+forLowering: true);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: @"
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+True
+False
+False
+False
+False
+False
+False
+False
+False
+False
+False
+True
+False
+False
+False
+False
+False
+").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size      137 (0x89)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                System.IComparable V_2,
+                int? V_3,
+                bool V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object System.ValueTuple<object, int>.Item1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  isinst     ""int""
+  IL_000d:  brfalse.s  IL_0046
+  IL_000f:  ldloc.0
+  IL_0010:  unbox.any  ""int""
+  IL_0015:  ldc.i4.1
+  IL_0016:  bne.un.s   IL_0052
+  IL_0018:  ldarg.0
+  IL_0019:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_001e:  stloc.1
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.2
+  IL_0021:  beq.s      IL_007e
+  IL_0023:  ldloc.0
+  IL_0024:  castclass  ""System.IComparable""
+  IL_0029:  stloc.2
+  IL_002a:  ldloc.2
+  IL_002b:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_0030:  stloc.3
+  IL_0031:  ldloca.s   V_3
+  IL_0033:  call       ""bool int?.HasValue.get""
+  IL_0038:  brfalse.s  IL_0083
+  IL_003a:  ldloca.s   V_3
+  IL_003c:  call       ""int int?.GetValueOrDefault()""
+  IL_0041:  ldc.i4.3
+  IL_0042:  beq.s      IL_007a
+  IL_0044:  br.s       IL_0083
+  IL_0046:  ldloc.0
+  IL_0047:  isinst     ""System.IComparable""
+  IL_004c:  stloc.2
+  IL_004d:  ldloc.2
+  IL_004e:  brtrue.s   IL_0059
+  IL_0050:  br.s       IL_0083
+  IL_0052:  ldloc.0
+  IL_0053:  castclass  ""System.IComparable""
+  IL_0058:  stloc.2
+  IL_0059:  ldloc.2
+  IL_005a:  call       ""int? IComparableExtensions.get_AsInt(System.IComparable)""
+  IL_005f:  stloc.3
+  IL_0060:  ldloca.s   V_3
+  IL_0062:  call       ""bool int?.HasValue.get""
+  IL_0067:  brfalse.s  IL_0083
+  IL_0069:  ldloca.s   V_3
+  IL_006b:  call       ""int int?.GetValueOrDefault()""
+  IL_0070:  ldc.i4.3
+  IL_0071:  bne.un.s   IL_0083
+  IL_0073:  ldarg.0
+  IL_0074:  ldfld      ""int System.ValueTuple<object, int>.Item2""
+  IL_0079:  stloc.1
+  IL_007a:  ldloc.1
+  IL_007b:  ldc.i4.1
+  IL_007c:  bne.un.s   IL_0083
+  IL_007e:  ldc.i4.1
+  IL_007f:  stloc.s    V_4
+  IL_0081:  br.s       IL_0086
+  IL_0083:  ldc.i4.0
+  IL_0084:  stloc.s    V_4
+  IL_0086:  ldloc.s    V_4
+  IL_0088:  ret
+}
+");
+        }
     }
 }
