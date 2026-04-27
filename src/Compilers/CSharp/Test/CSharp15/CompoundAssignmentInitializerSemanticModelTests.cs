@@ -691,10 +691,11 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
     #region Bad-shape robustness
 
     [Fact]
-    public void SemanticModelApis_OnBadShape_DoNotThrow()
+    public void SemanticModelApis_OnBadShape_ReturnUsableInfo()
     {
-        // `P += { 1, 2 }` produces a bad-bound tree. All public SemanticModel calls on the
-        // assignment and its operands must complete without exception.
+        // `P += { 1, 2 }` produces a bad-bound tree (CS0747 + CS1918). Pin what each public
+        // SemanticModel API returns so analyzers / IDE features that walk the bad shape get a
+        // predictable surface — no exceptions, and the LHS still resolves to the property.
         var source = """
             class C
             {
@@ -706,14 +707,30 @@ public sealed class CompoundAssignmentInitializerSemanticModelTests : CSharpTest
         var tree = comp.SyntaxTrees[0];
         var model = comp.GetSemanticModel(tree);
         var assignment = GetMemberAssignment(comp);
-        _ = model.GetOperation(assignment);
-        _ = model.GetSymbolInfo(assignment);
-        _ = model.GetTypeInfo(assignment);
-        _ = model.GetMemberGroup(assignment);
-        _ = model.GetSymbolInfo(assignment.Left);
-        _ = model.GetSymbolInfo(assignment.Right);
-        _ = model.GetTypeInfo(assignment.Left);
-        _ = model.GetTypeInfo(assignment.Right);
+
+        // The whole assignment is invalid — operation surfaces as IInvalidOperation, symbol/type
+        // both null, no member group.
+        Assert.IsAssignableFrom<IInvalidOperation>(model.GetOperation(assignment));
+
+        var asgSymbolInfo = model.GetSymbolInfo(assignment);
+        Assert.Null(asgSymbolInfo.Symbol);
+        Assert.Empty(asgSymbolInfo.CandidateSymbols);
+
+        var asgTypeInfo = model.GetTypeInfo(assignment);
+        Assert.Null(asgTypeInfo.Type);
+        Assert.Null(asgTypeInfo.ConvertedType);
+
+        Assert.Empty(model.GetMemberGroup(assignment));
+
+        // The LHS identifier loses its symbol on the bad shape (the binder doesn't carry it
+        // through the BoundBadExpression). Its type *is* preserved at `int`, so analyzers
+        // querying the LHS still get a non-null type even on a bad shape.
+        Assert.Null(model.GetSymbolInfo(assignment.Left).Symbol);
+        Assert.Equal(SpecialType.System_Int32, model.GetTypeInfo(assignment.Left).Type!.SpecialType);
+
+        // The RHS is the malformed `{ 1, 2 }` brace list — no symbol and no resolved type.
+        Assert.Null(model.GetSymbolInfo(assignment.Right).Symbol);
+        Assert.Null(model.GetTypeInfo(assignment.Right).Type);
     }
 
     #endregion
