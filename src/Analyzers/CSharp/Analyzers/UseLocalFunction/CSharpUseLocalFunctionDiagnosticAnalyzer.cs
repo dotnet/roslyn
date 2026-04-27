@@ -90,7 +90,12 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
         if (localDeclaration.Declaration.Variables.Count != 1)
             return;
 
-        if (localDeclaration.Parent is not BlockSyntax block)
+        SyntaxNode container;
+        if (localDeclaration.Parent is BlockSyntax block)
+            container = block;
+        else if (localDeclaration.Parent is GlobalStatementSyntax { Parent: CompilationUnitSyntax compilationUnit })
+            container = compilationUnit;
+        else
             return;
 
         // If there are compiler error on the declaration we can't reliably
@@ -119,7 +124,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
             return;
         }
 
-        if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionType, local, block, anonymousFunction, out var referenceLocations, cancellationToken))
+        if (!CanReplaceAnonymousWithLocalFunction(semanticModel, expressionType, local, container, anonymousFunction, out var referenceLocations, cancellationToken))
             return;
 
         if (localDeclaration.Declaration.Type.IsVar)
@@ -234,7 +239,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
     }
 
     private static bool CanReplaceAnonymousWithLocalFunction(
-        SemanticModel semanticModel, INamedTypeSymbol? expressionTypeOpt, ISymbol local, BlockSyntax block,
+        SemanticModel semanticModel, INamedTypeSymbol? expressionTypeOpt, ISymbol local, SyntaxNode container,
         AnonymousFunctionExpressionSyntax anonymousFunction, out ImmutableArray<Location> referenceLocations, CancellationToken cancellationToken)
     {
         // Check all the references to the anonymous function and disallow the conversion if
@@ -242,7 +247,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
         using var _ = ArrayBuilder<Location>.GetInstance(out var references);
         referenceLocations = [];
         var anonymousFunctionStart = anonymousFunction.SpanStart;
-        foreach (var descendentNode in block.DescendantNodes())
+        foreach (var descendentNode in container.DescendantNodes())
         {
             var descendentStart = descendentNode.Span.Start;
             if (descendentStart <= anonymousFunctionStart)
@@ -349,29 +354,41 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
     {
         // Type t = null;
         // t = <anonymous function>
-        if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Parent: ExpressionStatementSyntax { Parent: BlockSyntax block } expressionStatement } assignment)
+        if (anonymousFunction?.Parent is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Parent: ExpressionStatementSyntax expressionStatement } assignment)
         {
             if (assignment.Left.IsKind(SyntaxKind.IdentifierName))
             {
-                var expressionStatementIndex = block.Statements.IndexOf(expressionStatement);
-                if (expressionStatementIndex >= 1)
+                StatementSyntax? previousStatement = null;
+
+                if (expressionStatement.Parent is BlockSyntax block)
                 {
-                    var previousStatement = block.Statements[expressionStatementIndex - 1];
-                    if (previousStatement.IsKind(SyntaxKind.LocalDeclarationStatement, out localDeclaration) &&
-                        localDeclaration.Declaration.Variables.Count == 1)
+                    var expressionStatementIndex = block.Statements.IndexOf(expressionStatement);
+                    if (expressionStatementIndex >= 1)
+                        previousStatement = block.Statements[expressionStatementIndex - 1];
+                }
+                else if (expressionStatement.Parent is GlobalStatementSyntax { Parent: CompilationUnitSyntax compilationUnit } globalStatement)
+                {
+                    var globalStatementIndex = compilationUnit.Members.IndexOf(globalStatement);
+                    if (globalStatementIndex >= 1
+                        && compilationUnit.Members[globalStatementIndex - 1] is GlobalStatementSyntax previousGlobalStatement)
                     {
-                        var variableDeclarator = localDeclaration.Declaration.Variables[0];
-                        if (variableDeclarator.Initializer == null ||
-                            variableDeclarator.Initializer.Value.Kind() is
-                                SyntaxKind.NullLiteralExpression or
-                                SyntaxKind.DefaultLiteralExpression or
-                                SyntaxKind.DefaultExpression)
+                        previousStatement = previousGlobalStatement.Statement;
+                    }
+                }
+
+                if (previousStatement is LocalDeclarationStatementSyntax { Declaration.Variables: [var variableDeclarator] } decl)
+                {
+                    if (variableDeclarator.Initializer == null ||
+                        variableDeclarator.Initializer.Value.Kind() is
+                            SyntaxKind.NullLiteralExpression or
+                            SyntaxKind.DefaultLiteralExpression or
+                            SyntaxKind.DefaultExpression)
+                    {
+                        var identifierName = (IdentifierNameSyntax)assignment.Left;
+                        if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
                         {
-                            var identifierName = (IdentifierNameSyntax)assignment.Left;
-                            if (variableDeclarator.Identifier.ValueText == identifierName.Identifier.ValueText)
-                            {
-                                return true;
-                            }
+                            localDeclaration = decl;
+                            return true;
                         }
                     }
                 }

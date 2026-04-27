@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 case RefKind.Out:
                 default:
-                    Assert.True(false, $"Cannot have a return ref kind of {signature.RefKind}");
+                    Assert.Fail($"Cannot have a return ref kind of {signature.RefKind}");
                     break;
             }
             returnVerifier.TypeVerifier(signature.ReturnType);
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         break;
 
                     default:
-                        Assert.True(false, $"Cannot have a return ref kind of {parameter.RefKind}");
+                        Assert.Fail($"Cannot have a return ref kind of {parameter.RefKind}");
                         break;
                 }
             }

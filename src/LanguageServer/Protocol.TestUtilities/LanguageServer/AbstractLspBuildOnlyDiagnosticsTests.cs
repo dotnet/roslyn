@@ -48,6 +48,6 @@ public abstract class AbstractLspBuildOnlyDiagnosticsTests
         }
 
         if (errorMessage.Length > 0)
-            AssertEx.Fail(errorMessage.ToString());
+            Assert.Fail(errorMessage.ToString());
     }
 }

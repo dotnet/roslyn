@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
                 catch (ArgumentException)
                 {
-                    Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
+                    Assert.Fail($"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
                 }
             }
 

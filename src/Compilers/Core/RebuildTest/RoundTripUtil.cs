@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 
                 // https://github.com/dotnet/roslyn/issues/52327
                 // this is not all that useful without manual copy/pasting. Can we diff this during the test and show the differences?
-                Assert.True(false, $@"
+                Assert.Fail($@"
 Expected:
 {originalMdv}
 
@@ -189,7 +189,7 @@ Actual:
                 var originalMdv = getMdv(originalEmit.PdbReader);
                 var rebuildMdv = getMdv(rebuildEmit.PdbReader);
 
-                Assert.True(false, $@"
+                Assert.Fail($@"
 Expected:
 {originalMdv}
 

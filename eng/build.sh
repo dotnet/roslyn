@@ -38,10 +38,11 @@ usage()
   echo "  --skipDocumentation        Skip generation of XML documentation files"
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --warnAsError              Treat all warnings as errors"
+  echo "  --warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   echo "  --sourceBuild              Build the repository in source-only mode"
   echo "  --productBuild             Build the repository in product-build mode."
   echo "  --fromVMR                  Build the repository in product-build mode."
-  echo "  --solution                 Solution to build (default is Compilers.slnf)"
+  echo "  --solution                 Solution to build (default is Roslyn.slnx)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -82,11 +83,12 @@ run_analyzers=false
 skip_documentation=false
 prepare_machine=false
 warn_as_error=false
+warn_not_as_error=""
 properties=()
 source_build=false
 product_build=false
 from_vmr=false
-solution_to_build="Compilers.slnf"
+solution_to_build="Roslyn.slnx"
 
 args=""
 
@@ -181,6 +183,11 @@ while [[ $# > 0 ]]; do
       ;;
     --warnaserror)
       warn_as_error=true
+      ;;
+    --warnnotaserror)
+      warn_not_as_error=$2
+      args="$args $1"
+      shift
       ;;
     --sourcebuild|--source-build|-sb)
       source_build=true
@@ -300,6 +307,11 @@ function BuildSolution {
     msbuild_warn_as_error="/warnAsError"
   fi
 
+  local msbuild_warn_not_as_error=""
+  if [[ "$warn_not_as_error" != "" && "$warn_as_error" == true ]]; then
+    msbuild_warn_not_as_error="/warnNotAsError:$warn_not_as_error"
+  fi
+
   local generate_documentation_file=""
   if [[ "$skip_documentation" == true ]]; then
     generate_documentation_file="/p:GenerateDocumentationFile=false"
@@ -333,6 +345,7 @@ function BuildSolution {
     $test_runtime \
     $mono_tool \
     $msbuild_warn_as_error \
+    $msbuild_warn_not_as_error \
     $generate_documentation_file \
     $roslyn_use_hard_links \
     ${properties[@]+"${properties[@]}"}
@@ -383,7 +396,7 @@ fi
 if [[ "$test_core_clr" == true ]]; then
   runtests_args=""
 
-  if [[ -n "$test_compiler_only" ]]; then
+  if [[ "$test_compiler_only" == true ]]; then
     runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
   fi
 

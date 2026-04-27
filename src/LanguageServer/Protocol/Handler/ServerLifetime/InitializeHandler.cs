@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -25,8 +26,9 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         if (request.ProcessId is int clientProcessId && RoslynLanguageServer.TryRegisterClientProcessId(clientProcessId))
             context.Logger.LogInformation("Monitoring client process {clientProcessId} for exit", clientProcessId);
 
+        var lspServices = context.GetRequiredService<ILspServices>();
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
-        var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities);
+        var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities, lspServices);
 
         // Record a telemetry event indicating what capabilities are being provided by the server.
         // Useful for figuring out if a particular session is opted into an LSP feature.
