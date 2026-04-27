@@ -101,6 +101,7 @@
     ],
     "vsBranch": "main",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[InsidersVNext]"
+    "insertionTitlePrefix": "[Insiders]"
   }
 }
+
