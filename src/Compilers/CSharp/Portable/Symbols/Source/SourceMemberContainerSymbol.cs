@@ -926,19 +926,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     while (!stack.IsEmpty)
                     {
                         var namespaceOrType = stack.Pop();
-                        if (namespaceOrType is NamedTypeSymbol namedType
-                            && namedType.BaseTypeNoUseSiteDiagnostics is { } baseType
-                            && baseType.OriginalDefinition.Equals(this))
+                        if (namespaceOrType is NamedTypeSymbol namedType)
                         {
-                            subtypes.Add(namedType);
-                        }
-
-                        var members = namespaceOrType.GetMembers();
-                        for (var i = members.Length - 1; i >= 0; i--)
-                        {
-                            if (members[i] is NamespaceOrTypeSymbol childNamespaceOrType)
+                            if (namedType.BaseTypeNoUseSiteDiagnostics is { } baseType
+                                && baseType.OriginalDefinition.Equals(this, TypeCompareKind.AllIgnoreOptions))
                             {
-                                stack.Add(childNamespaceOrType);
+                                subtypes.Add(namedType);
+                            }
+
+                            foreach (var nestedType in namedType.GetTypeMembers())
+                            {
+                                stack.Add(nestedType);
+                            }
+                        }
+                        else
+                        {
+                            var members = namespaceOrType.GetMembers();
+                            for (var i = members.Length - 1; i >= 0; i--)
+                            {
+                                if (members[i] is NamespaceOrTypeSymbol childNamespaceOrType)
+                                {
+                                    stack.Add(childNamespaceOrType);
+                                }
                             }
                         }
                     }
