@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../ExternalAccessExtensionsResources.resx">
+    <body>
+      <trans-unit id="Cannot_create_0">
+        <source>Cannot create {0}.</source>
+        <target state="translated">Não é possível criar {0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Missing_document_file_path">
+        <source>Missing document file path</source>
+        <target state="translated">Caminho do arquivo de documento ausente</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_handler_of_type_0_must_have_a_full_name">
+        <source>The handler of type {0} must have a full name.</source>
+        <target state="new">The handler of type {0} must have a full name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_interface_0_does_not_contain_a_method_named_1">
+        <source>The interface {0} does not contain a method named {1}.</source>
+        <target state="new">The interface {0} does not contain a method named {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_message_type_0_is_not_assignable_to_1">
+        <source>The message type {0} is not assignable to {1}.</source>
+        <target state="translated">O tipo de mensagem {0} não pode ser atribuído a {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_implements_interface_1_more_than_once">
+        <source>Type {0} implements interface {1} more than once.</source>
+        <target state="translated">O tipo {0} implementa a interface {1} mais de uma vez.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
