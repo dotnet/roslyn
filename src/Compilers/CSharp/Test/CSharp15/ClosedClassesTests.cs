@@ -691,13 +691,13 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // closed class F<T> : E { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "F").WithArguments("F<T>", "T", "E").WithLocation(5, 14));
 
-        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("C").ClosedSubtypes.ToTestDisplayStrings());
-        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("D").ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("C").ClosedSubtypes);
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("D").ClosedSubtypes);
 
         var classE = comp1.GetMember<NamedTypeSymbol>("E");
         Assert.Equal(["F<T>"], classE.ClosedSubtypes.ToTestDisplayStrings());
 
-        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("F").ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("F").ClosedSubtypes);
     }
 
     [Fact]
@@ -1155,7 +1155,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C<T>", classC.ToTestDisplayString());
-        Assert.Equal([], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.Empty(classC.ClosedSubtypes);
     }
 
     [Fact]
@@ -1188,7 +1188,7 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
             var cOfIntString = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32), comp.GetSpecialType(SpecialType.System_String));
             Assert.Equal("C<System.Int32, System.String>", cOfIntString.ToTestDisplayString());
-            Assert.Empty(cOfIntString.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.Empty(cOfIntString.ClosedSubtypes);
         }
     }
 
