@@ -977,11 +977,7 @@ done:
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 var modifiers = (syntaxReferenceOpt?.GetSyntax() as MemberDeclarationSyntax)?.Modifiers ?? default;
-                var unsafeOrExternKeyword = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) is { } unsafeKeyword && unsafeKeyword != default
-                    ? unsafeKeyword
-                    : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
-                var unsafeLocation = unsafeOrExternKeyword != default ? unsafeOrExternKeyword.GetLocation() : _location;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeLocation, modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(_location), modifyCompilation: true);
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

@@ -130,11 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
-                var unsafeOrExternKeyword = Syntax.Modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) is { } unsafeKeyword && unsafeKeyword != default
-                    ? unsafeKeyword
-                    : Syntax.Modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
-                var unsafeLocation = unsafeOrExternKeyword != default ? unsafeOrExternKeyword.GetLocation() : location;
-                compilation.EnsureRequiresUnsafeAttributeExists(addTo, unsafeLocation, modifyCompilation: false);
+                compilation.EnsureRequiresUnsafeAttributeExists(addTo, Syntax.Modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: false);
             }
 
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);

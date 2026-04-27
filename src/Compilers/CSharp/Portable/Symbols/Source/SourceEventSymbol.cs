@@ -874,11 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
             {
                 var modifiers = (CSharpSyntaxNode as MemberDeclarationSyntax)?.Modifiers ?? default;
-                var unsafeOrExternKeyword = modifiers.FirstOrDefault(SyntaxKind.UnsafeKeyword) is { } unsafeKeyword && unsafeKeyword != default
-                    ? unsafeKeyword
-                    : modifiers.FirstOrDefault(SyntaxKind.ExternKeyword);
-                var unsafeLocation = unsafeOrExternKeyword != default ? unsafeOrExternKeyword.GetLocation() : location;
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, unsafeLocation, modifyCompilation: true);
+                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics, modifiers.GetUnsafeOrExternLocation(location), modifyCompilation: true);
             }
 
             EventSymbol? explicitlyImplementedEvent = ExplicitInterfaceImplementations.FirstOrDefault();
