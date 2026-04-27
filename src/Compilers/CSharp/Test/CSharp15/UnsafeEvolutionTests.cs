@@ -7126,6 +7126,114 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void Member_Event_Field_UnsafeInitializer()
+    {
+        CompileAndVerifyUnsafe(
+            lib: """
+                public class C
+                {
+                    unsafe public static System.Action M() => null;
+                }
+                """,
+            caller: """
+                var d = new D();
+                d.E1 += null;
+                d.E2 += null;
+                d.U1 += null;
+                d.U2 += null;
+                unsafe { d.U1 += null; }
+                unsafe { d.U2 += null; }
+                var u = new U();
+                u.E1 += null;
+                u.E2 += null;
+                class D
+                {
+                    public event System.Action E1 = default(delegate*<System.Action>)();
+                    public event System.Action E2 = C.M();
+
+                    unsafe public event System.Action U1 = default(delegate*<System.Action>)();
+                    unsafe public event System.Action U2 = C.M();
+                }
+                unsafe class U
+                {
+                    public event System.Action E1 = default(delegate*<System.Action>)();
+                    public event System.Action E2 = C.M();
+                }
+                """,
+            expectedUnsafeSymbols: ["C.M"],
+            expectedSafeSymbols: ["C"],
+            expectedDiagnostics:
+            [
+                // (4,6): error CS9362: 'D.U1.add' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // d.U1 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("D.U1.add").WithLocation(4, 6),
+                // (5,6): error CS9362: 'D.U2.add' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // d.U2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("D.U2.add").WithLocation(5, 6),
+                // (13,37): error CS9360: This operation may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(13, 37),
+                // (14,37): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                //     public event System.Action E2 = C.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(14, 37),
+                // (16,44): error CS9360: This operation may only be used in an unsafe context
+                //     unsafe public event System.Action U1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(16, 44),
+                // (17,44): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                //     unsafe public event System.Action U2 = C.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(17, 44),
+                // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // unsafe class U
+                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(19, 14),
+                // (21,37): error CS9360: This operation may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(21, 37),
+                // (22,37): error CS9362: 'C.M()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                //     public event System.Action E2 = C.M();
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "C.M()").WithArguments("C.M()").WithLocation(22, 37),
+            ],
+            expectedDiagnosticsForLegacyCaller:
+            [
+                // (13,37): error CS9360: This operation may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(13, 37),
+            ],
+            expectedDiagnosticsWithOldLangVersion:
+            [
+                // (13,45): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(13, 45),
+                // (13,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(delegate*<System.Action>)").WithLocation(13, 37),
+                // (13,37): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(delegate*<System.Action>)()").WithLocation(13, 37),
+            ],
+            expectedDiagnosticsWhenReferencingLegacyLib:
+            [
+                // (4,6): error CS9362: 'D.U1.add' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // d.U1 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("D.U1.add").WithLocation(4, 6),
+                // (5,6): error CS9362: 'D.U2.add' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+                // d.U2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("D.U2.add").WithLocation(5, 6),
+                // (13,37): error CS9360: This operation may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(13, 37),
+                // (16,44): error CS9360: This operation may only be used in an unsafe context
+                //     unsafe public event System.Action U1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(16, 44),
+                // (19,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+                // unsafe class U
+                Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "U").WithLocation(19, 14),
+                // (21,37): error CS9360: This operation may only be used in an unsafe context
+                //     public event System.Action E1 = default(delegate*<System.Action>)();
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "default(delegate*<System.Action>)()").WithLocation(21, 37),
+            ]);
+    }
+
+    [Fact]
     public void Member_Constructor()
     {
         CompileAndVerifyUnsafe(
