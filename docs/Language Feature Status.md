@@ -8,6 +8,7 @@ efforts behind them.
 
 The "Feature" column contains a link to the championed proposal or doc for the feature.  
 The "State" column contains a link to the test plan issue for the feature. The test plan should have a "Feature - XYZ" label, which is also used on PRs and issues for the feature.  
+To add a new feature entry (along with its test plan issue and label), use the [`new-compiler-feature` skill](../.github/skills/new-compiler-feature/).  
 
 # Working Set C#
 
