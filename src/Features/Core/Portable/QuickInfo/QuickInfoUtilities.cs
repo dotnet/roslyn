@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 internal static class QuickInfoUtilities
 {
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: null, options, onTheFlyDocsInfo: null, cancellationToken);
+        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: null, documentationComments: default, options, onTheFlyDocsInfo: null, cancellationToken);
 
     public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
         SolutionServices services,
@@ -30,6 +30,7 @@ internal static class QuickInfoUtilities
         SupportedPlatformData? supportedPlatforms,
         bool showAwaitReturn,
         string? nullabilityInfo,
+        ImmutableArray<TaggedText> documentationComments,
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
@@ -72,9 +73,9 @@ internal static class QuickInfoUtilities
 
         var hasDocumentationComments = false;
         ImmutableArray<TaggedText> docParts = default;
-        if (TryCreateCharacterLiteralDocumentation(semanticModel, span, symbol, cancellationToken, out var characterLiteralDocumentation))
+        if (!documentationComments.IsDefaultOrEmpty)
         {
-            AddSection(QuickInfoSectionKinds.DocumentationComments, characterLiteralDocumentation);
+            AddSection(QuickInfoSectionKinds.DocumentationComments, documentationComments);
             onTheFlyDocsInfo?.HasComments = true;
             hasDocumentationComments = true;
         }
@@ -162,76 +163,4 @@ internal static class QuickInfoUtilities
         void AddSection(string kind, ImmutableArray<TaggedText> taggedParts)
             => sections.Add(QuickInfoSection.Create(kind, taggedParts));
     }
-
-    /// <summary>
-    /// Attempts to produce a rendered glyph Quick Info documentation line for a C# <see langword="char"/> literal.
-    /// </summary>
-    /// <remarks>
-    /// This only applies when all of the following are true:
-    /// <list type="bullet">
-    /// <item><description>The symbol is C# <see cref="SpecialType.System_Char"/>.</description></item>
-    /// <item><description>The literal's parsed value is a displayable UTF-16 code unit (not control and not surrogate).</description></item>
-    /// <item><description>The source text includes a lowercase <c>\\uXXXX</c> escape.</description></item>
-    /// </list>
-    /// Example output: <c>Represents the character '·' as a UTF-16 code unit.</c>
-    /// </remarks>
-    private static bool TryCreateCharacterLiteralDocumentation(
-        SemanticModel semanticModel,
-        TextSpan span,
-        ISymbol symbol,
-        CancellationToken cancellationToken,
-        out ImmutableArray<TaggedText> documentation)
-    {
-        documentation = default;
-
-        if (semanticModel.Language != LanguageNames.CSharp ||
-            symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
-        {
-            return false;
-        }
-
-        var token = semanticModel.SyntaxTree.GetRoot(cancellationToken).FindToken(span.Start);
-        if (!token.Span.Contains(span))
-            return false;
-
-        if (token.Value is not char character)
-            return false;
-
-        if (!IsDisplayableCharacter(character))
-            return false;
-
-        if (!ContainsSupportedUnicodeEscape(token))
-            return false;
-
-        documentation = ImmutableArray.Create(new TaggedText(TextTags.Text, CreateCharacterDocumentationText(character)));
-        return true;
-    }
-
-    private static bool ContainsSupportedUnicodeEscape(SyntaxToken token)
-    {
-        if (token.ContainsDiagnostics)
-            return false;
-
-        var tokenText = token.Text;
-        var maxStartIndex = tokenText.Length - 1;
-
-        for (var i = 0; i < maxStartIndex; i++)
-        {
-            if (tokenText[i] != '\\')
-                continue;
-
-            if (tokenText[i + 1] == 'u')
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool IsDisplayableCharacter(char character)
-        => !char.IsControl(character) && !char.IsSurrogate(character);
-
-    private static string CreateCharacterDocumentationText(char character)
-        => string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character);
 }

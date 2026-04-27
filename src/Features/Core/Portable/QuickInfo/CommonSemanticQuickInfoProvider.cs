@@ -33,8 +33,9 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var services = context.Document.Project.Solution.Services;
         var onTheFlyDocsInfo = await GetOnTheFlyDocsInfoAsync(context, cancellationToken).ConfigureAwait(false);
+        var documentationComments = GetDocumentationComments(semanticModel, token, tokenInformation.Symbols, cancellationToken);
         return await CreateContentAsync(
-            services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
+            services, semanticModel, token, tokenInformation, supportedPlatforms, documentationComments, context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -44,9 +45,11 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (tokenInformation.Symbols.IsDefaultOrEmpty)
             return null;
 
+        var documentationComments = GetDocumentationComments(context.SemanticModel, token, tokenInformation.Symbols, context.CancellationToken);
+
         // onTheFlyDocInfo is null here since On-The-Fly Docs are being computed at the document level.
         return await CreateContentAsync(
-            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, onTheFlyDocsInfo: null, context.CancellationToken).ConfigureAwait(false);
+            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, documentationComments, context.Options, onTheFlyDocsInfo: null, context.CancellationToken).ConfigureAwait(false);
     }
 
     private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
@@ -162,6 +165,18 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
+        => CreateContentAsync(services, semanticModel, token, tokenInformation, supportedPlatforms, documentationComments: default, options, onTheFlyDocsInfo, cancellationToken);
+
+    protected static Task<QuickInfoItem> CreateContentAsync(
+        SolutionServices services,
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        TokenInformation tokenInformation,
+        SupportedPlatformData? supportedPlatforms,
+        ImmutableArray<TaggedText> documentationComments,
+        SymbolDescriptionOptions options,
+        OnTheFlyDocsInfo? onTheFlyDocsInfo,
+        CancellationToken cancellationToken)
     {
         var syntaxFactsService = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
 
@@ -178,7 +193,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, options, onTheFlyDocsInfo, cancellationToken);
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, documentationComments, options, onTheFlyDocsInfo, cancellationToken);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
@@ -187,6 +202,13 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
     protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
         => Task.FromResult<OnTheFlyDocsInfo?>(null);
+
+    protected virtual ImmutableArray<TaggedText> GetDocumentationComments(
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        ImmutableArray<ISymbol> symbols,
+        CancellationToken cancellationToken)
+        => default;
 
     protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => null;
 
