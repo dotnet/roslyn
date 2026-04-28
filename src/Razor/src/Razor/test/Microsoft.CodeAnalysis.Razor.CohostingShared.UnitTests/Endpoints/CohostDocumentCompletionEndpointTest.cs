@@ -504,6 +504,97 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11512")]
+    public async Task ParentTagConstraint_AttributeCompletedWhenParentMatches()
+    {
+        // A tag helper with ParentTag constraint should have its attributes shown in completion
+        // when the element is inside the correct parent.
+        await VerifyCompletionListAsync(
+            input: """
+                @addTagHelper *, SomeProject
+                <container><header $$></header></container>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["priority"],
+            htmlItemLabels: ["style"],
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles: [("TestTagHelper.cs", """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                namespace SomeProject
+                {
+                    [HtmlTargetElement("container")]
+                    public class ContainerTagHelper : TagHelper
+                    {
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+
+                    [HtmlTargetElement("header", ParentTag = "container")]
+                    public class HeaderTagHelper : TagHelper
+                    {
+                        public string Priority { get; set; }
+
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+                }
+                """)]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/11512")]
+    public async Task ParentTagConstraint_AttributeNotCompletedWhenParentDoesNotMatch()
+    {
+        // A tag helper with ParentTag constraint should NOT have its attributes shown
+        // when the element is inside the wrong parent.
+        await VerifyCompletionListAsync(
+            input: """
+                @addTagHelper *, SomeProject
+                <div><header $$></header></div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            unexpectedItemLabels: ["priority"],
+            expectedItemLabels: ["style"],
+            htmlItemLabels: ["style"],
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles: [("TestTagHelper.cs", """
+                using Microsoft.AspNetCore.Razor.TagHelpers;
+
+                namespace SomeProject
+                {
+                    [HtmlTargetElement("container")]
+                    public class ContainerTagHelper : TagHelper
+                    {
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+
+                    [HtmlTargetElement("header", ParentTag = "container")]
+                    public class HeaderTagHelper : TagHelper
+                    {
+                        public string Priority { get; set; }
+
+                        public override void Process(TagHelperContext context, TagHelperOutput output)
+                        {
+                        }
+                    }
+                }
+                """)]);
+    }
+
+    [Fact]
     public async Task HtmlCompletionFailure_ReturnsIncompleteEmptyList()
     {
         // When the HTML language server fails to respond (e.g., not yet initialized on first document open),
