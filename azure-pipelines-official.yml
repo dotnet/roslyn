@@ -89,6 +89,8 @@ variables:
     value: "[Auto Insertion]"
   - name: Insertion.TitleSuffix
     value: ""
+  - name: VisualStudio.DropName
+    value: "Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)"
 
   - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
       - name: enableSourceIndex
@@ -208,6 +210,12 @@ extends:
                      ConnectedPMEServiceName: 248d384a-b39b-46e3-8ad5-c2c210d5e7ca
                 condition: and(succeeded(), in('${{ parameters.SignType }}', 'test', 'real'))
 
+              - task: MicroBuildSwixPlugin@4
+                inputs:
+                  dropName: $(VisualStudio.DropName)
+                  AccessToken: '$(System.AccessToken)'
+                  feedSource: 'https://pkgs.dev.azure.com/dnceng/_packaging/MicroBuildToolset/nuget/v3/index.json'
+
               - task: VSBuild@1
                 inputs:
                   solution: 'src/Tools/MicroBuild/Build.proj'
@@ -272,10 +280,10 @@ extends:
                 condition: succeeded()
 
               - task: CopyFiles@2
-                displayName: 'Collect vsman from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
+                displayName: 'Collect "vsman" and "vsix" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
                 inputs:
                   SourceFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
-                  Contents: '**\*.vsman'
+                  Contents: '**\*.?(vsman|vsix)'
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\insertion'
                   FlattenFolders: true
                 condition: succeeded()
@@ -284,7 +292,7 @@ extends:
                 displayName: "Upload artifacts to VSTS Drop"
                 inputs:
                   dropFolder: $(Build.ArtifactStagingDirectory)/insertion
-                  dropName: 'Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)'
+                  dropName: $(VisualStudio.DropName)
                   dropRetentionDays: 183
                   accessToken: $(_DevDivDropAccessToken)
                   skipUploadIfExists: true
