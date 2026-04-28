@@ -13556,12 +13556,12 @@ done:
         private AssignmentExpressionSyntax ParseObjectInitializerNamedAssignment()
         {
             var name = this.ParseIdentifierName();
-            var operatorToken = this.EatMemberInitializerOperatorToken();
+            var (operatorToken, expressionKind) = this.EatMemberInitializerOperatorToken();
 
             // Nested `{ ... }` initializer shape is only legal on the `=` branch, but we accept it for any operator
             // during parsing so the tree is well-formed for resilience. Binder rejects the non-`=` nested form.
             return _syntaxFactory.AssignmentExpression(
-                SyntaxFacts.GetAssignmentExpression(operatorToken.Kind),
+                expressionKind,
                 name,
                 operatorToken,
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
@@ -13572,10 +13572,10 @@ done:
         private AssignmentExpressionSyntax ParseDictionaryInitializer()
         {
             var elementAccess = _syntaxFactory.ImplicitElementAccess(this.ParseBracketedArgumentList());
-            var operatorToken = this.EatMemberInitializerOperatorToken();
+            var (operatorToken, expressionKind) = this.EatMemberInitializerOperatorToken();
 
             return _syntaxFactory.AssignmentExpression(
-                SyntaxFacts.GetAssignmentExpression(operatorToken.Kind),
+                expressionKind,
                 elementAccess,
                 operatorToken,
                 this.CurrentToken.Kind == SyntaxKind.OpenBraceToken
@@ -13586,24 +13586,23 @@ done:
         /// <summary>
         /// Consume the operator token that separates the target and value of a member initializer.
         /// Accepts `=`, `:` (recovered to `=`), and any compound assignment operator (including `??=`,
-        /// `>>=`, and `>>>=` which the lexer splits into multiple tokens). The returned token's kind
-        /// maps to the produced assignment-expression kind via
-        /// <see cref="SyntaxFacts.GetAssignmentExpression(SyntaxKind)"/>.
+        /// `>>=`, and `>>>=` which the lexer splits into multiple tokens). Returns the consumed token
+        /// alongside the matching <see cref="AssignmentExpressionSyntax"/> kind.
         /// </summary>
-        private SyntaxToken EatMemberInitializerOperatorToken()
+        private (SyntaxToken operatorToken, SyntaxKind expressionKind) EatMemberInitializerOperatorToken()
         {
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                return this.EatTokenAsKind(SyntaxKind.EqualsToken);
+                return (this.EatTokenAsKind(SyntaxKind.EqualsToken), SyntaxKind.SimpleAssignmentExpression);
 
             // Defer to the expression parser's operator detection + merger. This handles any compound
             // assignment operator, including the split `>>=` / `>>>=` forms that the lexer produces as
             // multiple tokens.
-            var (operatorTokenKind, _) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
+            var (operatorTokenKind, expressionKind) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
             if (SyntaxFacts.IsAssignmentExpressionOperatorToken(operatorTokenKind))
-                return EatExpressionOperatorToken(operatorTokenKind);
+                return (EatExpressionOperatorToken(operatorTokenKind), expressionKind);
 
             // Fall back to expecting `=` for recovery; eats whatever is current as a missing `=`.
-            return this.EatToken(SyntaxKind.EqualsToken);
+            return (this.EatToken(SyntaxKind.EqualsToken), SyntaxKind.SimpleAssignmentExpression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()
