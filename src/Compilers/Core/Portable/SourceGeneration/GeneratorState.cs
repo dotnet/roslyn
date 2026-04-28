@@ -118,12 +118,12 @@ namespace Microsoft.CodeAnalysis
                                       elapsedTime);
         }
 
-        public GeneratorState WithError(Exception exception, Diagnostic error, TimeSpan elapsedTime)
+        public GeneratorState WithError(Exception exception, Diagnostic error, TimeSpan elapsedTime, bool preservePreCompilationTrees = false)
         {
             return new GeneratorState(this.PostInitTrees,
                                       this.InputNodes,
                                       this.OutputNodes,
-                                      ImmutableArray<GeneratedSyntaxTree>.Empty,
+                                      preservePreCompilationTrees ? this.PreCompilationTrees : ImmutableArray<GeneratedSyntaxTree>.Empty,
                                       ImmutableArray<GeneratedSyntaxTree>.Empty,
                                       ImmutableArray.Create(error),
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
@@ -132,7 +132,6 @@ namespace Microsoft.CodeAnalysis
                                       exception,
                                       elapsedTime);
         }
-
         internal bool Initialized { get; }
 
         internal ImmutableArray<GeneratedSyntaxTree> PostInitTrees { get; }

@@ -47,6 +47,7 @@ class C { }
 
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -61,12 +62,14 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
+            int callCount = 0;
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
             {
                 ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, t) => c.AddSource("a", "class D {}"));
 
                 ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
                 {
+                    callCount++;
                     // The compilation should include both the original tree and the pre-compilation tree
                     Assert.Equal(2, c.SyntaxTrees.Count());
                     // The type 'D' should be visible in the compilation
@@ -78,8 +81,10 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
+            Assert.Equal(1, callCount);
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -94,6 +99,7 @@ class C { }
 
             Assert.Single(compilation.SyntaxTrees);
 
+            int callCount = 0;
             // Generator 1 produces a pre-compilation source
             var generator1 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
             {
@@ -105,6 +111,7 @@ class C { }
             {
                 ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
                 {
+                    callCount++;
                     var type = c.GetTypeByMetadataName("PreCompType");
                     Assert.NotNull(type);
                 });
@@ -113,7 +120,49 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator1, generator2 }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
+            Assert.Equal(1, callCount);
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PreCompilationSource_Is_Visible_To_Other_Generators_ReversedOrder()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            int callCount = 0;
+            // Generator 1 produces a pre-compilation source
+            var generator1 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, t) => c.AddSource("precomp", "class PreCompType {}"));
+            }));
+
+            // Generator 2 reads the compilation and should see the type from Generator 1
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2((ic) =>
+            {
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
+                {
+                    callCount++;
+                    var type = c.GetTypeByMetadataName("PreCompType");
+                    Assert.NotNull(type);
+                });
+            }));
+
+            // Register the consuming generator before the producing generator to verify
+            // ordering of generator registration does not affect pre-compilation visibility.
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator2, generator1 }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            Assert.Equal(1, callCount);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -141,6 +190,7 @@ class C { }
             // Original tree + 2 pre-compilation sources
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -171,6 +221,7 @@ class C { }
             Assert.Empty(diagnostics);
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("Gen1Type"));
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("Gen2Type"));
+            outputCompilation.VerifyDiagnostics();
         }
 
         #endregion
@@ -204,6 +255,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("TypeFromFile"));
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -229,6 +281,7 @@ class C { }
 
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -259,6 +312,7 @@ class C { }
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("CombinedType"));
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -292,6 +346,13 @@ class C { }
             Assert.Empty(diagnostics);
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("a"));
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("c"));
+            outputCompilation.VerifyDiagnostics(
+                // Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator\c.cs(1,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class c {}
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(1, 7),
+                // Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.PipelineCallbackGenerator\a.cs(1,7): warning CS8981: The type name 'a' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class a {}
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "a").WithArguments("a").WithLocation(1, 7));
         }
 
         #endregion
@@ -322,6 +383,7 @@ class C { }
             Assert.Empty(diagnostics);
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("PostInitType"));
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("PreCompType"));
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -334,11 +396,13 @@ class C { }
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
+            int callCount = 0;
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
             {
                 ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, t) => c.AddSource("precomp", "class PreCompType {}"));
                 ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
                 {
+                    callCount++;
                     // Verify pre-compilation type is visible in the compilation
                     Assert.NotNull(c.GetTypeByMetadataName("PreCompType"));
                     ctx.AddSource("regular", "class RegularType {}");
@@ -348,9 +412,11 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
+            Assert.Equal(1, callCount);
             // Original + PreCompilation + Regular
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -363,11 +429,13 @@ class C { }
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
+            int callCount = 0;
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
             {
                 ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, t) => c.AddSource("precomp", "class PreCompType {}"));
                 ic.RegisterImplementationSourceOutput(ic.CompilationProvider, (ctx, c) =>
                 {
+                    callCount++;
                     Assert.NotNull(c.GetTypeByMetadataName("PreCompType"));
                     ctx.AddSource("impl", "class ImplType {}");
                 });
@@ -376,9 +444,11 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
+            Assert.Equal(1, callCount);
             // Original + PreCompilation + Implementation
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         #endregion
@@ -411,12 +481,14 @@ class C { }
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation1, out var diagnostics1);
             Assert.Equal(2, outputCompilation1.SyntaxTrees.Count());
             Assert.Empty(diagnostics1);
+            outputCompilation1.VerifyDiagnostics();
             Assert.Equal(1, callCount);
 
             // Second run with same compilation — should be cached
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation2, out var diagnostics2);
             Assert.Equal(2, outputCompilation2.SyntaxTrees.Count());
             Assert.Empty(diagnostics2);
+            outputCompilation2.VerifyDiagnostics();
             Assert.Equal(1, callCount); // not called again
         }
 
@@ -448,6 +520,7 @@ class C { }
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation1, out var diagnostics1);
             Assert.Equal(2, outputCompilation1.SyntaxTrees.Count());
             Assert.NotNull(outputCompilation1.GetTypeByMetadataName("TypeA"));
+            outputCompilation1.VerifyDiagnostics();
             Assert.Equal(1, callCount);
 
             // Change additional file
@@ -458,6 +531,7 @@ class C { }
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation2, out var diagnostics2);
             Assert.Equal(2, outputCompilation2.SyntaxTrees.Count());
             Assert.NotNull(outputCompilation2.GetTypeByMetadataName("TypeB"));
+            outputCompilation2.VerifyDiagnostics();
             Assert.Equal(2, callCount); // called again
         }
 
@@ -479,7 +553,8 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
 
             // First run
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation1, out _);
+            outputCompilation1.VerifyDiagnostics();
             var result1 = driver.GetRunResult().Results[0];
             Assert.Contains(WellKnownGeneratorOutputs.PreCompilationSourceOutput, result1.TrackedSteps.Keys);
 
@@ -488,7 +563,8 @@ class C { }
             Assert.Equal(IncrementalStepRunReason.New, step1.Outputs[0].Reason);
 
             // Second run — should show cached
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation2, out _);
+            outputCompilation2.VerifyDiagnostics();
             var result2 = driver.GetRunResult().Results[0];
             Assert.Contains(WellKnownGeneratorOutputs.PreCompilationSourceOutput, result2.TrackedSteps.Keys);
 
@@ -518,7 +594,8 @@ class C { }
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+            outputCompilation.VerifyDiagnostics();
             var runResult = driver.GetRunResult().Results[0];
 
             // Both step names should be present and distinct
@@ -571,6 +648,7 @@ class C { }
 
             // The regular source output was NOT produced (generator was stopped)
             Assert.DoesNotContain(result.GeneratedSources, s => s.HintName == "regular.cs");
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -616,6 +694,53 @@ class C { }
 
             // A diagnostic was reported for gen1's pre-compilation failure
             Assert.NotEmpty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PreCompilation_Trees_Preserved_When_Standard_Phase_Throws()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            // A generator whose pre-compilation phase succeeds (adding PreCompType) but whose
+            // standard source output throws. The pre-compilation tree was already added to the
+            // compilation that other generators may have observed, so it must remain present in
+            // the output compilation and the generator's GeneratedSources even though the standard
+            // phase failed.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, t) => c.AddSource("precomp", "class PreCompType {}"));
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
+                {
+                    throw new InvalidOperationException("standard phase failed");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            // The generator is in error state from the standard phase failure
+            Assert.NotNull(result.Exception);
+            Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.NotEmpty(diagnostics);
+
+            // But the pre-compilation tree must still be present in the output compilation
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("PreCompType"));
+            Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
+
+            // And the pre-compilation source must still appear in GeneratedSources for the failing generator
+            Assert.Single(result.GeneratedSources);
+            Assert.Equal("precomp.cs", result.GeneratedSources[0].HintName);
+
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -639,12 +764,15 @@ class C { }
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
 
             // The generator should be in error state due to accessing compilation during pre-compilation
             var runResult = driver.GetRunResult();
             var result = Assert.Single(runResult.Results);
             Assert.NotNull(result.Exception);
+            Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.Contains("pre-compilation", result.Exception!.Message);
 
             // A diagnostic was reported
             Assert.NotEmpty(diagnostics);
@@ -670,7 +798,8 @@ class C { }
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+            outputCompilation.VerifyDiagnostics();
 
             var runResult = driver.GetRunResult();
             var result = Assert.Single(runResult.Results);
@@ -696,7 +825,8 @@ class C { }
             }));
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
-            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
+            outputCompilation.VerifyDiagnostics();
 
             var runResult = driver.GetRunResult();
             var result = Assert.Single(runResult.Results);
@@ -730,6 +860,7 @@ class C { }
 
             Assert.Equal(2, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -752,6 +883,7 @@ class C { }
 
             Assert.Single(outputCompilation.SyntaxTrees);
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -764,6 +896,7 @@ class C { }
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
+            int callCount = 0;
             // This tests the key scenario: a pre-compilation provider's data flows
             // to both the pre-compilation output AND a standard source output via Combine
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
@@ -780,6 +913,7 @@ class C { }
                 var combined = parsed.Combine(ic.CompilationProvider);
                 ic.RegisterSourceOutput(combined, (ctx, pair) =>
                 {
+                    callCount++;
                     var (data, comp) = pair;
                     // The type from pre-compilation should be visible
                     var type = comp.GetTypeByMetadataName(data);
@@ -791,8 +925,10 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
+            Assert.Equal(1, callCount);
             Assert.Equal(3, outputCompilation.SyntaxTrees.Count());
             Assert.Empty(diagnostics);
+            outputCompilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -826,6 +962,188 @@ class C { }
             Assert.Empty(diagnostics);
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("file1"));
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("file2"));
+            outputCompilation.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PreCompilation_Using_SyntaxProvider_Throws()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            // A generator that chains a SyntaxProvider into a pre-compilation source output should
+            // surface a clear generator error, because syntax-based providers depend on a built
+            // compilation that does not yet exist during the pre-compilation phase.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                var syntax = ic.SyntaxProvider.CreateSyntaxProvider((n, _) => true, (c, _) => c.Node);
+                ic.RegisterPreCompilationSourceOutput(syntax.Collect(), (c, nodes) =>
+                {
+                    c.AddSource("bad", "class Bad {}");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            // Generator should be in error state with a useful InvalidOperationException
+            Assert.NotNull(result.Exception);
+            Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.Contains("pre-compilation", result.Exception!.Message);
+
+            // The pre-compilation source must NOT have been produced
+            Assert.Empty(result.GeneratedSources);
+            Assert.Null(outputCompilation.GetTypeByMetadataName("Bad"));
+
+            // A diagnostic was reported for the failure
+            Assert.NotEmpty(diagnostics);
+        }
+
+        [Fact]
+        public void PreCompilation_And_Standard_Output_Same_HintName()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            // Same generator emits "shared.cs" in both the pre-compilation and standard phases.
+            // Each phase has its own AdditionalSourcesCollection so there's no in-phase duplicate
+            // detection across phases; both trees should land in the compilation and in GeneratedSources.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("shared", "class PreCompClass {}"));
+                ic.RegisterSourceOutput(ic.CompilationProvider, (c, _) => c.AddSource("shared", "class StandardClass {}"));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+            Assert.Empty(diagnostics);
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.Null(result.Exception);
+
+            // Both trees are produced and surfaced in GeneratedSources, even though they share a hint name
+            Assert.Equal(2, result.GeneratedSources.Length);
+            Assert.Equal(2, result.GeneratedSources.Count(s => s.HintName == "shared.cs"));
+
+            // Both types are visible in the output compilation
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("PreCompClass"));
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("StandardClass"));
+        }
+
+        [Fact]
+        public void PreCompilation_HintName_Conflict_Within_PreCompilation_Phase_Throws()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            // Two pre-compilation outputs in the same generator using the same hint name should
+            // surface a generator error from the in-phase AdditionalSourcesCollection.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) =>
+                {
+                    c.AddSource("dup", "class A {}");
+                    c.AddSource("dup", "class B {}");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.NotNull(result.Exception);
+            Assert.IsType<ArgumentException>(result.Exception);
+
+            // No pre-compilation source was committed, so neither type made it into the compilation
+            Assert.Null(outputCompilation.GetTypeByMetadataName("A"));
+            Assert.Null(outputCompilation.GetTypeByMetadataName("B"));
+            Assert.NotEmpty(diagnostics);
+        }
+
+        [Fact]
+        public void PreCompilation_Can_Access_CompilationOptions()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            OutputKind? observedKind = null;
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.CompilationOptionsProvider, (c, opts) =>
+                {
+                    observedKind = opts.OutputKind;
+                    c.AddSource("opts", $"// kind: {opts.OutputKind}");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+            Assert.Empty(diagnostics);
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.Null(result.Exception);
+            Assert.Equal(OutputKind.DynamicallyLinkedLibrary, observedKind);
+            Assert.Single(result.GeneratedSources);
+            Assert.Equal("opts.cs", result.GeneratedSources[0].HintName);
+        }
+
+        [Fact]
+        public void PreCompilation_Can_Access_MetadataReferences()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            var expectedReferenceCount = compilation.ExternalReferences.Length;
+
+            int observedReferenceCount = -1;
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.MetadataReferencesProvider.Collect(), (c, refs) =>
+                {
+                    observedReferenceCount = refs.Length;
+                    c.AddSource("refs", $"// refs: {refs.Length}");
+                });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+            Assert.Empty(diagnostics);
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.Null(result.Exception);
+            Assert.Equal(expectedReferenceCount, observedReferenceCount);
+            Assert.Single(result.GeneratedSources);
         }
 
         #endregion

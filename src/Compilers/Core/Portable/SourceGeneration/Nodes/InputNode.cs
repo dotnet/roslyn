@@ -44,18 +44,7 @@ namespace Microsoft.CodeAnalysis
         public NodeStateTable<T> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<T>? previousTable, CancellationToken cancellationToken)
         {
             var stopwatch = SharedStopwatch.StartNew();
-            ImmutableArray<T> inputItems;
-            try
-            {
-                inputItems = _getInput(graphState);
-            }
-            catch (Exception e) when (e is not OperationCanceledException)
-            {
-                // The _getInput delegate may throw if this input is not available in the current phase
-                // (e.g. accessing Compilation during the pre-compilation phase). Wrap the exception so
-                // it is handled as a generator error by the driver.
-                throw new UserFunctionException(e);
-            }
+            var inputItems = _getInput(graphState);
             TimeSpan elapsedTime = stopwatch.Elapsed;
 
             // create a mutable hashset of the new items we can check against

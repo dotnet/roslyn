@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
 
                     generatorState = ex is null
                                      ? new GeneratorState(postInitSources, inputNodes, outputNodes)
-                                     : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, cancellationToken, isInit: true);
+                                     : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, cancellationToken, phase: GeneratorRunPhase.Init);
                 }
                 else if (generatorState.RequiresConstantTreeReparse(state.ParseOptions))
                 {
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-            var driverStateBuilder = new DriverStateTable.Builder(_state, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
+            var driverStateBuilder = new DriverStateTable.Builder(_state, compilation, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
 
             // Pre-compilation pass: evaluate pre-compilation output nodes for all generators
             // and add their sources to the compilation before standard output nodes execute.
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                 {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken);
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, phase: GeneratorRunPhase.PreCompilation);
                 }
             }
 
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                 {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, runTime: generatorTimer.Elapsed);
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, phase: GeneratorRunPhase.Standard, runTime: generatorTimer.Elapsed);
                 }
             }
 
@@ -437,20 +437,25 @@ namespace Microsoft.CodeAnalysis
             return trees.ToImmutableAndFree();
         }
 
-        private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, CancellationToken cancellationToken, TimeSpan? runTime = null, bool isInit = false)
+        private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, CancellationToken cancellationToken, GeneratorRunPhase phase, TimeSpan? runTime = null)
         {
             if (CodeAnalysisEventSource.Log.IsEnabled())
             {
                 CodeAnalysisEventSource.Log.GeneratorException(generator.GetGeneratorType().Name, e.ToString());
             }
 
-            var diagnostic = CreateGeneratorExceptionDiagnostic(provider, generator, e, isInit);
+            var diagnostic = CreateGeneratorExceptionDiagnostic(provider, generator, e, isInit: phase == GeneratorRunPhase.Init);
             var filtered = compilation.Options.FilterDiagnostic(diagnostic, cancellationToken);
 
             if (filtered is not null)
             {
                 diagnosticBag?.Add(filtered);
-                return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero);
+                // If the standard phase failed but the pre-compilation phase succeeded, preserve the
+                // pre-compilation trees: they were already added to the compilation that other generators
+                // observed, so dropping them would leave the failing generator's state inconsistent with
+                // what those generators saw.
+                bool preservePreCompilationTrees = phase == GeneratorRunPhase.Standard;
+                return generatorState.WithError(e, filtered, runTime ?? TimeSpan.Zero, preservePreCompilationTrees);
             }
             return generatorState;
         }
@@ -533,5 +538,12 @@ namespace Microsoft.CodeAnalysis
         internal abstract string EmbeddedAttributeDefinition { get; }
 
         internal abstract ISyntaxHelper SyntaxHelper { get; }
+    }
+
+    internal enum GeneratorRunPhase
+    {
+        Init,
+        PreCompilation,
+        Standard,
     }
 }

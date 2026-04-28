@@ -30,19 +30,31 @@ namespace Microsoft.CodeAnalysis
             private readonly DriverStateTable _previousTable;
             private readonly ImmutableArray<SyntaxInputNode> _syntaxInputNodes;
             private readonly CancellationToken _cancellationToken;
+            private readonly Compilation _initialCompilation;
             private Compilation? _compilation;
             private SyntaxStore.Builder? _syntaxStore;
 
             internal GeneratorDriverState DriverState { get; }
 
+            internal bool IsCompilationAvailable => _compilation is not null;
+
             public Compilation Compilation => _compilation ?? throw new InvalidOperationException("Compilation is not available during the pre-compilation phase.");
+
+            /// <summary>
+            /// The compilation as initially supplied to the driver (with any post-init trees).
+            /// Available in all phases, including pre-compilation. Use this only for accessing
+            /// properties that are independent of the compilation's syntax trees, such as
+            /// <see cref="CodeAnalysis.Compilation.Options"/> and <see cref="CodeAnalysis.Compilation.ExternalReferences"/>.
+            /// </summary>
+            internal Compilation InitialCompilation => _initialCompilation;
 
             internal SyntaxStore.Builder SyntaxStore => _syntaxStore ?? throw new InvalidOperationException("SyntaxStore is not available during the pre-compilation phase.");
 
-            public Builder(GeneratorDriverState driverState, ImmutableArray<SyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
+            public Builder(GeneratorDriverState driverState, Compilation initialCompilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes, CancellationToken cancellationToken = default)
             {
                 DriverState = driverState;
                 _previousTable = driverState.StateTable;
+                _initialCompilation = initialCompilation;
                 _syntaxInputNodes = syntaxInputNodes;
                 _cancellationToken = cancellationToken;
             }

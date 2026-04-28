@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
             Exception? exception,
             TimeSpan elapsedTime)
         {
-            Debug.Assert(exception is null || (generatedSources.IsEmpty && diagnostics.Length == 1));
+            Debug.Assert(exception is null || diagnostics.Length == 1);
 
             this.Generator = generator;
             this.GeneratedSources = generatedSources;

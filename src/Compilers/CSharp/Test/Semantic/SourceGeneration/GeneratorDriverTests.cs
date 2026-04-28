@@ -3275,6 +3275,7 @@ class C { }
         }
 
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore RSEXPERIMENTAL007 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         [Fact]
         public void IncrementalGeneratorInputSourcesHaveNames()
@@ -4818,6 +4819,5 @@ class C { }
         }
 
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
-#pragma warning restore RSEXPERIMENTAL007 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 }
