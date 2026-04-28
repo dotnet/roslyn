@@ -15,19 +15,18 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
 
     public static TheoryData<string, SyntaxKind, SyntaxKind> CompoundOperators => new()
     {
-        { "+=",   SyntaxKind.PlusEqualsToken,                         SyntaxKind.AddAssignmentExpression },
-        { "-=",   SyntaxKind.MinusEqualsToken,                        SyntaxKind.SubtractAssignmentExpression },
-        { "*=",   SyntaxKind.AsteriskEqualsToken,                     SyntaxKind.MultiplyAssignmentExpression },
-        { "/=",   SyntaxKind.SlashEqualsToken,                        SyntaxKind.DivideAssignmentExpression },
-        { "%=",   SyntaxKind.PercentEqualsToken,                      SyntaxKind.ModuloAssignmentExpression },
-        { "&=",   SyntaxKind.AmpersandEqualsToken,                    SyntaxKind.AndAssignmentExpression },
-        { "|=",   SyntaxKind.BarEqualsToken,                          SyntaxKind.OrAssignmentExpression },
-        { "^=",   SyntaxKind.CaretEqualsToken,                        SyntaxKind.ExclusiveOrAssignmentExpression },
-        { "<<=",  SyntaxKind.LessThanLessThanEqualsToken,             SyntaxKind.LeftShiftAssignmentExpression },
-        { ">>=",  SyntaxKind.GreaterThanGreaterThanEqualsToken,       SyntaxKind.RightShiftAssignmentExpression },
+        { "+=",   SyntaxKind.PlusEqualsToken,                              SyntaxKind.AddAssignmentExpression },
+        { "-=",   SyntaxKind.MinusEqualsToken,                             SyntaxKind.SubtractAssignmentExpression },
+        { "*=",   SyntaxKind.AsteriskEqualsToken,                          SyntaxKind.MultiplyAssignmentExpression },
+        { "/=",   SyntaxKind.SlashEqualsToken,                             SyntaxKind.DivideAssignmentExpression },
+        { "%=",   SyntaxKind.PercentEqualsToken,                           SyntaxKind.ModuloAssignmentExpression },
+        { "&=",   SyntaxKind.AmpersandEqualsToken,                         SyntaxKind.AndAssignmentExpression },
+        { "|=",   SyntaxKind.BarEqualsToken,                               SyntaxKind.OrAssignmentExpression },
+        { "^=",   SyntaxKind.CaretEqualsToken,                             SyntaxKind.ExclusiveOrAssignmentExpression },
+        { "<<=",  SyntaxKind.LessThanLessThanEqualsToken,                  SyntaxKind.LeftShiftAssignmentExpression },
+        { ">>=",  SyntaxKind.GreaterThanGreaterThanEqualsToken,            SyntaxKind.RightShiftAssignmentExpression },
         { ">>>=", SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken, SyntaxKind.UnsignedRightShiftAssignmentExpression },
-        // Parser-permissive: `??=` is accepted; binder rejects per spec.
-        { "??=",  SyntaxKind.QuestionQuestionEqualsToken,             SyntaxKind.CoalesceAssignmentExpression },
+        { "??=",  SyntaxKind.QuestionQuestionEqualsToken,                  SyntaxKind.CoalesceAssignmentExpression },
     };
 
     #region Object initializer: named member
