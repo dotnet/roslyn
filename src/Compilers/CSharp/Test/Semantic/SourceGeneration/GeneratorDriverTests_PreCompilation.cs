@@ -1017,9 +1017,9 @@ class C { }
             Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
 
-            // Same generator emits "shared.cs" in both the pre-compilation and standard phases.
-            // Each phase has its own AdditionalSourcesCollection so there's no in-phase duplicate
-            // detection across phases; both trees should land in the compilation and in GeneratedSources.
+            // Hint names must be unique across all phases for a single generator. The standard phase
+            // tries to emit "shared" but the pre-compilation phase already reserved it, so the
+            // standard phase fails. The pre-compilation tree is preserved (other generators saw it).
             var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
             {
                 ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("shared", "class PreCompClass {}"));
@@ -1029,19 +1029,89 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
             outputCompilation.VerifyDiagnostics();
-            Assert.Empty(diagnostics);
 
             var runResult = driver.GetRunResult();
             var result = Assert.Single(runResult.Results);
-            Assert.Null(result.Exception);
+            Assert.NotNull(result.Exception);
+            Assert.IsType<ArgumentException>(result.Exception);
+            Assert.NotEmpty(diagnostics);
 
-            // Both trees are produced and surfaced in GeneratedSources, even though they share a hint name
-            Assert.Equal(2, result.GeneratedSources.Length);
-            Assert.Equal(2, result.GeneratedSources.Count(s => s.HintName == "shared.cs"));
-
-            // Both types are visible in the output compilation
+            // The pre-compilation tree was committed to the compilation before the standard phase
+            // failed, so PreCompClass remains; StandardClass was never committed.
             Assert.NotNull(outputCompilation.GetTypeByMetadataName("PreCompClass"));
-            Assert.NotNull(outputCompilation.GetTypeByMetadataName("StandardClass"));
+            Assert.Null(outputCompilation.GetTypeByMetadataName("StandardClass"));
+
+            // The pre-compilation tree is also surfaced in GeneratedSources so the generator's
+            // observable state matches what other generators saw.
+            var generatedSource = Assert.Single(result.GeneratedSources);
+            Assert.Equal("shared.cs", generatedSource.HintName);
+            Assert.Contains("PreCompClass", generatedSource.SourceText.ToString());
+        }
+
+        [Fact]
+        public void PostInit_And_PreCompilation_Output_Same_HintName()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            // Hint names must be unique across all phases for a single generator. The pre-compilation
+            // phase tries to emit "shared" but the PostInit phase already reserved it.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPostInitializationOutput(c => c.AddSource("shared", "class PostInitClass {}"));
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (c, _) => c.AddSource("shared", "class PreCompClass {}"));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.NotNull(result.Exception);
+            Assert.IsType<ArgumentException>(result.Exception);
+            Assert.NotEmpty(diagnostics);
+
+            // The PostInit tree is preserved, the colliding pre-compilation tree was not committed.
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("PostInitClass"));
+            Assert.Null(outputCompilation.GetTypeByMetadataName("PreCompClass"));
+        }
+
+        [Fact]
+        public void PostInit_And_Standard_Output_Same_HintName()
+        {
+            var source = @"
+class C { }
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            // Hint names must be unique across all phases for a single generator. The standard
+            // phase tries to emit "shared" but the PostInit phase already reserved it.
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator((ic) =>
+            {
+                ic.RegisterPostInitializationOutput(c => c.AddSource("shared", "class PostInitClass {}"));
+                ic.RegisterSourceOutput(ic.CompilationProvider, (c, _) => c.AddSource("shared", "class StandardClass {}"));
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            outputCompilation.VerifyDiagnostics();
+
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.NotNull(result.Exception);
+            Assert.IsType<ArgumentException>(result.Exception);
+            Assert.NotEmpty(diagnostics);
+
+            // The PostInit tree is preserved; the colliding standard tree was not committed.
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("PostInitClass"));
+            Assert.Null(outputCompilation.GetTypeByMetadataName("StandardClass"));
         }
 
         [Fact]

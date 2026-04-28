@@ -345,7 +345,10 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    var preCompilationContext = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.PreCompilation, generatorRunStateBuilders[i], cancellationToken, driverStateBuilder);
+                    var preCompReserved = generatorState.PostInitTrees.IsEmpty
+                        ? ImmutableHashSet<string>.Empty
+                        : generatorState.PostInitTrees.Select(t => t.HintName).ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
+                    var preCompilationContext = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.PreCompilation, generatorRunStateBuilders[i], cancellationToken, driverStateBuilder, preCompReserved);
                     var (sources, _, _, _) = preCompilationContext.ToImmutableAndFree();
 
                     var parsedSources = ParseAdditionalSources(state.Generators[i], sources, cancellationToken);
@@ -379,8 +382,16 @@ namespace Microsoft.CodeAnalysis
                 using var generatorTimer = CodeAnalysisEventSource.Log.CreateSingleGeneratorRunTimer(state.Generators[i], (t) => t.Add(driverStateBuilder.SyntaxStore.GetRuntimeAdjustment(stateBuilder[i].InputNodes)));
                 try
                 {
+                    // Reserve hint names from prior phases (PostInit and PreCompilation) so that
+                    // standard-phase outputs cannot collide with them. Hint names must be unique
+                    // across all phases for a single generator.
+                    var standardReserved = (generatorState.PostInitTrees.IsEmpty && generatorState.PreCompilationTrees.IsEmpty)
+                        ? ImmutableHashSet<string>.Empty
+                        : generatorState.PostInitTrees.Select(t => t.HintName)
+                            .Concat(generatorState.PreCompilationTrees.Select(t => t.HintName))
+                            .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
                     // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
-                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, generatorRunStateBuilders[i], cancellationToken, driverStateBuilder);
+                    var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, generatorRunStateBuilders[i], cancellationToken, driverStateBuilder, standardReserved);
                     (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
                     generatorDiagnostics = FilterDiagnostics(compilation, generatorDiagnostics, driverDiagnostics: diagnosticsBag, cancellationToken);
 
@@ -410,10 +421,13 @@ namespace Microsoft.CodeAnalysis
             bool shouldSkipGenerator(ISourceGenerator generator) => generatorFilter?.Invoke(new GeneratorFilterContext(generator, cancellationToken)) == false;
         }
 
-        private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, GeneratorRunStateTable.Builder generatorRunStateBuilder, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
+        private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, GeneratorRunStateTable.Builder generatorRunStateBuilder, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null, ImmutableHashSet<string>? reservedHintNames = null)
         {
             Debug.Assert(outputKind != IncrementalGeneratorOutputKind.None);
-            IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, generatorRunStateBuilder, new AdditionalSourcesCollection(SourceExtension));
+            var sources = reservedHintNames is null
+                ? new AdditionalSourcesCollection(SourceExtension)
+                : new AdditionalSourcesCollection(SourceExtension, reservedHintNames);
+            IncrementalExecutionContext context = new IncrementalExecutionContext(driverStateBuilder, generatorRunStateBuilder, sources);
             foreach (var outputNode in outputNodes)
             {
                 // if we're looking for this output kind, and it has not been explicitly disabled
