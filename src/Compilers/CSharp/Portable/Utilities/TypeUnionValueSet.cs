@@ -249,17 +249,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public TypeSymbol? SampleType(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public TypeSymbol? SampleType(Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (IsEmpty(ref useSiteInfo))
                 throw new ArgumentException();
 
             if (_lazyMightIncludeNonNull != false)
             {
-                return TryGetSampleType(_root, ref useSiteInfo);
+                var sampleType = TryGetSampleType(_root, ref useSiteInfo);
+                return walkUpInvalidClosedSubtypesIfNeeded(binder, sampleType);
             }
 
             return null;
+
+            static TypeSymbol? walkUpInvalidClosedSubtypesIfNeeded(Binder binder, TypeSymbol? sampleType)
+            {
+                if (sampleType is null || sampleType is not NamedTypeSymbol namedType)
+                {
+                    return sampleType;
+                }
+
+                while (isInvalidClosedSubtype(binder, namedType))
+                    namedType = namedType.BaseTypeNoUseSiteDiagnostics;
+
+                return namedType;
+
+                static bool isInvalidClosedSubtype(Binder binder, NamedTypeSymbol namedType)
+                {
+                    if (!namedType.BaseTypeNoUseSiteDiagnostics.IsClosed)
+                        return false;
+
+                    if (!namedType.CheckAllConstraints(binder.Compilation, binder.Conversions))
+                    {
+                        return true;
+                    }
+
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    if (!binder.IsAccessible(namedType, useSiteInfo: ref discardedUseSiteInfo))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
         }
 
         private TypeSymbol? TryGetSampleType(Node root, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

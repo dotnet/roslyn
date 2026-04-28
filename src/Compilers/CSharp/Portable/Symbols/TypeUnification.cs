@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static NamedTypeSymbol? TryUnifyClosedSubtype(NamedTypeSymbol candidateSubtype, NamedTypeSymbol closedType)
         {
             Debug.Assert(candidateSubtype.IsDefinition);
+            Debug.Assert(closedType.IsClosed);
 
             var candidateBaseType = candidateSubtype.BaseTypeNoUseSiteDiagnostics;
             Debug.Assert(TypeSymbol.Equals(candidateBaseType.OriginalDefinition, closedType.OriginalDefinition, TypeCompareKind.CLRSignatureCompareOptions));

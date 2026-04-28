@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // PROTOTYPE(cc): A closed class with no subtypes, should probably expand into an empty type set.
                 // However, if we produce an empty type set as a result, we fail the non-empty assertion at 'TypeUnionValueSet..ctor' via 'SamplePatternForTemp().tryHandleTypeUnionLimits()'.
-                if (possibleClosedClass is not NamedTypeSymbol { IsClosed: true, ClosedSubtypes: [_, ..] subtypes })
+                if (possibleClosedClass is not NamedTypeSymbol namedType || !namedType.TryGetClosedSubtypes(out var subtypes) || subtypes.IsEmpty)
                 {
                     builder.Add(possibleClosedClass);
                     return;
