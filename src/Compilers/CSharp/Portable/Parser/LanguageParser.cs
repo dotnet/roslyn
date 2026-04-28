@@ -13591,9 +13591,6 @@ done:
         /// </summary>
         private (SyntaxToken operatorToken, SyntaxKind expressionKind) EatMemberInitializerOperatorToken()
         {
-            if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                return (this.EatTokenAsKind(SyntaxKind.EqualsToken), SyntaxKind.SimpleAssignmentExpression);
-
             // Defer to the expression parser's operator detection + merger. This handles any compound
             // assignment operator, including the split `>>=` / `>>>=` forms that the lexer produces as
             // multiple tokens.
@@ -13601,8 +13598,12 @@ done:
             if (SyntaxFacts.IsAssignmentExpressionOperatorToken(operatorTokenKind))
                 return (EatExpressionOperatorToken(operatorTokenKind), expressionKind);
 
-            // Fall back to expecting `=` for recovery; eats whatever is current as a missing `=`.
-            return (this.EatToken(SyntaxKind.EqualsToken), SyntaxKind.SimpleAssignmentExpression);
+            // Recover to a simple `=`: a literal `:` is recovered as `=`; anything else is eaten as a
+            // missing `=`.
+            var operatorToken = this.CurrentToken.Kind == SyntaxKind.ColonToken
+                ? this.EatTokenAsKind(SyntaxKind.EqualsToken)
+                : this.EatToken(SyntaxKind.EqualsToken);
+            return (operatorToken, SyntaxKind.SimpleAssignmentExpression);
         }
 
         private InitializerExpressionSyntax ParseComplexElementInitializer()
