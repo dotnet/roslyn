@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundAssignmentOperator? extraRefInitialization = null;
 
                 if (receiverTemp.LocalSymbol.IsRef &&
-                    IsPossibleReferenceTypeReceiverOfConstrainedCall(methodOrIndexer, receiverTemp) &&
+                    IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(methodOrIndexer, receiverTemp) &&
                     !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
                     (forceReceiverCapturing ||
                      !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))

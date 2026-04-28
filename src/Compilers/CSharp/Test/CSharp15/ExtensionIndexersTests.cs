@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 #nullable disable
@@ -10885,11 +10885,13 @@ namespace Outer
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Outer;").WithLocation(1, 1));
         verifier.VerifyIL("Inner.C.Main", """
 {
-  // Code size       50 (0x32)
-  .maxstack  4
+  // Code size       56 (0x38)
+  .maxstack  3
   .locals init (S V_0, //x
                 S V_1,
-                int V_2)
+                int V_2,
+                int V_3,
+                int V_4)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_1
   IL_0003:  initobj    "S"
@@ -10898,25 +10900,29 @@ namespace Outer
   IL_0010:  stloc.2
   IL_0011:  ldloc.2
   IL_0012:  ldc.i4.1
-  IL_0013:  blt.s      IL_002f
-  IL_0015:  ldloc.1
-  IL_0016:  ldc.i4.0
+  IL_0013:  blt.s      IL_0035
+  IL_0015:  ldc.i4.0
+  IL_0016:  stloc.3
   IL_0017:  ldloc.2
   IL_0018:  ldc.i4.1
   IL_0019:  sub
-  IL_001a:  call       "S Inner.E1.Slice(S, int, int)"
-  IL_001f:  stloc.0
-  IL_0020:  ldloca.s   V_1
-  IL_0022:  ldloc.2
-  IL_0023:  ldc.i4.1
-  IL_0024:  sub
-  IL_0025:  call       "int S.this[int].get"
-  IL_002a:  ldc.i4.1
-  IL_002b:  ceq
-  IL_002d:  br.s       IL_0030
-  IL_002f:  ldc.i4.0
-  IL_0030:  pop
-  IL_0031:  ret
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloc.1
+  IL_001d:  ldloc.3
+  IL_001e:  ldloc.s    V_4
+  IL_0020:  call       "S Inner.E1.Slice(S, int, int)"
+  IL_0025:  stloc.0
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  ldloc.2
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  call       "int S.this[int].get"
+  IL_0030:  ldc.i4.1
+  IL_0031:  ceq
+  IL_0033:  br.s       IL_0036
+  IL_0035:  ldc.i4.0
+  IL_0036:  pop
+  IL_0037:  ret
 }
 """);
     }
@@ -10948,6 +10954,75 @@ public static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void SlicePattern_21()
+    {
+        // struct receiver passed by value, extension Length + extension this[Index] + extension this[Range]
+        var src = """
+_ = new S() is [.. var x, 1];
+
+public struct S { }
+
+public static class E
+{
+    extension(S s)
+    {
+        public int Length => 3;
+        public int this[System.Index i] { get { System.Console.Write($"{i}, "); return 0; } }
+        public int this[System.Range r] { get { System.Console.Write($"{r}, "); return 0; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0..^1, ^1, "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+
+        // Verify that the receiver (pattern temp local) is not unnecessarily captured.
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       82 (0x52)
+  .maxstack  5
+  .locals init (int V_0, //x
+                S V_1,
+                System.Range V_2,
+                System.Index V_3)
+  IL_0000:  ldloca.s   V_1
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloc.1
+  IL_0009:  call       "int E.get_Length(S)"
+  IL_000e:  ldc.i4.1
+  IL_000f:  blt.s      IL_004f
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldloca.s   V_2
+  IL_0015:  ldc.i4.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  newobj     "System.Index..ctor(int, bool)"
+  IL_001c:  ldc.i4.1
+  IL_001d:  ldc.i4.1
+  IL_001e:  newobj     "System.Index..ctor(int, bool)"
+  IL_0023:  call       "System.Range..ctor(System.Index, System.Index)"
+  IL_0028:  ldobj      "S"
+  IL_002d:  ldloc.2
+  IL_002e:  call       "int E.get_Item(S, System.Range)"
+  IL_0033:  stloc.0
+  IL_0034:  ldloca.s   V_1
+  IL_0036:  ldloca.s   V_3
+  IL_0038:  ldc.i4.1
+  IL_0039:  ldc.i4.1
+  IL_003a:  call       "System.Index..ctor(int, bool)"
+  IL_003f:  ldobj      "S"
+  IL_0044:  ldloc.3
+  IL_0045:  call       "int E.get_Item(S, System.Index)"
+  IL_004a:  ldc.i4.1
+  IL_004b:  ceq
+  IL_004d:  br.s       IL_0050
+  IL_004f:  ldc.i4.0
+  IL_0050:  pop
+  IL_0051:  ret
+}
+""");
     }
 
     [Theory, CombinatorialData]
@@ -28286,56 +28361,60 @@ class Program
 
         verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       40 (0x28)
-  .maxstack  4
+  // Code size       42 (0x2a)
+  .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
   IL_0006:  call       "int Program.GetStart()"
   IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldobj      "S1"
-  IL_0012:  call       "int E.get_Length(S1)"
-  IL_0017:  stloc.1
-  IL_0018:  ldobj      "S1"
-  IL_001d:  ldloc.0
-  IL_001e:  ldloc.1
-  IL_001f:  ldloc.0
-  IL_0020:  sub
-  IL_0021:  call       "int E.Slice(S1, int, int)"
-  IL_0026:  pop
-  IL_0027:  ret
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  ldobj      "S1"
+  IL_0014:  call       "int E.get_Length(S1)"
+  IL_0019:  ldloc.0
+  IL_001a:  sub
+  IL_001b:  stloc.2
+  IL_001c:  ldobj      "S1"
+  IL_0021:  ldloc.1
+  IL_0022:  ldloc.2
+  IL_0023:  call       "int E.Slice(S1, int, int)"
+  IL_0028:  pop
+  IL_0029:  ret
 }
 """);
 
         verifier.VerifyIL("S1.Test2", """
 {
-  // Code size       36 (0x24)
-  .maxstack  4
+  // Code size       38 (0x26)
+  .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       "int Program.GetStart()"
   IL_0007:  stloc.0
-  IL_0008:  dup
-  IL_0009:  ldobj      "S1"
-  IL_000e:  call       "int E.get_Length(S1)"
-  IL_0013:  stloc.1
-  IL_0014:  ldobj      "S1"
-  IL_0019:  ldloc.0
-  IL_001a:  ldloc.1
-  IL_001b:  ldloc.0
-  IL_001c:  sub
-  IL_001d:  call       "int E.Slice(S1, int, int)"
-  IL_0022:  pop
-  IL_0023:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  dup
+  IL_000b:  ldobj      "S1"
+  IL_0010:  call       "int E.get_Length(S1)"
+  IL_0015:  ldloc.0
+  IL_0016:  sub
+  IL_0017:  stloc.2
+  IL_0018:  ldobj      "S1"
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       "int E.Slice(S1, int, int)"
+  IL_0024:  pop
+  IL_0025:  ret
 }
 """);
-    }
-
-    [Fact]
+    }    [Fact]
     public void ImplicitRangeIndexerAccess_Get_LValueReceiver_IntStartOpenEndRangeExpr_01_02()
     {
         // sibling of ImplicitRangeIndexerAccess_Get_LValueReceiver_IntStartOpenEndRangeExpr_01
@@ -28392,49 +28471,55 @@ class Program
 
         verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       35 (0x23)
-  .maxstack  4
+  // Code size       37 (0x25)
+  .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
   IL_0006:  call       "int Program.GetStart()"
   IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  call       "int S1.Length.get"
-  IL_0012:  stloc.1
-  IL_0013:  ldobj      "S1"
-  IL_0018:  ldloc.0
-  IL_0019:  ldloc.1
-  IL_001a:  ldloc.0
-  IL_001b:  sub
-  IL_001c:  call       "int E.Slice(S1, int, int)"
-  IL_0021:  pop
-  IL_0022:  ret
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  call       "int S1.Length.get"
+  IL_0014:  ldloc.0
+  IL_0015:  sub
+  IL_0016:  stloc.2
+  IL_0017:  ldobj      "S1"
+  IL_001c:  ldloc.1
+  IL_001d:  ldloc.2
+  IL_001e:  call       "int E.Slice(S1, int, int)"
+  IL_0023:  pop
+  IL_0024:  ret
 }
 """);
 
         verifier.VerifyIL("S1.Test2", """
 {
-  // Code size       31 (0x1f)
-  .maxstack  4
+  // Code size       33 (0x21)
+  .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       "int Program.GetStart()"
   IL_0007:  stloc.0
-  IL_0008:  dup
-  IL_0009:  call       "int S1.Length.get"
-  IL_000e:  stloc.1
-  IL_000f:  ldobj      "S1"
-  IL_0014:  ldloc.0
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.0
-  IL_0017:  sub
-  IL_0018:  call       "int E.Slice(S1, int, int)"
-  IL_001d:  pop
-  IL_001e:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  dup
+  IL_000b:  call       "int S1.Length.get"
+  IL_0010:  ldloc.0
+  IL_0011:  sub
+  IL_0012:  stloc.2
+  IL_0013:  ldobj      "S1"
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.2
+  IL_001a:  call       "int E.Slice(S1, int, int)"
+  IL_001f:  pop
+  IL_0020:  ret
 }
 """);
     }
@@ -28498,19 +28583,19 @@ class Program
 {
   // Code size       35 (0x23)
   .maxstack  4
-  .locals init (int V_0,
+  .locals init (S1& V_0,
                 int V_1)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
-  IL_0006:  call       "int Program.GetStart()"
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldobj      "S1"
-  IL_0012:  call       "int E.get_Length(S1)"
-  IL_0017:  stloc.1
-  IL_0018:  ldloc.0
-  IL_0019:  ldloc.1
-  IL_001a:  ldloc.0
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.GetStart()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldobj      "S1"
+  IL_0015:  call       "int E.get_Length(S1)"
+  IL_001a:  ldloc.1
   IL_001b:  sub
   IL_001c:  call       "int S1.Slice(int, int)"
   IL_0021:  pop
@@ -28522,19 +28607,19 @@ class Program
 {
   // Code size       31 (0x1f)
   .maxstack  4
-  .locals init (int V_0,
+  .locals init (S1& V_0,
                 int V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       "int Program.GetStart()"
-  IL_0007:  stloc.0
-  IL_0008:  dup
-  IL_0009:  ldobj      "S1"
-  IL_000e:  call       "int E.get_Length(S1)"
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.0
-  IL_0015:  ldloc.1
-  IL_0016:  ldloc.0
+  IL_0002:  stloc.0
+  IL_0003:  call       "int Program.GetStart()"
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      "S1"
+  IL_0011:  call       "int E.get_Length(S1)"
+  IL_0016:  ldloc.1
   IL_0017:  sub
   IL_0018:  call       "int S1.Slice(int, int)"
   IL_001d:  pop
@@ -28914,19 +28999,20 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>(ref T)", """
 {
-  // Code size       66 (0x42)
-  .maxstack  4
+  // Code size       70 (0x46)
+  .maxstack  3
   .locals init (T V_0,
                 T& V_1,
                 int V_2,
                 int V_3,
-                T V_4)
+                int V_4,
+                T V_5)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.1
-  IL_0003:  ldloca.s   V_4
+  IL_0003:  ldloca.s   V_5
   IL_0005:  initobj    "T"
-  IL_000b:  ldloc.s    V_4
+  IL_000b:  ldloc.s    V_5
   IL_000d:  box        "T"
   IL_0012:  brtrue.s   IL_001f
   IL_0014:  ldloc.1
@@ -28937,43 +29023,48 @@ class Program
   IL_001f:  ldloc.1
   IL_0020:  call       "int Program.GetStart()"
   IL_0025:  stloc.2
-  IL_0026:  dup
-  IL_0027:  ldobj      "T"
-  IL_002c:  call       "int E.get_Length<T>(T)"
-  IL_0031:  stloc.3
-  IL_0032:  ldobj      "T"
-  IL_0037:  ldloc.2
-  IL_0038:  ldloc.3
-  IL_0039:  ldloc.2
-  IL_003a:  sub
-  IL_003b:  call       "int E.Slice<T>(T, int, int)"
-  IL_0040:  pop
-  IL_0041:  ret
+  IL_0026:  ldloc.2
+  IL_0027:  stloc.3
+  IL_0028:  dup
+  IL_0029:  ldobj      "T"
+  IL_002e:  call       "int E.get_Length<T>(T)"
+  IL_0033:  ldloc.2
+  IL_0034:  sub
+  IL_0035:  stloc.s    V_4
+  IL_0037:  ldobj      "T"
+  IL_003c:  ldloc.3
+  IL_003d:  ldloc.s    V_4
+  IL_003f:  call       "int E.Slice<T>(T, int, int)"
+  IL_0044:  pop
+  IL_0045:  ret
 }
 """);
 
         verifier.VerifyIL("Program.Test2<T>(ref T)", """
 {
-  // Code size       36 (0x24)
-  .maxstack  4
+  // Code size       38 (0x26)
+  .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       "int Program.GetStart()"
   IL_0007:  stloc.0
-  IL_0008:  dup
-  IL_0009:  ldobj      "T"
-  IL_000e:  call       "int E.get_Length<T>(T)"
-  IL_0013:  stloc.1
-  IL_0014:  ldobj      "T"
-  IL_0019:  ldloc.0
-  IL_001a:  ldloc.1
-  IL_001b:  ldloc.0
-  IL_001c:  sub
-  IL_001d:  call       "int E.Slice<T>(T, int, int)"
-  IL_0022:  pop
-  IL_0023:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  dup
+  IL_000b:  ldobj      "T"
+  IL_0010:  call       "int E.get_Length<T>(T)"
+  IL_0015:  ldloc.0
+  IL_0016:  sub
+  IL_0017:  stloc.2
+  IL_0018:  ldobj      "T"
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       "int E.Slice<T>(T, int, int)"
+  IL_0024:  pop
+  IL_0025:  ret
 }
 """);
     }
@@ -29156,19 +29247,20 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>(ref T)", """
 {
-  // Code size       66 (0x42)
-  .maxstack  4
+  // Code size       70 (0x46)
+  .maxstack  3
   .locals init (T V_0,
                 T& V_1,
                 int V_2,
                 int V_3,
-                T V_4)
+                int V_4,
+                T V_5)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.1
-  IL_0003:  ldloca.s   V_4
+  IL_0003:  ldloca.s   V_5
   IL_0005:  initobj    "T"
-  IL_000b:  ldloc.s    V_4
+  IL_000b:  ldloc.s    V_5
   IL_000d:  box        "T"
   IL_0012:  brtrue.s   IL_001f
   IL_0014:  ldloc.1
@@ -29179,18 +29271,20 @@ class Program
   IL_001f:  ldloc.1
   IL_0020:  call       "int Program.GetStart()"
   IL_0025:  stloc.2
-  IL_0026:  dup
-  IL_0027:  ldobj      "T"
-  IL_002c:  call       "int E.get_Length<T>(T)"
-  IL_0031:  stloc.3
-  IL_0032:  ldobj      "T"
-  IL_0037:  ldloc.2
-  IL_0038:  ldloc.3
-  IL_0039:  ldloc.2
-  IL_003a:  sub
-  IL_003b:  call       "int E.Slice<T>(T, int, int)"
-  IL_0040:  pop
-  IL_0041:  ret
+  IL_0026:  ldloc.2
+  IL_0027:  stloc.3
+  IL_0028:  dup
+  IL_0029:  ldobj      "T"
+  IL_002e:  call       "int E.get_Length<T>(T)"
+  IL_0033:  ldloc.2
+  IL_0034:  sub
+  IL_0035:  stloc.s    V_4
+  IL_0037:  ldobj      "T"
+  IL_003c:  ldloc.3
+  IL_003d:  ldloc.s    V_4
+  IL_003f:  call       "int E.Slice<T>(T, int, int)"
+  IL_0044:  pop
+  IL_0045:  ret
 }
 """);
 
@@ -29276,51 +29370,63 @@ class Program
 
         verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       45 (0x2d)
-  .maxstack  4
-  .locals init (System.Index V_0,
-                int V_1)
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (S1& V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
-  IL_0006:  call       "System.Index Program.GetIndex()"
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldobj      "S1"
-  IL_0012:  call       "int E.get_Length(S1)"
-  IL_0017:  stloc.1
-  IL_0018:  ldobj      "S1"
-  IL_001d:  ldc.i4.0
-  IL_001e:  ldloca.s   V_0
-  IL_0020:  ldloc.1
-  IL_0021:  call       "int System.Index.GetOffset(int)"
-  IL_0026:  call       "int E.Slice(S1, int, int)"
-  IL_002b:  pop
-  IL_002c:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  call       "System.Index Program.GetIndex()"
+  IL_000e:  stloc.3
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  ldloc.0
+  IL_0012:  ldobj      "S1"
+  IL_0017:  call       "int E.get_Length(S1)"
+  IL_001c:  call       "int System.Index.GetOffset(int)"
+  IL_0021:  stloc.2
+  IL_0022:  ldloc.0
+  IL_0023:  ldobj      "S1"
+  IL_0028:  ldloc.1
+  IL_0029:  ldloc.2
+  IL_002a:  call       "int E.Slice(S1, int, int)"
+  IL_002f:  pop
+  IL_0030:  ret
 }
 """);
 
         verifier.VerifyIL("S1.Test2", """
 {
-  // Code size       41 (0x29)
-  .maxstack  4
-  .locals init (System.Index V_0,
-                int V_1)
+  // Code size       45 (0x2d)
+  .maxstack  3
+  .locals init (S1& V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       "System.Index Program.GetIndex()"
-  IL_0007:  stloc.0
-  IL_0008:  dup
-  IL_0009:  ldobj      "S1"
-  IL_000e:  call       "int E.get_Length(S1)"
-  IL_0013:  stloc.1
-  IL_0014:  ldobj      "S1"
-  IL_0019:  ldc.i4.0
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  ldloc.1
-  IL_001d:  call       "int System.Index.GetOffset(int)"
-  IL_0022:  call       "int E.Slice(S1, int, int)"
-  IL_0027:  pop
-  IL_0028:  ret
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  stloc.1
+  IL_0005:  call       "System.Index Program.GetIndex()"
+  IL_000a:  stloc.3
+  IL_000b:  ldloca.s   V_3
+  IL_000d:  ldloc.0
+  IL_000e:  ldobj      "S1"
+  IL_0013:  call       "int E.get_Length(S1)"
+  IL_0018:  call       "int System.Index.GetOffset(int)"
+  IL_001d:  stloc.2
+  IL_001e:  ldloc.0
+  IL_001f:  ldobj      "S1"
+  IL_0024:  ldloc.1
+  IL_0025:  ldloc.2
+  IL_0026:  call       "int E.Slice(S1, int, int)"
+  IL_002b:  pop
+  IL_002c:  ret
 }
 """);
     }
@@ -29383,61 +29489,73 @@ class Program
 
         verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       53 (0x35)
-  .maxstack  4
-  .locals init (int V_0,
-                System.Index V_1,
-                int V_2)
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (S1& V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
-  IL_0006:  call       "int Program.GetStart()"
-  IL_000b:  stloc.0
-  IL_000c:  call       "System.Index Program.GetIndex()"
-  IL_0011:  stloc.1
-  IL_0012:  dup
-  IL_0013:  ldobj      "S1"
-  IL_0018:  call       "int E.get_Length(S1)"
-  IL_001d:  stloc.2
-  IL_001e:  ldobj      "S1"
-  IL_0023:  ldloc.0
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  ldloc.2
-  IL_0027:  call       "int System.Index.GetOffset(int)"
-  IL_002c:  ldloc.0
-  IL_002d:  sub
-  IL_002e:  call       "int E.Slice(S1, int, int)"
-  IL_0033:  pop
-  IL_0034:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.GetStart()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
+  IL_000e:  stloc.2
+  IL_000f:  call       "System.Index Program.GetIndex()"
+  IL_0014:  stloc.s    V_4
+  IL_0016:  ldloca.s   V_4
+  IL_0018:  ldloc.0
+  IL_0019:  ldobj      "S1"
+  IL_001e:  call       "int E.get_Length(S1)"
+  IL_0023:  call       "int System.Index.GetOffset(int)"
+  IL_0028:  ldloc.1
+  IL_0029:  sub
+  IL_002a:  stloc.3
+  IL_002b:  ldloc.0
+  IL_002c:  ldobj      "S1"
+  IL_0031:  ldloc.2
+  IL_0032:  ldloc.3
+  IL_0033:  call       "int E.Slice(S1, int, int)"
+  IL_0038:  pop
+  IL_0039:  ret
 }
 """);
 
         verifier.VerifyIL("S1.Test2", """
 {
-  // Code size       49 (0x31)
-  .maxstack  4
-  .locals init (int V_0,
-                System.Index V_1,
-                int V_2)
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (S1& V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  call       "int Program.GetStart()"
-  IL_0007:  stloc.0
-  IL_0008:  call       "System.Index Program.GetIndex()"
-  IL_000d:  stloc.1
-  IL_000e:  dup
-  IL_000f:  ldobj      "S1"
-  IL_0014:  call       "int E.get_Length(S1)"
-  IL_0019:  stloc.2
-  IL_001a:  ldobj      "S1"
-  IL_001f:  ldloc.0
-  IL_0020:  ldloca.s   V_1
-  IL_0022:  ldloc.2
-  IL_0023:  call       "int System.Index.GetOffset(int)"
-  IL_0028:  ldloc.0
-  IL_0029:  sub
-  IL_002a:  call       "int E.Slice(S1, int, int)"
-  IL_002f:  pop
-  IL_0030:  ret
+  IL_0002:  stloc.0
+  IL_0003:  call       "int Program.GetStart()"
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.1
+  IL_000a:  stloc.2
+  IL_000b:  call       "System.Index Program.GetIndex()"
+  IL_0010:  stloc.s    V_4
+  IL_0012:  ldloca.s   V_4
+  IL_0014:  ldloc.0
+  IL_0015:  ldobj      "S1"
+  IL_001a:  call       "int E.get_Length(S1)"
+  IL_001f:  call       "int System.Index.GetOffset(int)"
+  IL_0024:  ldloc.1
+  IL_0025:  sub
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.0
+  IL_0028:  ldobj      "S1"
+  IL_002d:  ldloc.2
+  IL_002e:  ldloc.3
+  IL_002f:  call       "int E.Slice(S1, int, int)"
+  IL_0034:  pop
+  IL_0035:  ret
 }
 """);
     }
@@ -29573,11 +29691,12 @@ class Program
 
         verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       44 (0x2c)
+  // Code size       46 (0x2e)
   .maxstack  4
   .locals init (int V_0,
                 int V_1,
-                int V_2)
+                int V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
   IL_0006:  call       "int Program.GetEnd()"
@@ -29585,29 +29704,32 @@ class Program
   IL_000c:  dup
   IL_000d:  ldobj      "S1"
   IL_0012:  call       "int E.get_Length(S1)"
-  IL_0017:  stloc.1
-  IL_0018:  ldloc.1
-  IL_0019:  ldloc.0
-  IL_001a:  sub
-  IL_001b:  stloc.2
-  IL_001c:  ldobj      "S1"
-  IL_0021:  ldloc.2
-  IL_0022:  ldloc.1
-  IL_0023:  ldloc.2
-  IL_0024:  sub
-  IL_0025:  call       "int E.Slice(S1, int, int)"
-  IL_002a:  pop
-  IL_002b:  ret
+  IL_0017:  dup
+  IL_0018:  ldloc.0
+  IL_0019:  sub
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.1
+  IL_001c:  stloc.2
+  IL_001d:  ldloc.1
+  IL_001e:  sub
+  IL_001f:  stloc.3
+  IL_0020:  ldobj      "S1"
+  IL_0025:  ldloc.2
+  IL_0026:  ldloc.3
+  IL_0027:  call       "int E.Slice(S1, int, int)"
+  IL_002c:  pop
+  IL_002d:  ret
 }
 """);
 
         verifier.VerifyIL("S1.Test2", """
 {
-  // Code size       40 (0x28)
+  // Code size       42 (0x2a)
   .maxstack  4
   .locals init (int V_0,
                 int V_1,
-                int V_2)
+                int V_2,
+                int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       "int Program.GetEnd()"
@@ -29615,19 +29737,21 @@ class Program
   IL_0008:  dup
   IL_0009:  ldobj      "S1"
   IL_000e:  call       "int E.get_Length(S1)"
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  ldloc.0
-  IL_0016:  sub
-  IL_0017:  stloc.2
-  IL_0018:  ldobj      "S1"
-  IL_001d:  ldloc.2
-  IL_001e:  ldloc.1
-  IL_001f:  ldloc.2
-  IL_0020:  sub
-  IL_0021:  call       "int E.Slice(S1, int, int)"
-  IL_0026:  pop
-  IL_0027:  ret
+  IL_0013:  dup
+  IL_0014:  ldloc.0
+  IL_0015:  sub
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.1
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.1
+  IL_001a:  sub
+  IL_001b:  stloc.3
+  IL_001c:  ldobj      "S1"
+  IL_0021:  ldloc.2
+  IL_0022:  ldloc.3
+  IL_0023:  call       "int E.Slice(S1, int, int)"
+  IL_0028:  pop
+  IL_0029:  ret
 }
 """);
     }
@@ -29690,47 +29814,53 @@ class Program
 
         verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       34 (0x22)
-  .maxstack  4
+  // Code size       36 (0x24)
+  .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
   IL_0006:  call       "int Program.GetStart()"
   IL_000b:  stloc.0
-  IL_000c:  call       "int Program.GetEnd()"
-  IL_0011:  stloc.1
-  IL_0012:  ldobj      "S1"
-  IL_0017:  ldloc.0
-  IL_0018:  ldloc.1
-  IL_0019:  ldloc.0
-  IL_001a:  sub
-  IL_001b:  call       "int E.Slice(S1, int, int)"
-  IL_0020:  pop
-  IL_0021:  ret
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  call       "int Program.GetEnd()"
+  IL_0013:  ldloc.0
+  IL_0014:  sub
+  IL_0015:  stloc.2
+  IL_0016:  ldobj      "S1"
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.2
+  IL_001d:  call       "int E.Slice(S1, int, int)"
+  IL_0022:  pop
+  IL_0023:  ret
 }
 """);
 
         verifier.VerifyIL("S1.Test2", """
 {
-  // Code size       30 (0x1e)
-  .maxstack  4
+  // Code size       32 (0x20)
+  .maxstack  3
   .locals init (int V_0,
-                int V_1)
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  call       "int Program.GetStart()"
   IL_0007:  stloc.0
-  IL_0008:  call       "int Program.GetEnd()"
-  IL_000d:  stloc.1
-  IL_000e:  ldobj      "S1"
-  IL_0013:  ldloc.0
-  IL_0014:  ldloc.1
-  IL_0015:  ldloc.0
-  IL_0016:  sub
-  IL_0017:  call       "int E.Slice(S1, int, int)"
-  IL_001c:  pop
-  IL_001d:  ret
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  call       "int Program.GetEnd()"
+  IL_000f:  ldloc.0
+  IL_0010:  sub
+  IL_0011:  stloc.2
+  IL_0012:  ldobj      "S1"
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       "int E.Slice(S1, int, int)"
+  IL_001e:  pop
+  IL_001f:  ret
 }
 """);
     }
@@ -29783,29 +29913,32 @@ class Program
 
         verifier.VerifyIL("Program.Test", """
 {
-  // Code size       43 (0x2b)
-  .maxstack  4
+  // Code size       45 (0x2d)
+  .maxstack  3
   .locals init (int V_0,
                 int V_1,
-                S1 V_2)
+                int V_2,
+                S1 V_3)
   IL_0000:  nop
   IL_0001:  call       "S1 Program.GetS1()"
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
+  IL_0006:  stloc.3
+  IL_0007:  ldloca.s   V_3
   IL_0009:  call       "int Program.GetStart()"
   IL_000e:  stloc.0
-  IL_000f:  dup
-  IL_0010:  ldobj      "S1"
-  IL_0015:  call       "int E.get_Length(S1)"
-  IL_001a:  stloc.1
-  IL_001b:  ldobj      "S1"
-  IL_0020:  ldloc.0
-  IL_0021:  ldloc.1
-  IL_0022:  ldloc.0
-  IL_0023:  sub
-  IL_0024:  call       "int E.Slice(S1, int, int)"
-  IL_0029:  pop
-  IL_002a:  ret
+  IL_000f:  ldloc.0
+  IL_0010:  stloc.1
+  IL_0011:  dup
+  IL_0012:  ldobj      "S1"
+  IL_0017:  call       "int E.get_Length(S1)"
+  IL_001c:  ldloc.0
+  IL_001d:  sub
+  IL_001e:  stloc.2
+  IL_001f:  ldobj      "S1"
+  IL_0024:  ldloc.1
+  IL_0025:  ldloc.2
+  IL_0026:  call       "int E.Slice(S1, int, int)"
+  IL_002b:  pop
+  IL_002c:  ret
 }
 """);
     }
@@ -30061,22 +30194,23 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size       74 (0x4a)
-  .maxstack  4
+  // Code size       78 (0x4e)
+  .maxstack  3
   .locals init (T V_0,
                 T& V_1,
                 int V_2,
                 int V_3,
-                T V_4,
-                T V_5)
+                int V_4,
+                T V_5,
+                T V_6)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
+  IL_0006:  stloc.s    V_5
+  IL_0008:  ldloca.s   V_5
   IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_5
+  IL_000b:  ldloca.s   V_6
   IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_5
+  IL_0013:  ldloc.s    V_6
   IL_0015:  box        "T"
   IL_001a:  brtrue.s   IL_0027
   IL_001c:  ldloc.1
@@ -30087,46 +30221,51 @@ class Program
   IL_0027:  ldloc.1
   IL_0028:  call       "int Program.GetStart()"
   IL_002d:  stloc.2
-  IL_002e:  dup
-  IL_002f:  ldobj      "T"
-  IL_0034:  call       "int E.get_Length<T>(T)"
-  IL_0039:  stloc.3
-  IL_003a:  ldobj      "T"
-  IL_003f:  ldloc.2
-  IL_0040:  ldloc.3
-  IL_0041:  ldloc.2
-  IL_0042:  sub
-  IL_0043:  call       "int E.Slice<T>(T, int, int)"
-  IL_0048:  pop
-  IL_0049:  ret
+  IL_002e:  ldloc.2
+  IL_002f:  stloc.3
+  IL_0030:  dup
+  IL_0031:  ldobj      "T"
+  IL_0036:  call       "int E.get_Length<T>(T)"
+  IL_003b:  ldloc.2
+  IL_003c:  sub
+  IL_003d:  stloc.s    V_4
+  IL_003f:  ldobj      "T"
+  IL_0044:  ldloc.3
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  call       "int E.Slice<T>(T, int, int)"
+  IL_004c:  pop
+  IL_004d:  ret
 }
 """);
 
         verifier.VerifyIL("Program.Test2<T>()", """
 {
-  // Code size       43 (0x2b)
-  .maxstack  4
+  // Code size       45 (0x2d)
+  .maxstack  3
   .locals init (int V_0,
                 int V_1,
-                T V_2)
+                int V_2,
+                T V_3)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
+  IL_0006:  stloc.3
+  IL_0007:  ldloca.s   V_3
   IL_0009:  call       "int Program.GetStart()"
   IL_000e:  stloc.0
-  IL_000f:  dup
-  IL_0010:  ldobj      "T"
-  IL_0015:  call       "int E.get_Length<T>(T)"
-  IL_001a:  stloc.1
-  IL_001b:  ldobj      "T"
-  IL_0020:  ldloc.0
-  IL_0021:  ldloc.1
-  IL_0022:  ldloc.0
-  IL_0023:  sub
-  IL_0024:  call       "int E.Slice<T>(T, int, int)"
-  IL_0029:  pop
-  IL_002a:  ret
+  IL_000f:  ldloc.0
+  IL_0010:  stloc.1
+  IL_0011:  dup
+  IL_0012:  ldobj      "T"
+  IL_0017:  call       "int E.get_Length<T>(T)"
+  IL_001c:  ldloc.0
+  IL_001d:  sub
+  IL_001e:  stloc.2
+  IL_001f:  ldobj      "T"
+  IL_0024:  ldloc.1
+  IL_0025:  ldloc.2
+  IL_0026:  call       "int E.Slice<T>(T, int, int)"
+  IL_002b:  pop
+  IL_002c:  ret
 }
 """);
     }
@@ -30265,22 +30404,23 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size       74 (0x4a)
-  .maxstack  4
+  // Code size       78 (0x4e)
+  .maxstack  3
   .locals init (T V_0,
                 T& V_1,
                 int V_2,
                 int V_3,
-                T V_4,
-                T V_5)
+                int V_4,
+                T V_5,
+                T V_6)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
+  IL_0006:  stloc.s    V_5
+  IL_0008:  ldloca.s   V_5
   IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_5
+  IL_000b:  ldloca.s   V_6
   IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_5
+  IL_0013:  ldloc.s    V_6
   IL_0015:  box        "T"
   IL_001a:  brtrue.s   IL_0027
   IL_001c:  ldloc.1
@@ -30291,18 +30431,20 @@ class Program
   IL_0027:  ldloc.1
   IL_0028:  call       "int Program.GetStart()"
   IL_002d:  stloc.2
-  IL_002e:  dup
-  IL_002f:  ldobj      "T"
-  IL_0034:  call       "int E.get_Length<T>(T)"
-  IL_0039:  stloc.3
-  IL_003a:  ldobj      "T"
-  IL_003f:  ldloc.2
-  IL_0040:  ldloc.3
-  IL_0041:  ldloc.2
-  IL_0042:  sub
-  IL_0043:  call       "int E.Slice<T>(T, int, int)"
-  IL_0048:  pop
-  IL_0049:  ret
+  IL_002e:  ldloc.2
+  IL_002f:  stloc.3
+  IL_0030:  dup
+  IL_0031:  ldobj      "T"
+  IL_0036:  call       "int E.get_Length<T>(T)"
+  IL_003b:  ldloc.2
+  IL_003c:  sub
+  IL_003d:  stloc.s    V_4
+  IL_003f:  ldobj      "T"
+  IL_0044:  ldloc.3
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  call       "int E.Slice<T>(T, int, int)"
+  IL_004c:  pop
+  IL_004d:  ret
 }
 """);
 

@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(rewrittenRangeArg is not null);
-                            DeconstructRange(rewrittenRangeArg, _factory.Literal(length), localsBuilder, sideEffectsBuilder, out startExpr, out rangeSizeExpr);
+                            (startExpr, rangeSizeExpr) = DeconstructRangeIntoLocals(rewrittenRangeArg, _factory.Literal(length), localsBuilder, sideEffectsBuilder);
                         }
 
                         BoundExpression possiblyRefCapturedReceiver = rewrittenReceiver;
@@ -575,8 +575,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
                         bool isPossibleReferenceTypeReceiver =
-                            IsPossibleReferenceTypeReceiverOfConstrainedCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
-                            || IsPossibleReferenceTypeReceiverOfConstrainedCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
+                            IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
+                            || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
 
                         if (isPossibleReferenceTypeReceiver &&
                             !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenIndexerAccess);
         }
 
-        private bool IsPossibleReferenceTypeReceiverOfConstrainedCall(Symbol symbol, BoundLocal receiverLocal)
+        private bool IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(Symbol symbol, BoundLocal receiverLocal)
         {
             return symbol.IsExtensionBlockMember()
                 ? !receiverLocal.Type.IsValueType
@@ -895,8 +895,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
                     bool isPossibleReferenceTypeReceiver =
-                        IsPossibleReferenceTypeReceiverOfConstrainedCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
-                        || IsPossibleReferenceTypeReceiverOfConstrainedCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
+                        IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
+                        || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
 
                     if (isPossibleReferenceTypeReceiver &&
                         !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal))
@@ -945,8 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
 
             bool needSpecialExtensionReceiverReadOrder =
-                IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.LengthOrCountAccess.ExpressionSymbol)
-                || IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.IndexerOrSliceAccess.ExpressionSymbol);
+                IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.IndexerOrSliceAccess.ExpressionSymbol);
 
             if (rangeExpr is not null)
             {
@@ -1046,24 +1045,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(endStrategy != PatternIndexOffsetLoweringStrategy.Length || (rewriteFlags & captureEndOffset) == 0);
                 Debug.Assert((rewriteFlags & captureLength) == 0 || (rewriteFlags & useLength) != 0);
 
-                if (needSpecialExtensionReceiverReadOrder)
-                {
-                    if (startMakeOffsetInput is not null)
-                    {
-                        rewriteFlags |= captureStartOffset;
-                    }
-
-                    if (endMakeOffsetInput is not null)
-                    {
-                        rewriteFlags |= captureEndOffset;
-                    }
-
-                    if ((rewriteFlags & useLength) != 0)
-                    {
-                        rewriteFlags |= captureLength;
-                    }
-                }
-
                 if ((rewriteFlags & captureStartOffset) != 0)
                 {
                     Debug.Assert(startMakeOffsetInput is not null);
@@ -1094,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression endExpr = MakePatternIndexOffsetExpression(endMakeOffsetInput, lengthAccess, endStrategy);
                 rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
 
-                if (cacheAllArgumentsOnly)
+                if (cacheAllArgumentsOnly || needSpecialExtensionReceiverReadOrder)
                 {
                     var startLocal = F.StoreToTemp(startExpr, out var startStore);
                     localsBuilder.Add(startLocal.LocalSymbol);
@@ -1110,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(rewrittenRangeArg is not null);
-                DeconstructRange(rewrittenRangeArg, VisitExpression(node.LengthOrCountAccess), localsBuilder, sideEffectsBuilder, out startExpr, out rangeSizeExpr);
+                (startExpr, rangeSizeExpr) = DeconstructRangeIntoLocals(rewrittenRangeArg, VisitExpression(node.LengthOrCountAccess), localsBuilder, sideEffectsBuilder);
             }
 
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
@@ -1231,7 +1212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rangeSizeExpr;
         }
 
-        private void DeconstructRange(BoundExpression rewrittenRangeArg, BoundExpression lengthAccess, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, out BoundExpression startExpr, out BoundExpression rangeSizeExpr)
+        private (BoundLocal startExpr, BoundLocal rangeSizeExpr)
+            DeconstructRangeIntoLocals(BoundExpression rewrittenRangeArg, BoundExpression lengthAccess, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
         {
             var F = _factory;
 
@@ -1256,7 +1238,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             localsBuilder.Add(startLocal.LocalSymbol);
             sideEffectsBuilder.Add(startStore);
-            startExpr = startLocal;
 
             var rangeSizeLocal = F.StoreToTemp(
                 F.IntSubtract(
@@ -1264,12 +1245,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_End)),
                         F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
                         lengthAccess),
-                    startExpr),
+                    startLocal),
                 out var rangeSizeStore);
 
             localsBuilder.Add(rangeSizeLocal.LocalSymbol);
             sideEffectsBuilder.Add(rangeSizeStore);
-            rangeSizeExpr = rangeSizeLocal;
+
+            return (startLocal, rangeSizeLocal);
         }
 
         private void RewriteRangeParts(BoundExpression rangeArg, out BoundRangeExpression? rangeExpr, out BoundExpression? startMakeOffsetInput, out PatternIndexOffsetLoweringStrategy startStrategy, out BoundExpression? endMakeOffsetInput, out PatternIndexOffsetLoweringStrategy endStrategy, out BoundExpression? rewrittenRangeArg)
