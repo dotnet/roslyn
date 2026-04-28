@@ -31,18 +31,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _logger = logger;
         }
 
-        internal int Run(string? pipeName, bool shutdown, DateTimeOffset? purgeCacheCutoff, DateTimeOffset? cacheStatsSince, int cacheStatsVerbosity, string? cachePath, TimeSpan? keepAlive)
+        internal int Run(BuildServerCommandLineOptions options)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            if (shutdown)
-                return RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token);
-            if (purgeCacheCutoff is not null)
-                return RunPurgeCache(purgeCacheCutoff.Value, cachePath);
-            if (cacheStatsSince is not null)
-                return RunCacheStats(cacheStatsSince.Value, cacheStatsVerbosity, cachePath);
-            return RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
+            if (options.Shutdown)
+                return RunShutdown(options.PipeName, cancellationToken: cancellationTokenSource.Token);
+            if (options.PurgeCacheCutoff is not null)
+                return RunPurgeCache(options.PurgeCacheCutoff.Value, options.CachePath);
+            if (options.CacheStatsSince is not null)
+                return RunCacheStats(options.CacheStatsSince.Value, options.CacheStatsVerbosity, options.CachePath);
+            return RunServer(options.PipeName, keepAlive: options.KeepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
         internal static TimeSpan GetDefaultKeepAlive(ICompilerServerLogger logger, NameValueCollection? appSettings = null)
@@ -222,16 +222,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///   <item><description><c>-cachepath:&lt;path&gt;</c> — override the cache directory for <c>-purgecache</c> and <c>-cachestats</c>.</description></item>
         /// </list>
         /// </remarks>
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out DateTimeOffset? purgeCacheCutoff, out DateTimeOffset? cacheStatsSince, out int cacheStatsVerbosity, out string? cachePath, out TimeSpan? timeout, out string? logFilePath)
+        internal static bool ParseCommandLine(string[] args, out BuildServerCommandLineOptions options)
         {
-            pipeName = null;
-            shutdown = false;
-            purgeCacheCutoff = null;
-            cacheStatsSince = null;
-            cacheStatsVerbosity = 0;
-            cachePath = null;
-            timeout = null;
-            logFilePath = null;
+            options = new BuildServerCommandLineOptions();
+            var hasOperation = false;
 
             foreach (var arg in args)
             {
@@ -248,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var argSpan = arg.AsSpan();
                 if (argSpan.StartsWith(pipeArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    pipeName = argSpan[pipeArgPrefix.Length..].ToString();
+                    options.PipeName = argSpan[pipeArgPrefix.Length..].ToString();
                 }
                 else if (argSpan.StartsWith(timeoutArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
@@ -259,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return false;
                     }
 
-                    timeout = parsedTimeout == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
+                    options.KeepAlive = parsedTimeout == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
                 }
                 else if (argSpan.StartsWith(logArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
@@ -269,39 +263,69 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return false;
                     }
 
-                    logFilePath = parsedLogFilePath.ToString();
+                    options.LogFilePath = parsedLogFilePath.ToString();
                 }
                 else if (arg == shutdownArg)
                 {
-                    shutdown = true;
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.Shutdown = true;
                 }
                 else if (arg == purgeCacheArg)
                 {
-                    purgeCacheCutoff = DateTimeOffset.MaxValue;
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.PurgeCacheCutoff = DateTimeOffset.MaxValue;
                 }
                 else if (argSpan.StartsWith(purgeCacheArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
                     var value = argSpan[purgeCacheArgPrefix.Length..].ToString();
                     if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return false;
                     }
 
-                    purgeCacheCutoff = parsed.ToUniversalTime();
+                    hasOperation = true;
+                    options.PurgeCacheCutoff = parsed.ToUniversalTime();
                 }
                 else if (arg == cacheStatsArg)
                 {
-                    cacheStatsSince = DateTimeOffset.MinValue;
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.CacheStatsSince = DateTimeOffset.MinValue;
                 }
                 else if (argSpan.StartsWith(cacheStatsArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
                     var value = argSpan[cacheStatsArgPrefix.Length..].ToString();
                     if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
                     {
                         return false;
                     }
 
-                    cacheStatsSince = parsed.ToUniversalTime();
+                    hasOperation = true;
+                    options.CacheStatsSince = parsed.ToUniversalTime();
                 }
                 else if (argSpan.StartsWith(cacheStatsVerbosityArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
@@ -312,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return false;
                     }
 
-                    cacheStatsVerbosity = parsedVerbosity;
+                    options.CacheStatsVerbosity = parsedVerbosity;
                 }
                 else if (argSpan.StartsWith(cachePathArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
@@ -322,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return false;
                     }
 
-                    cachePath = value;
+                    options.CachePath = value;
                 }
                 else
                 {
@@ -332,5 +356,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return true;
         }
+    }
+
+    internal sealed class BuildServerCommandLineOptions
+    {
+        internal string? PipeName { get; set; }
+        internal bool Shutdown { get; set; }
+        internal DateTimeOffset? PurgeCacheCutoff { get; set; }
+        internal DateTimeOffset? CacheStatsSince { get; set; }
+        internal int CacheStatsVerbosity { get; set; }
+        internal string? CachePath { get; set; }
+        internal TimeSpan? KeepAlive { get; set; }
+        internal string? LogFilePath { get; set; }
     }
 }

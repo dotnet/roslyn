@@ -416,7 +416,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             private bool Parse(params string[] args)
             {
-                return BuildServerController.ParseCommandLine(args, out _pipeName, out _shutdown, out _purgeCacheCutoff, out _cacheStatsSince, out _cacheStatsVerbosity, out _cachePath, out _timeout, out _logFilePath);
+                var result = BuildServerController.ParseCommandLine(args, out var options);
+                _pipeName = options.PipeName;
+                _shutdown = options.Shutdown;
+                _purgeCacheCutoff = options.PurgeCacheCutoff;
+                _cacheStatsSince = options.CacheStatsSince;
+                _cacheStatsVerbosity = options.CacheStatsVerbosity;
+                _cachePath = options.CachePath;
+                _timeout = options.KeepAlive;
+                _logFilePath = options.LogFilePath;
+                return result;
             }
 
             [Fact]
@@ -537,6 +546,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(Parse("-pipename:test", "-cachestats"));
                 Assert.Equal("test", _pipeName);
                 Assert.Equal(DateTimeOffset.MinValue, _cacheStatsSince);
+            }
+
+            [Fact]
+            public void RejectsConflictingOperations()
+            {
+                Assert.False(Parse("-shutdown", "-purgecache"));
+                Assert.False(Parse("-shutdown", "-cachestats"));
+                Assert.False(Parse("-purgecache", "-cachestats"));
+                Assert.False(Parse("-shutdown", "-shutdown"));
             }
 
             [Fact]
