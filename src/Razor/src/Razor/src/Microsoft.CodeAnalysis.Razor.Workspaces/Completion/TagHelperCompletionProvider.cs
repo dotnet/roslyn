@@ -174,7 +174,12 @@ internal class TagHelperCompletionProvider(ITagHelperCompletionService tagHelper
         TagHelperDocumentContext tagHelperDocumentContext,
         RazorCompletionOptions options)
     {
-        var ancestors = containingAttribute.Parent.Ancestors();
+        // containingAttribute.Parent is the start tag, and its Parent is the containing element.
+        // We need ancestors of the containing element to correctly resolve ParentTag constraints.
+        // Without this, GetNearestAncestorTagInfo would return the containing element itself as the
+        // "parent", which breaks tag helpers that use ParentTag (e.g., [HtmlTargetElement("header", ParentTag = "container")]).
+        var containingElement = containingAttribute.Parent?.Parent;
+        var ancestors = containingElement?.Ancestors() ?? [];
         var nonDirectiveAttributeTagHelpers = tagHelperDocumentContext.TagHelpers.Where(
             static tagHelper => !tagHelper.BoundAttributes.Any(static attribute => attribute.IsDirectiveAttribute));
         var filteredContext = TagHelperDocumentContext.GetOrCreate(tagHelperDocumentContext.Prefix, nonDirectiveAttributeTagHelpers);
