@@ -11,47 +11,22 @@ public class ImplicitExpressionSuggestionModeRewriterTest
 {
     private readonly ImplicitExpressionSuggestionModeRewriter _rewriter = new();
 
-    [Fact]
-    public void TopLevel_SimpleIdentifier_ClearsSuggestionMode()
+    [Theory]
+    [InlineData("<div>@h$$</div>")]                                        // Simple identifier
+    [InlineData("<div>@items.Where(x => x.Name).First()$$</div>")]         // Balanced parens after expression
+    [InlineData("<div>@items[0].N$$</div>")]                               // Brackets don't affect paren depth
+    public void TopLevel_ClearsSuggestionMode(string markup)
     {
-        // @h$$
-        Assert.False(GetRewrittenSuggestionMode("<div>@h$$</div>"));
+        Assert.False(GetRewrittenSuggestionMode(markup));
     }
 
-    [Fact]
-    public void TopLevel_BalancedParens_ClearsSuggestionMode()
+    [Theory]
+    [InlineData("<div>@items.Where(x$$)</div>")]                           // Inside parens
+    [InlineData("<div>@items.Where(x => x.Select(y$$))</div>")]            // Inside nested parens
+    [InlineData("<div>@{ h$$ }</div>")]                                    // Code block, not implicit expression
+    public void Nested_PreservesSuggestionMode(string markup)
     {
-        // @items.Where(x => x.Name).First()$$
-        Assert.False(GetRewrittenSuggestionMode("<div>@items.Where(x => x.Name).First()$$</div>"));
-    }
-
-    [Fact]
-    public void TopLevel_Brackets_ClearsSuggestionMode()
-    {
-        // Brackets are not tracked — only parentheses affect nesting depth
-        // @items[0].N$$
-        Assert.False(GetRewrittenSuggestionMode("<div>@items[0].N$$</div>"));
-    }
-
-    [Fact]
-    public void Nested_InsideParens_PreservesSuggestionMode()
-    {
-        // @items.Where(x$$)
-        Assert.True(GetRewrittenSuggestionMode("<div>@items.Where(x$$)</div>"));
-    }
-
-    [Fact]
-    public void Nested_InsideNestedParens_PreservesSuggestionMode()
-    {
-        // @items.Where(x => x.Select(y$$))
-        Assert.True(GetRewrittenSuggestionMode("<div>@items.Where(x => x.Select(y$$))</div>"));
-    }
-
-    [Fact]
-    public void NotImplicitExpression_CodeBlock_PreservesSuggestionMode()
-    {
-        // @{ h$$ } — code block, not implicit expression; rewriter should not touch it
-        Assert.True(GetRewrittenSuggestionMode("<div>@{ h$$ }</div>"));
+        Assert.True(GetRewrittenSuggestionMode(markup));
     }
 
     [Fact]
