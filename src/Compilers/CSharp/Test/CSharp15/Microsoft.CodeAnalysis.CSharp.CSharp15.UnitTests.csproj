@@ -20,5 +20,9 @@
     <PackageReference Include="Microsoft.DiaSymReader" />
     <PackageReference Include="Basic.Reference.Assemblies.Net100" />
   </ItemGroup>
+  <ItemGroup Label="Parsing test helpers">
+    <Compile Include="..\Syntax\Parsing\ParsingTests.cs" Link="Parsing\ParsingTests.cs" />
+    <Compile Include="..\Syntax\Parsing\SyntaxExtensions.cs" Link="Parsing\SyntaxExtensions.cs" />
+  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>
