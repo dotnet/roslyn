@@ -16,6 +16,8 @@ Set up tracking for a new C# language feature in dotnet/roslyn, starting from an
 
 - `gh` CLI authenticated with write access to `dotnet/roslyn` (verify with `gh auth status`)
 
+Do not proceed if prerequisites are not met. Instead, guide the user through the necessary actions (installing `gh`, authenticating, etc.).
+
 ## Phase 1: Gather
 
 ### 1.1 Parse the PR
