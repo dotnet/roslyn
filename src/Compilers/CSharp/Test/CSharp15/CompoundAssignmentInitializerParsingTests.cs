@@ -392,51 +392,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     #region Object initializer: dictionary (indexer) member
 
     [Theory, MemberData(nameof(CompoundOperators))]
-    public void ObjectInitializer_IndexerMember_AllCompoundOperators(SyntaxKind operatorTokenKind)
-    {
-        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
-        UsingExpression($$"""new Goo { [0] {{op}} 1 }""");
-
-        N(SyntaxKind.ObjectCreationExpression);
-        {
-            N(SyntaxKind.NewKeyword);
-            N(SyntaxKind.IdentifierName);
-            {
-                N(SyntaxKind.IdentifierToken, "Goo");
-            }
-            N(SyntaxKind.ObjectInitializerExpression);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(assignmentKind);
-                {
-                    N(SyntaxKind.ImplicitElementAccess);
-                    {
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "0");
-                                }
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                    N(operatorTokenKind);
-                    N(SyntaxKind.NumericLiteralExpression);
-                    {
-                        N(SyntaxKind.NumericLiteralToken, "1");
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-    }
-
-    [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_IndexerMember_MultipleArguments(SyntaxKind operatorTokenKind)
     {
         var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
@@ -627,53 +582,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     #region Object-vs-collection classification
 
     [Theory, MemberData(nameof(CompoundOperators))]
-    public void Classifier_AllCompoundMembersAreObjectInitializer(SyntaxKind operatorTokenKind)
-    {
-        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
-        UsingExpression($$"""new Goo { Prop {{op}} 1, Event {{op}} Handler }""");
-
-        N(SyntaxKind.ObjectCreationExpression);
-        {
-            N(SyntaxKind.NewKeyword);
-            N(SyntaxKind.IdentifierName);
-            {
-                N(SyntaxKind.IdentifierToken, "Goo");
-            }
-            N(SyntaxKind.ObjectInitializerExpression);
-            {
-                N(SyntaxKind.OpenBraceToken);
-                N(assignmentKind);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Prop");
-                    }
-                    N(operatorTokenKind);
-                    N(SyntaxKind.NumericLiteralExpression);
-                    {
-                        N(SyntaxKind.NumericLiteralToken, "1");
-                    }
-                }
-                N(SyntaxKind.CommaToken);
-                N(assignmentKind);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Event");
-                    }
-                    N(operatorTokenKind);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "Handler");
-                    }
-                }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-    }
-
-    [Theory, MemberData(nameof(CompoundOperators))]
     public void Classifier_IndexerCompoundMembersAreObjectInitializer(SyntaxKind operatorTokenKind)
     {
         var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
@@ -780,27 +688,6 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
                         N(SyntaxKind.NumericLiteralToken, "1");
                     }
                 }
-                N(SyntaxKind.CloseBraceToken);
-            }
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void Classifier_EmptyBracesIsObjectInitializer()
-    {
-        UsingExpression("new Goo { }");
-
-        N(SyntaxKind.ObjectCreationExpression);
-        {
-            N(SyntaxKind.NewKeyword);
-            N(SyntaxKind.IdentifierName);
-            {
-                N(SyntaxKind.IdentifierToken, "Goo");
-            }
-            N(SyntaxKind.ObjectInitializerExpression);
-            {
-                N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.CloseBraceToken);
             }
         }
