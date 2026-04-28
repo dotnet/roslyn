@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis
 
                     generatorState = ex is null
                                      ? new GeneratorState(postInitSources, inputNodes, outputNodes)
-                                     : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, cancellationToken, phase: GeneratorRunPhase.Init);
+                                     : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, phase: GeneratorRunPhase.Init, runTime: null, cancellationToken);
                 }
                 else if (generatorState.RequiresConstantTreeReparse(state.ParseOptions))
                 {
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                 {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, phase: GeneratorRunPhase.PreCompilation);
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, phase: GeneratorRunPhase.PreCompilation, runTime: null, cancellationToken);
                 }
             }
 
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                 {
-                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, cancellationToken, phase: GeneratorRunPhase.Standard, runTime: generatorTimer.Elapsed);
+                    stateBuilder[i] = SetGeneratorException(compilation, MessageProvider, generatorState, state.Generators[i], ufe.InnerException, diagnosticsBag, phase: GeneratorRunPhase.Standard, runTime: generatorTimer.Elapsed, cancellationToken);
                 }
             }
 
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis
             return trees.ToImmutableAndFree();
         }
 
-        private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, CancellationToken cancellationToken, GeneratorRunPhase phase, TimeSpan? runTime = null)
+        private static GeneratorState SetGeneratorException(Compilation compilation, CommonMessageProvider provider, GeneratorState generatorState, ISourceGenerator generator, Exception e, DiagnosticBag? diagnosticBag, GeneratorRunPhase phase, TimeSpan? runTime, CancellationToken cancellationToken)
         {
             if (CodeAnalysisEventSource.Log.IsEnabled())
             {
