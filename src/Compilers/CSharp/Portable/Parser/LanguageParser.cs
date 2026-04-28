@@ -11729,18 +11729,38 @@ done:
             var token1Kind = token1.ContextualKind;
 
             // Merge two consecutive dots into a DotDotToken
-            if (token1Kind == SyntaxKind.DotToken &&
-                this.PeekToken(peekIndex + 1) is { Kind: SyntaxKind.DotToken } dotToken2 &&
-                NoTriviaBetween(token1, dotToken2))
-            {
+            if (IsAtDotDotToken())
                 return (SyntaxKind.DotDotToken, SyntaxKind.RangeExpression);
-            }
 
             // check for >>, >>=, >>> or >>>=
             //
             // In all those cases, update token1Kind to be the merged token kind.  It will then be handled by the code below.
-            if (TryGetSplitRightShiftAt(peekIndex, out var splitRightShiftKind))
-                token1Kind = splitRightShiftKind;
+            if (token1Kind == SyntaxKind.GreaterThanToken
+                && this.PeekToken(peekIndex + 1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
+            {
+                if (token2.Kind == SyntaxKind.GreaterThanToken)
+                {
+                    if (this.PeekToken(peekIndex + 2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token3
+                        && NoTriviaBetween(token2, token3)) // check to see if they really are adjacent
+                    {
+                        // >>>  or  >>>=
+                        token1Kind = token3.Kind == SyntaxKind.GreaterThanToken
+                            ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken
+                            : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+                    }
+                    else
+                    {
+                        // >>
+                        token1Kind = SyntaxKind.GreaterThanGreaterThanToken;
+                    }
+                }
+                else
+                {
+                    // >>=
+                    token1Kind = SyntaxKind.GreaterThanGreaterThanEqualsToken;
+                }
+            }
 
             if (IsExpectedBinaryOperator(token1Kind))
                 return (token1Kind, SyntaxFacts.GetBinaryExpression(token1Kind));
@@ -11832,61 +11852,6 @@ done:
 
             var nextToken = this.PeekToken(1);
             return nextToken.Kind == SyntaxKind.DotToken && NoTriviaBetween(this.CurrentToken, nextToken);
-        }
-
-        /// <summary>
-        /// Returns true if the token at <paramref name="peekIndex"/> begins a split <c>&gt;&gt;</c>,
-        /// <c>&gt;&gt;=</c>, <c>&gt;&gt;&gt;</c>, or <c>&gt;&gt;&gt;=</c> operator (split because the
-        /// lexer keeps <c>&gt;</c> separate to make nested generic argument lists parseable). When
-        /// the result is <see langword="true"/>, <paramref name="mergedKind"/> is set to the merged
-        /// operator's <see cref="SyntaxKind"/>; the caller is responsible for consuming the
-        /// underlying tokens (e.g. via <see cref="EatExpressionOperatorToken"/>).
-        /// </summary>
-        private bool TryGetSplitRightShiftAt(int peekIndex, out SyntaxKind mergedKind)
-        {
-            mergedKind = SyntaxKind.None;
-
-            var token1 = this.PeekToken(peekIndex);
-            if (token1.Kind != SyntaxKind.GreaterThanToken)
-                return false;
-
-            var token2 = this.PeekToken(peekIndex + 1);
-            if (!NoTriviaBetween(token1, token2))
-                return false;
-
-            if (token2.Kind == SyntaxKind.GreaterThanEqualsToken)
-            {
-                // `>` then `>=` → `>>=`
-                mergedKind = SyntaxKind.GreaterThanGreaterThanEqualsToken;
-                return true;
-            }
-
-            if (token2.Kind == SyntaxKind.GreaterThanToken)
-            {
-                var token3 = this.PeekToken(peekIndex + 2);
-                if (NoTriviaBetween(token2, token3))
-                {
-                    if (token3.Kind == SyntaxKind.GreaterThanEqualsToken)
-                    {
-                        // `>` then `>` then `>=` → `>>>=`
-                        mergedKind = SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
-                        return true;
-                    }
-
-                    if (token3.Kind == SyntaxKind.GreaterThanToken)
-                    {
-                        // `>` then `>` then `>` → `>>>`
-                        mergedKind = SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
-                        return true;
-                    }
-                }
-
-                // `>` then `>` (no third) → `>>`
-                mergedKind = SyntaxKind.GreaterThanGreaterThanToken;
-                return true;
-            }
-
-            return false;
         }
 
         public static bool IsAtDotDotToken(SyntaxToken token1, SyntaxToken token2)
