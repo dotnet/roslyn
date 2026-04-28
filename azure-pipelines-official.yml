@@ -31,7 +31,7 @@ parameters:
 
 - name: SkipApplyOptimizationData
   type: boolean
-  default: false
+  default: true
 
 - name: SkipTests
   type: boolean
