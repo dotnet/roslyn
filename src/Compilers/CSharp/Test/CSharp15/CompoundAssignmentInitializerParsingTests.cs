@@ -17,9 +17,8 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     // Derive the set of compound assignment operator tokens from `SyntaxFacts` rather than hand-listing
     // them: any token kind for which `IsAssignmentExpressionOperatorToken` returns true and which isn't
     // the simple `=` form is in scope. Per-test, the operator text and the corresponding
-    // *AssignmentExpression kind are derived via `SyntaxFacts.GetText` /
-    // `SyntaxFacts.GetAssignmentExpression`. New compound operators added to the language pick up
-    // coverage automatically.
+    // *AssignmentExpression kind are derived via `GetCompoundOperatorParts`. New compound operators
+    // added to the language pick up coverage automatically.
     public static TheoryData<SyntaxKind> CompoundOperators
     {
         get
@@ -34,13 +33,15 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         }
     }
 
+    private static (string text, SyntaxKind expressionKind) GetCompoundOperatorParts(SyntaxKind operatorTokenKind)
+        => (SyntaxFacts.GetText(operatorTokenKind), SyntaxFacts.GetAssignmentExpression(operatorTokenKind));
+
     #region Object initializer: named member
 
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_AllCompoundOperators(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { Prop {{op}} 1 }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -109,8 +110,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_MixOfSimpleAndCompound(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { Prop = 10, Prop {{op}} 5, Event {{op}} Handler }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -170,8 +170,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_TrailingComma(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { Prop {{op}} 1, }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -206,8 +205,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_MissingRightHandSide(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         var source = $$"""new Goo { Prop {{op}} }""";
         var closeBracePosition = source.IndexOf('}') + 1;
         UsingExpression(source,
@@ -244,8 +242,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_NestedInitializerOnRhs_PermissiveParse(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { Prop {{op}} { 1, 2 } }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -289,8 +286,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_RefOnRhs(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { Prop {{op}} ref x }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -328,8 +324,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_NamedMember_GenericNameOnRhs(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { Prop {{op}} Bar<int>.Baz(x) }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -399,8 +394,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_IndexerMember_AllCompoundOperators(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { [0] {{op}} 1 }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -445,8 +439,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void ObjectInitializer_IndexerMember_MultipleArguments(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { [a, b] {{op}} mask }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -503,8 +496,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void WithExpression_AllCompoundOperators(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""r with { Value {{op}} 1 }""");
 
         N(SyntaxKind.WithExpression);
@@ -573,8 +565,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void WithExpression_MixOfSimpleAndCompound(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""r with { Value = 10, Value {{op}} 5, Changed {{op}} OnChanged }""");
 
         N(SyntaxKind.WithExpression);
@@ -638,8 +629,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void Classifier_AllCompoundMembersAreObjectInitializer(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { Prop {{op}} 1, Event {{op}} Handler }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -686,8 +676,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void Classifier_IndexerCompoundMembersAreObjectInitializer(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new Goo { [0] {{op}} a, [1] {{op}} b }""");
 
         N(SyntaxKind.ObjectCreationExpression);
@@ -756,8 +745,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void Classifier_BareCompoundAssignmentOnNonMemberIsCollectionInitializer(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         // Left is a `SimpleMemberAccessExpression`, not `IdentifierName`/`ImplicitElementAccess`,
         // so this is not object-initializer evidence.
         UsingExpression($$"""new Goo { a.b {{op}} 1 }""");
@@ -1007,8 +995,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     [Theory, MemberData(nameof(CompoundOperators))]
     public void TopLevel_ImplicitObjectCreation(SyntaxKind operatorTokenKind)
     {
-        var op = SyntaxFacts.GetText(operatorTokenKind);
-        var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
+        var (op, assignmentKind) = GetCompoundOperatorParts(operatorTokenKind);
         UsingExpression($$"""new() { Prop {{op}} 1 }""");
 
         N(SyntaxKind.ImplicitObjectCreationExpression);
