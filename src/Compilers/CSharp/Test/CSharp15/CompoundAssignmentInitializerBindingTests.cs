@@ -1210,8 +1210,8 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
     [Fact]
     public void Duplicate_Indexer_Unrestricted()
     {
-        // Spec: "No such restriction applies to event or indexer targets." Per-indexer-key tracking has
-        // never been done (same-arg repeat has always been legal); same applies with compound.
+        // Spec: "No such restriction applies to indexer targets." Per-indexer-key tracking has never
+        // been done (same-arg repeat has always been legal); the same applies with compound.
         // [0]=1, [0]+=2 → 3, [0]=3, [0]|=4 → 7. Verifies every indexer initializer runs and observes
         // the prior one's effect.
         var source = """
@@ -1223,6 +1223,29 @@ public sealed class CompoundAssignmentInitializerBindingTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "7");
+    }
+
+    [Fact]
+    public void Duplicate_Indexer_FirstForm_SameKeyUnrestricted()
+    {
+        // Spec: the first-form exclusivity rule applies to "field, property, or event" targets only;
+        // indexer targets are deliberately excluded. So two `[k] = { ... }` initializers for the same
+        // indexer key are permitted (each invokes `getter(k)` and configures the returned object).
+        // Both nested initializers run on the same `Inner` instance returned by the indexer getter.
+        var source = """
+            class Inner { public int X; public int Y; }
+            class C
+            {
+                private Inner _inner = new Inner();
+                public Inner this[int i] { get => _inner; set => _inner = value; }
+                public static void Main()
+                {
+                    var c = new C { [0] = { X = 1 }, [0] = { Y = 2 } };
+                    System.Console.Write($"{c[0].X},{c[0].Y}");
+                }
+            }
+            """;
+        CompileAndVerify(source, expectedOutput: "1,2");
     }
 
     [Fact]
