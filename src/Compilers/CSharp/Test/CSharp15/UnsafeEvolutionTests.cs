@@ -3553,6 +3553,44 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeContext_ExteriorOnly()
+    {
+        var source = """
+            class C
+            {
+                unsafe int M1(int* p) { return *p; }
+                unsafe int P1 { get { int* p = null; return *p; } }
+                int M2(int* p) { unsafe { return *p; } }
+                unsafe int f = *(default(int*));
+            }
+            unsafe class D
+            {
+                int M(int* p) { return *p; }
+                int f = *(default(int*));
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (3,36): error CS9360: This operation may only be used in an unsafe context
+            //     unsafe int M1(int* p) { return *p; }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(3, 36),
+            // (4,49): error CS9360: This operation may only be used in an unsafe context
+            //     unsafe int P1 { get { int* p = null; return *p; } }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 49),
+            // (8,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe class D
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(8, 14),
+            // (10,28): error CS9360: This operation may only be used in an unsafe context
+            //     int M(int* p) { return *p; }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(10, 28),
+            // (11,13): error CS9360: This operation may only be used in an unsafe context
+            //     int f = *(default(int*));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(11, 13));
+    }
+
+    [Fact]
     public void Member_LangVersion()
     {
         CSharpTestSource source =
