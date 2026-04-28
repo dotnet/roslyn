@@ -570,6 +570,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D1<T>", "D2<T>", "D3<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -585,6 +588,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (2,14): error CS9603: 'D<T>': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             // public class D<T> : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("D<T>", "T", "C").WithLocation(2, 14));
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -594,13 +600,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
         var source1 = """
             public closed class C<T> { }
 
-            public class Outer<T>
+            public class Outer<U>
             {
-                public class D : C<T> { }
+                public class D : C<U> { }
             }
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["Outer<T>.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -620,6 +629,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (5,18): error CS9603: 'Outer<T>.D': The type parameter 'T' must be referenced in the base type 'C' because the base type is closed.
             //     public class D : C { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<T>.D", "T", "C").WithLocation(5, 18));
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["Outer<T>.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -633,6 +645,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             """;
         var comp1 = CreateCompilation([source1, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp1.VerifyEmitDiagnostics();
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -654,6 +669,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (4,11): error CS9603: 'Outer<U1, U2, U3>.D<U4, U5, U6>': The type parameter 'U3' must be referenced in the base type 'C<U1, U2, U4, U6>' because the base type is closed.
             //     class D<U4, U5, U6> : C<U1, U2, U4, U6> { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<U1, U2, U3>.D<U4, U5, U6>", "U3", "C<U1, U2, U4, U6>").WithLocation(4, 11));
+
+        var classC = comp1.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["Outer<T1, T2, U3>.D<T3, U5, T4>"], classC.ClosedSubtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -672,6 +690,14 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // (5,14): error CS9603: 'F<T>': The type parameter 'T' must be referenced in the base type 'E' because the base type is closed.
             // closed class F<T> : E { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "F").WithArguments("F<T>", "T", "E").WithLocation(5, 14));
+
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("C").ClosedSubtypes);
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("D").ClosedSubtypes);
+
+        var classE = comp1.GetMember<NamedTypeSymbol>("E");
+        Assert.Equal(["F<T>"], classE.ClosedSubtypes.ToTestDisplayStrings());
+
+        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("F").ClosedSubtypes);
     }
 
     [Fact]
@@ -992,6 +1018,1831 @@ public sealed class ClosedClassesTests : CSharpTestBase
                         """System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute("ClosedClasses")"""
                     ], GetAttributeStrings(peModule.GetCustomAttributesForToken(ctor.Handle)));
             }
+        }
+    }
+
+    [Fact]
+    public void Subtypes_01()
+    {
+        var source = """
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var verifier = CompileAndVerify([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100, sourceSymbolValidator: verify, symbolValidator: verify, verify: Verification.Skipped);
+        verifier.VerifyDiagnostics();
+
+        static void verify(ModuleSymbol module)
+        {
+            var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C", classC.ToTestDisplayString());
+            Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Subtypes_02()
+    {
+        var source = """
+            closed class C<T>
+            {
+            }
+
+            class D1<U> : C<U> { }
+            class D2 : C<int> { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
+
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C<T>", classC.ToTestDisplayString());
+            // Note: 'D2' is included in the set, because its base type 'C<int>' can unify with 'C<T>'.
+            // For example, if we encounter a value of type 'C<U>' where U is some unconstrained generic,
+            // then it's possible the value is also a 'D2'. i.e. 'U' could be substituted with 'int' at runtime.
+            Assert.Equal(["D1<T>", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
+            Assert.Equal(["D1<System.Int32>", "D2"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
+            Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
+            Assert.Equal(["D1<System.String>"], cOfString.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Subtypes_03()
+    {
+        // Test subtype using non-trivial type arguments to base type.
+        var source = """
+            using System.Collections.Immutable;
+
+            closed class C<T>
+            {
+            }
+
+            class D1<U> : C<U> { }
+            class D2<U> : C<ImmutableArray<U>> { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
+
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C<T>", classC.ToTestDisplayString());
+            // PROTOTYPE(cc): This 'ClosedSubtypes' result reflects a unification which is possible, but not in terms of types available at the use site.
+            // It's unclear what representation of such types we want this API to use.
+            // For example, perhaps we only want to identify the fact that the situation is occurring, and introduce some 'bool IsExhaustibleViaSubtypes' API
+            // to check when creating a TypeUnionValueSet, so that we can advise user to match the base type.
+            Assert.Equal(["D1<T>", "D2<U>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+            var immutableArrayOfInt = comp
+                .GetWellKnownType(WellKnownType.System_Collections_Immutable_ImmutableArray_T)
+                .Construct(comp.GetSpecialType(SpecialType.System_Int32));
+
+            var cOfImmutableArray = classC.Construct(immutableArrayOfInt);
+            Assert.Equal("C<System.Collections.Immutable.ImmutableArray<System.Int32>>", cOfImmutableArray.ToTestDisplayString());
+            Assert.Equal(["D1<System.Collections.Immutable.ImmutableArray<System.Int32>>", "D2<System.Int32>"], cOfImmutableArray.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
+            Assert.Equal(["D1<System.Int32>"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Subtypes_04()
+    {
+        // Verify that ClosedSubtypes API behaves reasonably in base type cycle scenario.
+        var source = """
+            using System.Collections.Immutable;
+
+            closed class C<T> : D<T>
+            {
+            }
+
+            closed class D<T> : C<T>
+            {
+            }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (3,14): error CS0146: Circular base type dependency involving 'D<T>' and 'C<T>'
+            // closed class C<T> : D<T>
+            Diagnostic(ErrorCode.ERR_CircularBase, "C").WithArguments("D<T>", "C<T>").WithLocation(3, 14),
+            // (7,14): error CS0146: Circular base type dependency involving 'C<T>' and 'D<T>'
+            // closed class D<T> : C<T>
+            Diagnostic(ErrorCode.ERR_CircularBase, "D").WithArguments("C<T>", "D<T>").WithLocation(7, 14));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal("C<T>", classC.ToTestDisplayString());
+        Assert.Empty(classC.ClosedSubtypes);
+    }
+
+    [Fact]
+    public void Subtypes_05()
+    {
+        var source = """
+            closed class C<T1, T2>
+            {
+            }
+
+            class D1<U1> : C<U1, int> { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        verify(comp);
+        verify(CreateCompilation([], references: [comp.ToMetadataReference()], targetFramework: TargetFramework.Net100));
+        verify(CreateCompilation([], references: [comp.EmitToImageReference()], targetFramework: TargetFramework.Net100));
+
+        void verify(CSharpCompilation comp)
+        {
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("C<T1, T2>", classC.ToTestDisplayString());
+            Assert.Equal(["D1<T1>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfStringInt = classC.Construct(comp.GetSpecialType(SpecialType.System_String), comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.Equal("C<System.String, System.Int32>", cOfStringInt.ToTestDisplayString());
+            Assert.Equal(["D1<System.String>"], cOfStringInt.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfIntString = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32), comp.GetSpecialType(SpecialType.System_String));
+            Assert.Equal("C<System.Int32, System.String>", cOfIntString.ToTestDisplayString());
+            Assert.Empty(cOfIntString.ClosedSubtypes);
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_01()
+    {
+        // Simple case
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Exhaustiveness_02()
+    {
+        // Non-exhaustive inner property pattern
+        var source = """
+            #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 { Value: 1 } => 2,
+                        D2 { Value: > 1 } => 3,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { public int Value; }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (6,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2{ Value: 0 }' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2{ Value: 0 }").WithLocation(6, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_03()
+    {
+        // Exhaustive inner property pattern
+        var source = """
+            #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+                        D2 { Value: 1 } => 2,
+                        D2 { Value: > 1 } => 3,
+                        D2 { Value: < 1 } => 4,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { public int Value; }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (11,25): hidden CS9335: The pattern is redundant.
+            //             D2 { Value: < 1 } => 4,
+            Diagnostic(ErrorCode.HDN_RedundantPattern, "< 1").WithLocation(11, 25));
+    }
+
+    [Fact]
+    public void Exhaustiveness_04()
+    {
+        // Non-exhaustive type match
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class D1 : C { }
+            class D2 : C { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_05()
+    {
+        // Non-exhaustive type match of nested hierarchy
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                        E2 => 3,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            closed class D1 : C { }
+            class E1 : D1 { }
+            class F1 : D1 { }
+
+            closed class D2 : C { }
+            class E2 : D2 { }
+            class F2 : D2 { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_06()
+    {
+        // Exhaustive type match of nested hierarchy
+        var source = """
+            class Program
+            {
+                int M(C c)
+                {
+                    return c switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                        E2 => 3,
+                        F2 => 4,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            closed class D1 : C { }
+            class E1 : D1 { }
+            class F1 : D1 { }
+
+            closed class D2 : C { }
+            class E2 : D2 { }
+            class F2 : D2 { }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Exhaustiveness_07()
+    {
+        // nested hierarchy in nested type declarations
+        var source = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        Container.E1 => 1,
+                        Container.F1 => 2,
+                        Container.E2 => 3,
+                        Container.F2 => 4,
+                    };
+                }
+            }
+
+            closed class C
+            {
+            }
+
+            class Container
+            {
+                public closed class D1 : C { }
+                public class E1 : D1 { }
+                public class F1 : D1 { }
+
+                public closed class D2 : C { }
+                public class E2 : D2 { }
+                public class F2 : D2 { }
+            }
+            """;
+
+        var comp = CreateCompilation([source, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Container.E1' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Container.E1").WithLocation(5, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_UnionOfClosedClasses_01()
+    {
+        // Union with closed classes as case types
+        var source = """
+            class Program
+            {
+                int M1(U u)
+                {
+                    return u switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                        E2 => 3,
+                        F2 => 4,
+                    };
+                }
+
+                int M2(U u)
+                {
+                    return u switch
+                    {
+                        E1 => 1,
+                        F1 => 2,
+                        E2 => 3,
+                    };
+                }
+            }
+
+            union U(D1, D2);
+
+            closed class D1 { }
+            class E1 : D1 { }
+            class F1 : D1 { }
+
+            closed class D2 { }
+            class E2 : D2 { }
+            class F2 : D2 { }
+            """;
+
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (16,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'F2' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("F2").WithLocation(16, 18));
+    }
+
+    [Fact]
+    public void Exhaustiveness_ClosedClassCustomUnion_01()
+    {
+        // Test a class which is both closed and a union.
+        // The "union-ness" wins over the "closed-ness" in terms of pattern matching behavior.
+        var source1 = """
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            [Union]
+            public closed class MyUnion
+            {
+                public MyUnion(string value) => Value = value;
+                public MyUnion(int value) => Value = value;
+
+                public object? Value { get; }
+            }
+
+            public sealed class D1() : MyUnion(0);
+            public sealed class D2() : MyUnion("a");
+            """;
+
+        var source2 = """
+            class Program
+            {
+                public int Match1(MyUnion u)
+                    => u switch
+                    {
+                        string => 1,
+                        int => 2,
+                    };
+
+                public int Match2(MyUnion u)
+            #line 100
+                    => u switch
+                    {
+                        int => 2,
+                    };
+
+                public int Match3(MyUnion u)
+                    => u switch
+                    {
+            #line 200
+                        D1 => 1,
+                        D2 => 2,
+                    };
+
+                public int Match4(MyUnion u)
+                    => u switch
+                    {
+            #line 300
+                        D2 => 2,
+                    };
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'string' is not covered.
+            //         => u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("string").WithLocation(100, 14),
+            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(200, 13),
+            // (201,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(201, 13),
+            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(300, 13));
+    }
+
+    [Fact]
+    public void Exhaustiveness_ClosedClassCustomUnion_02()
+    {
+        // Test a class which is both closed and a union, and has no union case types.
+        var source1 = """
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            [Union]
+            public closed class MyUnion
+            {
+                public object? Value { get; }
+            }
+
+            public sealed class D1 : MyUnion;
+            public sealed class D2 : MyUnion;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                public int Match1(MyUnion u)
+                    => u switch
+                    {
+            #line 100
+                        MyUnion => 1
+                    };
+
+                public int Match2(MyUnion u)
+                    => u switch
+                    {
+            #line 200
+                        object => 1
+                    };
+
+                public int Match3(MyUnion u)
+                    => u switch
+                    {
+                        not null => 1
+                    };
+
+                public int Match4(MyUnion u)
+                    => u switch
+                    {
+            #line 300
+                        D1 => 1,
+                        D2 => 2,
+                    };
+
+                public int Match5(MyUnion u)
+                    => u switch
+                    {
+            #line 400
+                        D2 => 2,
+                    };
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'MyUnion'.
+            //             MyUnion => 1
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "MyUnion").WithArguments("MyUnion", "MyUnion").WithLocation(100, 13),
+            // (200,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'object'.
+            //             object => 1
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("MyUnion", "object").WithLocation(200, 13),
+            // (300,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D1'.
+            //             D1 => 1,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D1").WithArguments("MyUnion", "D1").WithLocation(300, 13),
+            // (301,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(301, 13),
+            // (400,13): error CS8121: An expression of type 'MyUnion' cannot be handled by a pattern of type 'D2'.
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "D2").WithArguments("MyUnion", "D2").WithLocation(400, 13));
+    }
+
+    [Fact]
+    public void Exhaustiveness_ClosedClassCustomUnion_03()
+    {
+        // Test scenario where a subclass of closed class is a custom union.
+        // Demonstrate that the "expanded set" of closed subtypes does not include union case types.
+        var source1 = """
+            #nullable enable
+            using System.Runtime.CompilerServices;
+
+            public closed class C;
+
+            public sealed class D1 : C;
+
+            [Union]
+            public sealed class D2 : C
+            {
+                public D2(string value) => Value = value;
+                public D2(int value) => Value = value;
+
+                public object? Value { get; }
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                public int Match1(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 => 2,
+                    };
+
+                public int Match2(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+            #line 100
+                        string => 2,
+                        int => 3,
+                        D2 => 2,
+                    };
+
+                public int Match3(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+                        D2 and int => 3,
+                    };
+
+                public int Match4(C c)
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+            #line 200
+                        int => 3,
+                    };
+
+                public int Match5(C c)
+            #line 300
+                    => c switch
+                    {
+                        D1 => 1,
+                        D2 and string => 2,
+                    };
+            }
+            """;
+
+        // PROTOTYPE(cc): The pattern suggested for line 300 is invalid
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics(
+            // (100,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'string'.
+            //             string => 2,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("C", "string").WithLocation(100, 13),
+            // (101,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
+            //             int => 3,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(101, 13),
+            // (200,13): error CS8121: An expression of type 'C' cannot be handled by a pattern of type 'int'.
+            //             int => 3,
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("C", "int").WithLocation(200, 13),
+            // (300,14): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'int' is not covered.
+            //         => c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("int").WithLocation(300, 14));
+    }
+
+    [Fact]
+    public void Exhaustiveness_Generic_01()
+    {
+        // Simple generic closed hierarchy
+        var source = """
+            class Program
+            {
+                int M<X>(C<X> c)
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+                        D2<X> => 2,
+                    };
+                }
+            }
+
+            closed class C<T>
+            {
+                int M()
+                {
+                    return this switch
+                    {
+                        D1<T> => 1,
+                        D2<T> => 2,
+                    };
+                }
+            }
+
+            class D1<U> : C<U>;
+            class D2<V> : C<V>;
+            """;
+
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyDiagnostics();
+    }
+
+    /// <summary>Tests an exhaustiveness scenario similar to <see cref="Subtypes_03"/>.</summary>
+    [Fact]
+    public void Exhaustiveness_Generic_02()
+    {
+        var source = """
+            using System.Collections.Immutable;
+
+            closed class C<T>
+            {
+                public static int Use1(C<T> item)
+                {
+                    return item switch
+                    {
+                        D1<T> => 1,
+                        // We know some 'D2<...>' may be possible here (i.e. 'C<T>' allows 'C<ImmutableArray<...>>' by substitution.)
+                        // But, we have no way of speaking that D2 in this context.
+                    };
+                }
+
+                public static int Use2(C<T> item)
+                {
+                    return item switch
+                    {
+                        D1<T> => 1,
+                        C<T> => 2
+                    };
+                }
+            }
+
+            class D1<U> : C<U> { }
+            class D2<U> : C<ImmutableArray<U>> { }
+            """;
+
+        var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        // PROTOTYPE(cc): We should not propose invalid subtype patterns (using type parameters not in scope, or which violate accessibility, constraints, etc.)
+        comp.VerifyDiagnostics(
+            // (7,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<U>' is not covered.
+            //         return item switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<U>").WithLocation(7, 21));
+    }
+
+    [Fact]
+    public void Exhaustiveness_NoSubtypes()
+    {
+        // Closed with no subtypes
+        var source1 = """
+            public closed class C;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        C => 1
+                    };
+                }
+
+                int M3(C c)
+                {
+                    return c switch
+                    {
+                        _ => 1
+                    };
+                }
+            }
+            """;
+
+        // PROTOTYPE(cc): unexpected warnings in all below scenarios
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Empty(classC.ClosedSubtypes);
+
+        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
+        classC = comp2.GetMember<NamedTypeSymbol>("C");
+        Assert.Empty(classC.ClosedSubtypes);
+
+        comp2 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp2.VerifyEmitDiagnostics(
+            // (5,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
+        classC = comp2.GetMember<NamedTypeSymbol>("C");
+        Assert.Empty(classC.ClosedSubtypes);
+    }
+
+    [Fact]
+    public void Exhaustiveness_OnlyClosedSubtypes()
+    {
+        // Closed with only closed subtypes
+        var source1 = """
+            public closed class C;
+            public closed class D : C;
+            public closed class E : D;
+            public closed class F : C;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+            #line 100
+                    return c switch
+                    {
+                    };
+                }
+
+                int M2(C c)
+                {
+                    return c switch
+                    {
+                        E => 1,
+                        F => 1
+                    };
+                }
+
+                int M3(C c)
+                {
+                    return c switch
+                    {
+                        _ => 1
+                    };
+                }
+
+                int M4(D d)
+                {
+            #line 200
+                    return d switch
+                    {
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'E' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("E").WithLocation(100, 18),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'E' is not covered.
+                //         return d switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("E").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D", "F"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_LessAccessibleSubtype_01()
+    {
+        // Less accessible subtype
+        var source1 = """
+            public closed class C;
+            public class D1 : C;
+
+            public class Container
+            {
+                protected class D2 : C;
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+            #line 100
+                        Container.D2 => 2,
+                    };
+                }
+
+                int M2(C c)
+                {
+            #line 200
+                    return c switch
+                    {
+                        D1 => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp2);
+
+        comp2 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp2);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,23): error CS0122: 'Container.D2' is inaccessible due to its protection level
+                //             Container.D2 => 2,
+                Diagnostic(ErrorCode.ERR_BadAccess, "D2").WithArguments("Container.D2").WithLocation(100, 23),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Container.D2' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Container.D2").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1", "Container.D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_LessAccessibleSubtype_02()
+    {
+        // Subtype less accessible only when used from other assembly
+        var source1 = """
+            public closed class C;
+            public class D1 : C;
+            class D2 : C;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C c)
+                {
+                    return c switch
+                    {
+                        D1 => 1,
+            #line 100
+                        D2 => 2,
+                    };
+                }
+
+                int M2(C c)
+                {
+            #line 200
+                    return c switch
+                    {
+                        D1 => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(200, 18));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (100,13): error CS0122: 'D2' is inaccessible due to its protection level
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_BadAccess, "D2").WithArguments("D2").WithLocation(100, 13),
+            // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(200, 18));
+
+        classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (100,13): error CS0122: 'D2' is inaccessible due to its protection level
+            //             D2 => 2,
+            Diagnostic(ErrorCode.ERR_BadAccess, "D2").WithArguments("D2").WithLocation(100, 13),
+            // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(200, 18));
+
+        classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Exhaustiveness_LessAccessibleSubtype_03()
+    {
+        // Inaccessible subtype should still be imported from metadata to allow checking exhaustiveness
+        var source1 = """
+            public class Container
+            {
+                public closed class C;
+                private class D : C;
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(Container.C c)
+                {
+                    return c switch
+                    {
+            #line 100
+                        Container.D => 1,
+                    };
+                }
+
+                int M2(Container.C c)
+                {
+            #line 200
+                    return c switch
+                    {
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var imageReference = comp0.EmitToImageReference();
+        foreach (var importOptions in new[] { MetadataImportOptions.Public, MetadataImportOptions.Internal, MetadataImportOptions.All })
+        {
+            comp = CreateCompilation([source2], references: [imageReference], options: TestOptions.DebugDll.WithMetadataImportOptions(importOptions), targetFramework: TargetFramework.Net100);
+            verify(comp);
+        }
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,23): error CS0122: 'Container.D' is inaccessible due to its protection level
+                //             Container.D => 1,
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Container.D").WithLocation(100, 23),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'Container.D' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Container.D").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+            Assert.Equal(["Container.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_Constraints_01()
+    {
+        // Subtype definition constraints which can "overlap" with constructed closed type
+        var source1 = """
+            public closed class C<T>;
+            public class D1<U1> : C<U1>;
+            public class D2<U2> : C<U2> where U2 : struct;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X>(C<X> c)
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+            #line 100
+                        D2<X> => 2,
+                    };
+                }
+
+                int M2<X>(C<X> c)
+                {
+            #line 200
+                    return c switch
+                    {
+                        D1<X> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,16): error CS0453: The type 'X' must be a non-nullable value type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
+                //             D2<X> => 2,
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "X").WithArguments("D2<U2>", "U2", "X").WithLocation(100, 16),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<X>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<X>").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_Constraints_02()
+    {
+        // Subtype definition constraints which do not "overlap" with constructed closed type using type parameters
+        // PROTOTYPE(cc): Should we detect when the subtype cannot unify with the closed type due to subtype constraints?
+        var source1 = """
+            public closed class C<T>;
+            public class D1<U1> : C<U1>;
+            public class D2<U2> : C<U2> where U2 : struct;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X>(C<X> c) where X : class
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+            #line 100
+                        D2<X> => 2,
+                    };
+                }
+
+                int M2<X>(C<X> c) where X : class
+                {
+            #line 200
+                    return c switch
+                    {
+                        D1<X> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,16): error CS0453: The type 'X' must be a non-nullable value type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
+                //             D2<X> => 2,
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "X").WithArguments("D2<U2>", "U2", "X").WithLocation(100, 16),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<X>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<X>").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_Constraints_03()
+    {
+        // Subtype definition constraints which do not "overlap" with constructed closed type using concrete types
+        var source1 = """
+            public closed class C<T>;
+            public class D1<U1> : C<U1>;
+            public class D2<U2> : C<U2> where U2 : struct;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C<string> c)
+                {
+                    return c switch
+                    {
+                        D1<string> => 1,
+            #line 100
+                        D2<string> => 2,
+                    };
+                }
+
+                int M2(C<string> c)
+                {
+            #line 200
+                    return c switch
+                    {
+                        D1<string> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,16): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
+                //             D2<string> => 2,
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("D2<U2>", "U2", "string").WithLocation(100, 16),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<string>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<string>").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_Constraints_04()
+    {
+        // Subtype violates the constraints of the base type
+        var source1 = """
+            public closed class C<T> where T : class;
+            public class D1<U1> : C<U1> where U1 : class;
+            #line 100
+            public class D2<U2> : C<U2> where U2 : struct;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C<string> c)
+                {
+                    return c switch
+                    {
+                        D1<string> => 1,
+            #line 200
+                        D2<string> => 2,
+                    };
+                }
+
+                int M2(C<string> c)
+                {
+            #line 300
+                    return c switch
+                    {
+                        D1<string> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (100,14): error CS0452: The type 'U2' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
+            // public class D2<U2> : C<U2> where U2 : struct;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "D2").WithArguments("C<T>", "T", "U2").WithLocation(100, 14),
+            // (200,16): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
+            //             D2<string> => 2,
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("D2<U2>", "U2", "string").WithLocation(200, 16),
+            // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<string>' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<string>").WithLocation(300, 18));
+
+        var classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (200,16): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
+            //             D2<string> => 2,
+            Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("D2<U2>", "U2", "string").WithLocation(200, 16),
+            // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D2<string>' is not covered.
+            //         return c switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2<string>").WithLocation(300, 18));
+
+        classC = comp.GetMember<NamedTypeSymbol>("C");
+        Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Exhaustiveness_GenericContainingType_01()
+    {
+        var source1 = """
+            public class Container<T>
+            {
+                public closed class C;
+                public class D1 : C;
+            }
+
+            public class D2<U> : Container<U>.C;
+            public class D3 : Container<string>.C;
+            public class D4 : Container<int>.C;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(Container<string>.C c)
+                {
+                    return c switch
+                    {
+                        Container<string>.D1 => 1,
+                        D2<string> => 2,
+                        D3 => 3,
+                    };
+                }
+
+                int M2(Container<int>.C c)
+                {
+                    return c switch
+                    {
+                        Container<int>.D1 => 1,
+                        D2<int> => 2,
+                        D4 => 3,
+                    };
+                }
+
+                int M3<X>(Container<X>.C c)
+                {
+                    return c switch
+                    {
+                        Container<X>.D1 => 1,
+                        D2<X> => 2,
+                        D3 => 3,
+                        D4 => 3,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics();
+
+        classC = comp.GetMember<NamedTypeSymbol>("Container.C");
+        Assert.Equal(["D2<T>", "D3", "D4", "Container<T>.D1"], classC.ClosedSubtypes.ToTestDisplayStrings());
+    }
+
+    [Fact]
+    public void Exhaustiveness_ConstrainedToClosedType_01()
+    {
+        // Attempt to exhaust a type parameter constrained to closed type.
+        // This scenario isn't supported by the exhaustiveness check.
+        var source1 = """
+            public closed class C<T>;
+            public class D1<U1> : C<U1>;
+
+            public closed class E;
+            public sealed class F1 : E;
+            public sealed class F2 : E;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1<X>(C<X> c) where X : E
+                {
+            #line 100
+                    return c switch
+                    {
+                        D1<F1> => 1,
+                        D1<F2> => 2,
+                        D1<E> => 3,
+                    };
+                }
+
+                int M2<X>(C<X> c) where X : E
+                {
+                    return c switch
+                    {
+                        D1<X> => 3,
+                    };
+                }
+
+                int M3<X>(D1<X> c) where X : E
+                {
+            #line 200
+                    return c switch
+                    {
+                        D1<F1> => 1,
+                        D1<F2> => 2,
+                        D1<E> => 3,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X>").WithLocation(100, 18),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(200, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_BaseTypeArguments_Array_01()
+    {
+        var source1 = """
+            public closed class C<T>;
+            public class D1<U1> : C<U1[]>;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                int M1(C<string[]> c)
+                {
+                    return c switch
+                    {
+                        D1<string> => 1,
+                    };
+                }
+
+                int M2(C<string[]> c)
+                {
+            #line 100
+                    return c switch
+                    {
+                    };
+                }
+
+                int M3<X>(C<X[]> c)
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+                    };
+                }
+
+                int M4<X>(C<X[]> c)
+                {
+            #line 200
+                    return c switch
+                    {
+                    };
+                }
+
+                int M5<X>(C<X> c)
+                {
+            #line 300
+                    return c switch
+                    {
+                    };
+                }
+
+                int M6(C<string[]> c)
+                {
+                    return c switch
+                    {
+            #line 400
+                        D1<object> => 1
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<string>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<string>").WithLocation(100, 18),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X>").WithLocation(200, 18),
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<U1>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<U1>").WithLocation(300, 18),
+                // (400,13): error CS8121: An expression of type 'C<string[]>' cannot be handled by a pattern of type 'D1<object>'.
+                //             D1<object> => 1
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "D1<object>").WithArguments("C<string[]>", "D1<object>").WithLocation(400, 13));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1<U1>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfStringArray = classC.Construct(
+                comp.CreateArrayTypeSymbol(comp.GetSpecialType(SpecialType.System_String)));
+            Assert.Equal(["D1<System.String>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_BaseTypeArguments_Array_02()
+    {
+        // Base type uses array of pointers
+        var source1 = """
+            public closed class C<T>;
+            public class D1<U1> : C<U1*[]> where U1 : unmanaged;
+            """;
+
+        var source2 = """
+            class Program
+            {
+                unsafe int M1(C<int*[]> c)
+                {
+                    return c switch
+                    {
+                        D1<int> => 1,
+                    };
+                }
+
+                unsafe int M2(C<int*[]> c)
+                {
+            #line 100
+                    return c switch
+                    {
+                    };
+                }
+
+                unsafe int M3<X>(C<X*[]> c) where X : unmanaged
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+                    };
+                }
+
+                unsafe int M4<X>(C<X*[]> c) where X : unmanaged
+                {
+            #line 200
+                    return c switch
+                    {
+                    };
+                }
+
+                unsafe int M5<X>(C<X[]> c) where X : unmanaged
+                {
+            #line 300
+                    return c switch
+                    {
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<int>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<int>").WithLocation(100, 18),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X>").WithLocation(200, 18),
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<X[]>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<X[]>").WithLocation(300, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1<U1>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+            var cOfStringArray = classC.Construct(
+                comp.CreateArrayTypeSymbol(
+                    comp.CreatePointerTypeSymbol(
+                        comp.GetSpecialType(SpecialType.System_Int32))));
+            Assert.Equal(["D1<System.Int32>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_BaseTypeArguments_Tuple()
+    {
+        // Base type uses tuple
+        var source1 = """
+            public closed class C<T>;
+            public class D1<U1> : C<(U1, int)>;
+            """;
+
+        var source2 = """
+            using System;
+
+            class Program
+            {
+                int M1<X>(C<(X, int)> c)
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+                    };
+                }
+
+                int M2<X>(C<(X, int)> c)
+                {
+            #line 100
+                    return c switch
+                    {
+                    };
+                }
+
+                int M3<X>(C<ValueTuple<X, int>> c)
+                {
+                    return c switch
+                    {
+                        D1<X> => 1,
+                    };
+                }
+
+                int M4<X>(C<ValueTuple<X, int>> c)
+                {
+            #line 200
+                    return c switch
+                    {
+                    };
+                }
+
+                int M5<X1, X2>(C<(X1, X2)> c)
+                {
+                    return c switch
+                    {
+                        D1<X1> => 1,
+                    };
+                }
+
+                int M6<X1, X2>(C<(X1, X2)> c)
+                {
+            #line 300
+                    return c switch
+                    {
+                    };
+                }
+
+                int M7<X>(C<X> c)
+                {
+            #line 400
+                    return c switch
+                    {
+                    };
+                }
+
+                int M8<X>(C<X> c) where X : class
+                {
+            #line 500
+                    return c switch
+                    {
+                    };
+                }
+
+                int M9(C<string> c)
+                {
+            #line 600
+                    return c switch
+                    {
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X>").WithLocation(100, 18),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X>").WithLocation(200, 18),
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X1>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X1>").WithLocation(300, 18),
+                // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<U1>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<U1>").WithLocation(400, 18),
+                // (500,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<U1>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<U1>").WithLocation(500, 18),
+                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<string>' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<string>").WithLocation(600, 18));
+
+            var classC = comp.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal(["D1<U1>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+
+            var tupleOfStringInt = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct(
+                    comp.GetSpecialType(SpecialType.System_String),
+                    comp.GetSpecialType(SpecialType.System_Int32));
+
+            var cOfStringArray = classC.Construct(tupleOfStringInt);
+            Assert.Equal(["D1<System.String>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
+
+            tupleOfStringInt = NamedTypeSymbol.CreateTuple(tupleOfStringInt);
+            cOfStringArray = classC.Construct(tupleOfStringInt);
+            Assert.Equal(["D1<System.String>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
         }
     }
 }

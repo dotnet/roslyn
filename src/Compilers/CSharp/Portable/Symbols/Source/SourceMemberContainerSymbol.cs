@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Tracked by https://github.com/dotnet/roslyn/issues/78827 : Optimize by moving some fields into "uncommon" class field?
         private ExtensionGroupingInfo? _lazyExtensionGroupingInfo;
 
+        private ImmutableArray<NamedTypeSymbol> _lazyClosedSubtypeCandidates;
+
         #region Construction
 
         internal SourceMemberContainerTypeSymbol(
@@ -373,8 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (mods & DeclarationModifiers.Closed) != 0 &&
                 (mods & (DeclarationModifiers.Sealed | DeclarationModifiers.Static)) != 0)
             {
-                // PROTOTYPE(cc): Should the abstract modifier be permitted?
-                // It seems like permitting it could give an impression that it is making a difference.
+                // PROTOTYPE(cc): It is an error to explicitly use an abstract modifier on a closed class.
                 diagnostics.Add(ErrorCode.ERR_ClosedSealedStatic, GetFirstLocation(), this);
             }
 
@@ -899,6 +900,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsFileLocal => HasFlag(DeclarationModifiers.File);
 
         internal sealed override bool IsClosed => HasFlag(DeclarationModifiers.Closed);
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions
+        {
+            get
+            {
+                if (!IsClosed)
+                {
+                    return [];
+                }
+
+                if (_lazyClosedSubtypeCandidates.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyClosedSubtypeCandidates, findClosedSubtypes());
+                }
+
+                return _lazyClosedSubtypeCandidates;
+
+                ImmutableArray<NamedTypeSymbol> findClosedSubtypes()
+                {
+                    var stack = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
+                    stack.Add(DeclaringCompilation.SourceModule.GlobalNamespace);
+
+                    var subtypes = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                    while (!stack.IsEmpty)
+                    {
+                        var namespaceOrType = stack.Pop();
+                        if (namespaceOrType is NamedTypeSymbol namedType)
+                        {
+                            if (namedType.BaseTypeNoUseSiteDiagnostics is { } baseType
+                                && baseType.OriginalDefinition.Equals(this, TypeCompareKind.AllIgnoreOptions))
+                            {
+                                subtypes.Add(namedType);
+                            }
+
+                            var nestedTypes = namedType.GetTypeMembers();
+                            for (var i = nestedTypes.Length - 1; i >= 0; i--)
+                            {
+                                stack.Add(nestedTypes[i]);
+                            }
+                        }
+                        else
+                        {
+                            var members = namespaceOrType.GetMembers();
+                            for (var i = members.Length - 1; i >= 0; i--)
+                            {
+                                if (members[i] is NamespaceOrTypeSymbol childNamespaceOrType)
+                                {
+                                    stack.Add(childNamespaceOrType);
+                                }
+                            }
+                        }
+                    }
+
+                    stack.Free();
+                    return subtypes.ToImmutableAndFree();
+                }
+            }
+        }
 
         internal bool IsUnsafe => HasFlag(DeclarationModifiers.Unsafe);
 

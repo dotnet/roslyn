@@ -158,6 +158,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override bool IsClosed => _underlyingType.IsClosed;
 
+        // PROTOTYPE(cc): exercise this override
+        internal override ImmutableArray<NamedTypeSymbol> CandidateClosedSubtypeDefinitions => this.RetargetingTranslator.Retarget(_underlyingType.CandidateClosedSubtypeDefinitions);
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             return this.RetargetingTranslator.Retarget(_underlyingType.GetMembers());

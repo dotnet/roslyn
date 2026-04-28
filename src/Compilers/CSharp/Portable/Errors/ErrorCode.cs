@@ -2486,7 +2486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
-        ERR_ClosedTypeNameDisallowed = 9600, // PROTOTYPE(cc): pack
+        ERR_ClosedTypeNameDisallowed = 9600, // PROTOTYPE(cc): pack and renumber test baseline comments
         ERR_ClosedSealedStatic = 9601,
         ERR_ClosedBaseTypeBaseFromOtherAssembly = 9602,
         ERR_UnderspecifiedClosedSubtype = 9603,
