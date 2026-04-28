@@ -1,0 +1,15 @@
+﻿Source Location: (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web|
+Generated Location: (361:12,0 [41] )
+|using Microsoft.AspNetCore.Components.Web|
+
+Source Location: (75:1,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1264:34,31 [9] )
+|() => { }|
+
+Source Location: (140:2,31 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|() => { }|
+Generated Location: (1563:43,31 [9] )
+|() => { }|
+

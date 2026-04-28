@@ -126,7 +126,7 @@ internal static class StackFrameSyntaxFactory
             }
         }
 
-        AssertEx.NotNull(current);
+        Assert.NotNull(current);
         return (StackFrameQualifiedNameNode)current;
     }
 

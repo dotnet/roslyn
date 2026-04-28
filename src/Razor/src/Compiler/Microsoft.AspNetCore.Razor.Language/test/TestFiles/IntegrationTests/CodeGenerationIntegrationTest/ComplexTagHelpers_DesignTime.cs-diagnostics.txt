@@ -1,0 +1,42 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(8,34): error CS1525: Invalid expression term ''
+// __TestNamespace_PTagHelper.Age = @@(1+2);
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@@").WithArguments("").WithLocation(8, 34),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(8,34): error CS1002: ; expected
+// __TestNamespace_PTagHelper.Age = @@(1+2);
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "@@").WithLocation(8, 34),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(8,34): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+// __TestNamespace_PTagHelper.Age = @@(1+2);
+Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(8, 34),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(8,36): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+// __TestNamespace_PTagHelper.Age = @@(1+2);
+Diagnostic(ErrorCode.ERR_IllegalStatement, "(1+2)").WithLocation(8, 36),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(33,46): error CS1525: Invalid expression term ''
+// __TestNamespace_InputTagHelper2.Checked =    @(  DateTimeOffset.Now.Year  ) > 2014   ;
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@").WithArguments("").WithLocation(33, 46),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(33,46): error CS1002: ; expected
+// __TestNamespace_InputTagHelper2.Checked =    @(  DateTimeOffset.Now.Year  ) > 2014   ;
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "@").WithLocation(33, 46),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(33,46): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+// __TestNamespace_InputTagHelper2.Checked =    @(  DateTimeOffset.Now.Year  ) > 2014   ;
+Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, "").WithLocation(33, 46),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(33,47): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+// __TestNamespace_InputTagHelper2.Checked =    @(  DateTimeOffset.Now.Year  ) > 2014   ;
+Diagnostic(ErrorCode.ERR_IllegalStatement, "(  DateTimeOffset.Now.Year  ) > 2014").WithLocation(33, 47),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(35,10): error CS0103: The name 'someMethod' does not exist in the current context
+//    __o = someMethod(item => new global::Microsoft.AspNetCore.Mvc.Razor.HelperResult(async(__razor_template_writer) => {
+Diagnostic(ErrorCode.ERR_NameNotInContext, "someMethod").WithArguments("someMethod").WithLocation(35, 10),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(35,71): error CS1003: Syntax error, '(' expected
+//                      __TestNamespace_InputTagHelper2.Checked = checked;
+Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("(").WithLocation(35, 71),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(35,71): error CS1525: Invalid expression term ';'
+//                      __TestNamespace_InputTagHelper2.Checked = checked;
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(35, 71),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(35,71): error CS1026: ) expected
+//                      __TestNamespace_InputTagHelper2.Checked = checked;
+Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(35, 71),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(36,34): error CS1525: Invalid expression term ';'
+// __TestNamespace_PTagHelper.Age = ;
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(36, 34),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ComplexTagHelpers.cshtml(79,13): warning CS0162: Unreachable code detected
+//             __TestNamespace_InputTagHelper = CreateTagHelper<global::TestNamespace.InputTagHelper>();
+Diagnostic(ErrorCode.WRN_UnreachableCode, "__TestNamespace_InputTagHelper").WithLocation(79, 13)

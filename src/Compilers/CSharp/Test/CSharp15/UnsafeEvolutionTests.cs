@@ -6154,18 +6154,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
-            // (3,68): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (3,84): error CS9360: This operation may only be used in an unsafe context
             //     public int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 68),
-            // (3,85): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(3, 85),
-            // (4,27): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(3, 84),
+            // (4,55): error CS9360: This operation may only be used in an unsafe context
             //     public int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 27),
-            // (4,56): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 56));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 55));
     }
 
     [Fact]
@@ -6183,18 +6177,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
-            // (4,76): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (4,92): error CS9360: This operation may only be used in an unsafe context
             //     public partial int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 76),
-            // (4,93): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public partial int P1 { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(4, 93),
-            // (7,35): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 92),
+            // (7,63): error CS9360: This operation may only be used in an unsafe context
             //     public partial int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(7, 35),
-            // (7,64): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public partial int P2 { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(7, 64));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(7, 63));
 
         // Mismatch: definition has unsafe, implementation doesn't
         CreateCompilation("""
@@ -6209,12 +6197,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,29): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public partial int P1 { get { int* p = null; return *p; } set { } }
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 29),
-            // (4,35): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (4,57): error CS9360: This operation may only be used in an unsafe context
             //     public partial int P1 { get { int* p = null; return *p; } set { } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 35),
-            // (4,58): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public partial int P1 { get { int* p = null; return *p; } set { } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 58));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 57));
 
         // Property has unsafe on both, accessor inherits from property (no explicit accessor unsafe)
         // Pointer operations work because property is unsafe
@@ -6747,18 +6732,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
-            // (3,77): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (3,93): error CS9360: This operation may only be used in an unsafe context
             //     public int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(3, 77),
-            // (3,94): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(3, 94),
-            // (4,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(3, 93),
+            // (4,71): error CS9360: This operation may only be used in an unsafe context
             //     public int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 43),
-            // (4,72): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 72));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 71));
     }
 
     [Fact]
@@ -6776,18 +6755,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
-            // (4,85): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (4,101): error CS9360: This operation may only be used in an unsafe context
             //     public partial int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(4, 85),
-            // (4,102): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public partial int this[int i] { unsafe get { int* p = null; return *p; } set { long* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "q").WithLocation(4, 102),
-            // (7,51): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 101),
+            // (7,79): error CS9360: This operation may only be used in an unsafe context
             //     public partial int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "long*").WithLocation(7, 51),
-            // (7,80): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public partial int this[int i, int j] { get { long* p = null; return (int)*p; } unsafe set { int* q = null; *q = value; } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(7, 80));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(7, 79));
 
         // Mismatch: definition has unsafe, implementation doesn't
         CreateCompilation("""
@@ -6802,12 +6775,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (4,38): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
             //     public partial int this[int i] { get { int* p = null; return *p; } set { } }
             Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "get").WithLocation(4, 38),
-            // (4,44): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // (4,66): error CS9360: This operation may only be used in an unsafe context
             //     public partial int this[int i] { get { int* p = null; return *p; } set { } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(4, 44),
-            // (4,67): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-            //     public partial int this[int i] { get { int* p = null; return *p; } set { } }
-            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "p").WithLocation(4, 67));
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 66));
 
         // Indexer has unsafe on both, accessor inherits from indexer (no explicit accessor unsafe)
         // Pointer operations work because indexer is unsafe

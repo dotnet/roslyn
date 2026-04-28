@@ -1,0 +1,15 @@
+﻿Source Location: (13:0,13 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime|
+Generated Location: (1025:29,13 [8] )
+|DateTime|
+
+Source Location: (32:0,32 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+|Array.Empty<DateTime>()|
+Generated Location: (1363:38,32 [23] )
+|Array.Empty<DateTime>()|
+
+Source Location: (23:0,23 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Items|
+Generated Location: (1965:58,23 [5] )
+|Items|
+

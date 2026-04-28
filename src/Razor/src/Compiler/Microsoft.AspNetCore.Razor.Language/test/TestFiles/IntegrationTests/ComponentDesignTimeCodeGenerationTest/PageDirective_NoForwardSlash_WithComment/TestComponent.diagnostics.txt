@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,1): Error RZ9988: The @page directive must specify a route template. The route template must be enclosed in quotes and begin with the '/' character.

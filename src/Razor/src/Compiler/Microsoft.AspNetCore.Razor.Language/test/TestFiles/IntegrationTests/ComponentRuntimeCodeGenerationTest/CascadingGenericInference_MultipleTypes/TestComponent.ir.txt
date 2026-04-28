@@ -1,0 +1,22 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [172] x:\dir\subdir\Test\TestComponent.cshtml) - Parent
+                    ComponentChildContent -  - ChildContent - context
+                        Component - (108:1,4 [53] x:\dir\subdir\Test\TestComponent.cshtml) - Child
+                            ComponentAttribute - (131:1,27 [26] x:\dir\subdir\Test\TestComponent.cshtml) - ChildOnlyItems - ChildOnlyItems - AttributeStructure.DoubleQuotes
+                                LazyIntermediateToken - (133:1,29 [23] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new[] { 'a', 'b', 'c' }
+                    ComponentAttribute - (14:0,14 [59] x:\dir\subdir\Test\TestComponent.cshtml) - Data - Data - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (16:0,16 [56] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new System.Collections.Generic.Dictionary<int, string>()
+                    ComponentAttribute - (82:0,82 [18] x:\dir\subdir\Test\TestComponent.cshtml) - Other - Other - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (83:0,83 [17] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - DateTime.MinValue
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateParent_0
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateChild_1

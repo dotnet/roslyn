@@ -1,0 +1,9 @@
+﻿#nullable enable
+Microsoft.VisualStudio.Razor.LiveShare.IProjectHierarchyProxy
+Microsoft.VisualStudio.Razor.LiveShare.IProjectHierarchyProxy.GetProjectPathAsync(System.Uri! documentFilePath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Uri?>!
+Microsoft.VisualStudio.Razor.LiveShare.IRemoteHierarchyService
+Microsoft.VisualStudio.Razor.LiveShare.IRemoteHierarchyService.HasCapabilityAsync(System.Uri! pathOfFileInProject, string! capability, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.VisualStudio.Razor.LiveShare.ProjectProxyChangeKind
+Microsoft.VisualStudio.Razor.LiveShare.ProjectProxyChangeKind.ProjectAdded = 0 -> Microsoft.VisualStudio.Razor.LiveShare.ProjectProxyChangeKind
+Microsoft.VisualStudio.Razor.LiveShare.ProjectProxyChangeKind.ProjectChanged = 2 -> Microsoft.VisualStudio.Razor.LiveShare.ProjectProxyChangeKind
+Microsoft.VisualStudio.Razor.LiveShare.ProjectProxyChangeKind.ProjectRemoved = 1 -> Microsoft.VisualStudio.Razor.LiveShare.ProjectProxyChangeKind

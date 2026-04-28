@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Description>Transport package for Microsoft.NET.SDK.Razor.SourceGenerator assemblies. For internal use only.</Description>
+    <IsShipping>false</IsShipping>
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <IsPackable>true</IsPackable>
+    <!-- Need to build this project in source build -->
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\tools\Microsoft.CodeAnalysis.Razor.Tooling.Internal\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj" />
+  </ItemGroup>
+
+  <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
+    <ItemGroup>
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\netstandard2.0\*.*" Exclude="$(ArtifactsBinDir)**\*.pdb" PackagePath="\source-generators" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Tooling.Internal\$(Configuration)\netstandard2.0\Microsoft.Extensions.ObjectPool.dll" PackagePath="\source-generators" />
+    </ItemGroup>
+  </Target>
+
+</Project>

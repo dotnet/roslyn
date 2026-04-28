@@ -1,0 +1,15 @@
+﻿Source Location: (89:1,11 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|T|
+Generated Location: (507:17,0 [1] )
+|T|
+
+Source Location: (12:0,12 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (903:30,44 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+
+Source Location: (12:0,12 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (2086:63,12 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+

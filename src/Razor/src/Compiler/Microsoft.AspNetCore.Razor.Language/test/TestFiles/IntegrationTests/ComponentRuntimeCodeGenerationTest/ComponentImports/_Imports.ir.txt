@@ -1,0 +1,18 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [17] x:\dir\subdir\Test\_Imports.razor) - System.Text
+        UsingDirective - (21:1,1 [23] x:\dir\subdir\Test\_Imports.razor) - System.Reflection
+        CSharpCode - 
+            IntermediateToken -  - CSharp - [global::Microsoft.AspNetCore.Components.LayoutAttribute(typeof(
+            IntermediateToken - (56:3,8 [10] x:\dir\subdir\Test\_Imports.razor) - CSharp - MainLayout
+            IntermediateToken -  - CSharp - ))]
+        ClassDeclaration -  - public partial - _Imports - object - 
+            MethodDeclaration -  - protected - void - Execute
+                CSharpExpression - (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor)
+                    LazyIntermediateToken - (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor) - CSharp - Foo
+                LazyIntermediateToken - (69:4,1 [3] x:\dir\subdir\Test\_Imports.razor) - CSharp - Foo

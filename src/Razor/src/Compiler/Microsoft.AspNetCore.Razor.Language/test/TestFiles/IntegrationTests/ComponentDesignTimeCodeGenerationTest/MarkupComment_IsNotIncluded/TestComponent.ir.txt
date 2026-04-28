@@ -1,0 +1,25 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [39] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n  var myValue = "Expression value";\n
+                MarkupElement - (44:3,0 [38] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                    CSharpExpression - (50:3,6 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (50:3,6 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - myValue
+                    HtmlContent - (57:3,13 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (57:3,13 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  
+                    HtmlContent - (75:3,31 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (75:3,31 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  

@@ -1,0 +1,169 @@
+﻿Source Location: (284:10,2 [34] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|
+    Func<dynamic, object> foo = |
+Generated Location: (1465:33,2 [34] )
+|
+    Func<dynamic, object> foo = |
+
+Source Location: (337:11,51 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|item|
+Generated Location: (1820:42,51 [4] )
+|item|
+
+Source Location: (349:11,63 [7] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|;
+    |
+Generated Location: (2075:51,63 [7] )
+|;
+    |
+
+Source Location: (357:12,5 [7] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|foo("")|
+Generated Location: (2245:59,6 [7] )
+|foo("")|
+
+Source Location: (364:12,12 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|
+|
+Generated Location: (2422:66,12 [2] )
+|
+|
+
+Source Location: (373:15,2 [35] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+| 
+    Func<dynamic, object> bar = |
+Generated Location: (2581:73,2 [35] )
+| 
+    Func<dynamic, object> bar = |
+
+Source Location: (420:16,44 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|item|
+Generated Location: (2930:82,44 [4] )
+|item|
+
+Source Location: (435:16,59 [7] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|;
+    |
+Generated Location: (3181:91,59 [7] )
+|;
+    |
+
+Source Location: (443:17,5 [14] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|bar("myclass")|
+Generated Location: (3351:99,6 [14] )
+|bar("myclass")|
+
+Source Location: (457:17,19 [2] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|
+|
+Generated Location: (3542:106,19 [2] )
+|
+|
+
+Source Location: (472:21,2 [11] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|Repeat(10, |
+Generated Location: (3705:113,6 [11] )
+|Repeat(10, |
+
+Source Location: (495:21,25 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|item|
+Generated Location: (3947:116,25 [4] )
+|item|
+
+Source Location: (504:21,34 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|)|
+Generated Location: (4008:122,1 [1] )
+|)|
+
+Source Location: (523:25,1 [16] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|Repeat(10,
+    |
+Generated Location: (4173:129,6 [16] )
+|Repeat(10,
+    |
+
+Source Location: (556:26,21 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|item|
+Generated Location: (4416:133,21 [4] )
+|item|
+
+Source Location: (577:27,0 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|)|
+Generated Location: (4477:139,1 [1] )
+|)|
+
+Source Location: (594:31,1 [16] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|Repeat(10,
+    |
+Generated Location: (4642:146,6 [16] )
+|Repeat(10,
+    |
+
+Source Location: (628:32,22 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|item|
+Generated Location: (4886:150,22 [4] )
+|item|
+
+Source Location: (650:33,0 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|)|
+Generated Location: (4947:156,1 [1] )
+|)|
+
+Source Location: (667:37,1 [16] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|Repeat(10,
+    |
+Generated Location: (5112:163,6 [16] )
+|Repeat(10,
+    |
+
+Source Location: (702:38,23 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|item|
+Generated Location: (5357:167,23 [4] )
+|item|
+
+Source Location: (724:39,0 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|)|
+Generated Location: (5418:173,1 [1] )
+|)|
+
+Source Location: (748:44,5 [11] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|Repeat(10, |
+Generated Location: (5583:180,6 [11] )
+|Repeat(10, |
+
+Source Location: (781:45,15 [4] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|item|
+Generated Location: (5815:183,15 [4] )
+|item|
+
+Source Location: (797:46,10 [18] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|var parent = item;|
+Generated Location: (5987:190,10 [18] )
+|var parent = item;|
+
+Source Location: (956:51,9 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|)|
+Generated Location: (6061:196,1 [1] )
+|)|
+
+Source Location: (12:0,12 [265] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Templates.cshtml)
+|
+    public HelperResult Repeat(int times, Func<int, object> template) {
+        return new HelperResult((writer) => {
+            for(int i = 0; i < times; i++) {
+                ((HelperResult)template(i)).WriteTo(writer);
+            }
+        });
+    }
+|
+Generated Location: (6280:205,12 [265] )
+|
+    public HelperResult Repeat(int times, Func<int, object> template) {
+        return new HelperResult((writer) => {
+            for(int i = 0; i < times; i++) {
+                ((HelperResult)template(i)).WriteTo(writer);
+            }
+        });
+    }
+|
+

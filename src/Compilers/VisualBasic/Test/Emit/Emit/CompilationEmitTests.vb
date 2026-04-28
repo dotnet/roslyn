@@ -2597,7 +2597,7 @@ Imports System
                 End If
             Next
 
-            AssertEx.Fail("Unable to find type:" + typeName)
+            Assert.Fail("Unable to find type:" + typeName)
             Return Nothing
         End Function
 
@@ -2613,7 +2613,7 @@ Imports System
                 End If
             Next
 
-            AssertEx.Fail("Unable to find method:" + methodName)
+            Assert.Fail("Unable to find method:" + methodName)
             Return Nothing
         End Function
 

@@ -1,0 +1,41 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        UsingDirective - (1:0,1 [17] x:\dir\subdir\Test\TestComponent.cshtml) - System.Text
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+                DirectiveToken - (28:1,8 [6] x:\dir\subdir\Test\TestComponent.cshtml) - string
+                DirectiveToken - (35:1,15 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Value1
+                DirectiveToken - (57:2,14 [13] x:\dir\subdir\Test\TestComponent.cshtml) - StringBuilder
+                DirectiveToken - (80:2,37 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Value2
+                DirectiveToken - (96:3,8 [3] x:\dir\subdir\Test\TestComponent.cshtml) - int
+                DirectiveToken - (100:3,12 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Value3
+                DirectiveToken - (117:4,8 [6] x:\dir\subdir\Test\TestComponent.cshtml) - double
+                DirectiveToken - (124:4,15 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Value4
+                DirectiveToken - (172:10,8 [5] x:\dir\subdir\Test\TestComponent.cshtml) - float
+                DirectiveToken - (178:10,14 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Value5
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (18:0,18 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (18:0,18 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                HtmlContent - (132:5,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (132:5,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                MarkupElement - (134:6,0 [26] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                    HtmlContent - (139:6,5 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (139:6,5 [15] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    Content\n
+                HtmlContent - (160:8,6 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (160:8,6 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            ComponentInject - 
+            ComponentInject - 
+            ComponentInject - 
+            ComponentInject - 
+            ComponentInject - 

@@ -1,0 +1,40 @@
+﻿RazorDocument - [0..33)::33 - [<p notRequired="a" class="btn" />]
+    MarkupBlock - [0..33)::33
+        MarkupTagHelperElement - [0..33)::33 - p[SelfClosing] - pTagHelper
+            MarkupTagHelperStartTag - [0..33)::33 - [<p notRequired="a" class="btn" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperAttribute - [2..18)::16 - notRequired - DoubleQuotes - Unbound - [ notRequired="a"]
+                    MarkupTextLiteral - [2..3)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [3..14)::11 - [notRequired] - Gen<Markup>
+                        Text;[notRequired];
+                    Equals;[=];
+                    MarkupTextLiteral - [15..16)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [16..17)::1
+                        MarkupLiteralAttributeValue - [16..17)::1 - [a]
+                            MarkupTextLiteral - [16..17)::1 - [a] - Gen<Markup>
+                                Text;[a];
+                    MarkupTextLiteral - [17..18)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTagHelperAttribute - [18..30)::12 - class - DoubleQuotes - Unbound - [ class="btn"]
+                    MarkupTextLiteral - [18..19)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [19..24)::5 - [class] - Gen<Markup>
+                        Text;[class];
+                    Equals;[=];
+                    MarkupTextLiteral - [25..26)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [26..29)::3
+                        MarkupLiteralAttributeValue - [26..29)::3 - [btn]
+                            MarkupTextLiteral - [26..29)::3 - [btn] - Gen<Markup>
+                                Text;[btn];
+                    MarkupTextLiteral - [29..30)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [30..31)::1
+                    MarkupTextLiteral - [30..31)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];

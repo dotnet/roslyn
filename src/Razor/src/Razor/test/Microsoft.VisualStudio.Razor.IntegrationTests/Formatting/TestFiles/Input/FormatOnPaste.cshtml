@@ -1,0 +1,60 @@
+﻿@model AccessViolationException
+@{
+    ViewData["Title"] = "Error";
+}
+
+@{
+<section>
+        <input type="button" name="name" value="test" />
+
+
+    </section>
+}
+@{ }
+<section>
+        <input type="button" name="name" value="test" />
+
+
+</section>
+@model ExternalLoginsViewModel
+@{
+    ViewData["Title"] = "Manage your external logins";
+}
+
+@Html.Partial("_StatusMessage", Model.StatusMessage)
+@if (Model.CurrentLogins?.Count > 0)
+{
+    @foreach (var login in Model.CurrentLogins)
+    {
+        <div>
+            <span class="tab-content">@login.ProviderDisplayName</span>
+        </div>
+        <li class="@login.LoginProvider">
+            @login.LoginProvider<br />
+
+
+        </li>
+    }
+}
+@{
+    <a>
+
+    </a>
+}
+<div>
+    <div>
+        <table>
+            <tbody>
+                @foreach (var item in ViewBag.RequestOrder)
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<div>
+    @if (true)
+    {
+        <a>
+        
+    }
+</div>

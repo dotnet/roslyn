@@ -1,0 +1,20 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [37] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (32:0,32 [1] x:\dir\subdir\Test\TestComponent.cshtml) - PlaceHolder - Placeholder - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (32:0,32 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - s
+                    ComponentAttribute - (32:0,32 [1] x:\dir\subdir\Test\TestComponent.cshtml) - PlaceHolderChanged - PlaceholderChanged - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+                            IntermediateToken -  - CSharp - __value => s = __value
+                            IntermediateToken -  - CSharp - , s)
+            CSharpCode - (48:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (48:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string s = "abc";\n

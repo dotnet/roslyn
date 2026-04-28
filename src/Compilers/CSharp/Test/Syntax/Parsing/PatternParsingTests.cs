@@ -2998,12 +2998,12 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 catch (StackOverflowException)
                 {
                     Console.WriteLine("Failed on \"" + source + "\"");
-                    Assert.True(false, source);
+                    Assert.Fail(source);
                 }
                 catch (OutOfMemoryException)
                 {
                     Console.WriteLine("Failed on \"" + source + "\"");
-                    Assert.True(false, source);
+                    Assert.Fail(source);
                 }
             }
             return;
