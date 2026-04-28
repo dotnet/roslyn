@@ -256,6 +256,25 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
     public async ValueTask<TextDocument?> GetOrLoadEntryPointDocumentAsync(string documentFilePath, TextLoader textLoader, LanguageInformation languageInformation, SourceHashAlgorithm checksumAlgorithm, bool doDesignTimeBuild)
     {
+        // Try to load the project from a cached DTB result first, to get to a fully-loaded state more quickly.
+        if (doDesignTimeBuild)
+        {
+            var cachedInfos = ProjectFileInfoCache.TryReadFromCache(documentFilePath, _logger);
+            if (!cachedInfos.IsDefault)
+            {
+                var cachedProject = await base.GetOrLoadProjectFromCachedInfoAsync(
+                    documentFilePath,
+                    _workspaceFactory.HostProjectFactory,
+                    cachedInfos,
+                    isMiscellaneousFile: false,
+                    hasAllInformation: true);
+
+                if (cachedProject is not null)
+                    return LookupExistingDocument(cachedProject);
+            }
+        }
+
+        // Fall back to the primordial project loading path.
         var project = await base.GetOrLoadProjectAsync(documentFilePath, _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory, CreatePrimordialProjectInfo, doDesignTimeBuild);
         return project is null ? null : LookupExistingDocument(project);
 
@@ -355,9 +374,14 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(buildHostKind, virtualProjectPath, dotnetPath: null, cancellationToken);
         var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectContent, languageName: LanguageNames.CSharp, cancellationToken);
 
+        var projectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
+
+        // Cache the DTB result so subsequent loads can skip the primordial project step.
+        ProjectFileInfoCache.WriteToCache(documentPath, projectFileInfos, _logger);
+
         return new RemoteProjectLoadResult
         {
-            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
+            ProjectFileInfos = projectFileInfos,
             DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
             ProjectRestorePath = documentPath,
             ProjectFactory = _workspaceFactory.HostProjectFactory,
