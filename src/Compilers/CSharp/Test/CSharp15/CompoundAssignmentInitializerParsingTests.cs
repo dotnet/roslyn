@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -13,23 +14,25 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
 {
     public CompoundAssignmentInitializerParsingTests(ITestOutputHelper output) : base(output) { }
 
-    // The operator text and the corresponding *AssignmentExpression kind are derived per test
-    // via `SyntaxFacts.GetText` / `SyntaxFacts.GetAssignmentExpression`.
-    public static TheoryData<SyntaxKind> CompoundOperators => new()
+    // Derive the set of compound assignment operator tokens from `SyntaxFacts` rather than hand-listing
+    // them: any token kind for which `IsAssignmentExpressionOperatorToken` returns true and which isn't
+    // the simple `=` form is in scope. Per-test, the operator text and the corresponding
+    // *AssignmentExpression kind are derived via `SyntaxFacts.GetText` /
+    // `SyntaxFacts.GetAssignmentExpression`. New compound operators added to the language pick up
+    // coverage automatically.
+    public static TheoryData<SyntaxKind> CompoundOperators
     {
-        SyntaxKind.PlusEqualsToken,
-        SyntaxKind.MinusEqualsToken,
-        SyntaxKind.AsteriskEqualsToken,
-        SyntaxKind.SlashEqualsToken,
-        SyntaxKind.PercentEqualsToken,
-        SyntaxKind.AmpersandEqualsToken,
-        SyntaxKind.BarEqualsToken,
-        SyntaxKind.CaretEqualsToken,
-        SyntaxKind.LessThanLessThanEqualsToken,
-        SyntaxKind.GreaterThanGreaterThanEqualsToken,
-        SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
-        SyntaxKind.QuestionQuestionEqualsToken,
-    };
+        get
+        {
+            var data = new TheoryData<SyntaxKind>();
+            foreach (var kind in Enum.GetValues<SyntaxKind>())
+            {
+                if (kind != SyntaxKind.EqualsToken && SyntaxFacts.IsAssignmentExpressionOperatorToken(kind))
+                    data.Add(kind);
+            }
+            return data;
+        }
+    }
 
     #region Object initializer: named member
 
