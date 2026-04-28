@@ -2026,6 +2026,65 @@ public sealed partial class TypeInferrerTests : TypeInferrerTestBase<CSharpTestW
             """, "global::System.String", mode);
 
     [Theory, CombinatorialData]
+    public Task TestObjectInitializer_CompoundRhs(TestMode mode)
+        => TestAsync("""
+            class C
+            {
+                public int P { get; set; }
+                C M() => new C { P += [|Goo()|] };
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestObjectInitializer_NullCoalesceCompoundRhs(TestMode mode)
+        => TestAsync("""
+            #nullable enable
+
+            class C
+            {
+                public string? P { get; set; }
+                C M() => new C { P ??= [|Goo()|] };
+            }
+            """, "global::System.String?", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestObjectInitializer_WithExpression_CompoundRhs(TestMode mode)
+        => TestAsync("""
+            record R(int P)
+            {
+                R M(R r) => r with { P += [|Goo()|] };
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestDictionaryInitializer_ImplicitElementAccessKey_Equals(TestMode mode)
+        => TestAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var d = new Dictionary<int, string> { [[|Goo()|]] = "v" };
+                }
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
+    public Task TestDictionaryInitializer_ImplicitElementAccessKey_Compound(TestMode mode)
+        => TestAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var d = new Dictionary<int, int> { [[|Goo()|]] += 1 };
+                }
+            }
+            """, "global::System.Int32", mode);
+
+    [Theory, CombinatorialData]
     public Task TestCustomCollectionInitializerAddMethodWithNullableParameter(TestMode mode)
         => TestAsync("""
             class C : System.Collections.IEnumerable

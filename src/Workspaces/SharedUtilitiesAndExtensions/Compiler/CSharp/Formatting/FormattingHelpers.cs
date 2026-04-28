@@ -400,8 +400,10 @@ internal static class FormattingHelpers
                     return true;
                 }
 
-                var expression = initializer.Expressions[0];
-                if (expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                // Object initializers admit `=` plus all compound assignment forms (`+=`, `-=`, …, `??=`)
+                // as their first element. Treat any `AssignmentExpressionSyntax` here as the object-init
+                // shape; collection initializers can never have an assignment-shaped first element.
+                if (initializer.Expressions[0] is AssignmentExpressionSyntax)
                 {
                     return true;
                 }
