@@ -11719,23 +11719,27 @@ done:
             }
         }
 
-        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind()
+        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind(int peekIndex = 0)
         {
             // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
             // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
             // an attribute.
 
-            var token1 = this.CurrentToken;
+            var token1 = this.PeekToken(peekIndex);
             var token1Kind = token1.ContextualKind;
 
             // Merge two consecutive dots into a DotDotToken
-            if (IsAtDotDotToken())
+            if (token1Kind == SyntaxKind.DotToken &&
+                this.PeekToken(peekIndex + 1) is { Kind: SyntaxKind.DotToken } dotToken2 &&
+                NoTriviaBetween(token1, dotToken2))
+            {
                 return (SyntaxKind.DotDotToken, SyntaxKind.RangeExpression);
+            }
 
             // check for >>, >>=, >>> or >>>=
             //
             // In all those cases, update token1Kind to be the merged token kind.  It will then be handled by the code below.
-            if (TryGetSplitRightShiftAt(peekIndex: 0, out var splitRightShiftKind))
+            if (TryGetSplitRightShiftAt(peekIndex, out var splitRightShiftKind))
                 token1Kind = splitRightShiftKind;
 
             if (IsExpectedBinaryOperator(token1Kind))
@@ -11744,10 +11748,10 @@ done:
             if (IsExpectedAssignmentOperator(token1Kind))
                 return (token1Kind, SyntaxFacts.GetAssignmentExpression(token1Kind));
 
-            if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+            if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenBraceToken)
                 return (token1Kind, SyntaxKind.SwitchExpression);
 
-            if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+            if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(peekIndex + 1).Kind == SyntaxKind.OpenBraceToken)
                 return (token1Kind, SyntaxKind.WithExpression);
 
             // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
@@ -13381,21 +13385,17 @@ done:
             // Accept `Identifier =`, `Identifier :` (recovered to `=`), or `Identifier op=` for any compound
             // assignment operator (including `??=`, `>>=`, `>>>=`). Compound operators on member initializers
             // are legal under the compound-assignment-in-initializer feature; binder checks language version
-            // and target legality.
+            // and target legality. Detection of split `>>=` / `>>>=` (lexed as multiple tokens to keep nested
+            // generic argument lists parseable) rides on `GetExpressionOperatorTokenKindAndExpressionKind`'s
+            // existing merge logic.
             if (!IsTrueIdentifier())
                 return false;
 
-            var token1 = this.PeekToken(1);
-            if (token1.Kind == SyntaxKind.ColonToken)
+            if (this.PeekToken(1).Kind == SyntaxKind.ColonToken)
                 return true;
 
-            if (SyntaxFacts.IsAssignmentExpressionOperatorToken(token1.Kind))
-                return true;
-
-            // `>>=` and `>>>=` are split by the lexer into multiple tokens to keep nested generic argument
-            // lists parseable. Detect the adjacency pattern here so the named-member path triggers correctly.
-            return TryGetSplitRightShiftAt(peekIndex: 1, out var mergedKind) &&
-                   mergedKind is SyntaxKind.GreaterThanGreaterThanEqualsToken or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+            var (operatorTokenKind, _) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 1);
+            return SyntaxFacts.IsAssignmentExpressionOperatorToken(operatorTokenKind);
         }
 
         private bool IsDictionaryInitializer()
