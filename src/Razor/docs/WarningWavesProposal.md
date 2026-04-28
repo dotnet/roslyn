@@ -1,8 +1,10 @@
-﻿# Proposal: Warning Waves for Razor
+# Proposal: Warning Levels for Razor
+
+> **Status:** The infrastructure described here was implemented in [dotnet/razor#13016](https://github.com/dotnet/razor/pull/13016) and ships in Razor 18.7. The shipped feature is named **warning levels** (`RazorWarningLevel`) rather than warning waves. No new warnings have been classified at non-default levels yet — that work is layered on top of this infrastructure as warnings are introduced.
 
 ## Summary
 
-This proposal introduces **Warning Waves** to the Razor compiler, a feature modeled after [C#'s warning waves](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves). Warning waves allow users to adopt new .NET versions and Razor language features without being forced to immediately address new warnings that could break their build.
+This proposal introduces **warning levels** to the Razor compiler, a feature modeled after [C#'s warning waves](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves). Warning levels allow users to adopt new .NET versions and Razor language features without being forced to immediately address new warnings that could break their build.
 
 ## Motivation
 
@@ -18,82 +20,81 @@ None of these options are ideal. Users should be able to upgrade their TFM and u
 
 ### The Solution
 
-Warning waves decouple the introduction of new warnings from the language version. Users can:
+Warning levels decouple the introduction of new warnings from the language version. Users can:
 
 - Upgrade their TFM and get the new Razor language version
-- Set the warning wave to a lower version to suppress new warnings
+- Set the warning level lower to suppress new warnings
 - Still use all new language features
 - Address new warnings at their own pace
 
 ## Design
 
-### Warning Wave Versioning
+### Warning Level Numbering
 
-Warning waves will be versioned to match Razor language versions:
+Each warning is tagged with an integer **warning level**. The compiler reports a warning only when its level is less than or equal to the configured `RazorWarningLevel`.
 
-| Language Version | Warning Wave | Description                                        |
-|------------------|--------------|----------------------------------------------------|
-| 10.0             | 10.0         | **Baseline** - All existing warnings as of .NET 10 |
-| 11.0             | 11.0         | New warnings introduced in .NET 11                 |
-| 12.0             | 12.0         | New warnings introduced in .NET 12                 |
-| ...              | ...          | ...                                                |
+| Warning level | Description                                                                                     |
+|---------------|-------------------------------------------------------------------------------------------------|
+| `0`           | **Always reported.** Level 0 warnings are not part of any wave and are emitted at every level.  |
+| `N` (>= 1)    | Reported only when `RazorWarningLevel` is `>= N`. Conventionally `N` matches the Razor language version major in which the warning was introduced (e.g. level `11` for warnings added in Razor 11). |
 
-**Wave 10.0 is the baseline wave.** It represents all Razor warnings that exist today, before the introduction of warning waves. All current warnings will be classified as wave 10.0, meaning there is no behavior change for existing projects. New warnings introduced in future versions will be assigned to their corresponding wave (11.0, 12.0, etc.).
+**Default behaviour.** When `RazorWarningLevel` is not set, the compiler uses `RazorLanguageVersion.GetDefaultWarningLevel()`, which currently returns the language version's major number. So a project on Razor 11 implicitly gets `RazorWarningLevel = 11` and therefore sees every level <= 11.
 
-**By default, the warning wave matches the language version.** For example, if a project uses Razor language version 11.0, the warning wave defaults to 11.0.
+**Existing warnings are unaffected.** All warnings that exist today were authored without specifying a level, so they default to level `0` and continue to be reported regardless of the configured `RazorWarningLevel`. No project sees a behavior change until new warnings are added at higher levels.
 
 ### Configuration
 
-Users can configure the warning wave independently of the language version:
+Users configure the warning level via an MSBuild property that is forwarded to the source generator as an `AnalyzerConfigOptions` global option (`build_property.RazorWarningLevel`):
 
 ```xml
 <PropertyGroup>
   <TargetFramework>net11.0</TargetFramework>
-  <!-- Language version is 11.0 by default -->
+  <!-- Razor language version is 11.0 by default -->
 
-  <!-- Use wave 10.0 to suppress warnings introduced in wave 11.0 -->
-  <!-- All existing warnings from wave 10.0 are still reported -->
-  <RazorWarningWave>10.0</RazorWarningWave>
+  <!-- Stay on level 10 to suppress warnings introduced at level 11 -->
+  <!-- All level-0 warnings continue to be reported -->
+  <RazorWarningLevel>10</RazorWarningLevel>
 </PropertyGroup>
 ```
 
+The value must be empty or a non-negative integer. An empty value is treated as "use the default". Any other value (negative, non-numeric, etc.) produces diagnostic **`RZ3601`**: *Invalid value '{0}' for RazorWarningLevel. Must be empty or a non-negative integer.*
+
 ### Behavior
 
-1. **Default behavior**: Warning wave equals language version. Users get all warnings appropriate for their language version.
+1. **Default behaviour.** With no configuration, the warning level equals the language version's major number, so users see every warning appropriate for their language version.
 
-2. **Lowered warning wave**: When `RazorWarningWave` is set lower than the language version:
-   - Warnings introduced in waves higher than the configured wave are suppressed
-   - All language features remain available
-   - Existing warnings (from lower waves) continue to be reported
+2. **Lowered warning level.** When `RazorWarningLevel` is set lower than the default:
+   - Warnings whose level is greater than the configured value are suppressed.
+   - All language features remain available.
+   - Level-0 warnings continue to be reported.
 
-3. **Invalid configurations**:
-   - Setting warning wave higher than language version should produce a diagnostic
-   - Setting warning wave to an unrecognized version should produce a diagnostic
+3. **Raised warning level.** Setting `RazorWarningLevel` higher than the language version's default is allowed; it opts in to warnings introduced in future language versions.
 
-4. **Errors are not affected**: Warning waves only control warnings, not compiler errors.
+4. **Invalid values.** Any value that is not empty and not a non-negative integer produces `RZ3601` and the compiler falls back to the default level.
 
-5. **`#pragma warning` directives take precedence**: `#pragma warning disable/restore` directives take precedence over warning wave settings. This allows users to selectively enable a specific warning from a higher wave even when using a lower warning wave setting.
+5. **Errors are not affected.** Warning levels only control warnings, not compiler errors.
 
 ### Warning Classification
 
-Each Razor diagnostic that represents a warning must be classified with the wave in which it was introduced:
+Each Razor warning declares its level on `RazorDiagnosticDescriptor`. Diagnostics expose the level via `RazorDiagnostic.WarningLevel`, and warnings without an explicit level default to `0`:
 
 ```csharp
-// Example: A warning introduced in wave 11.0
+// Example: A warning introduced at level 11 (Razor 11.0).
 public static readonly RazorDiagnosticDescriptor Component_SomeNewWarning = new(
     "RZ10001",
-    "Some new warning message",
+    () => "Some new warning message",
     RazorDiagnosticSeverity.Warning,
-    warningWave: RazorWarningWave.Wave11_0);
+    warningLevel: 11);
 ```
 
-### Implementation Considerations
+### Plumbing
 
-1. **Diagnostic Filtering**: The compiler must filter diagnostics based on the configured warning wave before reporting them.
+The warning level is threaded through the compiler:
 
-2. **Backwards Compatibility**: All existing warnings will be classified as wave 10.0 (the baseline). This ensures no behavior change for existing projects—users will see the same warnings they see today. Only warnings introduced in future versions (11.0+) will be placed in higher waves.
-
-3. **Documentation**: Each warning wave should be documented with the list of warnings it introduces.
+- `RazorConfiguration` carries `RazorWarningLevel` (default `0`).
+- `RazorProjectEngine` copies it into `RazorCodeGenerationOptions.RazorWarningLevel` (with `WithRazorWarningLevel(int)` to mutate).
+- `CodeRenderingContext.GetDiagnostics()` is the central filter: it keeps a diagnostic when `diagnostic.WarningLevel <= options.RazorWarningLevel`. Errors are always kept.
+- The source generator (`RazorSourceGenerator.RazorProviders`) reads `build_property.RazorWarningLevel` from `AnalyzerConfigOptions`, parses it, and emits `RZ3601` on invalid input.
 
 ## Example Scenarios
 
@@ -108,51 +109,59 @@ A team with `TreatWarningsAsErrors` enabled wants to upgrade from .NET 10 to .NE
   <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 </PropertyGroup>
 
-<!-- After: .NET 11 with suppressed new warnings -->
+<!-- After: .NET 11 with new warnings suppressed -->
 <PropertyGroup>
   <TargetFramework>net11.0</TargetFramework>
   <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  <RazorWarningWave>10.0</RazorWarningWave>
+  <RazorWarningLevel>10</RazorWarningLevel>
 </PropertyGroup>
 ```
 
 The team can now:
 
-- Use .NET 11 runtime and libraries
-- Use Razor 11.0 language features
-- Address new warnings incrementally by eventually removing or updating `RazorWarningWave`
+- Use .NET 11 runtime and libraries.
+- Use Razor 11.0 language features.
+- Address new warnings incrementally by raising or removing `RazorWarningLevel`.
 
 ### Scenario 2: Gradual Warning Adoption
 
-A team wants to adopt warnings one wave at a time:
+A team wants to adopt warnings one level at a time:
 
 ```xml
-<!-- Start with wave 10.0 -->
-<RazorWarningWave>10.0</RazorWarningWave>
+<!-- Start at level 10 -->
+<RazorWarningLevel>10</RazorWarningLevel>
 
-<!-- After fixing wave 10.0 warnings, move to 11.0 -->
-<RazorWarningWave>11.0</RazorWarningWave>
+<!-- After fixing level-11 warnings, move up -->
+<RazorWarningLevel>11</RazorWarningLevel>
 
 <!-- Eventually catch up to current -->
-<RazorWarningWave>12.0</RazorWarningWave>
+<RazorWarningLevel>12</RazorWarningLevel>
 ```
 
-## Implementation Plan
+## Implementation Status
 
-1. **MSBuild Integration**: Add `RazorWarningWave` property to the Razor SDK targets.
-2. **Compiler Changes**: Add `WarningWave` property to `RazorDiagnosticDescriptor` to classify each warning.
-3. **Diagnostic Filtering**: Update the compiler to filter diagnostics based on the configured warning wave.
-4. **Tooling Updates**: Ensure IDE tooling (Visual Studio, VS Code) respects warning wave settings.
-5. **Documentation**: Document all warnings and their associated waves.
+The infrastructure landed in [#13016](https://github.com/dotnet/razor/pull/13016):
+
+- ✅ `RazorWarningLevel` MSBuild property plumbed through the source generator (`build_property.RazorWarningLevel`).
+- ✅ `WarningLevel` added to `RazorDiagnosticDescriptor` / `RazorDiagnostic` (defaults to `0`).
+- ✅ `RazorConfiguration`, `RazorCodeGenerationOptions`, and `RazorProjectEngine` all carry the level.
+- ✅ `CodeRenderingContext.GetDiagnostics()` filters warnings by level.
+- ✅ `RZ3601` reported for invalid `RazorWarningLevel` values.
+- ✅ `RazorLanguageVersion.GetDefaultWarningLevel()` defines the default (currently `Major`).
+
+Still to do (follow-up work):
+
+- Author the first batch of non-zero-level warnings.
+- IDE/tooling integration so live diagnostics also respect the configured level.
+- User-facing documentation listing each warning and the level at which it was introduced.
 
 ## Open Questions
 
-1. Should there be a way to opt-in to future warnings (set wave higher than language version) for early adopters?
-
-2. What is the minimum warning wave version we should support? Are values like 8 valid, or only 10+?
-
-3. Should we have a 'Latest' or 'Preview' warning wave value? Seems like if we want to do 1. then we would need these, but not otherwise the omission of the value serves the same purpose.
+1. Should `#pragma warning` directives be honoured as an override (e.g. so a project on level 10 can still opt into a single level-11 warning)? Not implemented in #13016.
+2. Should we expose a `Latest` / `Preview` sentinel for early adopters, or is "set the integer high enough" sufficient?
+3. What is the minimum warning level we should accept? Today the parser only enforces `>= 0`.
 
 ## References
 
 - [C# Warning Waves Documentation](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/warning-waves)
+- [dotnet/razor#13016 — Implementation PR](https://github.com/dotnet/razor/pull/13016)
