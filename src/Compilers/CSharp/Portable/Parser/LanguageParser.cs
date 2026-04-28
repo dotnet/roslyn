@@ -11549,7 +11549,7 @@ done:
                 // precedence level.  Examples include binary operator, assignment operators, range operators `..`, as
                 // well as `switch` and `with` clauses.
 
-                var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
+                var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
 
                 if (operatorTokenKind == SyntaxKind.None)
                     return null;
@@ -11719,7 +11719,7 @@ done:
             }
         }
 
-        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind(int peekIndex = 0)
+        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind(int peekIndex)
         {
             // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
             // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
@@ -12399,7 +12399,7 @@ done:
 
                     // a?.b = c
                     // a?.b! = c
-                    var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
+                    var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
                     if (IsExpectedAssignmentOperator(operatorTokenKind))
                     {
                         return ParseAssignmentExpression(operatorExpressionKind, expr, EatExpressionOperatorToken(operatorTokenKind));
@@ -13598,7 +13598,7 @@ done:
             // Defer to the expression parser's operator detection + merger. This handles any compound
             // assignment operator, including the split `>>=` / `>>>=` forms that the lexer produces as
             // multiple tokens.
-            var (operatorTokenKind, _) = GetExpressionOperatorTokenKindAndExpressionKind();
+            var (operatorTokenKind, _) = GetExpressionOperatorTokenKindAndExpressionKind(peekIndex: 0);
             if (SyntaxFacts.IsAssignmentExpressionOperatorToken(operatorTokenKind))
                 return EatExpressionOperatorToken(operatorTokenKind);
 
