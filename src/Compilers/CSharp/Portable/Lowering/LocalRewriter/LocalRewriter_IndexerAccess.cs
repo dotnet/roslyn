@@ -943,6 +943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression startExpr;
             BoundExpression rangeSizeExpr;
             var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
+
+            bool needSpecialExtensionReceiverReadOrder =
+                IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.LengthOrCountAccess.ExpressionSymbol)
+                || IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.IndexerOrSliceAccess.ExpressionSymbol);
+
             if (rangeExpr is not null)
             {
                 BoundExpression? lengthAccess = null;
@@ -969,8 +974,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     startExpr = MakePatternIndexOffsetExpression(startMakeOffsetInput, lengthAccess, startStrategy);
 
                     RemovePlaceholderReplacement(node.ReceiverPlaceholder);
-                    // Note: if the optimization is extended to new types or to support extension members,
-                    // we may need to add special handling for receiver capture and argument side-effects.
+                    // Note: if the optimization is extended to support extension members,
+                    // we need to add special handling for receiver capture and argument side-effects.
+                    Debug.Assert(!needSpecialExtensionReceiverReadOrder);
                     return F.Call(receiver, startOnlyOverload, startExpr);
                 }
 
@@ -1039,10 +1045,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((rewriteFlags & captureStartOffset) == 0 || (rewriteFlags & captureEndOffset) != 0 || endStrategy == PatternIndexOffsetLoweringStrategy.Length);
                 Debug.Assert(endStrategy != PatternIndexOffsetLoweringStrategy.Length || (rewriteFlags & captureEndOffset) == 0);
                 Debug.Assert((rewriteFlags & captureLength) == 0 || (rewriteFlags & useLength) != 0);
-
-                bool needSpecialExtensionReceiverReadOrder =
-                    IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.LengthOrCountAccess.ExpressionSymbol)
-                    || IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.IndexerOrSliceAccess.ExpressionSymbol);
 
                 if (needSpecialExtensionReceiverReadOrder)
                 {
