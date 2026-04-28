@@ -2,30 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Windows.Media;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.CallHierarchy;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
 internal sealed class FieldInitializerItem : ICallHierarchyNameItem
 {
-    private readonly IGlyphService _glyphService;
+    private readonly Func<ImageSource> _glyphCreator;
 
-    public FieldInitializerItem(string name, string sortText, IGlyphService glyphService, IEnumerable<CallHierarchyDetail> details)
+    public FieldInitializerItem(string name, string sortText, Func<ImageSource> glyphCreator, IEnumerable<CallHierarchyDetail> details)
     {
         Name = name;
         SortText = sortText;
-        _glyphService = glyphService;
+        _glyphCreator = glyphCreator;
         Details = details;
     }
 
     public IEnumerable<ICallHierarchyItemDetails> Details { get; }
 
-    public ImageSource DisplayGlyph => Glyph.FieldPublic.GetImageSource(_glyphService);
+    public ImageSource DisplayGlyph => _glyphCreator();
 
     public string Name { get; }
 
