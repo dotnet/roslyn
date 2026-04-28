@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem.Legacy;
+using Microsoft.VisualStudio.LanguageServices.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -147,6 +148,9 @@ internal abstract partial class AbstractLegacyProject
         RefreshBinOutputPath();
 
         var projectHierarchyGuid = GetProjectIDGuid(hierarchy);
+
+        var diagnosticCache = workspaceImpl.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
+        diagnosticCache.RegisterProject(ProjectSystemProject.Id);
 
         _externalErrorReporter = new ProjectExternalErrorReporter(ProjectSystemProject.Id, projectHierarchyGuid, externalErrorReportingPrefix, language, workspaceImpl);
         _batchScopeCreator = componentModel.GetService<SolutionEventsBatchScopeCreator>();

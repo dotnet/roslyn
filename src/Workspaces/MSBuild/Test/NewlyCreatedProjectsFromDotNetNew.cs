@@ -147,7 +147,8 @@ public class NewlyCreatedProjectsFromDotNetNew : MSBuildWorkspaceTestBase
     {
         if (ignoredDiagnostics?.Length > 0)
         {
-            TestOutput.WriteLine($"""
+            var logger = LoggerFactory.CreateLogger(nameof(AssertTemplateProjectLoadsCleanlyAsync));
+            logger.LogInformation($"""
                 Ignoring compiler diagnostics: "{string.Join("\", \"", ignoredDiagnostics)}"
                 """);
         }

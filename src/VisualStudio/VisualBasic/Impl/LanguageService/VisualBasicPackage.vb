@@ -90,13 +90,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Sub
 
         Protected Overrides Sub RegisterObjectBrowserLibraryManager()
-            Dim workspace As VisualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
-
             Contract.ThrowIfFalse(JoinableTaskFactory.Context.IsOnMainThread)
 
             Dim objectManager = TryCast(GetService(GetType(SVsObjectManager)), IVsObjectManager2)
             If objectManager IsNot Nothing Then
-                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel, workspace)
+                Me._libraryManager = New ObjectBrowserLibraryManager(Me, ComponentModel)
 
                 If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
                     Me._libraryManagerCookie = 0

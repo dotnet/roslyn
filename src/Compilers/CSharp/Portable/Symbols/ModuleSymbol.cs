@@ -193,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override CallerUnsafeMode CallerUnsafeMode => CallerUnsafeMode.None;
+
         /// <summary>
         /// Returns an array of assembly identities for assemblies referenced by this module.
         /// Items at the same position from ReferencedAssemblies and from ReferencedAssemblySymbols 
@@ -318,6 +320,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
 
         internal abstract bool UseUpdatedEscapeRules { get; }
+
+        /// <summary>
+        /// <see cref="CSharpCompilationOptions.UseUpdatedMemorySafetyRules"/>
+        /// </summary>
+        internal abstract bool UseUpdatedMemorySafetyRules { get; }
 
         /// <summary>
         /// Default char set for contained types, or null if not specified.

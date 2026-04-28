@@ -847,7 +847,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
 
                 return builder.ToString();
             }
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
             else if (memberDeclaration is ExtensionBlockDeclarationSyntax extensionDeclaration)
             {
                 using var _ = PooledStringBuilder.GetInstance(out var builder);
@@ -885,7 +885,7 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
             }
         }
 
-#if !ROSLYN_4_12_OR_LOWER
+#if !OLDER_ROSLYN
         void AppendParameterList(StringBuilder builder, ParameterListSyntax? parameterList)
         {
             if (parameterList != null)

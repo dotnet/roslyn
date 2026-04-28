@@ -24,7 +24,7 @@
 
   <!--
     MSBuild - need to use older packages when targeting net8.0 since the newer versions only support net472 and net9.0.
-    When tareting the latest .NET the version must also be lower or equal to one specified in
+    When targeting the latest .NET the version must also be lower or equal to one specified in
     https://github.com/dotnet/sdk/blob/main/src/Layout/redist/minimumMSBuildVersion#L1
   -->
 
@@ -252,8 +252,8 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="$(MicrosoftCodeAnalysisTestingVersion)" />
-    <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-22302-02" />
-    <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
+    <PackageVersion Include="Microsoft.DiaSymReader.Converter" Version="1.1.0-beta2-26119-01" />
+    <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-26119-01" />
     <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="2.0.0-beta1.25425.3" />
     <PackageVersion Include="Microsoft.ILVerification" Version="9.0.7" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
@@ -316,11 +316,10 @@
       Infra
     -->
     <PackageVersion Include="Microsoft.Win32.Registry" Version="5.0.0" />
-    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.71" />
+    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.3.113" />
     <PackageVersion Include="Mono.Options" Version="6.6.0.161" />
     <PackageVersion Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersPackageVersion)" />
     <PackageVersion Include="SourceBrowser" Version="1.0.21" />
-    <PackageVersion Include="SourceGear.Sqlite3" Version="3.50.4.5" />
     <PackageVersion Include="MicroBuildPluginsSwixBuild" Version="1.1.87" />
     <PackageVersion Include="vswhere" Version="$(vswhereVersion)" />
     <PackageVersion Include="CliWrap" Version="3.8.2" />

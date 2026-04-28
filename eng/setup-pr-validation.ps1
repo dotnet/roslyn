@@ -21,32 +21,44 @@ try {
     
     git remote add gh https://github.com/dotnet/roslyn.git
 
+    Write-Host "Getting the hash of refs/pull/$prNumber/head..."
+    $remoteRef = git ls-remote gh refs/pull/$prNumber/head
+    Write-Host ($remoteRef | Out-String)
+
+    $prHeadSHA = $remoteRef.Split()[0]
+
     if ($enforceLatestCommit) {
       Write-Host "Validating the PR head matches the specified commit SHA ($commitSHA)..."
-      Write-Host "Getting the hash of refs/pull/$prNumber/head..."
-      $remoteRef = git ls-remote gh refs/pull/$prNumber/head
-      Write-Host ($remoteRef | Out-String)
-
-      $prHeadSHA = $remoteRef.Split()[0]
       if (!$prHeadSHA.StartsWith($commitSHA)) {
         Write-Host "##vso[task.LogIssue type=error;]The PR's Head SHA ($prHeadSHA) does not begin with the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
         exit 1
       }
     }
 
-    Write-Host "Setting up the build for PR validation by pulling refs/pull/$prNumber/merge..."
-    git pull origin refs/pull/$prNumber/merge
+    Write-Host "Setting up the build for PR validation by fetching refs/pull/$prNumber/merge..."
+    git fetch gh refs/pull/$prNumber/merge
     if (!$?) {
-      Write-Host "##vso[task.LogIssue type=error;]Pulling branch refs/pull/$prNumber/merge failed."
+      Write-Host "##vso[task.LogIssue type=error;]Fetching ref refs/pull/$prNumber/merge failed."
+      exit 1
+    }
+
+    git checkout FETCH_HEAD
+    if (!$?) {
+      Write-Host "##vso[task.LogIssue type=error;]Checking out FETCH_HEAD for refs/pull/$prNumber/merge failed."
       exit 1
     }
 
     if (!$enforceLatestCommit) {
-      Write-Host "Checking out the specified commit SHA ($commitSHA)..."
-      git checkout $commitSHA
-      if (!$?) {
-        Write-Host "##vso[task.LogIssue type=error;]Checking out commit SHA $commitSHA failed."
-        exit 1
+      if ($prHeadSHA.StartsWith($commitSHA)) {
+        Write-Host "PR head SHA ($prHeadSHA) already matches the specified commit SHA ($commitSHA), skipping checkout."
+      }
+      else {
+        Write-Host "Checking out the specified commit SHA ($commitSHA)..."
+        git checkout $commitSHA
+        if (!$?) {
+          Write-Host "##vso[task.LogIssue type=error;]Checking out commit SHA $commitSHA failed."
+          exit 1
+        }
       }
     }
 }
