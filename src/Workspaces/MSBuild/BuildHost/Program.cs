@@ -40,16 +40,22 @@ internal static class Program
         var pipeServer = NamedPipeUtil.CreateServer(pipeName, PipeDirection.InOut);
         await pipeServer.WaitForConnectionAsync().ConfigureAwait(false);
 
-        var server = new RpcServer(pipeServer);
-
+        RpcServer server;
         AbstractBuildHost buildHost;
 
 #if NETFRAMEWORK
+
         if (PlatformInformation.IsRunningOnMono)
+        {
+            server = new RpcServer(pipeServer);
             buildHost = new MonoBuildHost(logger, server);
+        }
         else
-            buildHost = NetFrameworkBuildHost.Create(logger, server);
+        {
+            (buildHost, server) = NetFrameworkBuildHost.Create(logger, pipeServer);
+        }
 #else
+        server = new RpcServer(pipeServer);
         buildHost = new NetCoreBuildHost(logger, server);
 #endif
 

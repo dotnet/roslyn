@@ -7,6 +7,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Build.Locator;
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class NetFrameworkBuildHost : AbstractBuildHost
 {
-    public static AbstractBuildHost Create(BuildHostLogger logger, RpcServer server)
+    public static (AbstractBuildHost, RpcServer) Create(BuildHostLogger logger, PipeStream pipeStream)
     {
         // In this case, we're just going to pick the highest VS install on the machine, in case the projects are using some newer
         // MSBuild features. Since we don't have something like a global.json we can't really know what the minimum version is.
@@ -26,7 +27,8 @@ internal sealed class NetFrameworkBuildHost : AbstractBuildHost
         if (instance is null)
         {
             logger.LogCritical("No compatible MSBuild instance could be found.");
-            return new NoNetFrameworkFoundBuildHost(logger, server);
+            var server = new RpcServer(pipeStream);
+            return (new NoNetFrameworkFoundBuildHost(logger, server), server);
         }
 
         // We need to create a build host, but in the .NET Framework case we need to ensure we have the proper binding redirects for MSBuild assemblies.
@@ -56,7 +58,8 @@ internal sealed class NetFrameworkBuildHost : AbstractBuildHost
             culture: null,
             activationAttributes: null);
 
-        return factory.CreateBuildHost(logger, server);
+        var rpcServer = new RpcServer(pipeStream, factory.CreateMethodInvoker());
+        return (factory.CreateBuildHost(logger, rpcServer), rpcServer);
     }
 
     internal class Factory : MarshalByRefObject
@@ -85,6 +88,7 @@ internal sealed class NetFrameworkBuildHost : AbstractBuildHost
         }
 
 #pragma warning disable CA1822 // Mark members as static - this is being called across AppDomains, so must be instance
+        public RpcMethodInvoker CreateMethodInvoker() => new RpcMethodInvoker();
         public NetFrameworkBuildHost CreateBuildHost(BuildHostLogger logger, RpcServer server) => new NetFrameworkBuildHost(logger, server);
 #pragma warning restore CA1822 // Mark members as static
     }
