@@ -7,15 +7,9 @@ description: Install and validate a .NET SDK from an Azure DevOps internal build
 
 Follow these steps to install and validate a .NET SDK from an internal Azure DevOps build (typically from `dnceng/internal`).
 
-> **Important:** Do not run this skill from within a Roslyn enlistment. Run it from a separate scratch directory (e.g., `c:\repos\test-sdk`). The skill installs an SDK and creates temporary files in the current working directory.
+This skill can be run from **any directory**, including inside a repo like dotnet/roslyn. The SDK is installed to a temp folder and validation runs in a separate temp folder, so nothing in the user's working directory is created, modified, or depended upon.
 
-This skill is designed for use with **agency copilot** (install from https://aka.ms/agency). Start it with the ADO MCP server for the `dnceng` organization:
-
-```
-agency copilot --mcp "ado --organization dnceng"
-```
-
-Run from any folder you want to use as your working directory (e.g., `c:\repos\test-sdk`). The SDK will be installed into a `.dotnet` subdirectory. A temporary `app.cs` file will also be created for validation.
+This skill requires the **ADO MCP server** configured for the `dnceng` organization to be available in your session.
 
 ## How to Invoke This Skill
 
@@ -54,15 +48,15 @@ The SDK version follows the pattern `X.Y.Z-preview.N.NNNNN.NNN` and appears betw
 
 ## Step 3: Install Using dotnet-install Script
 
-Download and run the official dotnet-install script with the exact SDK version:
+Download and run the official dotnet-install script with the exact SDK version. Install into a **temp folder** so there is no dependency on the user's working directory or any repo:
 
 ```powershell
-# Download the installer script
+$sdkDir = "$env:TEMP\validate-sdk-dotnet"
 $installScript = "$env:TEMP\dotnet-install.ps1"
 Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile $installScript
 
-# Install the specific SDK version to a local directory
-& $installScript -Version "<SDK_VERSION>" -InstallDir "<PROJECT_DIR>\.dotnet"
+# Install the specific SDK version to a temp directory
+& $installScript -Version "<SDK_VERSION>" -InstallDir $sdkDir
 ```
 
 The script will automatically try multiple feeds:
@@ -73,41 +67,67 @@ If both feeds return 404, the SDK may not yet be published. Check with the user.
 
 For Linux/macOS, use the bash version instead:
 ```bash
-curl -fsSL https://dot.net/v1/dotnet-install.sh -o dotnet-install.sh
-chmod +x dotnet-install.sh
-./dotnet-install.sh --version <SDK_VERSION> --install-dir <PROJECT_DIR>/.dotnet
+sdkDir="/tmp/validate-sdk-dotnet"
+curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+chmod +x /tmp/dotnet-install.sh
+/tmp/dotnet-install.sh --version <SDK_VERSION> --install-dir $sdkDir
 ```
 
 ## Step 4: Verify Installation
 
 Run the installed dotnet to confirm:
 ```powershell
-& "<PROJECT_DIR>\.dotnet\dotnet.exe" --version
+& "$env:TEMP\validate-sdk-dotnet\dotnet.exe" --version
 ```
 
 This should print the exact SDK version that was requested.
 
+**Troubleshooting:** If `dotnet.exe` is not found in the install directory, the dotnet host may not have been downloaded (the directory will only contain `host/`, `sdk/`, `shared/` subdirectories without a `dotnet.exe`). In this case, remove the directory and reinstall:
+```powershell
+Remove-Item -Recurse -Force "$env:TEMP\validate-sdk-dotnet" -ErrorAction SilentlyContinue
+& $installScript -Version "<SDK_VERSION>" -InstallDir "$env:TEMP\validate-sdk-dotnet"
+```
+
 ## Step 5: Configure for Use
 
-The SDK is installed to a **local directory**, not system-wide. This means `dotnet --list-sdks` using the system dotnet will NOT show it. This is by design — it avoids affecting the user's system .NET setup.
+The SDK is installed to a **temp directory**, not system-wide. This means `dotnet --list-sdks` using the system dotnet will NOT show it. This is by design — it avoids affecting the user's system .NET setup.
 
 To use the locally installed SDK:
-- Run directly: `<PROJECT_DIR>\.dotnet\dotnet.exe`
-- Or prepend to PATH for the current session: `$env:PATH = "<PROJECT_DIR>\.dotnet;$env:PATH"`
+- Run directly: `$env:TEMP\validate-sdk-dotnet\dotnet.exe`
+- Or prepend to PATH for the current session: `$env:PATH = "$env:TEMP\validate-sdk-dotnet;$env:PATH"`
 
 ## Step 6: Validate with `#error version`
 
-Use `dotnet run` with a single-file app to extract compiler details — no project file needed:
+Use a **file-based app** (a .NET 10+ feature) to extract compiler details. This **must** run in an isolated temp folder to avoid interference from `global.json`, `.sln`, or `.csproj` files in the user's working directory (e.g., a roslyn repo checkout).
 
-1. Create a file called `app.cs` containing just `#error version`.
-2. Run it using the installed SDK and look for the `CS8304` error in the output:
+1. Create a temp directory with `app.cs` and a pinned `global.json`:
    ```powershell
-   & "<PROJECT_DIR>\.dotnet\dotnet.exe" run app.cs 2>&1 | Select-String -Pattern "CS8304"
+   $testDir = "$env:TEMP\validate-sdk-test"
+   New-Item -ItemType Directory -Path $testDir -Force | Out-Null
+   Set-Content -Path "$testDir\app.cs" -Value '#error version'
+   # Pin the SDK version to prevent any parent global.json from overriding it
+   Set-Content -Path "$testDir\global.json" -Value '{"sdk":{"version":"<SDK_VERSION>","allowPrerelease":true}}'
    ```
-3. The CS8304 output contains:
+
+2. Run the file-based app from the temp directory using the installed SDK. You **must `cd` into the temp directory** and set `DOTNET_MULTILEVEL_LOOKUP=0` to ensure full isolation from the user's environment:
+   ```powershell
+   Push-Location $testDir
+   $env:DOTNET_MULTILEVEL_LOOKUP = "0"
+   & "$env:TEMP\validate-sdk-dotnet\dotnet.exe" run app.cs 2>&1 | Select-String -Pattern "CS8304"
+   Pop-Location
+   ```
+
+   **Why this isolation matters:** Without `cd` + `global.json` + `DOTNET_MULTILEVEL_LOOKUP=0`, the dotnet CLI walks up the directory tree looking for `global.json`. If run from inside a repo like dotnet/roslyn, it would find the repo's `global.json` and try to use a different SDK version, causing the validation to fail or test the wrong compiler.
+
+3. **The build is expected to fail** (exit code non-zero) because `#error version` is a deliberate compile error. The success criterion is seeing the `CS8304` diagnostic in the output. Look for the `CS8304` line which contains:
    - **Compiler version** (e.g., `5.6.0-2.26154.117`)
    - **Compiler commit SHA** in parentheses (e.g., `6dbf4ee311820b91535cc405fb9f72f3e1ec85fc`)
    - **Language version** (e.g., `preview`)
+
+4. Clean up:
+   ```powershell
+   Remove-Item -Recurse -Force "$env:TEMP\validate-sdk-test" -ErrorAction SilentlyContinue
+   ```
 
 ## Step 7: Trace the Roslyn SHA
 
