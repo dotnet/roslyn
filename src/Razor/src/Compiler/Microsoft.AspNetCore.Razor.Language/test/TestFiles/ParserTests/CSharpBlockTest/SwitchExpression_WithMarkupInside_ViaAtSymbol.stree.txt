@@ -1,0 +1,85 @@
+﻿RazorDocument - [0..110)::110 - [@{LF    var val = 0 switchLF    {LF        0 => @<span>zero</span>,LF        _ => @<span>one</span>LF    };LF}]
+    MarkupBlock - [0..110)::110
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..110)::110
+            CSharpStatement - [0..110)::110
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..110)::109
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..109)::107
+                        CSharpStatementLiteral - [2..48)::46 - [LF    var val = 0 switchLF    {LF        0 => ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            Keyword;[switch];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                        CSharpTemplateBlock - [48..66)::18
+                            MarkupBlock - [48..66)::18
+                                MarkupTransition - [48..49)::1 - Gen<None>
+                                    Transition;[@];
+                                MarkupElement - [49..66)::17
+                                    MarkupStartTag - [49..55)::6 - [<span>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[span];
+                                        CloseAngle;[>];
+                                    MarkupTextLiteral - [55..59)::4 - [zero] - Gen<Markup>
+                                        Text;[zero];
+                                    MarkupEndTag - [59..66)::7 - [</span>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        ForwardSlash;[/];
+                                        Text;[span];
+                                        CloseAngle;[>];
+                        CSharpStatementLiteral - [66..82)::16 - [,LF        _ => ] - Gen<Stmt>
+                            Comma;[,];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            Keyword;[_];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                        CSharpTemplateBlock - [82..101)::19
+                            MarkupBlock - [82..101)::19
+                                MarkupTransition - [82..83)::1 - Gen<None>
+                                    Transition;[@];
+                                MarkupElement - [83..99)::16
+                                    MarkupStartTag - [83..89)::6 - [<span>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Text;[span];
+                                        CloseAngle;[>];
+                                    MarkupTextLiteral - [89..92)::3 - [one] - Gen<Markup>
+                                        Text;[one];
+                                    MarkupEndTag - [92..99)::7 - [</span>] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        ForwardSlash;[/];
+                                        Text;[span];
+                                        CloseAngle;[>];
+                                MarkupTextLiteral - [99..101)::2 - [LF] - Gen<Markup>
+                                    NewLine;[LF];
+                        CSharpStatementLiteral - [101..109)::8 - [    };LF] - Gen<Stmt>
+                            Whitespace;[    ];
+                            RightBrace;[}];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [109..110)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [110..110)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

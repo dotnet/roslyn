@@ -1,0 +1,29 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [91] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (26:0,26 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (26:0,26 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Some text
+                        MarkupElement - (35:0,35 [42] x:\dir\subdir\Test\TestComponent.cshtml) - some-child
+                            HtmlAttribute - (46:0,46 [6] x:\dir\subdir\Test\TestComponent.cshtml) -  a=' - '
+                                HtmlAttributeValue - (50:0,50 [1] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                                    LazyIntermediateToken - (50:0,50 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 1
+                            HtmlContent - (53:0,53 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+                                LazyIntermediateToken - (53:0,53 [11] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Nested text
+                    ComponentAttribute - (21:0,21 [3] x:\dir\subdir\Test\TestComponent.cshtml) - MyAttr - MyAttr - AttributeStructure.DoubleQuotes
+                        HtmlContent - (21:0,21 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+                            IntermediateToken - (21:0,21 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - abc

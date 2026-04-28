@@ -1,0 +1,24 @@
+﻿Source Location: (1:0,1 [37] x:\dir\subdir\Test\TestComponent.cshtml)
+|ComponentWithEditorRequiredParameters|
+Generated Location: (703:19,49 [37] )
+|ComponentWithEditorRequiredParameters|
+
+Source Location: (45:0,45 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|Property1|
+Generated Location: (936:23,0 [9] )
+|Property1|
+
+Source Location: (56:0,56 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|myField|
+Generated Location: (1201:31,0 [7] )
+|myField|
+
+Source Location: (78:2,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string myField = "Some Value";
+|
+Generated Location: (1662:43,0 [46] )
+|
+    private string myField = "Some Value";
+|
+

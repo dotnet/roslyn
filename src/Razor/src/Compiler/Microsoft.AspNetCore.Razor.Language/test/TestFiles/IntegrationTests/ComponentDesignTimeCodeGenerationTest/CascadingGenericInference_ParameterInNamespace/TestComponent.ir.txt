@@ -1,0 +1,32 @@
+﻿Document - 
+    NamespaceDeclaration - (11:0,11 [16] x:\dir\subdir\Test\TestComponent.cshtml) - MyApp.Components
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+                DirectiveToken - (11:0,11 [16] x:\dir\subdir\Test\TestComponent.cshtml) - MyApp.Components
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (29:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (29:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (31:2,0 [95] x:\dir\subdir\Test\TestComponent.cshtml) - ParentComponent
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (82:2,51 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (82:2,51 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                        Component - (88:3,4 [18] x:\dir\subdir\Test\TestComponent.cshtml) - ChildComponent
+                        HtmlContent - (106:3,22 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (106:3,22 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    ComponentAttribute - (59:2,28 [21] x:\dir\subdir\Test\TestComponent.cshtml) - Parameter - Parameter - AttributeStructure.DoubleQuotes
+                        IntermediateToken - (59:2,28 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new MyClass<string>()
+    NamespaceDeclaration -  - __Blazor.MyApp.Components.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.MyApp.Components.TestComponent.TypeInference - CreateParentComponent_0
+            ComponentTypeInferenceMethod -  - __Blazor.MyApp.Components.TestComponent.TypeInference - CreateChildComponent_1

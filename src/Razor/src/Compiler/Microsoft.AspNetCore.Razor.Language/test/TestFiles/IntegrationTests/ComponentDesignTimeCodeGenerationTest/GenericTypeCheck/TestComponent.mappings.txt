@@ -1,0 +1,35 @@
+﻿Source Location: (21:0,21 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|null|
+Generated Location: (1172:29,21 [4] )
+|null|
+
+Source Location: (15:0,15 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Data|
+Generated Location: (1588:42,15 [4] )
+|Data|
+
+Source Location: (40:2,7 [172] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private class System
+    {
+        private class String
+        {
+        }
+    }
+
+    [Parameter]
+    public List<global::System.String> Data { get; set; }
+|
+Generated Location: (2002:60,7 [172] )
+|
+    private class System
+    {
+        private class String
+        {
+        }
+    }
+
+    [Parameter]
+    public List<global::System.String> Data { get; set; }
+|
+

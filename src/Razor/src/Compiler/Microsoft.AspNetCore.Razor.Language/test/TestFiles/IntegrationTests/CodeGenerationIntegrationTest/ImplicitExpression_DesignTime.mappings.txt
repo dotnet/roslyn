@@ -1,0 +1,19 @@
+﻿Source Location: (1:0,1 [36] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ImplicitExpression.cshtml)
+|for(int i = 1; i <= 10; i++) {
+    |
+Generated Location: (1490:33,1 [36] )
+|for(int i = 1; i <= 10; i++) {
+    |
+
+Source Location: (55:1,22 [1] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ImplicitExpression.cshtml)
+|i|
+Generated Location: (1713:41,22 [1] )
+|i|
+
+Source Location: (60:1,27 [3] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/ImplicitExpression.cshtml)
+|
+}|
+Generated Location: (1907:48,27 [3] )
+|
+}|
+

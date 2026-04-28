@@ -1,0 +1,51 @@
+﻿Source Location: (11:0,11 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|TDomain|
+Generated Location: (462:16,0 [7] )
+|TDomain|
+
+Source Location: (54:1,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|TValue|
+Generated Location: (598:24,0 [6] )
+|TValue|
+
+Source Location: (19:0,19 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+|where TDomain : struct|
+Generated Location: (789:32,0 [22] )
+|where TDomain : struct|
+
+Source Location: (61:1,18 [21] x:\dir\subdir\Test\TestComponent.cshtml)
+|where TValue : struct|
+Generated Location: (933:39,0 [21] )
+|where TValue : struct|
+
+Source Location: (122:3,36 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|decimal|
+Generated Location: (1879:71,36 [7] )
+|decimal|
+
+Source Location: (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|decimal|
+Generated Location: (2104:80,53 [7] )
+|decimal|
+
+Source Location: (107:3,21 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|null|
+Generated Location: (2446:89,21 [4] )
+|null|
+
+Source Location: (101:3,15 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|Data|
+Generated Location: (2880:102,15 [4] )
+|Data|
+
+Source Location: (161:5,7 [87] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public List<(TDomain Domain, TValue Value)> Data { get; set; }
+|
+Generated Location: (3297:120,7 [87] )
+|
+    [Parameter]
+    public List<(TDomain Domain, TValue Value)> Data { get; set; }
+|
+

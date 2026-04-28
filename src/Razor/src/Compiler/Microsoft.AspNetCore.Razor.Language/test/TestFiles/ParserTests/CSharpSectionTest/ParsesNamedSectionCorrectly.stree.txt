@@ -1,0 +1,42 @@
+﻿RazorDocument - [0..27)::27 - [@section foo { <p>Foo</p> }]
+    MarkupBlock - [0..27)::27
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..27)::27
+            RazorDirective - [0..27)::27 - Directive:{section;RazorBlock;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..27)::26
+                    RazorMetaCode - [1..8)::7 - Gen<None>
+                        Identifier;[section];
+                    CSharpCodeBlock - [8..27)::19
+                        CSharpStatementLiteral - [8..9)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        CSharpStatementLiteral - [9..12)::3 - [foo] - Gen<DirectiveToken {SectionName;Member;Opt:False}>
+                            Identifier;[foo];
+                        UnclassifiedTextLiteral - [12..13)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [13..14)::1 - Gen<None>
+                            LeftBrace;[{];
+                        MarkupBlock - [14..26)::12
+                            MarkupTextLiteral - [14..15)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                            MarkupElement - [15..25)::10
+                                MarkupStartTag - [15..18)::3 - [<p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [18..21)::3 - [Foo] - Gen<Markup>
+                                    Text;[Foo];
+                                MarkupEndTag - [21..25)::4 - [</p>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[p];
+                                    CloseAngle;[>];
+                            MarkupTextLiteral - [25..26)::1 - [ ] - Gen<Markup>
+                                Whitespace;[ ];
+                        RazorMetaCode - [26..27)::1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [27..27)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

@@ -1,0 +1,10 @@
+<div>
+@switch (true)
+{
+    case true:
+		@if (true)
+		{
+		}
+        break;
+}
+</div>

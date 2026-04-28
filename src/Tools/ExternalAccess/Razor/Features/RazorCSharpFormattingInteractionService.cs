@@ -17,6 +17,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
+    internal enum RazorIndentStyle
+    {
+        None = 0,
+        Block = 1,
+        Smart = 2,
+    }
     /// <summary>
     /// Enables Razor to utilize Roslyn's C# formatting service.
     /// </summary>
@@ -41,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             int position,
             RazorIndentationOptions indentationOptions,
             RazorAutoFormattingOptions autoFormattingOptions,
-            FormattingOptions.IndentStyle indentStyle,
+            RazorIndentStyle indentStyle,
             RazorCSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptionsOverride,
             CancellationToken cancellationToken)
         {

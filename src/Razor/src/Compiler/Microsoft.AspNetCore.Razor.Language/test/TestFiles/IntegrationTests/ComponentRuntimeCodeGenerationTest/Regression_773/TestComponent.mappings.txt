@@ -1,0 +1,15 @@
+﻿Source Location: (6:0,6 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|"/"|
+Generated Location: (504:16,0 [3] )
+|"/"|
+
+Source Location: (68:6,1 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|SurveyPrompt|
+Generated Location: (1052:30,49 [12] )
+|SurveyPrompt|
+
+Source Location: (81:6,14 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Title|
+Generated Location: (1235:34,0 [5] )
+|Title|
+

@@ -1,0 +1,3 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/RazorComments.cshtml(15,7): error CS0103: The name 'ab' does not exist in the current context
+// __o = ab;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "ab").WithArguments("ab").WithLocation(15, 7)

@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                HtmlContent - (15:0,15 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (15:0,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                MarkupElement - (17:1,0 [15] x:\dir\subdir\Test\TestComponent.cshtml) - mycomponent
+                HtmlContent - (32:1,15 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (32:1,15 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (34:2,0 [51] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute - (60:2,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - intproperty - IntProperty - AttributeStructure.SingleQuotes
+                        IntermediateToken - (60:2,26 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
+                    ComponentAttribute - (77:2,43 [4] x:\dir\subdir\Test\TestComponent.cshtml) - BoolProperty - BoolProperty - AttributeStructure.SingleQuotes
+                        IntermediateToken - (77:2,43 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - true

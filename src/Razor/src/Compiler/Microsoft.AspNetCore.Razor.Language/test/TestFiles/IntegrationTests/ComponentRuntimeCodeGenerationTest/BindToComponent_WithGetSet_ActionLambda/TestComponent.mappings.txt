@@ -1,0 +1,34 @@
+﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (703:19,49 [11] )
+|MyComponent|
+
+Source Location: (19:0,19 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (884:23,0 [5] )
+|Value|
+
+Source Location: (30:0,30 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentValue|
+Generated Location: (1144:31,0 [11] )
+|ParentValue|
+
+Source Location: (60:0,60 [28] x:\dir\subdir\Test\TestComponent.cshtml)
+|value => ParentValue = value|
+Generated Location: (1448:40,0 [28] )
+|value => ParentValue = value|
+
+Source Location: (49:0,49 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (1678:49,0 [5] )
+|Value|
+
+Source Location: (101:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public int ParentValue { get; set; } = 42;
+|
+Generated Location: (1921:60,0 [50] )
+|
+    public int ParentValue { get; set; } = 42;
+|
+

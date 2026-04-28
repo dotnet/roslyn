@@ -2470,8 +2470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CallerUnsafeOverridingSafe = 9364,
         ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
         ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
-        ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
-        WRN_RequiresUnsafeAttributeLegacyRules = 9368,
 
         ERR_ExpressionTreeContainsUnionConversion = 9369,
         ERR_UnionDeclarationNeedsCaseTypes = 9370,
@@ -2486,11 +2484,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PPShebangNotOnFirstLine = 9378,
 
+<<<<<<< HEAD
         ERR_ClosedTypeNameDisallowed = 9600, // PROTOTYPE(cc): pack and renumber test baseline comments
         ERR_ClosedSealedStatic = 9601,
         ERR_ClosedBaseTypeBaseFromOtherAssembly = 9602,
         ERR_UnderspecifiedClosedSubtype = 9603,
 
+||||||| 385e8b1504e
+=======
+        ERR_RequiresUnsafeAttributeInSource = 9379,
+
+>>>>>>> upstream/main
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
