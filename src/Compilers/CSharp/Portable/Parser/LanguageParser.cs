@@ -13627,24 +13627,15 @@ done:
         /// </summary>
         private SyntaxToken EatMemberInitializerOperatorToken()
         {
-            var kind = this.CurrentToken.Kind;
-            if (kind == SyntaxKind.ColonToken)
-            {
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                 return this.EatTokenAsKind(SyntaxKind.EqualsToken);
-            }
 
-            // `>>=` and `>>>=` are split into separate tokens by the lexer to keep nested generic argument
-            // lists parseable. Reuse the expression parser's merger to reconstruct the single token.
-            if (TryGetSplitRightShiftAt(peekIndex: 0, out var mergedKind) &&
-                mergedKind is SyntaxKind.GreaterThanGreaterThanEqualsToken or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)
-            {
-                return EatExpressionOperatorToken(mergedKind);
-            }
-
-            if (SyntaxFacts.IsAssignmentExpressionOperatorToken(kind))
-            {
-                return this.EatToken();
-            }
+            // Defer to the expression parser's operator detection + merger. This handles any compound
+            // assignment operator, including the split `>>=` / `>>>=` forms that the lexer produces as
+            // multiple tokens.
+            var (operatorTokenKind, _) = GetExpressionOperatorTokenKindAndExpressionKind();
+            if (SyntaxFacts.IsAssignmentExpressionOperatorToken(operatorTokenKind))
+                return EatExpressionOperatorToken(operatorTokenKind);
 
             // Fall back to expecting `=` for recovery; eats whatever is current as a missing `=`.
             return this.EatToken(SyntaxKind.EqualsToken);
