@@ -5851,12 +5851,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var initializers = ArrayBuilder<BoundExpression>.GetInstance(initializerSyntax.Expressions.Count);
 
             // Tracks each member name's first-seen initializer kind so the duplicate-member rules can
-            // be enforced: at most one `=` per field/property target, any number of compound
-            // assignments after a `=`, and `=` must appear before any compound assignment for the
-            // same target. The `target = { … }` (object/collection-initializer-valued) form is
-            // exclusive — no other initializer may target the same member. Indexer
-            // (ImplicitElementAccess) targets are unrestricted; ReportDuplicateObjectMemberInitializers
-            // filters them out before checking.
+            // be enforced: any number of compound assignments are permitted for the same
+            // field/property/event target, and if an `=` member initializer is present it shall
+            // appear in lexical order before any other member initializer for that target. The
+            // `target = { … }` (object/collection-initializer-valued) form is exclusive — no other
+            // initializer may target the same member. Indexer (ImplicitElementAccess) targets are
+            // unrestricted; ReportDuplicateObjectMemberInitializers filters them out before checking.
             var memberNameMap = PooledDictionary<string, MemberInitializerKind>.GetInstance();
             foreach (var memberInitializer in initializerSyntax.Expressions)
             {
@@ -6347,13 +6347,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(memberNameMap != null);
 
-            // SPEC:    For any given field or property target, at most one member initializer may use the `=` operator.
-            // SPEC:    Any number of member initializers using a compound_assignment_operator are permitted for the
-            // SPEC:    same target. If both are present for the same target, the `=` member initializer shall appear
-            // SPEC:    in lexical order before any compound_assignment_operator member initializer for that target.
-            // SPEC:    A member_initializer whose initializer_value is an object_or_collection_initializer (the
-            // SPEC:    `target = { … }` form) is exclusive: no other member_initializer may target the same field,
-            // SPEC:    property, or event. No such restriction applies to indexer targets.
+            // SPEC:    For any given field, property, or event target, any number of member initializers using a
+            // SPEC:    compound assignment operator are permitted for the same target. If present, an `=` member
+            // SPEC:    initializer shall appear in lexical order before any other member initializer for that
+            // SPEC:    target. No such restriction applies to indexer targets.
+            // SPEC:    A member_initializer of the first form (initializer_target '=' object_or_collection_initializer)
+            // SPEC:    is exclusive: it must be the only member_initializer in the enclosing member_initializer_list
+            // SPEC:    whose initializer_target designates the same field, property, or event.
 
             if (boundMemberInitializer.HasAnyErrors)
                 return;
@@ -6373,11 +6373,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (memberNameMap.TryGetValue(memberName, out var existingKind))
             {
-                // Duplicate fires when:
-                // * either side is the exclusive `= { … }` form (the new spec rule), OR
-                // * the current is a simple `=` (the existing "at most one `=`, `=` before any
-                //   compound" rule — repeating `=` and compound-then-`=` both reach here as
-                //   `isSimpleAssignment`).
+                // Diagnose when:
+                // * either side is the exclusive `= { … }` form (first-form exclusivity rule), OR
+                // * the current is a simple `=` (the spec's "if present, `=` shall appear before any
+                //   other member initializer for that target" rule — both repeated `=` and
+                //   compound-then-`=` reach here as `isSimpleAssignment`).
                 // Compound-then-compound and `=`-then-compound fall through silently.
                 if (existingKind == MemberInitializerKind.NestedInitializer || isNestedInitializer || isSimpleAssignment)
                 {
