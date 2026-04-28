@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
@@ -26,6 +27,7 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
     public ExtensionMemberImportCompletionProviderTests()
     {
         ShowImportCompletionItemsOptionValue = true;
+        ImportCompletionCommitBehaviorValue = ImportCompletionCommitBehavior.AlwaysAddImport;
         ForceExpandedCompletionIndexCreation = true;
     }
 
@@ -2755,5 +2757,70 @@ public sealed class ExtensionMemberImportCompletionProviderTests : AbstractCShar
              "ExtensionProp",
              glyph: Glyph.PropertyPublic,
              inlineDescription: "Goo");
+    }
+
+    [WpfTheory, CombinatorialData]
+    internal async Task TestCommitBehaviorOption(
+        ImportCompletionCommitBehavior commitBehavior,
+        [CombinatorialValues(' ', null)] char? commitChar)
+    {
+        ImportCompletionCommitBehaviorValue = commitBehavior;
+
+        var usingStatement = (commitBehavior is ImportCompletionCommitBehavior.AlwaysAddImport ||
+            (commitBehavior is ImportCompletionCommitBehavior.OnlyAddImportIfExplicitlyCompleted && commitChar is null))
+            ? $"using AA;{Environment.NewLine}{Environment.NewLine}"
+            : "";
+
+        await VerifyProviderCommitAsync("""
+            public class C
+            {
+            }
+            namespace AA
+            {
+                public static class Ext
+                {
+                    public static int ToInt(this C c)
+                        => 1;
+                }
+            }
+
+            namespace BB
+            {
+                public class B
+                {
+                    public void M()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+            }
+            """,
+            "ToInt",
+            $$"""
+            {{usingStatement}}public class C
+            {
+            }
+            namespace AA
+            {
+                public static class Ext
+                {
+                    public static int ToInt(this C c)
+                        => 1;
+                }
+            }
+
+            namespace BB
+            {
+                public class B
+                {
+                    public void M()
+                    {
+                        var c = new C();
+                        c.ToInt{{(commitChar is null ? "" : " ")}}
+                    }
+                }
+            }
+            """, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
     }
 }

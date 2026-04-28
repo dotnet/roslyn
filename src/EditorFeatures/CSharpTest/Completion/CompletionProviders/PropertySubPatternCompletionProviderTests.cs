@@ -646,4 +646,90 @@ public sealed class PropertySubpatternCompletionProviderTests : AbstractCSharpCo
                 }
             }
             """, "MaxValue");
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82606")]
+    public async Task EditingExistingSubpatternName_ShowsCurrentMember()
+    {
+        var markup =
+            """
+            class C
+            {
+                public int Prop { get; set; }
+                public int PropExtra { get; set; }
+
+                void M()
+                {
+                    _ = this is C { Prop$$: 1 };
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "Prop", displayTextSuffix: "");
+        await VerifyItemExistsAsync(markup, "PropExtra", displayTextSuffix: "");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82606")]
+    public async Task EditingExistingSubpatternName_StillFiltersOtherTestedMembers()
+    {
+        var markup =
+            """
+            class Program
+            {
+                public int P1 { get; set; }
+                public int P2 { get; set; }
+                public int P2Other { get; set; }
+
+                void M()
+                {
+                    _ = this is Program { P1: 1, P2$$: 2 }
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
+        await VerifyItemExistsAsync(markup, "P2Other", displayTextSuffix: "");
+        await VerifyItemIsAbsentAsync(markup, "P1");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82606")]
+    public async Task EditingExistingSubpatternName_MiddleOfName()
+    {
+        var markup =
+            """
+            class C
+            {
+                public int Prop { get; set; }
+                public int PropExtra { get; set; }
+
+                void M()
+                {
+                    _ = this is C { Pr$$op: 1 };
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "Prop", displayTextSuffix: "");
+        await VerifyItemExistsAsync(markup, "PropExtra", displayTextSuffix: "");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82606")]
+    public async Task EditingExistingSubpatternName_InSwitchStatement()
+    {
+        var markup =
+            """
+            class C
+            {
+                public int Prop { get; set; }
+                public int PropExtra { get; set; }
+
+                void M()
+                {
+                    switch (this)
+                    {
+                        case C { Prop$$: 1 }:
+                            break;
+                    }
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "Prop", displayTextSuffix: "");
+        await VerifyItemExistsAsync(markup, "PropExtra", displayTextSuffix: "");
+    }
 }

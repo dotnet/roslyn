@@ -110,7 +110,7 @@ namespace Test.Utilities.CodeMetrics
             if (!success)
             {
                 // Dump the entire expected and actual lines for easy update to baseline.
-                Assert.True(false, $"Expected:\r\n{expectedMetricsText}\r\n\r\nActual:\r\n{actualMetricsText}");
+                Assert.Fail($"Expected:\r\n{expectedMetricsText}\r\n\r\nActual:\r\n{actualMetricsText}");
             }
         }
 

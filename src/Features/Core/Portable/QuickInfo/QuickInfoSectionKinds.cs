@@ -22,4 +22,5 @@ public static class QuickInfoSectionKinds
     public const string Text = nameof(Text);
     public const string Captures = nameof(Captures);
     internal const string NullabilityAnalysis = nameof(NullabilityAnalysis);
+    internal const string InterceptedBy = nameof(InterceptedBy);
 }

@@ -287,6 +287,11 @@
         <target state="translated">Komentáře</target>
         <note />
       </trans-unit>
+      <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
+        <source>Completion behavior for items from unimported namespaces</source>
+        <target state="translated">Chování při dokončování pro položky z neimportovaných oborů názvů</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Containing_member">
         <source>Containing Member</source>
         <target state="translated">Obsahující člen</target>
@@ -480,6 +485,11 @@
       <trans-unit id="Format_document">
         <source>Format document</source>
         <target state="translated">Formátovat dokument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Formatting_new_document">
+        <source>Formatting new document...</source>
+        <target state="translated">Formátuje se nový dokument...</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">

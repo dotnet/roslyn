@@ -2433,7 +2433,28 @@ class C
             };
 
             CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular13.WithFeature(Feature.RunNullableAnalysis, "never")).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never")).VerifyDiagnostics(expectedDiagnostics);
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (8,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(8, 37),
+                // (17,41): error CS1637: Iterators cannot have pointer type parameters
+                //             IEnumerable<int> Local(int* x) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "x").WithLocation(17, 41),
+                // (27,37): error CS1637: Iterators cannot have pointer type parameters
+                //         IEnumerable<int> Local(int* a) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (33,44): error CS1637: Iterators cannot have pointer type parameters
+                //     public unsafe IEnumerable<int> M4(int* a)
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
+                // (37,45): error CS1637: Iterators cannot have pointer type parameters
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45)
+            };
+
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature(Feature.RunNullableAnalysis, "never")).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature(Feature.RunNullableAnalysis, "never")).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -4780,7 +4801,7 @@ class C
         [WorkItem(13172, "https://github.com/dotnet/roslyn/issues/13172")]
         public void InheritUnsafeContext()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            var source = @"
 using System;
 using System.Threading.Tasks;
 class C
@@ -4844,7 +4865,8 @@ unsafe class D
             var _ = Local();
         }
     }
-}", options: TestOptions.UnsafeDebugDll);
+}";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (11,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //             return (IntPtr)(void*)null;
@@ -4864,6 +4886,27 @@ unsafe class D
                 // (33,13): error CS4004: Cannot await in an unsafe context
                 //             await Task.Delay(2);
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13));
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (47,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(3);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(3)").WithLocation(47, 13),
+                // (22,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(1);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(1)").WithLocation(22, 17),
+                // (59,17): error CS4004: Cannot await in an unsafe context
+                //                 await Task.Delay(4);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(4)").WithLocation(59, 17),
+                // (33,13): error CS4004: Cannot await in an unsafe context
+                //             await Task.Delay(2);
+                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Delay(2)").WithLocation(33, 13)
+            };
+
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll)
+                .VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext)
+                .VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact, WorkItem(16167, "https://github.com/dotnet/roslyn/issues/16167")]
@@ -8260,7 +8303,7 @@ public class MyAttribute : System.Attribute
         [Fact]
         public void TypeParameterScope_InParameterAttributeSizeOf()
         {
-            var comp = CreateCompilation(@"
+            var source = @"
 class C
 {
     void M()
@@ -8277,7 +8320,8 @@ public class MyAttribute : System.Attribute
 {
     public MyAttribute(int i) { }
 }
-");
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
                 // (8,36): error CS0233: 'TParameter' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         void local<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
@@ -8289,6 +8333,19 @@ public class MyAttribute : System.Attribute
 
             VerifyTParameter(comp, 0, "void local<TParameter>(System.Int32 i)");
             VerifyTParameter(comp, 1, "void C.M2<TParameter>(System.Int32 i)");
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (8,36): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //         void local<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "sizeof(TParameter)").WithLocation(8, 36),
+                // (11,29): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     void M2<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "sizeof(TParameter)").WithLocation(11, 29),
+            };
+
+            CreateCompilation(source).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
