@@ -41,7 +41,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ Prop {op} 1 }}");
+        UsingExpression($$"""new Goo { Prop {{op}} 1 }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -111,7 +111,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ Prop = 10, Prop {op} 5, Event {op} Handler }}");
+        UsingExpression($$"""new Goo { Prop = 10, Prop {{op}} 5, Event {{op}} Handler }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -172,7 +172,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ Prop {op} 1, }}");
+        UsingExpression($$"""new Goo { Prop {{op}} 1, }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -208,7 +208,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        var source = $"new Goo {{ Prop {op} }}";
+        var source = $$"""new Goo { Prop {{op}} }""";
         var closeBracePosition = source.IndexOf('}') + 1;
         UsingExpression(source,
             Diagnostic(ErrorCode.ERR_InvalidExprTerm, "}").WithArguments("}").WithLocation(1, closeBracePosition));
@@ -246,7 +246,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ Prop {op} {{ 1, 2 }} }}");
+        UsingExpression($$"""new Goo { Prop {{op}} { 1, 2 } }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -291,7 +291,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ Prop {op} ref x }}");
+        UsingExpression($$"""new Goo { Prop {{op}} ref x }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -330,7 +330,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ Prop {op} Bar<int>.Baz(x) }}");
+        UsingExpression($$"""new Goo { Prop {{op}} Bar<int>.Baz(x) }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -401,7 +401,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ [0] {op} 1 }}");
+        UsingExpression($$"""new Goo { [0] {{op}} 1 }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -447,7 +447,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ [a, b] {op} mask }}");
+        UsingExpression($$"""new Goo { [a, b] {{op}} mask }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -505,7 +505,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"r with {{ Value {op} 1 }}");
+        UsingExpression($$"""r with { Value {{op}} 1 }""");
 
         N(SyntaxKind.WithExpression);
         {
@@ -575,7 +575,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"r with {{ Value = 10, Value {op} 5, Changed {op} OnChanged }}");
+        UsingExpression($$"""r with { Value = 10, Value {{op}} 5, Changed {{op}} OnChanged }""");
 
         N(SyntaxKind.WithExpression);
         {
@@ -640,7 +640,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ Prop {op} 1, Event {op} Handler }}");
+        UsingExpression($$"""new Goo { Prop {{op}} 1, Event {{op}} Handler }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -688,7 +688,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new Goo {{ [0] {op} a, [1] {op} b }}");
+        UsingExpression($$"""new Goo { [0] {{op}} a, [1] {{op}} b }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -760,7 +760,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
         // Left is a `SimpleMemberAccessExpression`, not `IdentifierName`/`ImplicitElementAccess`,
         // so this is not object-initializer evidence.
-        UsingExpression($"new Goo {{ a.b {op} 1 }}");
+        UsingExpression($$"""new Goo { a.b {{op}} 1 }""");
 
         N(SyntaxKind.ObjectCreationExpression);
         {
@@ -1009,7 +1009,7 @@ public sealed class CompoundAssignmentInitializerParsingTests : ParsingTests
     {
         var op = SyntaxFacts.GetText(operatorTokenKind);
         var assignmentKind = SyntaxFacts.GetAssignmentExpression(operatorTokenKind);
-        UsingExpression($"new() {{ Prop {op} 1 }}");
+        UsingExpression($$"""new() { Prop {{op}} 1 }""");
 
         N(SyntaxKind.ImplicitObjectCreationExpression);
         {
