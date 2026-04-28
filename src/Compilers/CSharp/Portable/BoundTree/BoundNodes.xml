@@ -2074,6 +2074,16 @@
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
     <Field Name="AccessorKind" Type="AccessorKind" />
 
+    <!--
+    The concrete member access (BoundFieldAccess / BoundPropertyAccess /
+    BoundIndexerAccess / BoundEventAccess / BoundDynamicIndexerAccess) whose
+    ReceiverOpt is the object-initializer placeholder. Populated by
+    BindObjectInitializerMember for every wrapper it produces; downstream
+    consumers (value-kind rechecks, event-assignment dispatch, compound/??=
+    lowering) delegate to it.
+    -->
+    <Field Name="UnderlyingAccess" Type="BoundExpression" Null="disallow" SkipInVisitor="true" SkipInNullabilityRewriter="true"/>
+
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
   </Node>
