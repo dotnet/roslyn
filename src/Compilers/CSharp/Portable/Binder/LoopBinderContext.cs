@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal override GeneratedLabelSymbol? GetBreakLabel(string? labelName)
-            => (labelName is null || labelName == _labelName) ? _breakLabel : Next!.GetBreakLabel(labelName);
+            => (labelName is null || labelName == _labelName) ? _breakLabel : NextRequired.GetBreakLabel(labelName);
 
         internal override GeneratedLabelSymbol? GetContinueLabel(string? labelName)
             => (labelName is null || labelName == _labelName) ? _continueLabel : Next!.GetContinueLabel(labelName);
