@@ -1918,6 +1918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
+                Debug.Assert(type.IsDefinition);
                 return type;
             }
 
