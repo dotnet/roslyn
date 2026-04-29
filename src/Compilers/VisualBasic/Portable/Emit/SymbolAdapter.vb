@@ -106,34 +106,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   isReturnType As Boolean,
                                                   emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
 
-            Try
-                If synthesized IsNot Nothing Then
+            If synthesized IsNot Nothing Then
+                Try
                     For Each attribute In synthesized
                         Debug.Assert(attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule))
                         Yield attribute
                     Next
-                End If
-
-                For i = 0 To userDefined.Length - 1
-                    Dim attribute As VisualBasicAttributeData = userDefined(i)
-
-                    If Me.Kind = SymbolKind.Assembly Then
-                        ' We need to filter out duplicate assembly attributes,
-                        ' i.e. attributes that bind to the same constructor and have identical arguments.
-                        If DirectCast(Me, SourceAssemblySymbol).IsIndexOfDuplicateAssemblyAttribute(i) Then
-                            Continue For
-                        End If
-                    End If
-
-                    If attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule) Then
-                        Yield attribute
-                    End If
-                Next
-            Finally
-                If synthesized IsNot Nothing Then
+                Finally
                     synthesized.Free()
+                End Try
+            End If
+
+            For i = 0 To userDefined.Length - 1
+                Dim attribute As VisualBasicAttributeData = userDefined(i)
+
+                If Me.Kind = SymbolKind.Assembly Then
+                    ' We need to filter out duplicate assembly attributes,
+                    ' i.e. attributes that bind to the same constructor and have identical arguments.
+                    If DirectCast(Me, SourceAssemblySymbol).IsIndexOfDuplicateAssemblyAttribute(i) Then
+                        Continue For
+                    End If
                 End If
-            End Try
+
+                If attribute.ShouldEmitAttribute(Me, isReturnType, emittingAssemblyAttributesInNetModule) Then
+                    Yield attribute
+                End If
+            Next
         End Function
 
         ''' <summary>
