@@ -1026,7 +1026,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (forceProtection ||
                     !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsToCheckForRefSafety)))
             {
-                Debug.Assert(receiverTemp.LocalSymbol.Type is { IsReferenceType: false, IsValueType: false });
                 ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, tempsBuilder);
             }
         }

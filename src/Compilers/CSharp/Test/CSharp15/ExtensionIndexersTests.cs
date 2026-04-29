@@ -30517,7 +30517,7 @@ class Driver
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: "M(C1,0) final=C99").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("M(C1,0) final=C99"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -30564,7 +30564,7 @@ class Driver
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: "set_Item(C1,0,0) final=C99").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("set_Item(C1,0,0) final=C99"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -30611,7 +30611,7 @@ class Driver
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: "set_Item(C1,4,0) final=C99").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("set_Item(C1,4,0) final=C99"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]
@@ -30658,7 +30658,7 @@ class Driver
 }
 """;
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: "Length(C1) Slice(C1,0,5) final=C99").VerifyDiagnostics();
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("Length(C1) Slice(C1,0,5) final=C99"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 }
 
