@@ -2947,45 +2947,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            var labelName = node.Name?.Identifier.ValueText;
-            var target = this.GetBreakLabel(labelName);
-            return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
-                ?? new BoundBreakStatement(node, target!, label);
-        }
+            => BindBreakOrContinue(
+                node, node.Name, diagnostics,
+                static (@this, labelName) => @this.GetBreakLabel(labelName),
+                static (node, target, label) => new BoundBreakStatement(node, target, label));
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            var labelName = node.Name?.Identifier.ValueText;
-            var target = this.GetContinueLabel(labelName);
-            return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
-                ?? new BoundContinueStatement(node, target!, label);
-        }
+            => BindBreakOrContinue(
+                node, node.Name, diagnostics,
+                static (@this, labelName) => @this.GetContinueLabel(labelName),
+                static (node, target, label) => new BoundContinueStatement(node, target, label));
 
         /// <summary>
-        /// Validates the label (if any) on a break/continue statement. Checks the labeled
-        /// break/continue feature availability, binds the label expression, and reports an
-        /// error when no matching target exists. Returns a <see cref="BoundBadStatement"/>
-        /// on failure (with <paramref name="label"/> set to null); otherwise returns null and
-        /// sets <paramref name="label"/> to the bound label expression (null when unlabeled).
+        /// Shared binding logic for <c>break</c> and <c>continue</c> statements. Checks the
+        /// labeled break/continue feature availability, looks up the matching target via
+        /// <paramref name="getTarget"/>, binds the label expression, and reports an error when
+        /// no matching target exists. Returns a <see cref="BoundBadStatement"/> on failure;
+        /// otherwise delegates construction of the result to <paramref name="createSuccess"/>.
         /// </summary>
-        private BoundStatement? BindBranchLabelAndCheckTarget(
-            StatementSyntax node,
+        private BoundStatement BindBreakOrContinue<TNode>(
+            TNode node,
             IdentifierNameSyntax? name,
-            string? labelName,
-            LabelSymbol? target,
             BindingDiagnosticBag diagnostics,
-            out BoundLabel? label)
+            Func<Binder, string?, LabelSymbol?> getTarget,
+            Func<TNode, LabelSymbol, BoundLabel?, BoundStatement> createSuccess)
+            where TNode : StatementSyntax
         {
+            var labelName = name?.Identifier.ValueText;
             if (labelName != null)
             {
                 Debug.Assert(name != null);
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
+            var target = getTarget(this, labelName);
             if (target == null)
             {
-                label = null;
                 Error(diagnostics,
                     labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont,
                     name ?? (SyntaxNode)node,
@@ -2993,8 +2990,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
             }
 
-            label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
-            return null;
+            var label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
+            return createSuccess(node, target, label);
         }
 #nullable disable
 
