@@ -1,0 +1,16 @@
+﻿Source Location: (36:0,36 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|s|
+Generated Location: (1041:29,36 [1] )
+|s|
+
+Source Location: (84:2,7 [73] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string s = "abc";
+    private void Changed(string s) { }
+|
+Generated Location: (1712:50,7 [73] )
+|
+    private string s = "abc";
+    private void Changed(string s) { }
+|
+

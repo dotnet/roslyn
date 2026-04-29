@@ -1027,6 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_targetType is NamedTypeSymbol namedType &&
                     _binder.HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
                 {
+                    Debug.Assert(_node.WithElement is null);
                     Debug.Assert(inProgressConstructor is not null);
                     _diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
                     return null;
@@ -1095,7 +1096,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression collectionCreation;
                     if (@this._targetType is NamedTypeSymbol namedType)
                     {
-                        var binder = new ParamsCollectionTypeInProgressBinder(namedType, @this._binder, withElement != null, constructor);
+                        // When withElement is present, we pass null for the type so that cycle detection
+                        // (HasParamsCollectionTypeInProgress) walks past this binder. The with-element arguments
+                        // are passed directly to the constructor, so this level is not a params expansion cycle.
+                        // The inner params collection creation (if any) will push its own binder with the type
+                        // and detect cycles at that level.
+                        var binder = new ParamsCollectionTypeInProgressBinder(
+                            withElement is null ? namedType : null,
+                            @this._binder,
+                            bindingCollectionExpressionWithArguments: withElement != null,
+                            constructor);
                         collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, @this._diagnostics);
                     }
                     else if (@this._targetType is TypeParameterSymbol typeParameter)
@@ -1663,6 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (HasParamsCollectionTypeInProgress(namedType, out _, out _))
                 {
+                    Debug.Assert(!hasWithElement);
                     // We are in a cycle. Optimistically assume we have the right constructor to break the cycle
                     return true;
                 }

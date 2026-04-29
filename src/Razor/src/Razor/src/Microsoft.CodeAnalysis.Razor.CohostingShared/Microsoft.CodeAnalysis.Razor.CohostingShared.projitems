@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>6778f3d4-c6c2-4882-9f86-54fcd44b078a</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.CohostingShared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CohostCodeActionsEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CohostCodeActionsResolveEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CohostEndpointAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CohostDocSyncEndpointRegistration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CohostInitializeReporter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CohostStartupService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\CohostCompletionListCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\CohostDocumentCompletionEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Completion\CohostDocumentCompletionResolveEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\CohostDocumentPullDiagnosticsEndpointBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostColorPresentationEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentColor\CohostDocumentColorEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentHighlight\CohostDocumentHighlightEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentSymbol\CohostDocumentSymbolEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CohostDocumentFormattingEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FindAllReferences\CohostFindAllReferencesEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\SynchronizationResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IncompatibleProjectService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Navigation\CohostGoToDefinitionEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Navigation\CohostGoToImplementationEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LinkedEditingRange\CohostLinkedEditingRangeEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CohostOnTypeFormattingEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CohostRangeFormattingEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OnAutoInsert\CohostOnAutoInsertEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OnAutoInsert\CohostOnAutoInsertTriggerCharacterProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorAnalyzerAssemblyRedirector.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentSpanMappingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratorLocator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\CohostRenameEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Rename\WorkspaceWillRenameEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SignatureHelp\CohostSignatureHelpEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FoldingRange\CohostFoldingRangeEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Hover\CohostHoverEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\HtmlDocumentSynchronizer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\HtmlDocumentSynchronizer.RazorDocumentVersion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\HtmlDocumentSynchronizer.SynchronizationRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\IHtmlDocumentPublisher.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\IHtmlDocumentSynchronizer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlDocumentServices\HtmlRequestInvokerExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)InlayHints\CohostInlayHintResolveEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IRazorCohostStartupService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensLegendService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SemanticTokens\CohostSemanticTokensRangeEndpoint.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDynamicRegistrationProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorCohostClientCapabilitiesService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorCohostDynamicRegistrationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorLSPConstants.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownStartupOrder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GeneratedDocumentContents\CohostGeneratedDocumentContentsEndpoint.cs" />
+  </ItemGroup>
+</Project>

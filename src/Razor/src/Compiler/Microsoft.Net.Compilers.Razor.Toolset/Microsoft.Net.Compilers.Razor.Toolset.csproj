@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <!-- There's no source, no need to include language support here. -->
+    <SkipLanguageSupport>true</SkipLanguageSupport>
+
+    <IsPackable>true</IsPackable>
+    <IsShipping>true</IsShipping>
+    <NuspecPackageId>Microsoft.Net.Compilers.Razor.Toolset</NuspecPackageId>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
+    <PackageDescription>
+      .NET Compilers Razor Toolset Package.
+      Referencing this package will cause the project to be built using the Razor compilers and source generator contained in the package, as opposed to the version installed with the SDK.
+
+      This package is primarily intended as a method for rapidly shipping hotfixes to customers. Using it as a long term solution for providing newer compilers on older MSBuild installations is explicitly not supported. That can and will break on a regular basis.
+
+      The supported mechanism for providing new compilers in a build enviroment is updating to the newer .NET SDK or Visual Studio Build Tools SKU.
+    </PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\tools\Microsoft.CodeAnalysis.Razor.Tooling.Internal\Microsoft.CodeAnalysis.Razor.Tooling.Internal.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="build\**\*.*" PackagePath="build\" />
+    <Content Include="buildMultiTargeting\**\*.*" PackagePath="buildMultiTargeting\" />
+  </ItemGroup>
+
+  <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
+    <ItemGroup>
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\*.dll" PackagePath="\source-generators" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Tooling.Internal\$(Configuration)\$(TargetFramework)\Microsoft.Extensions.ObjectPool.dll" PackagePath="\source-generators" />
+    </ItemGroup>
+  </Target>
+
+</Project>

@@ -1,0 +1,48 @@
+﻿RazorDocument - [0..139)::139 - [@{LF#pragma warning disable 123LF#pragma warning restore 123LF#pragma checksum "file.cs" "{00000000-0000-0000-0000-000000000000}" "1234"LF}]
+    MarkupBlock - [0..139)::139
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..139)::139
+            CSharpStatement - [0..139)::139
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                CSharpStatementBody - [1..139)::138
+                    RazorMetaCode - [1..2)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..138)::136
+                        CSharpStatementLiteral - [2..138)::136 - [LF#pragma warning disable 123LF#pragma warning restore 123LF#pragma checksum "file.cs" "{00000000-0000-0000-0000-000000000000}" "1234"LF] - Gen<Stmt> - AutoCompleteEditHandler;Accepts:Any,AutoComplete:[<null>];AtEOL
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[pragma];
+                            Whitespace;[ ];
+                            Identifier;[warning];
+                            Whitespace;[ ];
+                            Identifier;[disable];
+                            Whitespace;[ ];
+                            IntegerLiteral;[123];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[pragma];
+                            Whitespace;[ ];
+                            Identifier;[warning];
+                            Whitespace;[ ];
+                            Identifier;[restore];
+                            Whitespace;[ ];
+                            IntegerLiteral;[123];
+                            NewLine;[LF];
+                            Hash;[#];
+                            Identifier;[pragma];
+                            Whitespace;[ ];
+                            Identifier;[checksum];
+                            Whitespace;[ ];
+                            StringLiteral;["file.cs"];
+                            Whitespace;[ ];
+                            StringLiteral;["{00000000-0000-0000-0000-000000000000}"];
+                            Whitespace;[ ];
+                            StringLiteral;["1234"];
+                            NewLine;[LF];
+                    RazorMetaCode - [138..139)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                        RightBrace;[}];
+        MarkupTextLiteral - [139..139)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+    EndOfFile;[];

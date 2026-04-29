@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var members = GetMembers(((CSharpCompilation)compilation).GlobalNamespace, qualifiedName, out lastContainer);
             if (members.IsEmpty)
             {
-                Assert.True(false, string.Format("Could not find member named '{0}'.  Available members:\r\n{1}",
+                Assert.Fail(string.Format("Could not find member named '{0}'.  Available members:\r\n{1}",
                     qualifiedName, string.Join("\r\n", lastContainer.GetMembers().Select(m => "\t\t" + m.Name))));
             }
             return members;
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else if (members.Length > 1)
             {
-                Assert.True(false, "Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
+                Assert.Fail("Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
             }
 
             return members.Single();
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else if (members.Length > 1)
             {
-                Assert.True(false, "Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
+                Assert.Fail("Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
             }
 
             return members.Single();
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     break;
                 default:
-                    Assert.False(true, "Unexpected accessor kind " + accessor.MethodKind);
+                    Assert.Fail("Unexpected accessor kind " + accessor.MethodKind);
                     break;
             }
         }

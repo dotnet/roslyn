@@ -1,0 +1,12 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml(10,13): warning CS0219: The variable 'Sixteen' is assigned but its value is never used
+//         int Sixteen = 0b0001_0000;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "Sixteen").WithArguments("Sixteen").WithLocation(10, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml(11,14): warning CS0219: The variable 'BillionsAndBillions' is assigned but its value is never used
+//         long BillionsAndBillions = 100_000_000_000;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "BillionsAndBillions").WithArguments("BillionsAndBillions").WithLocation(11, 14),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml(12,16): warning CS0219: The variable 'AvogadroConstant' is assigned but its value is never used
+//         double AvogadroConstant = 6.022_140_857_747_474e23;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "AvogadroConstant").WithArguments("AvogadroConstant").WithLocation(12, 16),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/CSharp7.cshtml(13,17): warning CS0219: The variable 'GoldenRatio' is assigned but its value is never used
+//         decimal GoldenRatio = 1.618_033_988_749_894_848_204_586_834_365_638_117_720_309_179M;
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "GoldenRatio").WithArguments("GoldenRatio").WithLocation(13, 17)

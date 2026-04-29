@@ -200,6 +200,12 @@
       <_R2RPdbOutputDirecotry>$(PdbWorkDir)\%(_CrossgenTargetPaths._RelativeDirectory)</_R2RPdbOutputDirecotry>
     </PropertyGroup>
     <ItemGroup>
+      <!-- Find MIBC PGO data files produced by the CrossGen OptProf pipeline.
+           They are included in the OptimizationInputs drop alongside .ibc files
+           and downloaded to IbcOptimizationDataDir by Arcade's VisualStudio.AcquireOptimizationData.targets. -->
+      <_MibcFiles Condition="'$(IbcOptimizationDataDir)' != ''" Include="$(IbcOptimizationDataDir)**\*.mibc" />
+    </ItemGroup>
+    <ItemGroup>
       <_RspFileLines Include="$(_R2ROptimizeAssemblyPath)" />
       <_RspFileLines Include="--out:$(_R2ROptimizeAssemblyOutputPath)" />
       <_RspFileLines Include="--pdb" />
@@ -207,6 +213,7 @@
       <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="--opt-cross-module:*" />
+      <_RspFileLines Include="@(_MibcFiles->'--mibc:%(FullPath)')" />
       <_RspFileLines Include="@(_RuntimeLibraryPathsNotInPublishDir->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_CrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />
       <_RspFileLines Include="@(_NonCrossgenTargetsAsDependencies->'--reference:%(FullPath)')" />

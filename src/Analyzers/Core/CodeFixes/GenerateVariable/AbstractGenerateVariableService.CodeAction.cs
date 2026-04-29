@@ -54,7 +54,8 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 new CodeGenerationContext(
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
-                    contextLocation: _state.IdentifierToken.GetLocation()));
+                    contextLocation: _state.IdentifierToken.GetLocation(),
+                    allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument));
 
             if (_generateProperty)
             {

@@ -1,0 +1,27 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(14,55): error CS1525: Invalid expression term ';'
+//                                            __o = await;
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(14, 55),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(19,49): error CS1501: No overload for method 'Foo' takes 2 arguments
+//                                     __o = await Foo(1, 2);
+Diagnostic(ErrorCode.ERR_BadArgCount, "Foo").WithArguments("Foo", "2").WithLocation(19, 49),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(20,58): error CS0119: 'TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Await.Foo()' is a method, which is not valid in the given context
+//                                              __o = await Foo.Bar(1, 2);
+Diagnostic(ErrorCode.ERR_BadSKunknown, "Foo").WithArguments("AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Await.Foo()", "method").WithLocation(20, 58),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(21,48): error CS1501: No overload for method 'Foo' takes 2 arguments
+//                                    __o = await Foo("bob", true);
+Diagnostic(ErrorCode.ERR_BadArgCount, "Foo").WithArguments("Foo", "2").WithLocation(21, 48),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(22,54): error CS0103: The name 'something' does not exist in the current context
+//                                            await Foo(something, hello: "world"); 
+Diagnostic(ErrorCode.ERR_NameNotInContext, "something").WithArguments("something").WithLocation(22, 54),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(23,59): error CS0119: 'TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Await.Foo()' is a method, which is not valid in the given context
+//                                                     await Foo.Bar(1, 2) 
+Diagnostic(ErrorCode.ERR_BadSKunknown, "Foo").WithArguments("AspNetCoreGeneratedDocument.TestFiles_IntegrationTests_CodeGenerationIntegrationTest_Await.Foo()", "method").WithLocation(23, 59),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(23,72): error CS1002: ; expected
+//                                                     await Foo.Bar(1, 2) 
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(23, 72),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(24,65): error CS1739: The best overload for 'Foo' does not have a parameter named 'boolValue'
+//                                                 __o = await Foo(boolValue: false);
+Diagnostic(ErrorCode.ERR_BadNamedArgument, "boolValue").WithArguments("Foo", "boolValue").WithLocation(24, 65),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Await.cshtml(25,53): error CS1061: 'string' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+//                                               __o = await ("wrrronggg");
+Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"await (""wrrronggg"")").WithArguments("string", "GetAwaiter").WithLocation(25, 53)

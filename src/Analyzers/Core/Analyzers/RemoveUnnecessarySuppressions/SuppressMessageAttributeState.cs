@@ -28,7 +28,7 @@ internal sealed partial class SuppressMessageAttributeState(Compilation compilat
 
         foreach (var targetScope in Enum.GetValues<TargetScope>())
         {
-            if (targetScope == TargetScope.None)
+            if (targetScope is TargetScope.None or TargetScope.Invalid)
             {
                 continue;
             }

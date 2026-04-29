@@ -1,0 +1,229 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_ConditionalAttributes2 - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper - __Microsoft_AspNetCore_Mvc_Razor_TagHelpers_UrlResolutionTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                CSharpCode - (2:0,2 [64] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (2:0,2 [64] ConditionalAttributes2.cshtml) - CSharp - \n    var ch = true;\n    var cls = "bar";\n    var s = "str";\n
+                HtmlContent - (66:4,0 [7] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (66:4,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (70:4,4 [2] ConditionalAttributes2.cshtml) - Html - <a
+                    LazyIntermediateToken - (72:4,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (74:4,8 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (74:4,8 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlContent - (75:4,9 [21] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (75:4,9 [9] ConditionalAttributes2.cshtml) - Html -  href="x"
+                    LazyIntermediateToken - (84:4,18 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (85:4,19 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (87:4,21 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (89:5,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (93:5,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (95:5,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (97:5,8 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (97:5,8 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (98:5,9 [13] ConditionalAttributes2.cshtml) -  class=" - "
+                    CSharpExpressionAttributeValue - (106:5,17 [4] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (107:5,18 [3] ConditionalAttributes2.cshtml) - CSharp - cls
+                HtmlContent - (111:5,22 [12] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (111:5,22 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (112:5,23 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (114:5,25 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (116:6,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (120:6,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (122:6,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (124:6,8 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (124:6,8 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (125:6,9 [15] ConditionalAttributes2.cshtml) -  class=" - "
+                    HtmlAttributeValue - (133:6,17 [1] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (133:6,17 [1] ConditionalAttributes2.cshtml) - Html - x
+                    CSharpExpressionAttributeValue - (134:6,18 [5] ConditionalAttributes2.cshtml) -  
+                        LazyIntermediateToken - (136:6,20 [3] ConditionalAttributes2.cshtml) - CSharp - cls
+                HtmlContent - (140:6,24 [12] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (140:6,24 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (141:6,25 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (143:6,27 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (145:7,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (149:7,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (151:7,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (153:7,8 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (153:7,8 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (154:7,9 [15] ConditionalAttributes2.cshtml) -  class=" - "
+                    CSharpExpressionAttributeValue - (162:7,17 [4] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (163:7,18 [3] ConditionalAttributes2.cshtml) - CSharp - cls
+                    HtmlAttributeValue - (166:7,21 [2] ConditionalAttributes2.cshtml) -  
+                        LazyIntermediateToken - (167:7,22 [1] ConditionalAttributes2.cshtml) - Html - x
+                HtmlContent - (169:7,24 [32] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (169:7,24 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (170:7,25 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (172:7,27 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (174:8,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (178:8,4 [6] ConditionalAttributes2.cshtml) - Html - <input
+                    LazyIntermediateToken - (184:8,10 [16] ConditionalAttributes2.cshtml) - Html -  type="checkbox"
+                    LazyIntermediateToken - (200:8,26 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (202:8,28 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (202:8,28 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (203:8,29 [14] ConditionalAttributes2.cshtml) -  checked=" - "
+                    CSharpExpressionAttributeValue - (213:8,39 [3] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (214:8,40 [2] ConditionalAttributes2.cshtml) - CSharp - ch
+                HtmlContent - (217:8,43 [32] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (217:8,43 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (218:8,44 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (220:8,46 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (222:9,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (226:9,4 [6] ConditionalAttributes2.cshtml) - Html - <input
+                    LazyIntermediateToken - (232:9,10 [16] ConditionalAttributes2.cshtml) - Html -  type="checkbox"
+                    LazyIntermediateToken - (248:9,26 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (250:9,28 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (250:9,28 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (251:9,29 [16] ConditionalAttributes2.cshtml) -  checked=" - "
+                    HtmlAttributeValue - (261:9,39 [1] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (261:9,39 [1] ConditionalAttributes2.cshtml) - Html - x
+                    CSharpExpressionAttributeValue - (262:9,40 [4] ConditionalAttributes2.cshtml) -  
+                        LazyIntermediateToken - (264:9,42 [2] ConditionalAttributes2.cshtml) - CSharp - ch
+                HtmlContent - (267:9,45 [12] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (267:9,45 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (268:9,46 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (270:9,48 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (272:10,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (276:10,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (278:10,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (280:10,8 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (280:10,8 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (281:10,9 [34] ConditionalAttributes2.cshtml) -  class=" - "
+                    CSharpCodeAttributeValue - (289:10,17 [25] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (290:10,18 [18] ConditionalAttributes2.cshtml) - CSharp - if(cls != null) { 
+                        CSharpExpression - (309:10,37 [3] ConditionalAttributes2.cshtml)
+                            LazyIntermediateToken - (309:10,37 [3] ConditionalAttributes2.cshtml) - CSharp - cls
+                        LazyIntermediateToken - (312:10,40 [2] ConditionalAttributes2.cshtml) - CSharp -  }
+                HtmlContent - (315:10,43 [9] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (315:10,43 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (316:10,44 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (318:10,46 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (320:11,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                TagHelper - (324:11,4 [19] ConditionalAttributes2.cshtml) - a - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper
+                    DefaultTagHelperExecute - 
+                HtmlContent - (343:11,23 [14] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (343:11,23 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (345:12,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (349:12,4 [7] ConditionalAttributes2.cshtml) - Html - <script
+                    LazyIntermediateToken - (356:12,11 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (358:12,13 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (358:12,13 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (359:12,14 [52] ConditionalAttributes2.cshtml) -  src=" - "
+                    CSharpExpressionAttributeValue - (365:12,20 [45] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (366:12,21 [44] ConditionalAttributes2.cshtml) - CSharp - Url.Content("~/Scripts/jquery-1.6.2.min.js")
+                HtmlContent - (411:12,66 [42] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (411:12,66 [23] ConditionalAttributes2.cshtml) - Html -  type="text/javascript"
+                    LazyIntermediateToken - (434:12,89 [1] ConditionalAttributes2.cshtml) - Html - >
+                    LazyIntermediateToken - (435:12,90 [9] ConditionalAttributes2.cshtml) - Html - </script>
+                    LazyIntermediateToken - (444:12,99 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (446:13,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (450:13,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (452:13,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (454:13,8 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (454:13,8 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (455:13,9 [14] ConditionalAttributes2.cshtml) -  class=" - "
+                    CSharpExpressionAttributeValue - (463:13,17 [5] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (464:13,18 [4] ConditionalAttributes2.cshtml) - CSharp - null
+                HtmlContent - (469:13,23 [11] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (469:13,23 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (470:13,24 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (472:13,26 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (474:14,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (478:14,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                HtmlAttribute - (480:14,6 [14] ConditionalAttributes2.cshtml) -  class=" - "
+                    CSharpExpressionAttributeValue - (488:14,14 [5] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (489:14,15 [4] ConditionalAttributes2.cshtml) - CSharp - null
+                HtmlContent - (494:14,20 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (494:14,20 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (496:14,22 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (496:14,22 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlContent - (497:14,23 [5] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (497:14,23 [1] ConditionalAttributes2.cshtml) - Html -  
+                    LazyIntermediateToken - (498:14,24 [2] ConditionalAttributes2.cshtml) - Html - />
+                    LazyIntermediateToken - (500:14,26 [2] ConditionalAttributes2.cshtml) - Html - \n
+                CSharpCode - (502:15,0 [2] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (502:15,0 [2] ConditionalAttributes2.cshtml) - CSharp - \n
+                HtmlContent - (504:16,0 [7] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (504:16,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (508:16,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (510:16,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                HtmlContent - (524:16,20 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (524:16,20 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (526:16,22 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (526:16,22 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                HtmlAttribute - (527:16,23 [14] ConditionalAttributes2.cshtml) -  style=" - "
+                    CSharpExpressionAttributeValue - (535:16,31 [5] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (536:16,32 [4] ConditionalAttributes2.cshtml) - CSharp - null
+                HtmlContent - (541:16,37 [8] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (541:16,37 [1] ConditionalAttributes2.cshtml) - Html - >
+                    LazyIntermediateToken - (542:16,38 [1] ConditionalAttributes2.cshtml) - Html - x
+                    LazyIntermediateToken - (543:16,39 [4] ConditionalAttributes2.cshtml) - Html - </p>
+                    LazyIntermediateToken - (547:16,43 [2] ConditionalAttributes2.cshtml) - Html - \n
+                CSharpCode - (549:17,0 [2] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (549:17,0 [2] ConditionalAttributes2.cshtml) - CSharp - \n
+                HtmlContent - (551:18,0 [7] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (551:18,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (555:18,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (557:18,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpExpression - (560:18,9 [5] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (560:18,9 [5] ConditionalAttributes2.cshtml) - CSharp - s + s
+                HtmlAttribute - (566:18,15 [14] ConditionalAttributes2.cshtml) -  style=" - "
+                    CSharpExpressionAttributeValue - (574:18,23 [5] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (575:18,24 [4] ConditionalAttributes2.cshtml) - CSharp - null
+                HtmlContent - (580:18,29 [15] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (580:18,29 [1] ConditionalAttributes2.cshtml) - Html - >
+                    LazyIntermediateToken - (581:18,30 [1] ConditionalAttributes2.cshtml) - Html - x
+                    LazyIntermediateToken - (582:18,31 [4] ConditionalAttributes2.cshtml) - Html - </p>
+                    LazyIntermediateToken - (586:18,35 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (588:19,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (592:19,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (594:19,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                CSharpCode - (597:19,9 [21] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (597:19,9 [21] ConditionalAttributes2.cshtml) - CSharp - if (s.Length != 0) { 
+                CSharpExpression - (619:19,31 [1] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (619:19,31 [1] ConditionalAttributes2.cshtml) - CSharp - s
+                CSharpCode - (620:19,32 [2] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (620:19,32 [2] ConditionalAttributes2.cshtml) - CSharp -  }
+                HtmlAttribute - (623:19,35 [14] ConditionalAttributes2.cshtml) -  style=" - "
+                    CSharpExpressionAttributeValue - (631:19,43 [5] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (632:19,44 [4] ConditionalAttributes2.cshtml) - CSharp - null
+                HtmlContent - (637:19,49 [15] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (637:19,49 [1] ConditionalAttributes2.cshtml) - Html - >
+                    LazyIntermediateToken - (638:19,50 [1] ConditionalAttributes2.cshtml) - Html - x
+                    LazyIntermediateToken - (639:19,51 [4] ConditionalAttributes2.cshtml) - Html - </p>
+                    LazyIntermediateToken - (643:19,55 [2] ConditionalAttributes2.cshtml) - Html - \n
+                    LazyIntermediateToken - (645:20,0 [4] ConditionalAttributes2.cshtml) - Html -     
+                    LazyIntermediateToken - (649:20,4 [2] ConditionalAttributes2.cshtml) - Html - <p
+                    LazyIntermediateToken - (651:20,6 [1] ConditionalAttributes2.cshtml) - Html -  
+                HtmlContent - (653:20,8 [2] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (653:20,8 [2] ConditionalAttributes2.cshtml) - Html - @s
+                HtmlAttribute - (655:20,10 [14] ConditionalAttributes2.cshtml) -  style=" - "
+                    CSharpExpressionAttributeValue - (663:20,18 [5] ConditionalAttributes2.cshtml) - 
+                        LazyIntermediateToken - (664:20,19 [4] ConditionalAttributes2.cshtml) - CSharp - null
+                HtmlContent - (669:20,24 [8] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (669:20,24 [1] ConditionalAttributes2.cshtml) - Html - >
+                    LazyIntermediateToken - (670:20,25 [1] ConditionalAttributes2.cshtml) - Html - x
+                    LazyIntermediateToken - (671:20,26 [4] ConditionalAttributes2.cshtml) - Html - </p>
+                    LazyIntermediateToken - (675:20,30 [2] ConditionalAttributes2.cshtml) - Html - \n
+                CSharpCode - (677:21,0 [0] ConditionalAttributes2.cshtml)
+                    LazyIntermediateToken - (677:21,0 [0] ConditionalAttributes2.cshtml) - CSharp - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

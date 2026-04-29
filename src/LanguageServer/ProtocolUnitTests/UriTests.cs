@@ -149,14 +149,14 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Verify file is added to the workspace and the text matches the file document
         var (workspace, _, fileDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileDocumentUri }, CancellationToken.None);
-        AssertEx.NotNull(fileDocument);
+        Assert.NotNull(fileDocument);
         var fileTextResult = await fileDocument.GetTextAsync();
         Assert.Equal(fileDocumentUri, fileDocument.GetURI());
         Assert.Equal(fileDocumentText, fileTextResult.ToString());
 
         // Verify file is added to the workspace and the text matches the git document
         var (gitWorkspace, _, gitDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = gitDocumentUri }, CancellationToken.None);
-        AssertEx.NotNull(gitDocument);
+        Assert.NotNull(gitDocument);
         var gitText = await gitDocument.GetTextAsync();
         Assert.Equal(gitDocumentUri, gitDocument.GetURI());
         Assert.Equal(gitDocumentText, gitText.ToString());
@@ -185,7 +185,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Access the document using the unencoded URI to make sure we find it in the C# misc files.
         var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = unencodedUri }, CancellationToken.None).ConfigureAwait(false);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
         var originalText = await lspDocument.GetTextAsync(CancellationToken.None);
@@ -201,7 +201,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         var (encodedWorkspace, _, encodedDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = encodedUri }, CancellationToken.None).ConfigureAwait(false);
         Assert.Same(workspace, encodedWorkspace);
-        AssertEx.NotNull(encodedDocument);
+        Assert.NotNull(encodedDocument);
         Assert.Equal(LanguageNames.CSharp, encodedDocument.Project.Language);
         var encodedText = await encodedDocument.GetTextAsync(CancellationToken.None);
         Assert.Equal("LSP text", encodedText.ToString());
@@ -233,7 +233,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Access the document using the upper case to make sure we find it in the C# misc files.
         var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
         var originalText = await lspDocument.GetTextAsync(CancellationToken.None);
@@ -247,7 +247,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         var (lowerCaseWorkspace, _, lowerCaseDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = lowerCaseUri }, CancellationToken.None).ConfigureAwait(false);
         Assert.Same(workspace, lowerCaseWorkspace);
-        AssertEx.NotNull(lowerCaseDocument);
+        Assert.NotNull(lowerCaseDocument);
         Assert.Equal(LanguageNames.CSharp, lowerCaseDocument.Project.Language);
         var lowerCaseText = await lowerCaseDocument.GetTextAsync(CancellationToken.None);
         Assert.Equal("LSP text", lowerCaseText.ToString());
@@ -279,7 +279,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
 
         // Access the document using the upper case to make sure we find it in the C# misc files.
         var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
-        AssertEx.NotNull(lspDocument);
+        Assert.NotNull(lspDocument);
         Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
         Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
         var originalText = await lspDocument.GetTextAsync(CancellationToken.None);

@@ -1,0 +1,23 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (259:8,1 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (259:8,1 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (261:9,0 [55] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    RenderMode - (289:9,28 [23] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (291:9,30 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Container.RenderMode
+            CSharpCode - (8:1,1 [250] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (8:1,1 [250] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public class RenderModeContainer\n    {\n        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;\n    }\n\n    RenderModeContainer? Container => null;\n

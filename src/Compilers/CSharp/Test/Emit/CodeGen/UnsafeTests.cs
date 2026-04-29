@@ -87,7 +87,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(int* param)
@@ -99,6 +99,9 @@ class C
                 //         M(param);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
                 );
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -113,7 +116,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(int*[] param)
@@ -125,6 +128,9 @@ class C
                 //         M(param);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
                 );
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -139,7 +145,7 @@ class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(C<int*[]>[] param)
@@ -151,6 +157,9 @@ class C<T>
                 //         M(param);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 11)
                 );
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -165,7 +174,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     C(int* param)
@@ -177,6 +186,9 @@ class C
                 //         new C(param);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 15)
                 );
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -191,7 +203,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     C(int*[] param)
@@ -203,6 +215,9 @@ class C
                 //         new C(param);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "param").WithLocation(6, 15)
                 );
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact]
@@ -11074,7 +11089,7 @@ False", verify: Verification.Skipped);
         [InlineData("delegate*<T>")]
         public void CompareToNullInPatternOutsideUnsafe(string pointerType)
         {
-            var comp = CreateCompilation($@"
+            var source = $@"
 var c = default(S<int>);
 _ = c.Field is null;
 unsafe struct S<T> where T : unmanaged
@@ -11082,13 +11097,15 @@ unsafe struct S<T> where T : unmanaged
 #pragma warning disable CS0649 // Field is unassigned
     public {pointerType} Field;
 }}
-", options: TestOptions.UnsafeReleaseExe);
-
-            comp.VerifyDiagnostics(
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
                 // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // _ = c.Field is null;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.Field").WithLocation(3, 5)
             );
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
         #endregion Pointer comparison tests
@@ -11616,7 +11633,17 @@ unsafe delegate void F1(int* x);
 delegate void F2(int x);
 ";
 
-            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
+            CompileAndVerify(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(F1)' and 'Program.Goo(F2)'
+                //         Goo(x => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(F1)", "Program.Goo(F2)").WithLocation(8, 9)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact]
@@ -11642,9 +11669,19 @@ unsafe delegate void F1(C<int*[]> x);
 delegate void F2(int x);
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeDebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
+
+            var expectedPreviewDiagnostics = new[]
+            {
+                // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M(F1)' and 'Program.M(F2)'
+                //         M(x => { });
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(F1)", "Program.M(F2)").WithLocation(10, 9)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedPreviewDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugExe).VerifyDiagnostics(expectedPreviewDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -11672,7 +11709,7 @@ class D
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var lam1 = (int* ptr) => ptr; // 1
@@ -11711,6 +11748,9 @@ class D
                 //         var lam4 = (C<delegate*<void>[]> a) => a; // 4
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(18, 48)
                 );
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
@@ -11743,7 +11783,7 @@ class D
     }
 }
 """;
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (11,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         return (ptr) => ptr; // 1
@@ -11770,6 +11810,9 @@ class D
                 //         return (a) => a; // 4
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "a").WithLocation(23, 23)
                 );
+
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
         }
 
         [Fact]

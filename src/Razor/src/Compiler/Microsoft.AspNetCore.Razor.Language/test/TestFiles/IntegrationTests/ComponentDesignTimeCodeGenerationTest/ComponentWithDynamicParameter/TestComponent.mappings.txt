@@ -1,0 +1,26 @@
+﻿Source Location: (9:0,9 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestDynamic|
+Generated Location: (994:28,9 [11] )
+|TestDynamic|
+
+Source Location: (61:2,28 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|4|
+Generated Location: (1267:36,28 [1] )
+|4|
+
+Source Location: (48:2,15 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestDynamic|
+Generated Location: (1680:49,15 [11] )
+|TestDynamic|
+
+Source Location: (77:4,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public dynamic TestDynamic { get; set; }
+|
+Generated Location: (2101:67,7 [65] )
+|
+    [Parameter]
+    public dynamic TestDynamic { get; set; }
+|
+

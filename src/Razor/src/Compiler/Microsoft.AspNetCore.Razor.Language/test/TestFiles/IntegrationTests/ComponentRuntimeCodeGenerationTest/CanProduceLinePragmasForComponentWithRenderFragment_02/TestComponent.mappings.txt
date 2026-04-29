@@ -1,0 +1,66 @@
+﻿Source Location: (65:1,46 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|ActionText|
+Generated Location: (1083:27,24 [10] )
+|ActionText|
+
+Source Location: (81:2,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+|  |
+Generated Location: (1280:36,0 [2] )
+|  |
+
+Source Location: (84:2,3 [22] x:\dir\subdir\Test\TestComponent.cshtml)
+|if (!Collapsed)
+  {
+|
+Generated Location: (1416:44,0 [22] )
+|if (!Collapsed)
+  {
+|
+
+Source Location: (154:5,7 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildContent|
+Generated Location: (1718:55,24 [12] )
+|ChildContent|
+
+Source Location: (180:7,0 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|  }
+|
+Generated Location: (1917:64,0 [5] )
+|  }
+|
+
+Source Location: (201:10,1 [91] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+  [Parameter]
+  public RenderFragment<string> ChildContent { get; set; } = (context) => |
+Generated Location: (2145:75,0 [91] )
+|
+  [Parameter]
+  public RenderFragment<string> ChildContent { get; set; } = (context) => |
+
+Source Location: (297:12,79 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|context|
+Generated Location: (2476:87,26 [7] )
+|context|
+
+Source Location: (308:12,90 [180] x:\dir\subdir\Test\TestComponent.cshtml)
+|;
+  [Parameter]
+  public bool Collapsed { get; set; }
+  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
+  void Toggle()
+  {
+    Collapsed = !Collapsed;
+  }
+|
+Generated Location: (2685:97,0 [180] )
+|;
+  [Parameter]
+  public bool Collapsed { get; set; }
+  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
+  void Toggle()
+  {
+    Collapsed = !Collapsed;
+  }
+|
+

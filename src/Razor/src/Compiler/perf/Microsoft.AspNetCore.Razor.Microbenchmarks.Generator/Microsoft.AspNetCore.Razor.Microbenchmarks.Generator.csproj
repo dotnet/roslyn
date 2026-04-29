@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(NetVS)</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Configurations>Debug;Release</Configurations>
+    <IsTestProject>true</IsTestProject>
+    <IsUnitTestProject>false</IsUnitTestProject>
+    <GenerateProgramFile>false</GenerateProgramFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="SampleApp\**" />
+    <EmbeddedResource Remove="SampleApp\**" />
+    <None Remove="SampleApp\**" />
+    <Content Include="SampleApp\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\MSBuild\Core\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+  </ItemGroup>
+
+  <!-- Reference the local source generator when building in regular configurations -->
+  <ItemGroup Condition="'$(Configuration)' != 'Release_Nuget'">
+    <ProjectReference Include="..\..\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+  </ItemGroup>
+
+  <!-- Grab the nuget package and reference its generator when building in Release_Nuget  -->
+  <ItemGroup Condition="'$(Configuration)' == 'Release_Nuget'">
+    <PackageReference Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Transport" GeneratePathProperty="true" VersionOverride="7.0.0-preview.5.22528.1" />
+    <Reference Include="$(PkgMicrosoft_NET_Sdk_Razor_SourceGenerators_Transport)\source-generators\*.dll" />
+  </ItemGroup>
+
+  <!-- Work around https://github.com/dotnet/roslyn/issues/61454. -->
+  <ItemGroup>
+    <None Include="$([System.IO.Directory]::GetParent($(BundledRuntimeIdentifierGraphFile)))\NuGet.Frameworks.dll">
+      <Link>NuGet.Frameworks.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+  </ItemGroup>
+
+</Project>

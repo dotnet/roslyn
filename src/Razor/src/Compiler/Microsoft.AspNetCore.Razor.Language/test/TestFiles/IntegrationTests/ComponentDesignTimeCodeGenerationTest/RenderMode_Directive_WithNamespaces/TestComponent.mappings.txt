@@ -1,0 +1,15 @@
+﻿Source Location: (11:0,11 [16] x:\dir\subdir\Test\TestComponent.cshtml)
+|Custom.Namespace|
+Generated Location: (823:22,44 [16] )
+|Custom.Namespace|
+
+Source Location: (43:2,12 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (1075:32,44 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+
+Source Location: (43:2,12 [64] x:\dir\subdir\Test\TestComponent.cshtml)
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+Generated Location: (2226:61,12 [64] )
+|Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer|
+

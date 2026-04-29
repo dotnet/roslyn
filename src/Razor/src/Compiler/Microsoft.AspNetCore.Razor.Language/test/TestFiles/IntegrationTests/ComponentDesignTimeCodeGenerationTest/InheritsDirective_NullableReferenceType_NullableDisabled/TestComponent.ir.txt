@@ -1,0 +1,26 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - BaseComponent<string?> - 
+            DesignTimeDirective - 
+                DirectiveToken - (10:0,10 [22] x:\dir\subdir\Test\TestComponent.cshtml) - BaseComponent<string?>
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (34:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (34:1,0 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                MarkupElement - (36:2,0 [21] x:\dir\subdir\Test\TestComponent.cshtml) - h1
+                    HtmlContent - (40:2,4 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (40:2,4 [12] x:\dir\subdir\Test\TestComponent.cshtml) - Html - My component
+                HtmlContent - (57:2,21 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (57:2,21 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                CSharpExpression - (61:3,2 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (61:3,2 [17] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - _field.ToString()

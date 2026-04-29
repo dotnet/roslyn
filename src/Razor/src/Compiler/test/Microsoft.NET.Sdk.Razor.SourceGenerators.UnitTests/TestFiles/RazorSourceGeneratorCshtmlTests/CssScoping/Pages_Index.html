@@ -1,0 +1,29 @@
+﻿<h1 test-css-scope>heading</h1>
+<header test-css-scope>header</header>
+<thead test-css-scope>table head</thead>
+<form test-css-scope>
+    <select test-css-scope>
+        <option test-css-scope>choose</option>
+    </select>
+</form>
+< div test-css-scope />
+<div test-css-scope
+>multiline</div>
+<div test-css-scope>bang</div>
+<input test-css-scope multiple value="test" disabled="disabled" />
+<div test-css-scope></div>
+<!-- <div>HTML comment</div> -->
+    <div test-css-scope>code block</div>
+<div test-css-scope>C# template</div>
+<div test-css-scope attr="1"></div>
+<div@x test-css-scope="1"></div>
+
+Ignored:
+- <head />
+- <meta />
+- <title />
+- <link />
+- <base />
+- <script />
+- <style />
+- <html />

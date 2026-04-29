@@ -1,0 +1,53 @@
+﻿RazorDocument - [0..49)::49 - [@{<input data-required='prefix @DateTime.Now' />}]
+    MarkupBlock - [0..49)::49
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..49)::49
+            CSharpStatement - [0..49)::49
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..49)::48
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..48)::46
+                        MarkupBlock - [2..48)::46
+                            MarkupTagHelperElement - [2..48)::46 - input[SelfClosing] - inputtaghelper
+                                MarkupTagHelperStartTag - [2..48)::46 - [<input data-required='prefix @DateTime.Now' />] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[input];
+                                    MarkupTagHelperAttribute - [8..45)::37 - data-required - SingleQuotes - Unbound - [ data-required='prefix @DateTime.Now']
+                                        MarkupTextLiteral - [8..9)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                        MarkupTextLiteral - [9..22)::13 - [data-required] - Gen<Markup>
+                                            Text;[data-required];
+                                        Equals;[=];
+                                        MarkupTextLiteral - [23..24)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                        MarkupTagHelperAttributeValue - [24..44)::20
+                                            MarkupTextLiteral - [24..31)::7 - [prefix ] - Gen<Markup>
+                                                Text;[prefix];
+                                                Whitespace;[ ];
+                                            CSharpCodeBlock - [31..44)::13
+                                                CSharpImplicitExpression - [31..44)::13
+                                                    CSharpTransition - [31..32)::1 - Gen<None>
+                                                        Transition;[@];
+                                                    CSharpImplicitExpressionBody - [32..44)::12
+                                                        CSharpCodeBlock - [32..44)::12
+                                                            CSharpExpressionLiteral - [32..44)::12 - [DateTime.Now] - Gen<Expr>
+                                                                Identifier;[DateTime];
+                                                                Dot;[.];
+                                                                Identifier;[Now];
+                                        MarkupTextLiteral - [44..45)::1 - ['] - Gen<Markup>
+                                            SingleQuote;['];
+                                    MarkupMiscAttributeContent - [45..46)::1
+                                        MarkupTextLiteral - [45..46)::1 - [ ] - Gen<Markup>
+                                            Whitespace;[ ];
+                                    ForwardSlash;[/];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [48..48)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [48..49)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [49..49)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

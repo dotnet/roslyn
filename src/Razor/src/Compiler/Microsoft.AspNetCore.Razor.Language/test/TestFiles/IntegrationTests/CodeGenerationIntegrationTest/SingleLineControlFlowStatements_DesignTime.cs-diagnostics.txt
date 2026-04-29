@@ -1,0 +1,39 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(6,12): warning CS8321: The local function 'Bar' is declared but never used
+//     object Bar()
+Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Bar").WithArguments("Bar").WithLocation(6, 12),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(40,13): warning CS0219: The variable 'x' is assigned but its value is never used
+//         var x = "";
+Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(40, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(47,9): warning CS0162: Unreachable code detected
+//         for (var i = 0; i < 10; i++)
+Diagnostic(ErrorCode.WRN_UnreachableCode, "for").WithLocation(47, 9),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "@GitHubUserName <p>Hello").WithLocation(97, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,13): error CS0246: The type or namespace name 'GitHubUserName<>' could not be found (are you missing a using directive or an assembly reference?)
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "@GitHubUserName <p>").WithArguments("GitHubUserName<>").WithLocation(97, 13),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,30): error CS0246: The type or namespace name 'p' could not be found (are you missing a using directive or an assembly reference?)
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "p").WithArguments("p").WithLocation(97, 30),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,32): warning CS0168: The variable 'Hello' is declared but never used
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.WRN_UnreferencedVar, "Hello").WithArguments("Hello").WithLocation(97, 32),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,37): error CS1002: ; expected
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "!").WithLocation(97, 37),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,38): error CS1525: Invalid expression term '<'
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(97, 38),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,39): error CS1525: Invalid expression term '/'
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "/").WithArguments("/").WithLocation(97, 39),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,40): error CS0103: The name 'p' does not exist in the current context
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_NameNotInContext, "p").WithArguments("p").WithLocation(97, 40),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,42): error CS1525: Invalid expression term 'if'
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("if").WithLocation(97, 42),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SingleLineControlFlowStatements.cshtml(97,42): error CS1002: ; expected
+//             @GitHubUserName <p>Hello!</p>
+Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(97, 42)

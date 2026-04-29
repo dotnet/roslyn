@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedRefSafetyRulesAttributeSymbol _lazyRefSafetyRulesAttribute;
         private SynthesizedEmbeddedMemorySafetyRulesAttributeSymbol _lazyMemorySafetyRulesAttribute;
         private SynthesizedEmbeddedExtensionMarkerAttributeSymbol _lazyExtensionMarkerAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyRequiresUnsafeAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -115,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             builder.AddIfNotNull(_lazyRefSafetyRulesAttribute);
             builder.AddIfNotNull(_lazyMemorySafetyRulesAttribute);
             builder.AddIfNotNull(_lazyExtensionMarkerAttribute);
+            builder.AddIfNotNull(_lazyRequiresUnsafeAttribute);
 
             return builder.ToImmutableAndFree();
         }
@@ -341,6 +343,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeRequiresLocationAttribute();
         }
 
+        protected override SynthesizedAttributeData TrySynthesizeRequiresUnsafeAttributeCore()
+        {
+            if ((object)_lazyRequiresUnsafeAttribute != null)
+            {
+                return SynthesizedAttributeData.Create(
+                    Compilation,
+                    _lazyRequiresUnsafeAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeRequiresUnsafeAttributeCore();
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeParamCollectionAttribute()
         {
             if ((object)_lazyParamCollectionAttribute != null)
@@ -426,6 +442,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 needsAttributes |= EmbeddableAttributes.MemorySafetyRulesAttribute;
             }
 
+            if (sourceModule.UseUpdatedMemorySafetyRules &&
+                Compilation.CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes.RequiresUnsafeAttribute, diagnostics, Location.None))
+            {
+                needsAttributes |= EmbeddableAttributes.RequiresUnsafeAttribute;
+            }
+
             if (needsAttributes == 0)
             {
                 return;
@@ -455,6 +477,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyRequiresLocationAttribute,
                     diagnostics,
                     AttributeDescription.RequiresLocationAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RequiresUnsafeAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRequiresUnsafeAttribute,
+                    diagnostics,
+                    AttributeDescription.RequiresUnsafeAttribute,
                     createParameterlessEmbeddedAttributeSymbol);
             }
 

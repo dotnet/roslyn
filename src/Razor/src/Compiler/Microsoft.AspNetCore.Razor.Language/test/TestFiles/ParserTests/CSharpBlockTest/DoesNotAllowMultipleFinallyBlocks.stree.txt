@@ -1,0 +1,51 @@
+﻿RazorDocument - [0..68)::68 - [@try { var foo = new { } } finally { var foo = new { } } finally { }]
+    MarkupBlock - [0..68)::68
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..56)::56
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..56)::55 - [try { var foo = new { } } finally { var foo = new { } }] - Gen<Stmt>
+                Keyword;[try];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                Keyword;[var];
+                Whitespace;[ ];
+                Identifier;[foo];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                Keyword;[new];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                RightBrace;[}];
+                Whitespace;[ ];
+                RightBrace;[}];
+                Whitespace;[ ];
+                Keyword;[finally];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                Keyword;[var];
+                Whitespace;[ ];
+                Identifier;[foo];
+                Whitespace;[ ];
+                Assign;[=];
+                Whitespace;[ ];
+                Keyword;[new];
+                Whitespace;[ ];
+                LeftBrace;[{];
+                Whitespace;[ ];
+                RightBrace;[}];
+                Whitespace;[ ];
+                RightBrace;[}];
+        MarkupTextLiteral - [56..68)::12 - [ finally { }] - Gen<Markup>
+            Whitespace;[ ];
+            Text;[finally];
+            Whitespace;[ ];
+            Text;[{];
+            Whitespace;[ ];
+            Text;[}];
+    EndOfFile;[];

@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [26] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [26] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  var section = "Section"; 
+                CSharpExpression - (32:1,1 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (32:1,1 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - section
+                HtmlContent - (39:1,8 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (39:1,8 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  One { 
+                MarkupElement - (46:1,15 [14] x:\dir\subdir\Test\TestComponent.cshtml) - p
+                    HtmlContent - (49:1,18 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+                        LazyIntermediateToken - (49:1,18 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html - Content
+                HtmlContent - (60:1,29 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (60:1,29 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html -  }

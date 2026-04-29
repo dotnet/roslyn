@@ -67,6 +67,11 @@
         <target state="translated">在连续大括号首选项之间应用空白行(实验性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_collection_expression_preferences">
+        <source>Apply collection expression preferences</source>
+        <target state="new">Apply collection expression preferences</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
         <source>Apply conditional delegate call preferences</source>
         <target state="translated">应用条件委托调用首选项</target>

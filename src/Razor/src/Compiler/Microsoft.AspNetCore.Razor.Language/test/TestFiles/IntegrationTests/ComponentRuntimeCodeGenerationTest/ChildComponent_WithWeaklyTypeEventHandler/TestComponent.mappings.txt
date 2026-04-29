@@ -1,0 +1,24 @@
+﻿Source Location: (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web|
+Generated Location: (372:12,0 [41] )
+|using Microsoft.AspNetCore.Components.Web|
+
+Source Location: (45:1,1 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+|DynamicElement|
+Generated Location: (855:25,49 [14] )
+|DynamicElement|
+
+Source Location: (70:1,26 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|OnClick|
+Generated Location: (1153:29,0 [7] )
+|OnClick|
+
+Source Location: (92:3,7 [60] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private Action<MouseEventArgs> OnClick { get; set; }
+|
+Generated Location: (1399:40,0 [60] )
+|
+    private Action<MouseEventArgs> OnClick { get; set; }
+|
+

@@ -1,0 +1,15 @@
+﻿<div>
+    <div>
+        <table>
+            <tbody>
+                @foreach (var item in ViewBag.RequestOrder)
+{
+<tr>
+<td>@item.UserFullName</td>
+<td>@item.ItemCount</td>
+</tr>
+}
+            </tbody>
+        </table>
+    </div>
+</div>

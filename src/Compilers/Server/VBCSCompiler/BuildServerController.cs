@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
-using System.Runtime.InteropServices;
 using System.Collections.Specialized;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
@@ -32,14 +31,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _logger = logger;
         }
 
-        internal int Run(string? pipeName, bool shutdown, TimeSpan? keepAlive)
+        internal int Run(BuildServerCommandLineOptions options)
         {
             var cancellationTokenSource = new CancellationTokenSource();
             Console.CancelKeyPress += (sender, e) => { cancellationTokenSource.Cancel(); };
 
-            return shutdown
-                ? RunShutdown(pipeName, cancellationToken: cancellationTokenSource.Token)
-                : RunServer(pipeName, keepAlive: keepAlive, cancellationToken: cancellationTokenSource.Token);
+            if (options.Shutdown)
+                return RunShutdown(options.PipeName, cancellationToken: cancellationTokenSource.Token);
+            if (options.PurgeCacheCutoff is not null)
+                return RunPurgeCache(options.PurgeCacheCutoff.Value, options.CachePath);
+            if (options.CacheStatsSince is not null)
+                return RunCacheStats(options.CacheStatsSince.Value, options.CacheStatsVerbosity, options.CachePath);
+            return RunServer(options.PipeName, keepAlive: options.KeepAlive, cancellationToken: cancellationTokenSource.Token);
         }
 
         internal static TimeSpan GetDefaultKeepAlive(ICompilerServerLogger logger, NameValueCollection? appSettings = null)
@@ -169,6 +172,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
+        /// Purges cache entries from the cache directory.
+        /// Entries whose <c>last-used</c> timestamp is older than <paramref name="cutoff"/> are deleted.
+        /// </summary>
+        internal int RunPurgeCache(DateTimeOffset cutoff, string? cachePath)
+        {
+            cachePath ??= CompilationCache.GetDefaultCachePath();
+            if (cachePath is null)
+            {
+                Console.Error.WriteLine("Cannot determine cache path.");
+                return CommonCompiler.Failed;
+            }
+
+            var result = CompilationCache.PurgeEntries(cachePath, cutoff, _logger);
+            Console.WriteLine(result);
+            return CommonCompiler.Succeeded;
+        }
+
+        /// <summary>
+        /// Displays cache statistics from the cache directory.
+        /// </summary>
+        internal int RunCacheStats(DateTimeOffset since, int verbosity, string? cachePath)
+        {
+            cachePath ??= CompilationCache.GetDefaultCachePath();
+            if (cachePath is null)
+            {
+                Console.Error.WriteLine("Cannot determine cache path.");
+                return CommonCompiler.Failed;
+            }
+
+            var stats = CompilationCache.GetCacheStats(cachePath, since, _logger);
+            Console.WriteLine(stats.FormatSummary(cachePath, verbosity));
+            return CommonCompiler.Succeeded;
+        }
+
+        /// <summary>
         /// Parses the command-line arguments for the build server.
         /// </summary>
         /// <remarks>
@@ -178,24 +216,33 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         ///   <item><description><c>-timeout:&lt;seconds&gt;</c> — keep-alive in seconds; <c>0</c> means infinite (no timeout).</description></item>
         ///   <item><description><c>-log:&lt;path&gt;</c> — path to the log file.</description></item>
         ///   <item><description><c>-shutdown</c> — request the server to shut down.</description></item>
+        ///   <item><description><c>-purgecache</c> / <c>-purgecache:&lt;timestamp&gt;</c> — purge cache entries not used since the given UTC timestamp (or all entries if no timestamp is given).</description></item>
+        ///   <item><description><c>-cachestats</c> / <c>-cachestats:&lt;timestamp&gt;</c> — display compilation cache statistics since the given UTC timestamp (or since the start of time if no timestamp is given).</description></item>
+        ///   <item><description><c>-cachestatsverbosity:&lt;0|1|2&gt;</c> — cache stats verbosity level (0 = totals, 1 = grouped by DLL, 2 = individual entries). Defaults to 0.</description></item>
+        ///   <item><description><c>-cachepath:&lt;path&gt;</c> — override the cache directory for <c>-purgecache</c> and <c>-cachestats</c>.</description></item>
         /// </list>
         /// </remarks>
-        internal static bool ParseCommandLine(string[] args, out string? pipeName, out bool shutdown, out TimeSpan? timeout, out string? logFilePath)
+        internal static bool ParseCommandLine(string[] args, out BuildServerCommandLineOptions options)
         {
-            pipeName = null;
-            shutdown = false;
-            timeout = null;
-            logFilePath = null;
+            options = new BuildServerCommandLineOptions();
+            var hasOperation = false;
 
             foreach (var arg in args)
             {
                 const string pipeArgPrefix = "-pipename:";
                 const string timeoutArgPrefix = "-timeout:";
                 const string logArgPrefix = "-log:";
+                const string shutdownArg = "-shutdown";
+                const string purgeCacheArg = "-purgecache";
+                const string purgeCacheArgPrefix = purgeCacheArg + ":";
+                const string cacheStatsArg = "-cachestats";
+                const string cacheStatsArgPrefix = cacheStatsArg + ":";
+                const string cacheStatsVerbosityArgPrefix = "-cachestatsverbosity:";
+                const string cachePathArgPrefix = "-cachepath:";
                 var argSpan = arg.AsSpan();
                 if (argSpan.StartsWith(pipeArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
-                    pipeName = argSpan[pipeArgPrefix.Length..].ToString();
+                    options.PipeName = argSpan[pipeArgPrefix.Length..].ToString();
                 }
                 else if (argSpan.StartsWith(timeoutArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
@@ -206,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return false;
                     }
 
-                    timeout = parsedTimeout == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
+                    options.KeepAlive = parsedTimeout == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(parsedTimeout);
                 }
                 else if (argSpan.StartsWith(logArgPrefix.AsSpan(), StringComparison.Ordinal))
                 {
@@ -216,11 +263,90 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         return false;
                     }
 
-                    logFilePath = parsedLogFilePath.ToString();
+                    options.LogFilePath = parsedLogFilePath.ToString();
                 }
-                else if (arg == "-shutdown")
+                else if (arg == shutdownArg)
                 {
-                    shutdown = true;
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.Shutdown = true;
+                }
+                else if (arg == purgeCacheArg)
+                {
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.PurgeCacheCutoff = DateTimeOffset.MaxValue;
+                }
+                else if (argSpan.StartsWith(purgeCacheArgPrefix.AsSpan(), StringComparison.Ordinal))
+                {
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    var value = argSpan[purgeCacheArgPrefix.Length..].ToString();
+                    if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.PurgeCacheCutoff = parsed.ToUniversalTime();
+                }
+                else if (arg == cacheStatsArg)
+                {
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.CacheStatsSince = DateTimeOffset.MinValue;
+                }
+                else if (argSpan.StartsWith(cacheStatsArgPrefix.AsSpan(), StringComparison.Ordinal))
+                {
+                    if (hasOperation)
+                    {
+                        return false;
+                    }
+
+                    var value = argSpan[cacheStatsArgPrefix.Length..].ToString();
+                    if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var parsed))
+                    {
+                        return false;
+                    }
+
+                    hasOperation = true;
+                    options.CacheStatsSince = parsed.ToUniversalTime();
+                }
+                else if (argSpan.StartsWith(cacheStatsVerbosityArgPrefix.AsSpan(), StringComparison.Ordinal))
+                {
+                    var value = argSpan[cacheStatsVerbosityArgPrefix.Length..].ToString();
+                    if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedVerbosity) ||
+                        parsedVerbosity < 0 || parsedVerbosity > 2)
+                    {
+                        return false;
+                    }
+
+                    options.CacheStatsVerbosity = parsedVerbosity;
+                }
+                else if (argSpan.StartsWith(cachePathArgPrefix.AsSpan(), StringComparison.Ordinal))
+                {
+                    var value = argSpan[cachePathArgPrefix.Length..].ToString();
+                    if (value.Length == 0)
+                    {
+                        return false;
+                    }
+
+                    options.CachePath = value;
                 }
                 else
                 {
@@ -230,5 +356,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return true;
         }
+    }
+
+    internal sealed class BuildServerCommandLineOptions
+    {
+        internal string? PipeName { get; set; }
+        internal bool Shutdown { get; set; }
+        internal DateTimeOffset? PurgeCacheCutoff { get; set; }
+        internal DateTimeOffset? CacheStatsSince { get; set; }
+        internal int CacheStatsVerbosity { get; set; }
+        internal string? CachePath { get; set; }
+        internal TimeSpan? KeepAlive { get; set; }
+        internal string? LogFilePath { get; set; }
     }
 }

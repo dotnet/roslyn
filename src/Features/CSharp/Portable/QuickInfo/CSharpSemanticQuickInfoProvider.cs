@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
@@ -86,6 +87,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
+<<<<<<< HEAD
     /// <summary>
     /// Attempts to produce a rendered glyph Quick Info documentation line for a C# <see langword="char"/> literal.
     /// </summary>
@@ -143,6 +145,99 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
     private static string CreateCharacterDocumentationText(char character)
         => string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character);
+=======
+    protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        CancellationToken cancellationToken)
+    {
+        // Walk up from the token to find the InvocationExpressionSyntax.
+        // The token could be the method name identifier in `obj.Method()` or `Method()`.
+        var node = token.Parent;
+        InvocationExpressionSyntax? invocation = null;
+        while (node != null)
+        {
+            if (node is InvocationExpressionSyntax inv)
+            {
+                invocation = inv;
+                break;
+            }
+
+            // Don't walk past statement or member boundaries
+            if (node is StatementSyntax or MemberDeclarationSyntax)
+                break;
+
+            node = node.Parent;
+        }
+
+        if (invocation is null)
+            return default;
+
+        // Only show interceptor info when hovering over the method name itself,
+        // not other parts of the invocation expression (like the receiver type).
+        var nameSyntax = invocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccess => (SyntaxNode)memberAccess.Name,
+            MemberBindingExpressionSyntax memberBinding => memberBinding.Name,
+            SimpleNameSyntax name => name,
+            _ => null
+        };
+
+        if (nameSyntax is null || !nameSyntax.Span.Contains(token.Span))
+            return default;
+
+        var interceptor = semanticModel.GetInterceptorMethod(invocation, cancellationToken);
+        if (interceptor is null)
+            return default;
+
+        // If the interceptor is generic, substitute type arguments from the original call.
+        // Per the interceptors spec, type arguments are passed from outermost containing type
+        // to innermost, then method type arguments.
+        if (interceptor.IsGenericMethod)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(invocation, cancellationToken);
+            if (symbolInfo.Symbol is IMethodSymbol resolvedMethod)
+            {
+                var typeArguments = GetInterceptorTypeArguments(resolvedMethod);
+                if (typeArguments.Length == interceptor.TypeParameters.Length)
+                {
+                    interceptor = interceptor.Construct(typeArguments, default);
+                }
+            }
+        }
+
+        return interceptor.ToDisplayParts(SymbolDisplayFormat.MinimallyQualifiedFormat).ToTaggedText();
+    }
+
+    /// <summary>
+    /// Gets the type arguments that should be substituted into the interceptor method.
+    /// Per the interceptors spec, these are the type arguments from the outermost containing
+    /// type to innermost, followed by the method's own type arguments.
+    /// </summary>
+    private static ImmutableArray<ITypeSymbol> GetInterceptorTypeArguments(IMethodSymbol resolvedMethod)
+    {
+        using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var typeArgs);
+
+        // Collect containing type arguments from outermost to innermost
+        CollectContainingTypeArguments(resolvedMethod.ContainingType, typeArgs);
+
+        // Then add method type arguments
+        typeArgs.AddRange(resolvedMethod.TypeArguments);
+
+        return typeArgs.ToImmutableAndClear();
+
+        static void CollectContainingTypeArguments(INamedTypeSymbol? type, ArrayBuilder<ITypeSymbol> builder)
+        {
+            if (type is null)
+                return;
+
+            CollectContainingTypeArguments(type.ContainingType, builder);
+
+            if (type.IsGenericType)
+                builder.AddRange(type.TypeArguments);
+        }
+    }
+>>>>>>> main
 
     protected override string? GetNullabilityAnalysis(
         SemanticModel semanticModel,

@@ -8,7 +8,6 @@ using System.Composition;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -32,10 +31,6 @@ internal sealed class RazorInProcLanguageClientCapabilitiesProvider(DefaultCapab
             vsServerCapabilities.SpellCheckingProvider = true;
             vsServerCapabilities.Experimental ??= new Dictionary<string, bool>();
             vsServerCapabilities.MapCodeProvider = true;
-            var experimental = (Dictionary<string, bool>)vsServerCapabilities.Experimental;
-            experimental[SimplifyMethodHandler.SimplifyMethodMethodName] = true;
-            experimental[FormatNewFileHandler.FormatNewFileMethodName] = true;
-            experimental[SemanticTokensRangesHandler.SemanticRangesMethodName] = true;
 
             var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
             var regex = new Regex(regexExpression, RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1));

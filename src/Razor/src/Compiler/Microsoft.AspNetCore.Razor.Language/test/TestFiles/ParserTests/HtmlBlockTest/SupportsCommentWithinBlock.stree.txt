@@ -1,0 +1,46 @@
+﻿RazorDocument - [0..33)::33 - [@{<foo>bar<!-- zoop -->baz</foo>}]
+    MarkupBlock - [0..33)::33
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..33)::33
+            CSharpStatement - [0..33)::33
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..33)::32
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..32)::30
+                        MarkupBlock - [2..32)::30
+                            MarkupElement - [2..32)::30
+                                MarkupStartTag - [2..7)::5 - [<foo>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    Text;[foo];
+                                    CloseAngle;[>];
+                                MarkupTextLiteral - [7..10)::3 - [bar] - Gen<Markup>
+                                    Text;[bar];
+                                MarkupCommentBlock - [10..23)::13
+                                    MarkupTextLiteral - [10..14)::4 - [<!--] - Gen<Markup>
+                                        OpenAngle;[<];
+                                        Bang;[!];
+                                        DoubleHyphen;[--];
+                                    MarkupTextLiteral - [14..20)::6 - [ zoop ] - Gen<Markup>
+                                        Whitespace;[ ];
+                                        Text;[zoop];
+                                        Whitespace;[ ];
+                                    MarkupTextLiteral - [20..23)::3 - [-->] - Gen<Markup>
+                                        DoubleHyphen;[--];
+                                        CloseAngle;[>];
+                                MarkupTextLiteral - [23..26)::3 - [baz] - Gen<Markup>
+                                    Text;[baz];
+                                MarkupEndTag - [26..32)::6 - [</foo>] - Gen<Markup>
+                                    OpenAngle;[<];
+                                    ForwardSlash;[/];
+                                    Text;[foo];
+                                    CloseAngle;[>];
+                        CSharpStatementLiteral - [32..32)::0 - [] - Gen<Stmt>
+                            Marker;[];
+                    RazorMetaCode - [32..33)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupTextLiteral - [33..33)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];
