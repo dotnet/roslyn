@@ -28414,7 +28414,9 @@ class Program
   IL_0025:  ret
 }
 """);
-    }    [Fact]
+    }
+
+    [Fact]
     public void ImplicitRangeIndexerAccess_Get_LValueReceiver_IntStartOpenEndRangeExpr_01_02()
     {
         // sibling of ImplicitRangeIndexerAccess_Get_LValueReceiver_IntStartOpenEndRangeExpr_01
@@ -30470,6 +30472,193 @@ class Program
   IL_001d:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void RefTypeReceiverSwap_01()
+    {
+        // Method invocation on unconstrained-T receiver. The argument expression mutates the
+        // receiver via a ref parameter. Since the swap happens during argument evaluation,
+        // IsSafeToDereferenceReceiverRefAfterEvaluatingArguments correctly identifies the
+        // unsafe arg and protection (ReferToTempIfReferenceTypeReceiver) is applied.
+        // Expected: M called on the original instance (C1, not C99).
+        var src = """
+interface I
+{
+    void M(int arg);
+}
+
+class C : I
+{
+    public int Counter;
+    public void M(int arg) { System.Console.Write($"M(C{Counter},{arg}) "); }
+}
+
+class Driver
+{
+    public static void Test<T>(ref T t) where T : I, new()
+    {
+        t.M(Swap(ref t));
+    }
+
+    public static int Swap<T>(ref T t) where T : I, new()
+    {
+        var newC = new C { Counter = 99 };
+        t = (T)(object)newC;
+        return 0;
+    }
+
+    static void Main()
+    {
+        C original = new C { Counter = 1 };
+        Test<C>(ref original);
+        System.Console.Write($"final=C{original.Counter}");
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: "M(C1,0) final=C99").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefTypeReceiverSwap_02()
+    {
+        // Real (explicit) indexer regular assignment on unconstrained-T receiver.
+        // The RHS Swap(ref t) becomes the last argument to the setter call (set_Item(idx, value)),
+        // so the args safety check at codegen time sees it as unsafe and protection
+        // (ReferToTempIfReferenceTypeReceiver, materialized as a runtime ref-type check that
+        // copies the receiver value into a temp) is applied.
+        // Expected: setter is called on the original instance (C1, not C99).
+        var src = """
+interface I
+{
+    int this[int i] { get; set; }
+}
+
+class C : I
+{
+    public int Counter;
+    public int this[int i] { get => 0; set { System.Console.Write($"set_Item(C{Counter},{i},{value}) "); } }
+}
+
+class Driver
+{
+    public static void Test<T>(ref T t) where T : I, new()
+    {
+        t[0] = Swap(ref t);
+    }
+
+    public static int Swap<T>(ref T t) where T : I, new()
+    {
+        var newC = new C { Counter = 99 };
+        t = (T)(object)newC;
+        return 0;
+    }
+
+    static void Main()
+    {
+        C original = new C { Counter = 1 };
+        Test<C>(ref original);
+        System.Console.Write($"final=C{original.Counter}");
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: "set_Item(C1,0,0) final=C99").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefTypeReceiverSwap_03()
+    {
+        // Implicit Index indexer regular assignment on unconstrained-T receiver.
+        // Same protection as RefTypeReceiverSwap_02: the RHS becomes the last setter arg,
+        // codegen's args safety check sees Swap as unsafe, protection is applied.
+        // Expected: setter is called on the original instance (C1, not C99).
+        var src = """
+interface I
+{
+    int Length { get; }
+    int this[int i] { get; set; }
+}
+
+class C : I
+{
+    public int Counter;
+    public int Length => 5;
+    public int this[int i] { get => 0; set { System.Console.Write($"set_Item(C{Counter},{i},{value}) "); } }
+}
+
+class Driver
+{
+    public static void Test<T>(ref T t) where T : I, new()
+    {
+        t[^1] = Swap(ref t);
+    }
+
+    public static int Swap<T>(ref T t) where T : I, new()
+    {
+        var newC = new C { Counter = 99 };
+        t = (T)(object)newC;
+        return 0;
+    }
+
+    static void Main()
+    {
+        C original = new C { Counter = 1 };
+        Test<C>(ref original);
+        System.Console.Write($"final=C{original.Counter}");
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: "set_Item(C1,4,0) final=C99").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void RefTypeReceiverSwap_04()
+    {
+        // Implicit Range indexer (read) on unconstrained-T receiver. Range patterns have no
+        // setter, so the swap can only happen during argument evaluation. Args check sees the
+        // Swap call as unsafe and protection is applied.
+        // Expected: Length and Slice called on the original instance (C1, not C99).
+        var src = """
+interface I
+{
+    int Length { get; }
+    int Slice(int start, int length);
+}
+
+class C : I
+{
+    public int Counter;
+    public int Length { get { System.Console.Write($"Length(C{Counter}) "); return 5; } }
+    public int Slice(int s, int l) { System.Console.Write($"Slice(C{Counter},{s},{l}) "); return 0; }
+}
+
+class Driver
+{
+    public static void Test<T>(ref T t) where T : I, new()
+    {
+        _ = t[Swap(ref t)..];
+    }
+
+    public static int Swap<T>(ref T t) where T : I, new()
+    {
+        var newC = new C { Counter = 99 };
+        t = (T)(object)newC;
+        return 0;
+    }
+
+    static void Main()
+    {
+        C original = new C { Counter = 1 };
+        Test<C>(ref original);
+        System.Console.Write($"final=C{original.Counter}");
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
+        CompileAndVerify(comp, expectedOutput: "Length(C1) Slice(C1,0,5) final=C99").VerifyDiagnostics();
     }
 }
 
