@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 Console.WriteLine();
                 actual.Free();
-                Assert.True(false);
+                throw ExceptionUtilities.Unreachable();
             }
 
             actual.Free();

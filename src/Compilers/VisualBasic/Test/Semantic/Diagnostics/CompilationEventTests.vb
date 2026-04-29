@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 Next
                 Console.WriteLine()
                 actual.Free()
-                Assert.True(False)
+                Throw ExceptionUtilities.Unreachable()
             End If
             actual.Free()
         End Sub
