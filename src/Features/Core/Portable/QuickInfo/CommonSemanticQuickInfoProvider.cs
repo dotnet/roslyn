@@ -34,24 +34,9 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var services = context.Document.Project.Solution.Services;
         var onTheFlyDocsInfo = await GetOnTheFlyDocsInfoAsync(context, cancellationToken).ConfigureAwait(false);
         var documentationComments = GetDocumentationComments(semanticModel, token, tokenInformation.Symbols, cancellationToken);
-        // todo fix conflict
         var interceptorDisplayParts = GetInterceptorDisplayParts(semanticModel, token, cancellationToken);
         return await CreateContentAsync(
-            services, semanticModel, token, tokenInformation, supportedPlatforms, documentationComments /*  interceptorDisplayParts */ , context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
-    }
-
-    protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
-        CommonQuickInfoContext context, SyntaxToken token)
-    {
-        var tokenInformation = BindToken(context.Services, context.SemanticModel, token, context.CancellationToken);
-        if (tokenInformation.Symbols.IsDefaultOrEmpty)
-            return null;
-
-        var documentationComments = GetDocumentationComments(context.SemanticModel, token, tokenInformation.Symbols, context.CancellationToken);
-
-        // onTheFlyDocInfo is null here since On-The-Fly Docs are being computed at the document level.
-        return await CreateContentAsync(
-            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, documentationComments, context.Options, onTheFlyDocsInfo: null, context.CancellationToken).ConfigureAwait(false);
+            services, semanticModel, token, tokenInformation, supportedPlatforms, documentationComments, interceptorDisplayParts, context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
@@ -164,21 +149,8 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         SyntaxToken token,
         TokenInformation tokenInformation,
         SupportedPlatformData? supportedPlatforms,
-        ImmutableArray<TaggedText> interceptorDisplayParts,
-        SymbolDescriptionOptions options,
-        OnTheFlyDocsInfo? onTheFlyDocsInfo,
-        CancellationToken cancellationToken)
-        // This overload preserves the prior call shape for callers that do not supply
-        // language-specific documentation comments.
-        => CreateContentAsync(services, semanticModel, token, tokenInformation, supportedPlatforms, documentationComments: default, options, onTheFlyDocsInfo, cancellationToken);
-
-    protected static Task<QuickInfoItem> CreateContentAsync(
-        SolutionServices services,
-        SemanticModel semanticModel,
-        SyntaxToken token,
-        TokenInformation tokenInformation,
-        SupportedPlatformData? supportedPlatforms,
         ImmutableArray<TaggedText> documentationComments,
+        ImmutableArray<TaggedText> interceptorDisplayParts,
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
@@ -198,11 +170,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-<<<<<<< HEAD
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, documentationComments, options, onTheFlyDocsInfo, cancellationToken);
-=======
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, interceptorDisplayParts, options, onTheFlyDocsInfo, cancellationToken);
->>>>>>> main
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullabilityInfo, documentationComments, interceptorDisplayParts, options, onTheFlyDocsInfo, cancellationToken);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
@@ -218,7 +186,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         ImmutableArray<ISymbol> symbols,
         CancellationToken cancellationToken)
         => default;
-    
+
     protected virtual ImmutableArray<TaggedText> GetInterceptorDisplayParts(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken) => default;
 
     protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => null;
