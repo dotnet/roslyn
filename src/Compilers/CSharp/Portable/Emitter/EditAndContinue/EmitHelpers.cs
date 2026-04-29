@@ -142,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     cancellationToken);
             }
 
+            foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
+            {
+                builder.Free();
+            }
+
             return new EmitDifferenceResult(
                 success: newBaseline != null,
                 diagnostics: diagnostics.ToReadOnlyAndFree(),

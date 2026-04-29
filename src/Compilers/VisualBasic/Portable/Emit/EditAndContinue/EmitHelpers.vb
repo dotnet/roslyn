@@ -135,6 +135,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     cancellationToken)
             End If
 
+            For Each pair In moduleBeingBuilt.GetDeletedMemberDefinitions()
+                pair.Value.Free()
+            Next
+
             Return New EmitDifferenceResult(
                 success:=newBaseline IsNot Nothing,
                 diagnostics:=diagnostics.ToReadOnlyAndFree(),
