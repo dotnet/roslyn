@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -291,11 +292,8 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         // GetWordSpan only extends forward when the position is in the *middle* of a word (i.e.
         // there are word characters before it). Since item.Span.Start is at the beginning of
         // any typed text, GetWordSpan returns a zero-length span and misses the typed characters.
-        var spanEnd = item.Span.Start;
-        while (spanEnd < text.Length && char.IsLetterOrDigit(text[spanEnd]))
-        {
-            spanEnd++;
-        }
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var spanEnd = CompletionUtilities.GetCurrentSpanEnd(item.Span.Start, text, syntaxFacts);
 
         var itemSpan = item.Span;
         var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, spanEnd);

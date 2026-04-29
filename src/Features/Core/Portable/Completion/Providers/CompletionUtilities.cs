@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
@@ -56,5 +58,22 @@ internal static class CompletionUtilities
 
         Contract.ThrowIfNull(solution);
         return [.. projectIds.Select(solution.GetProject).WhereNotNull()];
+    }
+
+    /// <summary>
+    /// Finds the end of any identifier characters that the user has typed starting at
+    /// <paramref name="start"/>. <see cref="CompletionItem.Span"/> is frozen at session start
+    /// and does not advance as the user types. This method scans forward to find the actual end
+    /// of the typed text so the replacement span covers all characters entered since the trigger.
+    /// </summary>
+    public static int GetCurrentSpanEnd(int start, SourceText text, ISyntaxFactsService syntaxFacts)
+    {
+        var end = start;
+        while (end < text.Length && syntaxFacts.IsIdentifierPartCharacter(text[end]))
+        {
+            end++;
+        }
+
+        return end;
     }
 }

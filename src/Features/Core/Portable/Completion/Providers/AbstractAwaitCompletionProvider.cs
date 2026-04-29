@@ -174,6 +174,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         var syntaxKinds = syntaxFacts.SyntaxKinds;
 
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         if (item.TryGetProperty(MakeContainerAsync, out var _))
         {
@@ -206,9 +207,10 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         }
 
         // item.Span was captured when the completion session started and does not advance as the
-        // user types. Compute the actual span of the typed text from the current syntax tree so we
-        // replace all characters the user has entered since the trigger point.
-        var currentSpanEnd = root.FindToken(item.Span.Start).Span.End;
+        // user types. Scan forward from the original span start to find the current end of any
+        // typed identifier characters so we replace all characters the user has entered since the
+        // trigger point.
+        var currentSpanEnd = CompletionUtilities.GetCurrentSpanEnd(item.Span.Start, text, syntaxFacts);
 
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
         {
@@ -234,7 +236,6 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, currentSpanEnd), replacementText));
         }
 
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = text.WithChanges(builder);
         var allChanges = builder.ToImmutable();
 
