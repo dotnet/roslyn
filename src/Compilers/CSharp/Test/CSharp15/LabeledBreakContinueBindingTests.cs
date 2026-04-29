@@ -2271,4 +2271,33 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     }
 
     #endregion
+
+    #region Primary constructor parameter capture
+
+    [Fact]
+    public void LabeledBreakContinue_DoesNotCapturePrimaryConstructorParameter()
+    {
+        // The label identifiers in `break p1;` / `continue p2;` are label references,
+        // not value references to the same-named primary-constructor parameters, so
+        // the parameters should be reported as unread (no capture).
+        var source = """
+            class C(int p1, int p2)
+            {
+                void M()
+                {
+                    p1: while (true) { break p1; }
+                    p2: foreach (var x in new[] { 1 }) { continue p2; }
+                }
+            }
+            """;
+        CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyEmitDiagnostics(
+            // (1,13): warning CS9113: Parameter 'p1' is unread.
+            // class C(int p1, int p2)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p1").WithArguments("p1").WithLocation(1, 13),
+            // (1,21): warning CS9113: Parameter 'p2' is unread.
+            // class C(int p1, int p2)
+            Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p2").WithArguments("p2").WithLocation(1, 21));
+    }
+
+    #endregion
 }

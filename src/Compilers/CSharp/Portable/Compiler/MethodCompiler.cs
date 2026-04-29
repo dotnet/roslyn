@@ -2177,7 +2177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Logic in this lambda is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
+            // Logic in this local function is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
             // It can be more permissive (i.e. allow us to dive into more nodes), but should not be more restrictive
             static void addIdentifiers(CSharpSyntaxNode? node, ConcurrentDictionary<IdentifierNameSyntax, int> identifierMap)
             {

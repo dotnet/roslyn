@@ -133,6 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BaseExpressionColonSyntax:
                         case NameEqualsSyntax:
                         case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
+                        case BreakStatementSyntax { Name: not null }:
+                        case ContinueStatementSyntax { Name: not null }:
                         case TypeParameterConstraintClauseSyntax:
                         case AliasQualifiedNameSyntax:
                             // These nodes do not have anything interesting for us
