@@ -2485,7 +2485,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
-        ERR_NoBreakOrContId = 9379,
+        ERR_NoBreakId = 9379,
+        ERR_NoContinueId = 9380,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

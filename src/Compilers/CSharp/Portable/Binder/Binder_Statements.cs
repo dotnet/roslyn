@@ -2947,31 +2947,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
-            => BindBreakOrContinue(
-                node, node.Name, diagnostics,
-                static (@this, labelName) => @this.GetBreakLabel(labelName),
-                static (node, target, label) => new BoundBreakStatement(node, target, label));
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: true);
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
-            => BindBreakOrContinue(
-                node, node.Name, diagnostics,
-                static (@this, labelName) => @this.GetContinueLabel(labelName),
-                static (node, target, label) => new BoundContinueStatement(node, target, label));
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: false);
 
-        /// <summary>
-        /// Shared binding logic for <c>break</c> and <c>continue</c> statements. Checks the
-        /// labeled break/continue feature availability, looks up the matching target via
-        /// <paramref name="getTarget"/>, binds the label expression, and reports an error when
-        /// no matching target exists. Returns a <see cref="BoundBadStatement"/> on failure;
-        /// otherwise delegates construction of the result to <paramref name="createSuccess"/>.
-        /// </summary>
-        private BoundStatement BindBreakOrContinue<TNode>(
-            TNode node,
+        private BoundStatement BindBreakOrContinue(
+            StatementSyntax node,
             IdentifierNameSyntax? name,
             BindingDiagnosticBag diagnostics,
-            Func<Binder, string?, LabelSymbol?> getTarget,
-            Func<TNode, LabelSymbol, BoundLabel?, BoundStatement> createSuccess)
-            where TNode : StatementSyntax
+            bool isBreak)
         {
             var labelName = name?.Identifier.ValueText;
             if (labelName != null)
@@ -2980,18 +2965,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
-            var target = getTarget(this, labelName);
+            var target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
             if (target == null)
             {
                 Error(diagnostics,
-                    labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont,
+                    labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
                     name ?? (SyntaxNode)node,
                     labelName == null ? [] : [labelName]);
                 return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
             }
 
             var label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
-            return createSuccess(node, target, label);
+            return isBreak ? new BoundBreakStatement(node, target, label) : new BoundContinueStatement(node, target, label);
         }
 #nullable disable
 

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1277,9 +1277,9 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
             """;
         var comp = CreateCompilation(source);
         comp.VerifyDiagnostics(
-            // (5,45): error CS9379: No enclosing loop or switch statement with the label 'L' out of which to break or continue
+            // (5,45): error CS9379: No enclosing loop or switch statement with the label 'L' out of which to break
             //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-            Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(5, 45),
+            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45),
             // (5,19): warning CS0164: This label has not been referenced
             //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
             Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 19));
@@ -1308,9 +1308,9 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
                       null
             """, new[]
             {
-                // (5,45): error CS9379: No enclosing loop or switch statement with the label 'L' out of which to break or continue
+                // (5,45): error CS9379: No enclosing loop or switch statement with the label 'L' out of which to break
                 //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-                Diagnostic(ErrorCode.ERR_NoBreakOrContId, "L").WithArguments("L").WithLocation(5, 45),
+                Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45),
                 // (5,19): warning CS0164: This label has not been referenced
                 //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 19),
