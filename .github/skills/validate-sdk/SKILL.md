@@ -13,7 +13,7 @@ This skill requires the **ADO MCP server** configured for the `dnceng` organizat
 
 ## How to Invoke This Skill
 
-In an `agency copilot` session, ask something like:
+In a copilot session with an ADO MCP server configured for the `dnceng` organization, ask something like:
 - "Install the .NET SDK from this build: https://dev.azure.com/dnceng/internal/_build/results?buildId=2919304"
 - "Install .NET SDK from ADO build 2919304"
 - "Use /validate-sdk to set up the SDK from build 2919304"
