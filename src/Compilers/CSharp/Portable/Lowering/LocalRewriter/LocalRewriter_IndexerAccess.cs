@@ -883,18 +883,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
                     || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
 
-                ProtectAgainstRefTypeReceiverSwapIfNeeded(
-                    receiverLocal,
-                    ref receiverStore,
-                    isPossibleReferenceTypeReceiver,
-                    forceProtection: forceProtectionAgainstRefTypeReceiverSwap,
-                    argumentsToCheckForRefSafety,
-                    tempsBuilder: localsBuilder,
-                    out BoundAssignmentOperator? extraRefInitialization);
-
-                if (extraRefInitialization is object)
+                if (isPossibleReferenceTypeReceiver &&
+                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
+                    (forceProtectionAgainstRefTypeReceiverSwap ||
+                        !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsToCheckForRefSafety)))
                 {
-                    sideEffectsBuilder.Add(extraRefInitialization);
+                    Debug.Assert(receiverLocal.LocalSymbol.Type is { IsReferenceType: false, IsValueType: false });
+
+                    BoundAssignmentOperator? extraRefInitialization;
+                    ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, localsBuilder);
+
+                    if (extraRefInitialization is object)
+                    {
+                        sideEffectsBuilder.Add(extraRefInitialization);
+                    }
                 }
             }
 

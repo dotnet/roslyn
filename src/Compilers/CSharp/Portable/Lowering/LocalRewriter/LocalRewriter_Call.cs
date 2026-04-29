@@ -647,12 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Visits all arguments of a method, doing any necessary rewriting for interpolated string handler conversions that
         /// might be present in the arguments and creating temps for any discard parameters.
         /// 
-        /// When <paramref name="forceReceiverCapturing"/> is true the receiver must be captured regardless of
-        /// interpolated string handler conversions needs, and <paramref name="storesOpt"/> must be not null.
-        /// Callers should set this when the lowering will run additional code between argument evaluation and
-        /// the call. In addition to forcing the capture itself, this flag also forces
-        /// the ref-type-receiver-swap protection (see <see cref="ProtectAgainstRefTypeReceiverSwapIfNeeded"/>)
-        /// to apply unconditionally, since the args-only safety check cannot see the additional code.
+        /// When <paramref name="forceReceiverCapturing"/> is true (which means the receiver must be captured regardless of
+        /// interpolated string handler conversions needs), <paramref name="storesOpt"/> must be not null.
         /// 
         /// If receiver is captured by this method:
         /// - If <paramref name="storesOpt"/> is not null, the side effect of capturing is added to <paramref name="storesOpt"/>
@@ -803,16 +799,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundAssignmentOperator? extraRefInitialization = null;
 
-                if (receiverTemp.LocalSymbol.IsRef)
+                if (receiverTemp.LocalSymbol.IsRef &&
+                    IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(methodOrIndexer, receiverTemp) &&
+                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
+                    (forceReceiverCapturing ||
+                     !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))
                 {
-                    ProtectAgainstRefTypeReceiverSwapIfNeeded(
-                        receiverTemp,
-                        ref assignmentToTemp,
-                        isPossibleReferenceTypeReceiver: IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(methodOrIndexer, receiverTemp),
-                        forceProtection: forceReceiverCapturing,
-                        argumentsToCheckForRefSafety: rewrittenArguments,
-                        tempsBuilder: tempsOpt,
-                        out extraRefInitialization);
+                    ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, tempsOpt);
                 }
 
                 if (storesOpt is object)
@@ -992,42 +985,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return RefKind.None;
-        }
-
-        /// <summary>
-        /// If the captured receiver is a ref to a heap location whose underlying type might be a
-        /// reference type (unconstrained T, or extension on class), the heap reference can be
-        /// replaced while arguments (or the right-hand value of a compound assignment) are evaluated,
-        /// causing the call to target a different instance than source order implies.
-        /// This helper applies <see cref="ReferToTempIfReferenceTypeReceiver"/> when needed
-        /// to copy the reference into a temp before those evaluations run.
-        /// </summary>
-        /// <param name="forceProtection">
-        /// When true, always apply protection regardless of whether the receiver ref is statically
-        /// known to be safe to dereference after the arguments are evaluated.
-        /// </param>
-        /// <param name="extraRefInitialization">
-        /// Non-null if protection was applied; null otherwise.
-        /// </param>
-        private void ProtectAgainstRefTypeReceiverSwapIfNeeded(
-            BoundLocal receiverTemp,
-            ref BoundAssignmentOperator assignmentToTemp,
-            bool isPossibleReferenceTypeReceiver,
-            bool forceProtection,
-            ImmutableArray<BoundExpression> argumentsToCheckForRefSafety,
-            ArrayBuilder<LocalSymbol> tempsBuilder,
-            out BoundAssignmentOperator? extraRefInitialization)
-        {
-            Debug.Assert(receiverTemp.LocalSymbol.IsRef);
-            extraRefInitialization = null;
-
-            if (isPossibleReferenceTypeReceiver &&
-                !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
-                (forceProtection ||
-                    !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsToCheckForRefSafety)))
-            {
-                ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, tempsBuilder);
-            }
         }
 
         private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)
