@@ -4,22 +4,22 @@
     <body>
       <trans-unit id="Add_Nested_File">
         <source>Add {0}</source>
-        <target state="new">Add {0}</target>
+        <target state="translated">Dodaj {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_EDITORNAME">
         <source>LSP Razor Editor</source>
-        <target state="new">LSP Razor Editor</target>
+        <target state="translated">Edytor składni Razor LSP</target>
         <note />
       </trans-unit>
       <trans-unit id="View_Nested_File">
         <source>View {0}</source>
-        <target state="new">View {0}</target>
+        <target state="translated">Wyświetl {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="View_Page">
         <source>View Page</source>
-        <target state="new">View Page</target>
+        <target state="translated">Wyświetl stronę</target>
         <note />
       </trans-unit>
     </body>
