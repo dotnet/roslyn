@@ -38,15 +38,8 @@ internal sealed partial class BloomFilter
     /// ]]></summary>
     private BloomFilter(int expectedCount, double falsePositiveProbability, bool isCaseSensitive)
     {
-        var m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
-        var k = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
-
-        // We must have size in even bytes, so that when we deserialize from bytes we get a bit array with the same count.
-        // The count is used by the hash functions.
-        var sizeInEvenBytes = (m + 7) & ~7;
-
-        _bitArray = new BitArray(length: sizeInEvenBytes);
-        _hashFunctionCount = k;
+        _bitArray = new BitArray(length: ComputeBitArrayLength(expectedCount, falsePositiveProbability));
+        _hashFunctionCount = Math.Max(1, ComputeK(expectedCount, falsePositiveProbability));
         _isCaseSensitive = isCaseSensitive;
     }
 
@@ -71,6 +64,16 @@ internal sealed partial class BloomFilter
         _bitArray = bitArray ?? throw new ArgumentNullException(nameof(bitArray));
         _hashFunctionCount = hashFunctionCount;
         _isCaseSensitive = isCaseSensitive;
+    }
+
+    /// <summary>
+    /// Computes the number of bits needed for a Bloom filter bit array, rounded up to an even byte boundary.
+    /// This is the canonical sizing formula used by all Bloom filter consumers (including analysis tools).
+    /// </summary>
+    internal static int ComputeBitArrayLength(int expectedCount, double falsePositiveProbability)
+    {
+        var m = Math.Max(1, ComputeM(expectedCount, falsePositiveProbability));
+        return (m + 7) & ~7;
     }
 
     // m = ceil((n * log(p)) / log(1.0 / (pow(2.0, log(2.0)))))

@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="Microsoft.VisualStudio.RazorExtension.ServiceHub.arm64" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
+        <DisplayName>Razor Service Hub Components</DisplayName>
+        <Description xml:space="preserve">Razor Service Hub Components (arm64)</Description>
+
+        <!-- This is needed to mark this extension as cloud compliant. -->
+        <AllowClientRole>true</AllowClientRole>
+    </Metadata>
+    <Installation AllUsers="true" Experimental="true">
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,)">
+
+            <!-- https://github.com/dotnet/razor/issues/12411
+
+                 Our current build tools don't support arm64. Use a valid arch (amd64) to pass VSIX checks in the tools.
+                 VS doesn't seem to check this anyway so its fine. 
+            -->
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+    </Installation>
+
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+
+</PackageManifest>

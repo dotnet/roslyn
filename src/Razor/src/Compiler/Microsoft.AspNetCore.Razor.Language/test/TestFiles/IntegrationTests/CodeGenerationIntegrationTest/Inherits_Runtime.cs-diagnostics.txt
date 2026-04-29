@@ -1,0 +1,18 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(1,11): error CS0246: The type or namespace name 'foo' could not be found (are you missing a using directive or an assembly reference?)
+// foo.bar<baz<biz>>.boz
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "foo").WithArguments("foo").WithLocation(1, 11),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(1,19): error CS0246: The type or namespace name 'baz<>' could not be found (are you missing a using directive or an assembly reference?)
+// foo.bar<baz<biz>>.boz
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "baz<biz>").WithArguments("baz<>").WithLocation(1, 19),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(1,23): error CS0246: The type or namespace name 'biz' could not be found (are you missing a using directive or an assembly reference?)
+// foo.bar<baz<biz>>.boz
+Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "biz").WithArguments("biz").WithLocation(1, 23),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(3,2): error CS0103: The name 'Write' does not exist in the current context
+// Write(foo()
+Diagnostic(ErrorCode.ERR_NameNotInContext, "Write").WithArguments("Write").WithLocation(3, 2),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(3,2): error CS0103: The name 'foo' does not exist in the current context
+// Write(foo()
+Diagnostic(ErrorCode.ERR_NameNotInContext, "foo").WithArguments("foo").WithLocation(3, 2),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/Inherits.cshtml(35,13): error CS0103: The name 'WriteLiteral' does not exist in the current context
+//             WriteLiteral("\r\n");
+Diagnostic(ErrorCode.ERR_NameNotInContext, "WriteLiteral").WithArguments("WriteLiteral").WithLocation(35, 13)

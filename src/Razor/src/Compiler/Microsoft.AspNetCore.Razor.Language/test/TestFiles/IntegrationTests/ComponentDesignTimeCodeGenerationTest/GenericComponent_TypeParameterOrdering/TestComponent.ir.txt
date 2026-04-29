@@ -1,0 +1,48 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [89] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentTypeArgument - (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TKey
+                        IntermediateToken - (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - string
+                    ComponentTypeArgument - (37:0,37 [18] x:\dir\subdir\Test\TestComponent.cshtml) - TService
+                        IntermediateToken - (37:0,37 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - IComposedInterface
+                    ComponentAttribute - (70:0,70 [15] x:\dir\subdir\Test\TestComponent.cshtml) - Value - Value - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (70:0,70 [15] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - _componentValue
+                    ComponentAttribute - (70:0,70 [15] x:\dir\subdir\Test\TestComponent.cshtml) - ValueChanged - ValueChanged - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+                            IntermediateToken -  - CSharp - __value => _componentValue = __value
+                            IntermediateToken -  - CSharp - , _componentValue)
+                HtmlContent - (89:0,89 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (89:0,89 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                Component - (91:1,0 [89] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentTypeArgument - (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml) - TService
+                        IntermediateToken - (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - IComposedInterface
+                    ComponentTypeArgument - (140:1,49 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TKey
+                        IntermediateToken - (140:1,49 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - string
+                    ComponentAttribute - (161:1,70 [15] x:\dir\subdir\Test\TestComponent.cshtml) - Value - Value - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken - (161:1,70 [15] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - _componentValue
+                    ComponentAttribute - (161:1,70 [15] x:\dir\subdir\Test\TestComponent.cshtml) - ValueChanged - ValueChanged - AttributeStructure.DoubleQuotes
+                        CSharpExpression - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+                            IntermediateToken -  - CSharp - __value => _componentValue = __value
+                            IntermediateToken -  - CSharp - , _componentValue)
+                HtmlContent - (180:1,89 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (180:1,89 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            CSharpCode - (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string _componentValue = string.Empty;\n

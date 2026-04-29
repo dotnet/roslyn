@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(1,68): Error RZ10019: Attribute 'bind:after' can not be used with 'bind:set'. Invoke the code in 'bind:after' inside 'bind:set' instead.

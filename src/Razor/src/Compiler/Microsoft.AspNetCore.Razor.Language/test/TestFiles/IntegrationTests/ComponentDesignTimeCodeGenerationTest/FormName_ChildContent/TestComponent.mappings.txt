@@ -1,0 +1,10 @@
+﻿Source Location: (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web|
+Generated Location: (361:12,0 [41] )
+|using Microsoft.AspNetCore.Components.Web|
+
+Source Location: (92:2,8 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime.Now|
+Generated Location: (1120:33,8 [12] )
+|DateTime.Now|
+

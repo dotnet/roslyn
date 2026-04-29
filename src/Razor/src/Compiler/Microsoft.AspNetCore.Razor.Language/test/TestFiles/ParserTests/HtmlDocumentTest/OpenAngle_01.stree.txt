@@ -1,0 +1,39 @@
+﻿RazorDocument - [0..15)::15 - [< @("a").@("b")]
+    MarkupBlock - [0..15)::15
+        MarkupElement - [0..15)::15
+            MarkupStartTag - [0..15)::15 - [< @("a").@("b")] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[<Missing>];
+                MarkupMiscAttributeContent - [1..8)::7
+                    MarkupTextLiteral - [1..2)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    CSharpCodeBlock - [2..8)::6
+                        CSharpExplicitExpression - [2..8)::6
+                            CSharpTransition - [2..3)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpExplicitExpressionBody - [3..8)::5
+                                RazorMetaCode - [3..4)::1 - Gen<None>
+                                    LeftParenthesis;[(];
+                                CSharpCodeBlock - [4..7)::3
+                                    CSharpExpressionLiteral - [4..7)::3 - ["a"] - Gen<Expr>
+                                        StringLiteral;["a"];
+                                RazorMetaCode - [7..8)::1 - Gen<None>
+                                    RightParenthesis;[)];
+                MarkupMinimizedAttributeBlock - [8..9)::1 - [.]
+                    MarkupTextLiteral - [8..9)::1 - [.] - Gen<Markup>
+                        Text;[.];
+                MarkupMiscAttributeContent - [9..15)::6
+                    CSharpCodeBlock - [9..15)::6
+                        CSharpExplicitExpression - [9..15)::6
+                            CSharpTransition - [9..10)::1 - Gen<None>
+                                Transition;[@];
+                            CSharpExplicitExpressionBody - [10..15)::5
+                                RazorMetaCode - [10..11)::1 - Gen<None>
+                                    LeftParenthesis;[(];
+                                CSharpCodeBlock - [11..14)::3
+                                    CSharpExpressionLiteral - [11..14)::3 - ["b"] - Gen<Expr>
+                                        StringLiteral;["b"];
+                                RazorMetaCode - [14..15)::1 - Gen<None>
+                                    RightParenthesis;[)];
+                CloseAngle;[<Missing>];
+    EndOfFile;[];

@@ -1,0 +1,5 @@
+﻿Source Location: (1:0,1 [24] x:\dir\subdir\Test\TestComponent.cshtml)
+|using System.Collections|
+Generated Location: (361:12,0 [24] )
+|using System.Collections|
+

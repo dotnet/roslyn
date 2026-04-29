@@ -1,0 +1,20 @@
+﻿Source Location: (19:0,19 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|int.MaxValue|
+Generated Location: (1123:30,19 [12] )
+|int.MaxValue|
+
+Source Location: (59:1,24 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|"Hello"|
+Generated Location: (1668:41,24 [7] )
+|"Hello"|
+
+Source Location: (50:1,15 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2614:62,15 [5] )
+|Value|
+
+Source Location: (11:0,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (3168:83,11 [5] )
+|Value|
+

@@ -1,0 +1,35 @@
+﻿Source Location: (19:0,19 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|int.MaxValue|
+Generated Location: (855:23,0 [12] )
+|int.MaxValue|
+
+Source Location: (59:1,24 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|"Hello"|
+Generated Location: (1345:34,0 [7] )
+|"Hello"|
+
+Source Location: (1:0,1 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentOne|
+Generated Location: (2512:61,45 [9] )
+|ParentOne|
+
+Source Location: (11:0,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2704:65,0 [5] )
+|Value|
+
+Source Location: (40:1,5 [9] x:\dir\subdir\Test\TestComponent.cshtml)
+|ParentTwo|
+Generated Location: (3362:81,45 [9] )
+|ParentTwo|
+
+Source Location: (50:1,15 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (3554:85,0 [5] )
+|Value|
+
+Source Location: (80:2,9 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Child|
+Generated Location: (4158:101,45 [5] )
+|Child|
+

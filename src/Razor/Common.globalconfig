@@ -1,0 +1,82 @@
+﻿is_global = true
+
+# CS0219: Variable is assigned but its value is never used
+dotnet_diagnostic.CS0219.severity = warning
+
+# CA1018: Mark attributes with AttributeUsageAttribute
+dotnet_diagnostic.CA1018.severity = suggestion
+
+# CA1303: Do not pass literals as localized parameters
+dotnet_diagnostic.CA1303.severity = none
+
+# CA1810: Initialize reference type static fields inline
+dotnet_diagnostic.CA1810.severity = none
+
+# CA1826: Use property instead of Linq Enumerable method
+dotnet_diagnostic.CA1826.severity = none
+
+# CA2000: Dispose objects before losing scope
+dotnet_diagnostic.CA2000.severity = suggestion
+
+# CA2002: Do not lock on objects with weak identity
+dotnet_diagnostic.CA2002.severity = suggestion
+
+# CA2008: Do not create tasks without passing a TaskScheduler
+dotnet_diagnostic.CA2008.severity = suggestion
+
+# CA2208: Instantiate argument exceptions correctly
+dotnet_diagnostic.CA2208.severity = none
+
+# CA2237: Mark ISerializable types with SerializableAttribute
+dotnet_diagnostic.CA2237.severity = none
+
+# RS0033: Importing constructor should be marked with 'ObsoleteAttribute'
+dotnet_diagnostic.RS0033.severity = none
+
+# RS0034: Exported parts should be marked with 'ImportingConstructorAttribute'
+dotnet_diagnostic.RS0034.severity = none
+
+# RS0038: Prefer null literal
+dotnet_diagnostic.RS0038.severity = none
+
+# RS0100: Statements must be placed on their own line
+dotnet_diagnostic.RS0100.severity = none
+
+# RS0101: Avoid multiple blank lines
+dotnet_diagnostic.RS0101.severity = none
+
+# RS0102: Braces must not have blank lines between them
+dotnet_diagnostic.RS0102.severity = none
+
+# IDE0005: Using directive is unnecessary.
+dotnet_diagnostic.IDE0005.severity = warning
+
+# IDE0039: Use local function
+dotnet_diagnostic.IDE0039.severity = suggestion
+
+# IDE0042: Variable declaration can be deconstructed
+dotnet_diagnostic.IDE0042.severity = suggestion
+
+# IDE0045: 'if' statement can be simplified
+dotnet_diagnostic.IDE0045.severity = suggestion
+
+# IDE0047: Parentheses can be removed
+dotnet_diagnostic.IDE0047.severity = suggestion
+
+# IDE0048: Parentheses should be added for clarity
+dotnet_diagnostic.IDE0048.severity = suggestion
+
+# IDE0052: Remove unread private members
+dotnet_diagnostic.IDE0052.severity = warning
+
+# IDE0053: Use expression body for lambda expressions
+dotnet_diagnostic.IDE0053.severity = suggestion
+
+# IDE0061: Use block body for local functions
+dotnet_diagnostic.IDE0061.severity = suggestion
+
+# VSTHRD100: Avoid "async void" methods
+dotnet_diagnostic.VSTHRD100.severity = suggestion
+
+# VSSDK002: The PackageRegistrationAttribute.AllowsBackgroundLoading should be set to true if and only if the package derives from AsyncPackage
+dotnet_diagnostic.VSSDK002.severity = suggestion

@@ -1,0 +1,31 @@
+﻿Source Location: (2:0,2 [32] x:\dir\subdir\Test\TestComponent.cshtml)
+|  
+    var x = "hello";  
+    |
+Generated Location: (987:28,2 [32] )
+|  
+    var x = "hello";  
+    |
+
+Source Location: (35:2,5 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|x|
+Generated Location: (1147:37,6 [1] )
+|x|
+
+Source Location: (36:2,6 [14] x:\dir\subdir\Test\TestComponent.cshtml)
+| x = "world"; |
+Generated Location: (1277:44,6 [14] )
+| x = "world"; |
+
+Source Location: (51:2,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|x|
+Generated Location: (1434:51,21 [1] )
+|x|
+
+Source Location: (52:2,22 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|  
+|
+Generated Location: (1510:56,22 [4] )
+|  
+|
+

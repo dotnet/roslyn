@@ -1,0 +1,29 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [73] x:\dir\subdir\Test\TestComponent.cshtml) - Grid
+                    ComponentChildContent -  - ChildContent - context
+                        HtmlContent - (44:0,44 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (44:0,44 [6] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n    
+                        Component - (50:1,4 [14] x:\dir\subdir\Test\TestComponent.cshtml) - GridColumn
+                        HtmlContent - (64:1,18 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (64:1,18 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+                    ComponentAttribute - (12:0,12 [30] x:\dir\subdir\Test\TestComponent.cshtml) - Data - Data - AttributeStructure.DoubleQuotes
+                        LazyIntermediateToken - (14:0,14 [27] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - new Dictionary<X, string>()
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateGrid_0
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateGridColumn_1

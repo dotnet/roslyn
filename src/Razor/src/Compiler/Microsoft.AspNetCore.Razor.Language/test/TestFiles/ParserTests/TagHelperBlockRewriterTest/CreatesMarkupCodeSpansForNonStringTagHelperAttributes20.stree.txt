@@ -1,0 +1,54 @@
+﻿RazorDocument - [0..61)::61 - [@{ LF    var isAlive = true;LF}LF<person alive="!@isAlive" />]
+    MarkupBlock - [0..61)::61
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..31)::31
+            CSharpStatement - [0..31)::31
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..31)::30
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..30)::28
+                        CSharpStatementLiteral - [2..30)::28 - [ LF    var isAlive = true;LF] - Gen<Stmt>
+                            Whitespace;[ ];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[isAlive];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            Keyword;[true];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [30..31)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [31..33)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTagHelperElement - [33..61)::28 - person[SelfClosing] - PersonTagHelper
+            MarkupTagHelperStartTag - [33..61)::28 - [<person alive="!@isAlive" />] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[person];
+                MarkupTagHelperAttribute - [40..58)::18 - alive - DoubleQuotes - Bound - [ alive="!@isAlive"]
+                    MarkupTextLiteral - [40..41)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                    MarkupTextLiteral - [41..46)::5 - [alive] - Gen<Markup>
+                        Text;[alive];
+                    Equals;[=];
+                    MarkupTextLiteral - [47..48)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [48..57)::9
+                        CSharpExpressionLiteral - [48..57)::9 - [!@isAlive] - Gen<None>
+                            Bang;[!];
+                            Transition;[@];
+                            Identifier;[isAlive];
+                    MarkupTextLiteral - [57..58)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupMiscAttributeContent - [58..59)::1
+                    MarkupTextLiteral - [58..59)::1 - [ ] - Gen<Markup>
+                        Whitespace;[ ];
+                ForwardSlash;[/];
+                CloseAngle;[>];
+    EndOfFile;[];
