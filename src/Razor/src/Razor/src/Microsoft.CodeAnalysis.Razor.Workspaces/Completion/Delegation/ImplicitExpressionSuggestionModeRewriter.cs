@@ -50,7 +50,10 @@ internal class ImplicitExpressionSuggestionModeRewriter : IDelegatedCSharpComple
             .GetRequiredSyntaxRoot()
             .FindInnermostNode(hostDocumentIndex - 1);
 
-        var implicitExpression = owner?.FirstAncestorOrSelf<CSharpImplicitExpressionSyntax>();
+        var implicitExpression = owner is { Parent: CSharpCodeBlockSyntax { Parent: CSharpImplicitExpressionBodySyntax { Parent: CSharpImplicitExpressionSyntax expr } } }
+            ? expr
+            : null;
+
         if (implicitExpression is not null
             && !IsInsideParentheses(codeDocument.Source.Text, implicitExpression.SpanStart, hostDocumentIndex))
         {
