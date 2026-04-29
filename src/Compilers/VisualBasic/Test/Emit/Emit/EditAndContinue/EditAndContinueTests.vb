@@ -7752,7 +7752,6 @@ End Class
 
         <ConditionalFact(GetType(NotOnMonoCore))>
         <WorkItem("https://github.com/dotnet/roslyn/issues/69480")>
-        <ValidatePooledObjects(LeakReason:="PrivateImplDetails RVA fields leak during EnC emit")>
         Public Sub PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
             Using New EditAndContinueTest().
                 AddBaseline(

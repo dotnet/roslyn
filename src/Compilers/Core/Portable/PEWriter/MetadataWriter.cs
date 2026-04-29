@@ -1758,6 +1758,10 @@ namespace Microsoft.Cci
             {
                 throw new PeWritingException(e);
             }
+            finally
+            {
+                mappedFieldDataBuilder?.Free();
+            }
 
             if (portablePdbStreamOpt != null)
             {

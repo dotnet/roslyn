@@ -17523,7 +17523,6 @@ class C
         }
 
         [ConditionalFact(typeof(IsEnglishLocal))]
-        [ValidatePooledObjects(LeakReason = "EnC error path leaks pooled objects")]
         public void Method_Delete_PredefinedHotReloadException_DataSectionLiterals()
         {
             var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
@@ -20575,7 +20574,6 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        [ValidatePooledObjects(LeakReason = "EnC error path leaks pooled objects")]
         public void PrivateImplDetails_DataFields_Arrays_FieldRvaSupported()
         {
             using var _ = new EditAndContinueTest()
@@ -20773,7 +20771,6 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        [ValidatePooledObjects(LeakReason = "EnC error path leaks pooled objects")]
         public void PrivateImplDetails_DataFields_StackAlloc_FieldRvaSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
@@ -20971,7 +20968,6 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        [ValidatePooledObjects(LeakReason = "EnC error path leaks pooled objects")]
         public void PrivateImplDetails_DataFields_Utf8_FieldRvaSupported()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Net80, verification: Verification.Skipped)
@@ -21053,7 +21049,6 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        [ValidatePooledObjects(LeakReason = "EnC error path leaks pooled objects")]
         public void PrivateImplDetails_DataSectionStringLiterals_FieldRvaSupported()
         {
             var parseOptions = TestOptions.Regular.WithFeature(Feature.ExperimentalDataSectionStringLiterals, "0");
@@ -21212,7 +21207,6 @@ file class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/69480")]
-        [ValidatePooledObjects(LeakReason = "EnC error path leaks pooled objects")]
         public void PrivateImplDetails_DataSectionStringLiterals_HeapOverflow_FieldRvaSupported()
         {
             // The longest string that can fit in the #US heap. The next string would overflow the heap.
@@ -21312,7 +21306,6 @@ file class C
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "EnC error path leaks pooled objects")]
         public void PrivateImplDetails_DataSectionStringLiterals_StringReuse_FieldRvaSupported()
         {
             // Literals are currently only reused within generation.
