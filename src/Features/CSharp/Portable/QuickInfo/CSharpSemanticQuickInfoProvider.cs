@@ -87,7 +87,6 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-<<<<<<< HEAD
     /// <summary>
     /// Attempts to produce a rendered glyph Quick Info documentation line for a C# <see langword="char"/> literal.
     /// </summary>
@@ -145,7 +144,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
     private static string CreateCharacterDocumentationText(char character)
         => string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character);
-=======
+
     protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(
         SemanticModel semanticModel,
         SyntaxToken token,
@@ -237,7 +236,6 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
                 builder.AddRange(type.TypeArguments);
         }
     }
->>>>>>> main
 
     protected override string? GetNullabilityAnalysis(
         SemanticModel semanticModel,
