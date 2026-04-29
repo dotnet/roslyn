@@ -21,7 +21,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-public sealed class GenerateVariableTests(ITestOutputHelper logger)
+public sealed partial class GenerateVariableTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private const int FieldIndex = 0;

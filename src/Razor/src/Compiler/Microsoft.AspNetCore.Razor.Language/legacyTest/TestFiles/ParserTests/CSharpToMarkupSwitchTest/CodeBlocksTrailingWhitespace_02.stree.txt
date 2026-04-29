@@ -1,0 +1,23 @@
+﻿RazorDocument - [0..31)::31 - [@code{LF}                    LF]
+    MarkupBlock - [0..31)::31
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup> - SpanEditHandler;Accepts:Any
+            Marker;[];
+        CSharpCodeBlock - [0..31)::31
+            RazorDirective - [0..9)::9 - Directive:{code;CodeBlock;Unrestricted}
+                CSharpTransition - [0..1)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                    Transition;[@];
+                RazorDirectiveBody - [1..9)::8
+                    RazorMetaCode - [1..5)::4 - Gen<None> - SpanEditHandler;Accepts:None
+                        Identifier;[code];
+                    CSharpCodeBlock - [5..9)::4
+                        RazorMetaCode - [5..6)::1 - Gen<None> - AutoCompleteEditHandler;Accepts:None,AutoComplete:[<null>];AtEnd
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [6..8)::2
+                            CSharpStatementLiteral - [6..8)::2 - [LF] - Gen<Stmt> - CodeBlockEditHandler;Accepts:Any;CodeBlock
+                                NewLine;[LF];
+                        RazorMetaCode - [8..9)::1 - Gen<None> - SpanEditHandler;Accepts:None
+                            RightBrace;[}];
+            RazorMetaCode - [9..31)::22 - Gen<None> - SpanEditHandler;Accepts:Any
+                Whitespace;[                    ];
+                NewLine;[LF];
+    EndOfFile;[];

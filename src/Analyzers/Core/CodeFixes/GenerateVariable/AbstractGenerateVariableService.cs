@@ -44,7 +44,10 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
 
-            var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, cancellationToken);
+            var codeGenerationContext = new CodeGenerationContext(
+                contextLocation: state.IdentifierToken.GetLocation(),
+                allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument);
+            var canGenerateMember = CodeGenerator.CanAdd(document.Project.Solution, state.TypeToGenerateIn, codeGenerationContext, cancellationToken);
 
             if (canGenerateMember && state.CanGeneratePropertyOrField())
             {

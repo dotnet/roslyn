@@ -1,0 +1,13 @@
+﻿Source Location: (2:0,2 [33] x:\dir\subdir\Test\TestComponent.cshtml)
+|@"This
+is
+a
+multiline
+string"|
+Generated Location: (991:28,6 [33] )
+|@"This
+is
+a
+multiline
+string"|
+

@@ -2470,8 +2470,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CallerUnsafeOverridingSafe = 9364,
         ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
         ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
-        ERR_RequiresUnsafeAttributeUnsupportedMemberTarget = 9367,
-        WRN_RequiresUnsafeAttributeLegacyRules = 9368,
 
         ERR_ExpressionTreeContainsUnionConversion = 9369,
         ERR_UnionDeclarationNeedsCaseTypes = 9370,
@@ -2485,6 +2483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnsafeMeaningless = 9377,
 
         ERR_PPShebangNotOnFirstLine = 9378,
+
+        ERR_RequiresUnsafeAttributeInSource = 9379,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

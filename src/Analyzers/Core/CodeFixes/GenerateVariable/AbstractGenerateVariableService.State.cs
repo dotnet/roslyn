@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
@@ -149,7 +150,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 return false;
             }
 
-            TypeToGenerateIn = await SymbolFinder.FindSourceDefinitionAsync(
+            TypeToGenerateIn = await SymbolFinderInternal.FindSourceDefinitionAsync(
                 TypeToGenerateIn, _document.Project.Solution, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
 
             if (!ValidateTypeToGenerateIn(TypeToGenerateIn, IsStatic, ClassInterfaceModuleStructTypes))
@@ -159,7 +160,11 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
             IsContainedInUnsafeType = _service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);
 
-            return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, cancellationToken);
+            var codeGenerationContext = new CodeGenerationContext(
+                contextLocation: IdentifierToken.GetLocation(),
+                allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument);
+
+            return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken);
         }
 
         internal bool CanGeneratePropertyOrField()

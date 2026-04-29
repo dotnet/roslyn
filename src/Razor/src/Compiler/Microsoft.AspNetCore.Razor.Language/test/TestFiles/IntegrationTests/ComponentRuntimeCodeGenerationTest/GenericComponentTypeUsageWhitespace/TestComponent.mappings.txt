@@ -1,0 +1,26 @@
+﻿Source Location: (11:0,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|TItem|
+Generated Location: (474:16,0 [5] )
+|TItem|
+
+Source Location: (89:6,1 [13] x:\dir\subdir\Test\TestComponent.cshtml)
+|TestComponent|
+Generated Location: (850:27,49 [13] )
+|TestComponent|
+
+Source Location: (110:6,22 [10] x:\dir\subdir\Test\TestComponent.cshtml)
+|  string  |
+Generated Location: (948:30,0 [10] )
+|  string  |
+
+Source Location: (25:1,7 [58] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public TItem MyItem { get; set; }
+|
+Generated Location: (1200:41,0 [58] )
+|
+    [Parameter]
+    public TItem MyItem { get; set; }
+|
+

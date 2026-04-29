@@ -1,0 +1,2 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(3,63): Warning RZ10022: Attribute '@formname' can only be applied to 'form' elements.
+x:\dir\subdir\Test\TestComponent.cshtml(4,63): Warning RZ10022: Attribute '@formname' can only be applied to 'form' elements.

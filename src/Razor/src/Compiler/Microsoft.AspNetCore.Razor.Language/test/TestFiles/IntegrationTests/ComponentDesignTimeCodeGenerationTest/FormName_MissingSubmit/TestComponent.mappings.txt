@@ -1,0 +1,10 @@
+﻿Source Location: (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web|
+Generated Location: (361:12,0 [41] )
+|using Microsoft.AspNetCore.Components.Web|
+
+Source Location: (137:2,33 [20] x:\dir\subdir\Test\TestComponent.cshtml)
+|"named-form-handler"|
+Generated Location: (1249:34,33 [20] )
+|"named-form-handler"|
+

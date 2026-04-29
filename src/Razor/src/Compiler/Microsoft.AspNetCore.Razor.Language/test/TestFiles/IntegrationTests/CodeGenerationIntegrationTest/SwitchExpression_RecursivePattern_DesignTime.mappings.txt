@@ -1,0 +1,32 @@
+﻿Source Location: (1:0,1 [69] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml)
+|switch (DateTimeOffset.UtcNow)
+{
+    case { Year: 2022 }:
+        |
+Generated Location: (1535:33,1 [69] )
+|switch (DateTimeOffset.UtcNow)
+{
+    case { Year: 2022 }:
+        |
+
+Source Location: (159:3,97 [180] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/SwitchExpression_RecursivePattern.cshtml)
+|
+        break;
+    case [{ Test: true }]:
+        break;
+    case ({ Test: { Nested.Pattern: global::Qualifier } }):
+        break;
+    case global::Test:
+        break;
+}|
+Generated Location: (1881:43,97 [180] )
+|
+        break;
+    case [{ Test: true }]:
+        break;
+    case ({ Test: { Nested.Pattern: global::Qualifier } }):
+        break;
+    case global::Test:
+        break;
+}|
+

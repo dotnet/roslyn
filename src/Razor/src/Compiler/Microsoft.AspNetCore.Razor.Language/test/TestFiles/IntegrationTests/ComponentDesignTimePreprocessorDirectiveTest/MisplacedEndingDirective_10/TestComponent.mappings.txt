@@ -1,0 +1,21 @@
+﻿Source Location: (2:0,2 [53] x:\dir\subdir\Test\TestComponent.razor)
+|
+#if false
+}
+@{
+<div>#else</div>
+}
+@{
+#endif
+|
+Generated Location: (986:28,2 [53] )
+|
+#if false
+}
+@{
+<div>#else</div>
+}
+@{
+#endif
+|
+

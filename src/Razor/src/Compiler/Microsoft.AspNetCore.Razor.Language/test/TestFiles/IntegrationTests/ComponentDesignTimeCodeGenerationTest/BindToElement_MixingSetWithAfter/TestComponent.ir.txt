@@ -1,0 +1,37 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (0:0,0 [82] x:\dir\subdir\Test\TestComponent.cshtml) - div
+                    HtmlAttribute - (16:0,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myvalue=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.BindConverter.FormatValue(
+                            LazyIntermediateToken - (17:0,17 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
+                            IntermediateToken -  - CSharp - )
+                    HtmlAttribute - (16:0,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - myevent=" - "
+                        CSharpExpressionAttributeValue -  - 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.CreateBinder(this, 
+                            IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, callback: async __value => { await global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredBindSetter(callback: 
+                            IntermediateToken - (41:0,41 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
+                            IntermediateToken -  - CSharp - , value: ParentValue)(); await global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeAsynchronousDelegate(callback: 
+                            IntermediateToken - (67:0,67 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - AfterUpdate
+                            IntermediateToken -  - CSharp - ); }, value: ParentValue)
+                            IntermediateToken -  - CSharp - , 
+                            IntermediateToken -  - CSharp - ParentValue
+                            IntermediateToken -  - CSharp - )
+                HtmlContent - (82:0,82 [2] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (82:0,82 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n
+            CSharpCode - (91:1,7 [159] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (91:1,7 [159] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n\n    public void UpdateValue(string value) => ParentValue = value;\n    public void AfterUpdate() { }\n

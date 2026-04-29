@@ -1,0 +1,6 @@
+﻿// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InlineBlocks.cshtml(2,18): error CS0103: The name 'link' does not exist in the current context
+//               if(link != null) { 
+Diagnostic(ErrorCode.ERR_NameNotInContext, "link").WithArguments("link").WithLocation(2, 18),
+// TestFiles/IntegrationTests/CodeGenerationIntegrationTest/InlineBlocks.cshtml(2,35): error CS0103: The name 'link' does not exist in the current context
+//                             __o = link;
+Diagnostic(ErrorCode.ERR_NameNotInContext, "link").WithArguments("link").WithLocation(2, 35)

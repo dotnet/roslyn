@@ -1,0 +1,52 @@
+﻿RazorDocument - [0..95)::95 - [@{LF    var val = 0 switchLF    {LF        < 9 => "less than 10"LFLF    var val2 = "value2";LF}]
+    MarkupBlock - [0..95)::95
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..95)::95
+            CSharpStatement - [0..95)::95
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..95)::94
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..95)::93
+                        CSharpStatementLiteral - [2..95)::93 - [LF    var val = 0 switchLF    {LF        < 9 => "less than 10"LFLF    var val2 = "value2";LF}] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            NumericLiteral;[0];
+                            Whitespace;[ ];
+                            Keyword;[switch];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                            LessThan;[<];
+                            Whitespace;[ ];
+                            NumericLiteral;[9];
+                            Whitespace;[ ];
+                            CSharpOperator;[=>];
+                            Whitespace;[ ];
+                            StringLiteral;["less than 10"];
+                            NewLine;[LF];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[val2];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["value2"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            RightBrace;[}];
+                    RazorMetaCode - [95..95)::0 - Gen<None>
+                        RightBrace;[<Missing>];
+    EndOfFile;[];

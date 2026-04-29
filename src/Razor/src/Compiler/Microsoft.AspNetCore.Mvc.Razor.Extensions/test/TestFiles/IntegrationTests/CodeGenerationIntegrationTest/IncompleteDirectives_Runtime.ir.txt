@@ -1,0 +1,63 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives - global::Microsoft.AspNetCore.Mvc.RazorPages.Page - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (85:1,0 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (85:1,0 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (94:3,0 [8] IncompleteDirectives.cshtml) - page
+                MalformedDirective - (102:4,0 [6] IncompleteDirectives.cshtml) - page
+                HtmlContent - (108:4,6 [5] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (108:4,6 [5] IncompleteDirectives.cshtml) - Html - "\n\n
+                MalformedDirective - (113:6,0 [6] IncompleteDirectives.cshtml) - model
+                    CSharpCode - (119:6,6 [0] IncompleteDirectives.cshtml)
+                        LazyIntermediateToken - (119:6,6 [0] IncompleteDirectives.cshtml) - CSharp - 
+                HtmlContent - (119:6,6 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (119:6,6 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (121:7,0 [7] IncompleteDirectives.cshtml) - model
+                    DirectiveToken - (128:7,7 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (128:7,7 [4] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (128:7,7 [4] IncompleteDirectives.cshtml) - Html - \n\n
+                MalformedDirective - (132:9,0 [7] IncompleteDirectives.cshtml) - inject
+                    CSharpCode - (139:9,7 [0] IncompleteDirectives.cshtml)
+                        LazyIntermediateToken - (139:9,7 [0] IncompleteDirectives.cshtml) - CSharp - 
+                HtmlContent - (139:9,7 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (139:9,7 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (141:10,0 [8] IncompleteDirectives.cshtml) - inject
+                    DirectiveToken - (149:10,8 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (149:10,8 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (149:10,8 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (151:11,0 [25] IncompleteDirectives.cshtml) - inject
+                    DirectiveToken - (159:11,8 [17] IncompleteDirectives.cshtml) - MyService<TModel>
+                HtmlContent - (176:11,25 [4] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (176:11,25 [4] IncompleteDirectives.cshtml) - Html - \n\n
+                MalformedDirective - (180:13,0 [10] IncompleteDirectives.cshtml) - namespace
+                    CSharpCode - (190:13,10 [0] IncompleteDirectives.cshtml)
+                        LazyIntermediateToken - (190:13,10 [0] IncompleteDirectives.cshtml) - CSharp - 
+                HtmlContent - (190:13,10 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (190:13,10 [2] IncompleteDirectives.cshtml) - Html - \n
+                MalformedDirective - (192:14,0 [11] IncompleteDirectives.cshtml) - namespace
+                    DirectiveToken - (203:14,11 [0] IncompleteDirectives.cshtml) - 
+                HtmlContent - (203:14,11 [2] IncompleteDirectives.cshtml)
+                    LazyIntermediateToken - (203:14,11 [2] IncompleteDirectives.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #nullable restore\npublic global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives> ViewData => (global::Microsoft.AspNetCore.Mvc.ViewFeatures.ViewDataDictionary<TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives>)PageContext?.ViewData!;\n#nullable disable
+            PropertyDeclaration -  - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_IncompleteDirectives - Model - ViewData.Model

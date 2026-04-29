@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TItem, TItem2
+            DesignTimeDirective - 
+                DirectiveToken - (11:0,11 [5] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
+                DirectiveToken - (29:1,11 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TItem2
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                HtmlContent - (163:8,1 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (163:8,1 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+                Component - (167:10,0 [45] x:\dir\subdir\Test\TestComponent.cshtml) - TestComponent
+                    ComponentTypeArgument - (190:10,23 [3] x:\dir\subdir\Test\TestComponent.cshtml) - TItem2
+                        IntermediateToken - (190:10,23 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - int
+                    ComponentTypeArgument - (202:10,35 [6] x:\dir\subdir\Test\TestComponent.cshtml) - TItem
+                        IntermediateToken - (202:10,35 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - string
+            CSharpCode - (44:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (44:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TItem MyItem { get; set; }\n\n    [Parameter]\n    public TItem2 MyItem2 { get; set; }\n

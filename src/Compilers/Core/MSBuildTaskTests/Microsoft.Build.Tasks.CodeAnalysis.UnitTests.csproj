@@ -50,6 +50,9 @@
     <Content Include="TestResources\**\*.*" />
     <EmbeddedResource Include="TestResources\**\*.*" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
   <PropertyGroup>
     <_DotNetSdkVersionFile>$(IntermediateOutputPath)\DotNetVersions.g.cs</_DotNetSdkVersionFile>
   </PropertyGroup>

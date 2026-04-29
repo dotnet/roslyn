@@ -1,0 +1,71 @@
+﻿Source Location: (1:0,1 [38] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components;|
+Generated Location: (309:11,0 [38] )
+|using Microsoft.AspNetCore.Components;|
+
+Source Location: (52:1,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|TItem1|
+Generated Location: (533:20,0 [6] )
+|TItem1|
+
+Source Location: (93:2,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|TItem2|
+Generated Location: (668:28,0 [6] )
+|TItem2|
+
+Source Location: (133:3,11 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|TItem3|
+Generated Location: (803:36,0 [6] )
+|TItem3|
+
+Source Location: (59:1,18 [20] x:\dir\subdir\Test\TestComponent.cshtml)
+|where TItem1 : Image|
+Generated Location: (994:44,0 [20] )
+|where TItem1 : Image|
+
+Source Location: (100:2,18 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+|where TItem2 : ITag|
+Generated Location: (1136:51,0 [19] )
+|where TItem2 : ITag|
+
+Source Location: (140:3,18 [27] x:\dir\subdir\Test\TestComponent.cshtml)
+|where TItem3 : Image, new()|
+Generated Location: (1277:58,0 [27] )
+|where TItem3 : Image, new()|
+
+Source Location: (189:6,1 [38] x:\dir\subdir\Test\TestComponent.cshtml)
+|foreach (var item2 in Items2)
+{
+    |
+Generated Location: (2303:95,1 [38] )
+|foreach (var item2 in Items2)
+{
+    |
+
+Source Location: (237:9,5 [19] x:\dir\subdir\Test\TestComponent.cshtml)
+|ChildContent(item2)|
+Generated Location: (2470:104,6 [19] )
+|ChildContent(item2)|
+
+Source Location: (267:10,8 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+}|
+Generated Location: (2621:111,8 [3] )
+|
+}|
+
+Source Location: (297:15,7 [236] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public TItem1 Item1 { get; set; }
+    [Parameter] public List<TItem2> Items2 { get; set; }
+    [Parameter] public TItem3 Item3 { get; set; }
+    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }
+|
+Generated Location: (2803:121,7 [236] )
+|
+    [Parameter] public TItem1 Item1 { get; set; }
+    [Parameter] public List<TItem2> Items2 { get; set; }
+    [Parameter] public TItem3 Item3 { get; set; }
+    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }
+|
+

@@ -1,0 +1,15 @@
+﻿Source Location: (60:2,26 [1] x:\dir\subdir\Test\TestComponent.cshtml)
+|1|
+Generated Location: (1459:39,26 [1] )
+|1|
+
+Source Location: (77:2,43 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|true|
+Generated Location: (1767:48,43 [4] )
+|true|
+
+Source Location: (63:2,29 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|BoolProperty|
+Generated Location: (2195:61,29 [12] )
+|BoolProperty|
+
