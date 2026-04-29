@@ -162,7 +162,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Statements.WhenKeywordRecommender(),
                 New KeywordRecommenders.Statements.WhileLoopKeywordRecommender(),
                 New KeywordRecommenders.Statements.WithKeywordRecommender(),
-                New KeywordRecommenders.Statements.YieldKeywordRecommender(),
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()))
         End Sub
 
