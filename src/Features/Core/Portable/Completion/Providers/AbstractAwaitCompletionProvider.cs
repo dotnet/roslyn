@@ -173,9 +173,10 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxKinds = syntaxFacts.SyntaxKinds;
 
+        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
         if (item.TryGetProperty(MakeContainerAsync, out var _))
         {
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var position = int.Parse(item.GetProperty(Position));
             var leftTokenPosition = int.Parse(item.GetProperty(LeftTokenPosition));
             var declaration = GetAsyncSupportingDeclaration(root.FindToken(leftTokenPosition), position);
@@ -204,9 +205,14 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             builder.AddIfNotNull(returnTypeChange);
         }
 
+        // item.Span was captured when the completion session started and does not advance as the
+        // user types. Compute the actual span of the typed text from the current syntax tree so we
+        // replace all characters the user has entered since the trigger point.
+        var currentSpanEnd = root.FindToken(item.Span.Start).Span.End;
+
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
         {
-            builder.Add(new TextChange(item.Span, _awaitKeyword));
+            builder.Add(new TextChange(TextSpan.FromBounds(item.Span.Start, currentSpanEnd), _awaitKeyword));
         }
         else
         {
@@ -225,7 +231,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
                 ? $".{nameof(Task.ConfigureAwait)}({_falseKeyword})"
                 : "";
 
-            builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, item.Span.End), replacementText));
+            builder.Add(new TextChange(TextSpan.FromBounds(dotToken.Value.SpanStart, currentSpanEnd), replacementText));
         }
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

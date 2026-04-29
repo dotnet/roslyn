@@ -283,8 +283,22 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
         var afterCaretText = XmlDocCommentCompletionItem.GetAfterCaretText(item);
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
+        // item.Span was captured when the completion session started and does not advance as the
+        // user types. Scan forward from the original span start to find the current end of any
+        // typed identifier characters. We cannot use the syntax tree here because doc comments are
+        // trivia in the C# tree, and FindToken would return the next code token instead.
+        // We also cannot use CompletionService.GetDefaultCompletionListSpan because its underlying
+        // GetWordSpan only extends forward when the position is in the *middle* of a word (i.e.
+        // there are word characters before it). Since item.Span.Start is at the beginning of
+        // any typed text, GetWordSpan returns a zero-length span and misses the typed characters.
+        var spanEnd = item.Span.Start;
+        while (spanEnd < text.Length && char.IsLetterOrDigit(text[spanEnd]))
+        {
+            spanEnd++;
+        }
+
         var itemSpan = item.Span;
-        var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, itemSpan.End);
+        var replacementSpan = TextSpan.FromBounds(text[itemSpan.Start - 1] == '<' && beforeCaretText[0] == '<' ? itemSpan.Start - 1 : itemSpan.Start, spanEnd);
 
         var replacementText = beforeCaretText;
         var newPosition = replacementSpan.Start + beforeCaretText.Length;
