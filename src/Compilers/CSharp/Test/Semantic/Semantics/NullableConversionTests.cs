@@ -667,7 +667,6 @@ ABACABADABACABABBBBDDBBDDBBABACCCCDADACCCCBBDDDDDDDD";
 
         [Fact]
         [WorkItem(1084278, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084278")]
-        [ValidatePooledObjects(LeakReason = "Floating point conversion error path leaks DiagnosticBag")]
         public void NullableConversionFromFloatingPointConst()
         {
             var source = @"
@@ -815,6 +814,7 @@ class C
                 compilation.GetBinder(target).BindExpression(operand, bag),
                 nullableIntType,
                 ref unused);
+            bag.Free();
             Assert.True(conversion.IsExplicit && conversion.IsNullable);
         }
     }
