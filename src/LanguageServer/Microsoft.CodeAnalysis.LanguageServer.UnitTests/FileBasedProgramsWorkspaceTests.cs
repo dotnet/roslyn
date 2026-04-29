@@ -87,7 +87,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = _tempRoot.CreateDirectory();
         var sourceText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
         var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
@@ -126,7 +126,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         var tempDir = _tempRoot.CreateDirectory();
         var sourceText = """
             #!/usr/bin/env dotnet
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
         var sourceFile = tempDir.CreateFile("greeter").WriteAllText(sourceText);
@@ -189,7 +189,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = _tempRoot.CreateDirectory();
         var sourceText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
         var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
@@ -217,7 +217,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = _tempRoot.CreateDirectory();
         var sourceText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
         var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
@@ -250,7 +250,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = _tempRoot.CreateDirectory();
         var sourceText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
         var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
@@ -338,7 +338,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var nonFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"vscode-notebook-cell://dev-container/test.cs");
         await testLspServer.OpenDocumentAsync(nonFileUri, """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """).ConfigureAwait(false);
 
@@ -375,7 +375,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
 
         var nonFileUri = CreateAbsoluteDocumentUri("script.csx");
         await testLspServer.OpenDocumentAsync(nonFileUri, """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World");
             """).ConfigureAwait(false);
 
@@ -396,12 +396,13 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
             syntaxTree.GetDiagnostics(CancellationToken.None).Verify(
                 // script.csx(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-                // #:sdk Microsoft.Net.Sdk
+                // #:sdk Microsoft.NET.Sdk
                 TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
         }
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [CombinatorialData]
     public async Task TestSemanticDiagnosticsEnabledWhenTopLevelStatementsAdded(bool mutatingLspWorkspace)
     {
         // Create a server that supports LSP misc files and verify no misc files present.
@@ -466,7 +467,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var looseFileUriOne = CreateAbsoluteDocumentUri("SomeFile.cs");
         await testLspServer.OpenDocumentAsync(looseFileUriOne, """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             class C { }
             """).ConfigureAwait(false);
@@ -495,7 +496,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             var primordialSyntaxTree = await looseDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
             primordialSyntaxTree.GetDiagnostics(CancellationToken.None).Verify(
                 // C:\SomeFile.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-                // #:sdk Microsoft.Net.Sdk
+                // #:sdk Microsoft.NET.Sdk
                 TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
         }
     }
@@ -546,7 +547,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = _tempRoot.CreateDirectory();
         var sourceText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
         var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
@@ -569,7 +570,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         syntaxTree.GetDiagnostics(CancellationToken.None).Verify(
             // C:\SomeFile.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-            // #:sdk Microsoft.Net.Sdk
+            // #:sdk Microsoft.NET.Sdk
             TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
 
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true);
@@ -596,7 +597,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var tempDir = _tempRoot.CreateDirectory();
         var sourceText = """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """;
         var sourceFile = tempDir.CreateFile("SomeFile.cs").WriteAllText(sourceText);
@@ -677,7 +678,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
         var looseFileUri = CreateAbsoluteDocumentUri("SomeFile.csx");
         await testLspServer.OpenDocumentAsync(looseFileUri, """
-            #:sdk Microsoft.Net.Sdk
+            #:sdk Microsoft.NET.Sdk
             Console.WriteLine("Hello World!");
             """).ConfigureAwait(false);
         await WaitForProjectLoad(looseFileUri, testLspServer);
@@ -707,12 +708,13 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
             syntaxTree.GetDiagnostics(CancellationToken.None).Verify(
                 // C:\SomeFile.cs(1,2): error CS9298: '#:' directives can be only used in file-based programs ('-features:FileBasedProgram')"
-                // #:sdk Microsoft.Net.Sdk
+                // #:sdk Microsoft.NET.Sdk
                 TestHelpers.Diagnostic(code: 9298, squiggledText: ":").WithLocation(1, 2));
         }
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "FileSystemWatcher (inotify) does not reliably detect file changes on Linux")]
+    [CombinatorialData]
     public async Task TestFileBecomesFileBasedProgramWhenDirectiveAdded(bool mutatingLspWorkspace)
     {
         // Create a server that supports LSP misc files and verify no misc files present.
@@ -769,7 +771,7 @@ public sealed class FileBasedProgramsWorkspaceTests : AbstractLspMiscellaneousFi
         Assert.True(document.Project.State.HasAllInformation);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83192"), CombinatorialData]
     public async Task TestFileStopsBeingFileBasedProgramWhenDirectivesDeleted(bool mutatingLspWorkspace)
     {
         var tempDir = _tempRoot.CreateDirectory();

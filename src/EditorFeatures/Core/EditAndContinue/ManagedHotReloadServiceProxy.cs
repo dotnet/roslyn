@@ -4,25 +4,17 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-[Shared]
-[Export(typeof(InternalContracts.IManagedHotReloadService))]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ManagedHotReloadServiceProxy(IServiceBrokerProvider serviceBrokerProvider) :
-    BrokeredServiceProxy<IManagedHotReloadService>(
-        serviceBrokerProvider.ServiceBroker,
-        BrokeredServiceDescriptors.DebuggerManagedHotReloadService,
-        BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy),
+internal sealed class ManagedHotReloadServiceProxy(IServiceBroker serviceBroker) :
+    BrokeredServiceProxy<IManagedHotReloadService>(serviceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService, BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy),
     InternalContracts.IManagedHotReloadService
 {
     public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)

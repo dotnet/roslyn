@@ -290,10 +290,13 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
 
         if (documentKind is LooseDocumentKind.MiscellaneousFileWithStandardReferences or LooseDocumentKind.MiscellaneousFileWithStandardReferencesAndSemanticErrors)
         {
+            var projectInfos = await _canonicalProjectProvider.GetProjectInfoAsync(documentPath, cancellationToken).ConfigureAwait(false);
             return new RemoteProjectLoadResult
             {
-                ProjectFileInfos = await _canonicalProjectProvider.GetProjectInfoAsync(documentPath, cancellationToken).ConfigureAwait(false),
+                ProjectFileInfos = projectInfos,
                 DiagnosticLogItems = [],
+                // This points to the Canonical.csproj, which always exists on disk and can be restored regardless of SDK.
+                ProjectRestorePath = projectInfos.FirstOrDefault()?.FilePath,
                 ProjectFactory = _workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory,
                 IsFileBasedProgram = false,
                 IsMiscellaneousFile = true,
@@ -331,6 +334,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         {
             ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
             DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
+            ProjectRestorePath = documentPath,
             ProjectFactory = _workspaceFactory.HostProjectFactory,
             IsFileBasedProgram = true,
             IsMiscellaneousFile = false,
