@@ -23,7 +23,7 @@ namespace System
 
         unsafe public Span(void* pointer, int length)
         {
-            this.arr = Helpers.ToArray<T>(pointer, length);
+            unsafe { this.arr = Helpers.ToArray<T>(pointer, length); }
             this.start = 0;
             this.Length = length;
         }
@@ -114,7 +114,7 @@ namespace System
 
         unsafe public ReadOnlySpan(void* pointer, int length)
         {
-            this.arr = Helpers.ToArray<T>(pointer, length);
+            unsafe { this.arr = Helpers.ToArray<T>(pointer, length); }
             this.start = 0;
             this.Length = length;
         }
