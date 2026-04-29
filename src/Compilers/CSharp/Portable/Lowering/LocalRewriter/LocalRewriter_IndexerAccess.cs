@@ -553,14 +553,53 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Do not capture receiver if we're in an initializer
             if (!cacheAllArgumentsOnly)
             {
-                var capturedReceiver = CaptureReceiverForImplicitIndexerAccess(
-                    receiver, node,
-                    argumentsToCheckForRefSafety: [makeOffsetInput],
-                    forceProtectionAgainstRefTypeReceiverSwap: isLeftOfAssignment && !isRegularAssignment,
-                    locals, sideeffects);
+                // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
+                // If length access is a local, then we are evaluating a pattern
+                if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
+                {
+                    Debug.Assert(receiver.Type is { });
 
-                receiverIsKnownToBeCaptured = !ReferenceEquals(capturedReceiver, receiver);
-                receiver = capturedReceiver;
+                    var receiverLocal = F.StoreToTemp(
+                        receiver,
+                        out var receiverStore,
+                        // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                        receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
+                    locals.Add(receiverLocal.LocalSymbol);
+
+                    // When we take a `ref` to a receiver with an unconstrained type `T`,
+                    // the instance it would hold when `T` is a reference type is vulnerable
+                    // to being replaced when evaluating arguments or assigned value. We need additional protection.
+                    if (receiverLocal.LocalSymbol.IsRef)
+                    {
+                        Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
+                        Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
+
+                        bool isPossibleReferenceTypeReceiver =
+                            IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
+                            || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
+
+                        if (isPossibleReferenceTypeReceiver &&
+                            !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
+                            ((isLeftOfAssignment && !isRegularAssignment) ||
+                                 !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
+                        {
+                            Debug.Assert(receiverLocal.LocalSymbol.Type is { IsReferenceType: false, IsValueType: false });
+
+                            BoundAssignmentOperator? extraRefInitialization;
+                            ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, locals);
+
+                            if (extraRefInitialization is object)
+                            {
+                                sideeffects.Add(extraRefInitialization);
+                            }
+                        }
+                    }
+
+                    sideeffects.Add(receiverStore);
+
+                    receiver = receiverLocal;
+                    receiverIsKnownToBeCaptured = true;
+                }
             }
 
             AddPlaceholderReplacement(node.ReceiverPlaceholder, receiver);
@@ -808,102 +847,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal);
         }
 
-        /// <summary>
-        /// Common receiver capture for implicit indexer access lowerings (Index pattern + Range pattern).
-        /// Both have two call sites on the captured receiver (Length call + indexer/Slice call).
-        ///
-        /// Two correctness concerns are addressed by this capture:
-        ///
-        /// (1) Side-effect propagation: If the receiver is a value-type lvalue, we capture by ref
-        /// so that mutations performed by the Length getter or the indexer/Slice call on the receiver
-        /// (ie. assignment to a field of an instance Length getter, or to a `ref` extension parameter)
-        /// propagate back to the original location.
-        ///
-        /// (2) Reference-type-receiver swap during argument evaluation: When the captured receiver
-        /// is a ref to a heap location whose underlying type might be a reference type
-        /// (unconstrained T or extension on class), the heap reference can be replaced while
-        /// arguments are evaluated, causing the Length/indexer/Slice call to target a different
-        /// instance than source order implies. <see cref="ReferToTempIfReferenceTypeReceiver"/>
-        /// copies the reference into a temp before arguments run. Both Length and the indexer/Slice
-        /// symbols are checked because either call could see the swapped reference.
-        ///
-        /// A third concern - ensuring the receiver value is read AFTER side-effecting arguments
-        /// when the indexer/Slice takes its receiver by value (so the call observes the post-arg
-        /// state) - is NOT handled here. The Index pattern path delegates that to
-        /// <see cref="MakeIndexerAccess"/>, which forces capture and uses
-        /// <c>ExtractSideEffectsFromArguments</c>; the Range pattern path handles it by
-        /// caching <c>startExpr</c>/<c>rangeSizeExpr</c> into temps before the Slice call.
-        /// </summary>
-        /// <returns>
-        /// The captured receiver, or the original receiver if no capture was performed.
-        /// Callers can compare reference-equality against the input to detect whether capture happened.
-        /// </returns>
-        /// <param name="forceProtectionAgainstRefTypeReceiverSwap">
-        /// When true, always apply the reference-type-receiver-swap protection (Issue 2 above) when
-        /// the receiver is captured by ref and the type is possibly a reference type, regardless of
-        /// whether the receiver ref is statically known to be safe to dereference after the arguments
-        /// are evaluated. Set this for compound/null-coalescing assignments, where additional code
-        /// runs after arguments and could swap the receiver reference. For straight reads, leave this
-        /// false to allow the optimization that skips protection when the arguments are known not to
-        /// invalidate the receiver ref.
-        /// </param>
-        private BoundExpression CaptureReceiverForImplicitIndexerAccess(
-            BoundExpression receiver,
-            BoundImplicitIndexerAccess node,
-            ImmutableArray<BoundExpression> argumentsToCheckForRefSafety,
-            bool forceProtectionAgainstRefTypeReceiverSwap,
-            ArrayBuilder<LocalSymbol> localsBuilder,
-            ArrayBuilder<BoundExpression> sideEffectsBuilder)
-        {
-            // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
-            // If length access is a local, then we are evaluating a pattern
-            if (node.LengthOrCountAccess.Kind is BoundKind.Local && receiver.Kind is BoundKind.Local or BoundKind.Parameter)
-            {
-                return receiver;
-            }
-
-            Debug.Assert(receiver.Type is { });
-
-            var receiverLocal = _factory.StoreToTemp(
-                receiver,
-                out var receiverStore,
-                // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
-                receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
-            localsBuilder.Add(receiverLocal.LocalSymbol);
-
-            // When we take a `ref` to a receiver with an unconstrained type `T`,
-            // the instance it would hold when `T` is a reference type is vulnerable
-            // to being replaced when evaluating arguments. We need additional protection.
-            if (receiverLocal.LocalSymbol.IsRef)
-            {
-                Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
-                Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
-
-                bool isPossibleReferenceTypeReceiver =
-                    IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
-                    || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
-
-                if (isPossibleReferenceTypeReceiver &&
-                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
-                    (forceProtectionAgainstRefTypeReceiverSwap ||
-                        !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsToCheckForRefSafety)))
-                {
-                    Debug.Assert(receiverLocal.LocalSymbol.Type is { IsReferenceType: false, IsValueType: false });
-
-                    BoundAssignmentOperator? extraRefInitialization;
-                    ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, localsBuilder);
-
-                    if (extraRefInitialization is object)
-                    {
-                        sideEffectsBuilder.Add(extraRefInitialization);
-                    }
-                }
-            }
-
-            sideEffectsBuilder.Add(receiverStore);
-            return receiverLocal;
-        }
-
         private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, bool cacheAllArgumentsOnly)
         {
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
@@ -929,28 +872,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             PatternIndexOffsetLoweringStrategy startStrategy, endStrategy;
             RewriteRangeParts(rangeArg, out rangeExpr, out startMakeOffsetInput, out startStrategy, out endMakeOffsetInput, out endStrategy, out rewrittenRangeArg);
 
-            var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(3);
-
-            if (startMakeOffsetInput is not null)
+            // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
+            // If length access is a local, then we are evaluating a pattern
+            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
             {
-                argumentsBuilder.Add(startMakeOffsetInput);
-            }
+                Debug.Assert(receiver.Type is { });
 
-            if (endMakeOffsetInput is not null)
-            {
-                argumentsBuilder.Add(endMakeOffsetInput);
-            }
+                var receiverLocal = F.StoreToTemp(
+                    receiver,
+                    out var receiverStore,
+                    // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                    receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
 
-            if (rewrittenRangeArg is not null)
-            {
-                argumentsBuilder.Add(rewrittenRangeArg);
-            }
+                localsBuilder.Add(receiverLocal.LocalSymbol);
 
-            receiver = CaptureReceiverForImplicitIndexerAccess(
-                receiver, node,
-                argumentsToCheckForRefSafety: argumentsBuilder.ToImmutableAndFree(),
-                forceProtectionAgainstRefTypeReceiverSwap: false,
-                localsBuilder, sideEffectsBuilder);
+                // When we take a `ref` to a receiver with an unconstrained type `T`,
+                // the instance it would hold when `T` is a reference type is vulnerable
+                // to being replaced when evaluating arguments. We need additional protection.
+                if (receiverLocal.LocalSymbol.IsRef)
+                {
+                    Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
+                    Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
+
+                    bool isPossibleReferenceTypeReceiver =
+                        IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, receiverLocal)
+                        || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, receiverLocal);
+
+                    if (isPossibleReferenceTypeReceiver &&
+                        !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal))
+                    {
+                        var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(2);
+
+                        if (startMakeOffsetInput is not null)
+                        {
+                            argumentsBuilder.Add(startMakeOffsetInput);
+                        }
+
+                        if (endMakeOffsetInput is not null)
+                        {
+                            argumentsBuilder.Add(endMakeOffsetInput);
+                        }
+
+                        if (rewrittenRangeArg is not null)
+                        {
+                            argumentsBuilder.Add(rewrittenRangeArg);
+                        }
+
+                        if (!CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsBuilder.ToImmutableAndFree()))
+                        {
+                            Debug.Assert(receiverLocal.LocalSymbol.Type is { IsReferenceType: false, IsValueType: false });
+
+                            BoundAssignmentOperator? extraRefInitialization;
+                            ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, localsBuilder);
+
+                            if (extraRefInitialization is object)
+                            {
+                                sideEffectsBuilder.Add(extraRefInitialization);
+                            }
+                        }
+                    }
+                }
+
+                sideEffectsBuilder.Add(receiverStore);
+
+                receiver = receiverLocal;
+            }
 
             AddPlaceholderReplacement(node.ReceiverPlaceholder, receiver);
 
@@ -958,11 +944,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rangeSizeExpr;
             var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
 
-            // Although the implicit Range pattern lowers to a Slice method call, we intentionally use
-            // indexer semantics rather than method semantics for the receiver: side-effecting arguments
-            // are evaluated into temps before the receiver value is read for the Slice call.
             bool needSpecialExtensionReceiverReadOrder =
-                IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, sliceCall.Method);
+                IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(receiver, node.IndexerOrSliceAccess.ExpressionSymbol);
 
             if (rangeExpr is not null)
             {
