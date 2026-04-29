@@ -346,9 +346,10 @@
     <PackageReference Include="SQLitePCLRaw.bundle_green" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
     <PackageReference Include="SQLitePCLRaw.provider.dynamic_cdecl" ForceIncludeInVsix="true" PkgDefEntry="CodeBase" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SourceGear.Sqlite3" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(PkgSQLitePCLRaw_lib_e_sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
+    <Content Include="$(PkgSourceGear_Sqlite3)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
