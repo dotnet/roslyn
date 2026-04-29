@@ -27,7 +27,7 @@ internal static class PoolTracker
 {
 #if DEBUG
     // AsyncLocal so tracking flows through async test methods and their continuations.
-    private static readonly AsyncLocal<PoolTrackingContext?> s_currentContext = new();
+    private static readonly AsyncLocal<PoolTrackingContext?> s_currentContext = new AsyncLocal<PoolTrackingContext?>();
 
     // Fast check to avoid reading AsyncLocal when no tracking session is active.
     private static int s_activeTrackers;
@@ -105,7 +105,7 @@ internal static class PoolTracker
 /// </summary>
 internal sealed class PoolTrackingContext
 {
-    private readonly ConcurrentDictionary<object, AllocationInfo> _outstanding = new(ReferenceEqualityComparer.Instance);
+    private readonly ConcurrentDictionary<object, AllocationInfo> _outstanding = new ConcurrentDictionary<object, AllocationInfo>(ReferenceEqualityComparer.Instance);
     private readonly bool _traceLeaks;
 
     internal PoolTrackingContext(bool traceLeaks)
