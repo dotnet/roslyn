@@ -63,6 +63,7 @@
       <Private>true</Private>
     </Reference>
 
+    <!-- Prevent downstream projects from trying to place the Sqlite assemblies from this package -->
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" GeneratePathProperty="true" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
@@ -84,4 +85,6 @@
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\UnifiedSettings\csharpSettings.registration.json" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\PackageRegistration.pkgdef" />
   </ItemGroup>
+  <!-- SourceGear.sqlite3 3.x errors on AnyCPU for net471+ -->
+  <Target Name="CheckForAnyCPU" Condition="'$(TargetFramework)' == 'net472'" />
 </Project>
