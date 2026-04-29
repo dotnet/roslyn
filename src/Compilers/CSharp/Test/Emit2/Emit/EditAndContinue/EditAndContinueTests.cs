@@ -17139,7 +17139,6 @@ class C
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Missing HotReloadException type leaks ArrayBuilder during EnC emit")]
         public void Method_Delete_SynthesizedHotReloadException_MissingExceptionType()
         {
             using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal, verification: Verification.Skipped)
@@ -17179,7 +17178,6 @@ class C
         [InlineData("public delegate void Action<T>(ref T arg);")]
         [InlineData("public delegate void Action<T>(out T arg);")]
         [InlineData("public delegate void Action<T>(T arg, int x);")]
-        [ValidatePooledObjects(LeakReason = "Missing HotReloadException type leaks ArrayBuilder during EnC emit")]
         public void Method_Delete_SynthesizedHotReloadException_MissingOrBadActionType(string actionDef)
         {
             var libs = $$"""

@@ -7380,7 +7380,6 @@ End Class")
         End Sub
 
         <Fact>
-        <ValidatePooledObjects(LeakReason:="Ambiguous code with imports leaks during EnC")>
         Public Sub AddImports_AmbiguousCode()
 
             Dim source0 = MarkedSource("
