@@ -44,14 +44,16 @@ internal class CSharpCodeActionProvider(LanguageServerFeatureOptions languageSer
         RazorPredefinedCodeFixProviderNames.GenerateConstructor,
         RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
         RazorPredefinedCodeFixProviderNames.GenerateMethod,
+        RazorPredefinedCodeFixProviderNames.GenerateType,
         RazorPredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
     internal static readonly HashSet<string> SupportedImplicitExpressionCodeActionNames =
     [
-         RazorPredefinedCodeFixProviderNames.GenerateConstructor,
-         RazorPredefinedCodeFixProviderNames.GenerateMethod,
-         RazorPredefinedCodeFixProviderNames.GenerateVariable,
+        RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+        RazorPredefinedCodeFixProviderNames.GenerateMethod,
+        RazorPredefinedCodeFixProviderNames.GenerateType,
+        RazorPredefinedCodeFixProviderNames.GenerateVariable,
     ];
 
     private readonly LanguageServerFeatureOptions _languageServerFeatureOptions = languageServerFeatureOptions;
