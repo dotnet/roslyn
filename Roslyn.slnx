@@ -308,13 +308,13 @@
     <Project Path="src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj" />
     <Project Path="src/Tools/PrepareTests/PrepareTests.csproj" />
     <Project Path="src/Tools/Replay/Replay.csproj" />
-    <Project Path="src/Tools/Source/CompilerGeneratorTools/Source/BoundTreeGenerator/CompilersBoundTreeGenerator.csproj" />
-    <Project Path="src/Tools/Source/CompilerGeneratorTools/Source/CSharpErrorFactsGenerator/CSharpErrorFactsGenerator.csproj" />
-    <Project Path="src/Tools/Source/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/CSharpSyntaxGenerator.csproj" />
-    <Project Path="src/Tools/Source/CompilerGeneratorTools/Source/IOperationGenerator/CompilersIOperationGenerator.csproj" />
-    <Project Path="src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/VisualBasicErrorFactsGenerator.vbproj" />
-    <Project Path="src/Tools/Source/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/VisualBasicSyntaxGenerator.vbproj" />
-    <Project Path="src/Tools/Source/RunTests/RunTests.csproj" />
+    <Project Path="src/Tools/CompilerGeneratorTools/Source/BoundTreeGenerator/CompilersBoundTreeGenerator.csproj" />
+    <Project Path="src/Tools/CompilerGeneratorTools/Source/CSharpErrorFactsGenerator/CSharpErrorFactsGenerator.csproj" />
+    <Project Path="src/Tools/CompilerGeneratorTools/Source/CSharpSyntaxGenerator/CSharpSyntaxGenerator.csproj" />
+    <Project Path="src/Tools/CompilerGeneratorTools/Source/IOperationGenerator/CompilersIOperationGenerator.csproj" />
+    <Project Path="src/Tools/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/VisualBasicErrorFactsGenerator.vbproj" />
+    <Project Path="src/Tools/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/VisualBasicSyntaxGenerator.vbproj" />
+    <Project Path="src/Tools/RunTests/RunTests.csproj" />
     <Project Path="src/Tools/TestDiscoveryWorker/TestDiscoveryWorker.csproj" />
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">
