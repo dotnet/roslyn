@@ -1419,6 +1419,40 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
 
     #endregion
 
+    #region Using statements
+
+    [Fact]
+    public void LabeledBreakInUsingStatement()
+    {
+        var source = """
+            outer: while (true)
+            {
+                using var x = GetResource();
+                break outer; 
+            }
+
+            System.IDisposable GetResource() => null;
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LabeledContinueInUsingStatement()
+    {
+        var source = """
+            outer: while (true)
+            {
+                using var x = GetResource();
+                continue outer; 
+            }
+
+            System.IDisposable GetResource() => null;
+            """;
+        CreateCompilation(source).VerifyDiagnostics();
+    }
+
+    #endregion
+
     #region Language version gating
 
     [Fact]
