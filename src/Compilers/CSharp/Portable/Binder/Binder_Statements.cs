@@ -2945,12 +2945,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
         }
 
+#nullable enable
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             var labelName = node.Name?.Identifier.ValueText;
             var target = this.GetBreakLabel(labelName);
             return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
-                ?? new BoundBreakStatement(node, target, label);
+                ?? new BoundBreakStatement(node, target!, label);
         }
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
@@ -2958,7 +2959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var labelName = node.Name?.Identifier.ValueText;
             var target = this.GetContinueLabel(labelName);
             return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
-                ?? new BoundContinueStatement(node, target, label);
+                ?? new BoundContinueStatement(node, target!, label);
         }
 
         /// <summary>
@@ -2968,16 +2969,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// on failure (with <paramref name="label"/> set to null); otherwise returns null and
         /// sets <paramref name="label"/> to the bound label expression (null when unlabeled).
         /// </summary>
-        private BoundStatement BindBranchLabelAndCheckTarget(
+        private BoundStatement? BindBranchLabelAndCheckTarget(
             StatementSyntax node,
-            IdentifierNameSyntax name,
-            string labelName,
-            LabelSymbol target,
+            IdentifierNameSyntax? name,
+            string? labelName,
+            LabelSymbol? target,
             BindingDiagnosticBag diagnostics,
-            out BoundLabel label)
+            out BoundLabel? label)
         {
             if (labelName != null)
+            {
+                Debug.Assert(name != null);
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
+            }
 
             if (target == null)
             {
@@ -2992,6 +2996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
             return null;
         }
+#nullable disable
 
         private static SwitchBinder GetSwitchBinder(Binder binder)
         {
