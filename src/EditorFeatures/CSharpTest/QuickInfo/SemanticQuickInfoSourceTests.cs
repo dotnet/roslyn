@@ -1955,13 +1955,25 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """, MainDescription("struct System.Int32"));
     }
 
+    #region Char literal
     [Fact]
     public Task TestCharLiteral()
         => TestInMethodAsync(@"string f = 'x'$$",
             MainDescription("struct System.Char"));
 
     [Fact]
-    public Task TestCharLiteralUnicodeEscape()
+    public Task TestCharLiteralUnicodeEscapeStart()
+        => TestInMethodAsync(@"char c = $$'\u0387';",
+            MainDescription("struct System.Char"),
+            Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, '·')));
+    [Fact]
+    public Task TestCharLiteralUnicodeEscapeMiddle()
+        => TestInMethodAsync(@"char c = '\u03$$87';",
+            MainDescription("struct System.Char"),
+            Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, '·')));
+
+    [Fact]
+    public Task TestCharLiteralUnicodeEscapeEnd()
         => TestInMethodAsync(@"char c = '\u0387'$$;",
             MainDescription("struct System.Char"),
             Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, '·')));
@@ -1983,6 +1995,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
         => TestInMethodAsync(@"char c = '\x41'$$;",
             MainDescription("struct System.Char"),
             Documentation(string.Empty));
+    #endregion Char literal
 
     [Fact]
     public Task DynamicKeyword()
