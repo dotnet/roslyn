@@ -529,8 +529,7 @@ internal static class CastSimplifier
 
         if (originalConvertedType.Equals(rewrittenConvertedType))
         {
-            // If the types of the expressions are exactly the same, then we can remove safely, as long as
-            // removing the cast doesn't change the nullable type arguments of the expression type.
+            // Check if removing the cast changes the nullable type arguments of the expression type.
             // For example:
             //
             //      var lines = new List<object?>();
@@ -538,8 +537,14 @@ internal static class CastSimplifier
             //
             // Here the converted types both match `IEnumerable<object>`, but removing the `as List<object>`
             // cast changes the expression type from `List<object>?` to `List<object?>`.
+            var originalExpressionType = originalSemanticModel.GetTypeInfo(castNode, cancellationToken).Type;
+            var rewrittenExpressionType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
+            var typeArgumentNullabilityUnchanged = HaveSameTypeArgumentNullability(originalExpressionType, rewrittenExpressionType);
+
+            // If the types of the expressions are exactly the same, then we can remove safely, as long as
+            // removing the cast doesn't change the nullable type arguments of the expression type.
             if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability) &&
-                !CastRemovalChangesNullableTypeArguments(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                typeArgumentNullabilityUnchanged)
             {
                 return true;
             }
@@ -555,7 +560,7 @@ internal static class CastSimplifier
             var targetType = castNode.GetTargetType(originalSemanticModel, cancellationToken);
             if (targetType is not null and not IErrorTypeSymbol &&
                 rewrittenConvertedType.Equals(targetType, SymbolEqualityComparer.IncludeNullability) &&
-                !CastRemovalChangesNullableTypeArguments(castNode, rewrittenExpression, originalSemanticModel, rewrittenSemanticModel, cancellationToken))
+                typeArgumentNullabilityUnchanged)
             {
                 return true;
             }
@@ -1119,49 +1124,24 @@ internal static class CastSimplifier
         return false;
     }
 
-    private static bool CastRemovalChangesNullableTypeArguments(
-        ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
-        SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel,
-        CancellationToken cancellationToken)
+    private static bool HaveSameTypeArgumentNullability(ITypeSymbol? type1, ITypeSymbol? type2)
     {
-        var originalType = originalSemanticModel.GetTypeInfo(castNode, cancellationToken).Type;
-        var rewrittenType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).Type;
+        if (type1 is null || type2 is null)
+            return true;
 
-        if (originalType is null || rewrittenType is null)
-            return false;
+        // If the types match including nullability, there's no difference at all.
+        if (type1.Equals(type2, SymbolEqualityComparer.IncludeNullability))
+            return true;
 
-        // If the types match including nullability
-        if (originalType.Equals(rewrittenType, SymbolEqualityComparer.IncludeNullability))
-            return false;
+        // If the types don't match ignoring nullability, they're fundamentally different types.
+        if (!type1.Equals(type2))
+            return true;
 
-        // If the types don't match ignoring nullability
-        if (!originalType.Equals(rewrittenType))
-            return false;
-
-        // The types are the same but differ in nullability.
-        // Check if the difference is in type arguments (not just top-level nullability).
-        return TypesDifferInTypeArgumentNullability(originalType, rewrittenType);
-    }
-
-    private static bool TypesDifferInTypeArgumentNullability(ITypeSymbol type1, ITypeSymbol type2)
-    {
-        if (type1 is INamedTypeSymbol named1 && type2 is INamedTypeSymbol named2 &&
-            named1.TypeArguments.Length == named2.TypeArguments.Length)
-        {
-            for (var i = 0; i < named1.TypeArguments.Length; i++)
-            {
-                if (!named1.TypeArguments[i].Equals(named2.TypeArguments[i], SymbolEqualityComparer.IncludeNullability))
-                    return true;
-            }
-        }
-
-        if (type1 is IArrayTypeSymbol array1 && type2 is IArrayTypeSymbol array2)
-        {
-            if (!array1.ElementType.Equals(array2.ElementType, SymbolEqualityComparer.IncludeNullability))
-                return true;
-        }
-
-        return false;
+        // The types are the same but differ in nullability. Check if the difference is in type arguments
+        // (not just top-level nullability) by normalizing top-level nullability and comparing.
+        var normalized1 = type1.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+        var normalized2 = type2.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+        return normalized1.Equals(normalized2, SymbolEqualityComparer.IncludeNullability);
     }
 
     private static bool IsConstantNull(IOperation operation)
