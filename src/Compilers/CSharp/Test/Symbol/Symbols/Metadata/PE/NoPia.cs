@@ -1423,7 +1423,6 @@ public class Derived : Base, I2
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Custom corlib with missing types leaks BindingDiagnosticBag")]
         public void ExtendedLayoutAttribute()
         {
             var coreLibSource = """

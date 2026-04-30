@@ -150,6 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 {
                     diagnostics.AddRange(bindingDiagnosticBag.DiagnosticBag);
                 }
+
+                bindingDiagnosticBag.Free();
             }
 
             return lazyMethod;
