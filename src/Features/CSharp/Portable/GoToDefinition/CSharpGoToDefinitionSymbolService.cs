@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,24 +30,14 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
 
         switch (token.Kind())
         {
-            case SyntaxKind.ContinueKeyword:
-                var foundContinuedLoop = TryFindContinuableConstruct(node);
-
-                return foundContinuedLoop?.IsContinuableConstruct() == true
-                    ? foundContinuedLoop.GetFirstToken().Span.Start
-                    : null;
-
             case SyntaxKind.BreakKeyword:
                 if (token.GetPreviousToken().IsKind(SyntaxKind.YieldKeyword))
-                {
                     goto case SyntaxKind.YieldKeyword;
-                }
 
-                var foundBrokenLoop = TryFindBreakableConstruct(node);
+                return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: true);
 
-                return foundBrokenLoop?.IsBreakableConstruct() == true
-                    ? foundBrokenLoop.GetLastToken().Span.End
-                    : null;
+            case SyntaxKind.ContinueKeyword:
+                return GetBreakOrContinueTargetPosition(semanticModel, node, isBreak: false);
 
             case SyntaxKind.YieldKeyword:
             case SyntaxKind.ReturnKeyword:
@@ -79,7 +68,6 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
                     if (semanticModel.GetOperation(gotoStatement) is not IBranchOperation gotoOperation)
                         return null;
 
-                    Debug.Assert(gotoOperation is { BranchKind: BranchKind.GoTo });
                     var target = gotoOperation.Target;
                     return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.SpanStart;
                 }
@@ -87,38 +75,18 @@ internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefiniti
 
         return null;
 
-        static SyntaxNode? TryFindContinuableConstruct(SyntaxNode? node)
+        static int? GetBreakOrContinueTargetPosition(SemanticModel semanticModel, SyntaxNode node, bool isBreak)
         {
-            while (node is not null && !node.IsContinuableConstruct())
-            {
-                var kind = node.Kind();
+            if (semanticModel.GetOperation(node) is not IBranchOperation branchOperation)
+                return null;
 
-                if (node.IsReturnableConstruct() ||
-                    SyntaxFacts.GetTypeDeclarationKind(kind) != SyntaxKind.None)
-                {
-                    return null;
-                }
+            var corresponding = branchOperation.GetCorrespondingOperation();
+            if (corresponding is null)
+                return null;
 
-                node = node.Parent;
-            }
-
-            return node;
-        }
-
-        static SyntaxNode? TryFindBreakableConstruct(SyntaxNode? node)
-        {
-            while (node is not null && !node.IsBreakableConstruct())
-            {
-                if (node.IsReturnableConstruct() ||
-                    SyntaxFacts.GetTypeDeclarationKind(node.Kind()) != SyntaxKind.None)
-                {
-                    return null;
-                }
-
-                node = node.Parent;
-            }
-
-            return node;
+            return isBreak
+                ? corresponding.Syntax.GetLastToken().Span.End
+                : corresponding.Syntax.GetFirstToken().Span.Start;
         }
 
         static SyntaxNode? TryFindContainingReturnableConstruct(SyntaxNode? node)
