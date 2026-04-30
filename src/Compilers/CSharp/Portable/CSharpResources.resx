@@ -759,8 +759,11 @@
   <data name="ERR_NoBreakOrCont" xml:space="preserve">
     <value>No enclosing loop out of which to break or continue</value>
   </data>
-  <data name="ERR_NoBreakOrContId" xml:space="preserve">
-    <value>No enclosing loop or switch statement with the label '{0}' out of which to break or continue</value>
+  <data name="ERR_NoBreakId" xml:space="preserve">
+    <value>No enclosing loop or switch statement with the label '{0}' out of which to break</value>
+  </data>
+  <data name="ERR_NoContinueId" xml:space="preserve">
+    <value>No enclosing loop with the label '{0}' out of which to continue</value>
   </data>
   <data name="ERR_DuplicateLabel" xml:space="preserve">
     <value>The label '{0}' is a duplicate</value>
