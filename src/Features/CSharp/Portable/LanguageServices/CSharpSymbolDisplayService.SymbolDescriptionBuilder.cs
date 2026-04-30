@@ -223,8 +223,8 @@ internal sealed partial class CSharpSymbolDisplayService
                 UnicodeCategory.LetterNumber => true,
                 UnicodeCategory.OtherNumber => true,
                 UnicodeCategory.SpaceSeparator => true,
-                UnicodeCategory.LineSeparator => true, // renders like a regular space, better than nothing
-                UnicodeCategory.ParagraphSeparator => false, // renders like a regular space, better than nothing
+                UnicodeCategory.LineSeparator => false, // renders as newline, looks awkward
+                UnicodeCategory.ParagraphSeparator => false, // renders as newline, looks awkward
                 UnicodeCategory.Control => false, // no glyph
                 UnicodeCategory.Format => false, // no glyph
                 UnicodeCategory.Surrogate => false, // no glyph
