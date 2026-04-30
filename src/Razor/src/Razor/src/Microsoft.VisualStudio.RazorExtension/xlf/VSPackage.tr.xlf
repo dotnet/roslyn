@@ -79,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Setting_AutoInsertAttributeQuotesDescription">
         <source>If true, completion on attributes will add quotation marks</source>
-        <target state="new">If true, completion on attributes will add quotation marks</target>
+        <target state="translated">True ise öznitelikler üzerinde tamamlama tırnak işaretleri ekler</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AutoInsertAttributeQuotesDisplayName">

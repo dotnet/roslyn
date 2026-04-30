@@ -149,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
         <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
-        <target state="new">Sets the level of logging to show in the Razor Logger Output category of the Output Window.</target>
+        <target state="translated">출력 창의 Razor 로거 출력 범주에 표시할 로깅 수준을 설정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDisplayName">

@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Expected_0_to_be_non_null">
         <source>Expected '{0}' to be non-null.</source>
-        <target state="new">Expected '{0}' to be non-null.</target>
+        <target state="translated">'{0}'은(는) null이 아니어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expected_condition_to_be_false">

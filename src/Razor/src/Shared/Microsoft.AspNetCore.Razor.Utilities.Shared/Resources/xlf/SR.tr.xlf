@@ -59,22 +59,22 @@
       </trans-unit>
       <trans-unit id="Contains_more_than_one_element">
         <source>Contains more than one element</source>
-        <target state="new">Contains more than one element</target>
+        <target state="translated">Birden çok öğe içeriyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_more_than_one_matching_element">
         <source>Contains more than one matching element</source>
-        <target state="new">Contains more than one matching element</target>
+        <target state="translated">Birden çok eşleşen öğe içeriyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_no_elements">
         <source>Contains no elements</source>
-        <target state="new">Contains no elements</target>
+        <target state="translated">Öğe içermiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Contains_no_matching_elements">
         <source>Contains no matching elements</source>
-        <target state="new">Contains no matching elements</target>
+        <target state="translated">Eşleşen öğe içermiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Destination_is_too_short">
@@ -84,7 +84,7 @@
       </trans-unit>
       <trans-unit id="Expected_0_to_be_non_null">
         <source>Expected '{0}' to be non-null.</source>
-        <target state="new">Expected '{0}' to be non-null.</target>
+        <target state="translated">'{0}' değerinin null olmaması bekleniyordu.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expected_condition_to_be_false">

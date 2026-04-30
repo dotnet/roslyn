@@ -194,12 +194,12 @@
       </trans-unit>
       <trans-unit id="Setting_SnippetsDescription">
         <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
-        <target state="new">What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </target>
+        <target state="translated">Quais snippets devem ser incluídos em um arquivo Razor. Se definido como personalizado, somente os snippets que não estiverem incluídos no Visual Studio serão mostrados. </target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDisplayName">
         <source>Included Snippets</source>
-        <target state="new">Included Snippets</target>
+        <target state="translated">Snippets Incluídos</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsNone">
