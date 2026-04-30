@@ -172,7 +172,11 @@ internal sealed partial class CSharpSymbolDisplayService
             if (symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
                 return;
 
-            var token = SemanticModel.SyntaxTree.FindTokenOnLeftOfPosition(Position, CancellationToken);
+            var root = SemanticModel.SyntaxTree.GetRoot(CancellationToken);
+            var token = root.FindToken(Position);
+            if (token.Value is not char)
+                token = root.FindTokenOnLeftOfPosition(Position);
+
             if (token.Value is not char character)
                 return;
 
