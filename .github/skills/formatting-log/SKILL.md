@@ -14,7 +14,7 @@ Use this skill when:
 
 1. Get a local path to the formatting log archive.
 2. Import every file from that zip into `src\Razor\src\Razor\test\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\TestFiles\FormattingLog\<TestName>\`.
-3. Add a matching `[Fact]` to `FormattingLogTest.cs`.
+3. Add a matching `[Fact]` to `src\Razor\src\Razor\test\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\Cohost\Formatting\FormattingLogTest.cs`.
 4. Run the imported formatting log test.
 5. If it passes, report that the issue captured in the logs no longer reproduces.
 6. If it fails, keep the imported repro, reduce it to a minimal `DocumentFormattingTest`, and then fix the product code.
@@ -49,7 +49,7 @@ Use the helper script in this skill:
 - `-TestName` defaults to a sanitized name derived from the zip filename. Override it when you want a shorter or more descriptive repro name.
 - Keep the folder name and the test name identical.
 - Use `-Expectation Null` only when the correct outcome is that all edits should be filtered out. Otherwise keep the default `NotNull`.
-- The script copies every extracted file into the new test asset folder and appends the matching test method to `FormattingLogTest.cs`.
+- The script copies every extracted file into the new test asset folder and appends the matching test method to `src\Razor\src\Razor\test\Microsoft.VisualStudio.LanguageServices.Razor.UnitTests\Cohost\Formatting\FormattingLogTest.cs`.
 
 ## Run the imported test
 
@@ -66,7 +66,7 @@ Do **not** run `dotnet test` at the repo root.
 
 ## When the imported log test fails
 
-1. Commit the imported formatting log assets and `FormattingLogTest` change by themselves.
+1. Commit the imported formatting log assets and `FormattingLogTest.cs` change by themselves.
 2. Reduce the failure to a focused repro in `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\Formatting\DocumentFormattingTest.cs`.
 3. Commit the minimal repro by itself.
 4. Fix the product code.
