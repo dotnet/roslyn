@@ -1,0 +1,83 @@
+﻿RazorDocument - [0..166)::166 - [LF@switch ((1, 2))LF{LF    case ITuple (1, 2):LF        <strong>Property expressions are supported by the razor syntax in the year 2022.</strong>LF        break;LF}LF]
+    MarkupBlock - [0..166)::166
+        MarkupTextLiteral - [0..2)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [2..166)::164
+            CSharpTransition - [2..3)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [3..48)::45 - [switch ((1, 2))LF{LF    case ITuple (1, 2):LF] - Gen<Stmt>
+                Keyword;[switch];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                LeftParenthesis;[(];
+                NumericLiteral;[1];
+                Comma;[,];
+                Whitespace;[ ];
+                NumericLiteral;[2];
+                RightParenthesis;[)];
+                RightParenthesis;[)];
+                NewLine;[LF];
+                LeftBrace;[{];
+                NewLine;[LF];
+                Whitespace;[    ];
+                Keyword;[case];
+                Whitespace;[ ];
+                Identifier;[ITuple];
+                Whitespace;[ ];
+                LeftParenthesis;[(];
+                NumericLiteral;[1];
+                Comma;[,];
+                Whitespace;[ ];
+                NumericLiteral;[2];
+                RightParenthesis;[)];
+                Colon;[:];
+                NewLine;[LF];
+            MarkupBlock - [48..147)::99
+                MarkupTextLiteral - [48..56)::8 - [        ] - Gen<Markup>
+                    Whitespace;[        ];
+                MarkupElement - [56..145)::89
+                    MarkupStartTag - [56..64)::8 - [<strong>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[strong];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [64..136)::72 - [Property expressions are supported by the razor syntax in the year 2022.] - Gen<Markup>
+                        Text;[Property];
+                        Whitespace;[ ];
+                        Text;[expressions];
+                        Whitespace;[ ];
+                        Text;[are];
+                        Whitespace;[ ];
+                        Text;[supported];
+                        Whitespace;[ ];
+                        Text;[by];
+                        Whitespace;[ ];
+                        Text;[the];
+                        Whitespace;[ ];
+                        Text;[razor];
+                        Whitespace;[ ];
+                        Text;[syntax];
+                        Whitespace;[ ];
+                        Text;[in];
+                        Whitespace;[ ];
+                        Text;[the];
+                        Whitespace;[ ];
+                        Text;[year];
+                        Whitespace;[ ];
+                        Text;[2022.];
+                    MarkupEndTag - [136..145)::9 - [</strong>] - Gen<Markup>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[strong];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [145..147)::2 - [LF] - Gen<Markup>
+                    NewLine;[LF];
+            CSharpStatementLiteral - [147..166)::19 - [        break;LF}LF] - Gen<Stmt>
+                Whitespace;[        ];
+                Keyword;[break];
+                Semicolon;[;];
+                NewLine;[LF];
+                RightBrace;[}];
+                NewLine;[LF];
+        MarkupTextLiteral - [166..166)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

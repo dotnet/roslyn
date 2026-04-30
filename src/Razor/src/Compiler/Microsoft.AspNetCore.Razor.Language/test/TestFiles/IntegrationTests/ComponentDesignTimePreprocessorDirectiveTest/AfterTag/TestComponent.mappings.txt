@@ -1,0 +1,21 @@
+﻿Source Location: (2:0,2 [6] x:\dir\subdir\Test\TestComponent.razor)
+|
+    |
+Generated Location: (917:26,2 [6] )
+|
+    |
+
+Source Location: (41:5,2 [10] x:\dir\subdir\Test\TestComponent.razor)
+|
+#endif
+|
+Generated Location: (996:30,2 [10] )
+|
+#endif
+|
+
+Source Location: (52:7,1 [0] x:\dir\subdir\Test\TestComponent.razor)
+||
+Generated Location: (1057:36,1 [0] )
+||
+

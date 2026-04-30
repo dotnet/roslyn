@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+
+  <PropertyGroup>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateServiceHubConfigurationFiles</GetVsixSourceItemsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="CalculateServiceHubConfigurationFiles">
+    <ItemGroup>
+      <_CoreServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="Core64" HostIdSuffix="" />
+      <_CoreServicesWithSuffix Include="@(ServiceHubService)" FileSuffix="Core64S" HostIdSuffix="S" />
+
+      <ServiceHubServiceJsonFile Include="$(IntermediateOutputPath)$(ServiceHubCoreSubPath)\%(_CoreServicesWithSuffix.Identity)%(_CoreServicesWithSuffix.FileSuffix).servicehub.service.json" >
+        <Content>
+          <![CDATA[{
+  "host": "dotnet",
+  "hostId": "RoslynCodeAnalysisService%(_CoreServicesWithSuffix.HostIdSuffix)",
+  "hostGroupAllowed": true,
+  "entryPoint": {
+    "assemblyPath": "Microsoft.CodeAnalysis.Remote.Razor.dll",
+    "fullClassName": "%(_CoreServicesWithSuffix.ClassName)"
+  },
+  "friendServices": [ "Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzerCore64%(_CoreServicesWithSuffix.HostIdSuffix)" ]
+}
+]]>
+        </Content>
+        <VSIXSubPath>$(ServiceHubCoreSubPath)</VSIXSubPath>
+      </ServiceHubServiceJsonFile>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateServiceHubConfigurationFiles"
+          DependsOnTargets="CalculateServiceHubConfigurationFiles"
+          BeforeTargets="CreateVsixContainer"
+          Inputs="$(MSBuildAllProjects)"
+          Outputs="@(ServiceHubServiceJsonFile)">
+
+    <WriteLinesToFile File="%(ServiceHubServiceJsonFile.Identity)" Lines="%(ServiceHubServiceJsonFile.Content)" Overwrite="true"/>
+
+    <ItemGroup>
+      <FileWrites Include="@(ServiceHubServiceJsonFile->'%(Identity)')"/>
+      <VSIXSourceItem Include="@(ServiceHubServiceJsonFile->'%(Identity)')">
+        <VSIXSubPath Condition="'%(ServiceHubServiceJsonFile.VSIXSubPath)' != ''">%(ServiceHubServiceJsonFile.VSIXSubPath)</VSIXSubPath>
+      </VSIXSourceItem>
+    </ItemGroup>
+  </Target>
+</Project>

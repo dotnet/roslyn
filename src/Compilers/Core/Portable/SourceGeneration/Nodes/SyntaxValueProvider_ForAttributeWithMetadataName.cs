@@ -155,6 +155,9 @@ public partial struct SyntaxValueProvider
             addMatchingAttributes(symbol.GetAttributes());
             addMatchingAttributes((symbol as IMethodSymbol)?.GetReturnTypeAttributes());
 
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
+                addPrimaryConstructorAttributes(namedTypeSymbol);
+
             if (symbol is IAssemblySymbol assemblySymbol)
             {
                 foreach (var module in assemblySymbol.Modules)
@@ -181,6 +184,21 @@ public partial struct SyntaxValueProvider
 
                         if (attributeOwnerSyntax == remappedTarget)
                             result.Add(attribute);
+                    }
+                }
+            }
+
+            void addPrimaryConstructorAttributes(INamedTypeSymbol namedTypeSymbol)
+            {
+                foreach (var constructorSymbol in namedTypeSymbol.InstanceConstructors)
+                {
+                    foreach (var syntaxRef in constructorSymbol.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxRef.GetSyntax(cancellationToken) == attributeTarget)
+                        {
+                            addMatchingAttributes(constructorSymbol.GetAttributes());
+                            return;
+                        }
                     }
                 }
             }

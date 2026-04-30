@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+    <TargetFrameworks>$(NetVSAndVSCode)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);$(NetFxVS)</TargetFrameworks>
+    <IsShippingPackage>false</IsShippingPackage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Razor.Diagnostics.Analyzers\Razor.Diagnostics.Analyzers.csproj" />
+  </ItemGroup>
+
+</Project>

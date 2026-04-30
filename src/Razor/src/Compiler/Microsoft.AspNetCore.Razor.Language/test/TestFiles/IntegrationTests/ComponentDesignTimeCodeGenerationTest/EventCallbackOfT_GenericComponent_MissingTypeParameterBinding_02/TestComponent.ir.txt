@@ -1,0 +1,27 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            DesignTimeDirective - 
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                Component - (0:0,0 [53] x:\dir\subdir\Test\TestComponent.cshtml) - MyComponent
+                    ComponentAttribute -  - OnClick -  - AttributeStructure.DoubleQuotes
+                        CSharpExpression - (22:0,22 [28] x:\dir\subdir\Test\TestComponent.cshtml)
+                            LazyIntermediateToken - (24:0,24 [25] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - (MyType arg) => counter++
+                HtmlContent - (53:0,53 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (53:0,53 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
+            CSharpCode - (64:2,7 [28] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (64:2,7 [28] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private int counter;\n
+    NamespaceDeclaration -  - __Blazor.Test.TestComponent
+        ClassDeclaration -  - internal static - TypeInference -  - 
+            ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

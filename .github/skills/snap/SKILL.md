@@ -1,6 +1,6 @@
 ---
 name: snap
-description: "Perform a branch snap (release branch cut) for dotnet repos like dotnet/roslyn and dotnet/razor. Use when: snapping a branch, cutting a release branch, creating a release branch, merging main into release, updating VS insertion config, updating darc subscriptions for a snap, moving milestones, or asked about snap workflow."
+description: "Perform a branch snap (release branch cut) for dotnet repos like dotnet/roslyn. Use when: snapping a branch, cutting a release branch, creating a release branch, merging main into release, updating VS insertion config, updating darc subscriptions for a snap, moving milestones, or asked about snap workflow."
 argument-hint: Which repo and branches to snap (e.g., snap main to release/dev18.6)?
 ---
 
@@ -10,7 +10,7 @@ Perform a branch snap (release branch cut) for dotnet repositories. A snap shift
 
 > **IMPORTANT**: This skill makes destructive changes (creates branches, opens PRs, updates subscriptions, moves milestones). Always gather info first, present the full plan, and get explicit user confirmation before executing any modifications.
 
-> **NOTE**: This skill works for multiple dotnet repos (e.g., `dotnet/roslyn`, `dotnet/razor`). Do not assume `dotnet/roslyn` — always confirm the repo.
+> **NOTE**: This skill works for multiple dotnet repos (e.g., `dotnet/roslyn`). Do not assume `dotnet/roslyn` — always confirm the repo.
 
 > **SKILL MAINTENANCE**: If you deviate from this skill during execution (e.g., a step doesn't work as described, a new step is needed, or the process has changed), remind the user to update this skill file so future snaps benefit from the fix.
 
@@ -62,7 +62,7 @@ Collect all relevant state before proposing any changes:
 
 #### 1.1 Determine repo
 
-- Ask which repo (default: the current repo via `gh repo set-default --view`).
+- Ask which repo (default: the current repo via `gh repo set-default --view`). Note that if working in the Roslyn repo (dotnet/roslyn), then the snap will apply to Roslyn and Razor, as they are both in the repo, so multiple version updates will be necessary.
 
 #### 1.2 Discover branches and versions automatically
 
@@ -77,9 +77,10 @@ Identify the three named branches (`main`, `release/insiders`, `release/stable`)
 **Step B — Read versions and configs** from all three branches:
 - Fetch `eng/Versions.props` from each branch to get the current version.
   - For roslyn: VS version = `Major + 13`.`Minor` (e.g., Roslyn 5.6 → VS 18.6).
+- Fetch 'src/Razor/Directory.Build.props' from each branch to get the current version.
   - For razor: use `<VsixVersionPrefix>` directly.
 - Fetch `eng/config/PublishData.json` from each branch to get insertion config (`vsBranch`, `insertionCreateDraftPR`, `insertionTitlePrefix`).
-  - The JSON key is `branchInfo` (roslyn) or `branches` (razor).
+  - The JSON key is `branchInfo` (roslyn).
 
 **Step C — Infer the snap cascade** from the discovered state:
 - The snap version is whatever `main` currently targets (e.g., 18.6).
@@ -183,18 +184,20 @@ After gathering, present **all** planned actions in a numbered list for the user
 
 4. **Update `Versions.props` on `main`**: Bump the minor version (e.g., 5.6.0 → 5.7.0) and reset `PreReleaseVersionLabel` to `1`.
 
-5. **Update SARIF files** (roslyn only): Replace old version string with new version in all `.sarif` files under `src/RoslynAnalyzers/` (search recursively).
+5. **Update 'src/Razor/Directory.Build.props'**  (roslyn only): Bump the minor version (e.g., 18.7.1 → 18.8.1)
 
-6. **Darc channel changes**: Update default channels to reflect the new version each branch carries:
+6. **Update SARIF files** (roslyn only): Replace old version string with new version in all `.sarif` files under `src/RoslynAnalyzers/` (search recursively).
+
+7. **Darc channel changes**: Update default channels to reflect the new version each branch carries:
    - `release/insiders` → VS channel for the snapped version (e.g., `VS 18.6`)
    - `release/stable` → VS channel for what was previously insiders (e.g., `VS 18.5`)
    - SDK channels: move `.NET 10.0.Nxx SDK` from `main` to `release/insiders` (insiders now carries that SDK band). `main` will be added to the next SDK band (e.g., `.NET 10.0.(N+1)xx SDK`) when that channel is created.
    - Also update corresponding VMR flows and backflows for each branch if needed.
    - Remove/retire default channels for the old stable version if no longer needed.
 
-7. **Move milestones**: Move merged PRs and closed issues from `Next` milestone to the target milestone (e.g., `18.6`). Create the milestone if it doesn't exist.
+8. **Move milestones**: Move merged PRs and closed issues from `Next` milestone to the target milestone (e.g., `18.6`). Create the milestone if it doesn't exist.
 
-8. **Retire old stable** (if applicable): If the old stable version (e.g., 18.4) is fully retired, remove its darc default channels. If a servicing branch is needed (e.g., `release/sdk10.0.3xx`), note that for the user to handle separately.
+9. **Retire old stable** (if applicable): If the old stable version (e.g., 18.4) is fully retired, remove its darc default channels. If a servicing branch is needed (e.g., `release/sdk10.0.3xx`), note that for the user to handle separately.
 
 **`PublishData.json` interim handling**: During the ~1 week gap between Roslyn snap and VS snap, named branches need temporary insertion target overrides because VS branch names haven't shifted yet. These temporary changes are included directly in the snap merge PRs (for non-main branches) and reverted after VS snaps (see step 3.8).
 
@@ -313,7 +316,6 @@ For each merge PR, construct a `PublishData.json` from the source's content (up-
 1. Read source's PD content: `git show {sourceCommit}:eng/config/PublishData.json`
 2. Parse and modify the JSON:
    - **Roslyn** (uses `branchInfo` key): Replace `vsBranch`, `insertionTitlePrefix`, `insertionCreateDraftPR` values.
-   - **Razor** (uses `branches` key with branch name as sub-key, e.g., `"branches": { "main": { ... } }`): Rename the sub-key from the source branch name to the target branch name (e.g., `main` → `release/insiders`), and replace `vsBranch`, `insertionTitlePrefix`, `insertionCreateDraftPR`.
 3. Write modified JSON to a git blob: `echo "{modifiedJson}" | git hash-object -w --stdin`
 4. Override in temp index: `GIT_INDEX_FILE=$TEMP_INDEX git update-index --add --cacheinfo 100644,{newBlobSha},eng/config/PublishData.json`
 
@@ -388,7 +390,7 @@ darc delete-default-channel --id {id} --configuration-branch {cfgBranch} --no-pr
 darc add-default-channel --repo https://github.com/{owner}/{repo} --branch {branch} --channel "{channelName}" --configuration-branch {cfgBranch} --no-pr --ci
 ```
 
-Repeat for every repo and branch being snapped (e.g., insiders and stable for both roslyn and razor).
+Repeat for every repo and branch being snapped (e.g., insiders and stable for roslyn).
 
 **SDK channels**: Move the current SDK band from `main` to `release/insiders`:
 ```

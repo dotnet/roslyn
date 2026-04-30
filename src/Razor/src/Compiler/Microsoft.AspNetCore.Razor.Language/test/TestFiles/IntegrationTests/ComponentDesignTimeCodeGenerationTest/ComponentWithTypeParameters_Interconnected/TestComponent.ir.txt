@@ -1,0 +1,20 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - T1, T2
+            DesignTimeDirective - 
+                DirectiveToken - (11:0,11 [2] x:\dir\subdir\Test\TestComponent.cshtml) - T1
+                DirectiveToken - (14:0,14 [16] x:\dir\subdir\Test\TestComponent.cshtml) - where T1 : C<T2>
+                DirectiveToken - (43:1,11 [2] x:\dir\subdir\Test\TestComponent.cshtml) - T2
+                DirectiveToken - (46:1,14 [20] x:\dir\subdir\Test\TestComponent.cshtml) - where T2 : D<T1, T2>
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - protected override - void - BuildRenderTree

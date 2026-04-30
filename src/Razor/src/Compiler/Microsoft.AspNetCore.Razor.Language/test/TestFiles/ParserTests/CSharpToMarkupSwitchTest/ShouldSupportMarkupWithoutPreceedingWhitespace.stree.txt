@@ -1,0 +1,67 @@
+﻿RazorDocument - [0..68)::68 - [@foreach(var file in files){LFLFLF@:BazLF<br/>LF<a>Foo</a>LF@:BarLF}]
+    MarkupBlock - [0..68)::68
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..68)::68
+            CSharpTransition - [0..1)::1 - Gen<None>
+                Transition;[@];
+            CSharpStatementLiteral - [1..34)::33 - [foreach(var file in files){LFLFLF] - Gen<Stmt>
+                Keyword;[foreach];
+                LeftParenthesis;[(];
+                Keyword;[var];
+                Whitespace;[ ];
+                Keyword;[file];
+                Whitespace;[ ];
+                Keyword;[in];
+                Whitespace;[ ];
+                Identifier;[files];
+                RightParenthesis;[)];
+                LeftBrace;[{];
+                NewLine;[LF];
+                NewLine;[LF];
+                NewLine;[LF];
+            MarkupBlock - [34..41)::7
+                MarkupTransition - [34..35)::1 - Gen<None>
+                    Transition;[@];
+                RazorMetaCode - [35..36)::1 - Gen<None>
+                    Colon;[:];
+                MarkupTextLiteral - [36..41)::5 - [BazLF] - Gen<Markup>
+                    Text;[Baz];
+                    NewLine;[LF];
+            MarkupBlock - [41..48)::7
+                MarkupElement - [41..46)::5
+                    MarkupStartTag - [41..46)::5 - [<br/>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[br];
+                        ForwardSlash;[/];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [46..48)::2 - [LF] - Gen<Markup>
+                    NewLine;[LF];
+            MarkupBlock - [48..60)::12
+                MarkupElement - [48..58)::10
+                    MarkupStartTag - [48..51)::3 - [<a>] - Gen<Markup>
+                        OpenAngle;[<];
+                        Text;[a];
+                        CloseAngle;[>];
+                    MarkupTextLiteral - [51..54)::3 - [Foo] - Gen<Markup>
+                        Text;[Foo];
+                    MarkupEndTag - [54..58)::4 - [</a>] - Gen<Markup>
+                        OpenAngle;[<];
+                        ForwardSlash;[/];
+                        Text;[a];
+                        CloseAngle;[>];
+                MarkupTextLiteral - [58..60)::2 - [LF] - Gen<Markup>
+                    NewLine;[LF];
+            MarkupBlock - [60..67)::7
+                MarkupTransition - [60..61)::1 - Gen<None>
+                    Transition;[@];
+                RazorMetaCode - [61..62)::1 - Gen<None>
+                    Colon;[:];
+                MarkupTextLiteral - [62..67)::5 - [BarLF] - Gen<Markup>
+                    Text;[Bar];
+                    NewLine;[LF];
+            CSharpStatementLiteral - [67..68)::1 - [}] - Gen<Stmt>
+                RightBrace;[}];
+        MarkupTextLiteral - [68..68)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

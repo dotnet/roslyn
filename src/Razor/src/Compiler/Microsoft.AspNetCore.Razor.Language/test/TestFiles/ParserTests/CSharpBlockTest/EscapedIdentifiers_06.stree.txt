@@ -1,0 +1,83 @@
+﻿RazorDocument - [0..123)::123 - [@{LF    var @string = "string test";LF    {LF        @string = "test";LF    }LF    @string = "new string";LF}LFLF@(@string)]
+    MarkupBlock - [0..123)::123
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..109)::109
+            CSharpStatement - [0..109)::109
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                CSharpStatementBody - [1..109)::108
+                    RazorMetaCode - [1..2)::1 - Gen<None>
+                        LeftBrace;[{];
+                    CSharpCodeBlock - [2..108)::106
+                        CSharpStatementLiteral - [2..53)::51 - [LF    var @string = "string test";LF    {LF        ] - Gen<Stmt>
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            Keyword;[var];
+                            Whitespace;[ ];
+                            Identifier;[@string];
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["string test"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            LeftBrace;[{];
+                            NewLine;[LF];
+                            Whitespace;[        ];
+                        CSharpCodeBlock - [53..60)::7
+                            CSharpImplicitExpression - [53..60)::7
+                                CSharpTransition - [53..54)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [54..60)::6
+                                    CSharpCodeBlock - [54..60)::6
+                                        CSharpExpressionLiteral - [54..60)::6 - [string] - Gen<Expr>
+                                            Keyword;[string];
+                        CSharpStatementLiteral - [60..83)::23 - [ = "test";LF    }LF    ] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["test"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                            RightBrace;[}];
+                            NewLine;[LF];
+                            Whitespace;[    ];
+                        CSharpCodeBlock - [83..90)::7
+                            CSharpImplicitExpression - [83..90)::7
+                                CSharpTransition - [83..84)::1 - Gen<None>
+                                    Transition;[@];
+                                CSharpImplicitExpressionBody - [84..90)::6
+                                    CSharpCodeBlock - [84..90)::6
+                                        CSharpExpressionLiteral - [84..90)::6 - [string] - Gen<Expr>
+                                            Keyword;[string];
+                        CSharpStatementLiteral - [90..108)::18 - [ = "new string";LF] - Gen<Stmt>
+                            Whitespace;[ ];
+                            Assign;[=];
+                            Whitespace;[ ];
+                            StringLiteral;["new string"];
+                            Semicolon;[;];
+                            NewLine;[LF];
+                    RazorMetaCode - [108..109)::1 - Gen<None>
+                        RightBrace;[}];
+        MarkupEphemeralTextLiteral - [109..111)::2 - [LF] - Gen<None>
+            NewLine;[LF];
+        MarkupTextLiteral - [111..113)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+        CSharpCodeBlock - [113..123)::10
+            CSharpExplicitExpression - [113..123)::10
+                CSharpTransition - [113..114)::1 - Gen<None>
+                    Transition;[@];
+                CSharpExplicitExpressionBody - [114..123)::9
+                    RazorMetaCode - [114..115)::1 - Gen<None>
+                        LeftParenthesis;[(];
+                    CSharpCodeBlock - [115..122)::7
+                        CSharpExpressionLiteral - [115..122)::7 - [@string] - Gen<Expr>
+                            Identifier;[@string];
+                    RazorMetaCode - [122..123)::1 - Gen<None>
+                        RightParenthesis;[)];
+        MarkupTextLiteral - [123..123)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];

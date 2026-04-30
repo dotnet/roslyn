@@ -1,0 +1,5 @@
+﻿Source Location: (14:0,14 [15] TestFiles/IntegrationTests/CodeGenerationIntegrationTest/TagHelpersWithBoundAttributesAndRazorComment.cshtml)
+|*, TestAssembly|
+Generated Location: (1815:32,38 [15] )
+|*, TestAssembly|
+

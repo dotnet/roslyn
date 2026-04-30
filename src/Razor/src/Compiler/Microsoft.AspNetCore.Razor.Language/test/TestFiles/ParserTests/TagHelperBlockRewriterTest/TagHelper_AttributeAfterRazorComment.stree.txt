@@ -1,0 +1,45 @@
+﻿RazorDocument - [0..63)::63 - [<pLF  attribute-1="true"LF  @* visible *@LF  not-visible>LF</p>]
+    MarkupBlock - [0..63)::63
+        MarkupTagHelperElement - [0..63)::63 - p[StartTagAndEndTag] - PTagHelper
+            MarkupTagHelperStartTag - [0..57)::57 - [<pLF  attribute-1="true"LF  @* visible *@LF  not-visible>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                MarkupTagHelperAttribute - [2..24)::22 - attribute-1 - DoubleQuotes - Bound - [LF  attribute-1="true"]
+                    MarkupTextLiteral - [2..6)::4 - [LF  ] - Gen<Markup>
+                        NewLine;[LF];
+                        Whitespace;[  ];
+                    MarkupTextLiteral - [6..17)::11 - [attribute-1] - Gen<Markup>
+                        Text;[attribute-1];
+                    Equals;[=];
+                    MarkupTextLiteral - [18..19)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                    MarkupTagHelperAttributeValue - [19..23)::4
+                        MarkupTextLiteral - [19..23)::4 - [true] - Gen<Markup>
+                            Text;[true];
+                    MarkupTextLiteral - [23..24)::1 - ["] - Gen<Markup>
+                        DoubleQuote;["];
+                MarkupTextLiteral - [24..28)::4 - [LF  ] - Gen<Markup>
+                    NewLine;[LF];
+                    Whitespace;[  ];
+                RazorComment - [28..41)::13
+                    RazorCommentTransition;[@];
+                    RazorCommentStar;[*];
+                    RazorCommentLiteral;[ visible ];
+                    RazorCommentStar;[*];
+                    RazorCommentTransition;[@];
+                MarkupEphemeralTextLiteral - [41..43)::2 - [LF] - Gen<None>
+                    NewLine;[LF];
+                MarkupMinimizedTagHelperAttribute - [43..56)::13 - not-visible - Minimized - Bound - [  not-visible]
+                    MarkupTextLiteral - [43..45)::2 - [  ] - Gen<Markup>
+                        Whitespace;[  ];
+                    MarkupTextLiteral - [45..56)::11 - [not-visible] - Gen<Markup>
+                        Text;[not-visible];
+                CloseAngle;[>];
+            MarkupTextLiteral - [57..59)::2 - [LF] - Gen<Markup>
+                NewLine;[LF];
+            MarkupTagHelperEndTag - [59..63)::4 - [</p>]
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

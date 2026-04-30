@@ -1,0 +1,184 @@
+﻿Document - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective -  - TModel = global::System.Object
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_CssSelectorTagHelperAttributes - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::TestNamespace.ATagHelper - __TestNamespace_ATagHelper
+            FieldDeclaration -  - private - global::TestNamespace.CatchAllTagHelper - __TestNamespace_CatchAllTagHelper
+            FieldDeclaration -  - private - global::TestNamespace.ATagHelperMultipleSelectors - __TestNamespace_ATagHelperMultipleSelectors
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper - __TestNamespace_InputTagHelper
+            FieldDeclaration -  - private - global::TestNamespace.InputTagHelper2 - __TestNamespace_InputTagHelper2
+            FieldDeclaration -  - private - global::TestNamespace.CatchAllTagHelper2 - __TestNamespace_CatchAllTagHelper2
+            DesignTimeDirective - 
+                DirectiveToken - (287:7,8 [62] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper<TModel>
+                DirectiveToken - (350:7,71 [4] ) - Html
+                DirectiveToken - (364:8,8 [54] ) - global::Microsoft.AspNetCore.Mvc.Rendering.IJsonHelper
+                DirectiveToken - (419:8,63 [4] ) - Json
+                DirectiveToken - (433:9,8 [53] ) - global::Microsoft.AspNetCore.Mvc.IViewComponentHelper
+                DirectiveToken - (487:9,62 [9] ) - Component
+                DirectiveToken - (506:10,8 [43] ) - global::Microsoft.AspNetCore.Mvc.IUrlHelper
+                DirectiveToken - (550:10,52 [3] ) - Url
+                DirectiveToken - (563:11,8 [70] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider
+                DirectiveToken - (634:11,79 [23] ) - ModelExpressionProvider
+                DirectiveToken - (673:12,14 [104] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.UrlResolutionTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (793:13,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.HeadTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (904:14,14 [95] ) - global::Microsoft.AspNetCore.Mvc.Razor.TagHelpers.BodyTagHelper, Microsoft.AspNetCore.Mvc.Razor
+                DirectiveToken - (14:0,14 [17] CssSelectorTagHelperAttributes.cshtml) - "*, TestAssembly"
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning disable 0414
+            CSharpCode - 
+                IntermediateToken -  - CSharp - private static object __o = null;
+            CSharpCode - 
+                IntermediateToken -  - CSharp - #pragma warning restore 0414
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (31:0,31 [4] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (31:0,31 [4] CssSelectorTagHelperAttributes.cshtml) - Html - \n\n
+                TagHelper - (35:2,0 [30] CssSelectorTagHelperAttributes.cshtml) - a - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (48:2,13 [13] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (48:2,13 [13] CssSelectorTagHelperAttributes.cshtml) - Html - 2 TagHelpers.
+                    DefaultTagHelperCreate -  - TestNamespace.ATagHelper
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper
+                    DefaultTagHelperHtmlAttribute -  - href - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (44:2,9 [2] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (44:2,9 [2] CssSelectorTagHelperAttributes.cshtml) - Html - ~/
+                    DefaultTagHelperExecute - 
+                HtmlContent - (65:2,30 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (65:2,30 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (67:3,0 [32] CssSelectorTagHelperAttributes.cshtml) - a - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (83:3,16 [12] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (83:3,16 [12] CssSelectorTagHelperAttributes.cshtml) - Html - 1 TagHelper.
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper
+                    DefaultTagHelperHtmlAttribute -  - href - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (75:3,8 [7] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (75:3,8 [7] CssSelectorTagHelperAttributes.cshtml) - Html - ~/hello
+                    DefaultTagHelperExecute - 
+                HtmlContent - (99:3,32 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (99:3,32 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (101:4,0 [41] CssSelectorTagHelperAttributes.cshtml) - a - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (126:4,25 [12] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (126:4,25 [12] CssSelectorTagHelperAttributes.cshtml) - Html - 2 TagHelpers
+                    DefaultTagHelperCreate -  - TestNamespace.ATagHelperMultipleSelectors
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper
+                    DefaultTagHelperHtmlAttribute -  - href - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (110:4,9 [14] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (110:4,9 [14] CssSelectorTagHelperAttributes.cshtml) - Html - ~/?hello=world
+                    DefaultTagHelperExecute - 
+                HtmlContent - (142:4,41 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (142:4,41 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (144:5,0 [47] CssSelectorTagHelperAttributes.cshtml) - a - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (175:5,31 [12] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (175:5,31 [12] CssSelectorTagHelperAttributes.cshtml) - Html - 2 TagHelpers
+                    DefaultTagHelperCreate -  - TestNamespace.ATagHelperMultipleSelectors
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper
+                    DefaultTagHelperHtmlAttribute -  - href - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlAttributeValue - (153:5,9 [2] CssSelectorTagHelperAttributes.cshtml) - 
+                            LazyIntermediateToken - (153:5,9 [2] CssSelectorTagHelperAttributes.cshtml) - Html - ~/
+                        CSharpExpressionAttributeValue - (155:5,11 [6] CssSelectorTagHelperAttributes.cshtml) - 
+                            LazyIntermediateToken - (156:5,12 [5] CssSelectorTagHelperAttributes.cshtml) - CSharp - false
+                        HtmlAttributeValue - (161:5,17 [12] CssSelectorTagHelperAttributes.cshtml) - 
+                            LazyIntermediateToken - (161:5,17 [12] CssSelectorTagHelperAttributes.cshtml) - Html - ?hello=world
+                    DefaultTagHelperExecute - 
+                HtmlContent - (191:5,47 [35] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (191:5,47 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                    LazyIntermediateToken - (193:6,0 [2] CssSelectorTagHelperAttributes.cshtml) - Html - <a
+                    LazyIntermediateToken - (195:6,2 [11] CssSelectorTagHelperAttributes.cshtml) - Html -  href=' ~/'
+                    LazyIntermediateToken - (206:6,13 [1] CssSelectorTagHelperAttributes.cshtml) - Html - >
+                    LazyIntermediateToken - (207:6,14 [13] CssSelectorTagHelperAttributes.cshtml) - Html - 0 TagHelpers.
+                    LazyIntermediateToken - (220:6,27 [4] CssSelectorTagHelperAttributes.cshtml) - Html - </a>
+                    LazyIntermediateToken - (224:6,31 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (226:7,0 [32] CssSelectorTagHelperAttributes.cshtml) - a - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (243:7,17 [11] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (243:7,17 [11] CssSelectorTagHelperAttributes.cshtml) - Html - 1 TagHelper
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper
+                    DefaultTagHelperHtmlAttribute -  - href - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlAttributeValue - (234:7,8 [2] CssSelectorTagHelperAttributes.cshtml) - 
+                            LazyIntermediateToken - (234:7,8 [2] CssSelectorTagHelperAttributes.cshtml) - Html - ~/
+                        CSharpExpressionAttributeValue - (236:7,10 [6] CssSelectorTagHelperAttributes.cshtml) - 
+                            LazyIntermediateToken - (237:7,11 [5] CssSelectorTagHelperAttributes.cshtml) - CSharp - false
+                    DefaultTagHelperExecute - 
+                HtmlContent - (258:7,32 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (258:7,32 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (260:8,0 [46] CssSelectorTagHelperAttributes.cshtml) - a - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (291:8,31 [11] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (291:8,31 [11] CssSelectorTagHelperAttributes.cshtml) - Html - 1 TagHelper
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper
+                    DefaultTagHelperHtmlAttribute -  - href - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (269:8,9 [20] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (269:8,9 [20] CssSelectorTagHelperAttributes.cshtml) - Html - ~/?hello=world@false
+                    DefaultTagHelperExecute - 
+                HtmlContent - (306:8,46 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (306:8,46 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (308:9,0 [47] CssSelectorTagHelperAttributes.cshtml) - a - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (340:9,32 [11] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (340:9,32 [11] CssSelectorTagHelperAttributes.cshtml) - Html - 1 TagHelper
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper
+                    DefaultTagHelperHtmlAttribute -  - href - HtmlAttributeValueStyle.SingleQuotes
+                        HtmlAttributeValue - (317:9,9 [14] CssSelectorTagHelperAttributes.cshtml) - 
+                            LazyIntermediateToken - (317:9,9 [14] CssSelectorTagHelperAttributes.cshtml) - Html - ~/?hello=world
+                        CSharpExpressionAttributeValue - (331:9,23 [7] CssSelectorTagHelperAttributes.cshtml) -  
+                            LazyIntermediateToken - (333:9,25 [5] CssSelectorTagHelperAttributes.cshtml) - CSharp - false
+                    DefaultTagHelperExecute - 
+                HtmlContent - (355:9,47 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (355:9,47 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (357:10,0 [42] CssSelectorTagHelperAttributes.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - TestNamespace.InputTagHelper
+                    DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper2
+                    DefaultTagHelperProperty - (370:10,13 [4] CssSelectorTagHelperAttributes.cshtml) - type - string TestNamespace.InputTagHelper.Type - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (370:10,13 [4] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (370:10,13 [4] CssSelectorTagHelperAttributes.cshtml) - Html - text
+                    DefaultTagHelperProperty - (370:10,13 [4] CssSelectorTagHelperAttributes.cshtml) - type - string TestNamespace.InputTagHelper2.Type - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (370:10,13 [4] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (370:10,13 [4] CssSelectorTagHelperAttributes.cshtml) - Html - text
+                    DefaultTagHelperHtmlAttribute -  - value - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (383:10,26 [12] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (383:10,26 [12] CssSelectorTagHelperAttributes.cshtml) - Html - 3 TagHelpers
+                    DefaultTagHelperExecute - 
+                HtmlContent - (399:10,42 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (399:10,42 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (401:11,0 [43] CssSelectorTagHelperAttributes.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper2
+                    DefaultTagHelperProperty - (414:11,13 [5] CssSelectorTagHelperAttributes.cshtml) - type - string TestNamespace.InputTagHelper2.Type - HtmlAttributeValueStyle.SingleQuotes
+                        HtmlContent - (414:11,13 [5] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (414:11,13 [5] CssSelectorTagHelperAttributes.cshtml) - Html - texty
+                    DefaultTagHelperHtmlAttribute -  - value - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (428:11,27 [12] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (428:11,27 [12] CssSelectorTagHelperAttributes.cshtml) - Html - 3 TagHelpers
+                    DefaultTagHelperExecute - 
+                HtmlContent - (444:11,43 [2] CssSelectorTagHelperAttributes.cshtml)
+                    LazyIntermediateToken - (444:11,43 [2] CssSelectorTagHelperAttributes.cshtml) - Html - \n
+                TagHelper - (446:12,0 [45] CssSelectorTagHelperAttributes.cshtml) - input - TagMode.SelfClosing
+                    DefaultTagHelperBody - 
+                    DefaultTagHelperCreate -  - TestNamespace.InputTagHelper2
+                    DefaultTagHelperCreate -  - TestNamespace.CatchAllTagHelper2
+                    DefaultTagHelperProperty - (459:12,13 [8] CssSelectorTagHelperAttributes.cshtml) - type - string TestNamespace.InputTagHelper2.Type - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (459:12,13 [8] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (459:12,13 [8] CssSelectorTagHelperAttributes.cshtml) - Html - checkbox
+                    DefaultTagHelperHtmlAttribute -  - value - HtmlAttributeValueStyle.DoubleQuotes
+                        HtmlContent - (476:12,30 [11] CssSelectorTagHelperAttributes.cshtml)
+                            LazyIntermediateToken - (476:12,30 [11] CssSelectorTagHelperAttributes.cshtml) - Html - 2 TagHelper
+                    DefaultTagHelperExecute - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

@@ -1,0 +1,59 @@
+﻿Source Location: (1:0,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (703:19,49 [11] )
+|MyComponent|
+
+Source Location: (37:0,37 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|IComposedInterface|
+Generated Location: (799:22,0 [18] )
+|IComposedInterface|
+
+Source Location: (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (967:30,0 [6] )
+|string|
+
+Source Location: (63:0,63 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (1236:39,0 [5] )
+|Value|
+
+Source Location: (70:0,70 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|_componentValue|
+Generated Location: (1482:47,0 [15] )
+|_componentValue|
+
+Source Location: (92:1,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyComponent|
+Generated Location: (2224:56,49 [11] )
+|MyComponent|
+
+Source Location: (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|IComposedInterface|
+Generated Location: (2320:59,0 [18] )
+|IComposedInterface|
+
+Source Location: (140:1,49 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (2488:67,0 [6] )
+|string|
+
+Source Location: (154:1,63 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|Value|
+Generated Location: (2757:76,0 [5] )
+|Value|
+
+Source Location: (161:1,70 [15] x:\dir\subdir\Test\TestComponent.cshtml)
+|_componentValue|
+Generated Location: (3003:84,0 [15] )
+|_componentValue|
+
+Source Location: (191:3,7 [46] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    string _componentValue = string.Empty;
+|
+Generated Location: (3773:96,0 [46] )
+|
+    string _componentValue = string.Empty;
+|
+

@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
+    <value>Value cannot be null or an empty string.</value>
+  </data>
+  <data name="Directive" xml:space="preserve">
+    <value>directive</value>
+  </data>
+  <data name="DirectiveSnippetDescription" xml:space="preserve">
+    <value>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</value>
+  </data>
+  <data name="Invalid_Offset" xml:space="preserve">
+    <value>Invalid offset.</value>
+  </data>
+  <data name="PositionCharacter_Outside_Range" xml:space="preserve">
+    <value>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</value>
+  </data>
+  <data name="PositionLine_Outside_Range" xml:space="preserve">
+    <value>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</value>
+  </data>
+  <data name="Unknown_mapping_behavior" xml:space="preserve">
+    <value>Unknown mapping behavior</value>
+  </data>
+  <data name="Unknown_RazorMetaCode" xml:space="preserve">
+    <value>Attempted to visit a RazorMetaCode other than '{' or '}'.</value>
+  </data>
+  <data name="Format_operation_changed_nonwhitespace" xml:space="preserve">
+    <value>A format operation is being abandoned because it would add or delete non-whitespace content.</value>
+  </data>
+  <data name="Edit_at_adds" xml:space="preserve">
+    <value>Edit at {0} adds the non-whitespace content '{1}'.</value>
+  </data>
+  <data name="Edit_at_deletes" xml:space="preserve">
+    <value>Edit at {0} deletes the non-whitespace content '{1}'.</value>
+  </data>
+  <data name="Format_operation_changed_diagnostics" xml:space="preserve">
+    <value>A format operation is being abandoned because it would introduce or remove one of more diagnostics.</value>
+  </data>
+  <data name="Diagnostics_before" xml:space="preserve">
+    <value>Diagnostics before:</value>
+  </data>
+  <data name="Diagnostics_after" xml:space="preserve">
+    <value>Diagnostics after:</value>
+  </data>
+  <data name="Language_Services_Missing_Service" xml:space="preserve">
+    <value>Razor language services not configured properly, missing language service '{0}'.</value>
+  </data>
+  <data name="Not_Available_In" xml:space="preserve">
+    <value>Not available in</value>
+  </data>
+  <data name="TagHelper_Attribute_Glyph" xml:space="preserve">
+    <value>Razor TagHelper Attribute Glyph</value>
+  </data>
+  <data name="TagHelper_Element_Glyph" xml:space="preserve">
+    <value>Razor TagHelper Element Glyph</value>
+  </data>
+  <data name="Create_Component_FromTag_Title" xml:space="preserve">
+    <value>Create component from tag</value>
+  </data>
+  <data name="ExtractTo_CodeBehind_Title" xml:space="preserve">
+    <value>Extract block to code behind</value>
+  </data>
+  <data name="ExtractTo_Component_Title" xml:space="preserve">
+    <value>Extract element to new component</value>
+  </data>
+  <data name="Generate_Async_Event_Handler_Title" xml:space="preserve">
+    <value>Generate Async Event Handler '{0}'</value>
+  </data>
+  <data name="Generate_Event_Handler_Title" xml:space="preserve">
+    <value>Generate Event Handler '{0}'</value>
+  </data>
+  <data name="ReTrigger_Completions_Title" xml:space="preserve">
+    <value>"Re-trigger completions..."</value>
+  </data>
+  <data name="Blazor_directive_attributes" xml:space="preserve">
+    <value>Blazor directive attributes</value>
+  </data>
+  <data name="Promote_using_directive_to" xml:space="preserve">
+    <value>Promote using directive to {0}</value>
+  </data>
+  <data name="Wrap_attributes" xml:space="preserve">
+    <value>Wrap attributes</value>
+  </data>
+  <data name="Unsupported_argument_kind" xml:space="preserve">
+    <value>Unsupported argument kind: '{0}'.</value>
+  </data>
+  <data name="Unsupported_argument_type" xml:space="preserve">
+    <value>Unsupported argument type: '{0}'.</value>
+  </data>
+  <data name="Unsupported_Razor_extension_0" xml:space="preserve">
+    <value>Unsupported Razor extension: '{0}'.</value>
+  </data>
+  <data name="Unsupported_razor_project_info_version_encountered" xml:space="preserve">
+    <value>Unsupported razor project info version encounted.</value>
+  </data>
+  <data name="Simplify_Tag_To_SelfClosing_Title" xml:space="preserve">
+    <value>Simplify tag to self-closing</value>
+  </data>
+  <data name="Simplify_Fully_Qualified_Component_Title" xml:space="preserve">
+    <value>Simplify fully qualified component</value>
+  </data>
+  <data name="IncompatibleProject_NotAnAdditionalFile" xml:space="preserve">
+    <value>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has Razor documents but this file is not an AdditionalFile, so the editing experience will be limited. No more messages will be logged for this project.</value>
+  </data>
+  <data name="IncompatibleProject_NoAdditionalFiles" xml:space="preserve">
+    <value>The Razor editor utilizes the Razor Source Generator, which requires *.razor and *.cshtml files to be AdditionalFiles in the project. {0} appears to come from '{1}', which has no Razor documents that are AdditionalFiles, so the editing experience will be limited. Is it using the Razor SDK? No more messages will be logged for this project.</value>
+  </data>
+  <data name="Sort_And_Consolidate_Usings_Title" xml:space="preserve">
+    <value>Sort and consolidate usings</value>
+  </data>
+  <data name="ExtractTo_Css_Title" xml:space="preserve">
+    <value>Extract to {0}.css</value>
+  </data>
+  <data name="ComponentCompletionWithRequiredAttributesLabel" xml:space="preserve">
+    <value>{0} (and req'd attributes...)</value>
+    <comment>The term "req'd" is an abbreviation for "required"</comment>
+  </data>
+  <data name="KeywordDescription" xml:space="preserve">
+    <value>{0} Keyword</value>
+  </data>
+  <data name="Remove_unnecessary_directives" xml:space="preserve">
+    <value>Remove unnecessary directives</value>
+  </data>
+  <data name="Formatting_Error" xml:space="preserve">
+    <value>Formatting error. Abandoning further work to not corrupt the file, please report this issue. See: https://aka.ms/razor-formatting-issue</value>
+  </data>
+</root>

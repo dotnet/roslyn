@@ -1,0 +1,15 @@
+﻿Source Location: (1:0,1 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|SomeOtherComponent|
+Generated Location: (703:19,49 [18] )
+|SomeOtherComponent|
+
+Source Location: (48:1,26 [12] x:\dir\subdir\Test\TestComponent.cshtml)
+|DateTime.Now|
+Generated Location: (1143:26,25 [12] )
+|DateTime.Now|
+
+Source Location: (81:2,14 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|"good"|
+Generated Location: (1543:38,25 [6] )
+|"good"|
+
