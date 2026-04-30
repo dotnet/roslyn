@@ -8872,7 +8872,7 @@ class Program
             binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", "0", "int", "1", "0");
             binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", uintMaxValue, "int", "1", intMaxValue);
             binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", "1", "int", "31", "0");
-            binaryOperator("System.UIntPtr", ">>", "System.UIntPtr", "1", "int", "32", "1");
+            binaryOperatorNotConstant("System.UIntPtr", ">>", "System.UIntPtr", "1", "int", "32", IntPtr.Size == 4 ? "1" : "0");
 
             binaryOperator("System.IntPtr", "&", "System.IntPtr", intMinValue, "System.IntPtr", "0", "0");
             binaryOperator("System.IntPtr", "&", "System.IntPtr", intMinValue, "System.IntPtr", "-1", intMinValue);
