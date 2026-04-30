@@ -2590,7 +2590,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
                 or ErrorCode.WRN_UnsafeMeaningless
-                or ErrorCode.ERR_NoBreakOrContId
+                or ErrorCode.ERR_NoBreakId
+                or ErrorCode.ERR_NoContinueId
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
