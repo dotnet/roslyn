@@ -319,7 +319,6 @@
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">
     <Project Path="src/Tools/ExternalAccess/Extensions/Microsoft.CodeAnalysis.ExternalAccess.Extensions.csproj" />
-    <Project Path="src/Tools/ExternalAccess/Razor/EditorFeatures/Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
     <Project Path="src/Tools/ExternalAccess/Razor/Features/Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompiler/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
     <Project Path="src/Tools/ExternalAccess/RazorCompilerTest/Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj" />
