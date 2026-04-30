@@ -166,7 +166,6 @@
       "values": [
         "Vsix\\VisualStudioSetup\\Humanizer.dll",
         "Vsix\\VisualStudioSetup\\*\\Humanizer.resources.dll",
-        "Vsix\\VisualStudioSetup\\ICSharpCode.Decompiler.dll",
         "Dlls\\Diagnostics\\Nerdbank.FullDuplexStream.dll",
         "Vsix\\VisualStudioSetup\\Newtonsoft.Json.dll",
         "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_green.dll",
@@ -179,6 +178,7 @@
   ],
   "exclude": [
     "e_sqlite3.dll",
+    "ICSharpCode.Decompiler.dll",
     "Microsoft.Build.Conversion.Core.dll",
     "Microsoft.Build.Engine.dll",
     "Microsoft.Build.Framework.dll",
