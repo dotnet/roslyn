@@ -164,8 +164,8 @@
       "certificate": "3PartySHA2",
       "strongName": null,
       "values": [
-        "VisualStudioSetup\\x64\\e_sqlite3.dll",
-        "VisualStudioSetup\\x86\\e_sqlite3.dll",
+        "Vsix\\VisualStudioSetup\\x64\\e_sqlite3.dll",
+        "Vsix\\VisualStudioSetup\\x86\\e_sqlite3.dll",
         "Vsix\\VisualStudioSetup\\Humanizer.dll",
         "Vsix\\VisualStudioSetup\\*\\Humanizer.resources.dll",
         "Vsix\\VisualStudioSetup\\ICSharpCode.Decompiler.dll",
