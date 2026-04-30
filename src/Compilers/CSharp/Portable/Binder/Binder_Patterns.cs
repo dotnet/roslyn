@@ -228,30 +228,64 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            NamedTypeSymbol declaringType = inputUnionType.OriginalDefinition;
-            ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = declaringType.UnionCaseTypes;
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            NamedTypeSymbol unionDefinition = inputUnionType.OriginalDefinition;
+            ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypes;
             MethodSymbol? bestMatch = null;
             Conversion bestMatchConversion = Conversion.NoConversion;
+            NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
 
-            for (;
-                 declaringType is not null;
-                 declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
+            if (membersInterfaceForDefinition is not null)
             {
-                NamedTypeSymbol possiblyConstructedOrSubstitutedType;
+                foundBetterMatch(
+                    conversions, inputUnionType, type,
+                    possiblyConstructedOrSubstitutedType: membersInterfaceForDefinition.AsMember(inputUnionType),
+                    declaringType: membersInterfaceForDefinition,
+                    unionDefinitionCaseTypes, ref bestMatch, ref bestMatchConversion);
+            }
+            else
+            {
+                for (NamedTypeSymbol declaringType = unionDefinition;
+                     declaringType is not null;
+                     declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
+                {
+                    NamedTypeSymbol possiblyConstructedOrSubstitutedType;
 
-                if (inputUnionType.IsDefinition)
-                {
-                    possiblyConstructedOrSubstitutedType = declaringType;
+                    if (inputUnionType.IsDefinition)
+                    {
+                        possiblyConstructedOrSubstitutedType = declaringType;
+                    }
+                    else if (declaringType == (object)inputUnionType.OriginalDefinition)
+                    {
+                        possiblyConstructedOrSubstitutedType = inputUnionType;
+                    }
+                    else
+                    {
+                        possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
+                    }
+
+                    if (foundBetterMatch(conversions, inputUnionType, type, possiblyConstructedOrSubstitutedType, declaringType, unionDefinitionCaseTypes, ref bestMatch, ref bestMatchConversion) &&
+                        bestMatchConversion.IsIdentity)
+                    {
+                        return bestMatch;
+                    }
                 }
-                else if (declaringType == (object)inputUnionType.OriginalDefinition)
-                {
-                    possiblyConstructedOrSubstitutedType = inputUnionType;
-                }
-                else
-                {
-                    possiblyConstructedOrSubstitutedType = inputUnionType.TypeSubstitution.SubstituteNamedType(declaringType);
-                }
+            }
+
+            return bestMatch;
+
+            static bool foundBetterMatch(
+                ConversionsBase conversions,
+                NamedTypeSymbol inputUnionType,
+                TypeSymbol type,
+                NamedTypeSymbol possiblyConstructedOrSubstitutedType,
+                NamedTypeSymbol declaringType,
+                ImmutableArray<TypeSymbol> unionDefinitionCaseTypes,
+                ref MethodSymbol? bestMatch,
+                ref Conversion bestMatchConversion
+                )
+            {
+                bool foundBetterMatch = false;
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
                 foreach (var m in possiblyConstructedOrSubstitutedType.GetMembers(WellKnownMemberNames.TryGetValueMethodName))
                 {
@@ -284,7 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (conversion.IsIdentity)
                             {
-                                return candidate;
+                                bestMatch = candidate;
+                                bestMatchConversion = conversion;
+                                return true;
                             }
                             else
                             {
@@ -300,14 +336,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     bestMatch = candidate;
                                     bestMatchConversion = conversion;
+                                    foundBetterMatch = true;
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            return bestMatch;
+                return foundBetterMatch;
+            }
         }
 
         private static bool HasUnionTypeTryGetValueParameterType(MethodSymbol declaredMethod, ImmutableArray<TypeSymbol> unionDefinitionCaseTypes)
@@ -357,21 +394,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol originalContainingType = method.ContainingType.OriginalDefinition;
             NamedTypeSymbol unionDefinition = unionType.OriginalDefinition;
 
-            for (var container = unionDefinition; container is not null; container = container.BaseTypeNoUseSiteDiagnostics)
-            {
-                if (container.OriginalDefinition == (object)originalContainingType)
-                {
-                    if (!unionType.IsDefinition)
-                    {
-                        method = method.OriginalDefinition.AsMember(container);
-                    }
+            NamedTypeSymbol? membersInterfaceForDefinition = unionType.GetMemberProviderInterfaceForDefinition();
 
-                    return HasTryGetValueSignature(method) && method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
-                           HasUnionTypeTryGetValueParameterType(method, unionDefinition.UnionCaseTypes);
+            if (membersInterfaceForDefinition is not null)
+            {
+                if (membersInterfaceForDefinition == (object)originalContainingType)
+                {
+                    return isMatch(method.OriginalDefinition, unionDefinition);
+                }
+            }
+            else
+            {
+                for (var container = unionDefinition; container is not null; container = container.BaseTypeNoUseSiteDiagnostics)
+                {
+                    if (container.OriginalDefinition == (object)originalContainingType)
+                    {
+                        if (!unionType.IsDefinition)
+                        {
+                            method = method.OriginalDefinition.AsMember(container);
+                        }
+
+                        return isMatch(method, unionDefinition);
+                    }
                 }
             }
 
             return false;
+
+            static bool isMatch(MethodSymbol method, NamedTypeSymbol unionDefinition)
+            {
+                return HasTryGetValueSignature(method) && method.GetUseSiteInfo().DiagnosticInfo?.DefaultSeverity != DiagnosticSeverity.Error &&
+                       HasUnionTypeTryGetValueParameterType(method, unionDefinition.UnionCaseTypes);
+            }
         }
 
         internal static bool IsUnionTypeHasValueProperty(NamedTypeSymbol unionType, PropertySymbol property)
