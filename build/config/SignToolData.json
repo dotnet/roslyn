@@ -137,7 +137,7 @@
       ]
     },
     {
-      "certificate": "Microsoft101240624",
+      "certificate": "VsixSHA2",
       "strongName": null,
       "values": [
         "Vsix\\ExpressionEvaluatorPackage\\ExpressionEvaluatorPackage.vsix",
