@@ -366,6 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             End If
 
                             dominantTypeDiagnostics.Free()
+                            elements.Free()
                         End If
                     End If
                 End If

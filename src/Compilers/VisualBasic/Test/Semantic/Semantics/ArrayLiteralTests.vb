@@ -1836,7 +1836,6 @@ End Module
 
         <WorkItem(796610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
         <Fact()>
-        <ValidatePooledObjects(LeakReason:="Array literal error path leaks pooled objects")>
         Public Sub Bug796610_1()
             Dim source =
 <compilation>
@@ -2000,7 +1999,6 @@ Static=System.Object[,], Runtime x=System.Object[,], Runtime y=Nothing
 
         <WorkItem(796610, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/796610")>
         <Fact()>
-        <ValidatePooledObjects(LeakReason:="Array literal error path leaks pooled objects")>
         Public Sub Bug796610_2()
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
