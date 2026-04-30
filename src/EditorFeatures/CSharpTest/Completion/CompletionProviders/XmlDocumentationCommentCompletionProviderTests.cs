@@ -1182,7 +1182,7 @@ public sealed class XmlDocumentationCommentCompletionProviderTests : AbstractCSh
             typeparamref name="T"
             """);
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
     public async Task TestDocCommentTag_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
     {
         // Simulate the scenario where item.Span is stale: completion triggers after "<" in a doc comment,

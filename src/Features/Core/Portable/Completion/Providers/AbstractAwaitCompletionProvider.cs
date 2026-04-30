@@ -100,6 +100,11 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         builder.Add(KeyValuePair.Create(Position, position.ToString()));
         builder.Add(KeyValuePair.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
 
+        // Compute the identifier length at the trigger position so GetChangeAsync can
+        // distinguish pre-existing text from characters the user typed after the trigger.
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        builder.Add(CompletionUtilities.GetOriginalIdentifierEndProperty(position, text, syntaxFacts));
+
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
             builder.Add(KeyValuePair.Create(MakeContainerAsync, string.Empty));
@@ -173,11 +178,9 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxKinds = syntaxFacts.SyntaxKinds;
 
-        var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
         if (item.TryGetProperty(MakeContainerAsync, out var _))
         {
+            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var position = int.Parse(item.GetProperty(Position));
             var leftTokenPosition = int.Parse(item.GetProperty(LeftTokenPosition));
             var declaration = GetAsyncSupportingDeclaration(root.FindToken(leftTokenPosition), position);
@@ -206,11 +209,12 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
             builder.AddIfNotNull(returnTypeChange);
         }
 
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
         // item.Span was captured when the completion session started and does not advance as the
-        // user types. Scan forward from the original span start to find the current end of any
-        // typed identifier characters so we replace all characters the user has entered since the
-        // trigger point.
-        var currentSpanEnd = CompletionUtilities.GetCurrentSpanEnd(item.Span.Start, text, syntaxFacts);
+        // user types. Use the original identifier length (stored at trigger time) to detect how
+        // many characters the user has typed since, so the replacement span covers them all.
+        var currentSpanEnd = CompletionUtilities.GetCurrentSpanEnd(item, text, syntaxFacts);
 
         if (item.TryGetProperty(AddAwaitAtCurrentPosition, out var _))
         {

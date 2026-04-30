@@ -839,7 +839,7 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
             await VerifyAbsenceAsync(code);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
     public async Task TestDotAwait_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
     {
         // Simulate the scenario where item.Span is stale: completion triggers at the dot,
@@ -888,7 +888,7 @@ public sealed class AwaitCompletionProviderTests : AbstractCSharpCompletionProvi
         Assert.DoesNotContain(".aw", finalCode);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/11569")]
     public async Task TestAwaitKeyword_WithAdditionalTypedCharacters_DoesNotLeaveResidualText()
     {
         // Same scenario but for the "await at current position" path (non-dot context).
