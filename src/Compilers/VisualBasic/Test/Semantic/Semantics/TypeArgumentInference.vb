@@ -502,7 +502,6 @@ End Module
         End Sub
 
         <Fact>
-        <ValidatePooledObjects(LeakReason:="Type inference error path leaks pooled objects")>
         Public Sub TestResolutionBasedOnInferenceKind3()
             Dim compilationDef =
 <compilation name="TestResolutionBasedOnInferenceKind3">
@@ -542,7 +541,6 @@ End Module
         End Sub
 
         <Fact>
-        <ValidatePooledObjects(LeakReason:="Type inference error path leaks pooled objects")>
         Public Sub TestResolutionBasedOnInferenceKind4()
             Dim compilationDef =
 <compilation name="TestResolutionBasedOnInferenceKind4">

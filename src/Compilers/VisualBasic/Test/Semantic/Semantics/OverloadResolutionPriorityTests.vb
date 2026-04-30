@@ -569,7 +569,6 @@ End Module
         End Sub
 
         <Fact>
-        <ValidatePooledObjects(LeakReason:="Overload resolution error path leaks pooled objects")>
         Public Sub TestResolutionBasedOnInferenceKind4()
             Dim compilationDef = "
 Option Strict Off
