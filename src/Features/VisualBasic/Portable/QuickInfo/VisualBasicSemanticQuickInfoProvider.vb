@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, documentationComments:=Nothing, interceptorDisplayParts:=Nothing, options, onTheFlyDocsInfo:=Nothing, cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, interceptorDisplayParts:=Nothing, options, onTheFlyDocsInfo:=Nothing, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Function BuildContentForIntrinsicOperator(
@@ -233,4 +233,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
     End Class
 End Namespace
-
