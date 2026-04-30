@@ -205,9 +205,6 @@ internal sealed partial class CSharpSymbolDisplayService
         /// </summary>
         private static bool IsDisplayableInQuotes(char c)
         {
-            if (char.IsSurrogate(c))
-                return false;
-
             var category = char.GetUnicodeCategory(c);
             return category switch
             {
