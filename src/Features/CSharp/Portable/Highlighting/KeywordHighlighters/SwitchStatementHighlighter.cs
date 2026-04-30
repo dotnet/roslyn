@@ -36,6 +36,8 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
     protected override void AddHighlights(
         SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
     {
+        var labelName = (switchStatement.Parent as LabeledStatementSyntax)?.Identifier.ValueText;
+
         spans.Add(switchStatement.SwitchKeyword.Span);
 
         foreach (var switchSection in switchStatement.Sections)
@@ -46,7 +48,7 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
                 spans.Add(EmptySpan(label.ColonToken.Span.End));
             }
 
-            HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true);
+            HighlightRelatedKeywords(switchSection, spans, highlightBreaks: true, highlightGotos: true, labelName);
         }
     }
 
@@ -55,47 +57,63 @@ internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<
     /// list.
     /// </summary>
     private static void HighlightRelatedKeywords(SyntaxNode node, List<TextSpan> spans,
-        bool highlightBreaks, bool highlightGotos)
+        bool highlightBreaks, bool highlightGotos, string? labelName)
     {
-        Debug.Assert(highlightBreaks || highlightGotos);
+        Debug.Assert(highlightBreaks || highlightGotos || labelName != null);
 
-        if (highlightBreaks && node is BreakStatementSyntax breakStatement)
+        if (node is BreakStatementSyntax breakStatement)
         {
-            spans.Add(breakStatement.BreakKeyword.Span);
-            spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
-        }
-        else if (highlightGotos && node is GotoStatementSyntax gotoStatement)
-        {
-            // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
-            // but if the label is missing, we do highlight 'goto' assuming it's more likely that
-            // the user is in the middle of typing 'goto case' or 'goto default'.
-            if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
-                gotoStatement is { Expression.IsMissing: true })
+            if (breakStatement.Name is { } breakName)
             {
-                var start = gotoStatement.GotoKeyword.SpanStart;
-                var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
-                    ? gotoStatement.CaseOrDefaultKeyword.Span.End
-                    : gotoStatement.GotoKeyword.Span.End;
-
-                spans.Add(TextSpan.FromBounds(start, end));
-                spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
-            }
-        }
-        else
-        {
-            foreach (var childNodeOrToken in node.ChildNodesAndTokens())
-            {
-                if (!childNodeOrToken.AsNode(out var child))
-                    continue;
-
-                var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
-                var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
-
-                // Only recurse if we have anything to do
-                if (highlightBreaksForChild || highlightGotosForChild)
+                if (breakName.Identifier.ValueText == labelName)
                 {
-                    HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild);
+                    spans.Add(breakStatement.BreakKeyword.Span);
+                    spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
                 }
+            }
+            else if (highlightBreaks)
+            {
+                spans.Add(breakStatement.BreakKeyword.Span);
+                spans.Add(EmptySpan(breakStatement.SemicolonToken.Span.End));
+            }
+
+            return;
+        }
+
+        if (node is GotoStatementSyntax gotoStatement)
+        {
+            if (highlightGotos)
+            {
+                // We only want to highlight 'goto case' and 'goto default', not plain old goto statements,
+                // but if the label is missing, we do highlight 'goto' assuming it's more likely that
+                // the user is in the middle of typing 'goto case' or 'goto default'.
+                if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
+                    gotoStatement is { Expression.IsMissing: true })
+                {
+                    var start = gotoStatement.GotoKeyword.SpanStart;
+                    var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
+                        ? gotoStatement.CaseOrDefaultKeyword.Span.End
+                        : gotoStatement.GotoKeyword.Span.End;
+
+                    spans.Add(TextSpan.FromBounds(start, end));
+                    spans.Add(EmptySpan(gotoStatement.SemicolonToken.Span.End));
+                }
+            }
+
+            return;
+        }
+
+        foreach (var childNodeOrToken in node.ChildNodesAndTokens())
+        {
+            if (!childNodeOrToken.AsNode(out var child))
+                continue;
+
+            var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
+            var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
+
+            if (highlightBreaksForChild || highlightGotosForChild || labelName != null)
+            {
+                HighlightRelatedKeywords(child, spans, highlightBreaksForChild, highlightGotosForChild, labelName);
             }
         }
     }
