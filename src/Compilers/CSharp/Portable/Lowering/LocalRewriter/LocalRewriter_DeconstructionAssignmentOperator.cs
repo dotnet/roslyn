@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (leftTarget.Kind != BoundKind.DiscardExpression)
                     {
                         effects.assignments.Add(MakeAssignmentOperator(resultPart.Syntax, leftTarget, resultPart,
-                            used: false, isChecked: false, AssignmentKind.Deconstruction));
+                            used: false, isChecked: false, AssignmentKind.Deconstruction, receiverIsKnownToBeCaptured: false));
                     }
                 }
                 Debug.Assert(builder is null || resultPart is { });
@@ -460,8 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         Debug.Assert(variable.Type is { });
+                        // PROTOTYPE revisit for deconstruction assignment
                         var temp = this.TransformCompoundAssignmentLHS(variable,
-                                                                       effects, temps, isDynamicAssignment: variable.Type.IsDynamic());
+                                                                       effects, temps, isDynamicAssignment: variable.Type.IsDynamic(), out _);
                         assignmentTargets.Add(new Binder.DeconstructionVariable(temp, variable.Syntax));
                         break;
                 }

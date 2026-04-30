@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
         private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight,
-            bool used, bool isChecked, AssignmentKind assignmentKind)
+            bool used, bool isChecked, AssignmentKind assignmentKind, bool receiverIsKnownToBeCaptured)
         {
             switch (rewrittenLeft.Kind)
             {
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable();
 
                 default:
-                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used, assignmentKind, receiverIsKnownToBeCaptured: false);
+                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used, assignmentKind, receiverIsKnownToBeCaptured);
             }
         }
 

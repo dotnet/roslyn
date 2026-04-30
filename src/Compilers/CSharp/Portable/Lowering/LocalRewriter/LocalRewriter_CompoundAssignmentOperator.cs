@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This will be filled in with the LHS that uses temporaries to prevent
             // double-evaluation of side effects.
-            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic);
+            BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Left, stores, temps, isDynamic, out bool receiverIsKnownToBeCaptured);
             var lhsRead = MakeRValue(transformedLHS);
             BoundExpression rewrittenAssignment;
 
@@ -231,12 +231,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // We need to create a tree that ensures that receiver of 'set' is evaluated after the binary operation
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
-                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                    BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured);
                     Debug.Assert(assignment.Type is { });
                     return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment);
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured);
             }
         }
 
@@ -536,20 +536,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundImplicitIndexerAccess indexerAccess,
             ArrayBuilder<BoundExpression> stores,
             ArrayBuilder<LocalSymbol> temps,
-            bool isDynamicAssignment)
+            bool isDynamicAssignment,
+            out bool receiverIsKnownToBeCaptured)
         {
             if (TypeSymbol.Equals(
                 indexerAccess.Argument.Type,
                 _compilation.GetWellKnownType(WellKnownType.System_Index),
                 TypeCompareKind.ConsiderEverything))
             {
-                return TransformIndexPatternIndexerAccess(indexerAccess, stores, temps, isDynamicAssignment);
+                return TransformIndexPatternIndexerAccess(indexerAccess, stores, temps, isDynamicAssignment, out receiverIsKnownToBeCaptured);
             }
 
             throw ExceptionUtilities.UnexpectedValue(indexerAccess.Argument.Type);
         }
 
-        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
+        private BoundExpression TransformIndexPatternIndexerAccess(BoundImplicitIndexerAccess implicitIndexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment, out bool receiverIsKnownToBeCaptured)
         {
             Debug.Assert(implicitIndexerAccess.IndexerOrSliceAccess.GetRefKind() == RefKind.None);
             var access = VisitIndexPatternIndexerAccess(
@@ -558,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRegularAssignment: false,
                 cacheAllArgumentsOnly: false,
                 stores, temps,
-                receiverIsKnownToBeCaptured: out _); // PROTOTYPE likely need to use this for compound assignment scenarios
+                out receiverIsKnownToBeCaptured);
 
             if (access is BoundIndexerAccess indexerAccess)
             {
@@ -567,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var arrayAccess = (BoundArrayAccess)access;
+
+                receiverIsKnownToBeCaptured = false;
 
                 if (isDynamicAssignment || !IsInvariantArray(arrayAccess.Expression.Type))
                 {
@@ -688,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// A side-effect-free expression representing the LHS.
         /// The returned node needs to be lowered but its children are already lowered.
         /// </returns>
-        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment)
+        private BoundExpression TransformCompoundAssignmentLHS(BoundExpression originalLHS, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps, bool isDynamicAssignment, out bool receiverIsKnownToBeCaptured)
         {
             // There are five possible cases.
             //
@@ -716,6 +719,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we have a variable on the left. Transform it into:
             // ref temp = ref variable
             // temp = temp + value
+
+            receiverIsKnownToBeCaptured = false;
 
             switch (originalLHS.Kind)
             {
@@ -754,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (implicitIndexerAccess.GetRefKind() == RefKind.None)
                         {
-                            return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment);
+                            return TransformImplicitIndexerAccess(implicitIndexerAccess, stores, temps, isDynamicAssignment, out receiverIsKnownToBeCaptured);
                         }
                     }
                     break;
