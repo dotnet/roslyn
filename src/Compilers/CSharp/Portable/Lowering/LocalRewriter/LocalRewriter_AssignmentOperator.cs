@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.IndexerAccess:
-                    loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true);
+                    loweredLeft = VisitIndexerAccess((BoundIndexerAccess)left, isLeftOfAssignment: true, receiverIsKnownToBeCaptured: false);
                     break;
 
                 case BoundKind.ImplicitIndexerAccess:
@@ -276,10 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, PropertySymbol property)
+        private bool IsExtensionPropertyWithByValPossiblyStructReceiverWhichHasHomeAndCanChangeValueBetweenReads(BoundExpression rewrittenReceiver, Symbol? symbol)
         {
-            return CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
-                   IsExtensionBlockMemberWithByValPossiblyStructReceiver(property) &&
+            return symbol is not null &&
+                   CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
+                   IsExtensionBlockMemberWithByValPossiblyStructReceiver(symbol) &&
                    CodeGen.CodeGenerator.HasHome(rewrittenReceiver,
                                        CodeGen.CodeGenerator.AddressKind.ReadOnlyStrict,
                                        _factory.CurrentFunction,
