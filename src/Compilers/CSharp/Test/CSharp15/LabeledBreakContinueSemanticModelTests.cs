@@ -131,8 +131,11 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
     }
 
     [Fact]
-    public void GetSymbolInfo_InvalidBreak_DoesNotResolveToLabelSymbol()
+    public void GetSymbolInfo_InvalidBreak_StillResolvesToLabelSymbol()
     {
+        // Even though the break has no enclosing loop/switch with a matching label, the identifier
+        // still resolves to the (out-of-scope) label symbol so that IDE features (find-refs,
+        // rename, etc.) work on the broken code.
         var source = """
             class C
             {
@@ -161,12 +164,15 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         Assert.NotNull(labelRef);
 
         var symbolInfo = model.GetSymbolInfo(labelRef);
-        Assert.Null(symbolInfo.Symbol);
+        Assert.Same(declaredSymbol, symbolInfo.Symbol);
     }
 
     [Fact]
-    public void GetSymbolInfo_InvalidContinue_DoesNotResolveToLabelSymbol()
+    public void GetSymbolInfo_InvalidContinue_StillResolvesToLabelSymbol()
     {
+        // Even though the continue has no enclosing loop with a matching label, the identifier
+        // still resolves to the (out-of-scope) label symbol so that IDE features (find-refs,
+        // rename, etc.) work on the broken code.
         var source = """
             class C
             {
@@ -195,7 +201,7 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
         Assert.NotNull(labelRef);
 
         var symbolInfo = model.GetSymbolInfo(labelRef);
-        Assert.Null(symbolInfo.Symbol);
+        Assert.Same(declaredSymbol, symbolInfo.Symbol);
     }
 
     #endregion

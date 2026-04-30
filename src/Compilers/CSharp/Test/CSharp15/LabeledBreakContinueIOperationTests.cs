@@ -1279,10 +1279,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         comp.VerifyDiagnostics(
             // (5,45): error CS9379: No enclosing loop or switch statement with the label 'L' out of which to break
             //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45),
-            // (5,19): warning CS0164: This label has not been referenced
-            //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-            Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 19));
+            Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45));
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
@@ -1291,7 +1288,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
         var op = model.GetOperation(breakSyntax);
 
         Assert.NotNull(op);
-        Assert.Equal(OperationKind.Invalid, op!.Kind);
+        Assert.Equal(OperationKind.Branch, op!.Kind);
 
         VerifyOperationTreeAndDiagnosticsForTest<LabeledStatementSyntax>(source, """
             ILabeledOperation (Label: L) (OperationKind.Labeled, Type: null, IsInvalid) (Syntax: 'L: { while  ... reak L; } }')
@@ -1302,8 +1299,7 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
                       ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
                     Body:
                       IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ break L; }')
-                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'break L;')
-                          Children(0)
+                        IBranchOperation (BranchKind.Break, Label: L) (OperationKind.Branch, Type: null, IsInvalid) (Syntax: 'break L;')
                     IgnoredCondition:
                       null
             """, new[]
@@ -1311,9 +1307,6 @@ public sealed class LabeledBreakContinueIOperationTests : SemanticModelTestBase
                 // (5,45): error CS9379: No enclosing loop or switch statement with the label 'L' out of which to break
                 //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
                 Diagnostic(ErrorCode.ERR_NoBreakId, "L").WithArguments("L").WithLocation(5, 45),
-                // (5,19): warning CS0164: This label has not been referenced
-                //         /*<bind>*/L: { while (true) { break L; } }/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "L").WithLocation(5, 19),
             });
     }
 

@@ -2965,18 +2965,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
 
-            var target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
+            // Suppress label-not-found errors here; if the lookup fails we'll instead report the
+            // more specific ERR_NoBreakId/ERR_NoContinueId/ERR_NoBreakOrCont below.  We still want
+            // to perform the lookup so we have a BoundLabel for the SemanticModel and so that
+            // ControlFlowPass marks the label as referenced (suppressing WRN_UnreferencedLabel).
+            var label = name == null ? null : BindLabel(name, diagnostics, reportErrors: false) as BoundLabel;
+
+            LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
+            var hasErrors = false;
             if (target == null)
             {
                 Error(diagnostics,
                     labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
                     name ?? (SyntaxNode)node,
                     labelName == null ? [] : [labelName]);
-                return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
+
+                if (label == null)
+                    return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
+
+                // We resolved the identifier to *some* label symbol but it isn't on an enclosing
+                // loop/switch.  Use that as the target so we still produce a normal
+                // BoundBreakStatement/BoundContinueStatement: the SemanticModel can then resolve
+                // the identifier, and downstream passes treat the label as referenced (suppressing
+                // WRN_UnreferencedLabel on the otherwise-unused label).  The node is still flagged
+                // as having errors via the diagnostic reported above.
+                target = label.Label;
+                hasErrors = true;
             }
 
-            var label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
-            return isBreak ? new BoundBreakStatement(node, target, label) : new BoundContinueStatement(node, target, label);
+            return isBreak
+                ? new BoundBreakStatement(node, target, label, hasErrors)
+                : new BoundContinueStatement(node, target, label, hasErrors);
         }
 #nullable disable
 
