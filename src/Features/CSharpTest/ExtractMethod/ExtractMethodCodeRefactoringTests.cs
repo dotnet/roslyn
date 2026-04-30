@@ -8783,4 +8783,59 @@ class Program
                 }
             }
             """);
+
+    [Fact]
+    public Task TestFlowControl_LabeledBreakAndContinue()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    outer: foreach (var v in x)
+                    {
+                        [|if (v == 0)
+                        {
+                            break outer;
+                        }
+                        
+                        continue outer;|]
+                    }
+
+                    return 0;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int Repro(int[] x)
+                {
+                    outer: foreach (var v in x)
+                    {
+                        bool flowControl = {|Rename:NewMethod|}(v);
+                        if (flowControl)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+            
+                    return 0;
+                }
+
+                private static bool NewMethod(int v)
+                {
+                    if (v == 0)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
+            }
+            """);
 }

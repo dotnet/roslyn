@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => _syntax.AwaitKeyword != default;
 
         public ForEachLoopBinder(Binder enclosing, CommonForEachStatementSyntax syntax)
-            : base(enclosing)
+            : base(enclosing, syntax)
         {
             Debug.Assert(syntax != null);
             _syntax = syntax;

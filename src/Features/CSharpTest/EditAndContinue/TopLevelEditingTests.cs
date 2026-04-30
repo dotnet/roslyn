@@ -12255,6 +12255,76 @@ public sealed class TopLevelEditingTests : EditingTestBase
     }
 
     [Fact]
+    public void MethodUpdate_LabeledBreakStatement()
+    {
+        var src1 = """
+
+            class C
+            {
+                static void F()
+                {
+                    outer: while (true)
+                    {
+                        break outer;
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F()
+                {
+                    outer: while (true)
+                    {
+                        if (true) break outer;
+                    }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
+    public void MethodUpdate_LabeledContinueStatement()
+    {
+        var src1 = """
+
+            class C
+            {
+                static void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        continue outer;
+                    }
+                }
+            }
+            """;
+        var src2 = """
+
+            class C
+            {
+                static void F()
+                {
+                    outer: for (int i = 0; i < 10; i++)
+                    {
+                        if (i > 5) continue outer;
+                    }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics();
+    }
+
+    [Fact]
     public void MethodUpdate_LocalFunctionsParameterRefnessInBody()
     {
         var src1 = @"class C { public void M(int a) { void f(ref int b) => b = 1; } }";
