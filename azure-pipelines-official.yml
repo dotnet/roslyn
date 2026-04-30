@@ -236,6 +236,7 @@ extends:
                           /p:RoslynGitHubUserName=$(Roslyn.GitHubUserName) 
                           /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) 
                           /p:PB_SkipTests=${{ parameters.SkipTests }}
+                          /p:PB_SignType=${{ parameters.SignType }}
                           /p:PublishStableVersions=false 
                           /p:VersionStampToPublish=prerelease
                   platform: '$(BuildPlatform)'
