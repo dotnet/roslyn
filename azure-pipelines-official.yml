@@ -280,10 +280,19 @@ extends:
                 condition: succeeded()
 
               - task: CopyFiles@2
-                displayName: 'Collect "vsman" and "vsix" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
+                displayName: 'Collect "vsman" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
                 inputs:
                   SourceFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)'
-                  Contents: '**\*.?(vsman|vsix)'
+                  Contents: '**\*.?(vsman)'
+                  TargetFolder: '$(Build.ArtifactStagingDirectory)\insertion'
+                  FlattenFolders: true
+                condition: succeeded()
+
+              - task: CopyFiles@2
+                displayName: 'Collect "vsix" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivPackages'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivPackages'
+                  Contents: '**\*.?(vsix)'
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\insertion'
                   FlattenFolders: true
                 condition: succeeded()
