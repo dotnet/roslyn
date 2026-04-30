@@ -2945,53 +2945,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
         }
 
+#nullable enable
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            var labelName = node.Name?.Identifier.ValueText;
-            var target = this.GetBreakLabel(labelName);
-            return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
-                ?? new BoundBreakStatement(node, target, label);
-        }
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: true);
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            var labelName = node.Name?.Identifier.ValueText;
-            var target = this.GetContinueLabel(labelName);
-            return BindBranchLabelAndCheckTarget(node, node.Name, labelName, target, diagnostics, out var label)
-                ?? new BoundContinueStatement(node, target, label);
-        }
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: false);
 
-        /// <summary>
-        /// Validates the label (if any) on a break/continue statement. Checks the labeled
-        /// break/continue feature availability, binds the label expression, and reports an
-        /// error when no matching target exists. Returns a <see cref="BoundBadStatement"/>
-        /// on failure (with <paramref name="label"/> set to null); otherwise returns null and
-        /// sets <paramref name="label"/> to the bound label expression (null when unlabeled).
-        /// </summary>
-        private BoundStatement BindBranchLabelAndCheckTarget(
+        private BoundStatement BindBreakOrContinue(
             StatementSyntax node,
-            IdentifierNameSyntax name,
-            string labelName,
-            LabelSymbol target,
+            IdentifierNameSyntax? name,
             BindingDiagnosticBag diagnostics,
-            out BoundLabel label)
+            bool isBreak)
         {
+            var labelName = name?.Identifier.ValueText;
             if (labelName != null)
+            {
+                Debug.Assert(name != null);
                 MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
+            }
 
+            var target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
             if (target == null)
             {
-                label = null;
                 Error(diagnostics,
-                    labelName != null ? ErrorCode.ERR_NoBreakOrContId : ErrorCode.ERR_NoBreakOrCont,
+                    labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
                     name ?? (SyntaxNode)node,
                     labelName == null ? [] : [labelName]);
                 return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
             }
 
-            label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
-            return null;
+            var label = name == null ? null : BindLabel(name, diagnostics) as BoundLabel;
+            return isBreak ? new BoundBreakStatement(node, target, label) : new BoundContinueStatement(node, target, label);
         }
+#nullable disable
 
         private static SwitchBinder GetSwitchBinder(Binder binder)
         {

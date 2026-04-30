@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -128,6 +128,74 @@ public sealed class LabeledBreakContinueSemanticModelTests : CSharpTestBase
 
         var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
         Assert.Null(breakStmt.Name);
+    }
+
+    [Fact]
+    public void GetSymbolInfo_InvalidBreak_DoesNotResolveToLabelSymbol()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    while (true)
+                    {
+                    outer:
+                        break outer;
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var labelDecl = tree.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single();
+        var declaredSymbol = model.GetDeclaredSymbol(labelDecl);
+        Assert.NotNull(declaredSymbol);
+        Assert.Equal("outer", declaredSymbol.Name);
+        Assert.Equal(SymbolKind.Label, declaredSymbol.Kind);
+
+        var breakStmt = tree.GetRoot().DescendantNodes().OfType<BreakStatementSyntax>().Single();
+        var labelRef = breakStmt.Name;
+        Assert.NotNull(labelRef);
+
+        var symbolInfo = model.GetSymbolInfo(labelRef);
+        Assert.Null(symbolInfo.Symbol);
+    }
+
+    [Fact]
+    public void GetSymbolInfo_InvalidContinue_DoesNotResolveToLabelSymbol()
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    while (true)
+                    {
+                    outer:
+                        continue outer;
+                    }
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        var tree = comp.SyntaxTrees.Single();
+        var model = comp.GetSemanticModel(tree);
+
+        var labelDecl = tree.GetRoot().DescendantNodes().OfType<LabeledStatementSyntax>().Single();
+        var declaredSymbol = model.GetDeclaredSymbol(labelDecl);
+        Assert.NotNull(declaredSymbol);
+        Assert.Equal("outer", declaredSymbol.Name);
+        Assert.Equal(SymbolKind.Label, declaredSymbol.Kind);
+
+        var continueStmt = tree.GetRoot().DescendantNodes().OfType<ContinueStatementSyntax>().Single();
+        var labelRef = continueStmt.Name;
+        Assert.NotNull(labelRef);
+
+        var symbolInfo = model.GetSymbolInfo(labelRef);
+        Assert.Null(symbolInfo.Symbol);
     }
 
     #endregion
