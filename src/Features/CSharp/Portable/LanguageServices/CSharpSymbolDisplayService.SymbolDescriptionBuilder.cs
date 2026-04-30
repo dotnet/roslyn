@@ -177,6 +177,9 @@ internal sealed partial class CSharpSymbolDisplayService
             if (token.Value is not char)
                 token = root.FindTokenOnLeftOfPosition(Position);
 
+            if (token.ContainsDiagnostics)
+                return;
+
             if (token.Value is not char character)
                 return;
 
@@ -184,9 +187,6 @@ internal sealed partial class CSharpSymbolDisplayService
                 return;
 
             if (!token.Text.StartsWith("'\\u", System.StringComparison.Ordinal))
-                return;
-
-            if (token.ContainsDiagnostics)
                 return;
 
             AddToGroup(SymbolDescriptionGroups.Documentation,
