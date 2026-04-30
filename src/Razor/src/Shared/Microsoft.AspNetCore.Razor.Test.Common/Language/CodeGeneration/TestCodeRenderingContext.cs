@@ -15,7 +15,7 @@ public static class TestCodeRenderingContext
         RazorSourceDocument source = null,
         IntermediateNodeWriter nodeWriter = null)
     {
-        nodeWriter ??= RuntimeNodeWriter.Instance;
+        nodeWriter ??= IntermediateNodeWriter.Instance;
         source ??= TestRazorSourceDocument.Create();
         var documentNode = new DocumentIntermediateNode();
 

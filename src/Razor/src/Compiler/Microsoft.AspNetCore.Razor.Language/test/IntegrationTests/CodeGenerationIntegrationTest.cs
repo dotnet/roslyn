@@ -305,11 +305,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/10426")]
     public void EscapedExpression() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
-    public override string GetTestFileName([CallerMemberName] string? testName = null)
-    {
-        return base.GetTestFileName(testName) + "_Runtime";
-    }
-
     private void RunTest([CallerMemberName] string testName = "")
     {
         // Arrange

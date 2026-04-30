@@ -9,7 +9,7 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 public class DefaultCodeTargetTest
 {
     [Fact]
-    public void CreateWriter_Runtime_CreatesRuntimeNodeWriter()
+    public void CreateWriter_Runtime_CreatesIntermediateNodeWriter()
     {
         // Arrange
         var codeDocument = TestRazorCodeDocument.CreateEmpty();
@@ -19,7 +19,7 @@ public class DefaultCodeTargetTest
         var writer = target.CreateNodeWriter();
 
         // Assert
-        Assert.IsType<RuntimeNodeWriter>(writer);
+        Assert.IsType<IntermediateNodeWriter>(writer);
     }
 
     [Fact]

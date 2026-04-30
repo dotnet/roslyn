@@ -28,7 +28,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     protected override CSharpParseOptions CSharpParseOptions => base.CSharpParseOptions.WithLanguageVersion(LanguageVersion.CSharp10);
 
     [Fact]
-    public void IncompleteDirectives_Runtime()
+    public void IncompleteDirectives()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -52,7 +52,7 @@ public class MyService<TModel>
     }
 
     [Fact]
-    public void Inject_Runtime()
+    public void Inject()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -75,7 +75,7 @@ public class MyService<TModel>
     }
 
     [Fact]
-    public void InjectWithModel_Runtime()
+    public void InjectWithModel()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -107,7 +107,7 @@ public class MyService<TModel>
     }
 
     [Fact]
-    public void InjectWithSemicolon_Runtime()
+    public void InjectWithSemicolon()
     {
         // Arrange
         AddCSharpSyntaxTree(@"

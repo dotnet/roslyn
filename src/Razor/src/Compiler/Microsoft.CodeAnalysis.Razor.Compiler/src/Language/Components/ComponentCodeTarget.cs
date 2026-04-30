@@ -20,5 +20,5 @@ internal sealed class ComponentCodeTarget(
     }
 
     public override IntermediateNodeWriter CreateNodeWriter()
-        => new ComponentRuntimeNodeWriter(Version);
+        => new ComponentNodeWriter(Version);
 }

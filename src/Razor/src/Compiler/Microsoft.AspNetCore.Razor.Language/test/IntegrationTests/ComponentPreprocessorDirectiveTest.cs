@@ -20,7 +20,7 @@ public class ComponentPreprocessorDirectiveTest()
 
     protected override string GetDirectoryPath(string testName)
     {
-        return $"TestFiles/IntegrationTests/ComponentRuntimePreprocessorDirectiveTest/{testName}";
+        return $"TestFiles/IntegrationTests/ComponentPreprocessorDirectiveTest/{testName}";
     }
 
     [Fact]

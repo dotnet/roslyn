@@ -33,7 +33,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     #region Runtime
 
     [ConditionalFact(Is.EnglishLocale)]
-    public void UsingDirectives_Runtime()
+    public void UsingDirectives()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -50,7 +50,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void InvalidNamespaceAtEOF_Runtime()
+    public void InvalidNamespaceAtEOF()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -67,7 +67,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     }
 
     [Fact]
-    public void IncompleteDirectives_Runtime()
+    public void IncompleteDirectives()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -90,7 +90,7 @@ public class MyService<TModel>
     }
 
     [Fact]
-    public void InheritsViewModel_Runtime()
+    public void InheritsViewModel()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -121,7 +121,7 @@ public class MyModel
     }
 
     [Fact]
-    public void InheritsWithViewImports_Runtime()
+    public void InheritsWithViewImports()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -153,7 +153,7 @@ public class MyModel
     }
 
     [Fact]
-    public void MalformedPageDirective_Runtime()
+    public void MalformedPageDirective()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -170,7 +170,7 @@ public class MyModel
     }
 
     [Fact]
-    public void Basic_Runtime()
+    public void Basic()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -184,7 +184,7 @@ public class MyModel
     }
 
     [Fact]
-    public void Sections_Runtime()
+    public void Sections()
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
@@ -207,7 +207,7 @@ public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void _ViewImports_Runtime()
+    public void _ViewImports()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -221,7 +221,7 @@ public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void Inject_Runtime()
+    public void Inject()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -244,7 +244,7 @@ public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void InjectWithModel_Runtime()
+    public void InjectWithModel()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -276,7 +276,7 @@ public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void InjectWithSemicolon_Runtime()
+    public void InjectWithSemicolon()
     {
         // Arrange
         AddCSharpSyntaxTree(@"
@@ -309,7 +309,7 @@ public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void Model_Runtime()
+    public void Model()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -324,7 +324,7 @@ public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void ModelExpressionTagHelper_Runtime()
+    public void ModelExpressionTagHelper()
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
@@ -347,7 +347,7 @@ public class InputTestTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void RazorPages_Runtime()
+    public void RazorPages()
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
@@ -368,7 +368,7 @@ public class DivTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void RazorPagesWithRouteTemplate_Runtime()
+    public void RazorPagesWithRouteTemplate()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -382,7 +382,7 @@ public class DivTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void RazorPagesWithoutModel_Runtime()
+    public void RazorPagesWithoutModel()
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
@@ -403,7 +403,7 @@ public class DivTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void PageWithNamespace_Runtime()
+    public void PageWithNamespace()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -417,7 +417,7 @@ public class DivTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void ViewWithNamespace_Runtime()
+    public void ViewWithNamespace()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();
@@ -431,7 +431,7 @@ public class DivTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void ViewComponentTagHelper_Runtime()
+    public void ViewComponentTagHelper()
     {
         // Arrange
         AddCSharpSyntaxTree($$"""
@@ -461,7 +461,7 @@ public class AllTagHelper : {{typeof(TagHelper).FullName}}
     }
 
     [Fact]
-    public void RazorPageWithNoLeadingPageDirective_Runtime()
+    public void RazorPageWithNoLeadingPageDirective()
     {
         // Arrange
         var projectItem = CreateProjectItemFromFile();

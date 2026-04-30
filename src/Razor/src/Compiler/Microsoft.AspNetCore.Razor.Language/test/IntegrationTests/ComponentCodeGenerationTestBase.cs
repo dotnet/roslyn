@@ -32,7 +32,7 @@ public class ComponentCodeGenerationTestBase()
 
     protected override string GetDirectoryPath(string testName)
     {
-        return $"TestFiles/IntegrationTests/ComponentRuntimeCodeGenerationTest/{testName}";
+        return $"TestFiles/IntegrationTests/ComponentCodeGenerationTest/{testName}";
     }
 
     #region Basics
