@@ -69,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Apply_collection_expression_preferences">
         <source>Apply collection expression preferences</source>
-        <target state="new">Apply collection expression preferences</target>
+        <target state="translated">컬렉션 식 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_conditional_delegate_call_preferences">
