@@ -164,8 +164,6 @@
       "certificate": "3PartySHA2",
       "strongName": null,
       "values": [
-        "Vsix\\VisualStudioSetup\\Humanizer.dll",
-        "Vsix\\VisualStudioSetup\\*\\Humanizer.resources.dll",
         "Dlls\\Diagnostics\\Nerdbank.FullDuplexStream.dll",
         "Vsix\\VisualStudioSetup\\Newtonsoft.Json.dll",
         "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_green.dll",
@@ -178,6 +176,7 @@
   ],
   "exclude": [
     "e_sqlite3.dll",
+    "Humanizer.dll",
     "ICSharpCode.Decompiler.dll",
     "Microsoft.Build.Conversion.Core.dll",
     "Microsoft.Build.Engine.dll",
