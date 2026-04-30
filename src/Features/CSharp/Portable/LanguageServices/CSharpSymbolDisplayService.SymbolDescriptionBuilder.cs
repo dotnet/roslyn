@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -165,6 +166,37 @@ internal sealed partial class CSharpSymbolDisplayService
 
         protected override string? GetNavigationHint(ISymbol? symbol)
             => symbol == null ? null : CodeAnalysis.CSharp.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
+
+        protected override void AddAdditionalDocumentationContent(ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
+        {
+            if (symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
+                return;
+
+            var root = SemanticModel.SyntaxTree.GetRoot(CancellationToken);
+            var token = root.FindToken(Position);
+            if (token.Value is not char)
+                token = root.FindTokenOnLeftOfPosition(Position);
+
+            if (token.Value is not char character)
+                return;
+
+            if (!IsDisplayableCharacter(character))
+                return;
+
+            if (!token.Text.StartsWith("'\\u", System.StringComparison.Ordinal))
+                return;
+
+            if (token.ContainsDiagnostics)
+                return;
+
+            AddToGroup(SymbolDescriptionGroups.Documentation,
+                PlainText(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character)));
+        }
+
+        private static bool IsDisplayableCharacter(char character)
+            => !char.IsControl(character) &&
+               !char.IsSurrogate(character) &&
+               char.GetUnicodeCategory(character) != UnicodeCategory.Format;
 
         private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
             IFieldSymbol symbol)

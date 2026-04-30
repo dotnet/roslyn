@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 internal static class QuickInfoUtilities
 {
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: null, documentationComments: default, interceptorDisplayParts: default, options, onTheFlyDocsInfo: null, cancellationToken);
+        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, nullabilityInfo: null, interceptorDisplayParts: default, options, onTheFlyDocsInfo: null, cancellationToken);
 
     public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
         SolutionServices services,
@@ -29,7 +29,6 @@ internal static class QuickInfoUtilities
         SupportedPlatformData? supportedPlatforms,
         bool showAwaitReturn,
         string? nullabilityInfo,
-        ImmutableArray<TaggedText> documentationComments,
         ImmutableArray<TaggedText> interceptorDisplayParts,
         SymbolDescriptionOptions options,
         OnTheFlyDocsInfo? onTheFlyDocsInfo,
@@ -71,19 +70,11 @@ internal static class QuickInfoUtilities
             AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
         }
 
-        var hasDocumentationComments = false;
-        ImmutableArray<TaggedText> docParts = default;
-        if (!documentationComments.IsDefaultOrEmpty)
-        {
-            AddSection(QuickInfoSectionKinds.DocumentationComments, documentationComments);
-            onTheFlyDocsInfo?.HasComments = true;
-            hasDocumentationComments = true;
-        }
-        else if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out docParts) && !docParts.IsDefaultOrEmpty)
+        var hasDocumentationComments = groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty;
+        if (hasDocumentationComments)
         {
             AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
             onTheFlyDocsInfo?.HasComments = true;
-            hasDocumentationComments = true;
         }
 
         if (options.QuickInfoOptions.ShowRemarksInQuickInfo &&

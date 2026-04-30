@@ -1991,6 +1991,12 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             Documentation(string.Empty));
 
     [Fact]
+    public Task TestCharLiteralUnicodeEscapeFormatCharacter()
+        => TestInMethodAsync(@"char c = '\u200E'$$;",
+            MainDescription("struct System.Char"),
+            Documentation(string.Empty));
+
+    [Fact]
     public Task TestCharLiteralHexEscape()
         => TestInMethodAsync(@"char c = '\x41'$$;",
             MainDescription("struct System.Char"),

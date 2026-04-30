@@ -87,64 +87,6 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
-    /// <summary>
-    /// Attempts to produce a rendered glyph Quick Info documentation line for a C# <see langword="char"/> literal.
-    /// </summary>
-    /// <remarks>
-    /// This only applies when all of the following are true:
-    /// <list type="bullet">
-    /// <item><description>The symbol is C# <see cref="SpecialType.System_Char"/>.</description></item>
-    /// <item><description>The literal's parsed value is a displayable UTF-16 code unit (not control and not surrogate).</description></item>
-    /// <item><description>The source text includes a lowercase <c>\\uXXXX</c> escape.</description></item>
-    /// </list>
-    /// Example output: <c>Represents the character '·' as a UTF-16 code unit.</c>
-    /// </remarks>
-    protected override ImmutableArray<TaggedText> GetDocumentationComments(
-        SemanticModel semanticModel,
-        SyntaxToken token,
-        ImmutableArray<ISymbol> symbols,
-        CancellationToken cancellationToken)
-    {
-        if (symbols.FirstOrDefault() is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
-            return default;
-
-        if (token.Value is not char character)
-            return default;
-
-        if (!IsDisplayableCharacter(character))
-            return default;
-
-        if (!ContainsSupportedUnicodeEscape(token))
-            return default;
-
-        return [new TaggedText(TextTags.Text, CreateCharacterDocumentationText(character))];
-    }
-
-    private static bool ContainsSupportedUnicodeEscape(SyntaxToken token)
-    {
-        if (token.ContainsDiagnostics)
-            return false;
-
-        var tokenText = token.Text;
-        var maxStartIndex = tokenText.Length - 1;
-        for (var i = 0; i < maxStartIndex; i++)
-        {
-            if (tokenText[i] != '\\')
-                continue;
-
-            if (tokenText[i + 1] == 'u')
-                return true;
-        }
-
-        return false;
-    }
-
-    private static bool IsDisplayableCharacter(char character)
-        => !char.IsControl(character) && !char.IsSurrogate(character);
-
-    private static string CreateCharacterDocumentationText(char character)
-        => string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character);
-
     protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(
         SemanticModel semanticModel,
         SyntaxToken token,

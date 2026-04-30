@@ -149,6 +149,12 @@ internal abstract partial class AbstractSymbolDisplayService
         protected Compilation Compilation
             => _semanticModel.Compilation;
 
+        protected SemanticModel SemanticModel
+            => _semanticModel;
+
+        protected int Position
+            => _position;
+
         protected virtual ImmutableArray<SymbolDisplayPart> WrapConstraints(ISymbol symbol, ImmutableArray<SymbolDisplayPart> displayParts)
             => displayParts;
 
@@ -168,6 +174,11 @@ internal abstract partial class AbstractSymbolDisplayService
             AddExceptions(firstSymbolDocumentationComment, typeDisplayInfo);
             AddCaptures(this._semanticModel, firstSymbol, typeDisplayInfo);
             AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, typeDisplayInfo);
+            AddAdditionalDocumentationContent(firstSymbol, typeDisplayInfo);
+        }
+
+        protected virtual void AddAdditionalDocumentationContent(ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
+        {
         }
 
         private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol)
