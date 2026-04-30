@@ -55,7 +55,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                     afterThisLocation: _state.AfterThisLocation,
                     beforeThisLocation: _state.BeforeThisLocation,
                     contextLocation: _state.IdentifierToken.GetLocation(),
-                    allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument));
+                    allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument()));
 
             if (_generateProperty)
             {

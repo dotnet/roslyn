@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -25,13 +24,6 @@ internal abstract partial class AbstractGenerateMemberService<TSimpleNameSyntax,
         TypeKind.Struct,
         TypeKind.Interface
     };
-
-    // SourceGeneratedDocument.Identity isn't available in the code style layer, so use the file path
-    // instead of the Razor workspaces extension method.
-    protected static bool IsRazorSourceGeneratedDocument(Document document)
-        => document is SourceGeneratedDocument &&
-           document.FilePath is string filePath &&
-           filePath.IndexOf("Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator", StringComparison.Ordinal) >= 0;
 
     protected static bool ValidateTypeToGenerateIn(
         [NotNullWhen(true)] INamedTypeSymbol? typeToGenerateIn,

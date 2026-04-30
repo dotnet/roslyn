@@ -104,6 +104,57 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    public async Task ImplicitExpression_SuggestionModeIsCleared()
+    {
+        // In implicit expressions, the generated C# wraps the expression in __builder.AddContent(seq, expr).
+        // AddContent has a RenderFragment (delegate) overload that causes Roslyn to set SuggestionMode.
+        // We clear it because lambdas are not a practical completion scenario at the top level of implicit expressions.
+        var result = await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div>@h$$</div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["HashSet<>"]);
+
+        Assert.NotNull(result);
+        Assert.False(result.SuggestionMode);
+    }
+
+    [Fact]
+    public async Task ImplicitExpression_InsideParens_SuggestionModeIsPreserved()
+    {
+        // Inside parentheses of a method that takes a delegate parameter, SuggestionMode should be
+        // preserved because the user may legitimately be starting a lambda expression.
+        var result = await VerifyCompletionListAsync(
+            input: """
+                @using System.Linq
+
+                <div>@items.Where($$)</div>
+
+                @code {
+                    List<string> items = new();
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["items"]);
+
+        Assert.NotNull(result);
+        Assert.True(result.SuggestionMode);
+    }
+
+    [Fact]
     public async Task CSharpClassesBeforeTag()
     {
         await VerifyCompletionListAsync(

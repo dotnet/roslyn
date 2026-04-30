@@ -202,6 +202,44 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
     }
 
     [Fact]
+    public Task GenerateDeconstructMethod_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private void M()
+                    {
+                        (int x, int y) = $$new Component();
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                @using System
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                The end.
+                @code {
+                    internal void Deconstruct(out int x, out int y)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod);
+
+    [Fact]
     public Task GenerateProperty_NoCodeBlock()
         => VerifyCodeActionAsync(
             csharpFile: """
@@ -235,6 +273,94 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 """,
             codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
             childActionIndex: 2);
+
+    [Fact]
+    public Task GenerateConstructor_NoCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private Component M(int value)
+                    {
+                        return new $$Component(value);
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                The end.
+                @code {
+                    private int value;
+
+                    public Component(int value)
+                    {
+                        this.value = value;
+                    }
+                }
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            childActionIndex: 0);
+
+    [Fact]
+    public Task GenerateConstructor_ExistingCodeBlock()
+        => VerifyCodeActionAsync(
+            csharpFile: """
+                using SomeProject;
+                using Microsoft.AspNetCore.Components;
+
+                public class C
+                {
+                    private Component M(int value)
+                    {
+                        return new $$Component(value);
+                    }
+                }
+                """,
+            razorFile: """
+                This is a Razor document.
+
+                <Component></Component>
+
+                @code
+                {
+                    private string componentName = nameof(Component);
+                }
+
+                The end.
+                """,
+            expectedRazorFile: """
+                This is a Razor document.
+                
+                <Component></Component>
+                
+                @code
+                {
+                    private string componentName = nameof(Component);
+                        private int value;
+
+                        public Component(int value)
+                        {
+                            this.value = value;
+                        }
+                }
+
+                The end.
+                """,
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            childActionIndex: 0);
 
     [Fact]
     public Task GenerateProperty_ExistingCodeBlock()

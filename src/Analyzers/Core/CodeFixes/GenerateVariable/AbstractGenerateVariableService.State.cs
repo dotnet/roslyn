@@ -162,7 +162,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
             var codeGenerationContext = new CodeGenerationContext(
                 contextLocation: IdentifierToken.GetLocation(),
-                allowGenerationIntoHiddenCode: IsRazorSourceGeneratedDocument);
+                allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
 
             return CanGenerateLocal() || CodeGenerator.CanAdd(_document.Project.Solution, TypeToGenerateIn, codeGenerationContext, cancellationToken);
         }

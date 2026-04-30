@@ -32,7 +32,7 @@ internal static class DelegatedCompletionHelper
     // 2. Adds items
     // 3. Filters items
     private static readonly ImmutableArray<IDelegatedCSharpCompletionResponseRewriter> s_delegatedCSharpCompletionResponseRewriters =
-        [new SnippetResponseRewriter(), new TextEditResponseRewriter(), new DesignTimeHelperResponseRewriter()];
+        [new SnippetResponseRewriter(), new TextEditResponseRewriter(), new DesignTimeHelperResponseRewriter(), new ImplicitExpressionSuggestionModeRewriter()];
 
     // Currently we only have one HTML response re-writer. Should we ever need more, we can create a common base and a collection
     private static readonly HtmlCommitCharacterResponseRewriter s_delegatedHtmlCompletionResponseRewriter = new();
