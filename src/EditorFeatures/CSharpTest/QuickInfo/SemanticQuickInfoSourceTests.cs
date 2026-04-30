@@ -1962,12 +1962,14 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
     [InlineData(@"char c = $$'\u1234';", "\u1234")] // \u1234 is generic displayable char
     [InlineData(@"char c = '\u12$$34';", "\u1234")]
     [InlineData(@"char c = '\u1234'$$;", "\u1234")]
-    [InlineData(@"char c = '\u1234';$$", "")] // "find token on left"
     [InlineData(@"char c = '\u012$$';", "")] // diagnostics (invalid Unicode escape sequence, too short)
     [InlineData(@"char c = '\u012345$$';", "")] // diagnostics (invalid char, too long)
-    [InlineData(@"char c = '\uD800'$$;", "")] // surrogate
-    [InlineData(@"char c = '\u0001'$$;", "")] // control char
-    [InlineData(@"char c = '\u200E'$$;", "")] // control char
+    [InlineData(@"char c = '\u01C5'$$;", "\u01C5")] // TitlecaseLetter
+    [InlineData(@"char c = '\u0300'$$;", "")] // NonSpacingMark
+    [InlineData(@"char c = '\u00A0'$$;", "\u00A0")] // SpaceSeparator
+    [InlineData(@"char c = '\u0001'$$;", "")] // Control
+    [InlineData(@"char c = '\u200B'$$;", "")] // Format
+    [InlineData(@"char c = '\uD800'$$;", "")] // Surrogate
     [InlineData(@"char c = '\x41'$$;", "")] // \x not supported for this currently
     public Task TestCharLiteral(string code, string expectedCharacter)
     {
@@ -1982,6 +1984,9 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
 
         return TestInMethodAsync(code, sections);
     }
+
+    [Fact]
+    public Task TestSemiColonAfterCharLiteral() => TestInMethodAsync(@"char c = '\u1234'$$;");
     #endregion Char literal
 
     [Fact]

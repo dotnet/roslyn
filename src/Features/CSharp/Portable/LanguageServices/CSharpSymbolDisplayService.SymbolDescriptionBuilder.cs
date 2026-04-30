@@ -167,6 +167,12 @@ internal sealed partial class CSharpSymbolDisplayService
         protected override string? GetNavigationHint(ISymbol? symbol)
             => symbol == null ? null : CodeAnalysis.CSharp.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
 
+        /// <summary>
+        /// Adds additional documentation content displaying the glyph of 
+        /// Unicode-escaped <see cref="System.Char"/> symbols.
+        /// If char is not displayable (surrogate, control char, etc.),
+        /// does not add content.
+        /// </summary>
         protected override void AddAdditionalDocumentationContent(ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
         {
             if (symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
@@ -183,7 +189,7 @@ internal sealed partial class CSharpSymbolDisplayService
             if (token.Value is not char character)
                 return;
 
-            if (!IsDisplayableCharacter(character))
+            if (!IsDisplayableInQuotes(character))
                 return;
 
             if (!token.Text.StartsWith("'\\u", System.StringComparison.Ordinal))
@@ -193,10 +199,51 @@ internal sealed partial class CSharpSymbolDisplayService
                 PlainText(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character)));
         }
 
-        private static bool IsDisplayableCharacter(char character)
-            => !char.IsControl(character) &&
-               !char.IsSurrogate(character) &&
-               char.GetUnicodeCategory(character) != UnicodeCategory.Format;
+        /// <summary>
+        /// Determines whether the specified character can be displayed in quotes,
+        /// i.e., whether it has a glyph that is legible when surrounded by quotes.
+        /// </summary>
+        private static bool IsDisplayableInQuotes(char c)
+        {
+            if (char.IsSurrogate(c))
+                return false;
+
+            var category = char.GetUnicodeCategory(c);
+            return category switch
+            {
+                UnicodeCategory.UppercaseLetter => true,
+                UnicodeCategory.LowercaseLetter => true,
+                UnicodeCategory.TitlecaseLetter => true,
+                UnicodeCategory.ModifierLetter => true,
+                UnicodeCategory.OtherLetter => true,
+                UnicodeCategory.NonSpacingMark => false, // does not render well when surrounded by single quotes
+                UnicodeCategory.SpacingCombiningMark => true, // adds space, so still legible
+                UnicodeCategory.EnclosingMark => false, // not generally displayable
+                UnicodeCategory.DecimalDigitNumber => true,
+                UnicodeCategory.LetterNumber => true,
+                UnicodeCategory.OtherNumber => true,
+                UnicodeCategory.SpaceSeparator => true,
+                UnicodeCategory.LineSeparator => true, // renders like a regular space, better than nothing
+                UnicodeCategory.ParagraphSeparator => false, // renders like a regular space, better than nothing
+                UnicodeCategory.Control => false, // no glyph
+                UnicodeCategory.Format => false, // no glyph
+                UnicodeCategory.Surrogate => false, // no glyph
+                UnicodeCategory.PrivateUse => false, // no glyph
+                UnicodeCategory.ConnectorPunctuation => true,
+                UnicodeCategory.DashPunctuation => true,
+                UnicodeCategory.OpenPunctuation => true,
+                UnicodeCategory.ClosePunctuation => true,
+                UnicodeCategory.InitialQuotePunctuation => true,
+                UnicodeCategory.FinalQuotePunctuation => true,
+                UnicodeCategory.OtherPunctuation => true,
+                UnicodeCategory.MathSymbol => true,
+                UnicodeCategory.CurrencySymbol => true,
+                UnicodeCategory.ModifierSymbol => true,
+                UnicodeCategory.OtherSymbol => true,
+                UnicodeCategory.OtherNotAssigned => false,
+                _ => false // should never get here
+            };
+        }
 
         private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
             IFieldSymbol symbol)
