@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             else
             {
                 // SerializeToDeltaStreams frees these on success; free on the failure path.
-                foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
+                foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitionsOrEmpty())
                 {
                     builder.Free();
                 }

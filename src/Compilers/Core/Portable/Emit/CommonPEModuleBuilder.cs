@@ -144,6 +144,11 @@ namespace Microsoft.CodeAnalysis.Emit
             return _encDeletedMemberDefinitions;
         }
 
+        public IReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>> GetDeletedMemberDefinitionsOrEmpty()
+        {
+            return _encDeletedMemberDefinitions ?? SpecializedCollections.EmptyReadOnlyDictionary<Cci.ITypeDefinition, ArrayBuilder<Cci.ITypeDefinitionMember>>();
+        }
+
 #nullable disable
 
         /// <summary>

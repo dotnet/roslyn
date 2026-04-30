@@ -3586,7 +3586,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     writer?.FreePooledObjects();
 
-                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitions())
+                    foreach (var (_, builder) in moduleBeingBuilt.GetDeletedMemberDefinitionsOrEmpty())
                     {
                         builder.Free();
                     }

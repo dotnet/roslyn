@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     cancellationToken)
             Else
                 ' SerializeToDeltaStreams frees these on success; free on the failure path.
-                For Each pair In moduleBeingBuilt.GetDeletedMemberDefinitions()
+                For Each pair In moduleBeingBuilt.GetDeletedMemberDefinitionsOrEmpty()
                     pair.Value.Free()
                 Next
             End If
