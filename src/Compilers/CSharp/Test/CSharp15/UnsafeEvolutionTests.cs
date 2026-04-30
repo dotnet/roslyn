@@ -3591,6 +3591,337 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeContext_ExteriorOnly_LocalFunctions()
+    {
+        var source = """
+            #pragma warning disable CS8321 // unused local function
+            class C
+            {
+                unsafe void M()
+                {
+                    // Local function inside unsafe method: method's unsafe has no interior meaning,
+                    // but the local function inherits from the method's context which under updated rules is safe.
+                    void Local1(int* p) { _ = *p; }
+
+                    // Local function in unsafe block: has unsafe context.
+                    unsafe { void Local2(int* p) { _ = *p; } }
+
+                    // unsafe local function: no interior unsafe context under updated rules.
+                    unsafe void Local3() { int* p = null; _ = *p; }
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (8,35): error CS9360: This operation may only be used in an unsafe context
+            //         void Local1(int* p) { _ = *p; }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(8, 35),
+            // (14,51): error CS9360: This operation may only be used in an unsafe context
+            //         unsafe void Local3() { int* p = null; _ = *p; }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(14, 51));
+    }
+
+    [Fact]
+    public void UnsafeContext_ExteriorOnly_AwaitAndYield()
+    {
+        var source = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                // Await in unsafe block is an error regardless of unsafe modifier.
+                async Task M1()
+                {
+                    unsafe { await Task.Yield(); }
+                }
+
+                // Yield return in unsafe block is an error.
+                IEnumerable<int> M2()
+                {
+                    unsafe { yield return 1; }
+                }
+
+                // Under updated rules, unsafe on the method has no interior meaning,
+                // so the body is NOT in unsafe context. Await and yield should be fine.
+                unsafe async Task M3()
+                {
+                    await Task.Yield();
+                }
+
+                unsafe IEnumerable<int> M4()
+                {
+                    yield return 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (9,18): error CS4004: Cannot await in an unsafe context
+            //         unsafe { await Task.Yield(); }
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 18),
+            // (15,18): error CS9238: Cannot use 'yield return' in an 'unsafe' block
+            //         unsafe { yield return 1; }
+            Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18),
+            // (22,9): error CS4004: Cannot await in an unsafe context
+            //         await Task.Yield();
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(22, 9));
+
+        // With updated rules: M3's body is NOT in unsafe context, so await is fine there.
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (9,18): error CS4004: Cannot await in an unsafe context
+            //         unsafe { await Task.Yield(); }
+            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 18),
+            // (15,18): error CS9238: Cannot use 'yield return' in an 'unsafe' block
+            //         unsafe { yield return 1; }
+            Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(15, 18));
+    }
+
+    [Fact]
+    public void UnsafeContext_ExteriorOnly_IteratorMethodFeatureCheck()
+    {
+        var source = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                unsafe IEnumerable<int> M()
+                {
+                    yield return 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular12,
+            options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (5,29): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+            //     unsafe IEnumerable<int> M()
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "M").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 29));
+
+        CreateCompilation(source,
+            parseOptions: TestOptions.Regular12,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRules' value: '2' for C# 12.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRules", "2", "12.0", "preview").WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void UnsafeContext_ExteriorOnly_CallerUnsafeInSignature()
+    {
+        var source = """
+            public class Lib
+            {
+                unsafe public static int UnsafeMethod() => 0;
+            }
+
+            class C
+            {
+                // Under updated rules, 'unsafe' on a method has no interior meaning.
+                // In signatures (default parameter values, attributes), the unsafe context from
+                // the member modifier was already not applied, so caller-unsafe members should error.
+                unsafe void M(int x = Lib.UnsafeMethod()) { }
+
+                // In an unsafe block, the call is fine.
+                void M2(int x = Lib.UnsafeMethod()) { }
+            }
+            """;
+
+        var commonDiagnostics = new[]
+        {
+            // (11,27): error CS1736: Default parameter value for 'x' must be a compile-time constant
+            //     unsafe void M(int x = Lib.UnsafeMethod()) { }
+            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Lib.UnsafeMethod()").WithArguments("x").WithLocation(11, 27),
+            // (14,21): error CS1736: Default parameter value for 'x' must be a compile-time constant
+            //     void M2(int x = Lib.UnsafeMethod()) { }
+            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Lib.UnsafeMethod()").WithArguments("x").WithLocation(14, 21),
+        };
+
+        // Without updated rules: default parameter values are not affected by method's unsafe modifier,
+        // so caller-unsafe members in default values error the same way.
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(commonDiagnostics);
+
+        // With updated rules: additionally, caller-unsafe member diagnostics are reported.
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics([
+            .. commonDiagnostics,
+            // (11,27): error CS9362: 'Lib.UnsafeMethod()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //     unsafe void M(int x = Lib.UnsafeMethod()) { }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "Lib.UnsafeMethod()").WithArguments("Lib.UnsafeMethod()").WithLocation(11, 27),
+            // (14,21): error CS9362: 'Lib.UnsafeMethod()' must be used in an unsafe context because it is marked as 'unsafe' or 'extern'
+            //     void M2(int x = Lib.UnsafeMethod()) { }
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "Lib.UnsafeMethod()").WithArguments("Lib.UnsafeMethod()").WithLocation(14, 21),
+        ]);
+    }
+
+    [Fact]
+    public void UnsafeContext_ExteriorOnly_PointerDereferenceInSignature()
+    {
+        // Optional parameter default values are part of the signature. Under updated rules,
+        // unsafe on a method or containing type doesn't introduce unsafe context for them.
+        var source = """
+            class C
+            {
+                unsafe void M1(int x = *(default(int*))) { }
+                void M2(int x = *(default(int*))) { }
+            }
+
+            unsafe class D
+            {
+                void M(int x = *(default(int*))) { }
+            }
+            """;
+
+        var commonDiagnostics = new[]
+        {
+            // (3,28): error CS1736: Default parameter value for 'x' must be a compile-time constant
+            //     unsafe void M1(int x = *(default(int*))) { }
+            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "*(default(int*))").WithArguments("x").WithLocation(3, 28),
+            // (4,21): error CS1736: Default parameter value for 'x' must be a compile-time constant
+            //     void M2(int x = *(default(int*))) { }
+            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "*(default(int*))").WithArguments("x").WithLocation(4, 21),
+            // (9,20): error CS1736: Default parameter value for 'x' must be a compile-time constant
+            //     void M(int x = *(default(int*))) { }
+            Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "*(default(int*))").WithArguments("x").WithLocation(9, 20),
+        };
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics([
+            .. commonDiagnostics,
+            // (4,21): error CS9360: This operation may only be used in an unsafe context
+            //     void M2(int x = *(default(int*))) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 21),
+        ]);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics([
+            .. commonDiagnostics,
+            // (3,28): error CS9360: This operation may only be used in an unsafe context
+            //     unsafe void M1(int x = *(default(int*))) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(3, 28),
+            // (4,21): error CS9360: This operation may only be used in an unsafe context
+            //     void M2(int x = *(default(int*))) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(4, 21),
+            // (7,14): warning CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // unsafe class D
+            Diagnostic(ErrorCode.WRN_UnsafeMeaningless, "D").WithLocation(7, 14),
+            // (9,20): error CS9360: This operation may only be used in an unsafe context
+            //     void M(int x = *(default(int*))) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(9, 20),
+        ]);
+    }
+
+    [Fact]
+    public void UnsafeContext_ExteriorOnly_RefAnalysis()
+    {
+        var source = """
+            class C
+            {
+                // In an unsafe block, ref-return of a local is downgraded from error to warning.
+                unsafe ref int M1()
+                {
+                    int x = 0;
+                    return ref x;
+                }
+
+                // With unsafe block explicitly: warning.
+                ref int M2()
+                {
+                    int x = 0;
+                    unsafe { return ref x; }
+                }
+
+                // Without unsafe context: error.
+                ref int M3()
+                {
+                    int x = 0;
+                    return ref x;
+                }
+            }
+            """;
+
+        // Without updated rules: M1 is in unsafe context, so it's a warning.
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (7,20): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+            //         return ref x;
+            Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(7, 20),
+            // (14,29): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+            //         unsafe { return ref x; }
+            Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(14, 29),
+            // (21,20): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+            //         return ref x;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(21, 20));
+
+        // With updated rules: M1's body should NOT be in unsafe context (unsafe on method has no interior meaning),
+        // so ref-return of local should be an error (not downgraded to warning).
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (7,20): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+            //         return ref x;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(7, 20),
+            // (14,29): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+            //         unsafe { return ref x; }
+            Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(14, 29),
+            // (21,20): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+            //         return ref x;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(21, 20));
+    }
+
+    [Fact]
+    public void UnsafeContext_ExteriorOnly_RefAnalysis_LocalFunction()
+    {
+        var source = """
+            #pragma warning disable CS8321 // unused local function
+            class C
+            {
+                void M()
+                {
+                    unsafe ref int Local1()
+                    {
+                        int x = 0;
+                        return ref x;
+                    }
+
+                    ref int Local2()
+                    {
+                        int x = 0;
+                        unsafe { return ref x; }
+                    }
+
+                    ref int Local3()
+                    {
+                        int x = 0;
+                        return ref x;
+                    }
+                }
+            }
+            """;
+
+        // Without updated rules: Local1 is in unsafe context, so it's a warning.
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (9,24): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+            //             return ref x;
+            Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(9, 24),
+            // (15,33): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+            //             unsafe { return ref x; }
+            Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(15, 33),
+            // (21,24): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+            //             return ref x;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(21, 24));
+
+        // With updated rules: Local1's body should NOT be in unsafe context (unsafe on local function has no interior meaning),
+        // so ref-return of local should be an error (not downgraded to warning).
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+            // (9,24): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+            //             return ref x;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(9, 24),
+            // (15,33): warning CS9077: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
+            //             unsafe { return ref x; }
+            Diagnostic(ErrorCode.WRN_RefReturnLocal, "x").WithArguments("x").WithLocation(15, 33),
+            // (21,24): error CS8168: Cannot return local 'x' by reference because it is not a ref local
+            //             return ref x;
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "x").WithArguments("x").WithLocation(21, 24));
+    }
+
+    [Fact]
     public void Member_LangVersion()
     {
         CSharpTestSource source =
