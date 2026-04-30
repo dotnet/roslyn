@@ -164,17 +164,18 @@
       "certificate": "3PartySHA2",
       "strongName": null,
       "values": [
-        "e_sqlite3.dll",
-        "Humanizer.dll",
-        "Humanizer.resources.dll",
-        "ICSharpCode.Decompiler.dll",
-        "Nerdbank.FullDuplexStream.dll",
-        "Newtonsoft.Json.dll",
-        "SQLitePCLRaw.batteries_green.dll",
-        "SQLitePCLRaw.batteries_v2.dll",
-        "SQLitePCLRaw.core.dll",
-        "SQLitePCLRaw.provider.e_sqlite3.dll",
-        "Validation.dll"
+        "VisualStudioSetup\\x64\\e_sqlite3.dll",
+        "VisualStudioSetup\\x86\\e_sqlite3.dll",
+        "Vsix\\VisualStudioSetup\\Humanizer.dll",
+        "Vsix\\VisualStudioSetup\\*\\Humanizer.resources.dll",
+        "Vsix\\VisualStudioSetup\\ICSharpCode.Decompiler.dll",
+        "Dlls\\Diagnostics\\Nerdbank.FullDuplexStream.dll",
+        "Vsix\\VisualStudioSetup\\Newtonsoft.Json.dll",
+        "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_green.dll",
+        "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_v2.dll",
+        "Vsix\\VisualStudioSetup\\SQLitePCLRaw.core.dll",
+        "Vsix\\VisualStudioSetup\\SQLitePCLRaw.provider.e_sqlite3.dll",
+        "Dlls\\Diagnostics\\Validation.dll"
       ]      
     }
   ],
