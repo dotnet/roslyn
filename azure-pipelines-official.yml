@@ -289,9 +289,9 @@ extends:
                 condition: succeeded()
 
               - task: CopyFiles@2
-                displayName: 'Collect "vsix" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivPackages'
+                displayName: 'Collect "vsix" from $(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Vsix'
                 inputs:
-                  SourceFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\DevDivPackages'
+                  SourceFolder: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Vsix'
                   Contents: '**\*.?(vsix)'
                   TargetFolder: '$(Build.ArtifactStagingDirectory)\insertion'
                   FlattenFolders: true
