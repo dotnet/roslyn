@@ -40,8 +40,8 @@
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="new">Insert a directive code snippet
-[Tab] to navigate between elements, [Enter] to complete</target>
+        <target state="translated">Yönerge kod parçacığı ekle
+Öğeler arasında gezinmek için [Tab], tamamlamak için [Enter]</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_at_adds">
@@ -136,7 +136,7 @@
       </trans-unit>
       <trans-unit id="Promote_using_directive_to">
         <source>Promote using directive to {0}</source>
-        <target state="new">Promote using directive to {0}</target>
+        <target state="translated">Yönergeyi şu sürüme yükseltmeyi destekleyin: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_directives">

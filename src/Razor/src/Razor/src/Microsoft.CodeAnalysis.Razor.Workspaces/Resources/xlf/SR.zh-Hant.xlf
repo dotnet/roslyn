@@ -40,8 +40,8 @@
       <trans-unit id="DirectiveSnippetDescription">
         <source>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</source>
-        <target state="new">Insert a directive code snippet
-[Tab] to navigate between elements, [Enter] to complete</target>
+        <target state="translated">插入指示詞程式碼片段
+[Tab] 在元素之間瀏覽，[Enter] 完成</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_at_adds">
