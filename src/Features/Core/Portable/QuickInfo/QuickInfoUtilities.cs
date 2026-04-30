@@ -70,8 +70,7 @@ internal static class QuickInfoUtilities
             AddSection(QuickInfoSectionKinds.Description, mainDescriptionTaggedParts);
         }
 
-        var hasDocumentationComments = groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty;
-        if (hasDocumentationComments)
+        if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
         {
             AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
             onTheFlyDocsInfo?.HasComments = true;
@@ -82,7 +81,7 @@ internal static class QuickInfoUtilities
             !remarksDocumentation.IsEmpty)
         {
             var builder = ImmutableArray.CreateBuilder<TaggedText>();
-            if (hasDocumentationComments)
+            if (!docParts.IsDefaultOrEmpty)
                 builder.AddLineBreak();
 
             builder.AddRange(remarksDocumentation);
