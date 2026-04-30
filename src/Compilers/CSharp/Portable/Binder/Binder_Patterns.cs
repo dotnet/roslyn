@@ -228,8 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputUnionType.IsUnionType);
 
-            NamedTypeSymbol unionDefintion = inputUnionType.OriginalDefinition;
-            ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefintion.UnionCaseTypes;
+            NamedTypeSymbol unionDefinition = inputUnionType.OriginalDefinition;
+            ImmutableArray<TypeSymbol> unionDefinitionCaseTypes = unionDefinition.UnionCaseTypes;
             MethodSymbol? bestMatch = null;
             Conversion bestMatchConversion = Conversion.NoConversion;
             NamedTypeSymbol? membersInterfaceForDefinition = inputUnionType.GetMemberProviderInterfaceForDefinition();
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                for (NamedTypeSymbol declaringType = unionDefintion;
+                for (NamedTypeSymbol declaringType = unionDefinition;
                      declaringType is not null;
                      declaringType = declaringType.BaseTypeNoUseSiteDiagnostics)
                 {
