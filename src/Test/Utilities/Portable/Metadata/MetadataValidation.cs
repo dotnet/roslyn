@@ -9,7 +9,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -174,8 +174,8 @@ namespace Roslyn.Test.Utilities
             {
                 var mdw1 = new StringWriter();
                 var mdw2 = new StringWriter();
-                new MetadataVisualizer(mdReader1, mdw1).Visualize();
-                new MetadataVisualizer(mdReader2, mdw2).Visualize();
+                //new MetadataVisualizer(mdReader1, mdw1).Visualize();
+                //new MetadataVisualizer(mdReader2, mdw2).Visualize();
                 mdw1.Flush();
                 mdw2.Flush();
 

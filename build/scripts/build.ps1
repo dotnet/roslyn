@@ -191,7 +191,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn Toolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RoslynToolset.binlog" } else { "" }
-    Restore-Project $dotnet "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
+    Restore-Project "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
 
     Write-Host "Restoring RepoToolset"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RepoToolset.binlog" } else { "" }
@@ -199,7 +199,7 @@ function Restore-Packages() {
 
     Write-Host "Restoring Roslyn"
     $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-Roslyn.binlog" } else { "" }
-    Restore-Project $dotnet "Roslyn.sln" $logFilePath
+    Restore-Project "Roslyn.sln" $logFilePath
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build
@@ -276,7 +276,6 @@ function Build-Artifacts() {
 
     if ($build -and (-not $skipBuildExtras) -and (-not $buildCoreClr)) {
         Build-InsertionItems
-        Build-Installer
     }
 }
 
@@ -364,54 +363,6 @@ function Build-InsertionItems() {
     finally {
         Pop-Location
     }
-}
-
-function Build-Installer () {
-    #  Copying Artifacts
-    $installerDir = Join-Path $configDir "Installer"
-    Create-Directory $installerDir
-
-    $intermidateDirectory = Join-Path $env:TEMP "InstallerTemp"
-    if(Test-Path $intermidateDirectory)
-    {
-        Remove-Item -Path $intermidateDirectory -Recurse -Force
-    }
-    New-Item -ItemType Directory -Force -Path $intermidateDirectory
-
-    ## Copying VsixExpInstaller.exe
-    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
-    $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\*"
-    $vsixExpInstallerExeDestination = Join-Path $intermidateDirectory "tools\vsixexpinstaller"
-    Create-Directory $vsixExpInstallerExeDestination
-    Copy-Item $vsixExpInstallerExe -Destination $vsixExpInstallerExeDestination -Recurse
-
-    ## Copying VsWhere.exe
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\*"
-    $vswhereDestination = Join-Path $intermidateDirectory "tools\vswhere"
-    Create-Directory $vswhereDestination
-    Copy-Item $vswhere -Destination $vswhereDestination -Recurse
-
-    ## Copying scripts
-    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\*.bat"
-    Copy-Item $installerScriptsFolder -Destination $intermidateDirectory -Recurse
-
-    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\tools\*.ps1"
-    $intermidatePowershellScriptsDirectory = Join-Path $intermidateDirectory "tools"
-    Copy-Item $installerScriptsFolder -Destination $intermidatePowershellScriptsDirectory -Recurse
-
-    ## Copying VSIXes
-    $vsixDir = Join-Path $configDir "Vsix"
-    $vsixDirDestination = Join-Path $intermidateDirectory "vsix"
-    if (-not (Test-Path $vsixDirDestination)) {
-        New-Item -ItemType Directory -Force -Path $vsixDirDestination
-    }
-    $RoslynDeploymentVsix = Join-Path $vsixDir "Roslyn\RoslynDeployment.vsix"
-    Copy-Item $RoslynDeploymentVsix -Destination $vsixDirDestination
-
-    #  Zip Folder
-    $installerZip = Join-Path $installerDir "Roslyn_Preview"
-    $intermidateDirectory = Join-Path $intermidateDirectory "*"
-    Compress-Archive -Path $intermidateDirectory -DestinationPath $installerZip
 }
 
 function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir = "", [string]$extraArgs = "", [string]$basePath = "", [switch]$useConsole = $true) {
@@ -596,8 +547,8 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
     if ($cibuild -or $official) {
-        # Use a 75 minute timeout on CI
-        $args += " -xml -timeout:75"
+        # Use a 150 minute timeout on CI
+        $args += " -xml -timeout:150"
     }
 
     if ($procdump) {

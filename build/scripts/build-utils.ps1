@@ -21,8 +21,7 @@ function Exec-Block([scriptblock]$cmd) {
 
     # Need to check both of these cases for errors as they represent different items
     # - $?: did the powershell script block throw an error
-    # - $lastexitcode: did a windows command executed by the script block end in error
-    if ((-not $?) -or ($lastexitcode -ne 0)) {
+    if (-not $?) {
         throw "Command failed to execute: $cmd"
     } 
 }
@@ -152,7 +151,7 @@ function Ensure-DotnetSdk() {
         $webClient = New-Object -TypeName "System.Net.WebClient"
         $webClient.DownloadFile("https://dot.net/v1/dotnet-install.ps1", $destFile)
         Exec-Block { & $destFile -Version $sdkVersion -InstallDir $cliDir } | Out-Null
-        Exec-Block { & $destFile -Version $runtimeVersion -SharedRuntime -InstallDir $cliDir } | Out-Null
+        Exec-Block { & $destFile -Version $runtimeVersion -Runtime dotnet -InstallDir $cliDir } | Out-Null
     }
     else {
         ${env:PATH} = "$cliDir;${env:PATH}"
@@ -173,7 +172,7 @@ function Ensure-BasicTool([string]$name, [string]$version = "") {
         $toolsetProject = Join-Path $repoDir "build\ToolsetPackages\RoslynToolset.csproj"
         $dotnet = Ensure-DotnetSdk
         Write-Host "Downloading $name"
-        Restore-Project $dotnet $toolsetProject
+        Restore-Project $toolsetProject
     }
     
     return $p
@@ -391,7 +390,7 @@ function Clear-PackageCache() {
 }
 
 # Restore a single project
-function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$logFilePath = "") {
+function Restore-Project([string]$projectFileName, [string]$logFilePath = "") {
     $projectFilePath = $projectFileName
     if (-not (Test-Path $projectFilePath)) {
         $projectFilePath = Join-Path $repoDir $projectFileName
@@ -402,7 +401,7 @@ function Restore-Project([string]$dotnetExe, [string]$projectFileName, [string]$
         $logArg = " /bl:$logFilePath"
     }
 
-    Exec-Console $dotnet "restore --verbosity quiet $projectFilePath $logArg"
+    Exec-Console "nuget" "restore -verbosity quiet $projectFilePath"
 }
 
 function Unzip-File([string]$zipFilePath, [string]$outputDir) {

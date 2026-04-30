@@ -1,0 +1,174 @@
+# Branches that trigger a build on commit
+trigger:
+- main
+- main-vs-deps
+- community
+- release/*
+- features/*
+- demos/*
+
+# Branches that trigger builds on PR
+pr:
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - community
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - eng/config/OptProf.json
+      - eng/config/PublishData.json
+      - eng/setup-pr-validation.ps1
+      - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
+      - .vscode/*
+      - .github/*
+      - .devcontainer/*
+      - .git-blame-ignore-revs
+      - .vsconfig
+      - azure-pipelines-compliance.yml
+      - azure-pipelines-integration-dartlab.yml
+      - azure-pipelines-integration-scouting.yml
+      - azure-pipelines-official.yml
+      - azure-pipelines-pr-validation.yml
+      - CODE-OF-CONDUCT.md
+      - CONTRIBUTING.md
+      - README.md
+      
+resources:
+- repo: self
+  clean: true
+  
+variables:
+  - name: BuildPlatform
+    value: 'Any CPU'
+  - name: TeamName
+    value: 'Roslyn'
+
+  # Set pool / queue name variables depending on which instance we're running in.
+  - name: PoolName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: NetCore-Public
+    ${{ else }}:
+      value: NetCore1ESPool-Internal
+
+  - name: Vs2017QueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2017.amd64.open
+    ${{ else }}:
+      value: windows.vs2017.amd64
+
+  - name: UbuntuQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Build.Ubuntu.2204.Amd64.Open
+    ${{ else }}:
+      value: Build.Ubuntu.2204.Amd64
+
+  - name: WindowsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: 1es-windows-2022-open
+    ${{ else }}:
+      value: 1es-windows-2022
+
+parameters:
+  # These pools allow us to configure the pools once for multiple jobs.
+  # We have to use parameters here as these are object typed.
+  - name: ubuntuPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(UbuntuQueueName)
+  - name: windowsPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(WindowsQueueName)
+  - name: macOSPool
+    type: object
+    default:
+      vmImage: macOS-15
+  - name: vsPool
+    type: object
+    default:
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2017QueueName)
+
+jobs:
+  - job: 'BuildWindows'
+    displayName: 'Build on Windows with VS2017'
+    timeoutInMinutes: 210
+    pool: ${{ parameters.vsPool }}
+    steps:
+
+    - task: NuGetToolInstaller@1
+      displayName: 'Use NuGet 6.2.4'
+      inputs:
+        versionSpec: 6.2.4
+
+    - task: NuGetAuthenticate@1
+
+    - task: NuGetCommand@2
+      inputs:
+        command: custom
+        arguments: 'locals all -clear'
+    
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core sdk'
+      inputs:
+        packageType: sdk
+        useGlobalJson: true
+        workingDirectory: '$(Build.SourcesDirectory)'
+
+    - task: NuGetCommand@2
+      displayName: 'NuGet restore'
+      inputs:
+        nugetConfigPath: 'NuGet.Config'
+        feedsToUse: 'config'
+        restoreSolution: 'build\ToolsetPackages\InternalToolset.csproj'
+
+    - task: VSBuild@1
+      inputs:
+        solution: 'src/Tools/MicroBuild/Build.proj'
+        vsVersion: '15.0'
+        msbuildArgs: >- 
+            /p:TreatWarningsAsErrors=true 
+            /p:DeployExtension=false 
+            /p:TrackFileAccess=false
+            /p:OfficialBuild=false 
+            /p:VisualStudioVersion=14.0 
+            /flp1:Summary;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.log 
+            /flp2:WarningsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.wrn 
+            /flp3:ErrorsOnly;Verbosity=diagnostic;Encoding=UTF-8;LogFile=$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Roslyn.err 
+            /p:RoslynNuGetApiKey=$(Roslyn.NuGetApiKey)
+            /p:RoslynGitHubEmail=$(Roslyn.GitHubEmail) 
+            /p:RoslynGitHubToken=$(Roslyn.GitHubToken) 
+            /p:RoslynGitHubUserName=$(Roslyn.GitHubUserName) 
+            /p:PB_PublishBlobFeedKey=$(PB_PublishBlobFeedKey) 
+            /p:PublishStableVersions=false 
+            /p:VersionStampToPublish=prerelease
+        platform: '$(BuildPlatform)'
+        configuration: '$(BuildConfiguration)'
+        maximumCpuCount: true
+        logProjectEvents: false
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(BuildConfiguration)\Logs'
+        ArtifactName: 'Build Diagnostic Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: succeededOrFailed()
+    
+    - task: PublishTestResults@2
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'Unit Tests'
+      condition: succeededOrFailed()
+
+    
+    

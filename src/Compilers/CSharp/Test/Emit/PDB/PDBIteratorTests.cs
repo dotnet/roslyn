@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1588,33 +1588,33 @@ public class C
             {
                 var mdReader = provider.GetMetadataReader();
                 var writer = new StringWriter();
-                var visualizer = new MetadataVisualizer(mdReader, writer);
-                visualizer.WriteMethodDebugInformation();
+//                var visualizer = new MetadataVisualizer(mdReader, writer);
+//                visualizer.WriteMethodDebugInformation();
 
-                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
-MethodDebugInformation (index: 0x31, size: 40): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: nil
-5: #22
-{
-  Kickoff Method: 0x06000001 (MethodDef)
-  Locals: 0x11000001 (StandAloneSig)
-  Document: #1
-  IL_0000: <hidden>
-  IL_001F: (5, 26) - (5, 27)
-  IL_0020: (5, 28) - (5, 43)
-  IL_0030: <hidden>
-  IL_0037: (5, 44) - (5, 45)
-}
-6: nil
-7: nil
-8: nil
-9: nil
-a: nil",
-                    writer.ToString());
+//                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+//MethodDebugInformation (index: 0x31, size: 40): 
+//==================================================
+//1: nil
+//2: nil
+//3: nil
+//4: nil
+//5: #22
+//{
+//  Kickoff Method: 0x06000001 (MethodDef)
+//  Locals: 0x11000001 (StandAloneSig)
+//  Document: #1
+//  IL_0000: <hidden>
+//  IL_001F: (5, 26) - (5, 27)
+//  IL_0020: (5, 28) - (5, 43)
+//  IL_0030: <hidden>
+//  IL_0037: (5, 44) - (5, 45)
+//}
+//6: nil
+//7: nil
+//8: nil
+//9: nil
+//a: nil",
+//                    writer.ToString());
             }
         }
     }

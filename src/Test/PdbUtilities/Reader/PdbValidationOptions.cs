@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 PdbValidationOptions.ExcludeAsyncInfo |
                 PdbValidationOptions.ExcludeCustomDebugInformation;
 
-            return PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError | PdbToXmlOptions.IncludeEmbeddedSources | (PdbToXmlOptions)(options & mask);
+            return PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError | PdbToXmlOptions.IncludeEmbeddedSources | 
+                (PdbToXmlOptions)(options & mask);
         }
     }
 }

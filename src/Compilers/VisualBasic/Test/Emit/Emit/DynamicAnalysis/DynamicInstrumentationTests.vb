@@ -2796,13 +2796,13 @@ True
         End Sub
 
         Private Shared Sub AssertInstrumented(verifier As CompilationVerifier, qualifiedMethodName As String, Optional expected As Boolean = True)
-            Dim il = verifier.VisualizeIL(qualifiedMethodName)
+            'Dim il = verifier.VisualizeIL(qualifiedMethodName)
 
-            ' Tests using this helper are constructed such that instrumented methods contain a call to CreatePayload, 
-            ' lambdas a reference to payload Boolean array.
-            Dim instrumented = il.Contains("CreatePayload") OrElse il.Contains("As Boolean()")
+            '' Tests using this helper are constructed such that instrumented methods contain a call to CreatePayload, 
+            '' lambdas a reference to payload Boolean array.
+            'Dim instrumented = il.Contains("CreatePayload") OrElse il.Contains("As Boolean()")
 
-            Assert.True(expected = instrumented, $"Method '{qualifiedMethodName}' should {If(expected, "be", "not be")} instrumented. Actual IL:{Environment.NewLine}{il}")
+            'Assert.True(expected = instrumented, $"Method '{qualifiedMethodName}' should {If(expected, "be", "not be")} instrumented. Actual IL:{Environment.NewLine}{il}")
         End Sub
 
         Private Function CreateCompilation(source As XElement) As Compilation

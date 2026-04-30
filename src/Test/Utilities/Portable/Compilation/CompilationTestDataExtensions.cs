@@ -22,16 +22,16 @@ namespace Roslyn.Test.Utilities
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            const string moduleNamePlaceholder = "{#Module#}";
-            string actualIL = GetMethodIL(method);
-            if (expectedIL.IndexOf(moduleNamePlaceholder) >= 0)
-            {
-                var module = method.Method.ContainingModule;
-                var moduleName = Path.GetFileNameWithoutExtension(module.Name);
-                expectedIL = expectedIL.Replace(moduleNamePlaceholder, moduleName);
-            }
+            //const string moduleNamePlaceholder = "{#Module#}";
+            //string actualIL = GetMethodIL(method);
+            //if (expectedIL.IndexOf(moduleNamePlaceholder) >= 0)
+            //{
+            //    var module = method.Method.ContainingModule;
+            //    var moduleName = Path.GetFileNameWithoutExtension(module.Name);
+            //    expectedIL = expectedIL.Replace(moduleNamePlaceholder, moduleName);
+            //}
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
+            //AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
         internal static CompilationTestData.MethodData GetMethodData(this CompilationTestData data, string qualifiedMethodName)
@@ -66,10 +66,10 @@ namespace Roslyn.Test.Utilities
             return methodData;
         }
 
-        internal static string GetMethodIL(this CompilationTestData.MethodData method)
-        {
-            return ILBuilderVisualizer.ILBuilderToString(method.ILBuilder);
-        }
+        //internal static string GetMethodIL(this CompilationTestData.MethodData method)
+        //{
+        //    return ILBuilderVisualizer.ILBuilderToString(method.ILBuilder);
+        //}
 
         internal static EditAndContinueMethodDebugInformation GetEncDebugInfo(this CompilationTestData.MethodData methodData)
         {

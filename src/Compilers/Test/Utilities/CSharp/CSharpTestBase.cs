@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Metadata.Tools;
+//using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -872,51 +872,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         /// - winmd
         /// - global methods
         /// </remarks>
-        internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
-        {
-            var typeName = GetContainingTypeMetadataName(methodData.Method);
-            // TODO (tomat): global methods (typeName == null)
+        //internal unsafe static string VisualizeRealIL(PEModuleSymbol peModule, CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
+        //{
+        //    var typeName = GetContainingTypeMetadataName(methodData.Method);
+        //    // TODO (tomat): global methods (typeName == null)
 
-            var type = peModule.ContainingAssembly.GetTypeByMetadataName(typeName);
+        //    var type = peModule.ContainingAssembly.GetTypeByMetadataName(typeName);
 
-            // TODO (tomat): overloaded methods
-            var method = (PEMethodSymbol)type.GetMembers(methodData.Method.MetadataName).Single();
+        //    // TODO (tomat): overloaded methods
+        //    var method = (PEMethodSymbol)type.GetMembers(methodData.Method.MetadataName).Single();
 
-            var bodyBlock = peModule.Module.GetMethodBodyOrThrow(method.Handle);
-            Assert.NotNull(bodyBlock);
+        //    var bodyBlock = peModule.Module.GetMethodBodyOrThrow(method.Handle);
+        //    Assert.NotNull(bodyBlock);
 
-            var moduleDecoder = new MetadataDecoder(peModule);
-            var peMethod = (PEMethodSymbol)moduleDecoder.GetSymbolForILToken(method.Handle);
+        //    var moduleDecoder = new MetadataDecoder(peModule);
+        //    var peMethod = (PEMethodSymbol)moduleDecoder.GetSymbolForILToken(method.Handle);
 
-            StringBuilder sb = new StringBuilder();
-            var ilBytes = bodyBlock.GetILContent();
+        //    StringBuilder sb = new StringBuilder();
+        //    var ilBytes = bodyBlock.GetILContent();
 
-            var ehHandlerRegions = ILVisualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
+        //    var ehHandlerRegions = ILVisualizer.GetHandlerSpans(bodyBlock.ExceptionRegions);
 
-            var methodDecoder = new MetadataDecoder(peModule, peMethod);
+        //    var methodDecoder = new MetadataDecoder(peModule, peMethod);
 
-            ImmutableArray<ILVisualizer.LocalInfo> localDefinitions;
-            if (!bodyBlock.LocalSignature.IsNil)
-            {
-                var signature = peModule.Module.MetadataReader.GetStandaloneSignature(bodyBlock.LocalSignature).Signature;
-                var signatureReader = peModule.Module.GetMemoryReaderOrThrow(signature);
-                var localInfos = methodDecoder.DecodeLocalSignatureOrThrow(ref signatureReader);
-                localDefinitions = ToLocalDefinitions(localInfos, methodData.ILBuilder);
-            }
-            else
-            {
-                localDefinitions = ImmutableArray.Create<ILVisualizer.LocalInfo>();
-            }
+        //    ImmutableArray<ILVisualizer.LocalInfo> localDefinitions;
+        //    if (!bodyBlock.LocalSignature.IsNil)
+        //    {
+        //        var signature = peModule.Module.MetadataReader.GetStandaloneSignature(bodyBlock.LocalSignature).Signature;
+        //        var signatureReader = peModule.Module.GetMemoryReaderOrThrow(signature);
+        //        var localInfos = methodDecoder.DecodeLocalSignatureOrThrow(ref signatureReader);
+        //        localDefinitions = ToLocalDefinitions(localInfos, methodData.ILBuilder);
+        //    }
+        //    else
+        //    {
+        //        localDefinitions = ImmutableArray.Create<ILVisualizer.LocalInfo>();
+        //    }
 
-            // TODO (tomat): the .maxstack in IL can't be less than 8, but many tests expect .maxstack < 8
-            int maxStack = (bodyBlock.MaxStack == 8 && methodData.ILBuilder.MaxStack < 8) ? methodData.ILBuilder.MaxStack : bodyBlock.MaxStack;
+        //    // TODO (tomat): the .maxstack in IL can't be less than 8, but many tests expect .maxstack < 8
+        //    int maxStack = (bodyBlock.MaxStack == 8 && methodData.ILBuilder.MaxStack < 8) ? methodData.ILBuilder.MaxStack : bodyBlock.MaxStack;
 
-            var visualizer = new Visualizer(new MetadataDecoder(peModule, peMethod));
+        //    var visualizer = new Visualizer(new MetadataDecoder(peModule, peMethod));
 
-            visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers);
+        //    visualizer.DumpMethod(sb, maxStack, ilBytes, localDefinitions, ehHandlerRegions, markers);
 
-            return sb.ToString();
-        }
+        //    return sb.ToString();
+        //}
 
         private static string GetContainingTypeMetadataName(IMethodSymbol method)
         {
@@ -937,55 +937,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return (ns.Length > 0) ? ns + "." + result : result;
         }
 
-        private static ImmutableArray<ILVisualizer.LocalInfo> ToLocalDefinitions(ImmutableArray<LocalInfo<TypeSymbol>> localInfos, ILBuilder builder)
-        {
-            if (localInfos.IsEmpty)
-            {
-                return ImmutableArray.Create<ILVisualizer.LocalInfo>();
-            }
+        //private static ImmutableArray<ILVisualizer.LocalInfo> ToLocalDefinitions(ImmutableArray<LocalInfo<TypeSymbol>> localInfos, ILBuilder builder)
+        //{
+        //    if (localInfos.IsEmpty)
+        //    {
+        //        return ImmutableArray.Create<ILVisualizer.LocalInfo>();
+        //    }
 
-            var result = new ILVisualizer.LocalInfo[localInfos.Length];
-            for (int i = 0; i < result.Length; i++)
-            {
-                var typeRef = localInfos[i].Type;
-                var builderLocal = builder.LocalSlotManager.LocalsInOrder()[i];
-                result[i] = new ILVisualizer.LocalInfo(builderLocal.Name, typeRef, localInfos[i].IsPinned, localInfos[i].IsByRef);
-            }
+        //    var result = new ILVisualizer.LocalInfo[localInfos.Length];
+        //    for (int i = 0; i < result.Length; i++)
+        //    {
+        //        var typeRef = localInfos[i].Type;
+        //        var builderLocal = builder.LocalSlotManager.LocalsInOrder()[i];
+        //        result[i] = new ILVisualizer.LocalInfo(builderLocal.Name, typeRef, localInfos[i].IsPinned, localInfos[i].IsByRef);
+        //    }
 
-            return result.AsImmutableOrNull();
-        }
+        //    return result.AsImmutableOrNull();
+        //}
 
-        private sealed class Visualizer : ILVisualizer
-        {
-            private readonly MetadataDecoder _decoder;
+        //private sealed class Visualizer : ILVisualizer
+        //{
+        //    private readonly MetadataDecoder _decoder;
 
-            public Visualizer(MetadataDecoder decoder)
-            {
-                _decoder = decoder;
-            }
+        //    public Visualizer(MetadataDecoder decoder)
+        //    {
+        //        _decoder = decoder;
+        //    }
 
-            public override string VisualizeUserString(uint token)
-            {
-                var reader = _decoder.Module.GetMetadataReader();
-                return "\"" + reader.GetUserString((UserStringHandle)MetadataTokens.Handle((int)token)) + "\"";
-            }
+        //    public override string VisualizeUserString(uint token)
+        //    {
+        //        var reader = _decoder.Module.GetMetadataReader();
+        //        return "\"" + reader.GetUserString((UserStringHandle)MetadataTokens.Handle((int)token)) + "\"";
+        //    }
 
-            public override string VisualizeSymbol(uint token, OperandType operandType)
-            {
-                Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
-                return string.Format("\"{0}\"", (reference is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : (object)reference);
-            }
+        //    public override string VisualizeSymbol(uint token, OperandType operandType)
+        //    {
+        //        Cci.IReference reference = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)token));
+        //        return string.Format("\"{0}\"", (reference is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : (object)reference);
+        //    }
 
-            public override string VisualizeLocalType(object type)
-            {
-                if (type is int)
-                {
-                    type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
-                }
+        //    public override string VisualizeLocalType(object type)
+        //    {
+        //        if (type is int)
+        //        {
+        //            type = _decoder.GetSymbolForILToken(MetadataTokens.EntityHandle((int)type));
+        //        }
 
-                return (type is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
-            }
-        }
+        //        return (type is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
+        //    }
+        //}
 
 #endregion
 

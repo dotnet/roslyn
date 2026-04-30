@@ -25,6 +25,7 @@ If a stack trace is displayed on .NET Framework older than 4.7.2 (e.g. by xUnit 
     - Ensure Visual Studio is on Version "15.7" or greater
 1. [.NET Core SDK 2.1.300](https://www.microsoft.com/net/download/core) (the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-rtm-008866/dotnet-sdk-2.1.300-rtm-008866-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-rtm-008866/dotnet-sdk-2.1.300-rtm-008866-win-x86.exe))
 1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
+1. [Nuget.exe](https://www.nuget.org/downloads) needs to be on your path.
 1. Run Restore.cmd
 1. Open Roslyn.sln
 
@@ -133,4 +134,4 @@ csc and vbc inside it. You can check the cibuild.cmd and see how it is used.
 
 ## Contributing
 
-Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md) for details on contributing changes back to the code.
+Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md) for details on contributing changes back to the code.

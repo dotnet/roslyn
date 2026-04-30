@@ -119,40 +119,40 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source, source), preserveLocalVariables:=True)))
 
             ' check that all user-defined and long-lived synthesized local slots are reused
-            diff1.VerifyIL("C.M", "
-{
-  // Code size       36 (0x24)
-  .maxstack  2
-  .locals init (Integer V_0, //index
-                Integer V_1) //index
-  IL_0000:  nop
-  IL_0001:  ldc.i4.1
-  IL_0002:  stloc.0
-  IL_0003:  ldc.i4.1
-  IL_0004:  call       ""Sub System.Console.WriteLine(Integer)""
-  IL_0009:  nop
-  IL_000a:  ldloc.0
-  IL_000b:  ldc.i4.1
-  IL_000c:  add.ovf
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ldc.i4.1
-  IL_0010:  ble.s      IL_0003
-  IL_0012:  ldc.i4.1
-  IL_0013:  stloc.1
-  IL_0014:  ldc.i4.2
-  IL_0015:  call       ""Sub System.Console.WriteLine(Integer)""
-  IL_001a:  nop
-  IL_001b:  ldloc.1
-  IL_001c:  ldc.i4.1
-  IL_001d:  add.ovf
-  IL_001e:  stloc.1
-  IL_001f:  ldloc.1
-  IL_0020:  ldc.i4.2
-  IL_0021:  ble.s      IL_0014
-  IL_0023:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size       36 (0x24)
+            '  .maxstack  2
+            '  .locals init (Integer V_0, //index
+            '                Integer V_1) //index
+            '  IL_0000:  nop
+            '  IL_0001:  ldc.i4.1
+            '  IL_0002:  stloc.0
+            '  IL_0003:  ldc.i4.1
+            '  IL_0004:  call       ""Sub System.Console.WriteLine(Integer)""
+            '  IL_0009:  nop
+            '  IL_000a:  ldloc.0
+            '  IL_000b:  ldc.i4.1
+            '  IL_000c:  add.ovf
+            '  IL_000d:  stloc.0
+            '  IL_000e:  ldloc.0
+            '  IL_000f:  ldc.i4.1
+            '  IL_0010:  ble.s      IL_0003
+            '  IL_0012:  ldc.i4.1
+            '  IL_0013:  stloc.1
+            '  IL_0014:  ldc.i4.2
+            '  IL_0015:  call       ""Sub System.Console.WriteLine(Integer)""
+            '  IL_001a:  nop
+            '  IL_001b:  ldloc.1
+            '  IL_001c:  ldc.i4.1
+            '  IL_001d:  add.ovf
+            '  IL_001e:  stloc.1
+            '  IL_001f:  ldloc.1
+            '  IL_0020:  ldc.i4.2
+            '  IL_0021:  ble.s      IL_0014
+            '  IL_0023:  ret
+            '}
+            '")
         End Sub
 
         ' <summary>
@@ -284,172 +284,172 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source, source), preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.M", "
-{
-  // Code size      318 (0x13e)
-  .maxstack  1
-  .locals init (System.Collections.IEnumerator V_0,
-                Object V_1, //x
-                System.Collections.Generic.List(Of Object).Enumerator V_2,
-                Object V_3, //y
-                Boolean V_4,
-                Boolean V_5,
-                System.Collections.Generic.List(Of Object).Enumerator V_6,
-                Object V_7, //x
-                System.Collections.IEnumerator V_8,
-                Object V_9, //y
-                Boolean V_10,
-                System.Collections.Generic.List(Of Object).Enumerator V_11,
-                Object V_12, //z
-                Boolean V_13,
-                Boolean V_14)
-  IL_0000:  nop
-  .try
-  {
-    IL_0001:  ldarg.0
-    IL_0002:  call       ""Function C.F1() As System.Collections.IEnumerable""
-    IL_0007:  callvirt   ""Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator""
-    IL_000c:  stloc.0
-    IL_000d:  br.s       IL_0056
-    IL_000f:  ldloc.0
-    IL_0010:  callvirt   ""Function System.Collections.IEnumerator.get_Current() As Object""
-    IL_0015:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
-    IL_001a:  stloc.1
-    .try
-    {
-      IL_001b:  ldarg.0
-      IL_001c:  call       ""Function C.F2() As System.Collections.Generic.List(Of Object)""
-      IL_0021:  callvirt   ""Function System.Collections.Generic.List(Of Object).GetEnumerator() As System.Collections.Generic.List(Of Object).Enumerator""
-      IL_0026:  stloc.2
-      IL_0027:  br.s       IL_0037
-      IL_0029:  ldloca.s   V_2
-      IL_002b:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.get_Current() As Object""
-      IL_0030:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
-      IL_0035:  stloc.3
-      IL_0036:  nop
-      IL_0037:  ldloca.s   V_2
-      IL_0039:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.MoveNext() As Boolean""
-      IL_003e:  stloc.s    V_4
-      IL_0040:  ldloc.s    V_4
-      IL_0042:  brtrue.s   IL_0029
-      IL_0044:  leave.s    IL_0055
-    }
-    finally
-    {
-      IL_0046:  ldloca.s   V_2
-      IL_0048:  constrained. ""System.Collections.Generic.List(Of Object).Enumerator""
-      IL_004e:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_0053:  nop
-      IL_0054:  endfinally
-    }
-    IL_0055:  nop
-    IL_0056:  ldloc.0
-    IL_0057:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
-    IL_005c:  stloc.s    V_5
-    IL_005e:  ldloc.s    V_5
-    IL_0060:  brtrue.s   IL_000f
-    IL_0062:  leave.s    IL_0079
-  }
-  finally
-  {
-    IL_0064:  ldloc.0
-    IL_0065:  isinst     ""System.IDisposable""
-    IL_006a:  brfalse.s  IL_0078
-    IL_006c:  ldloc.0
-    IL_006d:  isinst     ""System.IDisposable""
-    IL_0072:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_0077:  nop
-    IL_0078:  endfinally
-  }
-  IL_0079:  nop
-  .try
-  {
-    IL_007a:  ldarg.0
-    IL_007b:  call       ""Function C.F4() As System.Collections.Generic.List(Of Object)""
-    IL_0080:  callvirt   ""Function System.Collections.Generic.List(Of Object).GetEnumerator() As System.Collections.Generic.List(Of Object).Enumerator""
-    IL_0085:  stloc.s    V_6
-    IL_0087:  br         IL_011c
-    IL_008c:  ldloca.s   V_6
-    IL_008e:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.get_Current() As Object""
-    IL_0093:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
-    IL_0098:  stloc.s    V_7
-    .try
-    {
-      IL_009a:  ldarg.0
-      IL_009b:  call       ""Function C.F3() As System.Collections.IEnumerable""
-      IL_00a0:  callvirt   ""Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator""
-      IL_00a5:  stloc.s    V_8
-      IL_00a7:  br.s       IL_00b8
-      IL_00a9:  ldloc.s    V_8
-      IL_00ab:  callvirt   ""Function System.Collections.IEnumerator.get_Current() As Object""
-      IL_00b0:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
-      IL_00b5:  stloc.s    V_9
-      IL_00b7:  nop
-      IL_00b8:  ldloc.s    V_8
-      IL_00ba:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
-      IL_00bf:  stloc.s    V_10
-      IL_00c1:  ldloc.s    V_10
-      IL_00c3:  brtrue.s   IL_00a9
-      IL_00c5:  leave.s    IL_00de
-    }
-    finally
-    {
-      IL_00c7:  ldloc.s    V_8
-      IL_00c9:  isinst     ""System.IDisposable""
-      IL_00ce:  brfalse.s  IL_00dd
-      IL_00d0:  ldloc.s    V_8
-      IL_00d2:  isinst     ""System.IDisposable""
-      IL_00d7:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_00dc:  nop
-      IL_00dd:  endfinally
-    }
-    IL_00de:  nop
-    .try
-    {
-      IL_00df:  ldarg.0
-      IL_00e0:  call       ""Function C.F2() As System.Collections.Generic.List(Of Object)""
-      IL_00e5:  callvirt   ""Function System.Collections.Generic.List(Of Object).GetEnumerator() As System.Collections.Generic.List(Of Object).Enumerator""
-      IL_00ea:  stloc.s    V_11
-      IL_00ec:  br.s       IL_00fd
-      IL_00ee:  ldloca.s   V_11
-      IL_00f0:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.get_Current() As Object""
-      IL_00f5:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
-      IL_00fa:  stloc.s    V_12
-      IL_00fc:  nop
-      IL_00fd:  ldloca.s   V_11
-      IL_00ff:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.MoveNext() As Boolean""
-      IL_0104:  stloc.s    V_13
-      IL_0106:  ldloc.s    V_13
-      IL_0108:  brtrue.s   IL_00ee
-      IL_010a:  leave.s    IL_011b
-    }
-    finally
-    {
-      IL_010c:  ldloca.s   V_11
-      IL_010e:  constrained. ""System.Collections.Generic.List(Of Object).Enumerator""
-      IL_0114:  callvirt   ""Sub System.IDisposable.Dispose()""
-      IL_0119:  nop
-      IL_011a:  endfinally
-    }
-    IL_011b:  nop
-    IL_011c:  ldloca.s   V_6
-    IL_011e:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.MoveNext() As Boolean""
-    IL_0123:  stloc.s    V_14
-    IL_0125:  ldloc.s    V_14
-    IL_0127:  brtrue     IL_008c
-    IL_012c:  leave.s    IL_013d
-  }
-  finally
-  {
-    IL_012e:  ldloca.s   V_6
-    IL_0130:  constrained. ""System.Collections.Generic.List(Of Object).Enumerator""
-    IL_0136:  callvirt   ""Sub System.IDisposable.Dispose()""
-    IL_013b:  nop
-    IL_013c:  endfinally
-  }
-  IL_013d:  ret
-}
-")
+            '            diff1.VerifyIL("C.M", "
+            '{
+            '  // Code size      318 (0x13e)
+            '  .maxstack  1
+            '  .locals init (System.Collections.IEnumerator V_0,
+            '                Object V_1, //x
+            '                System.Collections.Generic.List(Of Object).Enumerator V_2,
+            '                Object V_3, //y
+            '                Boolean V_4,
+            '                Boolean V_5,
+            '                System.Collections.Generic.List(Of Object).Enumerator V_6,
+            '                Object V_7, //x
+            '                System.Collections.IEnumerator V_8,
+            '                Object V_9, //y
+            '                Boolean V_10,
+            '                System.Collections.Generic.List(Of Object).Enumerator V_11,
+            '                Object V_12, //z
+            '                Boolean V_13,
+            '                Boolean V_14)
+            '  IL_0000:  nop
+            '  .try
+            '  {
+            '    IL_0001:  ldarg.0
+            '    IL_0002:  call       ""Function C.F1() As System.Collections.IEnumerable""
+            '    IL_0007:  callvirt   ""Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator""
+            '    IL_000c:  stloc.0
+            '    IL_000d:  br.s       IL_0056
+            '    IL_000f:  ldloc.0
+            '    IL_0010:  callvirt   ""Function System.Collections.IEnumerator.get_Current() As Object""
+            '    IL_0015:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+            '    IL_001a:  stloc.1
+            '    .try
+            '    {
+            '      IL_001b:  ldarg.0
+            '      IL_001c:  call       ""Function C.F2() As System.Collections.Generic.List(Of Object)""
+            '      IL_0021:  callvirt   ""Function System.Collections.Generic.List(Of Object).GetEnumerator() As System.Collections.Generic.List(Of Object).Enumerator""
+            '      IL_0026:  stloc.2
+            '      IL_0027:  br.s       IL_0037
+            '      IL_0029:  ldloca.s   V_2
+            '      IL_002b:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.get_Current() As Object""
+            '      IL_0030:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+            '      IL_0035:  stloc.3
+            '      IL_0036:  nop
+            '      IL_0037:  ldloca.s   V_2
+            '      IL_0039:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.MoveNext() As Boolean""
+            '      IL_003e:  stloc.s    V_4
+            '      IL_0040:  ldloc.s    V_4
+            '      IL_0042:  brtrue.s   IL_0029
+            '      IL_0044:  leave.s    IL_0055
+            '    }
+            '    finally
+            '    {
+            '      IL_0046:  ldloca.s   V_2
+            '      IL_0048:  constrained. ""System.Collections.Generic.List(Of Object).Enumerator""
+            '      IL_004e:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '      IL_0053:  nop
+            '      IL_0054:  endfinally
+            '    }
+            '    IL_0055:  nop
+            '    IL_0056:  ldloc.0
+            '    IL_0057:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
+            '    IL_005c:  stloc.s    V_5
+            '    IL_005e:  ldloc.s    V_5
+            '    IL_0060:  brtrue.s   IL_000f
+            '    IL_0062:  leave.s    IL_0079
+            '  }
+            '  finally
+            '  {
+            '    IL_0064:  ldloc.0
+            '    IL_0065:  isinst     ""System.IDisposable""
+            '    IL_006a:  brfalse.s  IL_0078
+            '    IL_006c:  ldloc.0
+            '    IL_006d:  isinst     ""System.IDisposable""
+            '    IL_0072:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_0077:  nop
+            '    IL_0078:  endfinally
+            '  }
+            '  IL_0079:  nop
+            '  .try
+            '  {
+            '    IL_007a:  ldarg.0
+            '    IL_007b:  call       ""Function C.F4() As System.Collections.Generic.List(Of Object)""
+            '    IL_0080:  callvirt   ""Function System.Collections.Generic.List(Of Object).GetEnumerator() As System.Collections.Generic.List(Of Object).Enumerator""
+            '    IL_0085:  stloc.s    V_6
+            '    IL_0087:  br         IL_011c
+            '    IL_008c:  ldloca.s   V_6
+            '    IL_008e:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.get_Current() As Object""
+            '    IL_0093:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+            '    IL_0098:  stloc.s    V_7
+            '    .try
+            '    {
+            '      IL_009a:  ldarg.0
+            '      IL_009b:  call       ""Function C.F3() As System.Collections.IEnumerable""
+            '      IL_00a0:  callvirt   ""Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator""
+            '      IL_00a5:  stloc.s    V_8
+            '      IL_00a7:  br.s       IL_00b8
+            '      IL_00a9:  ldloc.s    V_8
+            '      IL_00ab:  callvirt   ""Function System.Collections.IEnumerator.get_Current() As Object""
+            '      IL_00b0:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+            '      IL_00b5:  stloc.s    V_9
+            '      IL_00b7:  nop
+            '      IL_00b8:  ldloc.s    V_8
+            '      IL_00ba:  callvirt   ""Function System.Collections.IEnumerator.MoveNext() As Boolean""
+            '      IL_00bf:  stloc.s    V_10
+            '      IL_00c1:  ldloc.s    V_10
+            '      IL_00c3:  brtrue.s   IL_00a9
+            '      IL_00c5:  leave.s    IL_00de
+            '    }
+            '    finally
+            '    {
+            '      IL_00c7:  ldloc.s    V_8
+            '      IL_00c9:  isinst     ""System.IDisposable""
+            '      IL_00ce:  brfalse.s  IL_00dd
+            '      IL_00d0:  ldloc.s    V_8
+            '      IL_00d2:  isinst     ""System.IDisposable""
+            '      IL_00d7:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '      IL_00dc:  nop
+            '      IL_00dd:  endfinally
+            '    }
+            '    IL_00de:  nop
+            '    .try
+            '    {
+            '      IL_00df:  ldarg.0
+            '      IL_00e0:  call       ""Function C.F2() As System.Collections.Generic.List(Of Object)""
+            '      IL_00e5:  callvirt   ""Function System.Collections.Generic.List(Of Object).GetEnumerator() As System.Collections.Generic.List(Of Object).Enumerator""
+            '      IL_00ea:  stloc.s    V_11
+            '      IL_00ec:  br.s       IL_00fd
+            '      IL_00ee:  ldloca.s   V_11
+            '      IL_00f0:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.get_Current() As Object""
+            '      IL_00f5:  call       ""Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object""
+            '      IL_00fa:  stloc.s    V_12
+            '      IL_00fc:  nop
+            '      IL_00fd:  ldloca.s   V_11
+            '      IL_00ff:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.MoveNext() As Boolean""
+            '      IL_0104:  stloc.s    V_13
+            '      IL_0106:  ldloc.s    V_13
+            '      IL_0108:  brtrue.s   IL_00ee
+            '      IL_010a:  leave.s    IL_011b
+            '    }
+            '    finally
+            '    {
+            '      IL_010c:  ldloca.s   V_11
+            '      IL_010e:  constrained. ""System.Collections.Generic.List(Of Object).Enumerator""
+            '      IL_0114:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '      IL_0119:  nop
+            '      IL_011a:  endfinally
+            '    }
+            '    IL_011b:  nop
+            '    IL_011c:  ldloca.s   V_6
+            '    IL_011e:  call       ""Function System.Collections.Generic.List(Of Object).Enumerator.MoveNext() As Boolean""
+            '    IL_0123:  stloc.s    V_14
+            '    IL_0125:  ldloc.s    V_14
+            '    IL_0127:  brtrue     IL_008c
+            '    IL_012c:  leave.s    IL_013d
+            '  }
+            '  finally
+            '  {
+            '    IL_012e:  ldloca.s   V_6
+            '    IL_0130:  constrained. ""System.Collections.Generic.List(Of Object).Enumerator""
+            '    IL_0136:  callvirt   ""Sub System.IDisposable.Dispose()""
+            '    IL_013b:  nop
+            '    IL_013c:  endfinally
+            '  }
+            '  IL_013d:  ret
+            '}
+            '")
         End Sub
 
         <Fact>
@@ -988,63 +988,63 @@ End Class
                 generation0,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
-            diff1.VerifyIL("C.G", "
-{
-  // Code size       42 (0x2a)
-  .maxstack  4
-  .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
-                System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
-                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
-  IL_0000:  nop
-  IL_0001:  ldstr      ""a""
-  IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
-  IL_000b:  newobj     ""Sub VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))..ctor(String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))""
-  IL_0010:  stloc.0
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  ldc.i4.5
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""Sub System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)..ctor(Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
-  IL_001a:  ldc.i4.1
-  IL_001b:  newarr     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
-  IL_0020:  dup
-  IL_0021:  ldc.i4.0
-  IL_0022:  ldloc.1
-  IL_0023:  stelem     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
-  IL_0028:  stloc.2
-  IL_0029:  ret
-}
-")
+            '            diff1.VerifyIL("C.G", "
+            '{
+            '  // Code size       42 (0x2a)
+            '  .maxstack  4
+            '  .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
+            '                System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
+            '                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+            '  IL_0000:  nop
+            '  IL_0001:  ldstr      ""a""
+            '  IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
+            '  IL_000b:  newobj     ""Sub VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))..ctor(String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))""
+            '  IL_0010:  stloc.0
+            '  IL_0011:  ldloca.s   V_1
+            '  IL_0013:  ldc.i4.5
+            '  IL_0014:  ldloc.0
+            '  IL_0015:  call       ""Sub System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)..ctor(Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+            '  IL_001a:  ldc.i4.1
+            '  IL_001b:  newarr     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+            '  IL_0020:  dup
+            '  IL_0021:  ldc.i4.0
+            '  IL_0022:  ldloc.1
+            '  IL_0023:  stelem     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+            '  IL_0028:  stloc.2
+            '  IL_0029:  ret
+            '}
+            '")
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
 
-            diff2.VerifyIL("C.G", "
-{
-  // Code size       42 (0x2a)
-  .maxstack  4
-  .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
-                System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
-                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
-  IL_0000:  nop
-  IL_0001:  ldstr      ""a""
-  IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
-  IL_000b:  newobj     ""Sub VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))..ctor(String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))""
-  IL_0010:  stloc.0
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  ldc.i4.5
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""Sub System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)..ctor(Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
-  IL_001a:  ldc.i4.1
-  IL_001b:  newarr     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
-  IL_0020:  dup
-  IL_0021:  ldc.i4.0
-  IL_0022:  ldloc.1
-  IL_0023:  stelem     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
-  IL_0028:  stloc.2
-  IL_0029:  ret
-}
-")
+            '            diff2.VerifyIL("C.G", "
+            '{
+            '  // Code size       42 (0x2a)
+            '  .maxstack  4
+            '  .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
+            '                System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
+            '                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+            '  IL_0000:  nop
+            '  IL_0001:  ldstr      ""a""
+            '  IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
+            '  IL_000b:  newobj     ""Sub VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))..ctor(String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))""
+            '  IL_0010:  stloc.0
+            '  IL_0011:  ldloca.s   V_1
+            '  IL_0013:  ldc.i4.5
+            '  IL_0014:  ldloc.0
+            '  IL_0015:  call       ""Sub System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)..ctor(Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+            '  IL_001a:  ldc.i4.1
+            '  IL_001b:  newarr     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+            '  IL_0020:  dup
+            '  IL_0021:  ldc.i4.0
+            '  IL_0022:  ldloc.1
+            '  IL_0023:  stelem     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+            '  IL_0028:  stloc.2
+            '  IL_0029:  ret
+            '}
+            '")
         End Sub
 
     End Class

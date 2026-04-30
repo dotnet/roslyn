@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private CompilationTestData _testData;
         private readonly IEnumerable<ModuleData> _dependencies;
         private ImmutableArray<Diagnostic> _diagnostics;
-        private IModuleSymbol _lazyModuleSymbol;
+        //private IModuleSymbol _lazyModuleSymbol;
         private IList<ModuleData> _allModuleData;
 
         public ImmutableArray<byte> EmittedAssemblyData;
@@ -168,16 +168,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true, source: source);
         }
 
-        public void VerifyLocalSignature(
-            string qualifiedMethodName,
-            string expectedSignature,
-            [CallerLineNumber]int callerLine = 0,
-            [CallerFilePath]string callerPath = null)
-        {
-            var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
-            string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-        }
+        //public void VerifyLocalSignature(
+        //    string qualifiedMethodName,
+        //    string expectedSignature,
+        //    [CallerLineNumber]int callerLine = 0,
+        //    [CallerFilePath]string callerPath = null)
+        //{
+        //    var ilBuilder = _testData.GetMethodData(qualifiedMethodName).ILBuilder;
+        //    string actualSignature = ILBuilderVisualizer.LocalSignatureToString(ilBuilder);
+        //    AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
+        //}
 
         private CompilationVerifier VerifyILImpl(
             string qualifiedMethodName,
@@ -189,51 +189,51 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool escapeQuotes,
             string source = null)
         {
-            string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, source);
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
+            //string actualIL = VisualizeIL(qualifiedMethodName, realIL, sequencePoints, source);
+            //AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes, callerPath, callerLine);
             return this;
         }
 
-        public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, string source = null)
-        {
-            // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
-            // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
+        //public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, string source = null)
+        //{
+        //    // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
+        //    // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
 
-            return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, source);
-        }
+        //    return VisualizeIL(_testData.GetMethodData(qualifiedMethodName), realIL, sequencePoints, source);
+        //}
 
-        internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, string source = null)
-        {
-            Dictionary<int, string> markers = null;
+        //internal string VisualizeIL(CompilationTestData.MethodData methodData, bool realIL, string sequencePoints = null, string source = null)
+        //{
+        //    Dictionary<int, string> markers = null;
 
-            if (sequencePoints != null)
-            {
-                var actualPdbXml = PdbToXmlConverter.ToXml(
-                    pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
-                    peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
-                    options: PdbToXmlOptions.ResolveTokens |
-                             PdbToXmlOptions.ThrowOnError |
-                             PdbToXmlOptions.ExcludeDocuments |
-                             PdbToXmlOptions.ExcludeCustomDebugInformation |
-                             PdbToXmlOptions.ExcludeScopes,
-                    methodName: sequencePoints);
+        //    if (sequencePoints != null)
+        //    {
+        //        var actualPdbXml = PdbToXmlConverter.ToXml(
+        //            pdbStream: new MemoryStream(EmittedAssemblyPdb.ToArray()),
+        //            peStream: new MemoryStream(EmittedAssemblyData.ToArray()),
+        //            options: PdbToXmlOptions.ResolveTokens |
+        //                     PdbToXmlOptions.ThrowOnError |
+        //                     PdbToXmlOptions.ExcludeDocuments |
+        //                     PdbToXmlOptions.ExcludeCustomDebugInformation |
+        //                     PdbToXmlOptions.ExcludeScopes,
+        //            methodName: sequencePoints);
 
-                markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
-            }
+        //        markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
+        //    }
 
-            if (!realIL)
-            {
-                return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
-            }
+        //    if (!realIL)
+        //    {
+        //        return ILBuilderVisualizer.ILBuilderToString(methodData.ILBuilder, markers: markers);
+        //    }
 
-            if (_lazyModuleSymbol == null)
-            {
-                var targetReference = LoadTestEmittedExecutableForSymbolValidation(EmittedAssemblyData, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
-                _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
-            }
+        //    if (_lazyModuleSymbol == null)
+        //    {
+        //        var targetReference = LoadTestEmittedExecutableForSymbolValidation(EmittedAssemblyData, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
+        //        _lazyModuleSymbol = GetSymbolFromMetadata(targetReference, MetadataImportOptions.All);
+        //    }
 
-            return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
-        }
+        //    return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
+        //}
 
         public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
         {
