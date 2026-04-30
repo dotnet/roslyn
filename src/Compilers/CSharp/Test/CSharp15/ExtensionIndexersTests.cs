@@ -10792,7 +10792,7 @@ namespace Outer
         var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("0,2, 2"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
         verifier.VerifyIL("Inner.C.Main", """
 {
-  // Code size       62 (0x3e)
+  // Code size       56 (0x38)
   .maxstack  4
   .locals init (object V_0, //x
                 S V_1,
@@ -10806,7 +10806,7 @@ namespace Outer
   IL_0010:  stloc.2
   IL_0011:  ldloc.2
   IL_0012:  ldc.i4.1
-  IL_0013:  blt.s      IL_003b
+  IL_0013:  blt.s      IL_0035
   IL_0015:  ldloc.1
   IL_0016:  box        "S"
   IL_001b:  ldc.i4.0
@@ -10815,20 +10815,155 @@ namespace Outer
   IL_001e:  sub
   IL_001f:  call       "object Outer.E2.Slice(object, int, int)"
   IL_0024:  stloc.0
-  IL_0025:  ldloca.s   V_1
-  IL_0027:  ldloc.2
-  IL_0028:  ldc.i4.1
-  IL_0029:  sub
-  IL_002a:  stloc.3
-  IL_002b:  ldobj      "S"
-  IL_0030:  ldloc.3
-  IL_0031:  call       "int Inner.E1.get_Item(S, int)"
-  IL_0036:  ldc.i4.1
-  IL_0037:  ceq
-  IL_0039:  br.s       IL_003c
-  IL_003b:  ldc.i4.0
-  IL_003c:  pop
-  IL_003d:  ret
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4.1
+  IL_0027:  sub
+  IL_0028:  stloc.3
+  IL_0029:  ldloc.1
+  IL_002a:  ldloc.3
+  IL_002b:  call       "int Inner.E1.get_Item(S, int)"
+  IL_0030:  ldc.i4.1
+  IL_0031:  ceq
+  IL_0033:  br.s       IL_0036
+  IL_0035:  ldc.i4.0
+  IL_0036:  pop
+  IL_0037:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void SlicePattern_18_2()
+    {
+        // instance Length + extension this[int] + extension Slice(int, int)
+        var src = """
+_ = new S() is [.. var x, 1];
+
+public struct S
+{
+    public int Length => 3;
+}
+
+public static class E
+{
+    extension(S s)
+    {
+        public int this[int i] { get { System.Console.Write($"this[{i}], "); return 0; } }
+        public S Slice(int i, int j) { System.Console.Write($"Slice({i},{j}), "); return s; }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("Slice(0,2), this[2], "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       54 (0x36)
+  .maxstack  3
+  .locals init (S V_0,
+                int V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "int S.Length.get"
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  blt.s      IL_0033
+  IL_0014:  ldc.i4.0
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.1
+  IL_0018:  sub
+  IL_0019:  stloc.3
+  IL_001a:  ldloc.0
+  IL_001b:  ldloc.2
+  IL_001c:  ldloc.3
+  IL_001d:  call       "S E.Slice(S, int, int)"
+  IL_0022:  pop
+  IL_0023:  ldloc.1
+  IL_0024:  ldc.i4.1
+  IL_0025:  sub
+  IL_0026:  stloc.3
+  IL_0027:  ldloc.0
+  IL_0028:  ldloc.3
+  IL_0029:  call       "int E.get_Item(S, int)"
+  IL_002e:  ldc.i4.1
+  IL_002f:  ceq
+  IL_0031:  br.s       IL_0034
+  IL_0033:  ldc.i4.0
+  IL_0034:  pop
+  IL_0035:  ret
+}
+""");
+    }
+
+    [Fact]
+    public void SlicePattern_18_3()
+    {
+        // instance Length + extension this[Index] + extension this[Range]
+        var src = """
+_ = new S() is [.. var x, 1];
+
+public struct S
+{
+    public int Length => 3;
+}
+
+public static class E
+{
+    extension(S s)
+    {
+        public int this[System.Index i] { get { System.Console.Write($"this[{i}], "); return 0; } }
+        public S this[System.Range r] { get { System.Console.Write($"this[{r}], "); return s; } }
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("this[0..^1], this[^1], "), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       83 (0x53)
+  .maxstack  5
+  .locals init (S V_0,
+                System.Range V_1,
+                System.Index V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    "S"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  call       "int S.Length.get"
+  IL_000f:  ldc.i4.1
+  IL_0010:  blt.s      IL_0050
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  newobj     "System.Index..ctor(int, bool)"
+  IL_001d:  ldc.i4.1
+  IL_001e:  ldc.i4.1
+  IL_001f:  newobj     "System.Index..ctor(int, bool)"
+  IL_0024:  call       "System.Range..ctor(System.Index, System.Index)"
+  IL_0029:  ldobj      "S"
+  IL_002e:  ldloc.1
+  IL_002f:  call       "S E.get_Item(S, System.Range)"
+  IL_0034:  pop
+  IL_0035:  ldloca.s   V_0
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldc.i4.1
+  IL_003b:  call       "System.Index..ctor(int, bool)"
+  IL_0040:  ldobj      "S"
+  IL_0045:  ldloc.2
+  IL_0046:  call       "int E.get_Item(S, System.Index)"
+  IL_004b:  ldc.i4.1
+  IL_004c:  ceq
+  IL_004e:  br.s       IL_0051
+  IL_0050:  ldc.i4.0
+  IL_0051:  pop
+  IL_0052:  ret
 }
 """);
     }

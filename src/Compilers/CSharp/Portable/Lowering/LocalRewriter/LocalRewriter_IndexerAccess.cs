@@ -596,10 +596,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     sideeffects.Add(receiverStore);
-
                     receiver = receiverLocal;
-                    receiverIsKnownToBeCaptured = true;
                 }
+
+                receiverIsKnownToBeCaptured = true;
             }
 
             AddPlaceholderReplacement(node.ReceiverPlaceholder, receiver);
