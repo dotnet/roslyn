@@ -59,9 +59,6 @@ public sealed partial class RazorParserOptions
         return builder.ToOptions();
     }
 
-    public bool DesignTime
-        => _flags.IsFlagSet(Flags.DesignTime);
-
     /// <summary>
     /// Gets a value which indicates whether the parser will parse only the leading directives. If <c>true</c>
     /// the parser will halt at the first HTML content or C# code block. If <c>false</c> the whole document is parsed.
@@ -114,7 +111,6 @@ public sealed partial class RazorParserOptions
             : new(LanguageVersion, FileKind, Directives, value, _flags);
 
     public RazorParserOptions WithFlags(
-        Optional<bool> designTime = default,
         Optional<bool> parseLeadingDirectives = default,
         Optional<bool> useRoslynTokenizer = default,
         Optional<bool> enableSpanEditHandlers = default,
@@ -128,11 +124,6 @@ public sealed partial class RazorParserOptions
         Optional<bool> allowNullableForgivenessOperator = default)
     {
         var flags = _flags;
-
-        if (designTime.HasValue)
-        {
-            flags.UpdateFlag(Flags.DesignTime, designTime.Value);
-        }
 
         if (parseLeadingDirectives.HasValue)
         {

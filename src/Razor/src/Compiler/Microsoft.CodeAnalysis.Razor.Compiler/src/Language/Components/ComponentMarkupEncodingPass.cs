@@ -29,12 +29,6 @@ internal sealed class ComponentMarkupEncodingPass(RazorLanguageVersion version) 
             return;
         }
 
-        if (documentNode.Options.DesignTime)
-        {
-            // Nothing to do during design time.
-            return;
-        }
-
         var rewriter = new Rewriter(_version);
         rewriter.Visit(documentNode);
     }

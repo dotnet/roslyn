@@ -679,7 +679,7 @@ internal class ComponentRuntimeNodeWriter : ComponentNodeWriter
         }
         else
         {
-            // See comments in ComponentDesignTimeNodeWriter for a description of the cases that are possible.
+            // Handle delegate or child-content attributes specially.
             var tokens = GetCSharpTokens(node);
             if ((node.BoundAttribute?.IsDelegateProperty() ?? false) ||
                 (node.BoundAttribute?.IsChildContentProperty() ?? false))

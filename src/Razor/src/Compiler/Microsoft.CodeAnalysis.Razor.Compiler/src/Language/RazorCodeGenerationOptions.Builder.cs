@@ -38,12 +38,6 @@ public sealed partial class RazorCodeGenerationOptions
             NewLine = DefaultNewLine;
         }
 
-        public bool DesignTime
-        {
-            get => _flags.IsFlagSet(Flags.DesignTime);
-            set => _flags.UpdateFlag(Flags.DesignTime, value);
-        }
-
         public bool IndentWithTabs
         {
             get => _flags.IsFlagSet(Flags.IndentWithTabs);

@@ -9,22 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 public class DefaultCodeTargetTest
 {
     [Fact]
-    public void CreateWriter_DesignTime_CreatesDesignTimeNodeWriter()
-    {
-        // Arrange
-        var codeDocument = RazorCodeDocument.Create(
-            TestRazorSourceDocument.Create(),
-            codeGenerationOptions: RazorCodeGenerationOptions.DesignTimeDefault);
-        var target = new DefaultCodeTarget(codeDocument, extensions: []);
-
-        // Act
-        var writer = target.CreateNodeWriter();
-
-        // Assert
-        Assert.IsType<DesignTimeNodeWriter>(writer);
-    }
-
-    [Fact]
     public void CreateWriter_Runtime_CreatesRuntimeNodeWriter()
     {
         // Arrange

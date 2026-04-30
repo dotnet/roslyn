@@ -1,5 +1,0 @@
-﻿Source Location: (28:0,28 [7] x:\dir\subdir\Test\TestComponent.cshtml)
-|context|
-Generated Location: (1180:29,28 [7] )
-|context|
-
