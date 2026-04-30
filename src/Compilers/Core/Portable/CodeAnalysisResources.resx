@@ -655,6 +655,13 @@
     <value>The hintName '{0}' of the added source file must be unique within a generator.</value>
     <comment>{0}: the provided hintname</comment>
   </data>
+  <data name="CompilationNotAvailableInPreCompilationPhase" xml:space="preserve">
+    <value>The compilation is not available during the pre-compilation phase, so {0} cannot be used as an input to a pre-compilation source output.</value>
+    <comment>{0}: the name of the provider that requires the compilation, e.g. CompilationProvider</comment>
+  </data>
+  <data name="SyntaxProvidersNotAvailableInPreCompilationPhase" xml:space="preserve">
+    <value>Syntax-based providers (e.g. SyntaxProvider, ForAttributeWithMetadataName) cannot be used as inputs to a pre-compilation source output, because the compilation has not yet been built.</value>
+  </data>
   <data name="HintNameInvalidChar" xml:space="preserve">
     <value>The hintName '{0}' contains an invalid character '{1}' at position {2}.</value>
     <comment>{0}: the provided hintname. {1}: the invalid character, {2} the position it occurred at</comment>

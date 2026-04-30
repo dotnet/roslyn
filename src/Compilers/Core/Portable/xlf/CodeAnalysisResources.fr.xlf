@@ -42,6 +42,11 @@
         <target state="translated">Aucun changement de la version d'une référence d'assembly n'est autorisé durant le débogage : '{0}' a changé la version en '{1}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CompilationNotAvailableInPreCompilationPhase">
+        <source>The compilation is not available during the pre-compilation phase, so {0} cannot be used as an input to a pre-compilation source output.</source>
+        <target state="new">The compilation is not available during the pre-compilation phase, so {0} cannot be used as an input to a pre-compilation source output.</target>
+        <note>{0}: the name of the provider that requires the compilation, e.g. CompilationProvider</note>
+      </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">Supprimez les diagnostics suivants pour désactiver cet analyseur : {0}</target>
@@ -291,6 +296,11 @@
       <trans-unit id="SymWriterMetadataOverLimit">
         <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
         <target state="translated">Impossible d’émettre un fichier PDB natif pour la méthode '{0}', car sa taille des métadonnées de débogage {1} dépasse la limite {2}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxProvidersNotAvailableInPreCompilationPhase">
+        <source>Syntax-based providers (e.g. SyntaxProvider, ForAttributeWithMetadataName) cannot be used as inputs to a pre-compilation source output, because the compilation has not yet been built.</source>
+        <target state="new">Syntax-based providers (e.g. SyntaxProvider, ForAttributeWithMetadataName) cannot be used as inputs to a pre-compilation source output, because the compilation has not yet been built.</target>
         <note />
       </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">

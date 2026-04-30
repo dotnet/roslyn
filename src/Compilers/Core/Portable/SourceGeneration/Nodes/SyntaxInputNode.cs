@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 // because the compilation (and thus syntax tree analysis) has not yet been built.
                 // Wrap as a UserFunctionException so the driver reports a generator error instead of crashing.
                 throw new UserFunctionException(new InvalidOperationException(
-                    "Syntax-based providers (e.g. SyntaxProvider, ForAttributeWithMetadataName) cannot be used as inputs to a pre-compilation source output, because the compilation has not yet been built."));
+                    CodeAnalysisResources.SyntaxProvidersNotAvailableInPreCompilationPhase));
             }
             return (NodeStateTable<T>)graphState.SyntaxStore.GetSyntaxInputTable(this, graphState.GetLatestStateTableForNode(SharedInputNodes.SyntaxTrees));
         }
