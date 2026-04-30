@@ -223,6 +223,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ContinueStatement:
                         {
                             var leave = pending.Branch;
+                            // If the break/continue is already in error, an error has already been
+                            // reported at bind time (e.g. ERR_NoBreakId/ERR_NoContinueId for a
+                            // labeled break/continue with no enclosing target).  Don't pile on with
+                            // a misleading "control cannot leave a delegate" message here.
+                            if (leave.HasErrors)
+                            {
+                                break;
+                            }
+
                             var loc = new SourceLocation(leave.Syntax.GetFirstToken());
                             Diagnostics.Add(ErrorCode.ERR_BadDelegateLeave, loc);
                             break;
@@ -368,6 +377,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitGotoStatement(node);
         }
+
+#nullable enable
+        public override BoundNode? VisitBreakStatement(BoundBreakStatement node)
+        {
+            _labelsUsed.AddIfNotNull(node.LabelExpressionOpt?.Label);
+            return base.VisitBreakStatement(node);
+        }
+
+        public override BoundNode? VisitContinueStatement(BoundContinueStatement node)
+        {
+            _labelsUsed.AddIfNotNull(node.LabelExpressionOpt?.Label);
+            return base.VisitContinueStatement(node);
+        }
+#nullable disable
 
         protected override void VisitSwitchSection(BoundSwitchSection node, bool isLastSection)
         {

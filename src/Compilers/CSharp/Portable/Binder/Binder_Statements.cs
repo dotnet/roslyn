@@ -2945,27 +2945,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.BindForEachDeconstruction(diagnostics, originalBinder);
         }
 
+#nullable enable
         private BoundStatement BindBreak(BreakStatementSyntax node, BindingDiagnosticBag diagnostics)
-        {
-            var target = this.BreakLabel;
-            if ((object)target == null)
-            {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
-            }
-            return new BoundBreakStatement(node, target);
-        }
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: true);
 
         private BoundStatement BindContinue(ContinueStatementSyntax node, BindingDiagnosticBag diagnostics)
+            => BindBreakOrContinue(node, node.Name, diagnostics, isBreak: false);
+
+        private BoundStatement BindBreakOrContinue(
+            StatementSyntax node,
+            IdentifierNameSyntax? name,
+            BindingDiagnosticBag diagnostics,
+            bool isBreak)
         {
-            var target = this.ContinueLabel;
-            if ((object)target == null)
+            var labelName = name?.Identifier.ValueText;
+            if (labelName != null)
             {
-                Error(diagnostics, ErrorCode.ERR_NoBreakOrCont, node);
-                return new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
+                Debug.Assert(name != null);
+                MessageID.IDS_FeatureLabeledBreakContinue.CheckFeatureAvailability(diagnostics, node, name.GetLocation());
             }
-            return new BoundContinueStatement(node, target);
+
+            // Suppress label-not-found errors here; if the lookup fails we'll instead report the
+            // more specific ERR_NoBreakId/ERR_NoContinueId/ERR_NoBreakOrCont below.  We still want
+            // to perform the lookup so we have a BoundLabel for the SemanticModel and so that
+            // ControlFlowPass marks the label as referenced (suppressing WRN_UnreferencedLabel).
+            var label = name == null ? null : BindLabel(name, diagnostics, reportErrors: false) as BoundLabel;
+
+            LabelSymbol? target = isBreak ? this.GetBreakLabel(labelName) : this.GetContinueLabel(labelName);
+            var hasErrors = false;
+            if (target == null)
+            {
+                Error(diagnostics,
+                    labelName != null ? (isBreak ? ErrorCode.ERR_NoBreakId : ErrorCode.ERR_NoContinueId) : ErrorCode.ERR_NoBreakOrCont,
+                    name ?? (SyntaxNode)node,
+                    labelName == null ? [] : [labelName]);
+
+                if (label == null)
+                    return new BoundBadStatement(node, childBoundNodes: [], hasErrors: true);
+
+                // We resolved the identifier to *some* label symbol but it isn't on an enclosing
+                // loop/switch.  Use that as the target so we still produce a normal
+                // BoundBreakStatement/BoundContinueStatement: the SemanticModel can then resolve
+                // the identifier, and downstream passes treat the label as referenced (suppressing
+                // WRN_UnreferencedLabel on the otherwise-unused label).  The node is still flagged
+                // as having errors via the diagnostic reported above.
+                target = label.Label;
+                hasErrors = true;
+            }
+
+            return isBreak
+                ? new BoundBreakStatement(node, target, label, hasErrors)
+                : new BoundContinueStatement(node, target, label, hasErrors);
         }
+#nullable disable
 
         private static SwitchBinder GetSwitchBinder(Binder binder)
         {
