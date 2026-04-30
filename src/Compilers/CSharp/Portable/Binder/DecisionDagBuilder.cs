@@ -269,6 +269,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         testsSimplified.Push(current);
                         break;
+                    case Tests.ValueSet v:
+                        if (v.Input.Source is { })
+                            usedValues.Add(v.Input.Source);
+
+                        testsSimplified.Push(current);
+                        break;
                     case Tests.Not n:
                         testsToAssemble.Push(n);
                         testsToSimplify.Push(null); // marker to indicate we need to reassemble after handling children
@@ -2373,6 +2379,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsSameEntity(test.Input, other.Input);
         }
 
+        /// <summary>
+        /// Check if a test's input is related to a given BoundDagTemp (used by ValueSet.Filter).
+        /// </summary>
+        private bool CheckInputRelationForValueSet(BoundDagTest test, BoundDagTemp valueSetInput)
+        {
+            if (test.Input == valueSetInput)
+                return true;
+
+            // For null tests, skip the type check (same as CheckInputRelation)
+            if (test is not (BoundDagNonNullTest or BoundDagExplicitNullTest) &&
+                !test.Input.Type.Equals(valueSetInput.Type, TypeCompareKind.AllIgnoreOptions))
+            {
+                return false;
+            }
+
+            return IsSameEntity(test.Input, valueSetInput);
+        }
+
         private static bool IsSameEntity(BoundDagTemp input1, BoundDagTemp input2)
         {
             BoundDagTemp s1Input = OriginalInput(input1);
@@ -3950,6 +3974,121 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            /// <summary>
+            /// Represents a disjunction of value tests on the same input, compactly stored as an <see cref="IConstantValueSet"/>.
+            /// This is semantically equivalent to an <see cref="OrSequence"/> of <see cref="One"/> nodes each containing
+            /// a <see cref="BoundDagValueTest"/>, but is O(1) to filter instead of O(n).
+            /// </summary>
+            public sealed class ValueSet : Tests
+            {
+                public readonly BoundDagTemp Input;
+                public readonly IConstantValueSet Values;
+                internal readonly SyntaxNode Syntax;
+                internal readonly IConstantValueSetFactory Factory;
+
+                public ValueSet(BoundDagTemp input, IConstantValueSet values, SyntaxNode syntax, IConstantValueSetFactory factory)
+                {
+                    Debug.Assert(!values.IsEmpty);
+                    Input = input;
+                    Values = values;
+                    Syntax = syntax;
+                    Factory = factory;
+                }
+
+                public override void Filter(
+                    DecisionDagBuilder builder,
+                    BoundDagTest test,
+                    DagState state,
+                    IValueSet? whenTrueValues,
+                    IValueSet? whenFalseValues,
+                    out Tests whenTrue,
+                    out Tests whenFalse,
+                    ref bool foundExplicitNullTest)
+                {
+                    if (test is BoundDagEvaluation)
+                    {
+                        whenTrue = whenFalse = this;
+                        return;
+                    }
+
+                    if (!builder.CheckInputRelationForValueSet(test, Input))
+                    {
+                        whenTrue = whenFalse = this;
+                        return;
+                    }
+
+                    switch (test)
+                    {
+                        case BoundDagNonNullTest n:
+                            if (n.IsExplicitTest)
+                                foundExplicitNullTest = true;
+                            // v != null: value tests require non-null, so if null then impossible
+                            whenTrue = this;
+                            whenFalse = False.Instance;
+                            return;
+                        case BoundDagExplicitNullTest:
+                            foundExplicitNullTest = true;
+                            // v == null: no value test can match null
+                            whenTrue = False.Instance;
+                            whenFalse = this;
+                            return;
+                    }
+
+                    // For value/relational tests, use set operations
+                    whenTrue = ComputeFilteredResult(whenTrueValues);
+                    whenFalse = ComputeFilteredResult(whenFalseValues);
+                }
+
+                private Tests ComputeFilteredResult(IValueSet? possibleValues)
+                {
+                    if (possibleValues is not IConstantValueSet constantPossible)
+                        return this;
+
+                    // Intersect our values with what's possible
+                    var intersection = (IConstantValueSet)possibleValues.Intersect(Values);
+                    if (intersection.IsEmpty)
+                        return False.Instance;
+
+                    // Check if all possible values are in our set (guaranteed to match)
+                    var outsideOurSet = (IConstantValueSet)possibleValues.Intersect(Values.Complement());
+                    if (outsideOurSet.IsEmpty)
+                        return True.Instance;
+
+                    // Still pending, possibly narrowed
+                    if (intersection.Equals(Values))
+                        return this;
+
+                    return new ValueSet(Input, intersection, Syntax, Factory);
+                }
+
+                public override BoundDagTest ComputeSelectedTest(bool forLowering, ref bool suitableForLowering)
+                {
+                    ConstantValue? sample = Values.Sample;
+                    Debug.Assert(sample is not null);
+                    return new BoundDagValueTest(Syntax, sample, Input);
+                }
+
+                protected override RemoveEvaluationAndUpdateTempReferencesResult RemoveEvaluationAndUpdateTempReferencesCore(
+                    DecisionDagBuilder dagBuilder, DagState state, ImmutableArray<BoundPatternBinding> bindings,
+                    ImmutableDictionary<BoundDagTemp, BoundDagTemp> tempMap, BoundDagEvaluation e)
+                {
+                    // ValueSet never contains evaluations, just update temp references if needed
+                    if (TryGetTempReplacement(tempMap, Input, out BoundDagTemp? replacement))
+                    {
+                        return new RemoveEvaluationAndUpdateTempReferencesResult(
+                            new ValueSet(replacement, Values, Syntax, Factory), tempMap,
+                            conditionToUseFinalResult: null, tempsUpdatedResult: null);
+                    }
+
+                    return new RemoveEvaluationAndUpdateTempReferencesResult(this, tempMap, conditionToUseFinalResult: null, tempsUpdatedResult: null);
+                }
+
+                public override Tests RewriteNestedLengthTests() => this;
+                public override string Dump(Func<BoundDagTest, string> dump) => $"VALUES({Values})";
+                public override bool Equals(object? obj) => this == obj || (obj is ValueSet other && Input.Equals(other.Input) && Values.Equals(other.Values));
+                public override int GetHashCode() => Hash.Combine(Input.GetHashCode(), Values.GetHashCode());
+            }
+
             public sealed class Not : Tests
             {
                 // Negation is pushed to the level of a single test by demorgan's laws
@@ -3962,6 +4101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Tests.Not n => n.Negated, // double negative
                     Tests.AndSequence a => new Not(a),
                     Tests.OrSequence a => Tests.AndSequence.Create(NegateSequenceElements(a.RemainingTests)), // use demorgan to prefer and sequences
+                    Tests.ValueSet v => new Not(v),
                     Tests.One o => new Not(o),
                     _ => throw ExceptionUtilities.UnexpectedValue(negated),
                 };
@@ -4011,7 +4151,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(remainingTests.Length > 1);
                     this.RemainingTests = remainingTests;
                 }
-                public abstract Tests Update(ArrayBuilder<Tests> remainingTests);
+                public Tests Update(ArrayBuilder<Tests> remainingTests)
+                {
+                    var reuslts = Update((IEnumerable<Tests>)remainingTests);
+                    remainingTests.Free();
+                    return reuslts;
+                }
+                public abstract Tests Update(IEnumerable<Tests> remainingTests);
                 public sealed override void Filter(
                     DecisionDagBuilder builder,
                     BoundDagTest test,
@@ -4043,6 +4189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     testsToFilter.Push(seq.RemainingTests[i]);
                                 }
+
                                 break;
 
                             case null:
@@ -4060,12 +4207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
                         }
                     }
-                    while (testsToFilter.Count != 0);
+                    while (testsToFilter.Count > 0);
 
                     whenTrue = trueTests.Pop();
                     whenFalse = falseTests.Pop();
 
-                    if (!trueTests.IsEmpty || !falseTests.IsEmpty || !testsToAssemble.IsEmpty)
+                    if (trueTests.Count != 0 || falseTests.Count != 0 || testsToAssemble.Count != 0)
                     {
                         throw ExceptionUtilities.Unreachable();
                     }
@@ -4078,13 +4225,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     static void assemble(SequenceTests toAssemble, ArrayBuilder<Tests> tests)
                     {
                         var length = toAssemble.RemainingTests.Length;
-                        var newSequence = ArrayBuilder<Tests>.GetInstance(length, null!);
-                        for (int i = length - 1; i >= 0; i--)
-                        {
-                            newSequence[i] = tests.Pop();
-                        }
+                        var startIndex = tests.Count - length;
+                        var result = toAssemble.Update(getRange(tests, startIndex, length));
+                        tests.Count = startIndex;
+                        tests.Push(result);
+                    }
 
-                        tests.Push(toAssemble.Update(newSequence));
+                    static IEnumerable<Tests> getRange(ArrayBuilder<Tests> tests, int start, int count)
+                    {
+                        for (int i = start; i < start + count; i++)
+                            yield return tests[i];
                     }
                 }
 
@@ -4540,7 +4690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!remainingTests.Any(t => t is AndSequence));
                 }
-                public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
+                public override Tests Update(IEnumerable<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {
                     if (t1 is True) return t2;
@@ -4553,32 +4703,61 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 public static Tests Create(ArrayBuilder<Tests> remainingTests)
                 {
-                    for (int i = remainingTests.Count - 1; i >= 0; i--)
+                    var result = Create((IEnumerable<Tests>)remainingTests);
+                    remainingTests.Free();
+                    return result;
+                }
+                public static Tests Create(IEnumerable<Tests> remainingTests)
+                {
+                    // First pass: count the exact number of flattened elements, short-circuiting on False.
+                    int count = 0;
+                    foreach (var test in remainingTests)
                     {
-                        switch (remainingTests[i])
+                        switch (test)
                         {
-                            case True _:
-                                remainingTests.RemoveAt(i);
+                            case True:
                                 break;
                             case False f:
-                                remainingTests.Free();
                                 return f;
                             case AndSequence seq:
-                                var testsToInsert = seq.RemainingTests;
-                                remainingTests.RemoveAt(i);
-                                for (int j = 0, n = testsToInsert.Length; j < n; j++)
-                                    remainingTests.Insert(i + j, testsToInsert[j]);
+                                count += seq.RemainingTests.Length;
+                                break;
+                            default:
+                                count++;
                                 break;
                         }
                     }
-                    var result = remainingTests.Count switch
+
+                    if (count == 0)
                     {
-                        0 => True.Instance,
-                        1 => remainingTests[0],
-                        _ => new AndSequence(remainingTests.ToImmutable()),
-                    };
-                    remainingTests.Free();
-                    return result;
+                        return True.Instance;
+                    }
+
+                    // Second pass: populate a builder with the exact capacity needed.
+                    var builder = ImmutableArray.CreateBuilder<Tests>(count);
+                    foreach (var test in remainingTests)
+                    {
+                        switch (test)
+                        {
+                            case True:
+                                break;
+                            case AndSequence seq:
+                                builder.AddRange(seq.RemainingTests);
+                                break;
+                            default:
+                                builder.Add(test);
+                                break;
+                        }
+                    }
+
+                    Debug.Assert(builder.Count == count);
+
+                    if (count == 1)
+                    {
+                        return builder[0];
+                    }
+
+                    return new AndSequence(builder.MoveToImmutable());
                 }
                 protected override BoundDagTest? ComputeSelectedTestEasyOut(bool forLowering, ref bool suitableForLowering)
                 {
@@ -4646,7 +4825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!remainingTests.Any(t => t is OrSequence));
                 }
-                public override Tests Update(ArrayBuilder<Tests> remainingTests) => Create(remainingTests);
+                public override Tests Update(IEnumerable<Tests> remainingTests) => Create(remainingTests);
                 public static Tests Create(Tests t1, Tests t2)
                 {
                     if (t1 is True) return t1;
@@ -4659,32 +4838,132 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 public static Tests Create(ArrayBuilder<Tests> remainingTests)
                 {
-                    for (int i = remainingTests.Count - 1; i >= 0; i--)
+                    var result = Create((IEnumerable<Tests>)remainingTests);
+                    remainingTests.Free();
+                    return result;
+                }
+                public static Tests Create(IEnumerable<Tests> remainingTests)
+                {
+                    // First pass: count the exact number of flattened elements, short-circuiting on True.
+                    int count = 0;
+                    foreach (var test in remainingTests)
                     {
-                        switch (remainingTests[i])
+                        switch (test)
                         {
-                            case False _:
-                                remainingTests.RemoveAt(i);
+                            case False:
                                 break;
                             case True t:
-                                remainingTests.Free();
                                 return t;
                             case OrSequence seq:
-                                remainingTests.RemoveAt(i);
-                                var testsToInsert = seq.RemainingTests;
-                                for (int j = 0, n = testsToInsert.Length; j < n; j++)
-                                    remainingTests.Insert(i + j, testsToInsert[j]);
+                                count += seq.RemainingTests.Length;
+                                break;
+                            default:
+                                count++;
                                 break;
                         }
                     }
-                    var result = remainingTests.Count switch
+
+                    if (count == 0)
                     {
-                        0 => False.Instance,
-                        1 => remainingTests[0],
-                        _ => new OrSequence(remainingTests.ToImmutable()),
+                        return False.Instance;
+                    }
+
+                    // Second pass: populate a builder with the exact capacity needed.
+                    var builder = ImmutableArray.CreateBuilder<Tests>(count);
+                    foreach (var test in remainingTests)
+                    {
+                        switch (test)
+                        {
+                            case False:
+                                break;
+                            case OrSequence seq:
+                                builder.AddRange(seq.RemainingTests);
+                                break;
+                            default:
+                                builder.Add(test);
+                                break;
+                        }
+                    }
+
+                    Debug.Assert(builder.Count == count);
+
+                    if (count == 1)
+                    {
+                        return builder[0];
+                    }
+
+                    // Try to collapse all value tests on the same input into a ValueSet
+                    if (TryCreateValueSet(builder, out Tests? valueSet))
+                    {
+                        return valueSet;
+                    }
+
+                    return new OrSequence(builder.MoveToImmutable());
+                }
+
+                private static bool TryCreateValueSet(ImmutableArray<Tests>.Builder builder, [NotNullWhen(true)] out Tests? result)
+                {
+                    result = null;
+
+                    // Determine the input and factory from the first element (which may be a ValueSet or a One(BoundDagValueTest))
+                    BoundDagTemp input;
+                    IConstantValueSetFactory? factory;
+                    switch (builder[0])
+                    {
+                        case ValueSet vs:
+                            input = vs.Input;
+                            factory = vs.Factory;
+                            break;
+                        case One { Test: BoundDagValueTest firstValueTest }:
+                            input = firstValueTest.Input;
+                            factory = ValueSetFactory.ForInput(input);
+                            if (factory is null)
+                                return false;
+                            break;
+                        default:
+                            return false;
+                    }
+
+                    // All elements must be ValueSet or One(BoundDagValueTest) on the same input
+                    for (int i = 1; i < builder.Count; i++)
+                    {
+                        switch (builder[i])
+                        {
+                            case ValueSet vs when vs.Input == input:
+                                break;
+                            case One { Test: BoundDagValueTest vt } when vt.Input == input:
+                                break;
+                            default:
+                                return false;
+                        }
+                    }
+
+                    // Build the combined value set
+                    IConstantValueSet values = GetValueSetForElement(builder[0], factory);
+                    for (int i = 1; i < builder.Count; i++)
+                    {
+                        values = (IConstantValueSet)values.Union(GetValueSetForElement(builder[i], factory));
+                    }
+
+                    var syntax = builder[0] switch
+                    {
+                        ValueSet vs => vs.Syntax,
+                        One { Test: BoundDagValueTest vt } => vt.Syntax,
+                        _ => throw ExceptionUtilities.Unreachable()
                     };
-                    remainingTests.Free();
-                    return result;
+
+                    result = new ValueSet(input, values, syntax, factory);
+                    return true;
+
+                    static IConstantValueSet GetValueSetForElement(Tests element, IConstantValueSetFactory factory)
+                    {
+                        return element switch
+                        {
+                            ValueSet vs => vs.Values,
+                            One { Test: BoundDagValueTest vt } => factory.Related(BinaryOperatorKind.Equal, vt.Value),
+                            _ => throw ExceptionUtilities.Unreachable()
+                        };
+                    }
                 }
                 public override string Dump(Func<BoundDagTest, string> dump)
                 {
