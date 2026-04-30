@@ -1022,6 +1022,11 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             return IntermediateNodeFactory.CSharpToken(string.Empty);
         }
 
+        if (node.Children.Count == 0)
+        {
+            return IntermediateNodeFactory.CSharpToken(string.Empty);
+        }
+
         return node.Children[0] switch
         {
             // This case can be hit for a 'string' attribute. We want to turn it into an expression.
