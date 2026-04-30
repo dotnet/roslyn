@@ -1956,51 +1956,32 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
     }
 
     #region Char literal
-    [Fact]
-    public Task TestCharLiteral()
-        => TestInMethodAsync(@"string f = 'x'$$",
-            MainDescription("struct System.Char"));
+    // https://github.com/dotnet/roslyn/issues/83154
+    [Theory]
+    [InlineData(@"string f = 'x'$$", "")]
+    [InlineData(@"char c = $$'\u1234';", "\u1234")] // \u1234 is generic displayable char
+    [InlineData(@"char c = '\u12$$34';", "\u1234")]
+    [InlineData(@"char c = '\u1234'$$;", "\u1234")]
+    [InlineData(@"char c = '\u1234';$$", "")] // "find token on left"
+    [InlineData(@"char c = '\u012$$';", "")] // diagnostics (invalid Unicode escape sequence, too short)
+    [InlineData(@"char c = '\u012345$$';", "")] // diagnostics (invalid char, too long)
+    [InlineData(@"char c = '\uD800'$$;", "")] // surrogate
+    [InlineData(@"char c = '\u0001'$$;", "")] // control char
+    [InlineData(@"char c = '\u200E'$$;", "")] // control char
+    [InlineData(@"char c = '\x41'$$;", "")] // \x not supported for this currently
+    public Task TestCharLiteral(string code, string expectedCharacter)
+    {
+        Action<QuickInfoItem>[] sections = [MainDescription("struct System.Char")];
 
-    [Fact]
-    public Task TestCharLiteralUnicodeEscapeStart()
-        => TestInMethodAsync(@"char c = $$'\u0387';",
-            MainDescription("struct System.Char"),
-            Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, '·')));
-    [Fact]
-    public Task TestCharLiteralUnicodeEscapeMiddle()
-        => TestInMethodAsync(@"char c = '\u03$$87';",
-            MainDescription("struct System.Char"),
-            Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, '·')));
+        sections = [.. sections, expectedCharacter.Length == 0
+                ? Documentation(string.Empty)
+                : Documentation(string.Format(
+                    FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit,
+                    expectedCharacter))
+        ];
 
-    [Fact]
-    public Task TestCharLiteralUnicodeEscapeEnd()
-        => TestInMethodAsync(@"char c = '\u0387'$$;",
-            MainDescription("struct System.Char"),
-            Documentation(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, '·')));
-
-    [Fact]
-    public Task TestCharLiteralUnicodeEscapeSurrogate()
-        => TestInMethodAsync(@"char c = '\uD800'$$;",
-            MainDescription("struct System.Char"),
-            Documentation(string.Empty));
-
-    [Fact]
-    public Task TestCharLiteralUnicodeEscapeControlCharacter()
-        => TestInMethodAsync(@"char c = '\u0001'$$;",
-            MainDescription("struct System.Char"),
-            Documentation(string.Empty));
-
-    [Fact]
-    public Task TestCharLiteralUnicodeEscapeFormatCharacter()
-        => TestInMethodAsync(@"char c = '\u200E'$$;",
-            MainDescription("struct System.Char"),
-            Documentation(string.Empty));
-
-    [Fact]
-    public Task TestCharLiteralHexEscape()
-        => TestInMethodAsync(@"char c = '\x41'$$;",
-            MainDescription("struct System.Char"),
-            Documentation(string.Empty));
+        return TestInMethodAsync(code, sections);
+    }
     #endregion Char literal
 
     [Fact]
