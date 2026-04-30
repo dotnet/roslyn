@@ -306,13 +306,18 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 else
                 {
                     var symbol = await SymbolFinder.FindSourceDefinitionAsync(TypeToGenerateInOpt, document.Project.Solution, cancellationToken).ConfigureAwait(false);
-                    var documentToBeGeneratedIn = symbol?.Locations
+                    if (symbol is not INamedTypeSymbol namedType)
+                    {
+                        TypeToGenerateInOpt = null;
+                        return;
+                    }
+
+                    var documentToBeGeneratedIn = namedType.Locations
                         .Select(static loc => loc.SourceTree)
                         .Select(document.Project.Solution.GetDocument)
                         .FirstOrDefault(static generatedInDocument => generatedInDocument is not null && CanGenerateInDocument(generatedInDocument));
 
-                    if (symbol is not INamedTypeSymbol namedType ||
-                        documentToBeGeneratedIn is null)
+                    if (documentToBeGeneratedIn is null)
                     {
                         TypeToGenerateInOpt = null;
                         return;
