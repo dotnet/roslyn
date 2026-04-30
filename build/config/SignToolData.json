@@ -1,7 +1,7 @@
 ﻿{
   "sign": [
     {
-      "certificate": "MicrosoftSHA2",
+      "certificate": "Microsoft101240624",
       "strongName": "MsSharedLib72",
       "values": [
         "Dlls\\BasicCodeAnalysis\\Microsoft.CodeAnalysis.VisualBasic.dll",
@@ -105,7 +105,7 @@
       ]
     },
     {
-      "certificate": "MicrosoftSHA2",
+      "certificate": "Microsoft101240624",
       "strongName": null,
       "values": [
         "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
@@ -115,7 +115,7 @@
       ]
     },
     {
-      "certificate": "WindowsPhone623",
+      "certificate": "MicrosoftWin8WinBlue",
       "strongName": "MsSharedLib72",
       "values": [
         "Dlls\\ExpressionCompiler\\Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll",
@@ -128,7 +128,7 @@
       ]
     },
     {
-      "certificate": "MicrosoftSHA1Win8WinBlue",
+      "certificate": "MicrosoftWin8WinBlue",
       "strongName": "MsSharedLib72",
       "values": [
         "Dlls\\ResultProvider.NetFX20\\Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider.dll",
@@ -137,7 +137,7 @@
       ]
     },
     {
-      "certificate": "VsixSHA2",
+      "certificate": "Microsoft101240624",
       "strongName": null,
       "values": [
         "Vsix\\ExpressionEvaluatorPackage\\ExpressionEvaluatorPackage.vsix",
@@ -159,14 +159,26 @@
         "Nuget\\PreRelease\\*.nupkg",
         "Nuget\\Release\\*.nupkg"
       ]
+    },
+    {
+      "certificate": "3PartySHA2",
+      "strongName": null,
+      "values": [
+        "e_sqlite3.dll",
+        "Humanizer.dll",
+        "Humanizer.resources.dll",
+        "ICSharpCode.Decompiler.dll",
+        "Nerdbank.FullDuplexStream.dll",
+        "Newtonsoft.Json.dll",
+        "SQLitePCLRaw.batteries_green.dll",
+        "SQLitePCLRaw.batteries_v2.dll",
+        "SQLitePCLRaw.core.dll",
+        "SQLitePCLRaw.provider.e_sqlite3.dll",
+        "Validation.dll"
+      ]      
     }
   ],
-
   "exclude": [
-    "e_sqlite3.dll",
-    "Humanizer.dll",
-    "Humanizer.resources.dll",
-    "ICSharpCode.Decompiler.dll",
     "Microsoft.Build.Conversion.Core.dll",
     "Microsoft.Build.Engine.dll",
     "Microsoft.Build.Framework.dll",
@@ -194,13 +206,7 @@
     "Mono.Cecil.Mdb.dll",
     "Mono.Cecil.Pdb.dll",
     "Mono.Cecil.Rocks.dll",
-    "Nerdbank.FullDuplexStream.dll",
-    "Newtonsoft.Json.dll",
     "NuGet.CommandLine.2.8.5.nupkg",
-    "SQLitePCLRaw.batteries_green.dll",
-    "SQLitePCLRaw.batteries_v2.dll",
-    "SQLitePCLRaw.core.dll",
-    "SQLitePCLRaw.provider.e_sqlite3.dll",
     "StreamJsonRpc.dll",
     "StreamJsonRpc.resources.dll",
     "System.AppContext.dll",
@@ -260,7 +266,6 @@
     "System.Xml.XPath.XDocument.dll",
     "System.Xml.XPath.dll",
     "System.Xml.XmlDocument.dll",
-    "Validation.dll",
     "Microsoft.CodeAnalysis.Analyzers.1.1.0.nupkg",
     "Microsoft.CodeAnalysis.Common.1.0.1.nupkg",
     "Microsoft.CodeAnalysis.CSharp.1.0.1.nupkg",
