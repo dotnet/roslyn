@@ -700,16 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>Returns true if the type is 'closed', i.e. an abstract class where subtyping is only permitted in the current module.</summary>
         internal abstract bool IsClosed { get; }
 
-        internal ImmutableArray<NamedTypeSymbol> ClosedSubtypes
-        {
-            get
-            {
-                // TODO2: update use sites?
-                TryGetClosedSubtypes(out var subtypes);
-                return subtypes;
-            }
-        }
-
         /// <summary>
         /// Tries to get the set of possible subtypes of a closed type.
         /// </summary>

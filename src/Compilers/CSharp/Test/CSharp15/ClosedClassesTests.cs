@@ -590,7 +590,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("D<T>", "T", "C").WithLocation(2, 14));
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["D<T>"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -609,7 +610,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
         comp1.VerifyEmitDiagnostics();
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["Outer<T>.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["Outer<T>.D"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -631,7 +633,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "D").WithArguments("Outer<T>.D", "T", "C").WithLocation(5, 18));
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["Outer<T>.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["Outer<T>.D"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -647,7 +650,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
         comp1.VerifyEmitDiagnostics();
 
         var classC = comp1.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["D"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -691,13 +695,16 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // closed class F<T> : E { }
             Diagnostic(ErrorCode.ERR_UnderspecifiedClosedSubtype, "F").WithArguments("F<T>", "T", "E").WithLocation(5, 14));
 
-        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("C").ClosedSubtypes);
-        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("D").ClosedSubtypes);
+        Assert.False(comp1.GetMember<NamedTypeSymbol>("C").TryGetClosedSubtypes(out _));
+        Assert.True(comp1.GetMember<NamedTypeSymbol>("D").TryGetClosedSubtypes(out var subtypes));
+        Assert.Empty(subtypes);
 
         var classE = comp1.GetMember<NamedTypeSymbol>("E");
-        Assert.Equal(["F<T>"], classE.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classE.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["F<T>"], subtypes.ToTestDisplayStrings());
 
-        Assert.Empty(comp1.GetMember<NamedTypeSymbol>("F").ClosedSubtypes);
+        Assert.True(comp1.GetMember<NamedTypeSymbol>("F").TryGetClosedSubtypes(out subtypes));
+        Assert.Empty(subtypes);
     }
 
     [Fact]
@@ -1040,7 +1047,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
         {
             var classC = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             Assert.Equal("C", classC.ToTestDisplayString());
-            Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -1070,15 +1078,18 @@ public sealed class ClosedClassesTests : CSharpTestBase
             // Note: 'D2' is included in the set, because its base type 'C<int>' can unify with 'C<T>'.
             // For example, if we encounter a value of type 'C<U>' where U is some unconstrained generic,
             // then it's possible the value is also a 'D2'. i.e. 'U' could be substituted with 'int' at runtime.
-            Assert.Equal(["D1<T>", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T>", "D2"], subtypes.ToTestDisplayStrings());
 
             var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
             Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
-            Assert.Equal(["D1<System.Int32>", "D2"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfInt.TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<System.Int32>", "D2"], subtypes.ToTestDisplayStrings());
 
             var cOfString = classC.Construct(comp.GetSpecialType(SpecialType.System_String));
             Assert.Equal("C<System.String>", cOfString.ToTestDisplayString());
-            Assert.Equal(["D1<System.String>"], cOfString.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfString.TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<System.String>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -1116,18 +1127,20 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
             var cOfImmutableArray = classC.Construct(immutableArrayOfInt);
             Assert.Equal("C<System.Collections.Immutable.ImmutableArray<System.Int32>>", cOfImmutableArray.ToTestDisplayString());
-            Assert.Equal(["D1<System.Collections.Immutable.ImmutableArray<System.Int32>>", "D2<System.Int32>"], cOfImmutableArray.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfImmutableArray.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<System.Collections.Immutable.ImmutableArray<System.Int32>>", "D2<System.Int32>"], subtypes.ToTestDisplayStrings());
 
             var cOfInt = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32));
             Assert.Equal("C<System.Int32>", cOfInt.ToTestDisplayString());
-            Assert.Equal(["D1<System.Int32>"], cOfInt.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfInt.TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<System.Int32>"], subtypes.ToTestDisplayStrings());
         }
     }
 
     [Fact]
     public void Subtypes_04()
     {
-        // Verify that ClosedSubtypes API behaves reasonably in base type cycle scenario.
+        // Verify that TryGetClosedSubtypes API behaves reasonably in base type cycle scenario.
         var source = """
             using System.Collections.Immutable;
 
@@ -1151,7 +1164,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
         Assert.Equal("C<T>", classC.ToTestDisplayString());
-        Assert.Empty(classC.ClosedSubtypes);
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Empty(subtypes);
     }
 
     [Fact]
@@ -1176,15 +1190,18 @@ public sealed class ClosedClassesTests : CSharpTestBase
         {
             var classC = comp.GetMember<NamedTypeSymbol>("C");
             Assert.Equal("C<T1, T2>", classC.ToTestDisplayString());
-            Assert.Equal(["D1<T1>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T1>"], subtypes.ToTestDisplayStrings());
 
             var cOfStringInt = classC.Construct(comp.GetSpecialType(SpecialType.System_String), comp.GetSpecialType(SpecialType.System_Int32));
             Assert.Equal("C<System.String, System.Int32>", cOfStringInt.ToTestDisplayString());
-            Assert.Equal(["D1<System.String>"], cOfStringInt.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfStringInt.TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<System.String>"], subtypes.ToTestDisplayStrings());
 
             var cOfIntString = classC.Construct(comp.GetSpecialType(SpecialType.System_Int32), comp.GetSpecialType(SpecialType.System_String));
             Assert.Equal("C<System.Int32, System.String>", cOfIntString.ToTestDisplayString());
-            Assert.Empty(cOfIntString.ClosedSubtypes);
+            Assert.True(cOfIntString.TryGetClosedSubtypes(out subtypes));
+            Assert.Empty(subtypes);
         }
     }
 
@@ -1935,7 +1952,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Empty(classC.ClosedSubtypes);
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Empty(subtypes);
 
         var comp1 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         var comp2 = CreateCompilation([source2], references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net100);
@@ -1944,7 +1962,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
         classC = comp2.GetMember<NamedTypeSymbol>("C");
-        Assert.Empty(classC.ClosedSubtypes);
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Empty(subtypes);
 
         comp2 = CreateCompilation([source2], references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp2.VerifyEmitDiagnostics(
@@ -1952,7 +1971,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             //         return c switch
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(5, 18));
         classC = comp2.GetMember<NamedTypeSymbol>("C");
-        Assert.Empty(classC.ClosedSubtypes);
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Empty(subtypes);
     }
 
     [Fact]
@@ -2057,7 +2077,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("E").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D", "F"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D", "F"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2120,7 +2141,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1", "Container.D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1", "Container.D2"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2165,7 +2187,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(200, 18));
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
 
         var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
@@ -2178,7 +2201,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(200, 18));
 
         classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
 
         comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics(
@@ -2190,7 +2214,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(200, 18));
 
         classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2252,7 +2277,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("Container.C").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
-            Assert.Equal(["Container.D"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["Container.D"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2325,7 +2351,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D2").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1", "D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1", "D2"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2389,7 +2416,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1", "Container.D2"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1", "Container.D2"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2519,7 +2547,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<X>").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T>", "D2<T>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2579,7 +2608,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<X>").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T>", "D2<T>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2638,7 +2668,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<string>").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T>", "D2<T>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2690,7 +2721,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<string>").WithLocation(300, 18));
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["D1<T>", "D2<T>"], subtypes.ToTestDisplayStrings());
 
         var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
@@ -2703,7 +2735,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<string>").WithLocation(300, 18));
 
         classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D1<T>", "D2<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D1<T>", "D2<T>"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2770,9 +2803,12 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "X").WithArguments("D1<U1>", "I1", "U1", "X").WithLocation(200, 16));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
-            Assert.Equal(["D1<E1>"], classC.Construct(comp.GetMember<NamedTypeSymbol>("E1")).ClosedSubtypes.ToTestDisplayStrings());
-            Assert.Equal(["D1<E2>"], classC.Construct(comp.GetMember<NamedTypeSymbol>("E2")).ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T>"], subtypes.ToTestDisplayStrings());
+            Assert.True(classC.Construct(comp.GetMember<NamedTypeSymbol>("E1")).TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<E1>"], subtypes.ToTestDisplayStrings());
+            Assert.True(classC.Construct(comp.GetMember<NamedTypeSymbol>("E2")).TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<E2>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2843,9 +2879,12 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Match1").WithArguments("Program.Match1<X>(C<X>)", "I2", "X", "E1").WithLocation(300, 9));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
-            Assert.Equal(["D1<E1>"], classC.Construct(comp.GetMember<NamedTypeSymbol>("E1")).ClosedSubtypes.ToTestDisplayStrings());
-            Assert.Equal(["D1<E2>"], classC.Construct(comp.GetMember<NamedTypeSymbol>("E2")).ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T>"], subtypes.ToTestDisplayStrings());
+            Assert.True(classC.Construct(comp.GetMember<NamedTypeSymbol>("E1")).TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<E1>"], subtypes.ToTestDisplayStrings());
+            Assert.True(classC.Construct(comp.GetMember<NamedTypeSymbol>("E2")).TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<E2>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -2892,7 +2931,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X>").WithLocation(100, 14));
 
         var classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["D1<T>"], subtypes.ToTestDisplayStrings());
 
         var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
@@ -2902,7 +2942,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X>").WithLocation(100, 14));
 
         classC = comp.GetMember<NamedTypeSymbol>("C");
-        Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D1<T>"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -2960,20 +3001,23 @@ public sealed class ClosedClassesTests : CSharpTestBase
         comp.VerifyEmitDiagnostics();
 
         var classC = comp.GetMember<NamedTypeSymbol>("Container.C");
-        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
 
         var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
         comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         classC = comp.GetMember<NamedTypeSymbol>("Container.C");
-        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["Container<T>.D1", "D2<T>", "D3", "D4"], subtypes.ToTestDisplayStrings());
 
         comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
         comp.VerifyEmitDiagnostics();
 
         classC = comp.GetMember<NamedTypeSymbol>("Container.C");
-        Assert.Equal(["D2<T>", "D3", "D4", "Container<T>.D1"], classC.ClosedSubtypes.ToTestDisplayStrings());
+        Assert.True(classC.TryGetClosedSubtypes(out subtypes));
+        Assert.Equal(["D2<T>", "D3", "D4", "Container<T>.D1"], subtypes.ToTestDisplayStrings());
     }
 
     [Fact]
@@ -3046,7 +3090,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(200, 18));
 
             var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(classC.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<T>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -3115,8 +3160,9 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 //         return x switch
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(200, 18));
 
-            var classC = comp.GetMember<NamedTypeSymbol>("C");
-            Assert.Equal(["D1<T>"], classC.ClosedSubtypes.ToTestDisplayStrings());
+            var classE = comp.GetMember<NamedTypeSymbol>("E");
+            Assert.True(classE.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["F1", "F2"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -3213,7 +3259,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
 
             var cOfStringArray = classC.Construct(
                 comp.CreateArrayTypeSymbol(comp.GetSpecialType(SpecialType.System_String)));
-            Assert.Equal(["D1<System.String>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfStringArray.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<System.String>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -3301,7 +3348,8 @@ public sealed class ClosedClassesTests : CSharpTestBase
                 comp.CreateArrayTypeSymbol(
                     comp.CreatePointerTypeSymbol(
                         comp.GetSpecialType(SpecialType.System_Int32))));
-            Assert.Equal(["D1<System.Int32>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfStringArray.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<System.Int32>"], subtypes.ToTestDisplayStrings());
         }
     }
 
@@ -3433,11 +3481,13 @@ public sealed class ClosedClassesTests : CSharpTestBase
                     comp.GetSpecialType(SpecialType.System_Int32));
 
             var cOfStringArray = classC.Construct(tupleOfStringInt);
-            Assert.Equal(["D1<System.String>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfStringArray.TryGetClosedSubtypes(out var subtypes));
+            Assert.Equal(["D1<System.String>"], subtypes.ToTestDisplayStrings());
 
             tupleOfStringInt = NamedTypeSymbol.CreateTuple(tupleOfStringInt);
             cOfStringArray = classC.Construct(tupleOfStringInt);
-            Assert.Equal(["D1<System.String>"], cOfStringArray.ClosedSubtypes.ToTestDisplayStrings());
+            Assert.True(cOfStringArray.TryGetClosedSubtypes(out subtypes));
+            Assert.Equal(["D1<System.String>"], subtypes.ToTestDisplayStrings());
         }
     }
 }
