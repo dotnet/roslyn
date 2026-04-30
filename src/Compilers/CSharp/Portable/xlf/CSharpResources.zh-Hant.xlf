@@ -1487,6 +1487,16 @@
         <target state="translated">'{0}' 不包含 '{1}' 的定義，而且找不到接受類型 '{0}' 的第一個引數的可存取方法 '{1}' (您是否要改為使用 'await foreach' 來逐一查看非同步集合?)</target>
         <note>'await foreach' is not localizable</note>
       </trans-unit>
+      <trans-unit id="ERR_NoBreakId">
+        <source>No enclosing loop or switch statement with the label '{0}' out of which to break</source>
+        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NoContinueId">
+        <source>No enclosing loop with the label '{0}' out of which to continue</source>
+        <target state="new">No enclosing loop with the label '{0}' out of which to continue</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoImplicitConversionToObject">
         <source>Cannot convert type '{0}' to 'object' via an implicit reference or boxing conversion</source>
         <target state="translated">無法透過隱含參考或 Boxing 轉換，將類型 '{0}' 轉換為 'object'</target>
@@ -6668,11 +6678,6 @@ strument:TestCoverage      產生檢測要收集
       <trans-unit id="ERR_NoBreakOrCont">
         <source>No enclosing loop out of which to break or continue</source>
         <target state="translated">沒有可中斷或繼續的封閉式迴圈</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NoBreakOrContId">
-        <source>No enclosing loop or switch statement with the label '{0}' out of which to break or continue</source>
-        <target state="new">No enclosing loop or switch statement with the label '{0}' out of which to break or continue</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateLabel">

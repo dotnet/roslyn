@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,6 +11,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics;
 
 public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
 {
+    // Tests that target Net100 can only execute on a runtime that supports it.
+    // On other hosts (e.g. net472 CI) the emitted assembly references Net 10
+    // assemblies that cannot be loaded for execution, so skip the runtime check
+    // by passing null for the expected output.
+    private static string? IncludeExpectedOutput(string expectedOutput) =>
+        ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
     #region while
 
     [Fact]
@@ -24,7 +31,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A done");
+        CompileAndVerify(source, expectedOutput: "A done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -42,7 +49,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A done");
+        CompileAndVerify(source, expectedOutput: "A done").VerifyDiagnostics(
+            // (8,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 5));
     }
 
     [Fact]
@@ -58,7 +68,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1 2 3 done");
+        CompileAndVerify(source, expectedOutput: "1 2 3 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -78,7 +88,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1 2 3 done");
+        CompileAndVerify(source, expectedOutput: "1 2 3 done").VerifyDiagnostics(
+            // (10,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(10, 5));
     }
 
     #endregion
@@ -96,7 +109,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             } while (true);
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A done");
+        CompileAndVerify(source, expectedOutput: "A done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -114,7 +127,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             } while (true);
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A done");
+        CompileAndVerify(source, expectedOutput: "A done").VerifyDiagnostics(
+            // (8,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 5));
     }
 
     [Fact]
@@ -130,7 +146,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             } while (i < 3);
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1 2 3 done");
+        CompileAndVerify(source, expectedOutput: "1 2 3 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -150,7 +166,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             } while (i < 3);
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1 2 3 done");
+        CompileAndVerify(source, expectedOutput: "1 2 3 done").VerifyDiagnostics(
+            // (10,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(10, 5));
     }
 
     #endregion
@@ -168,7 +187,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "0 done");
+        CompileAndVerify(source, expectedOutput: "0 done").VerifyDiagnostics(
+            // (1,26): warning CS0162: Unreachable code detected
+            // outer: for (int i = 0; ; i++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(1, 26));
     }
 
     [Fact]
@@ -186,7 +208,13 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "(0,0) done");
+        CompileAndVerify(source, expectedOutput: "(0,0) done").VerifyDiagnostics(
+            // (3,23): warning CS0162: Unreachable code detected
+            //     for (int j = 0; ; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(3, 23),
+            // (8,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 5));
     }
 
     [Fact]
@@ -200,7 +228,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "0 1 2 done");
+        CompileAndVerify(source, expectedOutput: "0 1 2 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -218,7 +246,13 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "(0,0) (1,0) (2,0) done");
+        CompileAndVerify(source, expectedOutput: "(0,0) (1,0) (2,0) done").VerifyDiagnostics(
+            // (3,23): warning CS0162: Unreachable code detected
+            //     for (int j = 0; ; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(3, 23),
+            // (8,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 5));
     }
 
     #endregion
@@ -236,7 +270,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1 done");
+        CompileAndVerify(source, expectedOutput: "1 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -254,7 +288,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1+10 done");
+        CompileAndVerify(source, expectedOutput: "1+10 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -268,7 +302,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1 2 3 done");
+        CompileAndVerify(source, expectedOutput: "1 2 3 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -286,7 +320,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "1+10 2+10 3+10 done");
+        CompileAndVerify(source, expectedOutput: "1+10 2+10 3+10 done").VerifyDiagnostics();
     }
 
     #endregion
@@ -306,7 +340,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "case1 done");
+        CompileAndVerify(source, expectedOutput: "case1 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -325,7 +359,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "inner done");
+        CompileAndVerify(source, expectedOutput: "inner done").VerifyDiagnostics(
+            // (9,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 5));
     }
 
     [Fact]
@@ -346,7 +383,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "nested done");
+        CompileAndVerify(source, expectedOutput: "nested done").VerifyDiagnostics(
+            // (10,9): warning CS0162: Unreachable code detected
+            //         System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(10, 9));
     }
 
     [Fact]
@@ -371,7 +411,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "zero one other done");
+        CompileAndVerify(source, expectedOutput: "zero one other done").VerifyDiagnostics(
+            // (15,5): warning CS0162: Unreachable code detected
+            //     System.Console.Write("SKIPPED ");
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(15, 5));
     }
 
     #endregion
@@ -393,7 +436,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A F done");
+        CompileAndVerify(source, expectedOutput: "A F done").VerifyDiagnostics(
+            // (1,26): warning CS0162: Unreachable code detected
+            // outer: for (int i = 0; ; i++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(1, 26));
     }
 
     [Fact]
@@ -419,7 +465,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A F3 F2 F1 done");
+        CompileAndVerify(source, expectedOutput: "A F3 F2 F1 done").VerifyDiagnostics(
+            // (1,26): warning CS0162: Unreachable code detected
+            // outer: for (int i = 0; ; i++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(1, 26));
     }
 
     [Fact]
@@ -444,7 +493,13 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A Finner Fouter done");
+        CompileAndVerify(source, expectedOutput: "A Finner Fouter done").VerifyDiagnostics(
+            // (1,26): warning CS0162: Unreachable code detected
+            // outer: for (int i = 0; ; i++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(1, 26),
+            // (5,27): warning CS0162: Unreachable code detected
+            //         for (int j = 0; ; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(5, 27));
     }
 
     [Fact]
@@ -467,7 +522,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             finally { System.Console.Write("Fouter "); }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A Finner after-loop Fouter done");
+        CompileAndVerify(source, expectedOutput: "A Finner after-loop Fouter done").VerifyDiagnostics(
+            // (3,30): warning CS0162: Unreachable code detected
+            //     outer: for (int i = 0; ; i++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "i").WithLocation(3, 30));
     }
 
     [Fact]
@@ -487,7 +545,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A1 F A2 F A3 F done");
+        CompileAndVerify(source, expectedOutput: "A1 F A2 F A3 F done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -515,7 +573,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A1 F3 F2 F1 A2 F3 F2 F1 done");
+        CompileAndVerify(source, expectedOutput: "A1 F3 F2 F1 A2 F3 F2 F1 done").VerifyDiagnostics();
     }
 
     [Fact]
@@ -542,7 +600,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A1 Finner Fouter A2 Finner Fouter done");
+        CompileAndVerify(source, expectedOutput: "A1 Finner Fouter A2 Finner Fouter done").VerifyDiagnostics(
+            // (7,27): warning CS0162: Unreachable code detected
+            //         for (int j = 0; ; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 27));
     }
 
     [Fact]
@@ -567,7 +628,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             finally { System.Console.Write("Fouter "); }
             System.Console.Write("done");
             """;
-        CompileAndVerify(source, expectedOutput: "A1 Finner A2 Finner after-loop Fouter done");
+        CompileAndVerify(source, expectedOutput: "A1 Finner A2 Finner after-loop Fouter done").VerifyDiagnostics();
     }
 
     #endregion
@@ -604,7 +665,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "11 12 13 21 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("11 12 13 21 done"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -637,7 +698,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "11 21 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("11 21 done"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -671,7 +732,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "0 1 2 10 11 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("0 1 2 10 11 done"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     [Fact]
@@ -705,7 +766,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: "0 10 20 done", verify: Verification.Skipped);
+        CompileAndVerify(source, targetFramework: TargetFramework.Net100, expectedOutput: IncludeExpectedOutput("0 10 20 done"), verify: Verification.Skipped).VerifyDiagnostics();
     }
 
     #endregion
@@ -729,7 +790,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write($"sum={sum}");
             """;
-        CompileAndVerify(source, expectedOutput: "sum=10");
+        CompileAndVerify(source, expectedOutput: "sum=10").VerifyDiagnostics();
     }
 
     [Fact]
@@ -749,7 +810,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
             }
             System.Console.Write(seen);
             """;
-        CompileAndVerify(source, expectedOutput: "00 01 20 21 ");
+        CompileAndVerify(source, expectedOutput: "00 01 20 21 ").VerifyDiagnostics();
     }
 
     #endregion
@@ -774,7 +835,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        9 (0x9)
               .maxstack  1
@@ -806,7 +867,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       12 (0xc)
               .maxstack  1
@@ -837,7 +898,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        4 (0x4)
               .maxstack  1
@@ -866,7 +927,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        8 (0x8)
               .maxstack  1
@@ -898,7 +959,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       12 (0xc)
               .maxstack  1
@@ -932,7 +993,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        1 (0x1)
               .maxstack  1
@@ -959,7 +1020,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       10 (0xa)
               .maxstack  1
@@ -989,7 +1050,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        4 (0x4)
               .maxstack  1
@@ -1018,7 +1079,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        4 (0x4)
               .maxstack  1
@@ -1047,7 +1108,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       10 (0xa)
               .maxstack  1
@@ -1080,7 +1141,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics(
+            // (7,32): warning CS0162: Unreachable code detected
+            //             for (int j = 0; b; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 32)).VerifyIL("C.M", """
             {
               // Code size       19 (0x13)
               .maxstack  2
@@ -1123,7 +1187,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       28 (0x1c)
               .maxstack  2
@@ -1170,7 +1234,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       14 (0xe)
               .maxstack  2
@@ -1208,7 +1272,10 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics(
+            // (7,32): warning CS0162: Unreachable code detected
+            //             for (int j = 0; b; j++)
+            Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 32)).VerifyIL("C.M", """
             {
               // Code size       18 (0x12)
               .maxstack  2
@@ -1251,7 +1318,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       28 (0x1c)
               .maxstack  2
@@ -1301,7 +1368,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       38 (0x26)
               .maxstack  2
@@ -1365,7 +1432,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size       39 (0x27)
               .maxstack  2
@@ -1426,7 +1493,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        3 (0x3)
               .maxstack  1
@@ -1455,7 +1522,7 @@ public sealed class LabeledBreakContinueEmitTests : CSharpTestBase
                 }
             }
             """;
-        CompileAndVerify(source).VerifyIL("C.M", """
+        CompileAndVerify(source).VerifyDiagnostics().VerifyIL("C.M", """
             {
               // Code size        9 (0x9)
               .maxstack  1
