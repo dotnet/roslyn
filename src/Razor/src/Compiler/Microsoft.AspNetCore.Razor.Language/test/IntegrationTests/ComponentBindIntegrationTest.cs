@@ -95,4 +95,32 @@ namespace Test
             d => Assert.Equal("RZ2005", d.Id),
             d => Assert.Equal("RZ1011", d.Id));
     }
+
+    [Fact]
+    public void BindToComponent_IncompleteDirectiveAttribute_DoesNotThrow()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class InputText : ComponentBase
+                {
+                    [Parameter]
+                    public string Value { get; set; }
+
+                    [Parameter]
+                    public Action<string> ValueChanged { get; set; }
+                }
+            }
+            """));
+
+        var generated = CompileToCSharp("""
+            @using Test
+            <InputText @bind-F
+            """);
+
+        Assert.NotEmpty(generated.RazorDiagnostics);
+    }
 }
