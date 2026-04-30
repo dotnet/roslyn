@@ -3,12 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
     internal class UnsupportedSignatureContent
         : Exception
     {
+        public UnsupportedSignatureContent()
+        {
+            PoolTracker.ForgiveLeaks();
+        }
     }
 }

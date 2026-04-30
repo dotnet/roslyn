@@ -215,7 +215,6 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Missing NativeInteger attribute error path")]
         public void Metadata_ZeroElements()
         {
             var source0 =
@@ -532,7 +531,6 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
-        [ValidatePooledObjects(LeakReason = "Missing NativeInteger attribute error path")]
         public void Metadata_TooFewAndTooManyTransformFlags()
         {
             var source0 =
