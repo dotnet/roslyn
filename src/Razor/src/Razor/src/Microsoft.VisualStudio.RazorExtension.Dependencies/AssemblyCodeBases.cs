@@ -15,7 +15,6 @@ using Microsoft.VisualStudio.Shell;
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.EditorFeatures", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.EditorFeatures.Text", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.ExternalAccess.Razor.Features", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
-[assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.InteractiveHost", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.Features", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
 [assembly: ProvideBindingRedirection(AssemblyName = "Microsoft.CodeAnalysis.LanguageServer.Protocol", GenerateCodeBase = true, OldVersionLowerBound = "4.4.0.0", OldVersionUpperBound = "Current")]
