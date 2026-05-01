@@ -137,6 +137,54 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             makeDiagnosticsRequest: true);
 
     [Fact]
+    public Task GenerateType_FromRazor_InOtherFile()
+        => VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private object M()
+                    {
+                        return new Helper.[||]NestedType();
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private object M()
+                    {
+                        return new Helper.NestedType();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        internal class NestedType
+                        {
+                            public NestedType()
+                            {
+                            }
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateType,
+            makeDiagnosticsRequest: true);
+
+    [Fact]
     public Task GenerateType_WithoutCodeBlock()
         => VerifyCodeActionAsync(
             input: """

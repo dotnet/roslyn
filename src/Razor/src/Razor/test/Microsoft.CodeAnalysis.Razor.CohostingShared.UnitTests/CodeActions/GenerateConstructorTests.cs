@@ -11,6 +11,10 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
+    private const int FieldActionIndex = 0;
+    private const int PropertyActionIndex = 1;
+    private const int NoFieldActionIndex = 2;
+
     [Fact]
     public async Task GenerateConstructor_FromCodeBlock_ExistingCodeBlock()
     {
@@ -166,6 +170,288 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
     }
 
     [Fact]
+    public async Task GenerateConstructor_FromRazor_InOtherFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private Helper M(int value)
+                    {
+                        return new [||]Helper(value);
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private Helper M(int value)
+                    {
+                        return new Helper(value);
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        private int value;
+
+                        public Helper(int value)
+                        {
+                            this.value = value;
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: FieldActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateConstructor_FromRazor_InOtherFile_Property()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private Helper M(int value)
+                    {
+                        return new [||]Helper(value);
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private Helper M(int value)
+                    {
+                        return new Helper(value);
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        public Helper(int value)
+                        {
+                            Value = value;
+                        }
+
+                        public int Value { get; }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: PropertyActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateConstructor_FromRazor_InOtherFile_NoField()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private Helper M(int value)
+                    {
+                        return new [||]Helper(value);
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private Helper M(int value)
+                    {
+                        return new Helper(value);
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        public Helper(int value)
+                        {
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: NoFieldActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateConstructor_FromRazor_InOtherRazorFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private OtherComponent M(int value)
+                    {
+                        return new [||]OtherComponent(value);
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private OtherComponent M(int value)
+                    {
+                        return new OtherComponent(value);
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    @code {
+                        private int value;
+
+                        public OtherComponent(int value)
+                        {
+                            this.value = value;
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: FieldActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateConstructor_FromRazor_InOtherRazorFile_Property()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private OtherComponent M(int value)
+                    {
+                        return new [||]OtherComponent(value);
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private OtherComponent M(int value)
+                    {
+                        return new OtherComponent(value);
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    @code {
+                        public OtherComponent(int value)
+                        {
+                            this.Value = value;
+                        }
+
+                        public int Value { get; }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: PropertyActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateConstructor_FromRazor_InOtherRazorFile_NoField()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private OtherComponent M(int value)
+                    {
+                        return new [||]OtherComponent(value);
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private OtherComponent M(int value)
+                    {
+                        return new OtherComponent(value);
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("OtherComponent.razor"), """
+                    <div>Hi</div>
+                    @code {
+                        public OtherComponent(int value)
+                        {
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: NoFieldActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
     public async Task GenerateConstructor_ForClassInCodeBlock()
     {
         var input = """
@@ -206,7 +492,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             input,
             expected,
             RazorPredefinedCodeFixProviderNames.GenerateConstructor,
-            codeActionIndex: 0,
+            codeActionIndex: FieldActionIndex,
             makeDiagnosticsRequest: true);
     }
 
@@ -239,7 +525,7 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             input,
             expected,
             RazorPredefinedCodeFixProviderNames.GenerateConstructor,
-            codeActionIndex: 0,
+            codeActionIndex: FieldActionIndex,
             fileKind: RazorFileKind.Legacy,
             makeDiagnosticsRequest: true);
     }

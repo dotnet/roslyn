@@ -74,4 +74,56 @@ public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) 
             RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
             makeDiagnosticsRequest: true);
     }
+
+    [Fact]
+    public async Task GenerateDeconstructMethod_FromRazor_InOtherFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private void M()
+                    {
+                        var helper = new Helper();
+                        (int x, int y) = [||]helper;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M()
+                    {
+                        var helper = new Helper();
+                        (int x, int y) = helper;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    using System;
+
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        internal void Deconstruct(out int x, out int y)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateDeconstructMethod,
+            makeDiagnosticsRequest: true);
+    }
 }
