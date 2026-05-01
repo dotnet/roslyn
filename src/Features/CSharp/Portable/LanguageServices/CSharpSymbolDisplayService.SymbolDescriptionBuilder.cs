@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
@@ -167,16 +169,33 @@ internal sealed partial class CSharpSymbolDisplayService
         protected override string? GetNavigationHint(ISymbol? symbol)
             => symbol == null ? null : CodeAnalysis.CSharp.SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.MinimallyQualifiedFormat);
 
-        /// <summary>
-        /// Adds additional documentation content displaying the glyph of 
-        /// Unicode-escaped <see cref="System.Char"/> symbols.
-        /// If char is not displayable (surrogate, control char, etc.),
-        /// does not add content.
-        /// </summary>
-        protected override void AddAdditionalDocumentationContent(ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
+        protected override void AddDocumentationContent(
+            ISymbol symbol,
+            DocumentationComment documentationComment,
+            StructuralTypeDisplayInfo typeDisplayInfo)
         {
-            if (symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
+            var useReplacement = TryGetReplacementDocumentationComment(symbol, out var replacementDocumentationComment);
+            if (useReplacement)
+            {
+                AddToGroup(SymbolDescriptionGroups.Documentation, replacementDocumentationComment);
                 return;
+            }
+
+            base.AddDocumentationContent(symbol, documentationComment, typeDisplayInfo);
+        }
+
+        /// <summary>
+        /// Returns whether documentation content displaying the glyph of 
+        /// Unicode-escaped <see cref="System.Char"/> symbol should be added.
+        /// If symbol is not a char, returns false.
+        /// If char is not displayable (surrogate, control char, etc.),
+        /// returns false.
+        /// </summary>
+        private bool TryGetReplacementDocumentationComment(ISymbol symbol, out IEnumerable<SymbolDisplayPart> additionalParts)
+        {
+            additionalParts = [];
+            if (symbol is not INamedTypeSymbol { SpecialType: SpecialType.System_Char })
+                return false;
 
             var root = SemanticModel.SyntaxTree.GetRoot(CancellationToken);
             var token = root.FindToken(Position);
@@ -184,19 +203,19 @@ internal sealed partial class CSharpSymbolDisplayService
                 token = root.FindTokenOnLeftOfPosition(Position);
 
             if (token.ContainsDiagnostics)
-                return;
+                return false;
 
             if (token.Value is not char character)
-                return;
+                return false;
 
             if (!IsDisplayableInQuotes(character))
-                return;
+                return false;
 
             if (!token.Text.StartsWith("'\\u", System.StringComparison.Ordinal))
-                return;
+                return false;
 
-            AddToGroup(SymbolDescriptionGroups.Documentation,
-                PlainText(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character)));
+            additionalParts = PlainText(string.Format(FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit, character));
+            return true;
         }
 
         /// <summary>

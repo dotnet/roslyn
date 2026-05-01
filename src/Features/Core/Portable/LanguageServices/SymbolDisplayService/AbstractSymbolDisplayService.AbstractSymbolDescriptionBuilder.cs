@@ -174,11 +174,6 @@ internal abstract partial class AbstractSymbolDisplayService
             AddExceptions(firstSymbolDocumentationComment, typeDisplayInfo);
             AddCaptures(this._semanticModel, firstSymbol, typeDisplayInfo);
             AddDocumentationContent(firstSymbol, firstSymbolDocumentationComment, typeDisplayInfo);
-            AddAdditionalDocumentationContent(firstSymbol, typeDisplayInfo);
-        }
-
-        protected virtual void AddAdditionalDocumentationContent(ISymbol symbol, StructuralTypeDisplayInfo typeDisplayInfo)
-        {
         }
 
         private DocumentationComment GetAppropriateDocumentationComment(ISymbol firstSymbol)
@@ -258,7 +253,7 @@ internal abstract partial class AbstractSymbolDisplayService
                 => index < 0 || index >= leadingTrivia.Count ? default : leadingTrivia[index];
         }
 
-        private void AddDocumentationContent(
+        protected virtual void AddDocumentationContent(
             ISymbol symbol,
             DocumentationComment documentationComment,
             StructuralTypeDisplayInfo typeDisplayInfo)
