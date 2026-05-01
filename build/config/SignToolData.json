@@ -165,6 +165,10 @@
       "strongName": null,
       "values": [
         "Dlls\\Diagnostics\\Nerdbank.FullDuplexStream.dll",
+        "Vsix\\VisualStudioSetup\\Mono.Cecil.dll",
+        "Vsix\\VisualStudioSetup\\Mono.Cecil.Mdb.dll",
+        "Vsix\\VisualStudioSetup\\Mono.Cecil.Pdb.dll",
+        "Vsix\\VisualStudioSetup\\Mono.Cecil.Rocks.dll",
         "Vsix\\VisualStudioSetup\\Newtonsoft.Json.dll",
         "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_green.dll",
         "Vsix\\VisualStudioSetup\\SQLitePCLRaw.batteries_v2.dll",
@@ -201,10 +205,7 @@
     "Microsoft.VisualStudio.Threading.resources.dll",
     "Microsoft.VisualStudio.Validation.dll",
     "Microsoft.Win32.Primitives.dll",
-    "Mono.Cecil.dll",
-    "Mono.Cecil.Mdb.dll",
-    "Mono.Cecil.Pdb.dll",
-    "Mono.Cecil.Rocks.dll",
+
     "NuGet.CommandLine.2.8.5.nupkg",
     "StreamJsonRpc.dll",
     "StreamJsonRpc.resources.dll",
