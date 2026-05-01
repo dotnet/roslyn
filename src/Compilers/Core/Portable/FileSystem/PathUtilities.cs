@@ -895,10 +895,14 @@ namespace Roslyn.Utilities
                 {
                     resolvedParts.Add(part);
                 }
-                // /../../file is considered equal to /file, so we only process the parent relative directory info if there is actually a parent
-                else if (resolvedParts.Count > 0)
+                else
                 {
-                    resolvedParts.RemoveAt(resolvedParts.Count - 1);
+                    // /../../file is considered equal to /file, so we only process the parent relative directory info if there is actually a parent
+                    var partCount = resolvedParts.Count;
+                    if (partCount > 0)
+                    {
+                        resolvedParts.RemoveAt(partCount - 1);
+                    }
                 }
             }
 
