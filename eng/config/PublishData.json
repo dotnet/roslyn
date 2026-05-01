@@ -90,7 +90,7 @@
       "Shipping",
       "NonShipping"
     ],
-    "vsBranch": "rel/d17.10",
+    "vsBranch": "rel/d17.8",
     "insertionCreateDraftPR": true,
     "insertionTitlePrefix": "[d17.8 - Abandon]"
   }
