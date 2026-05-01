@@ -94,7 +94,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         }
 
         var completionListResult = await GetFilteredCompletionListAsync(
-            completionContext, document, documentText, position, completionOptions, capabilityHelper, completionService, completionListCache, completionListMaxSize, cancellationToken).ConfigureAwait(false);
+            completionContext, document, documentText, position, completionTrigger, completionOptions, capabilityHelper, completionService, completionListCache, completionListMaxSize, cancellationToken).ConfigureAwait(false);
 
         if (completionListResult == null)
             return null;
@@ -113,6 +113,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         Document document,
         SourceText sourceText,
         int position,
+        CompletionTrigger completionTrigger,
         CompletionOptions completionOptions,
         CompletionCapabilityHelper capabilityHelper,
         CompletionService completionService,
@@ -120,7 +121,6 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
         int completionListMaxSize,
         CancellationToken cancellationToken)
     {
-        var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(context, document, position, cancellationToken).ConfigureAwait(false);
         var isTriggerForIncompleteCompletions = context?.TriggerKind == LSP.CompletionTriggerKind.TriggerForIncompleteCompletions;
 
         (CompletionList List, long ResultId)? result;
