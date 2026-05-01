@@ -141,6 +141,8 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool IsRecord => _symbol.IsRecord;
 
+        public bool IsUnion => _symbol.IsUnion;
+
         public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
 
         public bool IsExtension => _symbol.IsExtension;
