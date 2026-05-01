@@ -1888,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return factory is
                 {
                     IsStatic: true,
-                    Arity: 0, // PROTOTYPE: Add test coverage
+                    Arity: 0,
                     MethodKind: MethodKind.Ordinary,
                     DeclaredAccessibility: Accessibility.Public,
                     ReturnsVoid: false,

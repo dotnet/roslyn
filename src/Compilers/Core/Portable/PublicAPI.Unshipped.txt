@@ -9,3 +9,4 @@ Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnal
 [RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
 [RSEXPERIMENTAL006]const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
 [RSEXPERIMENTAL006]Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool
+[RSEXPERIMENTAL006]Microsoft.CodeAnalysis.ITypeSymbol.IsUnion.get -> bool

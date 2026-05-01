@@ -90,8 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool hasUnionValueSignature(PropertySymbol property)
             {
-                // https://github.com/dotnet/roslyn/issues/82636: Cover individual conditions with tests
-                // https://github.com/dotnet/roslyn/issues/82636: Cover scenaros with a setter present
                 return property is
                 {
                     IsStatic: false,
