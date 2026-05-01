@@ -29,11 +29,9 @@ internal abstract partial class AbstractInProcLanguageClient(
     AbstractLspServiceProvider lspServiceProvider,
     IGlobalOptionService globalOptions,
     ILspServiceLoggerFactory lspLoggerFactory,
-    ExportProvider exportProvider,
-    AbstractLanguageClientMiddleLayer? middleLayer = null)
+    ExportProvider exportProvider)
         : ILanguageClient, ILanguageServerFactory, ILanguageClientCustomMessage2, IPropertyOwner
 {
-    private readonly ILanguageClientMiddleLayer2<JsonElement>? _middleLayer = middleLayer;
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
     private readonly ExportProvider _exportProvider = exportProvider;
 
@@ -54,10 +52,7 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// <summary>
     /// Gets the optional middle layer object that can intercept outgoing requests and responses.
     /// </summary>
-    /// <remarks>
-    /// Currently utilized by Razor to intercept Roslyn's workspace/semanticTokens/refresh requests.
-    /// </remarks>
-    public object? MiddleLayer => _middleLayer;
+    public object? MiddleLayer => null;
 
     /// <summary>
     /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
