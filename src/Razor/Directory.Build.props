@@ -18,7 +18,7 @@
 
   <PropertyGroup Label="Razor Versioning">
     <MajorVersion>10</MajorVersion>
-    <MinorVersion>0</MinorVersion>
+    <MinorVersion>4</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>preview</PreReleaseVersionLabel>
     <DotNetFinalVersionKind></DotNetFinalVersionKind>
