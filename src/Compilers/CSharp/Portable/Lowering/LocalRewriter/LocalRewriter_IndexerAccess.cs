@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Binder.IsWellKnownSystemRange(argumentType, _compilation));
                 Debug.Assert(!isLeftOfAssignment || node.IndexerOrSliceAccess.GetRefKind() == RefKind.Ref);
 
-                receiverIsKnownToBeCaptured = false;
+                receiverIsKnownToBeCaptured = true;
                 return VisitRangePatternIndexerAccess(node);
             }
         }

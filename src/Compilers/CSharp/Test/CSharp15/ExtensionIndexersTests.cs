@@ -8760,9 +8760,6 @@ struct S { }
     {
         // sibling of ObjectInitializer_01
         // Extension indexer with by-val struct receiver, set in an object initializer.
-        // The receiver of the implicit object-initializer is already a captured temp,
-        // but MakePropertyAssignment currently still force-captures it for special
-        // extension-receiver-read-order handling.
         var src = """
 class Program
 {
@@ -31092,14 +31089,14 @@ static class E
 {
     extension(S1 x)
     {
-        public int this[int i] { set { System.Console.Write($"set:{x.F1} "); Program.F.F1++; } }
+        public int Length { get { System.Console.Write($"length:{x.F1} "); Program.F.F1++; return 3; } }
     }
 }
 
 public struct S1
 {
     public int F1;
-    public int Length { get { System.Console.Write($"length:{F1} "); Program.F.F1++; return 3; } }
+    public int this[int i] { set { System.Console.Write($"set:{F1} "); Program.F.F1++; } }
 
     public void Test2()
     {
@@ -31141,61 +31138,49 @@ class Program
 
         verifier.VerifyIL("Program.Test1", """
 {
-  // Code size       48 (0x30)
+  // Code size       44 (0x2c)
   .maxstack  3
   .locals init (S1& V_0,
-                int V_1,
-                int V_2,
-                System.Index V_3)
+                System.Index V_1)
   IL_0000:  nop
   IL_0001:  ldsflda    "S1 Program.F"
   IL_0006:  stloc.0
-  IL_0007:  call       "System.Index Program.GetIndex()"
-  IL_000c:  stloc.3
-  IL_000d:  ldloca.s   V_3
-  IL_000f:  ldloc.0
-  IL_0010:  call       "int S1.Length.get"
-  IL_0015:  call       "int System.Index.GetOffset(int)"
-  IL_001a:  stloc.1
-  IL_001b:  call       "int Program.GetValue()"
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.0
-  IL_0022:  ldobj      "S1"
-  IL_0027:  ldloc.1
-  IL_0028:  ldloc.2
-  IL_0029:  call       "void E.set_Item(S1, int, int)"
-  IL_002e:  nop
-  IL_002f:  ret
+  IL_0007:  ldloc.0
+  IL_0008:  call       "System.Index Program.GetIndex()"
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldloc.0
+  IL_0011:  ldobj      "S1"
+  IL_0016:  call       "int E.get_Length(S1)"
+  IL_001b:  call       "int System.Index.GetOffset(int)"
+  IL_0020:  call       "int Program.GetValue()"
+  IL_0025:  call       "void S1.this[int].set"
+  IL_002a:  nop
+  IL_002b:  ret
 }
 """);
 
         verifier.VerifyIL("S1.Test2", """
 {
-  // Code size       44 (0x2c)
+  // Code size       40 (0x28)
   .maxstack  3
   .locals init (S1& V_0,
-                int V_1,
-                int V_2,
-                System.Index V_3)
+                System.Index V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
-  IL_0003:  call       "System.Index Program.GetIndex()"
-  IL_0008:  stloc.3
-  IL_0009:  ldloca.s   V_3
-  IL_000b:  ldloc.0
-  IL_000c:  call       "int S1.Length.get"
-  IL_0011:  call       "int System.Index.GetOffset(int)"
-  IL_0016:  stloc.1
-  IL_0017:  call       "int Program.GetValue()"
-  IL_001c:  stloc.2
-  IL_001d:  ldloc.0
-  IL_001e:  ldobj      "S1"
-  IL_0023:  ldloc.1
-  IL_0024:  ldloc.2
-  IL_0025:  call       "void E.set_Item(S1, int, int)"
-  IL_002a:  nop
-  IL_002b:  ret
+  IL_0003:  ldloc.0
+  IL_0004:  call       "System.Index Program.GetIndex()"
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloc.0
+  IL_000d:  ldobj      "S1"
+  IL_0012:  call       "int E.get_Length(S1)"
+  IL_0017:  call       "int System.Index.GetOffset(int)"
+  IL_001c:  call       "int Program.GetValue()"
+  IL_0021:  call       "void S1.this[int].set"
+  IL_0026:  nop
+  IL_0027:  ret
 }
 """);
 
@@ -31206,11 +31191,13 @@ static class E
     extension(S1 x)
     {
         public int Length => 3;
-        public int this[int i] { get => 0; set {} }
     }
 }
 
-struct S1;
+struct S1
+{
+    public int this[int i] { get => 0; set {} }
+}
 
 class Program
 {
@@ -31223,9 +31210,9 @@ class Program
 
         var comp2 = CreateCompilation([src2], targetFramework: TargetFramework.Net100);
         comp2.VerifyDiagnostics(
-            // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (18,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
             //         default(S1)[^1] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[^1]").WithLocation(16, 9));
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[^1]").WithLocation(18, 9));
     }
 
     [Fact]
@@ -31353,12 +31340,14 @@ static class E
 {
     extension(S1 x)
     {
-        public int Length => 3;
         public int this[int i] { get => 0; set {} }
     }
 }
 
-struct S1;
+struct S1
+{
+    public int Length => 3;
+}
 
 class Program
 {
@@ -31371,9 +31360,9 @@ class Program
 
         var comp2 = CreateCompilation([src2], targetFramework: TargetFramework.Net100);
         comp2.VerifyDiagnostics(
-            // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+            // (18,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
             //         default(S1)[^1] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[^1]").WithLocation(16, 9));
+            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[^1]").WithLocation(18, 9));
     }
 
     [Theory]
