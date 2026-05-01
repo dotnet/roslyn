@@ -97,7 +97,7 @@ namespace Test
     }
 
     [Fact]
-    public void BindToComponent_IncompleteDirectiveAttribute_DoesNotThrow()
+    public void BindToComponent_IncompleteDirectiveAttribute_ReportsDiagnostics()
     {
         AdditionalSyntaxTrees.Add(Parse("""
             using System;
@@ -121,6 +121,17 @@ namespace Test
             <InputText @bind-F
             """);
 
-        Assert.NotEmpty(generated.RazorDiagnostics);
+        Assert.Collection(
+            generated.RazorDiagnostics,
+            diagnostic =>
+            {
+                Assert.Equal("RZ1035", diagnostic.Id);
+                Assert.Equal("Missing close angle for tag helper 'InputText'.", diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            },
+            diagnostic =>
+            {
+                Assert.Equal("RZ1034", diagnostic.Id);
+                Assert.Equal("Found a malformed 'InputText' tag helper. Tag helpers must have a start and end tag or be self closing.", diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            });
     }
 }
