@@ -35,6 +35,7 @@
   <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
     <ItemGroup>
       <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\*.dll" PackagePath="\source-generators" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" PackagePath="\source-generators" />
       <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Tooling.Internal\$(Configuration)\$(TargetFramework)\Microsoft.Extensions.ObjectPool.dll" PackagePath="\source-generators" />
     </ItemGroup>
   </Target>

@@ -421,7 +421,7 @@ stages:
           - src/Dependencies/*
           - src/NuGet/Microsoft.Net.Compilers.Toolset/*
           - eng/*
-          - src/Tools/Source/CompilerGeneratorTools/*
+          - src/Tools/CompilerGeneratorTools/*
           - '*.sln*'
           - '*.yml'
           - '*.props'

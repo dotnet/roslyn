@@ -65,7 +65,6 @@
     <ProjectReference Include="..\..\..\..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
     <ProjectReference Include="..\..\..\..\..\EditorFeatures\Core\Microsoft.CodeAnalysis.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\Features\Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.csproj" />
-    <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\Razor\EditorFeatures\Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.csproj" />
     <ProjectReference Include="..\..\..\..\..\VisualStudio\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
     <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" />
@@ -80,7 +79,6 @@
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.EditorFeatures.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.EditorFeatures.Text.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.ExternalAccess.Razor.Features.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.ExternalAccess.Razor.EditorFeatures.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.InteractiveHost.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.Features.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.CodeAnalysis.LanguageServer.Protocol.dll" />
