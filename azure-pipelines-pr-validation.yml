@@ -132,7 +132,7 @@ stages:
                    -configuration $(BuildConfiguration)
                    -officialBuildId $(Build.BuildNumber)
                    -officialSkipTests $(SkipTests)
-                   -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+                   -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                    -officialSourceBranchName $(SourceBranchName)
                    -officialIbcDrop $(IbcDrop)
                    -officialVisualStudioDropAccessToken $(_DevDivDropAccessToken)
@@ -197,7 +197,7 @@ stages:
         ArtifactName: 'NGen Logs'
         publishLocation: Container
       continueOnError: true
-      condition: succeeded()
+      condition: and(succeeded(), ${{ not(parameters.SkipApplyOptimizationData) }})
 
     - task: PublishTestResults@2
       displayName: Publish xUnit Test Results
