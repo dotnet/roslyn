@@ -1956,8 +1956,7 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
     }
 
     #region Char literal
-    // https://github.com/dotnet/roslyn/issues/83154
-    [Theory]
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/83154")]
     [InlineData(@"string f = 'x'$$", "")]
     [InlineData(@"char c = $$'\u1234';", "\u1234")] // \u1234 is generic displayable char
     [InlineData(@"char c = '\u12$$34';", "\u1234")]
@@ -1976,6 +1975,8 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
         Action<QuickInfoItem>[] sections = [MainDescription("struct System.Char")];
 
         sections = [.. sections, expectedCharacter.Length == 0
+                // In production, the default documentation comment for a `char` is "Represents a Unicode character as a UTF-16 code unit".
+                // In unit tests, the default documentation comment for a `char` is empty string.
                 ? Documentation(string.Empty)
                 : Documentation(string.Format(
                     FeaturesResources.Represents_the_character_0_as_a_UTF_16_code_unit,
