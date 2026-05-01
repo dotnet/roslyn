@@ -142,8 +142,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
-<!--    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.0.0" ExcludeAssets="all" PrivateAssets="all" />
-    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3.v110_xp" Version="1.1.2" ExcludeAssets="all" PrivateAssets="all" /> -->
     <PackageReference Include="SourceGear.Sqlite3" Version="$(SourceGearSqlite3Version)" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
