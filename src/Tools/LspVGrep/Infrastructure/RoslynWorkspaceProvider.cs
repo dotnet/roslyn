@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace LspVGrepTool.Infrastructure;
@@ -51,10 +52,31 @@ internal sealed class RoslynWorkspaceProvider : IDisposable
                 throw new InvalidOperationException($"Unsupported Roslyn load target kind '{target.Kind}'.");
         }
 
+        // Strip unresolved analyzer references so solution-wide operations
+        // (FindImplementationsAsync, FindDerivedClassesAsync) don't crash during checksumming.
+        solution = RemoveUnresolvedAnalyzerReferences(solution);
+
         // Warm up compilations so individual algorithm timings don't include lazy compilation cost.
         await Task.WhenAll(solution.Projects.Select(p => p.GetCompilationAsync(cancellationToken)));
 
         return new WorkspaceLoadResult(workspace, solution, target.DisplayPath, target.Kind);
+    }
+
+    private static Solution RemoveUnresolvedAnalyzerReferences(Solution solution)
+    {
+        foreach (var project in solution.Projects)
+        {
+            var resolved = project.AnalyzerReferences
+                .Where(r => r is not UnresolvedAnalyzerReference)
+                .ToList();
+
+            if (resolved.Count != project.AnalyzerReferences.Count)
+            {
+                solution = solution.WithProjectAnalyzerReferences(project.Id, resolved);
+            }
+        }
+
+        return solution;
     }
 
     public void Dispose()
