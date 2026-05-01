@@ -1987,7 +1987,8 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
     }
 
     [Fact]
-    public Task TestSemiColonAfterCharLiteral() => TestInMethodAsync(@"char c = '\u1234'$$;");
+    // right of semi-colon, there is no quick info
+    public Task TestSemiColonAfterCharLiteral() => TestInMethodAsync(@"char c = '\u1234';$$");
     #endregion Char literal
 
     [Fact]
