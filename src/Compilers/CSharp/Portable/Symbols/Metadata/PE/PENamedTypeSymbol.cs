@@ -1244,30 +1244,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             var typeDef = metadataReader.GetTypeDefinition(candidateTypeDefHandle);
                             var baseTypeHandle = typeDef.BaseType;
-                            if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
-                            {
-                                if (baseTypeHandle == this.Handle)
-                                    subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
-
+                            if (tryHandleTypeDefOrTypeRef(baseTypeHandle, candidateTypeDefHandle))
                                 continue;
+
+                            if (baseTypeHandle.Kind == HandleKind.TypeSpecification)
+                            {
+                                // Dig through the TypeSpec and check the handle for the original definition.
+                                var sigReader = decoder.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)baseTypeHandle);
+                                var typeCode = sigReader.ReadSignatureTypeCode();
+                                if (typeCode != SignatureTypeCode.GenericTypeInstance)
+                                    continue;
+
+                                var elementType = sigReader.ReadSignatureTypeCode();
+                                if (elementType != SignatureTypeCode.TypeHandle)
+                                    throw new UnsupportedSignatureContent();
+
+                                var baseTypeDefinitionHandle = sigReader.ReadTypeHandle();
+                                if (tryHandleTypeDefOrTypeRef(baseTypeDefinitionHandle, candidateTypeDefHandle))
+                                    continue;
                             }
 
-                            // PROTOTYPE(cc): Perhaps we should write a helper to dig thru the signature,
-                            // filter for GenericTypeInstance, and get the TypeDef token representing the original definition, to compare against 'this.Handle'.
-                            // This would reduce how often we need to call 'GetTypeOfToken'.
-                            Debug.Assert(baseTypeHandle.Kind is HandleKind.TypeSpecification or HandleKind.TypeReference);
+                            // Easy-outs did not work. Need to just decode a symbol and compare.
                             var candidateSubtype = decoder.GetTypeOfToken(candidateTypeDefHandle);
                             if (candidateSubtype.BaseTypeNoUseSiteDiagnostics.OriginalDefinition.Equals(this, TypeCompareKind.CLRSignatureCompareOptions))
                                 subtypeDefinitionsBuilder.Add((NamedTypeSymbol)candidateSubtype);
                         }
                     }
-                    catch (BadImageFormatException)
+                    catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
                     {
                         // PROTOTYPE(cc): It seems like we don't know what the candidate subtypes are in this case,
                         // so, perhaps we should not allow exhausting the type via its subtypes.
                     }
 
                     return subtypeDefinitionsBuilder.ToImmutableAndFree();
+
+                    bool tryHandleTypeDefOrTypeRef(EntityHandle baseTypeHandle, TypeDefinitionHandle candidateTypeDefHandle)
+                    {
+                        if (baseTypeHandle.Kind == HandleKind.TypeDefinition)
+                        {
+                            if (baseTypeHandle == this.Handle)
+                                subtypeDefinitionsBuilder.Add((NamedTypeSymbol)decoder.GetTypeOfToken(candidateTypeDefHandle));
+
+                            return true;
+                        }
+
+                        if (baseTypeHandle.Kind == HandleKind.TypeReference)
+                        {
+                            var typeRef = metadataReader.GetTypeReference((TypeReferenceHandle)baseTypeHandle);
+                            // A TypeRef is usually used to refer to a type in another module.
+                            // However, if the ResolutionScope is the ModuleDefinition, it refers to a type in the current module.
+                            // This is the only situation where we should actually inspect such types.
+                            return typeRef.ResolutionScope != EntityHandle.ModuleDefinition;
+                        }
+
+                        return false;
+                    }
                 }
             }
         }
