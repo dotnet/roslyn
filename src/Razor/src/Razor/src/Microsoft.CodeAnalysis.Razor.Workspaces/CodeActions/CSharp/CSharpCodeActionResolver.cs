@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -13,11 +14,12 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
-internal abstract class CSharpCodeActionResolver(IRazorFormattingService razorFormattingService, IClientSettingsManager clientSettingsManager, IFilePathService filePathService) : ICSharpCodeActionResolver
+internal abstract class CSharpCodeActionResolver(IRazorFormattingService razorFormattingService, IClientSettingsManager clientSettingsManager, IFilePathService filePathService, ILoggerFactory loggerFactory) : ICSharpCodeActionResolver
 {
     private readonly IRazorFormattingService _razorFormattingService = razorFormattingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IFilePathService _filePathService = filePathService;
+    private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<CSharpCodeActionResolver>();
 
     public string Action => LanguageServerConstants.CodeActions.Default;
 
@@ -50,6 +52,7 @@ internal abstract class CSharpCodeActionResolver(IRazorFormattingService razorFo
             var editDocumentContext = await CreateDocumentContextAsync(snapshot, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
             if (editDocumentContext is null)
             {
+                _logger.LogWarning($"Could not create document context for {generatedDocumentUri} processing {codeAction.Title}, so leaving original edit in place.");
                 continue;
             }
 
@@ -72,6 +75,7 @@ internal abstract class CSharpCodeActionResolver(IRazorFormattingService razorFo
             }
             else
             {
+                _logger.LogWarning($"Formatting dropped all C# code edits for {codeAction.Title} in {editDocumentContext.Uri}");
                 textDocumentEdit.Edits = [];
             }
         }
