@@ -73,13 +73,13 @@ internal sealed class RemoteSelectionRangeService(in ServiceArgs args) : RazorDo
         }
 
         var csharpDocument = codeDocument.GetRequiredCSharpDocument();
-        using var selectionRanges = new PooledArrayBuilder<SelectionRange>(csharpSelectionRanges.Length);
+        var selectionRanges = new SelectionRange[csharpSelectionRanges.Length];
         for (var i = 0; i < csharpSelectionRanges.Length; i++)
         {
-            selectionRanges.Add(MapSelectionRange(csharpDocument, csharpSelectionRanges[i], positions[i], isRoot: true)!);
+            selectionRanges[i] = MapSelectionRange(csharpDocument, csharpSelectionRanges[i], positions[i], isRoot: true)!;
         }
 
-        return selectionRanges.ToArray();
+        return selectionRanges;
     }
 
     private SelectionRange? MapSelectionRange(RazorCSharpDocument csharpDocument, SelectionRange? csharpSelectionRange, Position originalPosition, bool isRoot)
