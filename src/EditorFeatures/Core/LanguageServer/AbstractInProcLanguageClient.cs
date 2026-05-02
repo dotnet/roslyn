@@ -30,7 +30,7 @@ internal abstract partial class AbstractInProcLanguageClient(
     IGlobalOptionService globalOptions,
     ILspServiceLoggerFactory lspLoggerFactory,
     ExportProvider exportProvider)
-        : ILanguageClient, ILanguageServerFactory, ILanguageClientCustomMessage2, IPropertyOwner
+        : ILanguageClient, ILanguageServerFactory, IPropertyOwner
 {
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
     private readonly ExportProvider _exportProvider = exportProvider;
@@ -48,17 +48,6 @@ internal abstract partial class AbstractInProcLanguageClient(
     /// Gets the name of the language client (displayed to the user).
     /// </summary>
     public string Name => ServerKind.ToUserVisibleString();
-
-    /// <summary>
-    /// Gets the optional middle layer object that can intercept outgoing requests and responses.
-    /// </summary>
-    public object? MiddleLayer => null;
-
-    /// <summary>
-    /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
-    /// Gets the optional target object for receiving custom messages not covered by the language server protocol.
-    /// </summary>
-    public virtual object? CustomMessageTarget => null;
 
     /// <summary>
     /// An enum representing this server instance.
@@ -236,12 +225,6 @@ internal abstract partial class AbstractInProcLanguageClient(
             Name, initializationState.StatusMessage, initializationState.InitializationException?.ToString());
         return initializationFailureContext;
     }
-
-    /// <summary>
-    /// Unused, implementing <see cref="ILanguageClientCustomMessage2"/>.
-    /// This method is called after the language server has been activated, but connection has not been established.
-    /// </summary>
-    public Task AttachForCustomMessageAsync(JsonRpc rpc) => Task.CompletedTask;
 
     private static PropertyCollection CreateStjPropertyCollection()
     {
