@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeFieldReadonly;
 public sealed class MakeFieldReadonlyTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([KeyValuePair.Create("strict", "true")]);
+    private static readonly ParseOptions s_strictFeatureFlag = CSharpParseOptions.Default.WithFeatures([new KeyValuePair<string, string>("strict", "true")]);
 
     private const string s_inlineArrayAttribute = """
         namespace System.Runtime.CompilerServices
