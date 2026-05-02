@@ -143,8 +143,9 @@ internal sealed class OOPCSharpCodeActionResolver(
     IRazorFormattingService razorFormattingService,
     IClientSettingsManager clientSettingsManager,
     IFilePathService filePathService,
-    RemoteSnapshotManager snapshotManager)
-    : CSharpCodeActionResolver(razorFormattingService, clientSettingsManager, filePathService)
+    RemoteSnapshotManager snapshotManager,
+    ILoggerFactory loggerFactory)
+    : CSharpCodeActionResolver(razorFormattingService, clientSettingsManager, filePathService, loggerFactory)
 {
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
 
