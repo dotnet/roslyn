@@ -70,4 +70,56 @@ public class GenerateConversionTests(ITestOutputHelper testOutputHelper) : Cohos
             RazorPredefinedCodeFixProviderNames.GenerateConversion,
             makeDiagnosticsRequest: true);
     }
+
+    [Fact]
+    public async Task GenerateExplicitConversion_FromRazor_InOtherFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private int M()
+                    {
+                        var x = new Helper();
+                        return [||](int)x;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private int M()
+                    {
+                        var x = new Helper();
+                        return (int)x;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    using System;
+
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        public static explicit operator int(Helper v)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateConversion,
+            makeDiagnosticsRequest: true);
+    }
 }

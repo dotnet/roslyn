@@ -103,6 +103,54 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
     }
 
     [Fact]
+    public async Task GenerateField_FromRazor_InOtherFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @code {
+                    private int M()
+                    {
+                        var x = new Helper();
+                        return x.[||]newField;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private int M()
+                    {
+                        var x = new Helper();
+                        return x.newField;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                    }
+                    """)
+            ],
+            additionalExpectedFiles:
+            [
+                (FileUri("Helper.cs"), """
+                    namespace SomeProject;
+
+                    public class Helper
+                    {
+                        internal int newField;
+                    }
+                    """)
+            ],
+            codeActionName: RazorPredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionIndex: FieldActionIndex,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
     public async Task GenerateConstField_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """
