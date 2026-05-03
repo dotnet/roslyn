@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public TypeSymbol? SampleType(Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public TypeSymbol? SampleType(TypeSymbol inputType, Binder binder, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             if (IsEmpty(ref useSiteInfo))
                 throw new ArgumentException();
@@ -257,38 +257,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyMightIncludeNonNull != false)
             {
                 var sampleType = TryGetSampleType(_root, ref useSiteInfo);
-                return walkUpInvalidClosedSubtypesIfNeeded(binder, sampleType);
+                return walkUpInvalidClosedSubtypesIfNeeded(inputType, binder, sampleType, ref useSiteInfo);
             }
 
             return null;
 
-            static TypeSymbol? walkUpInvalidClosedSubtypesIfNeeded(Binder binder, TypeSymbol? sampleType)
+            static TypeSymbol? walkUpInvalidClosedSubtypesIfNeeded(TypeSymbol inputType, Binder binder, TypeSymbol? sampleType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
                 if (sampleType is null || sampleType is not NamedTypeSymbol namedType)
                 {
                     return sampleType;
                 }
 
-                while (isInvalidClosedSubtype(binder, namedType))
+                while (isInvalidClosedSubtype(inputType, binder, namedType, ref useSiteInfo))
                     namedType = namedType.BaseTypeNoUseSiteDiagnostics;
 
                 return namedType;
 
-                static bool isInvalidClosedSubtype(Binder binder, NamedTypeSymbol namedType)
+                static bool isInvalidClosedSubtype(TypeSymbol inputType, Binder binder, NamedTypeSymbol possibleClosedSubtype, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
                 {
-                    if (!namedType.BaseTypeNoUseSiteDiagnostics.IsClosed)
+                    if (!possibleClosedSubtype.BaseTypeNoUseSiteDiagnostics.IsClosed)
                         return false;
 
-                    if (!namedType.CheckAllConstraints(binder.Compilation, binder.Conversions))
-                    {
-                        return true;
-                    }
+                    // Do not suggest matching a type which is "more base" than the pattern's input type.
+                    // TODO2: it seems like the pattern input type itself isn't what we want to compare against when matching a union.
+                    // It seems like in order to provide the "most desirable" type suggestion in all scenarios, we might need to remember which original closed type is associated with each expanded type.
+                    // Since a union could contain multiple closed types, or even multiple constructions of the same closed type or types within the same hierarchy, there could be some fairly subtle conditions to handle here.
+                    if (inputType.OriginalDefinition.Equals(possibleClosedSubtype.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                        return false;
 
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    if (!binder.IsAccessible(namedType, useSiteInfo: ref discardedUseSiteInfo))
-                    {
+                    if (!possibleClosedSubtype.CheckAllConstraints(binder.Compilation, binder.Conversions))
                         return true;
-                    }
+
+                    if (!binder.IsAccessible(possibleClosedSubtype, ref useSiteInfo))
+                        return true;
 
                     return false;
                 }

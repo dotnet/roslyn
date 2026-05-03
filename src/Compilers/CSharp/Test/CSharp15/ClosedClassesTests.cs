@@ -2740,6 +2740,313 @@ public sealed class ClosedClassesTests : CSharpTestBase
     }
 
     [Fact]
+    public void Exhaustiveness_Constraints_05()
+    {
+        // Pattern input type itself violates constraints. Do not suggest a more base type than the input type.
+        var source1 = """
+            public closed class C<T>;
+            public closed class D1<U1> : C<U1> where U1 : class;
+            public class D2<U2> : D1<U2> where U2 : class;
+            public class D3<U3> : D1<U3> where U3 : class;
+            """;
+
+        var source2 = """
+            class Program
+            {
+            #line 100
+                public D1<int> d1 = null!;
+
+                int M1()
+                {
+            #line 200
+                    return d1 switch
+                    {
+                    };
+                }
+
+                int M2()
+                {
+            #line 300
+                    return d1 switch
+                    {
+            #line 400
+                        D2<int> => 1,
+                    };
+                }
+
+                int M3()
+                {
+                    return d1 switch
+                    {
+            #line 500
+                        D1<int> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,20): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1>'
+                //     public D1<int> d1 = null!;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d1").WithArguments("D1<U1>", "U1", "int").WithLocation(100, 20),
+                // (200,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<int>' is not covered.
+                //         return d1 switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<int>").WithLocation(200, 19),
+                // (300,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<int>' is not covered.
+                //         return d1 switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<int>").WithLocation(300, 19),
+                // (400,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
+                //             D2<int> => 1,
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D2<U2>", "U2", "int").WithLocation(400, 16),
+                // (500,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1>'
+                //             D1<int> => 1,
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D1<U1>", "U1", "int").WithLocation(500, 16));
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_Constraints_06()
+    {
+        // A nested pattern input type itself violates constraints. Do not suggest a more base type than the input type.
+        var source1 = """
+            public closed class C<T>;
+            public closed class D1<U1> : C<U1> where U1 : class;
+            public class D2<U2> : D1<U2> where U2 : class;
+            public class D3<U3> : D1<U3> where U3 : class;
+
+            public class Container<X1> where X1 : class
+            {
+                public D1<X1> Value;
+            }
+            """;
+
+        var source2 = """
+            class Program
+            {
+            #line 100
+                public Container<int> c = null!;
+
+                int M1()
+                {
+            #line 200
+                    return c switch
+                    {
+                    };
+                }
+
+                int M2()
+                {
+            #line 300
+                    return c switch
+                    {
+            #line 400
+                        { Value: D2<int> } => 1,
+                    };
+                }
+
+                int M3()
+                {
+                    return c switch
+                    {
+            #line 500
+                        { Value: D1<int> } => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        var comp0 = CreateCompilation([source1, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp = CreateCompilation([source2], references: [comp0.ToMetadataReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        comp = CreateCompilation([source2], references: [comp0.EmitToImageReference()], targetFramework: TargetFramework.Net100);
+        verify(comp);
+
+        static void verify(CSharpCompilation comp)
+        {
+            comp.VerifyEmitDiagnostics(
+                // (100,27): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'X1' in the generic type or method 'Container<X1>'
+                //     public Container<int> c = null!;
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c").WithArguments("Container<X1>", "X1", "int").WithLocation(100, 27),
+                // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(200, 18),
+                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Value: D1<int> }' is not covered.
+                //         return c switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Value: D1<int> }").WithLocation(300, 18),
+                // (400,25): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U2' in the generic type or method 'D2<U2>'
+                //             { Value: D2<int> } => 1,
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D2<U2>", "U2", "int").WithLocation(400, 25),
+                // (500,25): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1>'
+                //             { Value: D1<int> } => 1,
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D1<U1>", "U1", "int").WithLocation(500, 25)
+
+            );
+        }
+    }
+
+    [Fact]
+    public void Exhaustiveness_Constraints_07()
+    {
+        // A nested pattern input type violates constraints.
+        // The subtype has a different construction of the base type than the pattern input type.
+        var source1 = """
+            public closed class C<T1, T2>;
+            public closed class D1<U1, U2> : C<U1, U2> where U1 : class where U2 : class;
+
+            #line 100
+            public class D2<V1> : D1<int, V1> where V1 : class;
+
+            public class D3<V2, V3> : D1<V2, V3> where V2 : class where V3 : class;
+            """;
+
+        var source2 = """
+            class Program<X1, X2>
+            {
+            #line 200
+                public D1<X1, X2> d1 = null!;
+
+                int M1()
+                {
+            #line 300
+                    return d1 switch
+                    {
+                    };
+                }
+
+                int M2()
+                {
+            #line 400
+                    return d1 switch
+                    {
+            #line 500
+                        D2<X2> => 1,
+                    };
+                }
+
+                int M3()
+                {
+                    return d1 switch
+                    {
+            #line 600
+                        D1<X1, X2> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (100,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1, U2>'
+            // public class D2<V1> : D1<int, V1> where V1 : class;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "D2").WithArguments("D1<U1, U2>", "U1", "int").WithLocation(100, 14),
+            // (200,23): error CS0452: The type 'X1' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1, U2>'
+            //     public D1<X1, X2> d1 = null!;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d1").WithArguments("D1<U1, U2>", "U1", "X1").WithLocation(200, 23),
+            // (200,23): error CS0452: The type 'X2' must be a reference type in order to use it as parameter 'U2' in the generic type or method 'D1<U1, U2>'
+            //     public D1<X1, X2> d1 = null!;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "d1").WithArguments("D1<U1, U2>", "U2", "X2").WithLocation(200, 23),
+            // (300,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<int, X2>' is not covered.
+            //         return d1 switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<int, X2>").WithLocation(300, 19),
+            // (400,19): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'D1<X1, X2>' is not covered.
+            //         return d1 switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("D1<X1, X2>").WithLocation(400, 19),
+            // (500,16): error CS0452: The type 'X2' must be a reference type in order to use it as parameter 'V1' in the generic type or method 'D2<V1>'
+            //             D2<X2> => 1,
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "X2").WithArguments("D2<V1>", "V1", "X2").WithLocation(500, 16),
+            // (600,16): error CS0452: The type 'X1' must be a reference type in order to use it as parameter 'U1' in the generic type or method 'D1<U1, U2>'
+            //             D1<X1, X2> => 1,
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "X1").WithArguments("D1<U1, U2>", "U1", "X1").WithLocation(600, 16),
+            // (600,20): error CS0452: The type 'X2' must be a reference type in order to use it as parameter 'U2' in the generic type or method 'D1<U1, U2>'
+            //             D1<X1, X2> => 1,
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "X2").WithArguments("D1<U1, U2>", "U2", "X2").WithLocation(600, 20));
+    }
+
+    [Fact]
+    public void Exhaustiveness_Constraints_08()
+    {
+        // A union case type is a subtype of a closed type which violates constraints.
+        // TODO2: The suggestion to use 'C<int>' is undesired
+        var source1 = """
+            public closed class C<U1>;
+            public closed class D1<V1> : C<V1> where V1 : class;
+            public class D2<W1> : D1<W1> where W1 : class;
+            public class D3<X1> : D1<X1> where X1 : class;
+
+            public union U<T1>(D1<T1>) where T1 : class;
+            """;
+
+        var source2 = """
+            class Program
+            {
+            #line 100
+                public U<int> u = null!;
+
+                int M1()
+                {
+            #line 200
+                    return u switch
+                    {
+                    };
+                }
+
+                int M2()
+                {
+            #line 400
+                    return u switch
+                    {
+            #line 500
+                        D2<int> => 1,
+                    };
+                }
+
+                int M3()
+                {
+                    return u switch
+                    {
+            #line 600
+                        D1<int> => 1,
+                    };
+                }
+            }
+            """;
+
+        var comp = CreateCompilation([source1, source2, UnionAttributeSource, IUnionSource, ClosedAttributeDefinition], targetFramework: TargetFramework.Net100);
+        comp.VerifyEmitDiagnostics(
+            // (100,19): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'U<T1>'
+            //     public U<int> u = null!;
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "u").WithArguments("U<T1>", "T1", "int").WithLocation(100, 19),
+            // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(200, 18),
+            // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C<int>' is not covered.
+            //         return u switch
+            Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C<int>").WithLocation(400, 18),
+            // (500,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'W1' in the generic type or method 'D2<W1>'
+            //             D2<int> => 1,
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D2<W1>", "W1", "int").WithLocation(500, 16),
+            // (600,16): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'V1' in the generic type or method 'D1<V1>'
+            //             D1<int> => 1,
+            Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("D1<V1>", "V1", "int").WithLocation(600, 16));
+    }
+
+    [Fact]
     public void Exhaustiveness_InterfaceConstraints_01()
     {
         // Subtype has interface constraint
