@@ -130,8 +130,8 @@ internal sealed partial class AutomaticLineEnderCommandHandler
 
         // There is an inner statement, it needs to be handled differently in addition to adding the block,
 
-        // For while, ForEach, Lock and Using statement,
-        // If there is an statement in the embeddedStatementOwner,
+        // For while, ForEach, Lock, Using and Fixed statement,
+        // If there is a statement in the embeddedStatementOwner,
         // move the old statement next to the statementOwner,
         // and insert a empty block into the statementOwner,
         // e.g.
@@ -148,7 +148,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         // var i = 1;
         return embeddedStatementOwner switch
         {
-            WhileStatementSyntax or ForEachStatementSyntax or ForStatementSyntax or LockStatementSyntax or UsingStatementSyntax
+            WhileStatementSyntax or ForEachStatementSyntax or ForStatementSyntax or LockStatementSyntax or UsingStatementSyntax or FixedStatementSyntax
                 => ReplaceStatementOwnerAndInsertStatement(
                       services,
                       root,
@@ -484,6 +484,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler
             FinallyClauseSyntax finallyClauseNode => ShouldAddBraceForFinallyClause(finallyClauseNode, caretPosition),
             DoStatementSyntax doStatementNode => ShouldAddBraceForDoStatement(doStatementNode, caretPosition),
             CommonForEachStatementSyntax commonForEachStatementNode => ShouldAddBraceForCommonForEachStatement(commonForEachStatementNode, caretPosition),
+            FixedStatementSyntax fixedStatement => ShouldAddBraceForFixedStatement(fixedStatement, caretPosition),
             ForStatementSyntax forStatementNode => ShouldAddBraceForForStatement(forStatementNode, caretPosition),
             IfStatementSyntax ifStatementNode => ShouldAddBraceForIfStatement(ifStatementNode, caretPosition),
             ElseClauseSyntax elseClauseNode => ShouldAddBraceForElseClause(elseClauseNode, caretPosition),
@@ -677,6 +678,12 @@ internal sealed partial class AutomaticLineEnderCommandHandler
            && !commonForEachStatementNode.OpenParenToken.IsMissing
            && !commonForEachStatementNode.CloseParenToken.IsMissing
            && !WithinEmbeddedStatement(commonForEachStatementNode, caretPosition);
+
+    private static bool ShouldAddBraceForFixedStatement(FixedStatementSyntax fixedStatementNode, int caretPosition)
+        => fixedStatementNode.Statement is not BlockSyntax
+            && !fixedStatementNode.OpenParenToken.IsMissing
+            && !fixedStatementNode.CloseParenToken.IsMissing
+            && !WithinEmbeddedStatement(fixedStatementNode, caretPosition);
 
     private static bool ShouldAddBraceForForStatement(ForStatementSyntax forStatementNode, int caretPosition)
         => forStatementNode.Statement is not BlockSyntax
@@ -939,13 +946,14 @@ internal sealed partial class AutomaticLineEnderCommandHandler
         StatementSyntax? extraNodeInsertedBetweenBraces = null)
     {
         var block = extraNodeInsertedBetweenBraces != null
-            ? GetBlockNode(formattingOptions).WithStatements(new SyntaxList<StatementSyntax>(extraNodeInsertedBetweenBraces))
+            ? GetBlockNode(formattingOptions).WithStatements([extraNodeInsertedBetweenBraces])
             : GetBlockNode(formattingOptions);
 
         return embeddedStatementOwner switch
         {
             DoStatementSyntax doStatementNode => doStatementNode.WithStatement(block),
             CommonForEachStatementSyntax forEachStatementNode => forEachStatementNode.WithStatement(block),
+            FixedStatementSyntax fixedStatementNode => fixedStatementNode.WithStatement(block),
             ForStatementSyntax forStatementNode => forStatementNode.WithStatement(block),
             IfStatementSyntax ifStatementNode => ifStatementNode.WithStatement(block),
             ElseClauseSyntax elseClauseNode => elseClauseNode.WithStatement(block),

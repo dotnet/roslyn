@@ -321,6 +321,7 @@ internal sealed partial class AutomaticLineEnderCommandHandler(
                     or BaseObjectCreationExpressionSyntax
                     or WhileStatementSyntax
                     or CommonForEachStatementSyntax
+                    or FixedStatementSyntax
                     or ForStatementSyntax
                     or LockStatementSyntax
                     or UsingStatementSyntax
