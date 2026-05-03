@@ -25,17 +25,21 @@ internal sealed partial class SolutionCompilationState
             ImmutableArray<DocumentState> oldStates,
             ImmutableArray<DocumentState> newStates) : TranslationAction(oldProjectState, newProjectState)
         {
-            private readonly ImmutableArray<DocumentState> _oldStates = oldStates;
-            private readonly ImmutableArray<DocumentState> _newStates = newStates;
+
+            /// <summary>The document states before the edit.</summary>
+            public ImmutableArray<DocumentState> OldStates { get; } = oldStates;
+
+            /// <summary>The document states after the edit.</summary>
+            public ImmutableArray<DocumentState> NewStates { get; } = newStates;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
                 var finalCompilation = oldCompilation;
-                for (var i = 0; i < _newStates.Length; i++)
+                for (var i = 0; i < NewStates.Length; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var newState = _newStates[i];
-                    var oldState = _oldStates[i];
+                    var newState = NewStates[i];
+                    var oldState = OldStates[i];
                     finalCompilation = finalCompilation.ReplaceSyntaxTree(
                         await oldState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false),
                         await newState.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
@@ -56,11 +60,11 @@ internal sealed partial class SolutionCompilationState
             public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             {
                 if (priorAction is TouchDocumentsAction priorTouchAction &&
-                    priorTouchAction._newStates.SequenceEqual(_oldStates))
+                    priorTouchAction.NewStates.SequenceEqual(OldStates))
                 {
                     // As we're merging ourselves with the prior touch action, we want to keep the old project state
                     // that we are translating from.
-                    return new TouchDocumentsAction(priorAction.OldProjectState, NewProjectState, priorTouchAction._oldStates, _newStates);
+                    return new TouchDocumentsAction(priorAction.OldProjectState, NewProjectState, priorTouchAction.OldStates, NewStates);
                 }
 
                 return null;

@@ -178,28 +178,83 @@ internal sealed partial class SolutionCompilationState
         var newProjectState = stateChange.NewProjectState;
         var projectId = newProjectState.Id;
 
-        var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
-        var newTrackerMap = CreateCompilationTrackerMap(
-            projectId,
-            newDependencyGraph,
-            static (trackerMap, arg) =>
+        // Optimization: For body-only edits (e.g., typing inside a method body), dependent projects'
+        // compilations are unaffected because the public API surface hasn't changed. In this case,
+        // we can skip forking all dependent trackers (which discards their compilations) and instead
+        // only update the edited project's tracker. This avoids the expensive ToBuilder()/ToImmutable()
+        // cycle on the tracker map and eliminates redundant compilation rebuilds in dependents.
+        var newTrackerMap = _projectIdToTrackerMap;
+        if (forkTracker
+            && translationAction is TranslationAction.TouchDocumentsAction touchAction
+            && IsBodyOnlyChange(touchAction))
+        {
+            if (newTrackerMap.TryGetValue(projectId, out var existingTracker))
             {
-                // If we have a tracker for this project, then fork it as well (along with the
-                // translation action and store it in the tracker map.
-                if (trackerMap.TryGetValue(arg.projectId, out var tracker))
+                newTrackerMap = newTrackerMap.SetItem(projectId, existingTracker.Fork(newProjectState, translationAction));
+            }
+        }
+        else
+        {
+            var newDependencyGraph = newSolutionState.GetProjectDependencyGraph();
+            newTrackerMap = CreateCompilationTrackerMap(
+                projectId,
+                newDependencyGraph,
+                static (trackerMap, arg) =>
                 {
-                    if (!arg.forkTracker)
-                        trackerMap.Remove(arg.projectId);
-                    else
-                        trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translationAction);
-                }
-            },
-            (translationAction, forkTracker, projectId, newProjectState),
-            skipEmptyCallback: true);
+                    // If we have a tracker for this project, then fork it as well (along with the
+                    // translation action and store it in the tracker map.
+                    if (trackerMap.TryGetValue(arg.projectId, out var tracker))
+                    {
+                        if (!arg.forkTracker)
+                            trackerMap.Remove(arg.projectId);
+                        else
+                            trackerMap[arg.projectId] = tracker.Fork(arg.newProjectState, arg.translationAction);
+                    }
+                },
+                (translationAction, forkTracker, projectId, newProjectState),
+                skipEmptyCallback: true);
+        }
 
         return this.Branch(
             newSolutionState,
             projectIdToTrackerMap: newTrackerMap);
+    }
+
+    /// <summary>
+    /// Determines whether a <see cref="TranslationAction.TouchDocumentsAction"/> represents a body-only
+    /// change (no change to the public/internal API surface). This forces synchronous tree computation
+    /// for the changed documents to perform the equivalence check.
+    /// </summary>
+    private static bool IsBodyOnlyChange(TranslationAction.TouchDocumentsAction touchAction)
+    {
+        // Access the old and new document states via the action's fields.
+        // We need to compare old vs new syntax trees at the top level.
+        var oldStates = touchAction.OldStates;
+        var newStates = touchAction.NewStates;
+
+        for (var i = 0; i < newStates.Length; i++)
+        {
+            var oldState = oldStates[i];
+            var newState = newStates[i];
+
+            // If either tree source is null (e.g., non-C#/VB document), we can't determine
+            // body-only status. Fall back to the conservative path.
+            if (oldState.TreeSource is null || newState.TreeSource is null)
+                return false;
+
+            if (!oldState.TryGetSyntaxTree(out var oldTree))
+                return false;
+
+            // Force synchronous tree computation. Pay the parse cost upfront to potentially avoid much larger costs downstream.
+            var newTree = newState.GetSyntaxTree(CancellationToken.None);
+
+            // If the trees are NOT equivalent at the top level, this is a top-level change
+            // (e.g., adding/removing/renaming a method). We must fork dependents.
+            if (!newTree.IsEquivalentTo(oldTree, topLevel: true))
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
